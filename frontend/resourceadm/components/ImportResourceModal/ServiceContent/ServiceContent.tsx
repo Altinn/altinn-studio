@@ -82,7 +82,11 @@ export const ServiceContent = ({
           <Select
             options={mapAltinn2LinkServiceToSelectOption(altinn2LinkServices)}
             onChange={handleSelectService}
-            value={`${selectedService.externalServiceCode}-${selectedService.externalServiceEditionCode}-${selectedService.serviceName}`}
+            value={
+              selectedService
+                ? `${selectedService.externalServiceCode}-${selectedService.externalServiceEditionCode}-${selectedService.serviceName}`
+                : ''
+            }
             label={t('resourceadm.dashboard_import_modal_select_service')}
           />
           <ResourceContent altinn2LinkService={selectedService} />
