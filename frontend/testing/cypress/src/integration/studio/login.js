@@ -4,10 +4,11 @@
 import { login } from '../../selectors/login';
 import { dashboard } from '../../selectors/dashboard';
 import { header } from '../../selectors/header';
-import {gitea} from "../../selectors/gitea";
+import { gitea } from '../../selectors/gitea';
 
 context('Login', () => {
   beforeEach(() => {
+    Cypress.session.clearAllSavedSessions();
     cy.clearCookies();
     cy.visit('/');
   });

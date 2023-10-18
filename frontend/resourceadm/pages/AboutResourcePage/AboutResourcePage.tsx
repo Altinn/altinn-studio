@@ -389,11 +389,13 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_status_text')}
           value={resourceData.status}
           options={statusOptions.map((o) => ({ ...o, label: t(o.label) }))}
+          hasError={showAllErrors && !Object.keys(resourceStatusMap).includes(resourceData.status)}
           onFocus={() => setTranslationType('none')}
           onBlur={(selected: ResourceStatusOption) =>
             handleSave({ ...resourceData, status: selected })
           }
           id='aboutResourceStatus'
+          errorText={t('resourceadm.about_resource_status_error')}
         />
         <ResourceSwitchInput
           label={t('resourceadm.about_resource_self_identified_label')}

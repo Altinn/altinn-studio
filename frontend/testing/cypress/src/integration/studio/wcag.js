@@ -1,26 +1,29 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { dashboard } from "../../selectors/dashboard";
-import { header } from "../../selectors/header";
+import { dashboard } from '../../selectors/dashboard';
+import { header } from '../../selectors/header';
 
 context('WCAG', () => {
   before(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken')).then(() => {
-      cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
-    });
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {
     cy.visit('/');
-    cy.intercept('GET', 'designer/api/repos/search?**').as('fetchApps');
+    cy.intercept('GET', '**/repos/search**').as('fetchApps');
     dashboard.getSearchReposField().should('be.visible');
     cy.wait('@fetchApps')
       .its('response.statusCode')
       .should((statusCode) => {
         expect([200, 302]).to.contain(statusCode);
       });
+  });
+
+  after(() => {
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
   it('accessibility test for dashboard', () => {

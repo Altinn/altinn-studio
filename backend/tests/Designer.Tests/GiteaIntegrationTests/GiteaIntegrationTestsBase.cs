@@ -19,8 +19,7 @@ using Xunit;
 namespace Designer.Tests.GiteaIntegrationTests
 {
     [Collection(nameof(GiteaCollection))]
-    public abstract class GiteaIntegrationTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>, IDisposable
-        where TController : ControllerBase
+    public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
         where TControllerTest : class
     {
         protected readonly GiteaFixture GiteaFixture;
@@ -40,8 +39,14 @@ namespace Designer.Tests.GiteaIntegrationTests
             }
         }
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
+            if (!disposing)
+            {
+                return;
+            }
+
             DeleteDirectoryIfExists(CreatedFolderPath);
         }
 
@@ -67,7 +72,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         }
 
-        protected GiteaIntegrationTestsBase(WebApplicationFactory<TController> factory, GiteaFixture giteaFixture) : base(factory)
+        protected GiteaIntegrationTestsBase(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory)
         {
             GiteaFixture = giteaFixture;
         }
@@ -122,7 +127,7 @@ namespace Designer.Tests.GiteaIntegrationTests
                 HttpMethod.Post,
                 $"designer/api/repos/create-app?org={org}&repository={repoName}");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.Created);
             InvalidateAllCookies();
         }

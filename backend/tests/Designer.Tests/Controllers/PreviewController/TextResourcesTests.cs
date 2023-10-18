@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class TextResourcesTests : PreviewControllerTestsBase<TextResourcesTests>
+    public class TextResourcesTests : PreviewControllerTestsBase<TextResourcesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public TextResourcesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public TextResourcesTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -22,7 +22,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/api/v1/textresources";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();

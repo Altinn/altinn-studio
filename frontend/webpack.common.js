@@ -38,6 +38,12 @@ module.exports = {
           {
             loader: 'css-loader',
             options: {
+              url: {
+                filter: (url, _resourcePath) => {
+                  // Disable processing for root-relative urls (e.g. /designer/img)
+                  return !/^\//.test(url);
+                },
+              },
               modules: {
                 localIdentName: '[name]__[local]--[hash:base64:5]',
               },

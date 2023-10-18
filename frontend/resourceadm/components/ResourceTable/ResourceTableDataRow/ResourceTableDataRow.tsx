@@ -4,7 +4,7 @@ import classes from './ResourceTableDataRow.module.css';
 import { Button, Tag, Paragraph } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next';
 
 export type ResourceTableDataRowProps = {
   /**
@@ -15,7 +15,7 @@ export type ResourceTableDataRowProps = {
    * Function to be executed when clicking the edit resoruce
    * @returns void
    */
-  onClickEditResource: () => void
+  onClickEditResource: () => void;
 };
 
 /**
@@ -29,7 +29,10 @@ export type ResourceTableDataRowProps = {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceTableDataRow = ({ resource, onClickEditResource }: ResourceTableDataRowProps): React.ReactNode => {
+export const ResourceTableDataRow = ({
+  resource,
+  onClickEditResource,
+}: ResourceTableDataRowProps): React.ReactNode => {
   const { t } = useTranslation();
 
   return (
@@ -37,7 +40,9 @@ export const ResourceTableDataRow = ({ resource, onClickEditResource }: Resource
       <td className={cn(classes.tableDataXLarge, classes.tableData)}>
         {/* TODO - Fix translation of title */}
         <Paragraph size='small'>
-          {resource.title['nb'] === '' ? t('resourceadm.dashboard_table_row_missing_title') : resource.title['nb']}
+          {resource.title['nb'] === ''
+            ? t('resourceadm.dashboard_table_row_missing_title')
+            : resource.title['nb']}
         </Paragraph>
       </td>
       <td className={cn(classes.tableDataLarge, classes.tableData)}>
@@ -48,14 +53,16 @@ export const ResourceTableDataRow = ({ resource, onClickEditResource }: Resource
       </td>
       <td className={cn(classes.tableDataMedium, classes.tableData)}>
         <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined' size='small'>
-          {resource.hasPolicy ? t('resourceadm.dashboard_table_row_has_policy') : t('resourceadm.dashboard_table_row_missing_policy')}
+          {resource.hasPolicy
+            ? t('resourceadm.dashboard_table_row_has_policy')
+            : t('resourceadm.dashboard_table_row_missing_policy')}
         </Tag>
       </td>
       <td className={cn(classes.tableDataSmall, classes.tableData)}>
         <Button
           variant='quiet'
           size='small'
-          color='secondary'
+          color='second'
           icon={<PencilWritingIcon />}
           iconPlacement='right'
           onClick={onClickEditResource}

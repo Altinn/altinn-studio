@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetAltinn2LinkServicesTests : ResourceAdminControllerTestsBaseClass<GetAltinn2LinkServicesTests>
+    public class GetAltinn2LinkServicesTests : ResourceAdminControllerTestsBaseClass<GetAltinn2LinkServicesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetAltinn2LinkServicesTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public GetAltinn2LinkServicesTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 Altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
 
                 // Act
-                using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+                using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, res.StatusCode);

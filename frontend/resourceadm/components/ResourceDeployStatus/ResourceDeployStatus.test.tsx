@@ -4,17 +4,18 @@ import { ResourceDeployStatus, ResourceDeployStatusProps } from './ResourceDeplo
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
 import { DeployError } from 'resourceadm/types/global';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 const mockDeployError1: DeployError = {
-  message: '2 feil på siden \'Test siden\'.',
+  message: "2 feil på siden 'Test siden'.",
   pageWithError: 'about',
-}
+};
 const mockDeployError2: DeployError = {
-  message: '1 feil på sdein \'Side 2\'.',
+  message: "1 feil på sdein 'Side 2'.",
   pageWithError: 'policy',
-}
+};
 
-const mockDeployErrorList: DeployError[] = [mockDeployError1, mockDeployError2]
+const mockDeployErrorList: DeployError[] = [mockDeployError1, mockDeployError2];
 
 const mockDeployErrorString: string = 'Deploy error';
 
@@ -38,14 +39,17 @@ describe('ResourceDeployStatus', () => {
   it('renders error messages with links when error is an array', () => {
     render(<ResourceDeployStatus {...defaultProps} />);
     const firstErrorMessage = screen.getByText(mockDeployError1.message);
-    const [, linkText1] = mockDeployError1.message.split('\'')
-    const firstErrorMessageLink = screen.getByRole('button', { name: linkText1 });
+
+    const firstErrorMessageLink = screen.getByRole('button', {
+      name: textMock('resourceadm.about_resource_title'),
+    });
     expect(firstErrorMessage).toBeInTheDocument();
     expect(firstErrorMessageLink).toBeInTheDocument();
 
     const secondErrorMessage = screen.getByText(mockDeployError2.message);
-    const [, linkText2] = mockDeployError1.message.split('\'')
-    const secondErrorMessageLink = screen.getByRole('button', { name: linkText2 });
+    const secondErrorMessageLink = screen.getByRole('button', {
+      name: textMock('resourceadm.policy_editor_title'),
+    });
 
     expect(secondErrorMessage).toBeInTheDocument();
     expect(secondErrorMessageLink).toBeInTheDocument();
@@ -55,8 +59,9 @@ describe('ResourceDeployStatus', () => {
     const user = userEvent.setup();
     render(<ResourceDeployStatus {...defaultProps} />);
 
-    const [, linkText1] = mockDeployError1.message.split('\'')
-    const linkButton = screen.getByRole('button', { name: linkText1 });
+    const linkButton = screen.getByRole('button', {
+      name: textMock('resourceadm.about_resource_title'),
+    });
 
     await act(() => user.click(linkButton));
 

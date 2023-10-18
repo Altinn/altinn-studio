@@ -4,13 +4,13 @@
 import { header } from '../../selectors/header';
 import { datamodel } from '../../selectors/datamodel';
 import * as texts from '../../../../../language/src/nb.json';
+import * as testids from '../../../../testids';
 
 context('datamodel', () => {
   before(() => {
-    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken')).then(() => {
-      cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-      cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
-    });
+    cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {
@@ -42,5 +42,14 @@ context('datamodel', () => {
 
     cy.findByRole('option', { name: texts['schema_editor.integer'] }).click();
     datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
+  });
+
+  it('Allows to upload an XSD file and displays the data model when the upload is complete', () => {
+    cy.findAllByTestId(testids.fileSelectorInput)
+      .first()
+      .selectFile('src/fixtures/testdatamodel.xsd', { force: true });
+    cy.findByRole('combobox', { name: texts['schema_editor.choose_model'] })
+      .invoke('val')
+      .should('match', /\/testdatamodel.schema.json$/);
   });
 });

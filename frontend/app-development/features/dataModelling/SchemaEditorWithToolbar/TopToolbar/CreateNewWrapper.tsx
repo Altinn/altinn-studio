@@ -102,7 +102,7 @@ export function CreateNewWrapper({
       />
       {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
       <Button
-        color='secondary'
+        color='second'
         onClick={onCreateConfirmClick}
         style={{ marginTop: 22 }}
         variant='outline'

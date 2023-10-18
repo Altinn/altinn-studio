@@ -2,17 +2,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using SharedResources.Tests;
-using Xunit;
 using static Designer.Tests.Utils.TestSetupUtils;
 
 namespace Designer.Tests.Controllers.ApiTests;
@@ -20,23 +15,29 @@ namespace Designer.Tests.Controllers.ApiTests;
 /// <summary>
 /// Base class for testing controller endpoints.
 /// </summary>
-/// <typeparam name="TController">Provided controller type.</typeparam>
 /// <typeparam name="TControllerTest">Controller test class type. Used for generating fluent tests.</typeparam>
 [ExcludeFromCodeCoverage]
-public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBase<TControllerTest>,
-    IClassFixture<WebApplicationFactory<TController>>
-    where TController : ControllerBase
-    where TControllerTest : class
+public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControllerTest>, IDisposable where TControllerTest : class
 {
+    private HttpClient _httpClient;
+
     /// <summary>
     /// HttpClient that should call endpoints of a provided controller.
     /// </summary>
-    protected Lazy<HttpClient> HttpClient { get; }
+    protected HttpClient HttpClient
+    {
+        get
+        {
+            return _httpClient ??= GetTestClient();
+        }
+    }
 
     /// <summary>
     /// When overridden tests services will be configured.
     /// </summary>
     protected abstract void ConfigureTestServices(IServiceCollection services);
+
+    protected Action<IServiceCollection> ConfigureTestForSpecificTest { get; set; } = delegate { };
 
     /// <summary>
     /// Location of the assembly of the executing unit test.
@@ -50,12 +51,11 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     protected virtual string TestRepositoriesLocation =>
         Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Repositories");
 
-    protected readonly WebApplicationFactory<TController> Factory;
+    protected readonly WebApplicationFactory<Program> Factory;
 
-    protected ApiTestsBase(WebApplicationFactory<TController> factory)
+    protected ApiTestsBase(WebApplicationFactory<Program> factory)
     {
         Factory = factory;
-        HttpClient = new Lazy<HttpClient>(GetTestClient);
         SetupDirtyHackIfLinux();
     }
 
@@ -67,15 +67,12 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     protected virtual HttpClient GetTestClient()
     {
         string configPath = GetConfigPath();
-
-        var client = Factory.WithWebHostBuilder(builder =>
+        return Factory.WithWebHostBuilder(builder =>
         {
-            builder.UseTestServer();
             builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
-
             builder.ConfigureTestServices(ConfigureTestServices);
+            builder.ConfigureServices(ConfigureTestForSpecificTest);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
-        return client;
     }
 
     /// <summary>
@@ -86,5 +83,12 @@ public abstract class ApiTestsBase<TController, TControllerTest> : FluentTestsBa
     {
         string projectDir = Directory.GetCurrentDirectory();
         return Path.Combine(projectDir, "appsettings.json");
+    }
+    public void Dispose()
+    {
+        Dispose(true);
+    }
+    protected virtual void Dispose(bool disposing)
+    {
     }
 }

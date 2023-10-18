@@ -1,48 +1,42 @@
 import React from 'react';
-import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
-import { PageSpinner } from 'app-shared/components';
-import { DatamodelsAdministration } from './DatamodelsAdministration';
-import { RepositoryType } from 'app-shared/types/global';
-import { ServiceAdministration } from './ServiceAdministration';
-import { SideMenuContent } from './SideMenuContent';
-import { getRepositoryType } from 'app-shared/utils/repository';
-import { useAppSelector } from '../../../hooks';
-import { useTranslation } from 'react-i18next';
+import classes from './Administration.module.css';
+import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { Heading } from '@digdir/design-system-react';
+import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
+import { Documentation } from './Documentation';
 
-export function AdministrationComponent() {
-  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
-  const initialCommit = useAppSelector((state) => state.serviceInformation.initialCommit);
-  const { t } = useTranslation();
+export const Administration = () => {
   const { org, app } = useStudioUrlParams();
-  const repositoryType = getRepositoryType(org, app);
+  const { data: appConfigData, isError } = useAppConfigQuery(org, app, { hideDefaultError: true });
+  const { t } = useTranslation();
+
+  if (isError) {
+    toast.error(t('administration.fetch_title_error_message'));
+  }
 
   return (
-    <div>
-      {repository && (
-        <AltinnColumnLayout
-          sideMenuChildren={
-            <SideMenuContent
-              initialCommit={initialCommit}
-              service={repository}
-              repoType={repositoryType}
-            />
-          }
-          header={t('administration.administration')}
-        >
-          {repositoryType === RepositoryType.App && (
-            <ServiceAdministration repository={repository} />
-          )}
-          {repositoryType === RepositoryType.Datamodels && (
-            <DatamodelsAdministration />
-          )}
-        </AltinnColumnLayout>
-      )}
-      {!repository && (
-        <PageSpinner />
-      )}
+    <div className={classes.administration}>
+      <div className={classes.container}>
+        <div className={classes.header}>
+          <Heading size='xlarge'>{appConfigData?.serviceName || app}</Heading>
+        </div>
+        <div className={classes.content}>
+          <main className={classes.main}>
+            <div className={classes.placeholder}>{/* APP STATUS PLACEHOLDER */}</div>
+            <hr className={classes.divider} />
+            <div className={classes.placeholder} style={{ height: '300px' }}>
+              {/* NAVIGATION PLACEHOLDER */}
+            </div>
+          </main>
+          <aside className={classes.aside}>
+            <Documentation />
+            <hr className={classes.divider} />
+            <div className={classes.placeholder}>{/* NEWS PLACEHOLDER */}</div>
+          </aside>
+        </div>
+      </div>
     </div>
   );
-}
-
-export const Administration = AdministrationComponent;
+};

@@ -8,10 +8,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetSectorsTests : ResourceAdminControllerTestsBaseClass<GetSectorsTests>
+    public class GetSectorsTests : ResourceAdminControllerTestsBaseClass<GetSectorsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetSectorsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ResourceAdminController> factory) : base(factory)
+        public GetSectorsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             //Act
-            using HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
             string sectorscontent = await res.Content.ReadAsStringAsync();
             List<DataTheme> dataThemes = System.Text.Json.JsonSerializer.Deserialize<List<DataTheme>>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
 

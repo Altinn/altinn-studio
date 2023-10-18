@@ -26,7 +26,9 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
+    // Uses regex to not match on designer since the call from frontend to get the iframe for app-frontend,
+    // `designer/html/preview.html`, will match on Image-endpoint which is a fetch-all route
+    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
     public class PreviewController : Controller
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -75,6 +77,38 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult<string> PreviewStatus()
         {
             return Ok();
+        }
+
+        /// <summary>
+        /// Action for getting local app-images
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="imageFilePath">A path to the image location, including file name, consisting of an arbitrary amount of directories</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The specified local app-image as Stream</returns>
+        [HttpGet]
+        [Route("{*imageFilePath}")]
+        public FileStreamResult Image(string org, string app, string imageFilePath, CancellationToken cancellationToken)
+        {
+
+            if (imageFilePath.Contains('/'))
+            {
+                string imageFileName = string.Empty;
+                string[] segments = imageFilePath.Split('/');
+
+                foreach (string segment in segments)
+                {
+                    imageFileName = Path.Combine(imageFileName, segment);
+                }
+
+                imageFilePath = imageFileName;
+            }
+
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            Stream imageStream = altinnAppGitRepository.GetImage(imageFilePath);
+            return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower()));
         }
 
         /// <summary>

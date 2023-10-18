@@ -8,10 +8,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ConfigController
 {
-    public class GetServiceConfigTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ConfigController, GetServiceConfigTests>
+    public class GetServiceConfigTests : DisagnerEndpointsTestsBase<GetServiceConfigTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/config";
-        public GetServiceConfigTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ConfigController> factory) : base(factory)
+        public GetServiceConfigTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -22,7 +22,7 @@ namespace Designer.Tests.Controllers.ConfigController
             string dataPathWithData = VersionPrefix(org, app);
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
             ServiceConfiguration serviceConfigResponse = await response.Content.ReadAsAsync<ServiceConfiguration>();
             ServiceConfiguration serviceConfiguration = new ServiceConfiguration { RepositoryName = app, ServiceDescription = null, ServiceId = null, ServiceName = null };
@@ -38,7 +38,7 @@ namespace Designer.Tests.Controllers.ConfigController
             string dataPathWithData = VersionPrefix(org, app);
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
             ServiceConfiguration serviceConfigResponse = await response.Content.ReadAsAsync<ServiceConfiguration>();
             ServiceConfiguration serviceConfiguration = ServiceConfigurationUtils.GetServiceConfiguration(TestRepositoriesLocation, org, app, "testUser");

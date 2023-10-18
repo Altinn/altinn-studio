@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class CurrentUserTests : PreviewControllerTestsBase<CurrentUserTests>
+    public class CurrentUserTests : PreviewControllerTestsBase<CurrentUserTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public CurrentUserTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.PreviewController> factory) : base(factory)
+        public CurrentUserTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -22,7 +22,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string dataPathWithData = $"{Org}/{App}/api/v1/profile/user";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();

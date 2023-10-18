@@ -32,6 +32,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string CONFIG_FOLDER_PATH = "App/config/";
         private const string OPTIONS_FOLDER_PATH = "App/options/";
         private const string LAYOUTS_FOLDER_NAME = "App/ui/";
+        private const string IMAGES_FOLDER_NAME = "App/wwwroot/";
         private const string LAYOUTS_IN_SET_FOLDER_NAME = "layouts/";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
@@ -733,42 +734,43 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Saves bpmn file to disk.
+        /// Saves the processdefinition file on disk.
         /// </summary>
-        /// <param name="file">Content of bpmn file.</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException">Throws argument exception if size of syntax validation of the file fails.</exception>
-        public async Task<string> SaveProcessDefinitionFile(string file, CancellationToken cancellationToken = default)
+        /// <param name="file">Stream of the file to be saved.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public async Task SaveProcessDefinitionFileAsync(Stream file, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Guard.AssertNotNullOrEmpty(file, nameof(file));
-            if (file.Length > 100_000)
+            if (file.Length > 1000_000)
             {
                 throw new ArgumentException("Bpmn file is too large");
             }
+            await Guard.AssertValidXmlStreamAndRewindAsync(file);
 
-            Guard.AssertValidXmlContent(file);
-
-            await WriteTextByRelativePathAsync(ProcessDefinitionFilePath, file, true, cancellationToken);
-            return file;
+            await WriteStreamByRelativePathAsync(ProcessDefinitionFilePath, file, true, cancellationToken);
         }
 
-        /// <summary>
-        /// Gets the Bpmn file from App/config/process/process.bpmn location
-        /// </summary>
-        /// <returns>Content of Bpmn file</returns>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <exception cref="NotFoundHttpRequestException">If file doesn't exists.</exception>
-        public async Task<string> GetProcessDefinitionFile(CancellationToken cancellationToken = default)
+        public Stream GetProcessDefinitionFile()
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (!FileExistsByRelativePath(ProcessDefinitionFilePath))
             {
                 throw new NotFoundHttpRequestException("Bpmn file not found.");
             }
 
-            return await ReadTextByRelativePathAsync(ProcessDefinitionFilePath, cancellationToken);
+            return OpenStreamByRelativePath(ProcessDefinitionFilePath);
+        }
+
+        /// <summary>
+        /// Gets specified image from App/wwwroot folder of local repo
+        /// </summary>
+        /// <param name="imageFilePath">The file path of the image</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The image as stream</returns>
+        public Stream GetImage(string imageFilePath, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string imagePath = GetPathToImage(imageFilePath);
+            return OpenStreamByRelativePath(imagePath);
         }
 
         /// <summary>
@@ -784,6 +786,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private static string GetPathToTexts()
         {
             return Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
+        }
+
+        private static string GetPathToImage(string imageFilePath)
+        {
+            return Path.Combine(IMAGES_FOLDER_NAME, imageFilePath);
         }
 
         private static string GetPathToJsonTextsFile(string fileName)

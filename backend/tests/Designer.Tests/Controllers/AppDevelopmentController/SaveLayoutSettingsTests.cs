@@ -12,11 +12,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class SaveLayoutSettingsTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, SaveFormLayoutTestsBase>
+    public class SaveLayoutSettingsTests : DisagnerEndpointsTestsBase<SaveLayoutSettingsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
 
-        public SaveLayoutSettingsTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
+        public SaveLayoutSettingsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -43,7 +43,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 Content = new StringContent(layoutSettings, Encoding.UTF8, MediaTypeNames.Application.Json)
             };
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)

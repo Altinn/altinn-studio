@@ -2,7 +2,7 @@ import React from 'react';
 import { Expression, Operator, SubExpression } from '../../../types/Expressions';
 import { SubExpressionContent } from './SubExpressionContent';
 import classes from './SimpleExpression.module.css';
-import { Button, ToggleButtonGroup } from '@digdir/design-system-react';
+import { Button, LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import { PlusCircleIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
 import { Divider } from 'app-shared/primitives';
@@ -17,23 +17,25 @@ export type SimpleExpressionProps = {
 };
 
 export const SimpleExpression = ({
-   allowToSpecifyExpression,
-   expression,
-   onAddSubExpression,
-   onUpdateExpressionOperator,
-   onUpdateSubExpression,
-   onRemoveSubExpression,
- }: SimpleExpressionProps) => {
+  allowToSpecifyExpression,
+  expression,
+  onAddSubExpression,
+  onUpdateExpressionOperator,
+  onUpdateSubExpression,
+  onRemoveSubExpression,
+}: SimpleExpressionProps) => {
   const t = useText();
   return (
     <>
       {expression.subExpressions?.map((subExp: SubExpression, index: number) => (
         <React.Fragment key={subExp.id}>
-          <Divider/>
+          <Divider />
           <SubExpressionContent
             expressionPropertyIsSet={allowToSpecifyExpression}
             subExpression={subExp}
-            onUpdateSubExpression={(subExpression: SubExpression) => onUpdateSubExpression(index, subExpression)}
+            onUpdateSubExpression={(subExpression: SubExpression) =>
+              onUpdateSubExpression(index, subExpression)
+            }
             onRemoveSubExpression={() => onRemoveSubExpression(subExp)}
           />
           <div className={classes.addExpression}>
@@ -48,10 +50,10 @@ export const SimpleExpression = ({
               </Button>
             ) : (
               <div className={classes.andOrToggleButtons}>
-                <ToggleButtonGroup
+                <LegacyToggleButtonGroup
                   items={[
                     { label: t('right_menu.expressions_operator_and'), value: Operator.And },
-                    { label: t('right_menu.expressions_operator_or'), value: Operator.Or }
+                    { label: t('right_menu.expressions_operator_or'), value: Operator.Or },
                   ]}
                   onChange={(value) => onUpdateExpressionOperator(value as Operator)}
                   selectedValue={expression.operator || Operator.And}
@@ -60,8 +62,7 @@ export const SimpleExpression = ({
             )}
           </div>
         </React.Fragment>
-        )
-      )}
+      ))}
     </>
   );
-}
+};

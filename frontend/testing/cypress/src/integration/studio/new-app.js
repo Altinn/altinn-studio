@@ -2,14 +2,14 @@
 /// <reference types="../../support" />
 
 import * as texts from '../../../../../language/src/nb.json';
-import { administration } from "../../selectors/administration";
-import { dashboard } from "../../selectors/dashboard";
-import { gitea } from "../../selectors/gitea";
+import { administration } from '../../selectors/administration';
+import { dashboard } from '../../selectors/dashboard';
+import { gitea } from '../../selectors/gitea';
 
 context('New App', () => {
   before(() => {
-    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
   });
   beforeEach(() => {
     cy.visit('/dashboard');

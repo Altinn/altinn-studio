@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -157,6 +158,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await GetPublishResponse(response);
         }
 
+        public async Task<ServiceResource> GetResource(string id, string env)
+        {
+            string resourceUrl;
+
+            //Checks if not tested locally by passing dev as env parameter
+            if (!env.ToLower().Equals("dev"))
+            {
+                resourceUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{id}";
+            }
+            else
+            {
+                resourceUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{id}/policy";
+            }
+
+            HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(resourceUrl);
+            if (getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
+            {
+                string responseContent = await getResourceResponse.Content.ReadAsStringAsync();
+                ServiceResource res = JsonSerializer.Deserialize<ServiceResource>(responseContent, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                return res;
+            }
+
+            return null;
+        }
+
         private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
         {
             return await _maskinPortenService.GetToken(_maskinportenClientDefinition.ClientSettings.EncodedJwk, _maskinportenClientDefinition.ClientSettings.Environment, _maskinportenClientDefinition.ClientSettings.ClientId, _maskinportenClientDefinition.ClientSettings.Scope, _maskinportenClientDefinition.ClientSettings.Resource, _maskinportenClientDefinition.ClientSettings.ConsumerOrgNo);
@@ -171,6 +197,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             else if (response.StatusCode == HttpStatusCode.Conflict)
             {
                 return new StatusCodeResult(409);
+            }
+            else if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    ValidationProblemDetails problems = JsonSerializer.Deserialize<ValidationProblemDetails>(responseContent);
+                    return new ObjectResult(problems) { StatusCode = (int)response.StatusCode };
+                }
+                catch (Exception)
+                {
+                    return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
+                }
+            }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                return new ContentResult() { Content = responseContent, StatusCode = (int)HttpStatusCode.Forbidden };
             }
             else
             {

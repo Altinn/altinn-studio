@@ -63,7 +63,7 @@ export const orgsListPath = () => `${basePath}/orgs`; // Get
 // Preview
 export const previewPath = (org, app) => `/preview/${org}/${app}`;
 export const instanceIdForPreviewPath = (org, app) => `${basePath}/${org}/${app}/mock-instance-id`; // Get
-export const previewPage = (org, app, selectedLayoutSet) => `/designer/html/preview.html?${s({org, app, selectedLayoutSet})}`;
+export const previewPage = (org, app, selectedLayoutSet) => `/designer/html/preview.html?${s({ org, app, selectedLayoutSet })}`;
 
 //Editor
 export const editorPath = (org, app) => `/editor/${org}/${app}`;
@@ -135,6 +135,7 @@ export const resourceSinglePath = (org, repo, id) => `${basePath}/${org}/resourc
 export const resourceEditPath = (org, id) => `${basePath}/${org}/resources/updateresource/${id}`; // Put
 export const resourceValidatePolicyPath = (org, repo, id) => `${basePath}/${org}/${repo}/policy/validate/${id}`; // Get
 export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${org}/resources/validate/${repo}/${id}`; // Get
+export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}?env=${env}`; // Get
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;

@@ -11,11 +11,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class GetSubjectOptionsTests : DisagnerEndpointsTestsBase<PolicyController, GetSubjectOptionsTests>
+    public class GetSubjectOptionsTests : DisagnerEndpointsTestsBase<GetSubjectOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public GetSubjectOptionsTests(WebApplicationFactory<PolicyController> factory) : base(factory)
+        public GetSubjectOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -29,7 +29,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             List<SubjectOption> subjectionOptions;
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData))
             {
-                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
 

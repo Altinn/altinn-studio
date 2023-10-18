@@ -1,0 +1,1 @@
+export { ShortText } from './ShortText';
