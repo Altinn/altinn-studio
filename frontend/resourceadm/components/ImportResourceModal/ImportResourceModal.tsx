@@ -174,10 +174,7 @@ export const ImportResourceModal = ({
       <div className={classes.dropdownWraper}>
         <Select
           options={environmentOptions.map((e) => ({ value: e, label: e }))}
-          onChange={(e: EnvironmentType) => {
-            // getAltinn2Services({ selectedContext, e });
-            setSelectedEnv(e);
-          }}
+          onChange={(e: EnvironmentType) => setSelectedEnv(e)}
           value={selectedEnv}
           label={t('resourceadm.dashboard_import_modal_select_env')}
         />
@@ -190,7 +187,6 @@ export const ImportResourceModal = ({
           onSelectService={(s: string) => handleSelectService(s)}
         />
       )}
-      {/*displayService()*/}
       {displayTitleAndId()}
       <div className={classes.buttonWrapper}>
         <Button onClick={handleClose} color='first' variant='quiet' size='small'>
