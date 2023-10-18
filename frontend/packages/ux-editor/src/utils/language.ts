@@ -11,14 +11,9 @@ import { TranslationKey } from 'app-shared/types/language';
  * @param t The translation function
  * @returns The help text for the component, or the default help text if none is found
  */
-export function getComponentHelperTextByComponentType(
-  type: ComponentType,
-  t: typeof i18next.t,
-): string {
+export function getComponentHelperTextByComponentType(type: ComponentType, t: typeof i18next.t): string {
   const text = t(`ux_editor.component_helpText.${type}`);
-  return text !== `ux_editor.component_helpText.${type}`
-    ? text
-    : t('ux_editor.component_helpText.default');
+    return text !== `ux_editor.component_helpText.${type}` ? text : t('ux_editor.component_helpText.default');
 }
 
 /**
@@ -28,7 +23,7 @@ export function getComponentHelperTextByComponentType(
  * @returns The title text for the component, or the type if none is found
  */
 export function getComponentTitleByComponentType(type: ComponentType, t: typeof i18next.t): string {
-  const text = t(`ux_editor.component_title.${type}`);
+  const text = t(`ux_editor.component_title.${type}`)
   return text !== `ux_editor.component_title.${type}` ? text : type;
 }
 

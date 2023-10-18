@@ -1,3 +1,4 @@
+
 .infoButton {
   display: inline-block;
 }
@@ -10,6 +11,7 @@
   vertical-align: text-bottom;
 }
 
+
 .variables {
   display: inline-block;
   overflow: hidden;
@@ -19,3 +21,4 @@
   color: white;
   font-size: 14px;
 }
+

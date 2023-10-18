@@ -35,7 +35,6 @@ const baseContainer: FormContainer = {
   id: BASE_CONTAINER_ID,
   index: 0,
   itemType: 'CONTAINER',
-  pageIndex: null,
 };
 const customProperty = 'some-custom-property';
 const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
@@ -43,7 +42,6 @@ const headerComponent: FormComponent<ComponentType.Header> = {
   id: headerId,
   type: ComponentType.Header,
   itemType: 'COMPONENT',
-  pageIndex: null,
   textResourceBindings: {
     title: 'ServiceName',
   },
@@ -55,7 +53,6 @@ const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
   id: paragraphId,
   type: ComponentType.Paragraph,
   itemType: 'COMPONENT',
-  pageIndex: null,
   textResourceBindings: {
     title: 'ServiceName',
   },
@@ -67,14 +64,12 @@ const groupContainer: FormContainer = {
   dataModelBindings: {},
   id: groupId,
   itemType: 'CONTAINER',
-  pageIndex: null,
 };
 const paragraphInGroupId = 'group-paragraph';
 const paragraphInGroupComponent: FormComponent<ComponentType.Paragraph> = {
   id: paragraphInGroupId,
   type: ComponentType.Paragraph,
   itemType: 'COMPONENT',
-  pageIndex: null,
   textResourceBindings: {
     title: 'ServiceName',
   },
@@ -85,14 +80,12 @@ const groupInGroupContainer: FormContainer = {
   dataModelBindings: {},
   id: groupInGroupId,
   itemType: 'CONTAINER',
-  pageIndex: null,
 };
 const paragraphInGroupInGroupId = 'group-child-paragraph';
 const paragraphInGroupInGroupComponent: FormComponent<ComponentType.Paragraph> = {
   id: paragraphInGroupInGroupId,
   type: ComponentType.Paragraph,
   itemType: 'COMPONENT',
-  pageIndex: null,
   textResourceBindings: {
     title: 'ServiceName',
   },
@@ -129,7 +122,6 @@ describe('formLayoutUtils', () => {
         onClickAction: jest.fn(),
         type: ComponentType.NavigationButtons,
         dataModelBindings: {},
-        pageIndex: null,
       };
       const layout: IInternalLayout = {
         containers: mockInternal.containers,
@@ -176,7 +168,6 @@ describe('formLayoutUtils', () => {
       type: ComponentType.Paragraph,
       itemType: 'COMPONENT',
       dataModelBindings: {},
-      pageIndex: null,
     };
 
     it('Adds component to the end of the base container by default', () => {
@@ -429,7 +420,6 @@ describe('formLayoutUtils', () => {
         itemType: 'COMPONENT',
         type: ComponentType.Paragraph,
         id: 'sometestcomponent',
-        pageIndex: null,
       };
       let layout: IInternalLayout = createEmptyLayout();
       layout = addContainer(layout, container, containerId);
@@ -446,7 +436,6 @@ describe('formLayoutUtils', () => {
       const container: FormContainer = {
         id: groupInGroupId,
         itemType: 'CONTAINER',
-        pageIndex: null,
       };
       layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
       expect(getDepth(layout)).toBe(3);
@@ -463,7 +452,6 @@ describe('formLayoutUtils', () => {
       const container: FormContainer = {
         id: groupInGroupId,
         itemType: 'CONTAINER',
-        pageIndex: null,
       };
       layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
       expect(validateDepth(layout)).toBe(false);

@@ -1,9 +1,4 @@
-import {
-  useFormLayouts,
-  useFormLayout,
-  useSelectedFormLayout,
-  useSelectedFormLayoutWithName,
-} from './useFormLayoutsSelector';
+import { useFormLayouts, useFormLayout, useSelectedFormLayout, useSelectedFormLayoutWithName } from './useFormLayoutsSelector';
 import { renderHookWithMockStore } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { externalLayoutsMock, layoutMock, layout1NameMock } from '../testing/layoutMock';
@@ -18,13 +13,11 @@ const selectedLayoutName = 'Side1';
 const selectedLayoutSet = 'test-layout-set';
 
 const render = async (callback: () => IFormLayouts | IInternalLayout | IInternalLayoutWithName) => {
-  const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 
   return renderHookWithMockStore()(() => callback()).renderHookResult;
-};
+}
 
 describe('useFormLayoutsSelector', () => {
   it('should return all layouts', async () => {

@@ -31,10 +31,10 @@ const user = userEvent.setup();
 
 const waitForData = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet),
+    useFormLayoutsQuery(org, app, selectedLayoutSet)
   ).renderHookResult.result;
   const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet)
   ).renderHookResult.result;
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
     .renderHookResult.result;
@@ -46,7 +46,7 @@ const waitForData = async () => {
 const render = async () => {
   await waitForData();
   renderWithMockStore()(
-    <PanelComponent component={component} handleComponentChange={mockHandleComponentChange} />,
+    <PanelComponent component={component} handleComponentChange={mockHandleComponentChange} />
   );
 };
 

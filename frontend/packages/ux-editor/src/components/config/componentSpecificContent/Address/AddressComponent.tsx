@@ -7,6 +7,7 @@ import { AddressKeys, getTextResourceByAddressKey } from '../../../../utils/comp
 import { EditDataModelBindings } from '../../editModal/EditDataModelBindings';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
 export const AddressComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();

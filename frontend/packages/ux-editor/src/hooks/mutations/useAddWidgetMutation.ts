@@ -33,7 +33,7 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
     mutationFn: async ({ widget, position, containerId }: AddWidgetMutationArgs) => {
       const internalComponents = externalLayoutToInternal({
         data: { layout: widget.components },
-        $schema: null,
+        $schema: null
       });
       const components: IFormDesignerComponents = deepCopy(layout.components);
       if (!containerId) containerId = BASE_CONTAINER_ID; // If containerId is not set, set it to the base-container's ID
@@ -63,8 +63,8 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
           const newLayouts: IFormLayouts = deepCopy(oldLayouts);
           newLayouts[layoutName] = updatedLayout;
           return newLayouts;
-        },
+        }
       );
-    },
+    }
   });
-};
+}
