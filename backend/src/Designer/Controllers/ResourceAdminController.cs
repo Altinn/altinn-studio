@@ -272,7 +272,15 @@ namespace Altinn.Studio.Designer.Controllers
                .SetPriority(CacheItemPriority.High)
                .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
 
-                linkServices = unfiltered.Where(a => a.ServiceType.Equals(ServiceType.Link) && a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
+                if(org.ToLower().Equals("ttd"))
+                {
+                    linkServices = unfiltered.Where(a => a.ServiceType.Equals(ServiceType.Link) && (a.ServiceOwnerCode.ToLower().Equals(org.ToLower()) || a.ServiceOwnerCode.ToLower().Equals("acn"))).ToList();
+                }
+                else
+                {
+                    linkServices = unfiltered.Where(a => a.ServiceType.Equals(ServiceType.Link) && a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
+                }
+
                 _memoryCache.Set(cacheKey, linkServices, cacheEntryOptions);
             }
 
