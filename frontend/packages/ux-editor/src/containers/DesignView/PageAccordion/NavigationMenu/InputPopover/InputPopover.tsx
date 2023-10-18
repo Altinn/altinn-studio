@@ -62,7 +62,7 @@ export const InputPopover = ({
 
   const [errorMessage, setErrorMessage] = useState<string>(null);
   const [newName, setNewName] = useState<string>(oldName);
-  const shoouldSavingBeEnabled = errorMessage === null && newName !== oldName;
+  const shouldSavingBeEnabled = errorMessage === null && newName !== oldName;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -123,7 +123,7 @@ export const InputPopover = ({
             color='first'
             variant='filled'
             onClick={() => saveNewName(newName)}
-            disabled={!shoouldSavingBeEnabled}
+            disabled={!shouldSavingBeEnabled}
             size='small'
           >
             {t('ux_editor.input_popover_save_button')}
