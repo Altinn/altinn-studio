@@ -3,7 +3,7 @@
 }
 
 .header {
-  font-family: var(--font-family);
+  font-family: var(--studio-font-family);
   align-items: center;
   height: var(--header-height);
   width: 100vw;
