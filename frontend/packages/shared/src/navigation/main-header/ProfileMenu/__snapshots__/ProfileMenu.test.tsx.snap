@@ -2,32 +2,34 @@
 
 exports[`ProfileMenu should match snapshot 1`] = `
 <button
+  aria-haspopup="true"
   class="Button-module_button__oVUcI utility-module_focusable__y1VLB Button-module_medium__mNn-w Button-module_quiet__UEUaR Button-module_inverted__bikfA"
-  title="[mockedText(shared.header_button)]"
+  data-testid="profileButton"
   type="button"
 >
-  <p
+  <span
     class="Paragraph-module_paragraph__1laME Paragraph-module_small__RjlFp"
   />
   <img
     alt="[mockedText(general.profile_icon)]"
-    aria-haspopup="true"
+    title="[mockedText(shared.header_profile_icon_text)]"
   />
 </button>
 `;
 
 exports[`ProfileMenu should match snapshot with logout text 1`] = `
 <button
+  aria-haspopup="true"
   class="Button-module_button__oVUcI utility-module_focusable__y1VLB Button-module_medium__mNn-w Button-module_quiet__UEUaR Button-module_inverted__bikfA"
-  title="[mockedText(shared.header_button)]"
+  data-testid="profileButton"
   type="button"
 >
-  <p
+  <span
     class="Paragraph-module_paragraph__1laME Paragraph-module_small__RjlFp"
   />
   <img
     alt="[mockedText(general.profile_icon)]"
-    aria-haspopup="true"
+    title="[mockedText(shared.header_profile_icon_text)]"
   />
 </button>
 `;

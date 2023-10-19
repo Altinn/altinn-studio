@@ -1031,6 +1031,7 @@
   "shared.header_for": "for",
   "shared.header_go_to_gitea": "Gå til Gitea",
   "shared.header_logout": "Logg ut",
+  "shared.header_profile_icon_text": "Åpne profilmenyen",
   "shared.header_user_for_org": "{{user}}\n for {{org}}",
   "shared.submit_upload": "Last opp",
   "shared.wip_link_github_url": "https://github.com/Altinn/altinn-studio",

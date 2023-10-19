@@ -37,7 +37,7 @@ describe('ProfileMenu', () => {
     expect(container.firstChild).toMatchSnapshot();
   });
 
-  it.only('should show menu with link to documentation when clicking profile button', async () => {
+  it('should show menu with link to documentation when clicking profile button', async () => {
     render();
 
     expect(
