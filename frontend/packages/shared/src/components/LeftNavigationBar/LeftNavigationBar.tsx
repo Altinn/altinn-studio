@@ -83,14 +83,6 @@ export const LeftNavigationBar = ({
   };
 
   /**
-   * Select tab
-   */
-  const selectTab = (value: string) => {
-    selectedTab !== value && handleClick(value);
-    setFocusIndex(findTabIndexByValue(value));
-  };
-
-  /**
    * Move the focus down the tabs list
    */
   const moveFocusDown = () =>
@@ -106,6 +98,7 @@ export const LeftNavigationBar = ({
    * Handles key press in the tab bar
    */
   const onKeyDown = (name: string) => (event: Parameters<KeyboardEventHandler>[0]) => {
+    console.log('key', event.key);
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
@@ -115,8 +108,6 @@ export const LeftNavigationBar = ({
         event.preventDefault();
         moveFocusUp();
         break;
-      case 'Space':
-        selectTab(name);
     }
   };
 

@@ -131,7 +131,31 @@ describe('LeftNavigationBar', () => {
     const backButton = screen.queryByRole('link', { name: mockBackButtonText });
     expect(backButton).not.toBeInTheDocument();
   });
+
+  it('selects a tab when pressing "enter"', async () => {
+    const user = userEvent.setup();
+    render({ tabs: mockTabs, selectedTab: mockTabId1 });
+
+    await act(() => user.tab());
+
+    expect(getTabItem(mockTabId1)).toHaveFocus();
+    expect(getTabItem(mockTabId2)).not.toHaveFocus();
+    expect(getTabItem(mockTabId3)).not.toHaveFocus();
+
+    await act(() => user.keyboard('{arrowdown}'));
+    expect(getTabItem(mockTabId1)).not.toHaveFocus();
+    expect(getTabItem(mockTabId2)).toHaveFocus();
+    expect(getTabItem(mockTabId3)).not.toHaveFocus();
+
+    await act(() => user.keyboard('{enter}'));
+    expect(mockTabs[1].action.onClick).toHaveBeenCalledTimes(1);
+  });
 });
+
+const getTabItem = (tabId: string) => {
+  const tabName: string = `test.test_${tabId}`;
+  return screen.getByRole('tab', { name: textMock(tabName) });
+};
 
 const render = (props: LeftNavigationBarProps) => {
   return rtlRender(
