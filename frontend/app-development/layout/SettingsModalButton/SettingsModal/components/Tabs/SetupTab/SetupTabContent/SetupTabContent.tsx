@@ -3,10 +3,10 @@ import classes from './SetupTabContent.module.css';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useTranslation } from 'react-i18next';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { isDateAfter } from 'app-development/utils/dateUtils';
 import { ErrorMessage, Textfield } from '@digdir/design-system-react';
 import { SwitchRow } from './SwitchRow';
 import { Divider } from 'app-shared/primitives';
+import { getIsDatesValid } from 'app-development/layout/SettingsModalButton/SettingsModal/utils/tabUtils/setupTabUtils';
 
 export type SetupTabContentProps = {
   appMetadata: ApplicationMetadata;
@@ -33,17 +33,10 @@ export const SetupTabContent = ({ appMetadata, org, app }: SetupTabContentProps)
 
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
-  const getIsDatesValid = () => {
-    const from = appMetadata?.validFrom;
-    const to = appMetadata?.validTo;
-
-    if (from === undefined || to === undefined) return true;
-    if (from && to) return isDateAfter(to, from);
-    return true;
-  };
+  const dateIsValid: boolean = getIsDatesValid(appMetadata?.validFrom, appMetadata?.validTo);
 
   const getErrorMessage = () => {
-    if (!getIsDatesValid()) {
+    if (!dateIsValid) {
       return t('settings_modal.setup_tab_start_before_end');
     }
     return '';
@@ -73,7 +66,7 @@ export const SetupTabContent = ({ appMetadata, org, app }: SetupTabContentProps)
             onBlur={() => {
               updateAppMetadataMutation({ ...appMetadata, validFrom: startDate });
             }}
-            error={!getIsDatesValid()}
+            error={!dateIsValid}
           />
           {showEndDate && (
             <Textfield
@@ -85,7 +78,7 @@ export const SetupTabContent = ({ appMetadata, org, app }: SetupTabContentProps)
               onBlur={() => {
                 updateAppMetadataMutation({ ...appMetadata, validTo: endDate });
               }}
-              error={!getIsDatesValid()}
+              error={!dateIsValid}
             />
           )}
         </div>
