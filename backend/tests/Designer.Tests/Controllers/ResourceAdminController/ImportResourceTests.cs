@@ -22,7 +22,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         {
             // Arrange
             string uri = $"designer/api/ttd/resources/importresource/4485/4444/at23";
-            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri))
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri))
             {
                 ServiceResource serviceResource = new ServiceResource()
                 {
