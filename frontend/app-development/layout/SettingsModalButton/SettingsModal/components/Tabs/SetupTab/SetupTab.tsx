@@ -32,19 +32,16 @@ export const SetupTab = ({ org, app }: SetupTabProps): ReactNode => {
 
   const displayContent = () => {
     switch (appMetadataStatus) {
-      case 'loading': {
+      case 'loading':
         return <LoadingTabData />;
-      }
-      case 'error': {
+      case 'error':
         return (
           <TabDataError>
             {appMetadataError && <ErrorMessage>{appMetadataError.message}</ErrorMessage>}
           </TabDataError>
         );
-      }
-      case 'success': {
+      case 'success':
         return <SetupTabContent appMetadata={appMetadata} org={org} app={app} />;
-      }
     }
   };
 
