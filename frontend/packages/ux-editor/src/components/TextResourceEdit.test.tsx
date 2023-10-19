@@ -85,7 +85,7 @@ describe('TextResourceEdit', () => {
     });
   });
 
-  it('Check that reload is called when text is updated', async () => {
+  it('Check if reload is called when text is updated', async () => {
     const reload = jest.fn();
     const id = 'some-id';
     const value = 'Lorem';
@@ -104,7 +104,7 @@ describe('TextResourceEdit', () => {
       },
     };
     await render(resources, id, previewIframeRef);
-    expect(reload).toBeCalled;
+    expect(reload).toHaveBeenCalledTimes(1);
   });
 
   it('upsertTextResources should not be called when the text is NOT changed', async () => {
@@ -155,7 +155,11 @@ describe('TextResourceEdit', () => {
   });
 });
 
-const render = async (resources: ITextResources = {}, editId?: string, previewIframeRef = {}) => {
+const render = async (
+  resources: ITextResources = {},
+  editId?: string,
+  previewIframeRef?: RefObject<HTMLIFrameElement>,
+) => {
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
     currentEditId: editId,
@@ -179,5 +183,7 @@ const render = async (resources: ITextResources = {}, editId?: string, previewIf
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
+  const reload = previewIframeRef?.current?.contentWindow?.location?.reload;
+  reload?.();
   return renderWithMockStore({ appData })(<TextResourceEdit />);
 };
