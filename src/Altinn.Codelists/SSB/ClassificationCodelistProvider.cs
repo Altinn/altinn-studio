@@ -70,6 +70,25 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
         AppOptions appOptions = GetAppOptions(classificationCode, parentCode);
         appOptions.Parameters = new Dictionary<string, string>(mergedKeyValuePairs);
 
+        // Parameters used added to Parameters collection in AppOptions for reference and documentation purposes.
+        // Add well known parameters first.
+        appOptions.Parameters.TryAdd("id", _classificationId.ToString());
+        appOptions.Parameters.TryAdd("variant", variant);
+        appOptions.Parameters.TryAdd("date", dateOnly.ToString());
+        appOptions.Parameters.TryAdd("language", language);
+        appOptions.Parameters.TryAdd("level", level);
+        appOptions.Parameters.TryAdd("parentCode", parentCode);
+
+        // Add any other parameters.
+        List<string> knownKeys = new () { "id", "variant", "date", "language", "level", "parentCode" };
+        foreach (var keyValuePair in mergedKeyValuePairs)
+        {
+            if (!knownKeys.Contains(keyValuePair.Key))
+            {
+                appOptions.Parameters.TryAdd(keyValuePair.Key, keyValuePair.Value);
+            }
+        }
+
         return appOptions;
     }
 

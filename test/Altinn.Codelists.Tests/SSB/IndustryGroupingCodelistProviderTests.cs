@@ -32,6 +32,7 @@ public class IndustryGroupingCodelistProviderTests
 
         appOptions.Options.Should().HaveCount(21);
         appOptions.Options.First(x => x.Value == "A").Label.Should().Be("Jordbruk, skogbruk og fiske");
+        appOptions.Parameters.First(x => x.Key == "level").Value.Should().Be("1");
     }
 
     [Fact]
@@ -44,5 +45,6 @@ public class IndustryGroupingCodelistProviderTests
 
         appOptions.Options.Should().HaveCount(21);
         appOptions.Options.First(x => x.Value == "A").Label.Should().Be("Jordbruk, skogbruk og fiske");
+        appOptions.Parameters.First(x => x.Key == "language").Value.Should().Be("nb");
     }
 }
