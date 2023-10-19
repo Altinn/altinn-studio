@@ -132,6 +132,47 @@ describe('LeftNavigationBar', () => {
     expect(backButton).not.toBeInTheDocument();
   });
 
+  it('handles tab navigation correctly', async () => {
+    const user = userEvent.setup();
+    render({ tabs: mockTabs, selectedTab: mockTabId1 });
+
+    await act(() => user.tab());
+
+    expect(getTabItem(mockTabId1)).toHaveFocus();
+    expect(getTabItem(mockTabId2)).not.toHaveFocus();
+    expect(getTabItem(mockTabId3)).not.toHaveFocus();
+
+    await act(() => user.keyboard('{arrowdown}'));
+
+    expect(getTabItem(mockTabId1)).not.toHaveFocus();
+    expect(getTabItem(mockTabId2)).toHaveFocus();
+    expect(getTabItem(mockTabId3)).not.toHaveFocus();
+
+    await act(() => user.keyboard('{arrowdown}'));
+
+    expect(getTabItem(mockTabId1)).not.toHaveFocus();
+    expect(getTabItem(mockTabId2)).not.toHaveFocus();
+    expect(getTabItem(mockTabId3)).toHaveFocus();
+
+    await act(() => user.keyboard('{arrowdown}'));
+
+    expect(getTabItem(mockTabId1)).toHaveFocus();
+    expect(getTabItem(mockTabId2)).not.toHaveFocus();
+    expect(getTabItem(mockTabId3)).not.toHaveFocus();
+
+    await act(() => user.keyboard('{arrowup}'));
+
+    expect(getTabItem(mockTabId1)).not.toHaveFocus();
+    expect(getTabItem(mockTabId2)).not.toHaveFocus();
+    expect(getTabItem(mockTabId3)).toHaveFocus();
+
+    await act(() => user.keyboard('{arrowup}'));
+
+    expect(getTabItem(mockTabId1)).not.toHaveFocus();
+    expect(getTabItem(mockTabId2)).toHaveFocus();
+    expect(getTabItem(mockTabId3)).not.toHaveFocus();
+  });
+
   it('selects a tab when pressing "enter"', async () => {
     const user = userEvent.setup();
     render({ tabs: mockTabs, selectedTab: mockTabId1 });

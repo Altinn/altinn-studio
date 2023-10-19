@@ -98,7 +98,6 @@ export const LeftNavigationBar = ({
    * Handles key press in the tab bar
    */
   const onKeyDown = (name: string) => (event: Parameters<KeyboardEventHandler>[0]) => {
-    console.log('key', event.key);
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
