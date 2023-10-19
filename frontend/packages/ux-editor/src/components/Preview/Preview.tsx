@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
-import { Alert, Button, Paragraph, Popover } from '@digdir/design-system-react';
+import { Alert, Button, Paragraph, LegacyPopover } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { Center } from 'app-shared/components/Center';
 import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
@@ -84,16 +84,16 @@ const PreviewFrame = () => {
           <Alert severity='info' className={classes.previewLimitationsInfo} id='preview-limitations-info'>
             <div className={classes.alert}>
               {t('preview.limitations_info')}
-              <Popover
-                  trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='quiet' icon={<XMarkIcon />}/>}
+              <LegacyPopover
+                  trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
                   open={openSaveChoiceInSession}
               >
                 {t('session.reminder')}
                 <span className={classes.row}>
-                  <Button onClick={handleHidePreviewLimitations} size='small' variant='outline'>{t('session.do_show_again')}</Button>
-                  <Button onClick={handleRememberChoiceForSession} size='small' variant='outline'>{t('session.dont_show_again')}</Button>
+                  <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>{t('session.do_show_again')}</Button>
+                  <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>{t('session.dont_show_again')}</Button>
                 </span>
-              </Popover>
+              </LegacyPopover>
             </div>
           </Alert>}
     </div>

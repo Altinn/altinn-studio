@@ -1,9 +1,5 @@
-:root {
-  --previewLimitationsInfo-height: 0px;  /* Default height which will be overriden */
-}
-
 .header {
-  font-family: var(--studio-font-family);
+  font-family: var(--font-family);
   align-items: center;
   height: var(--header-height);
   width: 100vw;
@@ -21,7 +17,8 @@
 
 .previewLimitationsInfo {
   align-self: center;
-  width: 80%;
+  max-width: 1000px;
+  width: 100%;
   margin: 10px;
 }
 

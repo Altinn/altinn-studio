@@ -14,7 +14,7 @@ import {
 } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
-import { Alert, Button, Popover } from '@digdir/design-system-react';
+import { Alert, Button, LegacyPopover } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { previewPage } from 'app-shared/api/paths';
@@ -111,16 +111,16 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
           <Alert severity='info' className={classes.previewLimitationsInfo} id='preview-limitations-info'>
             <div className={classes.alert}>
               {t('preview.limitations_info')}
-              <Popover
-                  trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='quiet' icon={<XMarkIcon />}/>}
+              <LegacyPopover
+                  trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
                   open={openSaveChoiceInSession}
               >
                 {t('session.reminder')}
                 <span className={classes.row}>
-                  <Button onClick={handleHidePreviewLimitations} size='small' variant='outline'>{t('session.do_show_again')}</Button>
-                  <Button onClick={handleRememberChoiceForSession} size='small' variant='outline'>{t('session.dont_show_again')}</Button>
+                  <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>{t('session.do_show_again')}</Button>
+                  <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>{t('session.dont_show_again')}</Button>
                 </span>
-              </Popover>
+              </LegacyPopover>
             </div>
           </Alert>}
         <div className={classes.iframeContainer}>

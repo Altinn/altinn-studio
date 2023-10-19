@@ -1,3 +1,8 @@
+:root {
+  --font-family: 'Inter', sans-serif;
+  --previewLimitationsInfo-height: 0px;  /* Default height which will be overriden */
+}
+
 .previewContainer {
   --toolbar-height: 80px;
   --subtoolbar-height: 60px;
@@ -6,7 +11,6 @@
     var(--toolbar-height) + var(--subtoolbar-height) + var(--header-border-bottom-width)
   );
   --left-menu-width: 68px;
-  --font-family: 'Inter', sans-serif;
 
   background-color: #efefef;
   min-height: 100vh;
