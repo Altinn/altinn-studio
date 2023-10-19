@@ -114,8 +114,19 @@ namespace Designer.Tests.Services
         public async Task GetAsync_OK()
         {
             // Arrange
+            var testDeployments = GetDeployments("completedDeployments.json");
             _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()))
-                .ReturnsAsync(GetDeployments("completedDeployments.json"));
+                .ReturnsAsync(testDeployments);
+
+            var kubernetesDeployments = testDeployments.Take(4).Select(deployment => new Deployment()
+            {
+                Release = $"{deployment.Org}-{deployment.App}",
+                Version = deployment.TagName,
+            }).ToList();
+            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>()))
+                .ReturnsAsync(kubernetesDeployments);
+            _environementsService.Setup(e => e.GetOrganizationEnvironments("ttd")).ReturnsAsync(GetEnvironments("environments.json"));
+
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -134,6 +145,7 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.Equal(8, results.Results.Count());
+            Assert.Equal(4, results.Results.Count(x => x.DeployedInEnv));
             //Assert.True(results.Results.ToArray()[0].Reachable);
             _deploymentRepository.Verify(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()), Times.Once);
         }

@@ -29,7 +29,7 @@ describe('InputPopover', () => {
   const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
 
-  it('saves the new name on blur with no errors', async () => {
+  it('calls the "saveNewName" function when the confirm button is clicked', async () => {
     render(<InputPopover {...defaultProps} />);
 
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
@@ -40,7 +40,11 @@ describe('InputPopover', () => {
     const inputAfter = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(inputAfter).toHaveValue(mockNewName);
 
-    await act(() => user.tab());
+    const confirmButton = screen.getByRole('button', {
+      name: textMock('ux_editor.input_popover_save_button'),
+    });
+    await act(() => user.click(confirmButton));
+
     expect(mockSaveNewName).toHaveBeenCalledTimes(1);
     expect(mockSaveNewName).toHaveBeenCalledWith(mockNewName);
   });
