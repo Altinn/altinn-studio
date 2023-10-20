@@ -25,7 +25,9 @@ export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
       org={org}
       app={app}
       hasCloneModal
-      leftComponent={<SettingsModalButton org={org} app={app} />}
+      leftComponent={
+        shouldDisplayFeature('settingsModal') && <SettingsModalButton org={org} app={app} />
+      }
     />
   );
 };
