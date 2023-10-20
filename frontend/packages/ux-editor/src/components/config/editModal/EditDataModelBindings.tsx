@@ -50,13 +50,13 @@ export const EditDataModelBindings = ({
 
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | undefined>(
-    component.dataModelBindings[key || 'simpleBinding'],
+    component.dataModelBindings ? component.dataModelBindings[key || 'simpleBinding'] : undefined,
   );
 
   return (
     <div key={uniqueKey || ''}>
       {!selectedOption && !dataModelSelectVisible ? (
-        <Button onClick={() => setDataModelSelectVisible(true)} variant='quiet' size='medium'>
+        <Button onClick={() => setDataModelSelectVisible(true)} variant='tertiary' size='medium'>
           <div className={classes.datamodelLink}>
             <LinkIcon className={classes.linkIcon} />
             {t('ux_editor.modal_properties_data_model_link')}

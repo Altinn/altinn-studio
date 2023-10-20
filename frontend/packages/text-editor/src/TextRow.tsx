@@ -82,7 +82,7 @@ export const TextRow = ({
               <Button
                 className={classes.deleteButton}
                 icon={<TrashIcon title={`Slett ${textId}`} />}
-                variant='quiet'
+                variant='tertiary'
                 onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
                 aria-label={t('schema_editor.delete')}
                 size='small'
@@ -137,7 +137,7 @@ export const TextRow = ({
             <Button
               aria-label={'toggle-textkey-edit'}
               icon={<PencilIcon className={classes.smallIcon} />}
-              variant='quiet'
+              variant='tertiary'
               size='small'
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}
             />

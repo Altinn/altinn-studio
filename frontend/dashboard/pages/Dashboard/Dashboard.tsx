@@ -70,7 +70,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   aria-label={t('dashboard.clear_search')}
                   onClick={handleClearSearch}
                   icon={<XMarkIcon />}
-                  variant='quiet'
+                  variant='tertiary'
                   size='small'
                 />
               )}

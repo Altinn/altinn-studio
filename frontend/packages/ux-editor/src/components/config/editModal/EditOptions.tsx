@@ -166,7 +166,7 @@ export function EditOptions({
                         color='danger'
                         icon={<XMarkIcon />}
                         onClick={removeItem}
-                        variant='quiet'
+                        variant='tertiary'
                         size='small'
                       />
                     </div>
@@ -184,7 +184,7 @@ export function EditOptions({
             fullWidth
             icon={<PlusIcon />}
             onClick={handleAddOption}
-            variant='outline'
+            variant='secondary'
             size='small'
           >
             {t('ux_editor.modal_new_option')}

@@ -13,7 +13,7 @@ describe('AltinnHeaderbuttons', () => {
   it('should render the button for the provided action', () => {
     render({
       action: {
-        buttonVariant: 'filled',
+        buttonVariant: 'primary',
         headerButtonsClasses: undefined,
         menuKey: 'menu-1',
         title: 'Button1',
@@ -29,7 +29,7 @@ describe('AltinnHeaderbuttons', () => {
     const handleClick = jest.fn();
     render({
       action: {
-        buttonVariant: 'filled',
+        buttonVariant: 'primary',
         headerButtonsClasses: undefined,
         menuKey: 'menu-1',
         title: 'Button1',
@@ -45,7 +45,7 @@ describe('AltinnHeaderbuttons', () => {
   it('should render information icon if action is in beta', () => {
     render({
       action: {
-        buttonVariant: 'filled',
+        buttonVariant: 'primary',
         headerButtonsClasses: undefined,
         menuKey: 'menu-1',
         title: 'Button1',
@@ -61,7 +61,7 @@ describe('AltinnHeaderbuttons', () => {
 
     render({
       action: {
-        buttonVariant: 'filled',
+        buttonVariant: 'primary',
         headerButtonsClasses: undefined,
         menuKey: 'menu-1',
         title: 'Button1',
@@ -79,7 +79,7 @@ describe('AltinnHeaderbuttons', () => {
 const render = (props?: Partial<AltinnHeaderButtonProps>) => {
   const defaultProps: AltinnHeaderButtonProps = {
     action: {
-      buttonVariant: 'filled',
+      buttonVariant: 'primary',
       headerButtonsClasses: undefined,
       menuKey: 'menu-1',
       title: 'Button1',

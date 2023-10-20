@@ -45,7 +45,7 @@ export const TextResourceEdit = () => {
           color='second'
           icon={<XMarkIcon />}
           onClick={() => setEditId(undefined)}
-          variant='filled'
+          variant='primary'
           size='small'
         >
           {t('general.close')}

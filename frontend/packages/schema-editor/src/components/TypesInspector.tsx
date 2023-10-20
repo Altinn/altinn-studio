@@ -51,7 +51,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
           <span className={classes.addRowText}>{t('schema_editor.types')}</span>
           <Button
             className={classes.addRowButton}
-            variant='quiet'
+            variant='tertiary'
             icon={<PlusIcon height={40} />}
             onClick={handleAddDefinition}
             size='small'

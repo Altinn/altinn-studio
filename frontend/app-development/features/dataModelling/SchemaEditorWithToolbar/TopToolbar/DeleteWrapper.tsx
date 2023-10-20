@@ -39,7 +39,7 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
           onClick={onDeleteClick}
           color='danger'
           icon={<TrashIcon />}
-          variant='quiet'
+          variant='tertiary'
           size='small'
         >
           {t('schema_editor.delete_data_model')}

@@ -83,7 +83,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
             color='second'
             icon={<PlusIcon />}
             onClick={onAddPropertyClicked}
-            variant='outline'
+            variant='secondary'
             size='small'
           >
             {t('schema_editor.add_property')}

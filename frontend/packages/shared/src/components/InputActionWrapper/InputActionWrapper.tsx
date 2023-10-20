@@ -96,7 +96,7 @@ export const InputActionWrapper = ({
       })}
       {actions.map((action) => (
         <Button
-          variant='quiet'
+          variant='tertiary'
           size='medium'
           color={actionToColorMap[action]}
           key={action}
