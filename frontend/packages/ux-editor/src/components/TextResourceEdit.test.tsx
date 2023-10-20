@@ -193,7 +193,6 @@ const render = async (
     { previewIframeRef },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
   return renderWithMockStore({ appData }, {}, undefined, { previewIframeRef })(
     <TextResourceEdit />,
   );
