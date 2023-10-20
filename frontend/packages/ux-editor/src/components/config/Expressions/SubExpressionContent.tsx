@@ -39,7 +39,7 @@ export const SubExpressionContent = ({
     onUpdateSubExpression(subExpression);
   };
 
-  const addDataSourceToExpression = (dataSource: string, isComparable: boolean ) => {
+  const addDataSourceToExpression = (dataSource: string, isComparable: boolean) => {
     const newSubExpression = addDataSource(subExpression, dataSource, isComparable);
     onUpdateSubExpression(newSubExpression);
   };
@@ -58,7 +58,7 @@ export const SubExpressionContent = ({
           color='danger'
           icon={<XMarkIcon />}
           onClick={() => onRemoveSubExpression(subExpression)}
-          variant='quiet'
+          variant='tertiary'
           size='small'
         />
       </div>

@@ -120,8 +120,7 @@ export const ResourceNarrowingList = ({
             onClick={handleClickAddResource}
             color='second'
             size='small'
-            dashedBorder
-            variant='outline'
+            variant='secondary'
             icon={<PlusIcon fontSize='1.5rem' />}
           >
             {t('policy_editor.narrowing_list_add_button')}

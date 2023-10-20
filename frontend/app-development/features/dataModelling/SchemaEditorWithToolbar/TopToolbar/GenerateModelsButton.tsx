@@ -32,7 +32,7 @@ export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) =
           id='save-model-button'
           onClick={handleGenerateButtonClick}
           icon={<CogIcon />}
-          variant='quiet'
+          variant='tertiary'
           size='small'
         >
           {t('schema_editor.generate_model_files')}

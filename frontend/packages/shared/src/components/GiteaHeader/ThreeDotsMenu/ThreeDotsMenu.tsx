@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
-import { Popover, Button } from '@digdir/design-system-react';
+import { LegacyPopover, Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -27,12 +27,12 @@ export const ThreeDotsMenu = ({
 
   return (
     <>
-      <Popover
+      <LegacyPopover
         className={classes.popover}
         trigger={
           <Button
             icon={<MenuElipsisVerticalIcon title='Gitea menu' />}
-            variant='quiet'
+            variant='tertiary'
             color='inverted'
             size='small'
           />
@@ -68,7 +68,7 @@ export const ThreeDotsMenu = ({
             </li>
           )}
         </ul>
-      </Popover>
+      </LegacyPopover>
       {hasCloneModal && <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />}
     </>
   );

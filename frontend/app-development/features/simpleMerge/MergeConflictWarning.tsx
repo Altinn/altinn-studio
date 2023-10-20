@@ -26,7 +26,7 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
       <p>{t('merge_conflict.body1')} </p>
       <p>{t('merge_conflict.body2')}</p>
       <Button
-        variant='quiet'
+        variant='tertiary'
         icon={<Download />}
         iconPlacement={'right'}
         onClick={toggleDownloadModal}

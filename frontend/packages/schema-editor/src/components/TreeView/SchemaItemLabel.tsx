@@ -167,7 +167,7 @@ export const SchemaItemLabel = ({
         title={t('schema_editor.open_action_menu')}
         onClick={handleToggleContextMenuClick}
         icon={<MenuElipsisVerticalIcon />}
-        variant='quiet'
+        variant='tertiary'
         size='small'
       />
       <AltinnMenu

@@ -139,7 +139,7 @@ export const DropdownMenu = ({
         icon={<MenuElipsisVerticalIcon title={t('policy_editor.more')} fontSize='1.8rem' />}
         onClick={handleClickMoreIcon}
         onKeyDown={() => {}}
-        variant='quiet'
+        variant='tertiary'
         color={isError ? 'danger' : 'second'}
         className={isError && classes.errorButton}
         size='small'

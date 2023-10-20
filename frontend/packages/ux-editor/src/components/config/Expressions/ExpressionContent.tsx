@@ -15,7 +15,8 @@ import {
   addSubExpressionToExpression,
   complexExpressionIsSet,
   convertInternalExpressionToExternal,
-  isStudioFriendlyExpression, tryParseExpression,
+  isStudioFriendlyExpression,
+  tryParseExpression,
   updateComplexExpression,
   updateExpression,
   updateOperator
@@ -106,7 +107,6 @@ export const ExpressionContent = ({
     }
   };
 
-
   return (
     <>
       {expressionInEditMode ? (
@@ -134,7 +134,7 @@ export const ExpressionContent = ({
                 color='danger'
                 icon={<TrashIcon/>}
                 onClick={() => onRemoveExpression(expression)}
-                variant='quiet'
+                variant='tertiary'
                 size='small'
               />
             )}
@@ -170,7 +170,7 @@ export const ExpressionContent = ({
               color='success'
               icon={<CheckmarkIcon/>}
               onClick={() => onSaveExpression(expression)}
-              variant='filled'
+              variant='primary'
               size='small'
             >{t('general.save')}</Button>
           )}
@@ -194,7 +194,8 @@ export const ExpressionContent = ({
             )}
             {successfullyAddedExpression && (
               <div className={classes.checkMark}>
-                <CheckmarkIcon fontSize='1.5rem'/>{t('right_menu.expression_successfully_added_text')}
+                <CheckmarkIcon fontSize='1.5rem' />
+                {t('right_menu.expression_successfully_added_text')}
               </div>
             )}
           </div>
@@ -204,14 +205,14 @@ export const ExpressionContent = ({
               color='danger'
               icon={<TrashIcon/>}
               onClick={() => onRemoveExpression(expression)}
-              variant='quiet'
+              variant='tertiary'
               size='small'
             />
             <Button
               title={t('right_menu.expression_edit')}
               icon={<PencilIcon/>}
               onClick={() => onEditExpression(expression)}
-              variant='quiet'
+              variant='tertiary'
               size='small'
             />
           </div>

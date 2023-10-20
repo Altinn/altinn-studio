@@ -46,7 +46,7 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
             </a>
           </p>
           <div className={classes.buttonContainer}>
-            <Button color='second' onClick={props.onClose} variant='outline' size='small'>
+            <Button color='second' onClick={props.onClose} variant='secondary' size='small'>
               {t('general.cancel')}
             </Button>
           </div>

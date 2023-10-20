@@ -178,7 +178,7 @@ export const Expressions = () => {
           id='right_menu.dynamics_add'
           onClick={addNewExpression}
           size='small'
-          variant='outline'
+          variant='secondary'
         >
           {t('right_menu.expressions_add')}
         </Button>

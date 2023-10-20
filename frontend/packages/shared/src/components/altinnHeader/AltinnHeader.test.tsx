@@ -21,7 +21,7 @@ describe('AltinnHeader', () => {
     render({
       buttonActions: [
         {
-          buttonVariant: 'quiet',
+          buttonVariant: 'tertiary',
           headerButtonsClasses: undefined,
           menuKey: 'test-button',
           title: 'TestButton',
