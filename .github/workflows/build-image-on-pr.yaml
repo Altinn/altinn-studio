@@ -1,0 +1,21 @@
+name: Docker build
+on:
+  push:
+  pull_request:
+    branches: [ master ]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    name: Format check
+    runs-on: ubuntu-latest
+    container:
+      image: docker:latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Build image
+        run: |
+           docker build .
