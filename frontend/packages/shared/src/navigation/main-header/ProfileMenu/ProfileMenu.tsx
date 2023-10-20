@@ -77,7 +77,7 @@ export const ProfileMenu = ({
 
   return (
     <Button
-      variant='quiet'
+      variant='tertiary'
       color='inverted'
       onClick={handleClick}
       data-testid={testids.profileButton}
