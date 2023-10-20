@@ -7,9 +7,4 @@ export interface AppContextProps {
   removeSelectedLayoutSet: () => void;
 }
 
-export const AppContext = createContext<AppContextProps>({
-  previewIframeRef: null,
-  selectedLayoutSet: undefined,
-  setSelectedLayoutSet: (layoutSet: string) => {},
-  removeSelectedLayoutSet: () => {},
-});
+export const AppContext = createContext<AppContextProps>(null);
