@@ -101,7 +101,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
         </Heading>
         <div className={classes.topRightWrapper}>
           <Button
-            variant='quiet'
+            variant='tertiary'
             color='second'
             icon={<MigrationIcon />}
             iconPlacement='right'
@@ -112,7 +112,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           </Button>
           <div className={classes.verticalDivider} />
           <Button
-            variant='quiet'
+            variant='tertiary'
             color='second'
             icon={<PlusCircleIcon />}
             iconPlacement='right'

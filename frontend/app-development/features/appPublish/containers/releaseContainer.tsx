@@ -4,7 +4,7 @@ import type { AppRelease } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { Button, Popover } from '@digdir/design-system-react';
+import { Button, LegacyPopover } from '@digdir/design-system-react';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
@@ -206,7 +206,7 @@ export function ReleaseContainer() {
       </div>
       <div className={classes.versionSubHeader}>
         <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-        <Popover
+        <LegacyPopover
           className={classes.popover}
           open={popoverOpenClick || popoverOpenHover}
           trigger={
@@ -219,12 +219,12 @@ export function ReleaseContainer() {
               onKeyUp={handlePopoverKeyPress}
               icon={renderStatusIcon()}
               size='small'
-              variant='quiet'
+              variant='tertiary'
             />
           }
         >
           {renderStatusMessage()}
-        </Popover>
+        </LegacyPopover>
       </div>
       <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>

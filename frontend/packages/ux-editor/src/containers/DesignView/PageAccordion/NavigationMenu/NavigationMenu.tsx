@@ -105,7 +105,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
       <Button
         icon={<MenuElipsisVerticalIcon />}
         onClick={onPageSettingsClick}
-        variant='quiet'
+        variant='tertiary'
         title={t('general.options')}
         size='small'
       />

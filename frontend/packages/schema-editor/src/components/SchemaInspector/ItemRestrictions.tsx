@@ -143,7 +143,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
                 id='add-enum-button'
                 onClick={onAddEnumButtonClick}
                 size='small'
-                variant='outline'
+                variant='secondary'
               >
                 {t('schema_editor.add_enum')}
               </Button>

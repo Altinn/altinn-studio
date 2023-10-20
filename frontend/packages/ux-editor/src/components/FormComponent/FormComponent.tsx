@@ -112,7 +112,7 @@ export const FormComponent = memo(function FormComponent({
               }}
               tabIndex={0}
               title={t('general.delete')}
-              variant='quiet'
+              variant='tertiary'
               size='small'
             />
           }

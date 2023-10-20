@@ -18,7 +18,7 @@ export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
   return (
     <div className={classes.toolbarItem}>
       <div className={classes.componentIcon}>
-       {props.icon &&  (<props.icon />)} 
+       {props.icon &&  (<props.icon />)}
       </div>
       <div className={classes.componentLabel}>
         {props.thirdPartyLabel == null
@@ -29,7 +29,7 @@ export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
         <Button
           onClick={(e) => props.onClick(props.componentType, e)}
           icon={<InformationIcon />}
-          variant='quiet'
+          variant='tertiary'
           size='small'
         />
       </div>

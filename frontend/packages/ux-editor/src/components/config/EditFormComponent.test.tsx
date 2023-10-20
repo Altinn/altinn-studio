@@ -94,6 +94,11 @@ describe('EditFormComponent', () => {
       'ux_editor.modal_configure_read_only': 'checkbox',
     };
 
+    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
+    await waitFor(async () => {
+      await userEvent.click(linkIcon);
+    });
+
     Object.keys(labels).map(async (label) =>
       expect(await screen.findByRole(labels[label], { name: label })),
     );

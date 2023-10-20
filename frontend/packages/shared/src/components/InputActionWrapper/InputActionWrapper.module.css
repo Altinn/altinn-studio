@@ -1,0 +1,6 @@
+.container {
+  margin-top: var(--fds-spacing-3);
+  display: flex;
+  align-items: center;
+  min-height: var(--fds-component-mode-height-medium);
+}

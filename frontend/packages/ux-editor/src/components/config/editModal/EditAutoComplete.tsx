@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { LegacyTextField, Popover, Button } from '@digdir/design-system-react';
+import { LegacyTextField, LegacyPopover, Button } from '@digdir/design-system-react';
 import { stringToArray, arrayToString } from '../../../utils/stringUtils';
 import { replaceLastItem } from 'app-shared/utils/arrayUtils';
 import { FormField } from '../../FormField';
@@ -120,7 +120,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
           />
         )}
       </FormField>
-      <Popover
+      <LegacyPopover
         variant='default'
         open={searchFieldFocused && autoCompleteOptions.length > 0}
         placement='bottom-start'
@@ -134,14 +134,14 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
               key={option}
               size='small'
               color='second'
-              variant='quiet'
+              variant='tertiary'
               onMouseDown={() => handleWordClick(option)}
             >
               {option}
             </Button>
           ),
         )}
-      </Popover>
+      </LegacyPopover>
     </div>
   );
 };

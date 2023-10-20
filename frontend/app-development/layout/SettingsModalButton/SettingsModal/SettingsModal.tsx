@@ -7,6 +7,7 @@ import {
   PersonSuitIcon,
   MonitorIcon,
   ShieldLockIcon,
+  SidebarBothIcon,
 } from '@navikt/aksel-icons';
 import { Modal } from 'app-shared/components/Modal';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
@@ -18,6 +19,7 @@ import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AboutTab';
 import { LocalChangesTab } from './components/Tabs/LocalChangesTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
+import { SetupTab } from './components/Tabs/SetupTab';
 
 export type SettingsModalProps = {
   isOpen: boolean;
@@ -46,6 +48,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
    * Ids for the navigation tabs
    */
   const aboutTabId: SettingsModalTab = 'about';
+  const setupTabId: SettingsModalTab = 'setup';
   const policyTabId: SettingsModalTab = 'policy';
   const localChangesTabId: SettingsModalTab = 'localChanges';
   const accessControlTabId: SettingsModalTab = 'accessControl';
@@ -58,6 +61,12 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
       <InformationSquareIcon className={classes.icon} />,
       aboutTabId,
       () => changeTabTo(aboutTabId),
+      currentTab,
+    ),
+    createNavigationTab(
+      <SidebarBothIcon className={classes.icon} />,
+      setupTabId,
+      () => changeTabTo(setupTabId),
       currentTab,
     ),
     createNavigationTab(
@@ -96,6 +105,9 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
     switch (currentTab) {
       case 'about': {
         return <AboutTab org={org} app={app} id='tab-content-about' />;
+      }
+      case 'setup': {
+        return <SetupTab org={org} app={app} />;
       }
       case 'policy': {
         return <PolicyTab org={org} app={app} id='tab-content-policy' />;
