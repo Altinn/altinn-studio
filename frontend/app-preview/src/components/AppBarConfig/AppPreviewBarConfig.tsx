@@ -100,13 +100,13 @@ export const SubPreviewMenuRightContent = () => {
   const { t } = useTranslation();
   return (
     <div className={classes.rightSubHeaderButtons}>
-      <Button icon={<ArrowCirclepathIcon />} variant='quiet' size='small' color='inverted'>
+      <Button icon={<ArrowCirclepathIcon />} variant='tertiary' size='small' color='inverted'>
         {t('preview.subheader.restart')}
       </Button>
-      <Button icon={<EyeIcon />} variant='quiet' size='small' color='inverted'>
+      <Button icon={<EyeIcon />} variant='tertiary' size='small' color='inverted'>
         {t('preview.subheader.showas')}
       </Button>
-      <Button icon={<LinkIcon />} variant='quiet' size='small' color='inverted'>
+      <Button icon={<LinkIcon />} variant='tertiary' size='small' color='inverted'>
         {t('preview.subheader.sharelink')}
       </Button>
     </div>
@@ -124,7 +124,7 @@ export const appPreviewButtonActions = (
       title: 'top_menu.preview_back_to_editing',
       path: editorPath,
       menuKey: TopBarMenu.Preview,
-      buttonVariant: 'outline',
+      buttonVariant: 'secondary',
       headerButtonsClasses: classes.backToEditorBtn,
       handleClick: () =>
         (window.location.href = `${editorPath(org, app)}${subUrl}${window.localStorage.getItem(

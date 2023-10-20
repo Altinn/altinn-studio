@@ -65,7 +65,7 @@ export const ResourceTable = ({
           <th className={cn(classes.tableHeaderLarge, classes.tableHeader)}>Opprettet av</th>
           <th className={cn(classes.tableHeaderMedium, classes.tableHeaderLastChanged)}>
             <Button
-              variant='quiet'
+              variant='tertiary'
               icon={isSortedByNewest ? <CaretDownFillIcon /> : <CaretUpFillIcon />}
               onClick={handleSortTable}
               iconPlacement='right'

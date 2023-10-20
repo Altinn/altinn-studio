@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Documentation } from './Documentation';
 import { AppEnvironments } from './AppEnvironments';
 import { AppLogs } from './AppLogs';
+import { Navigation } from './Navigation';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -32,8 +33,8 @@ export const Administration = () => {
             <div className={classes.mainBlock}>
               <AppLogs />
             </div>
-            <div className={classes.mainBlock} style={{ height: '300px' }}>
-              {/* NAVIGATION PLACEHOLDER */}
+            <div className={classes.mainBlock}>
+              <Navigation />
             </div>
           </main>
           <aside className={classes.aside}>

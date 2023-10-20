@@ -49,4 +49,5 @@ export enum QueryKey {
   SingleResource = 'SingleResource',
   ValidatePolicy = 'ValidatePolicy',
   ValidateResource = 'ValidateResource',
+  PublishResource = 'PublishResource',
 }

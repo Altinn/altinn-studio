@@ -137,7 +137,7 @@ export const ConfigureLayoutSetPanel = () => {
       ) : (
         <Button
           className={classes.configureLayoutSetButton}
-          variant='quiet'
+          variant='tertiary'
           onClick={toggleConfigureLayoutSetName}
           size='small'
         >

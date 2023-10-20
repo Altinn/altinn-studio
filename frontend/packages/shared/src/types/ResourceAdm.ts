@@ -13,7 +13,7 @@ export interface Resource {
   visible?: boolean;
   delegable?: boolean;
   rightDescription?: SupportedLanguageKey<string>;
-  version?: Version;
+  version?: string;
   resourceReferences?: ResourceReference[];
   status?: ResourceStatusOption;
   selfIdentifiedUserEnabled?: boolean;

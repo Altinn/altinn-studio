@@ -127,6 +127,7 @@ export const ResourceNameAndId = ({
             <div className={classes.textfieldWrapper}>
               <Textfield
                 value={id}
+                size='small'
                 onChange={(e) => handleIdInput(e.target.value)}
                 id='resourceIdInputId'
                 error={resourceIdExists}
@@ -136,7 +137,7 @@ export const ResourceNameAndId = ({
               <div className={classes.stopEditingButton}>
                 <Button
                   onClick={() => handleClickEditButton(false)}
-                  variant='quiet'
+                  variant='tertiary'
                   color='danger'
                   icon={
                     <MultiplyIcon
@@ -148,7 +149,7 @@ export const ResourceNameAndId = ({
               </div>
               <Button
                 onClick={() => handleClickEditButton(true)}
-                variant='quiet'
+                variant='tertiary'
                 icon={
                   <CheckmarkIcon
                     title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
@@ -172,14 +173,14 @@ export const ResourceNameAndId = ({
           </div>
           <Paragraph size='small'>
             {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
-            altinn.svv.<strong>{getIdToDisplay()}</strong>
+            <strong>{getIdToDisplay()}</strong>
           </Paragraph>
           <div className={classes.editButtonWrapper}>
             <Button
               onClick={() => handleClickEditButton(false)}
               iconPlacement='right'
               icon={<PencilWritingIcon />}
-              variant='quiet'
+              variant='tertiary'
               color='first'
               size='small'
             >
@@ -202,6 +203,7 @@ export const ResourceNameAndId = ({
           value={title}
           onChange={(e) => handleEditTitle(e.target.value)}
           id='resourceNameInputId'
+          size='small'
         />
       </div>
       {displayIdTextOrInput()}

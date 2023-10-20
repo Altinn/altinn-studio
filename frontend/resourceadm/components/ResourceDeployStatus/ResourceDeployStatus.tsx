@@ -2,8 +2,9 @@ import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
 import type { DeployError, NavigationBarPage } from 'resourceadm/types/global';
-import { Alert, Paragraph } from '@digdir/design-system-react';
+import { Alert, Label, Paragraph } from '@digdir/design-system-react';
 import { LinkButton } from '../LinkButton';
+import { useTranslation } from 'react-i18next';
 
 export type ResourceDeployStatusProps = {
   /**
@@ -49,6 +50,16 @@ export const ResourceDeployStatus = ({
   onNavigateToPageWithError,
   resourceId,
 }: ResourceDeployStatusProps): React.ReactNode => {
+  const { t } = useTranslation();
+
+  const getPageToNavigateToAsString = (page: 'about' | 'policy') => {
+    switch (page) {
+      case 'about':
+        return t('resourceadm.about_resource_title');
+      case 'policy':
+        return t('resourceadm.policy_editor_title');
+    }
+  };
   /**
    * Display the different errors based on the type of the error
    */
@@ -64,7 +75,7 @@ export const ResourceDeployStatus = ({
       );
     }
     return error.map((e, index) => {
-      const [leftOfLinkText, linkText, rightOfLinkText] = e.message.split('\'')
+      const [leftOfLinkText] = e.message.split("'");
 
       return (
         <div className={classes.cardElement} key={index + resourceId}>
@@ -72,9 +83,9 @@ export const ResourceDeployStatus = ({
           <Paragraph size='small' className={classes.text}>
             {leftOfLinkText + ' "'}
             <LinkButton onClick={() => onNavigateToPageWithError(e.pageWithError)}>
-              {linkText}
+              {getPageToNavigateToAsString(e.pageWithError)}
             </LinkButton>
-            {'"' + rightOfLinkText}
+            {'".'}
           </Paragraph>
         </div>
       );
@@ -83,11 +94,13 @@ export const ResourceDeployStatus = ({
 
   const DisplayContent = () => {
     if (isSuccess) {
-      return <p className={classes.text}>{title}</p>;
+      return <Paragraph className={classes.text}>{title}</Paragraph>;
     }
     return (
       <>
-        <p className={classes.title}>{title}</p>
+        <Label size='small' as='p' className={classes.title}>
+          {title}
+        </Label>
         <DisplayErrors />
       </>
     );
@@ -97,5 +110,5 @@ export const ResourceDeployStatus = ({
     <Alert severity={isSuccess ? 'success' : 'danger'}>
       <DisplayContent />
     </Alert>
-  )
+  );
 };

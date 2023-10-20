@@ -131,7 +131,11 @@ namespace Altinn.Studio.Designer.Controllers
             XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
             if (xacmlPolicy == null)
             {
-                return NotFound();
+                ModelState.AddModelError("policy", "policyerror.missingpolicy");
+                ValidationProblemDetails missigPolicyValidation = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
+                missigPolicyValidation.Status = 404;
+
+                return Ok(missigPolicyValidation);
             }
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);

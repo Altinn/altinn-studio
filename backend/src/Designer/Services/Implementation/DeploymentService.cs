@@ -83,29 +83,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        /// TODO: https://github.com/Altinn/altinn-studio/issues/11377
         public async Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query)
         {
-            IEnumerable<DeploymentEntity> results = await _deploymentRepository.Get(org, app, query);
-            IEnumerable<DeploymentEntity> deploymentEntities = results as DeploymentEntity[] ?? results.ToArray();
+            List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
             var environments = await _environmentsService.GetOrganizationEnvironments(org);
             foreach (EnvironmentModel env in environments)
             {
                 try
                 {
-                    IList<Deployment> deploymentsInEnv =
+                    IList<Deployment> kubernetesDeploymentsInEnv =
                         await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, env);
-                    await Parallel.ForEachAsync(deploymentEntities
+
+                    var dbDeploymentEntitiesInEnv = deploymentEntities
                         .Where(deployment => deployment.EnvName == env.Name)
-                        .ToList(), (deployment, _) =>
+                        .ToList();
+
+                    foreach (var deployment in dbDeploymentEntitiesInEnv)
                     {
-                        deployment.DeployedInEnv = deploymentsInEnv.Contains(new Deployment
-                        {
-                            Version = deployment.TagName,
-                            Release = $"{deployment.Org}-{deployment.App}"
-                        });
-                        return default;
-                    });
+                        deployment.DeployedInEnv = kubernetesDeploymentsInEnv.Any(kubernetesDeployment =>
+                            kubernetesDeployment.Release == $"{deployment.Org}-{deployment.App}" &&
+                            kubernetesDeployment.Version == deployment.TagName);
+                    }
                 }
                 catch (KubernetesWrapperResponseException)
                 {

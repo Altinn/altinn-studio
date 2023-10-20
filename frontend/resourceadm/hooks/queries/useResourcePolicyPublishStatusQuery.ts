@@ -2,6 +2,7 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ResourceVersionStatus } from 'app-shared/types/ResourceAdm';
+import { AxiosError } from 'axios';
 
 /**
  * Query to get the status of the versions of a resource.
@@ -15,11 +16,12 @@ import type { ResourceVersionStatus } from 'app-shared/types/ResourceAdm';
 export const useResourcePolicyPublishStatusQuery = (
   org: string,
   repo: string,
-  id: string
-): UseQueryResult<ResourceVersionStatus> => {
+  id: string,
+): UseQueryResult<ResourceVersionStatus, AxiosError> => {
   const { getResourcePublishStatus } = useServicesContext();
 
-  return useQuery<ResourceVersionStatus>([QueryKey.ResourcePublishStatus, org, repo, id], () =>
-    getResourcePublishStatus(org, repo, id)
+  return useQuery<ResourceVersionStatus, AxiosError>(
+    [QueryKey.ResourcePublishStatus, org, repo, id],
+    () => getResourcePublishStatus(org, repo, id),
   );
 };

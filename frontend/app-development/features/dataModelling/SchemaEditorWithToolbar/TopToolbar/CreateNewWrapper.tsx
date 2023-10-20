@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, ErrorMessage, LegacyTextField, Popover } from '@digdir/design-system-react';
+import { Button, ErrorMessage, LegacyTextField, LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
@@ -75,7 +75,7 @@ export function CreateNewWrapper({
   };
 
   return (
-    <Popover
+    <LegacyPopover
       open={createNewOpen}
       onOpenChange={setCreateNewOpen}
       trigger={
@@ -83,7 +83,7 @@ export function CreateNewWrapper({
           id='create-new-datamodel-button'
           disabled={disabled}
           icon={<PlusIcon />}
-          variant='quiet'
+          variant='tertiary'
           onClick={() => setCreateNewOpen(!createNewOpen)}
           size='small'
         >
@@ -105,12 +105,12 @@ export function CreateNewWrapper({
         color='second'
         onClick={onCreateConfirmClick}
         style={{ marginTop: 22 }}
-        variant='outline'
+        variant='secondary'
         size='small'
       >
         {t('schema_editor.create_model_confirm_button')}
       </Button>
-    </Popover>
+    </LegacyPopover>
   );
 }
 CreateNewWrapper.defaultProps = {

@@ -83,7 +83,7 @@ export const DeleteModal = ({
         />
         <div className={classes.buttonWrapper}>
           <Button
-            variant='outline'
+            variant='secondary'
             color='danger'
             onClick={handleDelete}
             disabled={appName !== nameToDelete}
@@ -91,7 +91,7 @@ export const DeleteModal = ({
           >
             {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
           </Button>
-          <Button variant='outline' onClick={handleClose} size='small'>
+          <Button variant='secondary' onClick={handleClose} size='small'>
             {t('general.cancel')}
           </Button>
         </div>
