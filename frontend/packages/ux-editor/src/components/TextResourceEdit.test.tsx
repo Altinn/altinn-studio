@@ -14,6 +14,7 @@ import { appDataMock, textResourcesMock } from '../testing/stateMocks';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import { appContextMock } from '../testing/appContextMock';
 
 const user = userEvent.setup();
 
@@ -86,11 +87,12 @@ describe('TextResourceEdit', () => {
   });
 
   it('Check if reload is called when text is updated', async () => {
-    const reload = jest.fn();
     const id = 'some-id';
     const value = 'Lorem';
+    const additionalValue = ' ipsum';
     const resources: ITextResources = { nb: [{ id, value }] };
     const previewIframeRefMock = createRef<HTMLIFrameElement>();
+    const reload = jest.fn();
     const previewIframeRef: RefObject<HTMLIFrameElement> = {
       current: {
         ...previewIframeRefMock.current,
@@ -104,6 +106,13 @@ describe('TextResourceEdit', () => {
       },
     };
     await render(resources, id, previewIframeRef);
+    const textBox = screen.getByLabelText(nbText);
+    await act(async () => user.type(textBox, additionalValue));
+    await act(async () => user.tab());
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
+      [id]: value + additionalValue,
+    });
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
@@ -158,7 +167,7 @@ describe('TextResourceEdit', () => {
 const render = async (
   resources: ITextResources = {},
   editId?: string,
-  previewIframeRef?: RefObject<HTMLIFrameElement>,
+  previewIframeRef: RefObject<HTMLIFrameElement> = appContextMock.previewIframeRef,
 ) => {
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
@@ -180,10 +189,12 @@ const render = async (
           resources: resources[lang] || [],
         }),
     },
+    undefined,
+    { previewIframeRef },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-  const reload = previewIframeRef?.current?.contentWindow?.location?.reload;
-  reload?.();
-  return renderWithMockStore({ appData })(<TextResourceEdit />);
+  return renderWithMockStore({ appData }, {}, undefined, { previewIframeRef })(
+    <TextResourceEdit />,
+  );
 };
