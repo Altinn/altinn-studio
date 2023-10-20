@@ -18,7 +18,6 @@ import { TabContent } from '../../TabContent';
 export type AccessControlTabProps = {
   org: string;
   app: string;
-  id: string;
 };
 
 /**
@@ -27,11 +26,10 @@ export type AccessControlTabProps = {
  *
  * @property {string}[org] - The org
  * @property {string}[app] - The app
- * @property {string}[id] - The id of the tab
  *
  * @returns {ReactNode} - The rendered component
  */
-export const AccessControlTab = ({ org, app, id }: AccessControlTabProps): ReactNode => {
+export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode => {
   const { t } = useTranslation();
 
   const {
@@ -113,7 +111,7 @@ export const AccessControlTab = ({ org, app, id }: AccessControlTabProps): React
   };
 
   return (
-    <TabContent id={id}>
+    <TabContent>
       <TabHeader text={t('settings_modal.access_control_tab_heading')} />
       {displayContent()}
     </TabContent>

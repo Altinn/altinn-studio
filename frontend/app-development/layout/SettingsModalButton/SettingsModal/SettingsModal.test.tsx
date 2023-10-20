@@ -209,7 +209,7 @@ describe('SettingsModal', () => {
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
 
-    const setupTab = screen.getByRole('button', {
+    const setupTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_setup'),
     });
     await act(() => user.click(setupTab));

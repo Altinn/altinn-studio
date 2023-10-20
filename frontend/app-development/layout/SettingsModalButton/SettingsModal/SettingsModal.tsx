@@ -104,19 +104,19 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return <AboutTab org={org} app={app} id='tab-content-about' />;
+        return <AboutTab org={org} app={app} />;
       }
       case 'setup': {
         return <SetupTab org={org} app={app} />;
       }
       case 'policy': {
-        return <PolicyTab org={org} app={app} id='tab-content-policy' />;
+        return <PolicyTab org={org} app={app} />;
       }
       case 'accessControl': {
-        return <AccessControlTab org={org} app={app} id='tab-content-accessControl' />;
+        return <AccessControlTab org={org} app={app} />;
       }
       case 'localChanges': {
-        return <LocalChangesTab org={org} app={app} id='tab-content-localChanges' />;
+        return <LocalChangesTab org={org} app={app} />;
       }
     }
   };

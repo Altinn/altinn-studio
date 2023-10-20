@@ -12,7 +12,6 @@ import { repoDownloadPath } from 'app-shared/api/paths';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-const mockId: string = 'tab-content-localChanges';
 
 jest.mock('../../../../../../hooks/mutations/useResetRepositoryMutation');
 const deleteLocalChangesMutation = jest.fn();
@@ -30,7 +29,6 @@ describe('LocalChangesTab', () => {
   const defaultProps: LocalChangesTabProps = {
     org: mockOrg,
     app: mockApp,
-    id: mockId,
   };
 
   it('renders the component with the href for downloading only files that you have changes', () => {

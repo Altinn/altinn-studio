@@ -45,7 +45,6 @@ const mockSubjects: PolicySubject[] = [
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-const mockId: string = 'tab-content-policy';
 
 jest.mock('../../../../../../hooks/mutations/useAppPolicyMutation');
 const updateAppPolicyMutation = jest.fn();
@@ -63,7 +62,6 @@ const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve({})
 const defaultProps: PolicyTabProps = {
   org: mockOrg,
   app: mockApp,
-  id: mockId,
 };
 
 describe('PolicyTab', () => {

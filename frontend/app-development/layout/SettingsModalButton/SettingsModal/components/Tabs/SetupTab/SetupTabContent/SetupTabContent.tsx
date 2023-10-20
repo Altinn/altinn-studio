@@ -6,6 +6,7 @@ import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { ErrorMessage, Paragraph, Switch, Textfield } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { getIsDatesValid } from 'app-development/layout/SettingsModalButton/SettingsModal/utils/tabUtils/setupTabUtils';
+import { TabContent } from '../../../TabContent';
 
 export type SetupTabContentProps = {
   appMetadata: ApplicationMetadata;
@@ -35,7 +36,7 @@ export const SetupTabContent = ({ appMetadata, org, app }: SetupTabContentProps)
   const isInvalidDates: boolean = !getIsDatesValid(appMetadata?.validFrom, appMetadata?.validTo);
 
   return (
-    <div>
+    <TabContent>
       <Switch
         size='small'
         className={classes.switch}
@@ -155,6 +156,6 @@ export const SetupTabContent = ({ appMetadata, org, app }: SetupTabContentProps)
       >
         <Paragraph size='small'>{t('settings_modal.setup_tab_switch_onEntry_show')}</Paragraph>
       </Switch>
-    </div>
+    </TabContent>
   );
 };

@@ -14,7 +14,6 @@ import { TabContent } from '../../TabContent';
 export type LocalChangesTabProps = {
   org: string;
   app: string;
-  id: string;
 };
 
 /**
@@ -23,11 +22,10 @@ export type LocalChangesTabProps = {
  *
  * @property {string}[org] - The org
  * @property {string}[app] - The app
- * @property {string}[id] - The id of the tab
  *
  * @returns {ReactNode} - The rendered component
  */
-export const LocalChangesTab = ({ org, app, id }: LocalChangesTabProps): ReactNode => {
+export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode => {
   const { t } = useTranslation();
 
   const { mutate: deleteLocalChanges } = useResetRepositoryMutation(org, app);
@@ -44,7 +42,7 @@ export const LocalChangesTab = ({ org, app, id }: LocalChangesTabProps): ReactNo
   };
 
   return (
-    <TabContent id={id}>
+    <TabContent>
       <TabHeader text={t('settings_modal.local_changes_tab_heading')} />
       <div className={classes.contentWrapper}>
         <Paragraph size='small'>{t('settings_modal.local_changes_tab_info_text')}</Paragraph>

@@ -22,7 +22,6 @@ import { MemoryRouter } from 'react-router-dom';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-const mockId: string = 'tab-content-about';
 const mockNewText: string = 'test';
 
 const mockCommitAuthor: CommitAuthor = {
@@ -56,7 +55,6 @@ const getRepoInitialCommit = jest.fn().mockImplementation(() => Promise.resolve(
 const defaultProps: AboutTabProps = {
   org: mockOrg,
   app: mockApp,
-  id: mockId,
 };
 
 describe('AboutTab', () => {

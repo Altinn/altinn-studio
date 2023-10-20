@@ -18,7 +18,6 @@ import { TabContent } from '../../TabContent';
 export type AboutTabProps = {
   org: string;
   app: string;
-  id: string;
 };
 
 /**
@@ -27,11 +26,10 @@ export type AboutTabProps = {
  *
  * @property {string}[org] - The org
  * @property {string}[app] - The app
- * @property {string}[id] - The id of the tab
  *
  * @returns {ReactNode} - The rendered component
  */
-export const AboutTab = ({ org, app, id }: AboutTabProps): ReactNode => {
+export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
   const { t } = useTranslation();
 
   const repositoryType = getRepositoryType(org, app);
@@ -88,7 +86,7 @@ export const AboutTab = ({ org, app, id }: AboutTabProps): ReactNode => {
     }
   };
   return (
-    <TabContent id={id}>
+    <TabContent>
       <TabHeader text={t('settings_modal.about_tab_heading')} />
       {displayContent()}
     </TabContent>

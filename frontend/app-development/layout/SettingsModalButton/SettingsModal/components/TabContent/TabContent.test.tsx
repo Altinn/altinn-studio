@@ -2,12 +2,10 @@ import React, { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { TabContent, TabContentProps } from './TabContent';
 
-const mockId: string = 'test-tab-id';
 const mockChildrenText: string = 'Test content';
 const mockChildren: ReactNode = <div>{mockChildrenText}</div>;
 
 const defaultProps: TabContentProps = {
-  id: mockId,
   children: mockChildren,
 };
 
