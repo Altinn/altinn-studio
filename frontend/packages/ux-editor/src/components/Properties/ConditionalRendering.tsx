@@ -36,7 +36,7 @@ export const ConditionalRendering = () => {
               className={classes.addIcon}
               icon={<PlusIcon />}
               onClick={() => setModalOpen(true)}
-              variant='quiet'
+              variant='tertiary'
               size='small'
             />
           </div>

@@ -1,6 +1,6 @@
 import React, { ReactNode, useRef, useEffect, ChangeEvent, useState } from 'react';
 import classes from './InputPopover.module.css';
-import { Button, ErrorMessage, Popover, Textfield } from '@digdir/design-system-react';
+import { Button, ErrorMessage, LegacyPopover, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 
@@ -106,7 +106,7 @@ export const InputPopover = ({
 
   return (
     <div ref={ref}>
-      <Popover className={classes.popover} trigger={trigger} open={open}>
+      <LegacyPopover className={classes.popover} trigger={trigger} open={open}>
         <Textfield
           label={t('ux_editor.input_popover_label')}
           size='small'
@@ -121,7 +121,7 @@ export const InputPopover = ({
         <div className={classes.buttonContainer}>
           <Button
             color='first'
-            variant='filled'
+            variant='primary'
             onClick={() => saveNewName(newName)}
             disabled={!shouldSavingBeEnabled}
             size='small'
@@ -130,7 +130,7 @@ export const InputPopover = ({
           </Button>
           <Button
             color='second'
-            variant='quiet'
+            variant='tertiary'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
               onClose(event);
@@ -140,7 +140,7 @@ export const InputPopover = ({
             {t('general.cancel')}
           </Button>
         </div>
-      </Popover>
+      </LegacyPopover>
     </div>
   );
 };

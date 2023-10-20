@@ -75,7 +75,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         color='second'
         id='reset-repo-button'
         onClick={onClickResetRepo}
-        variant='outline'
+        variant='secondary'
         size='small'
       >
         {t('administration.reset_repo_button')}
@@ -90,7 +90,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       />
       {/* Download local repository */}
       <h3>{t('administration.download_repo')}</h3>
-      <Button color='second' onClick={toggleDownloadModal} variant='outline' size='small'>
+      <Button color='second' onClick={toggleDownloadModal} variant='secondary' size='small'>
         {t('administration.download_repo')}
       </Button>
       <div ref={downloadModalAnchor} />

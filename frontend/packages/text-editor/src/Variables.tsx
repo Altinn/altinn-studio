@@ -18,15 +18,15 @@ export const Variables = ({ variables }: VariablesProps) => {
       {variables.map((variable) => (
         <div key={variable.key} className={classes.chip}>
           <span className={classes.variables}>{`${variable.key}: ${variable.dataSource}`}</span>
-          {variable.defaultValue &&
-                <span className={classes.variables}>
-                  <Trans
-                      i18nKey={'text_editor.variables_default_value'}
-                      values={{ defaultValue: variable.defaultValue }}
-                      components={{ bold: <strong/> }}
-                  />
-                </span>
-              }
+          {variable.defaultValue && (
+            <span className={classes.variables}>
+              <Trans
+                i18nKey={'text_editor.variables_default_value'}
+                values={{ defaultValue: variable.defaultValue }}
+                components={{ bold: <strong /> }}
+              />
+            </span>
+          )}
         </div>
       ))}
       {variables.length > 0 && (
@@ -34,7 +34,7 @@ export const Variables = ({ variables }: VariablesProps) => {
           <PopoverPanel
             title={'Kun for visning'}
             variant={PanelVariant.Info}
-            trigger={<Button icon={<InformationSquareFillIcon />} variant='quiet' size='small' />}
+            trigger={<Button icon={<InformationSquareFillIcon />} variant='tertiary' size='small' />}
             open={infoboxOpen}
             onOpenChange={setInfoboxOpen}
           >

@@ -112,7 +112,7 @@ export const TreeViewItem = ({
       size='small'
       tabIndex={focusable ? 0 : -1}
       type='button'
-      variant='quiet'
+      variant='tertiary'
     >
       <span aria-hidden className={classes.chevronWrapper}>
         {children && (open ? <ChevronDownIcon /> : <ChevronRightIcon />)}
