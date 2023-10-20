@@ -65,6 +65,9 @@ describe('SettingsModal', () => {
       screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_about') }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_setup') }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole('button', { name: textMock('settings_modal.left_nav_tab_policy') }),
     ).toBeInTheDocument();
     expect(
@@ -187,6 +190,33 @@ describe('SettingsModal', () => {
     expect(
       screen.getByRole('heading', {
         name: textMock('settings_modal.access_control_tab_heading'),
+        level: 2,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('settings_modal.about_tab_heading')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('changes the tab from "about" to "setup" when setup control tab is clicked', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
+
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('settings_modal.setup_tab_heading'),
+        level: 2,
+      }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
+
+    const setupTab = screen.getByRole('button', {
+      name: textMock('settings_modal.left_nav_tab_setup'),
+    });
+    await act(() => user.click(setupTab));
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('settings_modal.setup_tab_heading'),
         level: 2,
       }),
     ).toBeInTheDocument();
