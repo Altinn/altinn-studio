@@ -1,7 +1,8 @@
 .dateWrapper {
   display: flex;
   flex-direction: column;
-  width: 70%;
+  max-width: 500px;
+  width: 100%;
 }
 
 .dateInputFields {
@@ -13,6 +14,10 @@
   margin-block: 30px;
 }
 
-.errorMessage {
+.errorMessagePlaceHolder {
   height: 30px;
+}
+
+.switch {
+  margin-block: 10px;
 }
