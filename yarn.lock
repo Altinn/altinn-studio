@@ -1756,10 +1756,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.8.0, @digdir/design-system-tokens@npm:^0.8.0":
-  version: 0.8.0
-  resolution: "@digdir/design-system-tokens@npm:0.8.0"
-  checksum: 73a9d5a134447f5a6443c3c18e843885780895e011ac6ee63043ccd6cc7557e4436308492099b1faa9d78c7c728a6623e0d1ece7154d177474063961d3228604
+"@digdir/design-system-tokens@npm:0.8.1":
+  version: 0.8.1
+  resolution: "@digdir/design-system-tokens@npm:0.8.1"
+  checksum: 5a85cd4d255c9e2c28e16ce4720fd8f5c6f876fe3a3af2634f1911d4896b81e45ca0a9b112dfa2193480ca7759d780cc752af5425cb0be00967b052e230592d5
   languageName: node
   linkType: hard
 
@@ -1767,6 +1767,13 @@ __metadata:
   version: 0.1.7
   resolution: "@digdir/design-system-tokens@npm:0.1.7"
   checksum: dabe357c8d262cd6f6430a722f30dc3aa70243bd12cdc39886b655b1ee9a22c471e5131906944a6164c166ef54b86e69526fec5fa8750ad8c9f4444a4aeedf0d
+  languageName: node
+  linkType: hard
+
+"@digdir/design-system-tokens@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@digdir/design-system-tokens@npm:0.8.0"
+  checksum: 73a9d5a134447f5a6443c3c18e843885780895e011ac6ee63043ccd6cc7557e4436308492099b1faa9d78c7c728a6623e0d1ece7154d177474063961d3228604
   languageName: node
   linkType: hard
 
@@ -5442,7 +5449,7 @@ __metadata:
     "@altinn/altinn-design-system": 0.29.1
     "@altinn/figma-design-tokens": 6.0.1
     "@digdir/design-system-react": 0.29.0
-    "@digdir/design-system-tokens": 0.8.0
+    "@digdir/design-system-tokens": 0.8.1
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
     "@microsoft/applicationinsights-react-js": ^17.0.0
