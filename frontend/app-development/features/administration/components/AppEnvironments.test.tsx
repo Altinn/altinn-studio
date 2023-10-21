@@ -105,7 +105,7 @@ describe('AppEnvironments', () => {
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
-    expect(screen.getByRole('heading', { name: envName.toUpperCase() })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: envName })).toBeInTheDocument();
     expect(screen.getByText(textMock('administration.unavailable'))).toBeInTheDocument();
     expect(screen.getByText(textMock('administration.go_to_build_log'))).toBeInTheDocument();
   });
