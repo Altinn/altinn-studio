@@ -126,22 +126,15 @@ export const AppDeploymentComponent = ({
         </Trans>
       ));
     } else if (deployFailed) {
-      toast.error(() => (
-        <Trans
-          i18nKey='app_deploy_messages.failed'
-          values={{
-            envName: latestDeploy.envName,
-            tagName: latestDeploy.tagName,
-            time: latestDeploy.created,
-          }}
-        >
-          <Link inverted href='mailto:tjenesteeier@altinn.no'>
-            tjenesteeier@altinn.no
-          </Link>
-        </Trans>
-      ));
+      toast.error(() =>
+        t('app_deploy_messages.failed', {
+          envName: latestDeploy.envName,
+          tagName: latestDeploy.tagName,
+          time: latestDeploy.build.started,
+        }),
+      );
     }
-  }, [deployPermission, deployFailed, latestDeploy, mutation.isError]);
+  }, [deployPermission, deployFailed, t, latestDeploy, mutation.isError]);
 
   return (
     <div className={classes.mainContainer}>

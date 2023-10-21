@@ -86,27 +86,36 @@ describe('AppDeploymentComponent', () => {
   });
 
   it('should render error message if latest deploy failed', async () => {
+    const date = new Date().toDateString();
     const deployHistory: IDeployment[] = [
       {
         app: 'test-app',
-        created: new Date().toDateString(),
+        created: date,
         createdBy: 'test-user',
-        envName: 'test',
+        envName: 'testEnv',
         id: 'test-id',
         org: 'test-org',
-        tagName: 'test',
+        tagName: 'testTag',
         build: {
           id: 'test-id',
-          finished: new Date().toDateString(),
+          finished: date,
           result: 'failed',
           status: 'failed',
-          started: new Date().toDateString(),
+          started: date,
         },
         deployedInEnv: false,
       },
     ];
     render({ deployHistory });
-    expect(await screen.findByText(textMock('app_deploy_messages.failed'))).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        textMock('app_deploy_messages.failed', {
+          envName: 'testEnv',
+          tagName: 'testTag',
+          time: date,
+        }),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('should should render error message if latest deploy succeeded but app is not reachable', () => {
