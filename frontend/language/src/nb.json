@@ -278,6 +278,7 @@
   "general.customer_service_phone_number": "+47 75 00 60 00",
   "general.dataModel": "datamodell",
   "general.date": "Dato",
+  "general.date_time_format": "{{date}} kl. {{time}}",
   "general.delete": "Slett",
   "general.details": "Detaljer",
   "general.disabled": "Deaktivert",

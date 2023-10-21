@@ -14,10 +14,8 @@ export const formatDateDDMMYY = (dateasstring: string, timeZone?: string) =>
     timeZone,
   });
 
-export const formatDateTime = (dateasstring: string, timeZone?: string, separator: string = ' ') =>
-  [formatDateDDMMYY(dateasstring, timeZone), formatTimeHHmm(dateasstring, timeZone)].join(
-    separator,
-  );
+export const formatDateTime = (dateasstring: string, timeZone?: string) =>
+  [formatDateDDMMYY(dateasstring, timeZone), formatTimeHHmm(dateasstring, timeZone)].join(' ');
 
 /**
  * Adds minutes to a date and returns a new Date object

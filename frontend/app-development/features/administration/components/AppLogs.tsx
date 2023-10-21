@@ -8,7 +8,7 @@ import { DeploymentStatus } from 'app-development/features/appPublish/components
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 import { Alert, Heading } from '@digdir/design-system-react';
-import { formatDateTime } from 'app-shared/pure/date-format';
+import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 
 export const AppLogs = () => {
   const { org, app } = useStudioUrlParams();
@@ -36,6 +36,13 @@ export const AppLogs = () => {
   );
   const hasSucceededDeployments = succeededDeployments.length > 0;
 
+  const formatDateTime = (dateAsString: string): string => {
+    return t('general.date_time_format', {
+      date: formatDateDDMMYY(dateAsString),
+      time: formatTimeHHmm(dateAsString),
+    });
+  };
+
   return (
     <div className={classes.appLogs}>
       <Heading level={2} size='xxsmall' className={classes.appLogsTitle}>
@@ -57,8 +64,6 @@ export const AppLogs = () => {
                 <div>
                   {`(${appDeployment.createdBy}) ${t('general.date')}: ${formatDateTime(
                     appDeployment.created,
-                    undefined,
-                    ` ${t('general.time_prefix')} `,
                   )}`}
                 </div>
               </li>

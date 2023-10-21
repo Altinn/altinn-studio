@@ -6,7 +6,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { AltinnSpinner } from 'app-shared/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
-import { formatDateTime } from 'app-shared/pure/date-format';
+import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 import { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 import { getReleaseBuildPipelineLink } from 'app-development/utils/urlHelper';
 import { publishPath } from 'app-shared/api/paths';
@@ -48,10 +48,20 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
   }, [latestDeploy]);
 
   const appDeployedAndReachable = !!deploymentInEnv;
+
   const deployFailed = latestDeploy && deploymentStatus === DeploymentStatus.failed;
+
   const deployedVersionNotReachable =
     latestDeploy && !appDeployedAndReachable && deploymentStatus === DeploymentStatus.succeeded;
+
   const noAppDeployed = !latestDeploy || deployInProgress;
+
+  const formatDateTime = (dateAsString: string): string => {
+    return t('general.date_time_format', {
+      date: formatDateDDMMYY(dateAsString),
+      time: formatTimeHHmm(dateAsString),
+    });
+  };
 
   if (deploysAreLoading) return <AltinnSpinner />;
 
@@ -78,11 +88,7 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
           <Trans
             i18nKey={'administration.last_published'}
             values={{
-              lastPublishedDate: formatDateTime(
-                deploymentInEnv?.created,
-                undefined,
-                ` ${t('general.time_prefix')} `,
-              ),
+              lastPublishedDate: formatDateTime(deploymentInEnv?.created),
             }}
           />
         }
