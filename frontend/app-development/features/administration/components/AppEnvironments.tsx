@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import cn from 'classnames';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useEnvironmentsQuery, useOrgListQuery } from 'app-development/hooks/queries';
 import { AltinnSpinner } from 'app-shared/components';
