@@ -139,7 +139,7 @@ const DeploymentStatusInfo = ({
 }: DeploymentStatusInfoProps) => {
   const { t } = useTranslation();
   const isProduction = envType.toLowerCase() === 'production';
-  const headingText = isProduction ? t('general.production') : envName;
+  const headingText = isProduction ? t('general.production') : envName.toUpperCase();
 
   return (
     <Alert severity={severity} className={classes.alert}>
