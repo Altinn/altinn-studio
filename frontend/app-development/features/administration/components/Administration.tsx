@@ -20,7 +20,7 @@ export const Administration = () => {
   }
 
   return (
-    <div className={classes.administration}>
+    <div className={classes.pageContainer}>
       <div className={classes.container}>
         <div className={classes.header}>
           <Heading size='xlarge'>{appConfigData?.serviceName || app}</Heading>

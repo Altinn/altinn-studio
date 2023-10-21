@@ -1,33 +1,13 @@
-.alert[class*='Alert-module_alert'] {
+.alert {
   border-radius: 4px;
-  box-shadow: unset !important;
-  font-size: smaller !important;
-  display: block !important;
-  height: 115px !important;
+  box-shadow: unset;
+  display: block;
   position: relative;
 }
 
-.alert [class*='Paragraph-module_paragraph'] {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fds-spacing-3);
-  font-size: medium !important;
-  height: 100%;
-  width: 100%;
-}
-
+/* SVG styling is to move the alert-icon from left to right */
 .alert svg {
   position: absolute;
   right: var(--fds-spacing-3);
   top: var(--fds-spacing-3);
-}
-
-.content {
-  flex: 1;
-  align-items: stretch;
-}
-
-.footer {
-  font-size: smaller;
-  color: #68707c;
 }

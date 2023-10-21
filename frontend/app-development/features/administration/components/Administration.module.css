@@ -1,9 +1,9 @@
-.administration {
+.pageContainer {
   background-color: #e6eff8;
   position: relative;
 }
 
-.administration::before {
+.pageContainer::before {
   background-image: url('/designer/img/Altinn-studio.svg');
   background-position: center 10px;
   background-size: 100% auto;

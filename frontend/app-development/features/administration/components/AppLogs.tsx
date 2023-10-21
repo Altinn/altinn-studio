@@ -16,8 +16,8 @@ export const AppLogs = () => {
 
   const {
     data: appDeployments = [],
-    isLoading: deploysAreLoading,
-    isError: deloyesAreError,
+    isLoading: isLoadingDeploys,
+    isError: deploysHasError,
   } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
   const {
     data: environmentList = [],
@@ -25,9 +25,9 @@ export const AppLogs = () => {
     isError: envIsError,
   } = useEnvironmentsQuery({ hideDefaultError: true });
 
-  if (deploysAreLoading || envIsLoading) return <AltinnSpinner />;
+  if (isLoadingDeploys || envIsLoading) return <AltinnSpinner />;
 
-  if (deloyesAreError || envIsError)
+  if (deploysHasError || envIsError)
     return <Alert severity='danger'>{t('administration.app_logs_error')}</Alert>;
 
   const succeededDeployments = appDeployments.filter(

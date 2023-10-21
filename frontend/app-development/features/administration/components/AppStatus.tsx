@@ -3,7 +3,7 @@ import classes from './AppStatus.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppDeploymentsQuery } from 'app-development/hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
-import { Alert, Heading } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { AltinnSpinner } from 'app-shared/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
 import { formatDateTime } from 'app-shared/pure/date-format';
@@ -30,14 +30,21 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
 
   const latestDeploy = deployHistory ? deployHistory[0] : null;
   const deploymentInEnv = deployHistory.find((d) => d.deployedInEnv);
+
   const { deployInProgress, deploymentStatus } = useMemo(() => {
-    if (latestDeploy && latestDeploy.build.finished === null) {
-      return { deployInProgress: true, deploymentStatus: DeploymentStatus.inProgress };
-    } else if (latestDeploy && latestDeploy.build.finished && latestDeploy.build.result) {
-      return { deployInProgress: false, deploymentStatus: latestDeploy.build.result };
-    } else {
+    if (!latestDeploy) {
       return { deployInProgress: false, deploymentStatus: null };
     }
+
+    if (latestDeploy.build.finished === null) {
+      return { deployInProgress: true, deploymentStatus: DeploymentStatus.inProgress };
+    }
+
+    if (latestDeploy.build.finished && latestDeploy.build.result) {
+      return { deployInProgress: false, deploymentStatus: latestDeploy.build.result };
+    }
+
+    return { deployInProgress: false, deploymentStatus: null };
   }, [latestDeploy]);
 
   const appDeployedAndReachable = !!deploymentInEnv;
@@ -60,29 +67,11 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
       </Alert>
     );
 
-  const Status = ({
-    severity,
-    content,
-    footer,
-  }: {
-    severity: 'success' | 'warning' | 'info';
-    content: string;
-    footer: string | JSX.Element;
-  }) => {
-    return (
-      <Alert severity={severity} className={classes.alert}>
-        <Heading level={2} size='xsmall' className={classes.header}>
-          {envType.toLowerCase() === 'production' ? t('general.production') : envName.toUpperCase()}
-        </Heading>
-        <div className={classes.content}>{content}</div>
-        <div className={classes.footer}>{footer}</div>
-      </Alert>
-    );
-  };
-
   if (appDeployedAndReachable && !deployInProgress) {
     return (
-      <Status
+      <DeploymentStatusInfo
+        envType={envType}
+        envName={envName}
         severity='success'
         content={t('administration.success')}
         footer={
@@ -97,13 +86,15 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
             }}
           />
         }
-      ></Status>
+      ></DeploymentStatusInfo>
     );
   }
 
   if (noAppDeployed || (deployFailed && !appDeployedAndReachable)) {
     return (
-      <Status
+      <DeploymentStatusInfo
+        envType={envType}
+        envName={envName}
         severity='info'
         content={t('administration.no_app')}
         footer={
@@ -117,7 +108,9 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
 
   if (deployedVersionNotReachable) {
     return (
-      <Status
+      <DeploymentStatusInfo
+        envType={envType}
+        envName={envName}
         severity='warning'
         content={t('administration.unavailable')}
         footer={
@@ -128,4 +121,35 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
       />
     );
   }
+};
+
+type DeploymentStatusInfoProps = {
+  envType: string;
+  envName: string;
+  severity: 'success' | 'warning' | 'info';
+  content: string;
+  footer: string | JSX.Element;
+};
+const DeploymentStatusInfo = ({
+  envType,
+  envName,
+  severity,
+  content,
+  footer,
+}: DeploymentStatusInfoProps) => {
+  const { t } = useTranslation();
+  const isProduction = envType.toLowerCase() === 'production';
+  const headingText = isProduction ? t('general.production') : envName;
+
+  return (
+    <Alert severity={severity} className={classes.alert}>
+      <Heading spacing level={2} size='xsmall' className={classes.header}>
+        {headingText}
+      </Heading>
+      <Paragraph spacing size='small'>
+        {content}
+      </Paragraph>
+      <Paragraph size='xsmall'>{footer}</Paragraph>
+    </Alert>
+  );
 };
