@@ -106,7 +106,7 @@ describe('AppStatus', () => {
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
-    expect(screen.getByRole('heading', { name: envNameTest.toUpperCase() })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
     expect(screen.getByText(textMock('administration.success'))).toBeInTheDocument();
     expect(screen.getByText(textMock('administration.last_published'))).toBeInTheDocument();
   });
@@ -122,7 +122,7 @@ describe('AppStatus', () => {
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
-    expect(screen.getByRole('heading', { name: envNameTest.toUpperCase() })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
     expect(screen.getByText(textMock('administration.no_app'))).toBeInTheDocument();
     expect(screen.getByText(textMock('administration.go_to_publish'))).toBeInTheDocument();
   });
@@ -155,7 +155,7 @@ describe('AppStatus', () => {
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
-    expect(screen.getByRole('heading', { name: envNameTest.toUpperCase() })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
     expect(screen.getByText(textMock('administration.unavailable'))).toBeInTheDocument();
     expect(screen.getByText(textMock('administration.go_to_build_log'))).toBeInTheDocument();
   });

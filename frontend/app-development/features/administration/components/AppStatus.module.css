@@ -11,3 +11,7 @@
   right: var(--fds-spacing-3);
   top: var(--fds-spacing-3);
 }
+
+.heading {
+  text-transform: uppercase;
+}

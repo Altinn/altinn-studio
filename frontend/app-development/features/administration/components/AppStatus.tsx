@@ -139,11 +139,11 @@ const DeploymentStatusInfo = ({
 }: DeploymentStatusInfoProps) => {
   const { t } = useTranslation();
   const isProduction = envType.toLowerCase() === 'production';
-  const headingText = isProduction ? t('general.production') : envName.toUpperCase();
+  const headingText = isProduction ? t('general.production') : envName;
 
   return (
     <Alert severity={severity} className={classes.alert}>
-      <Heading spacing level={2} size='xsmall' className={classes.header}>
+      <Heading spacing level={2} size='xsmall' className={classes.heading}>
         {headingText}
       </Heading>
       <Paragraph spacing size='small'>
