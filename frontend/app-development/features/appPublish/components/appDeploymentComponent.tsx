@@ -3,6 +3,7 @@ import classes from './appDeploymentComponent.module.css';
 import { AltinnLink, AltinnSpinner } from 'app-shared/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import {
+  Alert,
   Table,
   TableRow,
   TableHeader,
@@ -81,8 +82,10 @@ export const AppDeploymentComponent = ({
   const latestDeploy = deployHistory ? deployHistory[0] : null;
   const deploymentInEnv = deployHistory ? deployHistory.find((d) => d.deployedInEnv) : false;
   const { deployInProgress, deploymentStatus } = useMemo(() => {
-    if (latestDeploy && latestDeploy.build.finished === null) {
+    if (latestDeploy && latestDeploy.build.finished === null && !latestDeploy.deployedInEnv) {
       return { deployInProgress: true, deploymentStatus: DeploymentStatus.inProgress };
+    } else if (latestDeploy && latestDeploy.build.finished === null && latestDeploy.deployedInEnv) {
+      return { deployInProgress: false, deploymentStatus: DeploymentStatus.succeeded };
     } else if (latestDeploy && latestDeploy.build.finished && latestDeploy.build.result) {
       return { deployInProgress: false, deploymentStatus: latestDeploy.build.result };
     } else {
@@ -95,6 +98,10 @@ export const AppDeploymentComponent = ({
   const deployedVersionNotReachable =
     latestDeploy && !appDeployedAndReachable && deploymentStatus === DeploymentStatus.succeeded;
   const noAppDeployed = !latestDeploy || deployInProgress;
+  const deployStatusUnavailable =
+    latestDeploy &&
+    latestDeploy.deployedInEnv &&
+    latestDeploy.build.result === DeploymentStatus.failed;
 
   useEffect(() => {
     if (deployPermission && latestDeploy && deployedVersionNotReachable) {
@@ -109,7 +116,8 @@ export const AppDeploymentComponent = ({
   }, [deployPermission, latestDeploy, deployedVersionNotReachable]);
 
   useEffect(() => {
-    if (deployPermission && (deployFailed || mutation.isError)) {
+    if (!deployPermission) return;
+    if (mutation.isError) {
       toast.error(() => (
         <Trans i18nKey='app_deploy_messages.technical_error_1'>
           <Link inverted href='mailto:tjenesteeier@altinn.no'>
@@ -117,8 +125,23 @@ export const AppDeploymentComponent = ({
           </Link>
         </Trans>
       ));
+    } else if (deployFailed) {
+      toast.error(() => (
+        <Trans
+          i18nKey='app_deploy_messages.failed'
+          values={{
+            envName: latestDeploy.envName,
+            tagName: latestDeploy.tagName,
+            time: latestDeploy.created,
+          }}
+        >
+          <Link inverted href='mailto:tjenesteeier@altinn.no'>
+            tjenesteeier@altinn.no
+          </Link>
+        </Trans>
+      ));
     }
-  }, [deployPermission, deployFailed, mutation.isError]);
+  }, [deployPermission, deployFailed, latestDeploy, mutation.isError]);
 
   return (
     <div className={classes.mainContainer}>
@@ -172,15 +195,32 @@ export const AppDeploymentComponent = ({
         </div>
         <div className={classes.deploymentListGrid}>
           {succeededDeployHistory.length === 0 ? (
-            <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
-              {t('app_deploy_table.deployed_version_history_empty', { envName })}
-            </span>
+            deployStatusUnavailable ? (
+              <Alert severity='warning'>
+                {t('app_publish.deployment_in_env.status_missing', {
+                  envName: latestDeploy.envName,
+                  tagName: latestDeploy.tagName,
+                })}
+              </Alert>
+            ) : (
+              <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
+                {t('app_deploy_table.deployed_version_history_empty', { envName })}
+              </span>
+            )
           ) : (
             <>
               <div id={`deploy-history-for-${envName.toLowerCase()}-available`}>
                 {t('app_deploy_table.deployed_version_history', { envName })}
               </div>
               <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
+                {deployStatusUnavailable && (
+                  <Alert severity='warning'>
+                    {t('app_publish.deployment_in_env.status_missing', {
+                      envName: latestDeploy.envName,
+                      tagName: latestDeploy.tagName,
+                    })}
+                  </Alert>
+                )}
                 <Table
                   className={classes.table}
                   aria-label={t('app_deploy_table.deploy_table_aria', { envName })}
