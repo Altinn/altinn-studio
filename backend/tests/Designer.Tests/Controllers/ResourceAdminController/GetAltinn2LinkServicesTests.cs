@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 Altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
 
                 // Act
-                using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
+                using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, res.StatusCode);
