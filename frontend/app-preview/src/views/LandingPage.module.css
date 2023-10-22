@@ -26,7 +26,7 @@
   display: flex;
   justify-content: center;
   background-color: #efefef;
-  height: calc(100vh - var(--header-height) - var(--previewLimitationsInfo-height));
+  height: calc(100vh - var(--header-height) - var(--previewLimitationsInfo-height) - 20px); /* Need to remove 20px due to margin on 10px*/
 }
 
 .iframeMobile {
