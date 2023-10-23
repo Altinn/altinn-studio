@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { TabWrapper } from './TabWrapper';
+import { TabContent } from './TabContent';
 
 export type TabProps = {
   tab: LeftNavigationTab;
@@ -42,7 +42,7 @@ export const Tab = ({
   const { t } = useTranslation();
 
   return (
-    <TabWrapper
+    <TabContent
       className={cn(
         tab.isActiveTab && classes.selected,
         newTabIdClicked === tab.tabId ? classes.newPage : navElementClassName,
@@ -57,6 +57,6 @@ export const Tab = ({
       <Paragraph as='span' size='small' short className={classes.buttonText}>
         {t(tab.tabName)}
       </Paragraph>
-    </TabWrapper>
+    </TabContent>
   );
 };

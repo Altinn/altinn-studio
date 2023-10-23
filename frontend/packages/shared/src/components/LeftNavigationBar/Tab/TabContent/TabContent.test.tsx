@@ -1,6 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { TabWrapper, TabWrapperProps } from './TabWrapper';
+import { TabContent, TabContentProps } from './TabContent';
 import { TabAction } from 'app-shared/types/LeftNavigationTab';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
@@ -33,7 +33,7 @@ const mockTabName: string = 'Tab 1';
 describe('TabWrapper', () => {
   afterEach(jest.clearAllMocks);
 
-  const defaultProps: TabWrapperProps = {
+  const defaultProps: TabContentProps = {
     className: '.navElement',
     onBlur: mockOnBlur,
     onClick: mockOnClick,
@@ -118,10 +118,10 @@ describe('TabWrapper', () => {
   });
 });
 
-const render = (props: TabWrapperProps) => {
+const render = (props: TabContentProps) => {
   return rtlRender(
     <MemoryRouter initialEntries={['/']}>
-      <TabWrapper {...props} />
+      <TabContent {...props} />
     </MemoryRouter>,
   );
 };

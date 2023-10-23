@@ -2,7 +2,7 @@ import { TabAction } from 'app-shared/types/LeftNavigationTab';
 import React, { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 
-export type TabWrapperProps = {
+export type TabContentProps = {
   className: string;
   onBlur: () => void;
   onClick?: () => void;
@@ -40,7 +40,7 @@ export type TabWrapperProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const TabWrapper = ({
+export const TabContent = ({
   className,
   onBlur,
   onClick,
@@ -49,7 +49,7 @@ export const TabWrapper = ({
   tabIndex,
 
   onKeyDown,
-}: TabWrapperProps): ReactNode => {
+}: TabContentProps): ReactNode => {
   /**
    * Executes the on click of the action if it exists and type is link
    */
