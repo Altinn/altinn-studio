@@ -1,4 +1,4 @@
-import React, { KeyboardEventHandler, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import classes from './Tab.module.css';
 import cn from 'classnames';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
@@ -13,26 +13,12 @@ export type TabProps = {
   onBlur: () => void;
   onClick: () => void;
   tabIndex: number;
-  onKeyDown: (name: string) => (event: Parameters<KeyboardEventHandler>[0]) => void;
+  onKeyDown: (event: React.KeyboardEvent) => void;
 };
 
 /**
  * @component
  *    Displays a tab in the left navigation bar.
- *
- * @example
- *      const displayTabs = tabs.map((tab: LeftNavigationTab, i: number) => (
- *        <Tab
- *          tab={tab}
- *          key={tab.tabId}
- *          navElementClassName={classes.navigationElement}
- *          newTabIdClicked={newTabIdClicked}
- *          onBlur={() => setNewTabIdClicked(null)}
- *          onClick={() => handleClick(tab.tabId)}
- *          tabIndex={focusIndex === i ? 0 : -1}
- *          onKeyDown={handleKeyDown}
- *        />
- *      ));
  *
  * @property {LeftNavigationTab}[tab] - The navigation tab
  * @property {string}[navElementClassName] - Classname for navigation element
@@ -65,7 +51,6 @@ export const Tab = ({
       onBlur={onBlur}
       action={tab.action}
       tabIndex={tabIndex}
-      tabName={tab.tabName}
       onKeyDown={onKeyDown}
     >
       {tab.icon}

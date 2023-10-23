@@ -40,7 +40,6 @@ describe('TabWrapper', () => {
     action: mockLinkAction,
     children: <p>{mockTabName}</p>,
     tabIndex: 0,
-    tabName: 'Test',
     onKeyDown: mockOnKeyDown,
   };
 

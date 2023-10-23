@@ -1,5 +1,5 @@
 import { TabAction } from 'app-shared/types/LeftNavigationTab';
-import React, { KeyboardEventHandler, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 
 export type TabWrapperProps = {
@@ -9,8 +9,7 @@ export type TabWrapperProps = {
   action: TabAction;
   children: ReactNode;
   tabIndex: number;
-  tabName: string;
-  onKeyDown: (name: string) => (event: Parameters<KeyboardEventHandler>[0]) => void;
+  onKeyDown: (event: React.KeyboardEvent) => void;
 };
 
 /**
@@ -37,7 +36,6 @@ export type TabWrapperProps = {
  * @property {TabAction}[action] - The tab action
  * @property {ReactNode}[children] - Children of the component
  * @property {number}[tabIndex] - The index of the tab
- * @property {string}[tabName] - The name of the tab
  * @property {function}[onKeyDown] - Function to be executed on key press
  *
  * @returns {ReactNode} - The rendered component
@@ -49,7 +47,7 @@ export const TabWrapper = ({
   action,
   children,
   tabIndex,
-  tabName,
+
   onKeyDown,
 }: TabWrapperProps): ReactNode => {
   /**
@@ -73,7 +71,7 @@ export const TabWrapper = ({
           to={action.to}
           onBlur={onBlur}
           onClick={handleClickLink}
-          onKeyDown={onKeyDown(tabName)}
+          onKeyDown={onKeyDown}
           role='tab'
           tabIndex={tabIndex}
         >
@@ -86,7 +84,7 @@ export const TabWrapper = ({
         <button
           className={className}
           onClick={() => (onClick ? onClick() : null)}
-          onKeyDown={onKeyDown(tabName)}
+          onKeyDown={onKeyDown}
           onBlur={onBlur}
           type='button'
           role='tab'

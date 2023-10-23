@@ -1,4 +1,4 @@
-import React, { KeyboardEventHandler, ReactNode, useRef, useState } from 'react';
+import React, { ReactNode, useRef, useState } from 'react';
 import classes from './LeftNavigationBar.module.css';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { GoBackButton } from './GoBackButton';
@@ -59,9 +59,6 @@ export const LeftNavigationBar = ({
     tablistRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[focusIndex].focus();
   }, [focusIndex]);
 
-  /**
-   * Function to be executed when the tab is clicked
-   */
   const handleClick = (tabId: string) => {
     const tabClicked = tabs.find((tab: LeftNavigationTab) => tab.tabId === tabId);
     if (tabClicked && !tabClicked.isActiveTab) {
@@ -70,9 +67,6 @@ export const LeftNavigationBar = ({
     }
   };
 
-  /**
-   * Dispalys the uppermost tab if there is one
-   */
   const displayUpperTab = () => {
     if (upperTab === 'backButton' && backLink && backLinkText) {
       return (
@@ -82,22 +76,11 @@ export const LeftNavigationBar = ({
     return null;
   };
 
-  /**
-   * Move the focus down the tabs list
-   */
-  const moveFocusDown = () =>
-    focusIndex !== undefined && setFocusIndex(focusIndex === lastIndex ? 0 : focusIndex + 1);
+  const moveFocusDown = () => setFocusIndex(focusIndex === lastIndex ? 0 : focusIndex + 1);
 
-  /**
-   * Move the focus up the tabs list
-   */
-  const moveFocusUp = () =>
-    focusIndex !== undefined && setFocusIndex(focusIndex === 0 ? lastIndex : focusIndex - 1);
+  const moveFocusUp = () => setFocusIndex(focusIndex === 0 ? lastIndex : focusIndex - 1);
 
-  /**
-   * Handles key press in the tab bar
-   */
-  const onKeyDown = (name: string) => (event: Parameters<KeyboardEventHandler>[0]) => {
+  const onKeyDown = (event: React.KeyboardEvent) => {
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
@@ -110,9 +93,6 @@ export const LeftNavigationBar = ({
     }
   };
 
-  /**
-   * Displays all the tabs
-   */
   const displayTabs = tabs.map((tab: LeftNavigationTab, i: number) => (
     <Tab
       tab={tab}
