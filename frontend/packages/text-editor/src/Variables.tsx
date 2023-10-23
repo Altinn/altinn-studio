@@ -34,7 +34,9 @@ export const Variables = ({ variables }: VariablesProps) => {
           <PopoverPanel
             title={'Kun for visning'}
             variant={PanelVariant.Info}
-            trigger={<Button icon={<InformationSquareFillIcon />} variant='tertiary' size='small' />}
+            trigger={
+              <Button icon={<InformationSquareFillIcon />} variant='tertiary' size='small' />
+            }
             open={infoboxOpen}
             onOpenChange={setInfoboxOpen}
           >
