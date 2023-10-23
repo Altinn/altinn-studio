@@ -67,7 +67,7 @@ export const convertResourceTypeToDisplayString = (resourceType: ResourceTypeOpt
  */
 export const mapLanguageKeyToLanguageText = (
   val: 'nb' | 'nn' | 'en',
-  translationFunction: (key: string, params?: object) => string
+  translationFunction: (key: string, params?: object) => string,
 ) => {
   if (val === 'nb') return translationFunction('language.nb');
   if (val === 'nn') return translationFunction('language.nn');
@@ -84,7 +84,7 @@ export const mapLanguageKeyToLanguageText = (
 export const getMissingInputLanguageString = (
   language: SupportedLanguage,
   usageString: string,
-  translationFunction: (key: string, params?: KeyValuePairs<string>) => string
+  translationFunction: (key: string, params?: KeyValuePairs<string>) => string,
 ): string => {
   const valArr: ('nb' | 'nn' | 'en')[] = [];
 
@@ -166,7 +166,7 @@ export const createNavigationTab = (
   tabId: string,
   onClick: (tabId: string) => void,
   currentPage: NavigationBarPage,
-  to: string
+  to: string,
 ): LeftNavigationTab => {
   return {
     icon,

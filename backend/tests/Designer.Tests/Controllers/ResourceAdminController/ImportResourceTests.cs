@@ -35,7 +35,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 Altinn2MetadataClientMock.Setup(r => r.GetXacmlPolicy(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(policy);
 
                 // Act
-                using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
+                using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, res.StatusCode);

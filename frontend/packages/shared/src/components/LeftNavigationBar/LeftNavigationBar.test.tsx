@@ -67,6 +67,7 @@ describe('LeftNavigationBar', () => {
     upperTab: 'backButton',
     backLink: mockBackButtonHref,
     backLinkText: mockBackButtonText,
+    selectedTab: mockTabId1,
   };
 
   it('calls the onClick function when a tab is clicked and action type is button', async () => {
@@ -75,7 +76,7 @@ describe('LeftNavigationBar', () => {
 
     const nextTab = mockTabs[1];
 
-    const tab2 = screen.getByRole('button', { name: textMock(nextTab.tabName) });
+    const tab2 = screen.getByRole('tab', { name: textMock(nextTab.tabName) });
     await act(() => user.click(tab2));
     expect(nextTab.action.onClick).toHaveBeenCalledTimes(1);
   });
@@ -85,11 +86,11 @@ describe('LeftNavigationBar', () => {
     render(defaultProps);
 
     const nextTab = mockTabs[1];
-    const tab2 = screen.getByRole('button', { name: textMock(nextTab.tabName) });
+    const tab2 = screen.getByRole('tab', { name: textMock(nextTab.tabName) });
     await act(() => user.click(tab2));
 
     const newNextTab = mockTabs[0];
-    const tab1 = screen.getByRole('link', { name: textMock(newNextTab.tabName) });
+    const tab1 = screen.getByRole('tab', { name: textMock(newNextTab.tabName) });
     await act(() => user.click(tab1));
 
     expect(newNextTab.action.onClick).toHaveBeenCalledTimes(1);
@@ -101,7 +102,7 @@ describe('LeftNavigationBar', () => {
 
     const nextTab = mockTabs[2];
 
-    const tab3 = screen.getByRole('link', { name: textMock(nextTab.tabName) });
+    const tab3 = screen.getByRole('tab', { name: textMock(nextTab.tabName) });
     await act(() => user.click(tab3));
     expect(mockOnClick).not.toHaveBeenCalled();
   });
@@ -112,7 +113,7 @@ describe('LeftNavigationBar', () => {
 
     const currentTab = mockTabs[0];
 
-    const tab1 = screen.getByRole('link', { name: textMock(currentTab.tabName) });
+    const tab1 = screen.getByRole('tab', { name: textMock(currentTab.tabName) });
     await act(() => user.click(tab1));
     expect(currentTab.action.onClick).toHaveBeenCalledTimes(0);
   });
@@ -125,17 +126,53 @@ describe('LeftNavigationBar', () => {
   });
 
   it('does not display the back button when "upperTab" is backButton and "backButtonHref" or "backButtonText" is not present', () => {
-    render({ tabs: mockTabs });
+    render({ tabs: mockTabs, selectedTab: mockTabId1 });
 
     const backButton = screen.queryByRole('link', { name: mockBackButtonText });
     expect(backButton).not.toBeInTheDocument();
   });
+
+  it('handles tab navigation correctly', async () => {
+    const user = userEvent.setup();
+    render({ tabs: mockTabs, selectedTab: mockTabId1 });
+
+    await act(() => user.tab());
+    expect(getTabItem(mockTabId1)).toHaveFocus();
+    await act(() => user.keyboard('{arrowdown}'));
+    expect(getTabItem(mockTabId2)).toHaveFocus();
+    await act(() => user.keyboard('{arrowdown}'));
+    expect(getTabItem(mockTabId3)).toHaveFocus();
+    await act(() => user.keyboard('{arrowdown}'));
+    expect(getTabItem(mockTabId1)).toHaveFocus();
+    await act(() => user.keyboard('{arrowup}'));
+    expect(getTabItem(mockTabId3)).toHaveFocus();
+    await act(() => user.keyboard('{arrowup}'));
+    expect(getTabItem(mockTabId2)).toHaveFocus();
+  });
+
+  it('selects a tab when pressing "enter"', async () => {
+    const user = userEvent.setup();
+    render({ tabs: mockTabs, selectedTab: mockTabId1 });
+
+    await act(() => user.tab());
+    expect(getTabItem(mockTabId1)).toHaveFocus();
+    await act(() => user.keyboard('{arrowdown}'));
+    expect(getTabItem(mockTabId2)).toHaveFocus();
+
+    await act(() => user.keyboard('{enter}'));
+    expect(mockTabs[1].action.onClick).toHaveBeenCalledTimes(1);
+  });
 });
+
+const getTabItem = (tabId: string) => {
+  const tabName: string = `test.test_${tabId}`;
+  return screen.getByRole('tab', { name: textMock(tabName) });
+};
 
 const render = (props: LeftNavigationBarProps) => {
   return rtlRender(
     <MemoryRouter initialEntries={['/']}>
       <LeftNavigationBar {...props} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

@@ -13,15 +13,10 @@ import {
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
+import { TabContent } from '../../TabContent';
 
 export type AccessControlTabProps = {
-  /**
-   * The org
-   */
   org: string;
-  /**
-   * The app
-   */
   app: string;
 };
 
@@ -116,9 +111,9 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
   };
 
   return (
-    <div>
+    <TabContent>
       <TabHeader text={t('settings_modal.access_control_tab_heading')} />
       {displayContent()}
-    </div>
+    </TabContent>
   );
 };

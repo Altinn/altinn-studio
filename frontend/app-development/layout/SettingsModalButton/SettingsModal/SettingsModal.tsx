@@ -22,22 +22,9 @@ import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
 
 export type SettingsModalProps = {
-  /**
-   * Flag for if the modal is open
-   */
   isOpen: boolean;
-  /**
-   * Function to be executed on close
-   * @returns void
-   */
   onClose: () => void;
-  /**
-   * The org
-   */
   org: string;
-  /**
-   * The app
-   */
   app: string;
 };
 
@@ -149,9 +136,13 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
     >
       <div className={classes.modalContent}>
         <div className={classes.leftNavWrapper}>
-          <LeftNavigationBar tabs={leftNavigationTabs} className={classes.leftNavigationBar} />
+          <LeftNavigationBar
+            tabs={leftNavigationTabs}
+            className={classes.leftNavigationBar}
+            selectedTab={currentTab}
+          />
         </div>
-        <div className={classes.tabWrapper}>{displayTabs()}</div>
+        {displayTabs()}
       </div>
     </Modal>
   );

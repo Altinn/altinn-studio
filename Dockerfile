@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:20.5.1-alpine AS generate-studio-frontend
+FROM node:20.8.0-alpine AS generate-studio-frontend
 WORKDIR /build
 COPY . .
 RUN corepack enable
