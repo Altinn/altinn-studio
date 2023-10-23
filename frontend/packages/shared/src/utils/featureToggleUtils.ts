@@ -7,7 +7,6 @@ const persistFeatureKey = 'persistFeatureFlag';
 export type SupportedFeatureFlags =
   | 'componentConfigBeta'
   | 'expressions'
-  | 'settingsModal'
   | 'processEditor'
   | 'configureLayoutSet'
   | 'newAdministration';
