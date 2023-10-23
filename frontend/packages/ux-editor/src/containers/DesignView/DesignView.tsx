@@ -53,14 +53,14 @@ export const DesignView = (): ReactNode => {
       page: key,
       data: value,
     }));
-  }, []);
+  }, [layouts]);
 
   const [formLayoutData, setFormLayoutData] = useState<FormLayout[]>(mapIFormLayoutsToFormLayouts(layouts));
 
   useEffect(() => {
     setOpenAccordion(searchParamsLayout);
     setFormLayoutData(mapIFormLayoutsToFormLayouts(layouts));
-  }, [layouts, searchParamsLayout]);
+  }, [layouts, mapIFormLayoutsToFormLayouts, searchParamsLayout]);
 
   /**
    * Checks if the layout name provided is valid
