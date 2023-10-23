@@ -15,3 +15,5 @@ export const componentSchemaUrl = (component) =>
 export const orgsListUrl = () => 'https://altinncdn.no/orgs/altinn-orgs.json';
 export const altinnImgLogoHeaderUrl = () => 'https://altinncdn.no/img/Altinn-logo-blue.svg';
 export const widgetUrl = () => 'https://altinncdn.no/altinn-apps/widgets/message.json';
+export const newsListUrl = (langage = 'nb') =>
+  `https://altinncdn.no/studio/designer/news/news.${langage}.json`;
