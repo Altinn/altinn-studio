@@ -32,12 +32,12 @@ export const RadioButton = ({
   ...rest
 }: IRadioButtonProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const Label = (
+  const Label = label ? (
     <div className={`${hideLabel ? 'sr-only' : ''} ${classes.radioLabelContainer}`}>
       {label}
       {helpText ? <HelpText title={getPlainTextFromNode(helpText)}>{helpText}</HelpText> : null}
     </div>
-  );
+  ) : null;
 
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange } = useAlertOnChange(
     Boolean(alertOnChange),
