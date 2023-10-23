@@ -11,7 +11,7 @@ const org = 'org';
 const app = 'app';
 const title = 'test';
 
-describe.only('Administration', () => {
+describe('Administration', () => {
   it('renders component', async () => {
     render({
       getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),
