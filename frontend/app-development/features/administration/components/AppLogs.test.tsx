@@ -128,12 +128,16 @@ describe('AppLogs', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        `${textMock('general.version')} 2 ${textMock('general.production_environment')}`,
+        textMock('administration.app_logs_title', {
+          tagName: '2',
+          environment: textMock('general.production_environment'),
+          envName: 'PRODUCTION',
+        }),
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        `${textMock('general.version')} 1 ${textMock('general.test_environment')} TT02`,
+        textMock('administration.app_logs_title', { tagName: '1', envName: 'TT02' }),
       ),
     ).toBeInTheDocument();
   });

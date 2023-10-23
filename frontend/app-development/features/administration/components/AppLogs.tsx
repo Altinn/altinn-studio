@@ -43,6 +43,10 @@ export const AppLogs = () => {
     });
   };
 
+  const keyToTranslationMap: Record<string, string> = {
+    production: t('general.production_environment'),
+  };
+
   return (
     <div className={classes.appLogs}>
       <Heading level={2} size='xxsmall' className={classes.appLogsTitle}>
@@ -57,14 +61,17 @@ export const AppLogs = () => {
             return (
               <li key={appDeployment.tagName}>
                 <div className={classes.logTitle}>
-                  {`${t('general.version')} ${appDeployment.tagName} ${t(
-                    `general.${environmentType}_environment`,
-                  )}${environmentType === 'test' ? ` ${appDeployment.envName.toUpperCase()}` : ''}`}
+                  {t('administration.app_logs_title', {
+                    tagName: appDeployment.tagName,
+                    environment: keyToTranslationMap[environmentType],
+                    envName: appDeployment.envName?.toUpperCase() || '',
+                  })}
                 </div>
                 <div>
-                  {`(${appDeployment.createdBy}) ${t('general.date')}: ${formatDateTime(
-                    appDeployment.created,
-                  )}`}
+                  {t('administration.app_logs_created', {
+                    createdBy: appDeployment.createdBy,
+                    createdDateTime: formatDateTime(appDeployment.created),
+                  })}
                 </div>
               </li>
             );
