@@ -44,6 +44,7 @@ export const ResourcePage = (): React.ReactNode => {
   const repo = `${selectedContext}-resources`;
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
+
   // Stores the temporary next page
   const [nextPage, setNextPage] = useState<NavigationBarPage>('about');
 
@@ -245,6 +246,7 @@ export const ResourcePage = (): React.ReactNode => {
           tabs={getTabs()}
           backLink={`${getResourceDashboardURL(selectedContext, repo)}`}
           backLinkText={t('resourceadm.left_nav_bar_back')}
+          selectedTab={currentPage}
         />
       </div>
       {resourceLoading ? (
@@ -262,9 +264,12 @@ export const ResourcePage = (): React.ReactNode => {
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
               onSaveResource={handleSaveResource}
+              id='page-content-about'
             />
           )}
-          {currentPage === 'policy' && <PolicyEditorPage showAllErrors={showPolicyErrors} />}
+          {currentPage === 'policy' && (
+            <PolicyEditorPage showAllErrors={showPolicyErrors} id='page-content-policy' />
+          )}
           {currentPage === 'deploy' && (
             <DeployResourcePage
               navigateToPageWithError={navigateToPageWithError}
@@ -275,10 +280,14 @@ export const ResourcePage = (): React.ReactNode => {
                   version,
                 })
               }
+              id='page-content-deploy'
             />
           )}
           {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
-            <MigrationPage navigateToPageWithError={navigateToPageWithError} />
+            <MigrationPage
+              navigateToPageWithError={navigateToPageWithError}
+              id='page-content-migration'
+            />
           )}
         </div>
       )}

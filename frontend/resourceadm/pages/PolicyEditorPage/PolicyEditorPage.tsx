@@ -12,11 +12,9 @@ import {
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
 
-type PolicyEditorPageProps = {
-  /**
-   * Flag to decide if all errors should be shown or not
-   */
+export type PolicyEditorPageProps = {
   showAllErrors: boolean;
+  id: string;
 };
 
 /**
@@ -24,10 +22,11 @@ type PolicyEditorPageProps = {
  *    Page that displays the content where a user can add and edit a policy
  *
  * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
+ * @property {string}[id] - The id of the page
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): React.ReactNode => {
+export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): React.ReactNode => {
   const { t } = useTranslation();
 
   const { resourceId, selectedContext } = useParams();
@@ -95,7 +94,7 @@ export const PolicyEditorPage = ({ showAllErrors }: PolicyEditorPageProps): Reac
   };
 
   return (
-    <div className={classes.policyEditorWrapper}>
+    <div className={classes.policyEditorWrapper} id={id} role='tabpanel'>
       <Heading size='large' spacing level={1}>
         {t('resourceadm.policy_editor_title')}
       </Heading>

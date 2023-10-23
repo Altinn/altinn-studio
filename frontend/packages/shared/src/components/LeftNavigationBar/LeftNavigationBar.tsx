@@ -1,31 +1,18 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useRef, useState } from 'react';
 import classes from './LeftNavigationBar.module.css';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { GoBackButton } from './GoBackButton';
 import { Tab } from './Tab';
 import cn from 'classnames';
+import { useUpdate } from 'app-shared/hooks/useUpdate';
 
 export type LeftNavigationBarProps = {
-  /**
-   * List of navigation tabs
-   */
   tabs: LeftNavigationTab[];
-  /**
-   * The upper tab
-   */
   upperTab?: 'backButton' | undefined;
-  /**
-   * Href for the back link
-   */
   backLink?: string;
-  /**
-   * The text on the back link
-   */
   backLinkText?: string;
-  /**
-   * Additional classnames
-   */
   className?: string;
+  selectedTab: string;
 };
 
 /**
@@ -38,6 +25,7 @@ export type LeftNavigationBarProps = {
  *        upperTab='backButton'
  *        backLink='./someUrl'
  *        backLinkText={t('resourceadm.left_nav_bar_back')}
+ *        selectedTab={selectedTab}
  *    />
  *
  * @property {LeftNavigationBar[]}[tabs] - List of navigation tabs
@@ -45,6 +33,7 @@ export type LeftNavigationBarProps = {
  * @property {string}[backLink] - Href for the back link
  * @property {string}[backLinkText] - The text on the back link
  * @property {string}[className] - Additional classnames
+ * @property {string}[selectedTab] - The currently selected tab
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -54,12 +43,22 @@ export const LeftNavigationBar = ({
   backLink,
   backLinkText = '',
   className,
+  selectedTab,
 }: LeftNavigationBarProps): ReactNode => {
+  const tablistRef = useRef<HTMLDivElement>(null);
+
+  const initialTab = selectedTab ?? tabs[0].tabId;
+  const lastIndex = tabs.length - 1;
+
+  const findTabIndexByValue = (value: string) => tabs.findIndex((tab) => tab.tabId === value);
+  const [focusIndex, setFocusIndex] = useState<number>(findTabIndexByValue(initialTab));
+
   const [newTabIdClicked, setNewTabIdClicked] = useState<string | null>(null);
 
-  /**
-   * Function to be executed when the tab is clicked
-   */
+  useUpdate(() => {
+    tablistRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[focusIndex].focus();
+  }, [focusIndex]);
+
   const handleClick = (tabId: string) => {
     const tabClicked = tabs.find((tab: LeftNavigationTab) => tab.tabId === tabId);
     if (tabClicked && !tabClicked.isActiveTab) {
@@ -68,10 +67,6 @@ export const LeftNavigationBar = ({
     }
   };
 
-  /**
-   * Dispalys the uppermost tab if there is one
-   * @returns
-   */
   const displayUpperTab = () => {
     if (upperTab === 'backButton' && backLink && backLinkText) {
       return (
@@ -81,23 +76,39 @@ export const LeftNavigationBar = ({
     return null;
   };
 
-  /**
-   * Displays all the tabs
-   */
-  const displayTabs = tabs.map((tab: LeftNavigationTab) => (
+  const moveFocusDown = () => setFocusIndex(focusIndex === lastIndex ? 0 : focusIndex + 1);
+
+  const moveFocusUp = () => setFocusIndex(focusIndex === 0 ? lastIndex : focusIndex - 1);
+
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        moveFocusDown();
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        moveFocusUp();
+        break;
+    }
+  };
+
+  const displayTabs = tabs.map((tab: LeftNavigationTab, i: number) => (
     <Tab
       tab={tab}
       onClick={() => handleClick(tab.tabId)}
       key={tab.tabId}
-      navElementClassName={classes.navigationElement}
+      navElementClassName={cn(classes.navigationElement)}
       onBlur={() => setNewTabIdClicked(null)}
       newTabIdClicked={newTabIdClicked}
+      tabIndex={focusIndex === i ? 0 : -1}
+      onKeyDown={onKeyDown}
     />
   ));
 
   return (
     <div className={cn(classes.navigationBar, className)}>
-      <div className={classes.navigationElements}>
+      <div className={classes.navigationElements} role='tablist' ref={tablistRef}>
         {displayUpperTab()}
         {displayTabs}
       </div>

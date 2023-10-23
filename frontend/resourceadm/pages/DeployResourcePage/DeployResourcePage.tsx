@@ -29,6 +29,7 @@ export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
   resourceVersionText: string;
   onSaveVersion: (version: string) => void;
+  id: string;
 };
 
 /**
@@ -38,6 +39,7 @@ export type DeployResourcePageProps = {
  * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
  * @property {string}[resourceVersionText] - The current version stored
  * @property {function}[onSaveVersion] - Saves the version to backend
+ * @property {string}[id] - The id of the page
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -45,6 +47,7 @@ export const DeployResourcePage = ({
   navigateToPageWithError,
   resourceVersionText,
   onSaveVersion,
+  id,
 }: DeployResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
 
@@ -353,5 +356,9 @@ export const DeployResourcePage = ({
     }
   };
 
-  return <div className={classes.deployPageWrapper}>{displayContent()}</div>;
+  return (
+    <div className={classes.deployPageWrapper} id={id} role='tabpanel'>
+      {displayContent()}
+    </div>
+  );
 };

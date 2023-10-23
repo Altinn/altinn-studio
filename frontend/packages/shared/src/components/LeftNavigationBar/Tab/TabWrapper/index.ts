@@ -1,1 +1,0 @@
-export { TabWrapper } from './TabWrapper';

@@ -1,0 +1,7 @@
+.tabContent {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-left: 35px;
+  padding-right: 100px;
+  padding-bottom: 50px;
+}
