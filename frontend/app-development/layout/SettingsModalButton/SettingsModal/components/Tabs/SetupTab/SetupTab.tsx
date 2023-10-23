@@ -6,6 +6,7 @@ import { TabDataError } from '../../TabDataError';
 import { ErrorMessage } from '@digdir/design-system-react';
 import { TabHeader } from '../../TabHeader';
 import { SetupTabContent } from './SetupTabContent';
+import { TabContent } from '../../TabContent';
 
 export type SetupTabProps = {
   org: string;
@@ -46,9 +47,9 @@ export const SetupTab = ({ org, app }: SetupTabProps): ReactNode => {
   };
 
   return (
-    <div>
+    <TabContent>
       <TabHeader text={t('settings_modal.setup_tab_heading')} />
       {displayContent()}
-    </div>
+    </TabContent>
   );
 };
