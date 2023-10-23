@@ -47,7 +47,7 @@ export const routes: IRoute[] = [
     activeSubHeaderSelection: TopBarMenu.About,
     activeLeftMenuSelection: 'Om appen',
     menu: 'about',
-    subapp: shouldDisplayFeature('settingsModal') ? Administration : LegacyAdministration,
+    subapp: shouldDisplayFeature('newAdministration') ? Administration : LegacyAdministration,
   },
   {
     path: '/:org/:app/datamodel',
