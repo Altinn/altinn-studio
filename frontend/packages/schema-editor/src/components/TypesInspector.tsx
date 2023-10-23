@@ -29,7 +29,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
         callback: (newPointer) => {
           dispatch(setSelectedAndFocusedNode(newPointer));
         },
-      })
+      }),
     );
   };
 

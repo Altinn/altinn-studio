@@ -19,5 +19,6 @@
   ],
   "ignoreDeps": [
     "@mui/x-data-grid"
-  ]
+  ],
+  "schedule": ["before 07:00 on Monday"]
 }
