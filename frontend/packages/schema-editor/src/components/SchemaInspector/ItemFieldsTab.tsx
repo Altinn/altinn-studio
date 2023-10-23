@@ -86,7 +86,10 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
             variant='secondary'
             size='small'
           >
-            {t('schema_editor.add_property')}
+            {
+              // TODO THIS
+              t('schema_editor.add_property')
+            }
           </Button>
         </div>
       )}
