@@ -29,7 +29,7 @@ export function ReleaseContainer() {
   const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } = useBranchStatusQuery(
     org,
     app,
-    'master'
+    'master',
   );
 
   const latestRelease: AppRelease = releases && releases[0] ? releases[0] : null;
