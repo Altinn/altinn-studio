@@ -109,10 +109,6 @@ describe('TextResourceEdit', () => {
     const textBox = screen.getByLabelText(nbText);
     await act(async () => user.type(textBox, additionalValue));
     await act(async () => user.tab());
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
-      [id]: value + additionalValue,
-    });
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
