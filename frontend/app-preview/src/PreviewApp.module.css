@@ -1,6 +1,5 @@
 :root {
   --font-family: 'Inter', sans-serif;
-  --previewLimitationsInfo-height: 0px;  /* Default height which will be overriden */
 }
 
 .previewContainer {

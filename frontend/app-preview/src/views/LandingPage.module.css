@@ -16,17 +16,16 @@
 }
 
 .previewLimitationsInfo {
-  align-self: center;
   max-width: 1000px;
   width: 100%;
-  margin: 10px;
+  margin: 10px auto;
 }
 
 .iframeContainer {
   display: flex;
   justify-content: center;
   background-color: #efefef;
-  height: calc(100vh - var(--header-height) - var(--previewLimitationsInfo-height) - 20px); /* Need to remove 20px due to margin on 10px*/
+  height: calc(100vh - var(--header-height));
 }
 
 .iframeMobile {
@@ -50,4 +49,9 @@
   display: flex;
   flex-direction: row;
   gap: 1rem;
+}
+
+.container {
+  display: grid;
+  grid-template-rows: max-content max-content;
 }

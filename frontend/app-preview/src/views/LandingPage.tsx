@@ -47,12 +47,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   );
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
-  if (showPreviewLimitationsInfo) {
-    const previewLimitationsInfo = document.getElementById('preview-limitations-info');
-    const dynamicHeight = previewLimitationsInfo?.scrollHeight ?? 0;
-    document.documentElement.style.setProperty('--previewLimitationsInfo-height', `${dynamicHeight}px`);
-  }
-  
+
   const handleChangeLayoutSet = (layoutSet: string) => {
     setSelectedLayoutSetInEditor(layoutSet);
     // might need to remove selected layout from local storage to make sure first page is selected
@@ -62,7 +57,6 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const handleHidePreviewLimitations = () => {
     setShowPreviewLimitationsInfo(false);
     setOpenShowSaveChoiceInSession(false);
-    document.documentElement.style.setProperty('--previewLimitationsInfo-height', '0px');
   };
 
   const handleRememberChoiceForSession = () => {
@@ -107,8 +101,9 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             }
           />
         </div>
+        <div className={classes.container}>
         {showPreviewLimitationsInfo &&
-          <Alert severity='info' className={classes.previewLimitationsInfo} id='preview-limitations-info'>
+          <Alert severity='info' className={classes.previewLimitationsInfo}>
             <div className={classes.alert}>
               {t('preview.limitations_info')}
               <LegacyPopover
@@ -130,6 +125,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             src={previewPage(org, app, selectedLayoutSetInEditor)}
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
+        </div>
         </div>
       </>
     </PreviewContext>
