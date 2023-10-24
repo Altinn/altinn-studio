@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
@@ -20,6 +20,16 @@ import { PageAccordion } from './PageAccordion';
 import { RenderedFormContainer } from './RenderedFormContainer';
 import { ReceiptContent } from './ReceiptContent';
 import { useAppContext } from '../../hooks/useAppContext';
+
+/**
+ * Maps the IFormLayouts object to a list of FormLayouts
+ */
+const mapIFormLayoutsToFormLayouts = (formLayouts: IFormLayouts): FormLayout[] => {
+  return Object.entries(formLayouts).map(([key, value]) => ({
+    page: key,
+    data: value,
+  }));
+};
 
 /**
  * @component
@@ -44,23 +54,11 @@ export const DesignView = (): ReactNode => {
 
   const { t } = useTranslation();
 
-  /**
-   * Maps the IFormLayouts object to a list of FormLayouts
-   */
-  const mapIFormLayoutsToFormLayouts = useCallback((formLayouts: IFormLayouts): FormLayout[] => {
-    if (!layouts) return [];
-    return Object.entries(formLayouts).map(([key, value]) => ({
-      page: key,
-      data: value,
-    }));
-  }, [layouts]);
-
-  const [formLayoutData, setFormLayoutData] = useState<FormLayout[]>(mapIFormLayoutsToFormLayouts(layouts));
-
   useEffect(() => {
     setOpenAccordion(searchParamsLayout);
-    setFormLayoutData(mapIFormLayoutsToFormLayouts(layouts));
-  }, [layouts, mapIFormLayoutsToFormLayouts, searchParamsLayout]);
+  }, [searchParamsLayout]);
+
+  const formLayoutData = mapIFormLayoutsToFormLayouts(layouts);
 
   /**
    * Checks if the layout name provided is valid
