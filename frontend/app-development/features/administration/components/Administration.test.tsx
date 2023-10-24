@@ -16,6 +16,8 @@ describe('Administration', () => {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
       queries: {
         ...queriesMock,
+        getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),
+        getOrgList: jest.fn().mockImplementation(() => Promise.resolve({ orgs: [] })),
         getAppConfig: jest.fn().mockImplementation(() =>
           Promise.resolve({
             serviceName: title,

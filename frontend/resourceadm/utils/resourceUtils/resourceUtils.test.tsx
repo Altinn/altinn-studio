@@ -84,7 +84,7 @@ describe('getMissingInputLanguageString', () => {
     const result = getMissingInputLanguageString(
       languageStringMock,
       'test',
-      translationFunctionMock
+      translationFunctionMock,
     );
     expect(result).toEqual(missingInputLanguageStringTestMock);
   });

@@ -28,7 +28,7 @@ function FileSelector({
       icon={<UploadIcon />}
       onClick={fileInputClickHandler}
       disabled={disabled}
-      variant='quiet'
+      variant='tertiary'
       size='small'
     >
       {t('app_data_modelling.upload_xsd')}

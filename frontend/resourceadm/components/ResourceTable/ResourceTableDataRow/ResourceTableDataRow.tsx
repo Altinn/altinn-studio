@@ -52,7 +52,7 @@ export const ResourceTableDataRow = ({
         <Paragraph size='small'>{resource.lastChanged}</Paragraph>
       </td>
       <td className={cn(classes.tableDataMedium, classes.tableData)}>
-        <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='outlined' size='small'>
+        <Tag color={resource.hasPolicy ? 'info' : 'danger'} variant='secondary' size='small'>
           {resource.hasPolicy
             ? t('resourceadm.dashboard_table_row_has_policy')
             : t('resourceadm.dashboard_table_row_missing_policy')}
@@ -60,7 +60,7 @@ export const ResourceTableDataRow = ({
       </td>
       <td className={cn(classes.tableDataSmall, classes.tableData)}>
         <Button
-          variant='quiet'
+          variant='tertiary'
           size='small'
           color='second'
           icon={<PencilWritingIcon />}

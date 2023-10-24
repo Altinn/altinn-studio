@@ -14,42 +14,42 @@ export const ConditionalRendering = () => {
   const t = useText();
   return (
     <div className={classes.conditionalRendering}>
-        <div>
-          <div className={classes.dynamicsVersionCheckBox}>
-            <Divider/>
-            <Alert severity='warning'>
+      <div>
+        <div className={classes.dynamicsVersionCheckBox}>
+          <Divider />
+          <Alert severity='warning'>
             <span>
               <Trans i18nKey={'right_menu.warning_dynamics_deprecated'}>
                 <a
-                    href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
-                    target='_newTab'
-                    rel='noopener noreferrer'
+                  href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
+                  target='_newTab'
+                  rel='noopener noreferrer'
                 />
               </Trans>
             </span>
-            </Alert>
-          </div>
-          <div className={classes.header}>
-            <span>{t('right_menu.rules_conditional_rendering')}</span>
-            <Button
-              aria-label={t('right_menu.rules_conditional_rendering_add_alt')}
-              className={classes.addIcon}
-              icon={<PlusIcon />}
-              onClick={() => setModalOpen(true)}
-              variant='quiet'
-              size='small'
-            />
-          </div>
-          <div>
-            <ConditionalRenderingModal
-              modalOpen={modalOpen}
-              handleClose={() => setModalOpen(false)}
-              handleOpen={() => setModalOpen(true)}
-            />
-          </div>
+          </Alert>
         </div>
-        <Divider marginless />
-        <OldDynamicsInfo />
+        <div className={classes.header}>
+          <span>{t('right_menu.rules_conditional_rendering')}</span>
+          <Button
+            aria-label={t('right_menu.rules_conditional_rendering_add_alt')}
+            className={classes.addIcon}
+            icon={<PlusIcon />}
+            onClick={() => setModalOpen(true)}
+            variant='tertiary'
+            size='small'
+          />
+        </div>
+        <div>
+          <ConditionalRenderingModal
+            modalOpen={modalOpen}
+            handleClose={() => setModalOpen(false)}
+            handleOpen={() => setModalOpen(true)}
+          />
+        </div>
       </div>
+      <Divider marginless />
+      <OldDynamicsInfo />
+    </div>
   );
 };

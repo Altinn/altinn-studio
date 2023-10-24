@@ -1,1 +1,1 @@
-export { formatDateToDateAndTimeString } from './dateUtils';
+export { formatDateToDateAndTimeString, isDateAfter, isValidDate, isValidTime } from './dateUtils';

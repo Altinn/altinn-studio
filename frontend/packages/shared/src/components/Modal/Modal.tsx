@@ -67,7 +67,7 @@ export const Modal = ({ isOpen, onClose, title, children }: ModalProps): ReactNo
         {title}
         <div className={classes.closeButtonWrapper}>
           <Button
-            variant='quiet'
+            variant='tertiary'
             icon={<MultiplyIcon />}
             onClick={onClose}
             aria-label={t('modal.close_icon')}

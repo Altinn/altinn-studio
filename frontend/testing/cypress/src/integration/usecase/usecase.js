@@ -1,4 +1,3 @@
-/* eslint-disable cypress/no-unnecessary-waiting */
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
@@ -61,8 +60,10 @@ context(
       cy.visit(`/preview/${Cypress.env('orgUserName')}/${Cypress.env('deployAppName')}`);
       preview.getBackToEditorButton().should('be.visible').click();
 
-      // Repos
+      // Profile
       header.getProfileIcon().should('be.visible').click();
+
+      // Repos
       header
         .getOpenRepoLink()
         .should('be.visible')

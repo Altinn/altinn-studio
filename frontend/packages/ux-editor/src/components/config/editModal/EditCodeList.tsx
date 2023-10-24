@@ -36,7 +36,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
         <>
           <p>
             <Button
-              variant='quiet'
+              variant='tertiary'
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
               size='small'
             >
