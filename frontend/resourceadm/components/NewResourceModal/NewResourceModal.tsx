@@ -9,6 +9,7 @@ import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { replaceWhiteSpaceWithHyphens } from 'resourceadm/utils/stringUtils';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 export type NewResourceModalProps = {
   isOpen: boolean;
@@ -58,7 +59,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
       onSuccess: () =>
         navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
       onError: (error: any) => {
-        if (error.response.status === 409) {
+        if (error.response.status === ServerCodes.Conflict) {
           setResourceIdExists(true);
           setEditIdFieldOpen(true);
         }

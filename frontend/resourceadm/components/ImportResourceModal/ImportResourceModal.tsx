@@ -11,6 +11,7 @@ import { useImportResourceFromAltinn2Mutation } from 'resourceadm/hooks/mutation
 import { Resource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { AxiosError } from 'axios';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
@@ -75,7 +76,7 @@ export const ImportResourceModal = ({
           navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
         },
         onError: (error: AxiosError) => {
-          if (error.response.status === 409) {
+          if (error.response.status === ServerCodes.Conflict) {
             setResourceIdExists(true);
           }
         },
