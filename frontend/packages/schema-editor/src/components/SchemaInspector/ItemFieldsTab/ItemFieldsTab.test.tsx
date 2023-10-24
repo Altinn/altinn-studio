@@ -11,12 +11,12 @@ import {
   createNodeBase,
   getNodeByPointer,
 } from '@altinn/schema-model';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
+import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { renderWithProviders, RenderWithProvidersData } from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
-import { validateTestUiSchema } from '../../../../schema-model/test/validateTestUiSchema';
-import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
-import { getSavedModel } from '../../../test/test-utils';
+import { validateTestUiSchema } from '../../../../../schema-model/test/validateTestUiSchema';
+import { nodeMockBase } from '../../../../test/mocks/uiSchemaMock';
+import { getSavedModel } from '../../../../test/test-utils';
 
 const user = userEvent.setup();
 
@@ -73,13 +73,16 @@ const saveDatamodel = jest.fn();
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
-const renderItemFieldsTab = (props: Partial<ItemFieldsTabProps> = {}, data: Partial<RenderWithProvidersData> = {}) =>
+const renderItemFieldsTab = (
+  props: Partial<ItemFieldsTabProps> = {},
+  data: Partial<RenderWithProvidersData> = {},
+) =>
   renderWithProviders({
     ...data,
     appContextProps: {
       data: uiSchema,
       save: saveDatamodel,
-      ...data.appContextProps
+      ...data.appContextProps,
     },
   })(<ItemFieldsTab {...defaultProps} {...props} />);
 
@@ -215,8 +218,8 @@ describe('ItemFieldsTab', () => {
       {
         appContextProps: {
           data: [...uiSchema, referencedNode],
-        }
-      }
+        },
+      },
     );
     const textboxes = await screen.findAllByLabelText(textFieldName);
     textboxes.forEach((input) => expect(input).toBeDisabled());
