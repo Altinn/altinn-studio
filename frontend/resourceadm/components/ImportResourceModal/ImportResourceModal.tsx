@@ -10,6 +10,7 @@ import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { useImportResourceFromAltinn2Mutation } from 'resourceadm/hooks/mutations';
 import { Resource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { AxiosError } from 'axios';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
@@ -48,7 +49,7 @@ export const ImportResourceModal = ({
 
   const [resourceIdExists, setResourceIdExists] = useState(false);
 
-  const { mutate: importResourceFromAltinn2 } =
+  const { mutate: importResourceFromAltinn2Mutation } =
     useImportResourceFromAltinn2Mutation(selectedContext);
 
   /**
@@ -63,7 +64,7 @@ export const ImportResourceModal = ({
    * Import the resource from Altinn 2, and navigate to about page on success
    */
   const handleImportResource = () => {
-    importResourceFromAltinn2(
+    importResourceFromAltinn2Mutation(
       {
         environment: selectedEnv,
         serviceCode: selectedService.externalServiceCode,
@@ -73,7 +74,7 @@ export const ImportResourceModal = ({
         onSuccess: (resource: Resource) => {
           navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
         },
-        onError: (error: any) => {
+        onError: (error: AxiosError) => {
           if (error.response.status === 409) {
             setResourceIdExists(true);
           }
@@ -102,7 +103,9 @@ export const ImportResourceModal = ({
           selectedContext={selectedContext}
           env={selectedEnv}
           selectedService={selectedService}
-          onSelectService={(a2ls: Altinn2LinkService) => setSelectedService(a2ls)}
+          onSelectService={(altinn2LinkService: Altinn2LinkService) =>
+            setSelectedService(altinn2LinkService)
+          }
           resourceIdExists={resourceIdExists}
         />
       )}

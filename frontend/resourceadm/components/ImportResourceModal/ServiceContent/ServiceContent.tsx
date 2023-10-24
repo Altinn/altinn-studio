@@ -12,7 +12,7 @@ export type ServiceContentProps = {
   selectedContext: string;
   env: string;
   selectedService: Altinn2LinkService;
-  onSelectService: (a2ls: Altinn2LinkService) => void;
+  onSelectService: (altinn2LinkService: Altinn2LinkService) => void;
   resourceIdExists: boolean;
 };
 
@@ -87,7 +87,7 @@ export const ServiceContent = ({
       if (altinn2LinkServices.length === 0) {
         return (
           <ErrorMessage className={classes.contentWrapper} size='small'>
-            {t('resourceadm.import_resource_empty_list')}
+            {t('resourceadm.import_resource_empty_list', { env: env })}
           </ErrorMessage>
         );
       }

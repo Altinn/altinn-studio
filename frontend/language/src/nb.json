@@ -773,7 +773,7 @@
   "resourceadm.deploy_version_upload_button": "Last opp dine endringer",
   "resourceadm.error_back_to_dashboard": "Gå tilbake til dashbord",
   "resourceadm.error_page_text": "Du har nådd en ugyldig adresse",
-  "resourceadm.import_resource_empty_list": "Det finnes ingen servicer i miljøet du valgte",
+  "resourceadm.import_resource_empty_list": "Det finnes ingen servicer i {{env}}-miljøet",
   "resourceadm.import_resource_spinner": "Importerer ressursen",
   "resourceadm.left_nav_bar_about": "Om ressursen",
   "resourceadm.left_nav_bar_back": "Tilbake til dashbord",

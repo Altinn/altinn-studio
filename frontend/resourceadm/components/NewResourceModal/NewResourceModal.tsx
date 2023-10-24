@@ -8,16 +8,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { useTranslation } from 'react-i18next';
+import { replaceWhiteSpaceWithHyphens } from 'resourceadm/utils/stringUtils';
 
 export type NewResourceModalProps = {
-  /**
-   * Boolean for if the modal is open
-   */
   isOpen: boolean;
-  /**
-   * Function to handle close
-   * @returns void
-   */
   onClose: () => void;
 };
 
@@ -76,7 +70,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
    * Replaces the spaces in the value typed with '-'.
    */
   const handleIDInput = (val: string) => {
-    setId(val.replace(/\s/g, '-'));
+    setId(replaceWhiteSpaceWithHyphens(val));
     setResourceIdExists(false);
   };
 
@@ -88,7 +82,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
    */
   const handleEditTitle = (val: string) => {
     if (!editIdFieldOpen && bothFieldsHaveSameValue) {
-      setId(val.replace(/\s/g, '-'));
+      setId(replaceWhiteSpaceWithHyphens(val));
     }
     setTitle(val);
   };
@@ -98,18 +92,19 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
    * so that it closes the edit field, the id is set to the title.
    *
    * @param isOpened the value of the button when it is pressed
-   * @param isSave if the save button is pressed, keep id and title separate
+   * @param saveChanges if the save button is pressed, keep id and title separate
    */
-  const handleClickEditButton = (isOpened: boolean, isSave: boolean) => {
+  const handleClickEditButton = (isOpened: boolean, saveChanges: boolean) => {
     setEditIdFieldOpen(isOpened);
-
-    if (isSave) {
+    if (saveChanges) {
       setBothFieldsHaveSameValue(false);
-    } else {
-      if (!isOpened) {
-        setBothFieldsHaveSameValue(true);
-        // If we stop editing, set the ID to the title
-        if (title !== id) setId(title.replace(/\s/g, '-'));
+      return;
+    }
+    if (!isOpened) {
+      setBothFieldsHaveSameValue(true);
+      const shouldSetTitleToId = title !== id;
+      if (shouldSetTitleToId) {
+        setId(replaceWhiteSpaceWithHyphens(title));
       }
     }
   };
@@ -139,7 +134,9 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
         id={id}
         handleEditTitle={handleEditTitle}
         handleIdInput={handleIDInput}
-        handleClickEditButton={(isSave: boolean) => handleClickEditButton(!editIdFieldOpen, isSave)}
+        handleClickEditButton={(saveChanges: boolean) =>
+          handleClickEditButton(!editIdFieldOpen, saveChanges)
+        }
         resourceIdExists={resourceIdExists}
         bothFieldsHaveSameValue={bothFieldsHaveSameValue}
         className={classes.resourceNameAndId}
