@@ -7,7 +7,7 @@ import { AxiosError } from 'axios';
 const policySubjectOrg: PolicySubject = {
   subjectDescription: '[org]',
   subjectId: '[org]',
-  subjectSource: '[org]',
+  subjectSource: 'altinn:org',
   subjectTitle: '[org]',
 };
 

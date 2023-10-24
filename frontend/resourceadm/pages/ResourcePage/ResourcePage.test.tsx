@@ -65,13 +65,13 @@ describe('ResourcePage', () => {
   it('displays left navigation bar on mount', () => {
     render();
     expect(
-      screen.getByRole('link', { name: textMock('resourceadm.left_nav_bar_about') })
+      screen.getByRole('tab', { name: textMock('resourceadm.left_nav_bar_about') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: textMock('resourceadm.left_nav_bar_policy') })
+      screen.getByRole('tab', { name: textMock('resourceadm.left_nav_bar_policy') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: textMock('resourceadm.left_nav_bar_deploy') })
+      screen.getByRole('tab', { name: textMock('resourceadm.left_nav_bar_deploy') }),
     ).toBeInTheDocument();
   });
 
@@ -83,7 +83,7 @@ describe('ResourcePage', () => {
       screen.queryByRole('heading', {
         name: textMock('resourceadm.about_resource_title'),
         level: 1,
-      })
+      }),
     ).not.toBeInTheDocument();
   });
 
@@ -92,11 +92,11 @@ describe('ResourcePage', () => {
 
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner'))
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );
 
     expect(
-      screen.getByRole('link', { name: textMock('resourceadm.left_nav_bar_migration') })
+      screen.getByRole('tab', { name: textMock('resourceadm.left_nav_bar_migration') }),
     ).toBeInTheDocument();
   });
 
@@ -105,11 +105,11 @@ describe('ResourcePage', () => {
 
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner'))
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );
 
     expect(
-      screen.queryByRole('link', { name: textMock('resourceadm.left_nav_bar_migrate') })
+      screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migrate') }),
     ).not.toBeInTheDocument();
   });
 
@@ -119,17 +119,17 @@ describe('ResourcePage', () => {
 
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.about_resource_spinner'))
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );
 
     expect(
       screen.queryByRole('heading', {
         name: textMock('resourceadm.resource_navigation_modal_title_resource'),
         level: 1,
-      })
+      }),
     ).not.toBeInTheDocument();
 
-    const policyButton = screen.getByRole('link', {
+    const policyButton = screen.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_policy'),
     });
     await act(() => user.click(policyButton));
@@ -138,14 +138,14 @@ describe('ResourcePage', () => {
       screen.getByRole('heading', {
         name: textMock('resourceadm.resource_navigation_modal_title_resource'),
         level: 1,
-      })
+      }),
     ).toBeInTheDocument();
   });
 });
 
 const render = (
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock()
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -160,6 +160,6 @@ const render = (
       <ServicesContextProvider {...allQueries} client={queryClient}>
         <ResourcePage />
       </ServicesContextProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

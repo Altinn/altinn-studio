@@ -50,7 +50,7 @@ export const ResourceDeployEnvCard = ({
             {t('resourceadm.deploy_version_number_text')}
           </Paragraph>
           <div className={classes.envWrapper}>
-            <Tag color='neutral' variant='outlined' size='small'>
+            <Tag color='neutral' variant='secondary' size='small'>
               {currentEnvVersion}
             </Tag>
             {newEnvVersion && (
@@ -61,7 +61,7 @@ export const ResourceDeployEnvCard = ({
                     fontSize='1.5rem'
                   />
                 </div>
-                <Tag color='success' variant='outlined' size='small'>
+                <Tag color='success' variant='secondary' size='small'>
                   {newEnvVersion}
                 </Tag>
               </>

@@ -13,6 +13,7 @@ import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { InputFields } from './InputFields';
 import { CreatedFor } from './CreatedFor';
+import { TabContent } from '../../TabContent';
 
 export type AboutTabProps = {
   org: string;
@@ -85,9 +86,9 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
     }
   };
   return (
-    <div>
+    <TabContent>
       <TabHeader text={t('settings_modal.about_tab_heading')} />
       {displayContent()}
-    </div>
+    </TabContent>
   );
 };

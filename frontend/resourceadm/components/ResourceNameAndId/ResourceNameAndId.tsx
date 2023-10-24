@@ -5,51 +5,15 @@ import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-ic
 import { useTranslation } from 'react-i18next';
 
 export type ResourceNameAndIdProps = {
-  /**
-   * Flag to decide if the edit ID is open or not
-   */
   isEditOpen: boolean;
-  /**
-   * The value of the title
-   */
   title: string;
-  /**
-   * The text to display above the fields
-   */
   text: string;
-  /**
-   * The value of the id
-   */
   id: string;
-  /**
-   * Function to handle the editing of the title
-   * @param s the text written
-   * @returns void
-   */
   handleEditTitle: (s: string) => void;
-  /**
-   * Function to handle the editing of the id
-   * @param s the text written
-   * @returns void
-   */
   handleIdInput: (s: string) => void;
-  /**
-   * Function to be executed when edit button is clicked
-   * @param isSave flag for if it is to save or cancel
-   * @returns void
-   */
-  handleClickEditButton: (isSave: boolean) => void;
-  /**
-   * Flag for id the ID already exists
-   */
+  handleClickEditButton: (saveChanges: boolean) => void;
   resourceIdExists: boolean;
-  /**
-   * Flag for if ID and title has same display value
-   */
   bothFieldsHaveSameValue: boolean;
-  /**
-   * Additional classes
-   */
   className?: string;
 };
 
@@ -137,7 +101,7 @@ export const ResourceNameAndId = ({
               <div className={classes.stopEditingButton}>
                 <Button
                   onClick={() => handleClickEditButton(false)}
-                  variant='quiet'
+                  variant='tertiary'
                   color='danger'
                   icon={
                     <MultiplyIcon
@@ -149,7 +113,7 @@ export const ResourceNameAndId = ({
               </div>
               <Button
                 onClick={() => handleClickEditButton(true)}
-                variant='quiet'
+                variant='tertiary'
                 icon={
                   <CheckmarkIcon
                     title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
@@ -165,7 +129,7 @@ export const ResourceNameAndId = ({
     return (
       <>
         <Paragraph className={classes.label} size='small'>
-          {t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+          <strong>{t('resourceadm.dashboard_resource_name_and_id_resource_id')}</strong>
         </Paragraph>
         <div className={classes.editFieldWrapper}>
           <div className={classes.idBox}>
@@ -180,7 +144,7 @@ export const ResourceNameAndId = ({
               onClick={() => handleClickEditButton(false)}
               iconPlacement='right'
               icon={<PencilWritingIcon />}
-              variant='quiet'
+              variant='tertiary'
               color='first'
               size='small'
             >

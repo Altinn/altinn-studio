@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.5" />
+    <PackageReference Include="Altinn.Authorization.ABAC" />
   </ItemGroup>
 
 </Project>

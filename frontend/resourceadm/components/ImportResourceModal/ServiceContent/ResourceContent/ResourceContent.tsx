@@ -3,6 +3,7 @@ import classes from './ResourceContent.module.css';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { useTranslation } from 'react-i18next';
 import { ResourceNameAndId } from 'resourceadm/components/ResourceNameAndId';
+import { replaceWhiteSpaceWithHyphens } from 'resourceadm/utils/stringUtils';
 
 export type ResourceContentProps = {
   altinn2LinkService: Altinn2LinkService;
@@ -34,7 +35,7 @@ export const ResourceContent = ({
    * Replaces the spaces in the value typed with '-'.
    */
   const handleIDInput = (val: string) => {
-    setId(val.replace(/\s/g, '-'));
+    setId(replaceWhiteSpaceWithHyphens(val));
   };
 
   /**
@@ -45,7 +46,7 @@ export const ResourceContent = ({
    */
   const handleEditTitle = (val: string) => {
     if (!editIdFieldOpen && bothFieldsHaveSameValue) {
-      setId(val.replace(/\s/g, '-'));
+      handleIDInput(val);
     }
     setTitle(val);
   };
@@ -55,17 +56,19 @@ export const ResourceContent = ({
    * so that it closes the edit field, the id is set to the title.
    *
    * @param isOpened the value of the button when it is pressed
+   * @param saveChanges flag for if the changes made should be saved
    */
-  const handleClickEditButton = (isOpened: boolean, isSave: boolean) => {
+  const handleClickEditButton = (isOpened: boolean, saveChanges: boolean) => {
     setEditIdFieldOpen(isOpened);
-
-    if (isSave) {
+    if (saveChanges) {
       setBothFieldsHaveSameValue(false);
-    } else {
-      if (!isOpened) {
-        setBothFieldsHaveSameValue(true);
-        // If we stop editing, set the ID to the title
-        if (title !== id) setId(title.replace(/\s/g, '-'));
+      return;
+    }
+    if (!isOpened) {
+      setBothFieldsHaveSameValue(true);
+      const shouldSetTitleToId = title !== id;
+      if (shouldSetTitleToId) {
+        setId(replaceWhiteSpaceWithHyphens(title));
       }
     }
   };
@@ -80,7 +83,9 @@ export const ResourceContent = ({
         id={id}
         handleEditTitle={handleEditTitle}
         handleIdInput={handleIDInput}
-        handleClickEditButton={(isSave: boolean) => handleClickEditButton(!editIdFieldOpen, isSave)}
+        handleClickEditButton={(saveChanges: boolean) =>
+          handleClickEditButton(!editIdFieldOpen, saveChanges)
+        }
         resourceIdExists={resourceIdExists}
         bothFieldsHaveSameValue={bothFieldsHaveSameValue}
       />

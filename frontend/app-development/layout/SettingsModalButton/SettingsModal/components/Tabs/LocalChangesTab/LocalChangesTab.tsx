@@ -9,15 +9,10 @@ import { DeleteModal } from './DeleteModal';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
 import { repoDownloadPath } from 'app-shared/api/paths';
+import { TabContent } from '../../TabContent';
 
 export type LocalChangesTabProps = {
-  /**
-   * The org
-   */
   org: string;
-  /**
-   * The app
-   */
   app: string;
 };
 
@@ -47,7 +42,7 @@ export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode =
   };
 
   return (
-    <div>
+    <TabContent>
       <TabHeader text={t('settings_modal.local_changes_tab_heading')} />
       <div className={classes.contentWrapper}>
         <Paragraph size='small'>{t('settings_modal.local_changes_tab_info_text')}</Paragraph>
@@ -80,6 +75,6 @@ export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode =
         onDelete={handleDelete}
         appName={app}
       />
-    </div>
+    </TabContent>
   );
 };

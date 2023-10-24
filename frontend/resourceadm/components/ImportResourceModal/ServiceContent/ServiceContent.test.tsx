@@ -15,6 +15,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockSelectedContext: string = 'selectedContext';
+const mockEnv: string = 'env1';
 
 const getAltinn2LinkServices = jest.fn().mockImplementation(() => Promise.resolve({}));
 
@@ -30,7 +31,7 @@ const mockOnSelectService = jest.fn();
 
 const defaultProps: ServiceContentProps = {
   selectedContext: mockSelectedContext,
-  env: 'env1',
+  env: mockEnv,
   selectedService: mockAltinn2LinkService,
   onSelectService: mockOnSelectService,
   resourceIdExists: false,
@@ -80,7 +81,9 @@ describe('ServiceContent', () => {
       screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
     );
 
-    const emptyListError = screen.getByText(textMock('resourceadm.import_resource_empty_list'));
+    const emptyListError = screen.getByText(
+      textMock('resourceadm.import_resource_empty_list', { env: mockEnv }),
+    );
     expect(emptyListError).toBeInTheDocument();
   });
 

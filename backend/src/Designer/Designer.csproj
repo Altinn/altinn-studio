@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.5" />
-    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="9.0.0" />
+    <PackageReference Include="Altinn.Authorization.ABAC" />
+    <PackageReference Include="Altinn.ApiClients.Maskinporten" />
     <PackageReference Include="Altinn.Common.AccessToken" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" />

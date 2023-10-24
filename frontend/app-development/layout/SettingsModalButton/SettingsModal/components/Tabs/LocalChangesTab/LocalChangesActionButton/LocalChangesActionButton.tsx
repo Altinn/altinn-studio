@@ -103,7 +103,7 @@ export const LocalChangesActionButton = ({
       case 'button': {
         return (
           <Button
-            variant='outline'
+            variant='secondary'
             color={color}
             onClick={action.onClick}
             icon={icon}

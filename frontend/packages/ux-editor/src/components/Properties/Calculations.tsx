@@ -19,7 +19,7 @@ export const Calculations = () => {
             aria-label={t('right_menu.rules_calculations_add_alt')}
             icon={<PlusIcon />}
             onClick={() => setModalOpen(true)}
-            variant='quiet'
+            variant='tertiary'
             size='small'
           />
         </div>

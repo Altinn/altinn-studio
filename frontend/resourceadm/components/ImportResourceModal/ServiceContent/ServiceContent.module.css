@@ -1,4 +1,5 @@
 .contentWrapper {
   margin-top: 20px;
-  width: 80%;
+  max-width: 480px;
+  width: 100%;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { PolicyEditorPage } from './PolicyEditorPage';
+import { PolicyEditorPage, PolicyEditorPageProps } from './PolicyEditorPage';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -11,6 +11,7 @@ import { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
 
 const mockResourceId: string = 'r1';
 const mockSelectedContext: string = 'test';
+const mockId: string = 'page-content-policy';
 
 const mockPolicy: Policy = {
   rules: [{ ruleId: '1', description: '', subject: [], actions: [], resources: [[]] }],
@@ -57,6 +58,11 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
+const defaultProps: PolicyEditorPageProps = {
+  id: mockId,
+  showAllErrors: false,
+};
+
 describe('PolicyEditorPage', () => {
   afterEach(jest.clearAllMocks);
 
@@ -80,39 +86,39 @@ describe('PolicyEditorPage', () => {
 
     expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 })
+      screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
     getPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
 
     expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 })
+      screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
     getPolicyActions.mockImplementation(() => Promise.resolve(mockActions));
 
     expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 })
+      screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
     getPolicySubjects.mockImplementation(() => Promise.resolve(mockSubjects));
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.policy_editor_spinner'))
+      screen.queryByTitle(textMock('resourceadm.policy_editor_spinner')),
     );
 
     expect(
-      screen.getByRole('heading', { name: textMock('policy_editor.rules'), level: 2 })
+      screen.getByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).toBeInTheDocument();
   });
 });
 
 const render = (
-  showAllErrors: boolean = false,
+  props: Partial<PolicyEditorPageProps> = {},
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock()
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -124,8 +130,8 @@ const render = (
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
-        <PolicyEditorPage showAllErrors={showAllErrors} />
+        <PolicyEditorPage {...defaultProps} {...props} />
       </ServicesContextProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

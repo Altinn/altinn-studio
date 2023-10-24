@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './AltinnConfirmDialog.module.css';
-import type { ButtonProps, PopoverProps } from '@digdir/design-system-react';
-import { Button, Popover } from '@digdir/design-system-react';
+import type { ButtonProps, LegacyPopoverProps } from '@digdir/design-system-react';
+import { Button, LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
@@ -11,7 +11,7 @@ export type AltinnConfirmDialogProps = {
   cancelText?: string;
   onConfirm: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onClose: (event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
-} & Partial<Pick<PopoverProps, 'open' | 'trigger' | 'placement' | 'children' | 'className'>>;
+} & Partial<Pick<LegacyPopoverProps, 'open' | 'trigger' | 'placement' | 'children' | 'className'>>;
 
 export function AltinnConfirmDialog({
   confirmText,
@@ -45,7 +45,7 @@ export function AltinnConfirmDialog({
 
   return (
     <div ref={dialogRef}>
-      <Popover
+      <LegacyPopover
         variant='warning'
         className={cn(className, classes.popover)}
         trigger={trigger}
@@ -56,7 +56,7 @@ export function AltinnConfirmDialog({
         <div className={classes.buttonContainer}>
           <Button
             color={confirmColor}
-            variant='filled'
+            variant='primary'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
               onConfirm(event);
@@ -69,7 +69,7 @@ export function AltinnConfirmDialog({
           </Button>
           <Button
             color='second'
-            variant='quiet'
+            variant='tertiary'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
               onClose(event);
@@ -79,7 +79,7 @@ export function AltinnConfirmDialog({
             {cancelText || t('general.cancel')}
           </Button>
         </div>
-      </Popover>
+      </LegacyPopover>
     </div>
   );
 }

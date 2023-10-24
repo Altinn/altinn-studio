@@ -1,6 +1,6 @@
 import 'jest';
 import 'whatwg-fetch';
-import '@testing-library/jest-dom/jest-globals'
+import '@testing-library/jest-dom/jest-globals';
 import '@testing-library/jest-dom';
 
 import failOnConsole from 'jest-fail-on-console';
@@ -27,6 +27,11 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+Object.defineProperty(window, 'scrollTo', {
+  writable: true,
+  value: jest.fn(),
+});
+
 // ResizeObserver must be mocked because it is used by the Popover component from the design system, but it is not supported by React Testing Library.
 class ResizeObserver {
   observe = jest.fn();
@@ -37,17 +42,16 @@ window.ResizeObserver = ResizeObserver;
 
 // I18next mocks. The useTranslation and Trans mocks apply the textMock function on the text key, so that it can be used to address the texts in the tests.
 jest.mock('i18next', () => ({ use: () => ({ init: jest.fn() }) }));
-jest.mock(
-  'react-i18next',
-  () => ({
-    Trans: ({ i18nKey }) => textMock(i18nKey),
-    useTranslation: () => ({ t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables) }),
-    withTranslation: () => (Component: ReactNode) => Component,
+jest.mock('react-i18next', () => ({
+  Trans: ({ i18nKey }) => textMock(i18nKey),
+  useTranslation: () => ({
+    t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
   }),
-);
+  withTranslation: () => (Component: ReactNode) => Component,
+}));
 
 // SignalR PreviewHub mock to simulate setup of websockets.
-jest.mock('@microsoft/signalr', () => SignalR );
+jest.mock('@microsoft/signalr', () => SignalR);
 
 // Mock org and app params
 jest.mock('react-router-dom', () => ({
