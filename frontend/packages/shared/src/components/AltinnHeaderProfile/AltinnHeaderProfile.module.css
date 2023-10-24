@@ -3,11 +3,3 @@
   justify-content: flex-end;
   align-items: center;
 }
-
-.userOrgNames {
-  text-align: right;
-  white-space: pre-line;
-  line-height: 25px;
-  font-size: 1rem;
-  margin-right: 10px;
-}

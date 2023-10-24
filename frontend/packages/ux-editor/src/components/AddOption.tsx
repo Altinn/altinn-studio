@@ -92,7 +92,7 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
         onClick={() => setIsAddMode(true)}
         color='success'
         title={t('ux_editor.add_option')}
-        variant='quiet'
+        variant='tertiary'
         size='small'
       >
         <span className={addButtonClass}>

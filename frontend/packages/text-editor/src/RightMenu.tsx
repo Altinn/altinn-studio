@@ -71,7 +71,7 @@ export const RightMenu = ({
                       onClose={() => setLangCodeToDelete(undefined)}
                       trigger={
                         <Button
-                          variant={canDeleteLang(langCode) ? 'filled' : 'outline'}
+                          variant={canDeleteLang(langCode) ? 'primary' : 'secondary'}
                           data-testid={testids.deleteButton(langCode)}
                           color='danger'
                           onClick={() =>

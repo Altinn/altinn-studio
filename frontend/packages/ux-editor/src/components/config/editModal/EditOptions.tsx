@@ -28,13 +28,10 @@ export enum SelectedOptionsType {
 }
 
 const getSelectedOptionsType = (codeListId: string, options: IOption[]): SelectedOptionsType => {
-  if (codeListId) {
-    return SelectedOptionsType.CodeList;
-  }
   if (options?.length) {
     return SelectedOptionsType.Manual;
   }
-  return SelectedOptionsType.Unknown;
+  return SelectedOptionsType.CodeList;
 };
 
 export function EditOptions({
@@ -104,8 +101,6 @@ export function EditOptions({
   const handleAddOption = () =>
     handleComponentChange(addOptionToComponent(component, generateRandomOption()));
 
-  if (component.type != 'RadioButtons') return null;
-
   return (
     <>
       <Radio.Group
@@ -114,8 +109,9 @@ export function EditOptions({
         name={`${component.id}-options`}
         value={selectedOptionsType}
         inline={true}
+        size='small'
       >
-        <Radio value={SelectedOptionsType.CodeList} defaultChecked>
+        <Radio value={SelectedOptionsType.CodeList}>
           {t('ux_editor.modal_add_options_codelist')}
         </Radio>
         <Radio value={SelectedOptionsType.Manual}>{t('ux_editor.modal_add_options_manual')}</Radio>
@@ -170,7 +166,7 @@ export function EditOptions({
                         color='danger'
                         icon={<XMarkIcon />}
                         onClick={removeItem}
-                        variant='quiet'
+                        variant='tertiary'
                         size='small'
                       />
                     </div>
@@ -188,7 +184,7 @@ export function EditOptions({
             fullWidth
             icon={<PlusIcon />}
             onClick={handleAddOption}
-            variant='outline'
+            variant='secondary'
             size='small'
           >
             {t('ux_editor.modal_new_option')}

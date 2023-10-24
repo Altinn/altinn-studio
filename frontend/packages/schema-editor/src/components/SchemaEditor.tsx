@@ -53,7 +53,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   rootChildren?.forEach((childPointer) =>
     pointerIsDefinition(childPointer)
       ? definitions.push(rootNodeMap.get(childPointer))
-      : properties.push(rootNodeMap.get(childPointer))
+      : properties.push(rootNodeMap.get(childPointer)),
   );
 
   const selectedPropertyParent = useSchemaAndReduxSelector(selectedPropertyParentSelector);
@@ -96,7 +96,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
             <Button
               onClick={handleResetSelectedType}
               icon={<XMarkIcon />}
-              variant='quiet'
+              variant='tertiary'
               color='inverted'
               aria-label={t('schema_editor.close_type')}
               size='small'

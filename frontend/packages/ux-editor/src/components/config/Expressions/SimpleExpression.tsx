@@ -41,7 +41,7 @@ export const SimpleExpression = ({
           <div className={classes.addExpression}>
             {index === expression.subExpressions.length - 1 ? (
               <Button
-                variant='quiet'
+                variant='tertiary'
                 size='small'
                 onClick={() => onAddSubExpression(expression.operator || Operator.And)}
                 icon={<PlusCircleIcon />}

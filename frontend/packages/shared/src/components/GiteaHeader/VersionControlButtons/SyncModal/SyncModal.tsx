@@ -92,7 +92,7 @@ export const SyncModal = ({
         )}
         {btnText && (
           <Button
-            variant='filled'
+            variant='primary'
             color='first'
             className={classes.button}
             onClick={btnClickedHandler}
