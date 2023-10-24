@@ -274,9 +274,9 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
        By returning value if variable.defaultValue is null, we ensure
        that we are returning the dataModel path string instead of blank
        value. If app developers want to return blank value, they should
-       set defaultValue to a blank space.
+       set defaultValue to an empty string.
       */
-      value = variable.defaultValue || value;
+      value = variable.defaultValue ?? value;
     }
 
     out = out.replaceAll(`{${idx}}`, value);
