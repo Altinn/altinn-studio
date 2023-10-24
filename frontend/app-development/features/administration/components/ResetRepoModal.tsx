@@ -98,12 +98,12 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                 disabled={!canDelete}
                 id='confirm-reset-repo-button'
                 onClick={onResetWrapper}
-                variant='outline'
+                variant='secondary'
                 size='small'
               >
                 {t('administration.reset_repo_button')}
               </Button>
-              <Button color='second' onClick={onCloseWrapper} variant='outline' size='small'>
+              <Button color='second' onClick={onCloseWrapper} variant='secondary' size='small'>
                 {t('general.cancel')}
               </Button>
             </div>

@@ -72,7 +72,6 @@ export type FormRadioButtonsComponent = FormOptionsComponentBase<ComponentType.R
 export type FormTextareaComponent = FormComponentBase<ComponentType.TextArea>;
 
 export interface FormFileUploaderComponent extends FormComponentBase<ComponentType.FileUpload> {
-  description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
   displayMode: string;
@@ -83,7 +82,6 @@ export interface FormFileUploaderComponent extends FormComponentBase<ComponentTy
 
 export interface FormFileUploaderWithTagComponent
   extends FormComponentBase<ComponentType.FileUploadWithTag> {
-  description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
   maxNumberOfAttachments: number;

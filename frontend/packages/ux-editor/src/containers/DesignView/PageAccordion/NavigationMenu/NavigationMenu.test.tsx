@@ -92,7 +92,11 @@ describe('NavigationMenu', () => {
     const newValue: string = `${mockPageName1}1`;
 
     await act(() => user.type(inputField, '1'));
-    await act(() => user.tab());
+
+    const saveButton = screen.getByRole('button', {
+      name: textMock('ux_editor.input_popover_save_button'),
+    });
+    await act(() => user.click(saveButton));
 
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(

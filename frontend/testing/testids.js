@@ -14,3 +14,4 @@ export const userMenuItem = 'user-menu-item';
 export const versionControlHeader = 'version-control-header';
 export const pageAccordionContent = (pageName) => `page-accordion-content-${pageName}`;
 export const textboxNumber = 'textbox-number';
+export const profileButton = 'profileButton';

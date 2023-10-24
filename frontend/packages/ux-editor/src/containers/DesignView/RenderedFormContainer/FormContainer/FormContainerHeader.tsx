@@ -39,7 +39,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
           color='second'
           icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
           onClick={() => handleExpanded((previous) => !previous)}
-          variant='quiet'
+          variant='tertiary'
           size='small'
         />
         {t('ux_editor.component_group_header', { id })}
@@ -59,7 +59,7 @@ export const FormContainerHeader = memo(function FormContainerHeader({
                 event.stopPropagation();
                 setIsConfirmDeleteDialogOpen((prevState) => !prevState);
               }}
-              variant='quiet'
+              variant='tertiary'
               size='small'
             />
           }

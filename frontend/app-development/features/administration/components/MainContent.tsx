@@ -53,7 +53,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
           onBlur={props.onAppNameBlur}
           disabled={!props.editAppName}
         />
-        <Button color='second' onClick={props.onEditAppNameClick} variant='outline' size='small'>
+        <Button color='second' onClick={props.onEditAppNameClick} variant='secondary' size='small'>
           {t('general.edit')}
         </Button>
       </div>

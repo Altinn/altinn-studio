@@ -11,6 +11,7 @@ import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from '../../../ux-editor/src/hooks/useAppContext';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();
@@ -44,7 +45,7 @@ export const TextResourceEdit = () => {
           color='second'
           icon={<XMarkIcon />}
           onClick={() => setEditId(undefined)}
-          variant='filled'
+          variant='primary'
           size='small'
         >
           {t('general.close')}
@@ -65,6 +66,7 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   const { org, app } = useStudioUrlParams();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
 
+  const { previewIframeRef } = useAppContext();
   const textResourceValue = textResource?.value || '';
 
   const updateTextResource = (text: string) => {
@@ -74,6 +76,7 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
       language,
       textResources: [{ id: textResourceId, value: text, variables: textResource?.variables }],
     });
+    previewIframeRef.current?.contentWindow.location.reload();
   };
 
   const [value, setValue] = useState<string>(textResourceValue);

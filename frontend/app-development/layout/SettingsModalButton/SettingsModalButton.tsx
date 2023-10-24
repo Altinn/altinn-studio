@@ -33,7 +33,7 @@ export const SettingsModalButton = ({ org, app }: SettingsModalButtonProps): Rea
       <Button
         onClick={() => setIsOpen(true)}
         size='small'
-        variant='quiet'
+        variant='tertiary'
         color='inverted'
         icon={<CogIcon />}
       >

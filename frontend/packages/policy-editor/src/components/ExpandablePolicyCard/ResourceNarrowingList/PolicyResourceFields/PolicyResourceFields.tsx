@@ -105,7 +105,7 @@ export const PolicyResourceFields = ({
       <div className={classes.buttonWrapper}>
         {canEditTypeAndId && (
           <Button
-            variant='quiet'
+            variant='tertiary'
             icon={<MultiplyIcon title={t('policy_editor.narrowing_list_field_delete')} />}
             aria-disabled={!canEditTypeAndId}
             onClick={onRemove}

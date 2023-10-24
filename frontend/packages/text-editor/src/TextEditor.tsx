@@ -77,7 +77,7 @@ export const TextEditor = ({
     <div className={classes.TextEditor}>
       <div className={classes.TextEditor__main}>
         <div className={classes.TextEditor__topRow}>
-          <Button variant='filled' color='first' onClick={handleAddNewEntryClick} size='small'>
+          <Button variant='primary' color='first' onClick={handleAddNewEntryClick} size='small'>
             {t('text_editor.new_text')}
           </Button>
           <div>

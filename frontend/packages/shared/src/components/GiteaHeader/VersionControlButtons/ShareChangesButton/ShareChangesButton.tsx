@@ -43,7 +43,7 @@ export const ShareChangesButton = ({
       id='share_changes_button'
       onClick={shareChangesHandler}
       size='small'
-      variant='quiet'
+      variant='tertiary'
     >
       {renderCorrectText()}
       {displayNotification && <Notification numChanges={1} />}

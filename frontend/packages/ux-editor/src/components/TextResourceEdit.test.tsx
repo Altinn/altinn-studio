@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { RefObject, createRef } from 'react';
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import type { ITextResources, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
 import { TextResourceEdit } from './TextResourceEdit';
-import { renderHookWithMockStore, renderWithMockStore, queriesMock, queryClientMock } from '../testing/mocks';
+import {
+  renderHookWithMockStore,
+  renderWithMockStore,
+  queriesMock,
+  queryClientMock,
+} from '../testing/mocks';
 import { appDataMock, textResourcesMock } from '../testing/stateMocks';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import { appContextMock } from '../testing/appContextMock';
 
 const user = userEvent.setup();
 
@@ -31,13 +37,9 @@ const texts = {
 };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('TextResourceEdit', () => {
-
   afterEach(() => {
     jest.clearAllMocks();
     queryClientMock.clear();
@@ -58,7 +60,7 @@ describe('TextResourceEdit', () => {
     const resources: ITextResources = {
       nb: [{ id, value: valueNb }],
       nn: [{ id, value: valueNn }],
-      en: [{ id, value: valueEn }]
+      en: [{ id, value: valueEn }],
     };
     await render(resources, id);
     expect(screen.getByText(legendText)).toBeInTheDocument();
@@ -79,8 +81,35 @@ describe('TextResourceEdit', () => {
     await act(() => user.type(textBox, additionalValue));
     await act(() => user.tab());
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', { [id]: value + 
-additionalValue });
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
+      [id]: value + additionalValue,
+    });
+  });
+
+  it('Check if reload is called when text is updated', async () => {
+    const id = 'some-id';
+    const value = 'Lorem';
+    const additionalValue = ' ipsum';
+    const resources: ITextResources = { nb: [{ id, value }] };
+    const previewIframeRefMock = createRef<HTMLIFrameElement>();
+    const reload = jest.fn();
+    const previewIframeRef: RefObject<HTMLIFrameElement> = {
+      current: {
+        ...previewIframeRefMock.current,
+        contentWindow: {
+          ...previewIframeRefMock.current?.contentWindow,
+          location: {
+            ...previewIframeRefMock.current?.contentWindow?.location,
+            reload,
+          },
+        },
+      },
+    };
+    await render(resources, id, previewIframeRef);
+    const textBox = screen.getByLabelText(nbText);
+    await act(async () => user.type(textBox, additionalValue));
+    await act(async () => user.tab());
+    expect(reload).toHaveBeenCalledTimes(1);
   });
 
   it('upsertTextResources should not be called when the text is NOT changed', async () => {
@@ -131,26 +160,36 @@ additionalValue });
   });
 });
 
-const render = async (resources: ITextResources = {}, editId?: string) => {
-
+const render = async (
+  resources: ITextResources = {},
+  editId?: string,
+  previewIframeRef: RefObject<HTMLIFrameElement> = appContextMock.previewIframeRef,
+) => {
   const textResources: ITextResourcesState = {
     ...textResourcesMock,
-    currentEditId: editId
+    currentEditId: editId,
   };
 
   const appData: IAppDataState = {
     ...appDataMock,
-    textResources
+    textResources,
   };
 
-  const { result } = renderHookWithMockStore({ appData }, {
-    getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
-    getTextResources: (_o, _a, lang) => Promise.resolve<ITextResourcesWithLanguage>({
-      language: lang,
-      resources: resources[lang] || []
-    }),
-  })(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const { result } = renderHookWithMockStore(
+    { appData },
+    {
+      getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
+      getTextResources: (_o, _a, lang) =>
+        Promise.resolve<ITextResourcesWithLanguage>({
+          language: lang,
+          resources: resources[lang] || [],
+        }),
+    },
+    undefined,
+    { previewIframeRef },
+  )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-  return renderWithMockStore({ appData })(<TextResourceEdit/>);
+  return renderWithMockStore({ appData }, {}, undefined, { previewIframeRef })(
+    <TextResourceEdit />,
+  );
 };

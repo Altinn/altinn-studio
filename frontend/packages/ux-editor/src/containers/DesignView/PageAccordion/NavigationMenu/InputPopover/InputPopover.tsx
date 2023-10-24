@@ -1,6 +1,6 @@
 import React, { ReactNode, useRef, useEffect, ChangeEvent, useState } from 'react';
 import classes from './InputPopover.module.css';
-import { Button, ErrorMessage, Popover, Textfield } from '@digdir/design-system-react';
+import { Button, ErrorMessage, LegacyPopover, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 
@@ -62,6 +62,7 @@ export const InputPopover = ({
 
   const [errorMessage, setErrorMessage] = useState<string>(null);
   const [newName, setNewName] = useState<string>(oldName);
+  const shouldSavingBeEnabled = errorMessage === null && newName !== oldName;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -83,24 +84,9 @@ export const InputPopover = ({
    */
   const handleOnChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const newNameCandidate = event.target.value;
-
     const nameError: string = getPageNameErrorKey(newNameCandidate, oldName, layoutOrder);
-
     setErrorMessage(nameError === null ? null : t(nameError));
-
     setNewName(newNameCandidate);
-  };
-
-  /**
-   * If there is no error and the name is changed, the new name is saved.
-   */
-  const handleOnBlur = () => {
-    if (errorMessage === null && oldName !== newName) {
-      saveNewName(newName);
-    } else {
-      setNewName(oldName);
-      setErrorMessage(null);
-    }
   };
 
   /**
@@ -120,11 +106,10 @@ export const InputPopover = ({
 
   return (
     <div ref={ref}>
-      <Popover className={classes.popover} trigger={trigger} open={open}>
+      <LegacyPopover className={classes.popover} trigger={trigger} open={open}>
         <Textfield
           label={t('ux_editor.input_popover_label')}
           size='small'
-          onBlur={handleOnBlur}
           onKeyDown={handleKeyPress}
           onChange={handleOnChange}
           value={newName}
@@ -135,8 +120,17 @@ export const InputPopover = ({
         </ErrorMessage>
         <div className={classes.buttonContainer}>
           <Button
+            color='first'
+            variant='primary'
+            onClick={() => saveNewName(newName)}
+            disabled={!shouldSavingBeEnabled}
+            size='small'
+          >
+            {t('ux_editor.input_popover_save_button')}
+          </Button>
+          <Button
             color='second'
-            variant='quiet'
+            variant='tertiary'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
               onClose(event);
@@ -146,7 +140,7 @@ export const InputPopover = ({
             {t('general.cancel')}
           </Button>
         </div>
-      </Popover>
+      </LegacyPopover>
     </div>
   );
 };

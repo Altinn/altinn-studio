@@ -27,7 +27,7 @@ export const FetchChangesButton = ({
       icon={<DownloadIcon />}
       onClick={fetchChangesHandler}
       size='small'
-      variant='quiet'
+      variant='tertiary'
     >
       {t('sync_header.fetch_changes')}
       {displayNotification && <Notification numChanges={numChanges} />}

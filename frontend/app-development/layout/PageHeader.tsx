@@ -12,7 +12,6 @@ import { useTranslation } from 'react-i18next';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 type SubMenuContentProps = {
   org: string;
@@ -25,9 +24,7 @@ export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
       org={org}
       app={app}
       hasCloneModal
-      leftComponent={
-        shouldDisplayFeature('settingsModal') && <SettingsModalButton org={org} app={app} />
-      }
+      leftComponent={<SettingsModalButton org={org} app={app} />}
     />
   );
 };
@@ -38,7 +35,7 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
       title: 'top_menu.preview',
       path: previewPath,
       menuKey: TopBarMenu.Preview,
-      buttonVariant: 'outline',
+      buttonVariant: 'secondary',
       buttonColor: 'inverted',
       headerButtonsClasses: undefined,
       handleClick: () => (window.location.href = previewPath(org, app)),
@@ -48,7 +45,7 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
       title: 'top_menu.deploy',
       path: publishPath,
       menuKey: TopBarMenu.Deploy,
-      buttonVariant: 'outline',
+      buttonVariant: 'secondary',
       headerButtonsClasses: undefined,
       handleClick: () => (window.location.href = publishPath(org, app)),
     },

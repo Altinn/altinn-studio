@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { CogIcon, TabsIcon } from '@navikt/aksel-icons';
-import { Link } from 'react-router-dom';
+import { TabsIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
-import { Popover, Button } from '@digdir/design-system-react';
+import { LegacyPopover, Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -27,12 +26,12 @@ export const ThreeDotsMenu = ({
 
   return (
     <>
-      <Popover
+      <LegacyPopover
         className={classes.popover}
         trigger={
           <Button
             icon={<MenuElipsisVerticalIcon title='Gitea menu' />}
-            variant='quiet'
+            variant='tertiary'
             color='inverted'
             size='small'
           />
@@ -57,18 +56,8 @@ export const ThreeDotsMenu = ({
               <span>{t('dashboard.repository')}</span>
             </a>
           </li>
-          {!onlyShowRepository && (
-            <li>
-              <Link to={`/${org}/${app}/accesscontrol`} className={classes.link}>
-                <span className={classes.iconWrapper}>
-                  <CogIcon className={classes.icon} />
-                </span>
-                <span>{t('sync_header.settings')}</span>
-              </Link>
-            </li>
-          )}
         </ul>
-      </Popover>
+      </LegacyPopover>
       {hasCloneModal && <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />}
     </>
   );
