@@ -488,7 +488,7 @@ export const ExpandablePolicyCard = ({
             rows={5}
             onBlur={() => savePolicy(rules)}
             id={`description-${uniqueId}`}
-            className={classes.spacingTop}
+            className={classes.descriptionInput}
           />
         </div>
       </ExpandablePolicyElement>
