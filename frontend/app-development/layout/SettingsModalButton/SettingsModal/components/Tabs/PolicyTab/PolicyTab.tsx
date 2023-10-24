@@ -12,15 +12,10 @@ import {
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
+import { TabContent } from '../../TabContent';
 
 export type PolicyTabProps = {
-  /**
-   * The org
-   */
   org: string;
-  /**
-   * The app
-   */
   app: string;
 };
 
@@ -83,9 +78,9 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
     }
   };
   return (
-    <div>
+    <TabContent>
       <TabHeader text={t('settings_modal.policy_tab_heading')} />
       {displayContent()}
-    </div>
+    </TabContent>
   );
 };

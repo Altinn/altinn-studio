@@ -132,7 +132,7 @@ export const TextResource = ({
             icon={<XMarkIcon />}
             onClick={() => setIsSearchMode(false)}
             title={t('ux_editor.search_text_resources_close')}
-            variant='quiet'
+            variant='tertiary'
             size='small'
           />
         </span>
@@ -154,7 +154,7 @@ export const TextResource = ({
                 icon={<PencilIcon />}
                 onClick={handleEditButtonClick}
                 title={t('general.edit')}
-                variant='quiet'
+                variant='tertiary'
                 size='small'
               />
             ) : (
@@ -166,7 +166,7 @@ export const TextResource = ({
                 icon={<PlusIcon />}
                 onClick={handleEditButtonClick}
                 title={t('general.add')}
-                variant='quiet'
+                variant='tertiary'
                 size='small'
               />
             )}
@@ -178,7 +178,7 @@ export const TextResource = ({
               icon={<MagnifyingGlassIcon />}
               onClick={() => setIsSearchMode(true)}
               title={t('general.search')}
-              variant='quiet'
+              variant='tertiary'
               size='small'
             />
             <AltinnConfirmDialog
@@ -198,7 +198,7 @@ export const TextResource = ({
                   icon={<TrashIcon />}
                   onClick={() => setIsConfirmDeleteDialogOpen(true)}
                   title={t('general.delete')}
-                  variant='quiet'
+                  variant='tertiary'
                   size='small'
                 />
               }

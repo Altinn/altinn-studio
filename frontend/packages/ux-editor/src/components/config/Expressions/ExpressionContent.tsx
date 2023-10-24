@@ -15,10 +15,11 @@ import {
   addSubExpressionToExpression,
   complexExpressionIsSet,
   convertInternalExpressionToExternal,
-  isStudioFriendlyExpression, tryParseExpression,
+  isStudioFriendlyExpression,
+  tryParseExpression,
   updateComplexExpression,
   updateExpression,
-  updateOperator
+  updateOperator,
 } from '../../../utils/expressionsUtils';
 import { useText } from '../../../hooks';
 import { ComplexExpression } from './ComplexExpression';
@@ -29,7 +30,10 @@ import { stringifyData } from '../../../utils/jsonUtils';
 export interface ExpressionContentProps {
   componentName: string;
   expression: Expression;
-  onGetProperties: (expression: Expression) => { availableProperties: string[], expressionProperties: string[] };
+  onGetProperties: (expression: Expression) => {
+    availableProperties: string[];
+    expressionProperties: string[];
+  };
   showRemoveExpressionButton: boolean;
   onSaveExpression: (expression: Expression) => void;
   successfullyAddedExpression: boolean;
@@ -56,20 +60,22 @@ export const ExpressionContent = ({
   const [freeStyleEditing, setFreeStyleEditing] = useState<boolean>(!!expression.complexExpression);
   const t = useText();
 
-  const allowToSpecifyExpression = Object.values(onGetProperties(expression).expressionProperties).includes(expression.property);
-  const allowToSaveExpression = (
-    expression.subExpressions?.filter(subExp => !subExp.function)?.length === 0
-    && expression.subExpressions.length !== 0
-    && expressionInEditMode
-    && !!expression.property
-  ) || (
-    complexExpressionIsSet(expression.complexExpression)
-    && expressionInEditMode
-    && !!expression.property
-  );
+  const allowToSpecifyExpression = Object.values(
+    onGetProperties(expression).expressionProperties,
+  ).includes(expression.property);
+  const allowToSaveExpression =
+    (expression.subExpressions?.filter((subExp) => !subExp.function)?.length === 0 &&
+      expression.subExpressions.length !== 0 &&
+      expressionInEditMode &&
+      !!expression.property) ||
+    (complexExpressionIsSet(expression.complexExpression) &&
+      expressionInEditMode &&
+      !!expression.property);
   const propertiesList = onGetProperties(expression).availableProperties;
   const externalExpression = convertInternalExpressionToExternal(expression);
-  const isStudioFriendly = isStudioFriendlyExpression(tryParseExpression(expression, externalExpression).complexExpression);
+  const isStudioFriendly = isStudioFriendlyExpression(
+    tryParseExpression(expression, externalExpression).complexExpression,
+  );
 
   const addPropertyToExpression = (property: string) => {
     const newExpression: Expression = addProperty(expression, property);
@@ -106,17 +112,16 @@ export const ExpressionContent = ({
     }
   };
 
-
   return (
     <>
       {expressionInEditMode ? (
         <div className={classes.editMode}>
           <Switch
-              name={'Expression_enable_free_style_editing'}
-              onChange={handleToggleFreeStyleEditing}
-              checked={freeStyleEditing}
-              size={'small'}
-              readOnly={!isStudioFriendly}
+            name={'Expression_enable_free_style_editing'}
+            onChange={handleToggleFreeStyleEditing}
+            checked={freeStyleEditing}
+            size={'small'}
+            readOnly={!isStudioFriendly}
           >
             {t('right_menu.expression_enable_free_style_editing')}
           </Switch>
@@ -125,16 +130,16 @@ export const ExpressionContent = ({
               <Trans
                 i18nKey={'right_menu.expressions_property_on_component'}
                 values={{ componentName: componentName }}
-                components={{ bold: <strong/> }}
+                components={{ bold: <strong /> }}
               />
             </p>
             {showRemoveExpressionButton && (
               <Button
                 aria-label={t('right_menu.expression_delete')}
                 color='danger'
-                icon={<TrashIcon/>}
+                icon={<TrashIcon />}
                 onClick={() => onRemoveExpression(expression)}
-                variant='quiet'
+                variant='tertiary'
                 size='small'
               />
             )}
@@ -143,10 +148,14 @@ export const ExpressionContent = ({
             label={t('right_menu.expressions_property')}
             hideLabel={true}
             onChange={addPropertyToExpression}
-            options={[{ label: t('right_menu.expressions_property_select'), value: 'default' }].concat(propertiesList.map((property: string) => ({
-              label: expressionPropertyTexts(t)[property],
-              value: property
-            })))}
+            options={[
+              { label: t('right_menu.expressions_property_select'), value: 'default' },
+            ].concat(
+              propertiesList.map((property: string) => ({
+                label: expressionPropertyTexts(t)[property],
+                value: property,
+              })),
+            )}
             value={expression.property || 'default'}
           />
           {complexExpressionIsSet(expression.complexExpression) ? (
@@ -160,19 +169,25 @@ export const ExpressionContent = ({
               allowToSpecifyExpression={allowToSpecifyExpression}
               expression={expression}
               onAddSubExpression={(expressionOp: Operator) => addSubExpression(expressionOp)}
-              onUpdateSubExpression={(index: number, subExpression: SubExpression) => updateSubExpression(index, subExpression)}
-              onUpdateExpressionOperator={(expressionOp: Operator) => updateExpressionOperator(expressionOp)}
+              onUpdateSubExpression={(index: number, subExpression: SubExpression) =>
+                updateSubExpression(index, subExpression)
+              }
+              onUpdateExpressionOperator={(expressionOp: Operator) =>
+                updateExpressionOperator(expressionOp)
+              }
               onRemoveSubExpression={(subExp: SubExpression) => onRemoveSubExpression(subExp)}
             />
           )}
           {allowToSaveExpression && (
             <Button
               color='success'
-              icon={<CheckmarkIcon/>}
+              icon={<CheckmarkIcon />}
               onClick={() => onSaveExpression(expression)}
-              variant='filled'
+              variant='primary'
               size='small'
-            >{t('general.save')}</Button>
+            >
+              {t('general.save')}
+            </Button>
           )}
         </div>
       ) : (
@@ -182,19 +197,18 @@ export const ExpressionContent = ({
               <Trans
                 i18nKey={expressionInPreviewPropertyTexts(t)[expression.property]}
                 values={{ componentName: componentName }}
-                components={{ bold: <strong/> }}
+                components={{ bold: <strong /> }}
               />
             </span>
             {complexExpressionIsSet(expression.complexExpression) ? (
-              <ComplexExpression expression={expression} disabled/>
+              <ComplexExpression expression={expression} disabled />
             ) : (
-              <SimpleExpressionPreview
-                expression={expression}
-              />
+              <SimpleExpressionPreview expression={expression} />
             )}
             {successfullyAddedExpression && (
               <div className={classes.checkMark}>
-                <CheckmarkIcon fontSize='1.5rem'/>{t('right_menu.expression_successfully_added_text')}
+                <CheckmarkIcon fontSize='1.5rem' />
+                {t('right_menu.expression_successfully_added_text')}
               </div>
             )}
           </div>
@@ -202,16 +216,16 @@ export const ExpressionContent = ({
             <Button
               title={t('right_menu.expression_delete')}
               color='danger'
-              icon={<TrashIcon/>}
+              icon={<TrashIcon />}
               onClick={() => onRemoveExpression(expression)}
-              variant='quiet'
+              variant='tertiary'
               size='small'
             />
             <Button
               title={t('right_menu.expression_edit')}
-              icon={<PencilIcon/>}
+              icon={<PencilIcon />}
               onClick={() => onEditExpression(expression)}
-              variant='quiet'
+              variant='tertiary'
               size='small'
             />
           </div>

@@ -2,29 +2,14 @@ import { TabAction } from 'app-shared/types/LeftNavigationTab';
 import React, { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 
-export type TabWrapperProps = {
-  /**
-   * Classname of the component
-   */
+export type TabContentProps = {
   className: string;
-  /**
-   * Fucntion to execute on blur
-   * @returns void
-   */
   onBlur: () => void;
-  /**
-   * Function to execute on click
-   * @returns void
-   */
   onClick?: () => void;
-  /**
-   * The tab action
-   */
   action: TabAction;
-  /**
-   * Children of the component
-   */
   children: ReactNode;
+  tabIndex: number;
+  onKeyDown: (event: React.KeyboardEvent) => void;
 };
 
 /**
@@ -38,6 +23,9 @@ export type TabWrapperProps = {
  *      onClick={onClick}
  *      onBlur={onBlur}
  *      action={tab.action}
+ *      tabIndex={tabIndex}
+ *      tabName={tab.tabName}
+ *      onKeyDown={onKeyDown}
  *    >
  *      {children}
  *    </TabWrapper>
@@ -47,16 +35,21 @@ export type TabWrapperProps = {
  * @property {function}[onClick] - Function to execute on click
  * @property {TabAction}[action] - The tab action
  * @property {ReactNode}[children] - Children of the component
+ * @property {number}[tabIndex] - The index of the tab
+ * @property {function}[onKeyDown] - Function to be executed on key press
  *
  * @returns {ReactNode} - The rendered component
  */
-export const TabWrapper = ({
+export const TabContent = ({
   className,
   onBlur,
   onClick,
   action,
   children,
-}: TabWrapperProps): ReactNode => {
+  tabIndex,
+
+  onKeyDown,
+}: TabContentProps): ReactNode => {
   /**
    * Executes the on click of the action if it exists and type is link
    */
@@ -73,7 +66,15 @@ export const TabWrapper = ({
   switch (action.type) {
     case 'link': {
       return (
-        <NavLink className={className} to={action.to} onBlur={onBlur} onClick={handleClickLink}>
+        <NavLink
+          className={className}
+          to={action.to}
+          onBlur={onBlur}
+          onClick={handleClickLink}
+          onKeyDown={onKeyDown}
+          role='tab'
+          tabIndex={tabIndex}
+        >
           {children}
         </NavLink>
       );
@@ -83,8 +84,11 @@ export const TabWrapper = ({
         <button
           className={className}
           onClick={() => (onClick ? onClick() : null)}
+          onKeyDown={onKeyDown}
           onBlur={onBlur}
           type='button'
+          role='tab'
+          tabIndex={tabIndex}
         >
           {children}
         </button>

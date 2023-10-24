@@ -164,7 +164,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 color='danger'
                 icon={<XMarkIcon title={t('general.delete')} />}
                 onClick={(): void => handleOnDeleteLayer(index)}
-                variant='quiet'
+                variant='tertiary'
                 size='small'
               />
             </div>
@@ -219,7 +219,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
       )}
       <Button
         icon={<PlusIcon title={t('general.add')} />}
-        variant='outline'
+        variant='secondary'
         onClick={handleAddLayer}
         disabled={component.layers?.some((layer) => !layer.url)}
         fullWidth

@@ -19,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 
 const mockResourceId: string = 'r1';
 const mockSelectedContext: string = 'test';
+const mockId: string = 'page-content-deploy';
 
 const mockRepoStatus: RepoStatus = {
   aheadBy: 0,
@@ -90,6 +91,7 @@ const defaultProps: DeployResourcePageProps = {
   navigateToPageWithError: mockNavigateToPageWithError,
   resourceVersionText: mockResourceVersionText,
   onSaveVersion: mockOnSaveVersion,
+  id: mockId,
 };
 
 describe('DeployResourcePage', () => {

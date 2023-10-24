@@ -59,6 +59,7 @@ const mockNewDescriptionInput: string = ' test';
 const mockNewHomepageInput: string = 'google.com';
 const mockNewKeyboardInput: string = ', key 3';
 const mockNewRightDescriptionInput: string = 'mock';
+const mockId: string = 'page-content-deploy';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -75,6 +76,7 @@ describe('AboutResourcePage', () => {
     showAllErrors: false,
     resourceData: mockResource1,
     onSaveResource: mockOnSaveResource,
+    id: mockId,
   };
 
   it('handles resource type change', async () => {
