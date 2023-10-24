@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './Administration.module.css';
-import { useAppConfigQuery } from 'app-development/hooks/queries';
+import { useAppConfigQuery, useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Heading } from '@digdir/design-system-react';
 import { toast } from 'react-toastify';
@@ -9,14 +9,37 @@ import { Documentation } from './Documentation';
 import { AppEnvironments } from './AppEnvironments';
 import { AppLogs } from './AppLogs';
 import { Navigation } from './Navigation';
+import { AltinnSpinner } from 'app-shared/components';
+import { Center } from 'app-shared/components/Center';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
-  const { data: appConfigData, isError } = useAppConfigQuery(org, app, { hideDefaultError: true });
+  const {
+    data: orgs = { orgs: {} },
+    isLoading: isLoadingOrgs,
+    isError: isOrgsError,
+  } = useOrgListQuery({ hideDefaultError: true });
+
+  const selectedOrg = orgs.orgs[org];
+  const hasEnvironments = selectedOrg?.environments?.length > 0;
+
+  const {
+    data: appConfigData,
+    isError: isAppConfigError,
+    isLoading: isLoadingAppConfig,
+  } = useAppConfigQuery(org, app, { hideDefaultError: true });
   const { t } = useTranslation();
 
-  if (isError) {
+  if (isAppConfigError || isOrgsError) {
     toast.error(t('administration.fetch_title_error_message'));
+  }
+
+  if (isLoadingAppConfig || isLoadingOrgs) {
+    return (
+      <Center>
+        <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />
+      </Center>
+    );
   }
 
   return (
@@ -30,9 +53,11 @@ export const Administration = () => {
             <div className={classes.mainBlock}>
               <AppEnvironments />
             </div>
-            <div className={classes.mainBlock}>
-              <AppLogs />
-            </div>
+            {hasEnvironments && (
+              <div className={classes.mainBlock}>
+                <AppLogs />
+              </div>
+            )}
             <div className={classes.mainBlock}>
               <Navigation />
             </div>

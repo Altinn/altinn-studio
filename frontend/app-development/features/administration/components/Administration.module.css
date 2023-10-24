@@ -1,3 +1,9 @@
+.spinner {
+  display: flex;
+  gap: var(--fds-spacing-2);
+  flex-direction: column;
+}
+
 .pageContainer {
   background-color: #e6eff8;
   position: relative;

@@ -19,6 +19,7 @@ export const AppLogs = () => {
     isLoading: isLoadingDeploys,
     isError: deploysHasError,
   } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
+
   const {
     data: environmentList = [],
     isLoading: envIsLoading,
