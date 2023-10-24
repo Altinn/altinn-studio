@@ -1,23 +1,24 @@
 import {
-  complexInternalLayout,
+  internalLayoutWithMultiPageGroup,
   component1Id,
   component2Id,
   component3Id,
-} from '../../testing/complexLayoutMocks';
+} from '../../testing/layoutWithMultiPageGroupMocks';
 import { internalLayoutToExternal } from './internalLayoutToExternal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ExternalComponent } from 'app-shared/types/api';
 
 describe('internalLayoutToExternal', () => {
-  const result = internalLayoutToExternal(complexInternalLayout);
+  const result = internalLayoutToExternal(internalLayoutWithMultiPageGroup);
   const { layout } = result.data;
 
-  const simpleComponentIds = Object.keys(complexInternalLayout.components);
-  const containerIds = Object.keys(complexInternalLayout.containers);
+  const simpleComponentIds = Object.keys(internalLayoutWithMultiPageGroup.components);
+  const containerIds = Object.keys(internalLayoutWithMultiPageGroup.containers);
   const relevantContainerIds = containerIds.filter((key) => key != BASE_CONTAINER_ID);
 
   const findInternalComponent = (id) =>
-    complexInternalLayout.components[id] || complexInternalLayout.containers[id];
+    internalLayoutWithMultiPageGroup.components[id] ||
+    internalLayoutWithMultiPageGroup.containers[id];
   const findExternalComponent = (id): ExternalComponent =>
     layout.find((component) => component.id === id);
 
@@ -56,7 +57,7 @@ describe('internalLayoutToExternal', () => {
       return pageIndex === null ? componentId : `${pageIndex}:${componentId}`;
     };
     relevantContainerIds.forEach((id) => {
-      const childrenIds = complexInternalLayout.order[id];
+      const childrenIds = internalLayoutWithMultiPageGroup.order[id];
       const container = findExternalComponent(id);
       const expectedChildrenIds = childrenIds.map(expectedChildIdInList);
       expect(container.children).toEqual(expectedChildrenIds);
@@ -64,12 +65,14 @@ describe('internalLayoutToExternal', () => {
   });
 
   it('Includes custom root properties', () => {
-    expect(result).toEqual(expect.objectContaining(complexInternalLayout.customRootProperties));
+    expect(result).toEqual(
+      expect.objectContaining(internalLayoutWithMultiPageGroup.customRootProperties),
+    );
   });
 
   it('Includes custom data properties', () => {
     expect(result.data).toEqual(
-      expect.objectContaining(complexInternalLayout.customDataProperties),
+      expect.objectContaining(internalLayoutWithMultiPageGroup.customDataProperties),
     );
   });
 });

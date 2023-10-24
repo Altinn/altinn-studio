@@ -1,5 +1,8 @@
 import { externalLayoutToInternal } from './externalLayoutToInternal';
-import { complexExternalLayout, complexInternalLayout } from '../../testing/complexLayoutMocks';
+import {
+  externalLayoutWithMultiPageGroup,
+  internalLayoutWithMultiPageGroup,
+} from '../../testing/layoutWithMultiPageGroupMocks';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import { ExternalFormLayout } from 'app-shared/types/api';
 import { IInternalLayout } from '../../types/global';
@@ -7,8 +10,8 @@ import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
 describe('externalLayoutToInternal', () => {
   it('Converts an external layout to an internal layout', () => {
-    const result = externalLayoutToInternal(complexExternalLayout);
-    expect(result).toEqual(complexInternalLayout);
+    const result = externalLayoutToInternal(externalLayoutWithMultiPageGroup);
+    expect(result).toEqual(internalLayoutWithMultiPageGroup);
   });
 
   it('Returns an empty layout if the external layout is null', () => {

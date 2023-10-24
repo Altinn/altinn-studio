@@ -23,12 +23,12 @@ import type { FormComponent } from '../types/FormComponent';
 import { FormContainer } from '../types/FormContainer';
 import { deepCopy } from 'app-shared/pure';
 import {
-  complexInternalLayout,
+  internalLayoutWithMultiPageGroup,
   component3_1_1Id,
   component3_1Id,
   component3_2Id,
   component3Id,
-} from '../testing/complexLayoutMocks';
+} from '../testing/layoutWithMultiPageGroupMocks';
 
 // Test data:
 const baseContainer: FormContainer = {
@@ -200,7 +200,12 @@ describe('formLayoutUtils', () => {
     ])(
       'Adds component to the same page as the previous element in the same group when the position is %s',
       (position, expectedPageIndex) => {
-        const layout = addComponent(complexInternalLayout, newComponent, component3_1Id, position);
+        const layout = addComponent(
+          internalLayoutWithMultiPageGroup,
+          newComponent,
+          component3_1Id,
+          position,
+        );
         expect(layout.components[newComponent.id].pageIndex).toEqual(expectedPageIndex);
       },
     );
@@ -243,7 +248,7 @@ describe('formLayoutUtils', () => {
       'Adds container to the same page as the previous element in the same group when the position is %s',
       (position, expectedPageIndex) => {
         const layout = addContainer(
-          complexInternalLayout,
+          internalLayoutWithMultiPageGroup,
           newContainer,
           id,
           component3_1Id,
@@ -336,7 +341,7 @@ describe('formLayoutUtils', () => {
 
     it('Adds page index if the item is moved to a multipage group', () => {
       const updatedLayout = moveLayoutItem(
-        complexInternalLayout,
+        internalLayoutWithMultiPageGroup,
         component3_2Id,
         component3_1Id,
         1,
@@ -346,7 +351,7 @@ describe('formLayoutUtils', () => {
 
     it('Removes page index if the item is moved to a regular group', () => {
       const updatedLayout = moveLayoutItem(
-        complexInternalLayout,
+        internalLayoutWithMultiPageGroup,
         component3_1_1Id,
         component3Id,
         0,

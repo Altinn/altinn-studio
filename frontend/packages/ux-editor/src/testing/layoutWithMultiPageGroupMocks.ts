@@ -126,7 +126,7 @@ const internalComponent3_2: FormComponent = {
   pageIndex: null,
 };
 
-export const complexExternalLayout: ExternalFormLayout = {
+export const externalLayoutWithMultiPageGroup: ExternalFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [
@@ -152,7 +152,7 @@ const baseContainer: FormContainer = {
   pageIndex: null,
 };
 
-export const complexInternalLayout: IInternalLayout = {
+export const internalLayoutWithMultiPageGroup: IInternalLayout = {
   components: {
     [component1Id]: internalComponent1,
     [component2Id]: internalComponent2,
