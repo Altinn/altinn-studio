@@ -1,6 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Microsoft.AspNetCore.Authorization;
@@ -37,7 +37,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         public async Task<ActionResult> GetApplicationMetadata(string org, string app)
         {
-            Application application = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            ApplicationMetadata application = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
             if (application == null)
             {
                 return NotFound();
@@ -54,10 +54,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="applicationMetadata">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
-        public async Task<ActionResult> UpdateApplicationMetadata(string org, string app, [FromBody] Application applicationMetadata)
+        public async Task<ActionResult> UpdateApplicationMetadata(string org, string app, [FromBody] ApplicationMetadata applicationMetadata)
         {
             await _applicationMetadataService.UpdateApplicationMetaDataLocally(org, app, applicationMetadata);
-            Application updatedApplicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            ApplicationMetadata updatedApplicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
             return Ok(updatedApplicationMetadata);
         }
 
@@ -77,7 +77,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             await _applicationMetadataService.CreateApplicationMetadata(org, app, app);
-            Application createdApplication = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            ApplicationMetadata createdApplication = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
             if (createdApplication == null)
             {
                 return StatusCode(500);

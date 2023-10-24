@@ -1,5 +1,10 @@
 {
   "id": "ttd/frontend-test",
+  "logo": {
+    "source": "resource",
+    "displayAppOwnerNameInHeader": false,
+    "size": "medium"
+  },
   "org": "ttd",
   "title": {
     "nb": "frontend-test",

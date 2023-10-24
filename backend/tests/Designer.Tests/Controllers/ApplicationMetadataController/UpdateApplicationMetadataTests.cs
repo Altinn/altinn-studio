@@ -4,7 +4,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -29,7 +29,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string metadata = SharedResourcesHelper.LoadTestDataAsString(metadataToUpdate);
-            string expectedMetadataJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(metadata, JsonSerializerOptions), JsonSerializerOptions);
+            string expectedMetadataJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<ApplicationMetadata>(metadata, JsonSerializerOptions), JsonSerializerOptions);
 
             string url = VersionPrefix(org, targetRepository);
 

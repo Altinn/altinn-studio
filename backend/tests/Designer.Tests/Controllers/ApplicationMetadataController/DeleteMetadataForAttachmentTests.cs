@@ -4,7 +4,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -27,7 +27,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             string previousMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
-            Application applicationMetadataPreDelete = JsonSerializer.Deserialize<Application>(previousMetadata, JsonSerializerOptions);
+            ApplicationMetadata applicationMetadataPreDelete = JsonSerializer.Deserialize<ApplicationMetadata>(previousMetadata, JsonSerializerOptions);
             Assert.Contains(applicationMetadataPreDelete.DataTypes, x => x.Id == attacmentIdToDelete);
             string url = $"{VersionPrefix(org, targetRepository)}/attachment-component";
 
@@ -38,7 +38,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string currentMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
-            Application applicationMetadataAfterDelete = JsonSerializer.Deserialize<Application>(currentMetadata, JsonSerializerOptions);
+            ApplicationMetadata applicationMetadataAfterDelete = JsonSerializer.Deserialize<ApplicationMetadata>(currentMetadata, JsonSerializerOptions);
             Assert.DoesNotContain(applicationMetadataAfterDelete.DataTypes, x => x.Id == attacmentIdToDelete);
         }
     }

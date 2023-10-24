@@ -1,6 +1,7 @@
 <Project>
 
   <ItemGroup Label="Altinn specific packages">
+    <PackageReference Update="Altinn.App.Core" Version="8.0.0-preview.10" />
     <PackageReference Update="Altinn.Common.AccessToken" Version="3.0.3" />
     <PackageReference Update="Altinn.Common.AccessTokenClient" Version="1.1.5" />
     <PackageReference Update="Altinn.Platform.Storage.Interface" Version="3.24.0" />

@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -41,7 +41,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         }
 
         /// <inheritdoc />
-        public async Task<Application> GetApplicationMetadata(string org, string app, string envName)
+        public async Task<ApplicationMetadata> GetApplicationMetadata(string org, string app, string envName)
         {
             var storageUri = await CreateStorageUri(envName);
             Uri uri = new($"{storageUri}{org}/{app}");
@@ -54,14 +54,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             using HttpRequestMessage request = new(HttpMethod.Get, uri);
             HttpResponseMessage response = await _httpClient.SendAsync(request);
 
-            return await response.Content.ReadAsAsync<Application>();
+            return await response.Content.ReadAsAsync<ApplicationMetadata>();
         }
 
         /// <inheritdoc />
         public async Task CreateApplicationMetadata(
             string org,
             string app,
-            Application applicationMetadata,
+            ApplicationMetadata applicationMetadata,
             string envName)
         {
             var storageUri = await CreateStorageUri(envName);
@@ -84,7 +84,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public async Task UpdateApplicationMetadata(
             string org,
             string app,
-            Application applicationMetadata,
+            ApplicationMetadata applicationMetadata,
             string envName)
         {
             var storageUri = await CreateStorageUri(envName);
