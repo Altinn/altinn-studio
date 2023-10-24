@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { render as renderRTL, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 
 import { RadioButton } from 'src/components/form/RadioButton';
 import type { IRadioButtonProps } from 'src/components/form/RadioButton';

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { act, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
 import type { ILandmarkShortcutsProps } from 'src/components/LandmarkShortcuts';

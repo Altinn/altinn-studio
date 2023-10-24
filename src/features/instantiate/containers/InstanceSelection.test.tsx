@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { act, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 import configureStore from 'redux-mock-store';
 import type { Store } from 'redux';
 

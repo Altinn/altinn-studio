@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { act, fireEvent, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';

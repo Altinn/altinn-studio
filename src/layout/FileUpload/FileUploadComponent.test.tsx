@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 
 import { getAttachments } from 'src/__mocks__/attachmentsMock';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';

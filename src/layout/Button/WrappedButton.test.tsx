@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
 import { renderWithProviders } from 'src/test/renderWithProviders';
