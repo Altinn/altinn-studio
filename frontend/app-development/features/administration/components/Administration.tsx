@@ -10,6 +10,7 @@ import { AppEnvironments } from './AppEnvironments';
 import { AppLogs } from './AppLogs';
 import { Navigation } from './Navigation';
 import { AltinnSpinner } from 'app-shared/components';
+import { Center } from 'app-shared/components/Center';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -35,9 +36,9 @@ export const Administration = () => {
 
   if (isLoadingAppConfig || isLoadingOrgs) {
     return (
-      <div className={classes.spinnerContainer}>
+      <Center>
         <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />
-      </div>
+      </Center>
     );
   }
 

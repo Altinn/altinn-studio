@@ -1,10 +1,4 @@
-.spinnerContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.spinnerContainer .spinner {
+.spinner {
   display: flex;
   gap: var(--fds-spacing-2);
   flex-direction: column;
