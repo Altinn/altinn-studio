@@ -101,7 +101,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             }
           />
         </div>
-        <div className={classes.container}>
+        <div className={classes.gridContainer}>
         {showPreviewLimitationsInfo &&
           <Alert severity='info' className={classes.previewLimitationsInfo}>
             <div className={classes.alert}>

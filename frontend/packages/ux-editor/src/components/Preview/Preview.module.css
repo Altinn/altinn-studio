@@ -39,6 +39,12 @@
   width: fit-content;
 }
 
+.gridContainer {
+  display: grid;
+  grid-template-rows: auto max-content;
+  height: 100%;
+}
+
 .row {
   display: flex;
   flex-direction: row;

@@ -51,7 +51,7 @@
   gap: 1rem;
 }
 
-.container {
+.gridContainer {
   display: grid;
   grid-template-rows: max-content max-content;
 }

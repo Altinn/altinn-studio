@@ -50,16 +50,9 @@ const PreviewFrame = () => {
   const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem('showPreviewLimitationsInfo');
   const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(showPreviewLimitationsInfoSession ?? true);
 
-  if (showPreviewLimitationsInfo) {
-    const previewLimitationsInfo = document.getElementById('preview-limitations-info');
-    const dynamicHeight = previewLimitationsInfo?.scrollHeight ?? 0;
-    document.documentElement.style.setProperty('--previewLimitationsInfo-height', `${dynamicHeight}px`);
-  }
-
   const handleHidePreviewLimitations = () => {
     setShowPreviewLimitationsInfo(false);
     setOpenShowSaveChoiceInSession(false);
-    document.documentElement.style.setProperty('--previewLimitationsInfo-height', '0px');
   };
 
   const handleRememberChoiceForSession = () => {
@@ -74,6 +67,7 @@ const PreviewFrame = () => {
   return (
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
+      <div className={classes.gridContainer}>
       <iframe
         ref={previewIframeRef}
         className={cn(classes.iframe, classes[viewportToSimulate])}
@@ -81,7 +75,7 @@ const PreviewFrame = () => {
         src={previewPage(org, app, selectedLayoutSet)}
       />
       {showPreviewLimitationsInfo &&
-          <Alert severity='info' className={classes.previewLimitationsInfo} id='preview-limitations-info'>
+          <Alert severity='info' className={classes.previewLimitationsInfo}>
             <div className={classes.alert}>
               {t('preview.limitations_info')}
               <LegacyPopover
@@ -96,6 +90,7 @@ const PreviewFrame = () => {
               </LegacyPopover>
             </div>
           </Alert>}
+      </div>
     </div>
   );
 };
