@@ -18,21 +18,15 @@
 
 .accordionContent {
   padding: 0;
-  padding-inline: 5px;
 }
 
 .accordionItem {
   border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
-/* TODO - Remove this "hack" when the design system handles it */
 .receiptItem {
   border-top: none;
-}
-
-/* TODO - Remove this "hack" when the design system handles it */
-.receiptItem > div:last-child {
-  border-bottom: none !important;
+  border-bottom: none;
 }
 
 .accordionHeaderRow {

@@ -13,8 +13,8 @@ describe('AltinnIcons', () => {
 
     const iconElement = screen.getByRole('img');
 
-    expect(iconElement).toHaveAttribute('width', '24');
-    expect(iconElement).toHaveAttribute('height', '24');
+    expect(iconElement).toHaveAttribute('width', '1em');
+    expect(iconElement).toHaveAttribute('height', '1em');
     expect(iconElement).toHaveAttribute('viewBox', '0 0 24 24');
   });
 

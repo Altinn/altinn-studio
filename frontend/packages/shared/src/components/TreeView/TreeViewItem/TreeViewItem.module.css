@@ -1,4 +1,7 @@
 .listItem {
+  --vertical-line-colour: var(--fds-semantic-border-neutral-divider);
+  --vertical-line-width: 2px;
+
   list-style-type: none;
   margin: 0;
   padding: 0;
@@ -6,22 +9,34 @@
 
 .button {
   align-items: center;
+  border-radius: 0;
+  border-width: 0 0 0 var(--vertical-line-width);
+  color: var(--fds-semantic-text-neutral-default);
   justify-content: left;
   width: 100%;
 }
 
 .button[aria-selected='true'] {
-  background-color: var(--fds-semantic-surface-neutral-selected);
+  background-color: var(--fds-semantic-surface-action-first-no_fill-active);
+  border-color: #000;
+}
+
+.listItem .listItem .button:not([aria-selected='true']) {
+  /* This should not apply to the top level */
+  border-color: var(--vertical-line-colour);
 }
 
 .button:focus {
   z-index: 1;
 }
 
-.chevronWrapper {
-  align-items: center;
-  display: flex;
-  height: 100%;
-  justify-content: center;
-  width: 1em;
+.childItemList {
+  --icon-width: 1em;
+  --left-spacing: calc(var(--fds-spacing-2) + var(--icon-width) + var(--fds-sizing-2));
+  --vertical-line-center: calc(var(--left-spacing) / 2);
+  --vertical-line-start: calc(var(--vertical-line-center) - var(--vertical-line-width) / 2);
+
+  padding-left: 0;
+  margin-left: var(--vertical-line-start);
+  box-shadow: var(--vertical-line-colour) var(--vertical-line-width) 0 inset;
 }

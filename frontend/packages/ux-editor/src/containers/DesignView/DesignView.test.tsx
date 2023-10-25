@@ -14,6 +14,7 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from '../../testing/mocks';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 const mockOrg = 'org';
 const mockApp = 'app';
@@ -75,6 +76,17 @@ describe('DesignView', () => {
     await act(() => user.click(addButton));
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalled();
+  });
+
+  it('Does not display a tree view component by default', async () => {
+    await render();
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument();
+  });
+
+  it('Displays the tree view version of the layout when the formTree feature flag is enabled', async () => {
+    typedLocalStorage.setItem('featureFlags', ['formTree']);
+    await render();
+    expect(screen.getByRole('tree')).toBeInTheDocument();
   });
 });
 
