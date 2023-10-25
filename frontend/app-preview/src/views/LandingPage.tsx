@@ -33,8 +33,6 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const repoType = getRepositoryType(org, app);
-  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const [openSaveChoiceInSession, setOpenShowSaveChoiceInSession] = useState<boolean>(false);
   const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem('showPreviewLimitationsInfo');
   const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(showPreviewLimitationsInfoSession ?? true);
@@ -45,6 +43,9 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     'viewSize',
     'desktop',
   );
+
+  const repoType = getRepositoryType(org, app);
+  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 

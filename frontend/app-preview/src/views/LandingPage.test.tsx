@@ -5,6 +5,17 @@ import { LandingPage } from './LandingPage';
 import { renderWithMockStore } from '../../../../frontend/packages/ux-editor/src/testing/mocks';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
+jest.mock('../PreviewContext', () => ({
+    PreviewContext: ({ children }: any) => {
+        return (
+            <div>
+                { children }
+            </div>
+        );
+    }
+}));
+
+
 describe('LandingPage', () => {
 
     it('should render an iframe', () => {
