@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { TypedStorage, typedLocalStorage } from 'app-shared/utils/webStorage';
 
 const useWebStorage = <T>(
@@ -7,20 +7,6 @@ const useWebStorage = <T>(
   initialValue?: T,
 ): [T, (newValue: T) => void, () => void] => {
   const [value, setValue] = useState<T>(typedStorage.getItem(key) || initialValue);
-
-  const handleStorageChange = useCallback(() => {
-    const item = typedStorage.getItem<T>(key);
-    setValue(item);
-  }, [key, setValue, typedStorage]);
-
-  useEffect(() => {
-    
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [handleStorageChange]);
 
   const setStorageValue = useCallback(
     (newValue: T) => {

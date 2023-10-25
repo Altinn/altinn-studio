@@ -4,13 +4,13 @@ import { App } from './App';
 import { store } from './store';
 import './styles/index.css';
 import { AppContext } from './AppContext';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const SubApp = () => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { app } = useStudioUrlParams();
-  const [selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet] = useLocalStorage('layoutSet/' + app, null);
+  const [selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet] = useReactiveLocalStorage('layoutSet/' + app, null);
 
   return (
     <Provider store={store}>
