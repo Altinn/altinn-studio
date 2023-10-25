@@ -1,44 +1,18 @@
 import React, { forwardRef } from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
-import { Textfield, Alert, Paragraph, Heading, LegacyTextArea } from '@digdir/design-system-react';
+import { Textfield, Alert, Paragraph, Heading, Textarea } from '@digdir/design-system-react';
 import type { SupportedLanguage } from 'resourceadm/types/global';
 import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 
 export type RightTranslationBarProps = {
-  /**
-   * The title of the selected inputfield
-   */
   title: string;
-  /**
-   * Optional Boolean flag to decide if a text area should be used instead of a text field
-   */
   usesTextArea?: boolean;
-  /**
-   * The value to display in the input field
-   */
   value: SupportedLanguageKey<string>;
-  /**
-   * Function that updates the value when changes are made in the input field.
-   * @param value The language object
-   */
   onLanguageChange: (value: SupportedLanguage) => void;
-  /**
-   * Flag to handle when to show the errors
-   */
   showErrors: boolean;
-  /**
-   * Function to be executed when leaving the last field in the translation bar
-   *
-   * @param e the keyboard event
-   * @returns void
-   */
   onLeaveLastField: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  /**
-   * Function to be executed on blur
-   * @returns
-   */
   onBlur: () => void;
 };
 
@@ -96,16 +70,16 @@ export const RightTranslationBar = forwardRef<
 
       if (usesTextArea) {
         return (
-          <LegacyTextArea
+          <Textarea
             value={value[lang]}
-            resize='vertical'
             onChange={(e) => handleChange(lang, e.currentTarget.value)}
             rows={5}
             label={label}
-            isValid={!(showErrors && value[lang] === '')}
+            error={showErrors && value[lang] === ''}
             ref={!isLast ? (ref as React.Ref<HTMLTextAreaElement>) : undefined}
             onKeyDown={(e) => (isLast ? handleTabOutOfTranslationBar(e) : undefined)}
             onBlur={onBlur}
+            size='small'
           />
         );
       }
