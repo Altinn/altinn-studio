@@ -38,10 +38,9 @@ export const Expressions = () => {
     React.useState<ExpressionProperty | undefined>(undefined);
   const t = useText();
 
-  const potentialConvertedExternalExpressions: Expression[] = getAllConvertedExpressions(form);
-
   useEffect(() => {
     if (form) {
+      const potentialConvertedExternalExpressions: Expression[] = getAllConvertedExpressions(form);
       if (potentialConvertedExternalExpressions.length) {
         setExpressions(potentialConvertedExternalExpressions);
       } else {
@@ -50,7 +49,7 @@ export const Expressions = () => {
         setExpressions([defaultExpression]);
       }
     }
-  }, [form, potentialConvertedExternalExpressions]);
+  }, [form]);
 
   if (!formId || !form) return t('right_menu.content_empty');
 
