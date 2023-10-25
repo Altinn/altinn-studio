@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Alert, Button } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { PlusIcon } from '@navikt/aksel-icons';
@@ -38,19 +38,21 @@ export const Expressions = () => {
     React.useState<ExpressionProperty | undefined>(undefined);
   const t = useText();
 
-  if (!formId || !form) return t('right_menu.content_empty');
-
   const potentialConvertedExternalExpressions: Expression[] = getAllConvertedExpressions(form);
 
-  if (form && expressions.length === 0) {
-    if (potentialConvertedExternalExpressions.length) {
-      setExpressions(potentialConvertedExternalExpressions);
-    } else {
-      const defaultExpression: Expression = { id: uuidv4() };
-      setExpressionInEditModeId(defaultExpression.id);
-      setExpressions([defaultExpression]);
+  useEffect(() => {
+    if (form) {
+      if (potentialConvertedExternalExpressions.length) {
+        setExpressions(potentialConvertedExternalExpressions);
+      } else {
+        const defaultExpression: Expression = { id: uuidv4() };
+        setExpressionInEditModeId(defaultExpression.id);
+        setExpressions([defaultExpression]);
+      }
     }
-  }
+  }, [form, potentialConvertedExternalExpressions]);
+
+  if (!formId || !form) return t('right_menu.content_empty');
 
   const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
     handleUpdate(updatedComponent);
