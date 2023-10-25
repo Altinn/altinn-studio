@@ -124,7 +124,7 @@ export const ConfigureLayoutSetPanel = () => {
             onKeyDown={handleKeyPress}
             onChange={handleOnNameChange}
             defaultValue={layoutSetName}
-            error={!errorMessage}
+            error={errorMessage}
             aria-describedby={errorMessage && 'configure-layout-set-name-error'}
             aria-invalid={!!errorMessage}
           />

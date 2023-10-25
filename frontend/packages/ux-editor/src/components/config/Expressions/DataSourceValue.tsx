@@ -3,8 +3,8 @@ import { useSelector } from 'react-redux';
 import {
   Select,
   SingleSelectOption,
-  Textfield,
   LegacyToggleButtonGroup,
+  LegacyTextField,
 } from '@digdir/design-system-react';
 import { DataSource, SubExpression } from '../../../types/Expressions';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
@@ -14,7 +14,6 @@ import { selectedLayoutSetSelector } from '../../../selectors/formLayoutSelector
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
 import { useText } from '../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import * as testids from '../../../../../../../frontend/testing/testids';
 
 export interface DataSourceValueProps {
   subExpression: SubExpression;
@@ -83,16 +82,15 @@ export const DataSourceValue = ({
       );
     case DataSource.String:
       return (
-        <Textfield
+        <LegacyTextField
           onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
           value={currentValue as string}
         />
       );
     case DataSource.Number:
       return (
-        <Textfield
-          data-testid={testids.textboxNumber}
-          type='number'
+        <LegacyTextField
+          formatting={{ number: {} }}
           inputMode='numeric'
           onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
           value={currentValue as string}

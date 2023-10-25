@@ -63,7 +63,7 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
           />
           <div>
             <Textfield
-              error={isNewValueValid}
+              error={!isNewValueValid}
               label={t('ux_editor.add_option_value')}
               onChange={(e) => setNewOption({ ...newOption, value: e.target.value })}
               value={newOption.value}

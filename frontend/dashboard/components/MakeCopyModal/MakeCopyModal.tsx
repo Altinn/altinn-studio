@@ -107,7 +107,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
             label={t('dashboard.new_service_copy')}
             value={repoName}
             onChange={handleRepoNameUpdated}
-            error={errorMessage === null}
+            error={errorMessage}
           />
           {errorMessage && <div className={classes.errorMessage}>{errorMessage}</div>}
         </div>

@@ -44,7 +44,7 @@ describe('DataSourceValue', () => {
       },
     });
 
-    const textFieldElement = screen.getByTestId('textbox-number');
+    const textFieldElement = screen.getByRole('textbox');
     expect(textFieldElement).toHaveAttribute('inputmode', 'numeric');
     expect(textFieldElement).toBeInTheDocument();
   });

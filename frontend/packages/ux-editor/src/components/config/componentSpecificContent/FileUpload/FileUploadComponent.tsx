@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fieldset, Radio, Textfield } from '@digdir/design-system-react';
+import { Fieldset, LegacyTextField, Radio, Textfield } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -119,9 +119,9 @@ export const FileUploadComponent = ({
         propertyPath={`${component.propertyPath}/properties/minNumberOfAttachments`}
       >
         {({ onChange }) => (
-          <Textfield
+          <LegacyTextField
             name={`modal-properties-minimum-files-input-${fileUploaderComponent.id}`}
-            type='number'
+            formatting={{ number: {} }}
             onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
           />
         )}
@@ -134,9 +134,9 @@ export const FileUploadComponent = ({
         propertyPath={`${component.propertyPath}/properties/maxNumberOfAttachments`}
       >
         {({ onChange }) => (
-          <Textfield
+          <LegacyTextField
             name={`modal-properties-maximum-files-input-${fileUploaderComponent.id}`}
-            type='number'
+            formatting={{ number: {} }}
             onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
           />
         )}
@@ -151,9 +151,9 @@ export const FileUploadComponent = ({
         propertyPath={`${component.propertyPath}/properties/maxFileSizeInMB`}
       >
         {({ onChange }) => (
-          <Textfield
+          <LegacyTextField
             name='modal-properties-file-size'
-            type='number'
+            formatting={{ number: {} }}
             onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
           />
         )}
