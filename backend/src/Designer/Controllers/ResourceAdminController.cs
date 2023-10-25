@@ -183,7 +183,7 @@ namespace Altinn.Studio.Designer.Controllers
             return _repository.AddServiceResource(org, resource);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("designer/api/{org}/resources/importresource/{serviceCode}/{serviceEdition}/{environment}")]
         public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition, string environment)
         {
@@ -260,19 +260,27 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/altinn2linkservices/{environment}")]
-        public async Task<ActionResult<List<AvailableService>>> GetAltinn2LinkServices(string org, string enviroment)
+        public async Task<ActionResult<List<AvailableService>>> GetAltinn2LinkServices(string org, string environment)
         {
-            string cacheKey = "availablelinkservices:" + org;
+            string cacheKey = "availablelinkservices:" + org + environment;
             if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService> linkServices))
             {
 
-                List<AvailableService> unfiltered = await _altinn2MetadataClient.AvailableServices(1044, enviroment);
+                List<AvailableService> unfiltered = await _altinn2MetadataClient.AvailableServices(1044, environment);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
                .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
 
-                linkServices = unfiltered.Where(a => a.ServiceType.Equals(ServiceType.Link) && a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
+                if (OrgUtil.IsTestEnv(org))
+                {
+                    linkServices = unfiltered.Where(a => a.ServiceType.Equals(ServiceType.Link) && (a.ServiceOwnerCode.ToLower().Equals(org.ToLower()) || a.ServiceOwnerCode.ToLower().Equals("acn"))).ToList();
+                }
+                else
+                {
+                    linkServices = unfiltered.Where(a => a.ServiceType.Equals(ServiceType.Link) && a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
+                }
+
                 _memoryCache.Set(cacheKey, linkServices, cacheEntryOptions);
             }
 
