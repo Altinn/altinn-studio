@@ -50,7 +50,7 @@ i18next.use(initReactI18next).init({
 });
 
 export function App() {
-  /*const { pathname } = useLocation();
+  const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const org = match?.params?.org ?? '';
   const app = match?.params?.app ?? '';
@@ -153,7 +153,6 @@ export function App() {
     [dispatch],
   );
 
-
   switch (repoStatusStatus) {
     case 'loading':
       return (
@@ -201,6 +200,5 @@ export function App() {
           </div>
         </div>
       );
-  }*/
-  return <NotFoundPage />;
+  }
 }
