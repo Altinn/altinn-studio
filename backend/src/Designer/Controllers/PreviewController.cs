@@ -70,16 +70,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Get status if app is ready for preview
-        /// </summary>
-        [HttpGet]
-        [Route("preview/preview-status")]
-        public ActionResult<string> PreviewStatus()
-        {
-            return Ok();
-        }
-
-        /// <summary>
         /// Action for getting local app-images
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
