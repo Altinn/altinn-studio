@@ -52,4 +52,15 @@ context('datamodel', () => {
       .invoke('val')
       .should('match', /\/testdatamodel.schema.json$/);
   });
+
+  it('Delete an uploaded XSD file', () => {
+    cy.findAllByTestId(testids.fileSelectorInput)
+      .first()
+      .selectFile('src/fixtures/testdatamodel.xsd', { force: true });
+    cy.findByRole('button', { name: texts['schema_editor.delete_data_model'] }).click();
+    cy.findByRole('combobox', { name: texts['schema_editor.choose_model'] }).should(
+      'not.match',
+      /\/testdatamodel.schema.json$/,
+    );
+  });
 });
