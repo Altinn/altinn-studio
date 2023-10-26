@@ -42,5 +42,5 @@ root.render(
         </ServicesContextProvider>
       </BrowserRouter>
     </Provider>
-  </LoggerContextProvider>
+  </LoggerContextProvider>,
 );

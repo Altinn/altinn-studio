@@ -9,3 +9,4 @@ export { useTextResourcesQuery } from './useTextResourcesQuery';
 export { useUserQuery } from './useUserQuery';
 export { useResourcePolicyActionsQuery } from './useResourcePolicyActionsQuery';
 export { useResourcePolicySubjectsQuery } from './useResourcePolicySubjectsQuery';
+export { useServiceNameQuery } from './useServiceNameQuery';
