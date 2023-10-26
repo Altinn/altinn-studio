@@ -10,7 +10,7 @@ import {
 import { PageHeader } from './layout/PageHeader';
 import './App.css';
 import { PageContainer } from './layout/PageContainer';
-import { matchPath, useLocation, useNavigate } from 'react-router-dom';
+import { matchPath, useLocation } from 'react-router-dom';
 import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from './hooks';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -26,12 +26,13 @@ import { initReactI18next, useTranslation } from 'react-i18next';
 import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useRepoStatusQuery, useServiceNameQuery } from 'app-shared/hooks/queries';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
 import { PageSpinner } from 'app-shared/components';
 import * as testids from '../testing/testids';
-import { useOrganizationsQuery } from 'dashboard/hooks/queries';
-import { toast } from 'react-toastify';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { NotFoundPage } from './features/notFound';
+import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -49,7 +50,7 @@ i18next.use(initReactI18next).init({
 });
 
 export function App() {
-  const { pathname } = useLocation();
+  /*const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const org = match?.params?.org ?? '';
   const app = match?.params?.app ?? '';
@@ -59,7 +60,7 @@ export function App() {
   const {
     status: repoStatusStatus,
     data: repoStatus,
-    isLoading: loadingRepoStatus,
+    error: repoStatusError,
     refetch,
   } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
@@ -68,15 +69,6 @@ export function App() {
   const dispatch = useAppDispatch();
   const lastKeepAliveTimestamp = useRef<number>(0);
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
-  /*
-  console.log('org', org);
-  console.log('app', app);
-*/
-  const { data: serviceName, isError: serviceNameError } = useServiceNameQuery(org, app);
-  /*console.log('serviceName', serviceName);
-  console.log('serviceNameError', serviceNameError);*/
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -96,7 +88,6 @@ export function App() {
         }),
       );
 
-      // TODO - No need for this
       if (repositoryType === RepositoryType.App) {
         dispatch(
           HandleServiceInformationActions.fetchServiceName({
@@ -162,60 +153,26 @@ export function App() {
     [dispatch],
   );
 
-  // If error, navigate to dashboard. Must do like this because dashboard and app-development has two separate BrowserRouters
-  /*if (serviceNameError) {
-    // This has to be moved to its own route when issue #11444 is solved.
-    // window.location.assign('/');
-    toast.error('halallalal');
 
-    // TODO - Redirect to 404 page
-    navigate('/not-found');
-  }*/
-
-  //if (!repoStatus) {
-  if (loadingRepoStatus) {
-    return (
-      <div className={classes.appSpinner}>
-        <PageSpinner />
-      </div>
-    );
-  }
-  console.log('repoStatus', repoStatus); // undefined
-  console.log('org', org); // WilliamThorenfeldt
-  console.log('app', app); // test-appgagagag
-  console.log('serviceName', serviceName); // undefined
-  console.log('serviceNameError', serviceNameError); // true
-
-  return (
-    <div className={classes.container} ref={sessionExpiredPopoverRef}>
-      <AltinnPopoverSimple
-        anchorEl={sessionExpiredPopoverRef.current}
-        open={remainingSessionMinutes < 11}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-        handleClose={(event: string) => handleSessionExpiresClose(event)}
-        btnCancelText={t('general.sign_out')}
-        btnConfirmText={t('general.continue')}
-        btnClick={handleSessionExpiresClose}
-        paperProps={{ style: { margin: '2.4rem' } }}
-      >
-        <h2>{t('session.expires')}</h2>
-        <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
-      </AltinnPopoverSimple>
-      {repoStatus && <PageHeader showSubMenu={!repoStatus.hasMergeConflict} org={org} app={app} />}
-      <div className={classes.contentWrapper} data-testid={testids.appContentWrapper}>
-        {repoStatus.hasMergeConflict ? (
-          <MergeConflictWarning org={org} app={app} />
-        ) : (
-          <PageContainer subAppClassName={classes.subApp} />
-        )}
-      </div>
-    </div>
-  );
-
-  /* switch (repoStatusStatus) {
+  switch (repoStatusStatus) {
+    case 'loading':
+      return (
+        <div className={classes.appSpinner}>
+          <PageSpinner />
+        </div>
+      );
     case 'error':
-      return <div>TODO</div>;
+      if (repoStatusError.response.status === ServerCodes.NOT_FOUND) {
+        // This has to be moved to its own route when issue #11444 is solved.
+        return <NotFoundPage />;
+      }
+      return (
+        <Alert severity='danger'>
+          <Paragraph size='small'>{t('general.fetch_error_message')}</Paragraph>
+          <Paragraph size='small'>{t('general.error_message_with_colon')}</Paragraph>
+          {repoStatusError && <ErrorMessage size='small'>{repoStatusError.message}</ErrorMessage>}
+        </Alert>
+      );
     case 'success':
       return (
         <div className={classes.container} ref={sessionExpiredPopoverRef}>
@@ -244,17 +201,6 @@ export function App() {
           </div>
         </div>
       );
-    case 'loading':
-      return (
-        <div className={classes.appSpinner}>
-          <PageSpinner />
-        </div>
-      );
   }*/
-
-  // switch on repo status
-  // spinner
-  // Error message
-  // If ok, check service name / error
-  //    Then show the either merge conflict or page container
+  return <NotFoundPage />;
 }
