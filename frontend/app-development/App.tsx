@@ -161,7 +161,7 @@ export function App() {
         </div>
       );
     case 'error':
-      if (repoStatusError.response.status === ServerCodes.NotFound) {
+      if (repoStatusError?.response?.status === ServerCodes.NotFound) {
         // This has to be moved to its own route when issue #11444 is solved.
         return <NotFoundPage />;
       }
