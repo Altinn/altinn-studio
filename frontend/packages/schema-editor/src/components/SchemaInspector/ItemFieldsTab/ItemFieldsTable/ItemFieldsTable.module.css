@@ -1,3 +1,33 @@
+.table {
+  --table-column-1-width: 35%;
+  --table-column-2-width: 25%;
+  --table-column-3-width: 15%;
+  --table-column-4-width: 5%;
+
+  --padding-right-first-three-columns: 3%;
+  --padding-inline-last-column: 2%;
+}
+
+.tableColumn1 {
+  width: var(--table-column-1-width);
+  padding-right: var(--padding-right-first-three-columns);
+}
+
+.tableColumn2 {
+  width: var(--table-column-2-width);
+  padding-right: var(--padding-right-first-three-columns);
+}
+
+.tableColumn3 {
+  width: var(--table-column-3-width);
+  padding-right: var(--padding-right-first-three-columns);
+}
+
+.tableColumn4 {
+  width: var(--table-column-1-width);
+  padding-right: var(--padding-inline-last-column);
+}
+
 .tableHeaderLeft {
   text-align: left;
   padding-bottom: 1rem;
@@ -6,4 +36,14 @@
 .tableHeaderCenter {
   text-align: center;
   padding-bottom: 1rem;
+}
+
+.tableData {
+  vertical-align: middle;
+  padding-bottom: 1rem;
+}
+
+.tableDataCenterWrapper {
+  display: flex;
+  justify-content: center;
 }

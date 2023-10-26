@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import classes from './ItemFieldsTable.module.css';
+import cn from 'classnames';
 import { UiSchemaNode, addProperty } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { ItemFieldsTableRow } from './ItemFieldsTableRow';
@@ -34,14 +35,24 @@ export const ItemFieldsTable = ({
   ));
 
   return (
-    <table>
-      <tr>
-        <th className={classes.tableHeaderLeft}>{t('schema_editor.field_name')}</th>
-        <th className={classes.tableHeaderLeft}>{t('schema_editor.type')}</th>
-        <th className={classes.tableHeaderCenter}>{t('schema_editor.required')}</th>
-        <th className={classes.tableHeaderCenter}>{t('schema_editor.delete')}</th>
-      </tr>
-      {displayTableRows}
+    <table className={classes.table}>
+      <thead>
+        <tr>
+          <th className={cn(classes.tableColumn1, classes.tableHeaderLeft)}>
+            {t('schema_editor.field_name')}
+          </th>
+          <th className={cn(classes.tableColumn2, classes.tableHeaderLeft)}>
+            {t('schema_editor.type')}
+          </th>
+          <th className={cn(classes.tableColumn3, classes.tableHeaderCenter)}>
+            {t('schema_editor.required')}
+          </th>
+          <th className={cn(classes.tableColumn4, classes.tableHeaderCenter)}>
+            {t('schema_editor.delete')}
+          </th>
+        </tr>
+      </thead>
+      <tbody>{displayTableRows}</tbody>
     </table>
   );
 };
