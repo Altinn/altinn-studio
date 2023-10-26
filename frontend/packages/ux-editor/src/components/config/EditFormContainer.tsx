@@ -14,14 +14,12 @@ import { useSelectedFormLayout, useTextResourcesSelector } from '../../hooks';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { ITextResource } from 'app-shared/types/global';
-import {
-  selectedLayoutNameSelector,
-  selectedLayoutSetSelector,
-} from '../../selectors/formLayoutSelectors';
+import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { FormField } from '../FormField';
 import { FormContainer } from '../../types/FormContainer';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export interface IEditFormContainerProps {
   editFormId: string;
@@ -38,8 +36,8 @@ export const EditFormContainer = ({
 
   const { org, app } = useStudioUrlParams();
 
-  const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
+  const { selectedLayoutSet } = useAppContext();
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: dataModel } = useDatamodelMetadataQuery(org, app);
   const { components, containers } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(

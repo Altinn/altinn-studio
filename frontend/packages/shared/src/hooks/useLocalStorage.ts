@@ -31,5 +31,5 @@ const useWebStorage = <T>(
  * @description
  * useLocalStorage is a hook that allows you to use local storage the same way you would with useState
  */
-export const useLocalStorage = <T, K = string>(key: K, initialValue?: T) =>
-  useWebStorage<T>(typedLocalStorage, key as string, initialValue);
+export const useLocalStorage = <T>(key: string, initialValue?: T) =>
+  useWebStorage<T>(typedLocalStorage, key, initialValue);

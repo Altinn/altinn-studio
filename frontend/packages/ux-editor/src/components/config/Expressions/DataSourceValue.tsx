@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import {
   Select,
   SingleSelectOption,
@@ -10,10 +9,10 @@ import { DataSource, SubExpression } from '../../../types/Expressions';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
-import { selectedLayoutSetSelector } from '../../../selectors/formLayoutSelectors';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
 import { useText } from '../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from "../../../hooks/useAppContext";
 
 export interface DataSourceValueProps {
   subExpression: SubExpression;
@@ -29,7 +28,7 @@ export const DataSourceValue = ({
   isComparableValue,
 }: DataSourceValueProps) => {
   const { org, app } = useStudioUrlParams();
-  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
   // TODO: Show spinner when isLoading
   const datamodelQuery = useDatamodelMetadataQuery(org, app);
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);

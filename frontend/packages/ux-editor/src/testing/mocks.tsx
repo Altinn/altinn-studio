@@ -40,7 +40,7 @@ export const queriesMock: ServicesContextProps = {
   ...allQueriesMock,
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   addLayoutSet: jest.fn(),
-  configureLayoutSet: jest.fn(),
+  configureLayoutSet: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
   getDatamodelMetadata: jest.fn().mockImplementation(() => Promise.resolve({ elements: {} })),

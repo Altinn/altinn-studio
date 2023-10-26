@@ -849,7 +849,7 @@ namespace Altinn.Studio.Designer.Controllers
         private string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
         {
             Uri refererUri = new(refererHeader);
-            string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSetInEditor"];
+            string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
 
             return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
         }
