@@ -17,9 +17,7 @@ export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
   const { t } = useTranslation();
   return (
     <div className={classes.toolbarItem}>
-      <div className={classes.componentIcon}>
-       {props.icon &&  (<props.icon />)}
-      </div>
+      <div className={classes.componentIcon}>{props.icon && <props.icon />}</div>
       <div className={classes.componentLabel}>
         {props.thirdPartyLabel == null
           ? getComponentTitleByComponentType(props.componentType, t)

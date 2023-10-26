@@ -1,5 +1,6 @@
 import { get, put } from 'app-shared/utils/networking';
 import {
+  altinn2LinkServicesPath,
   appMetadataPath,
   appPolicyPath,
   branchStatusPath,
@@ -64,6 +65,7 @@ import type { Resource, ResourceListItem, ResourceVersionStatus, Validation } fr
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -115,6 +117,7 @@ export const getResourceList = (org: string) => get<ResourceListItem[]>(resource
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
+export const getAltinn2LinkServices = (org: string, environment: string) => get<Altinn2LinkService[]>(altinn2LinkServicesPath(org, environment));
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get(processEditorPath(org, app));

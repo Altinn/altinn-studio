@@ -1,5 +1,4 @@
 import { SubApp } from '../../packages/ux-editor/src/SubApp';
-import { AccessControlContainer } from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import { LegacyAdministration } from '../features/administration/components/LegacyAdministration';
 import { TextEditor } from '../features/textEditor/TextEditor';
@@ -56,17 +55,6 @@ export const routes: IRoute[] = [
     activeLeftMenuSelection: '',
     menu: 'datamodel',
     subapp: DataModellingContainer,
-  },
-  {
-    path: '/:org/:app/accesscontrol',
-    exact: true,
-    activeSubHeaderSelection: TopBarMenu.None,
-    activeLeftMenuSelection: 'Access-Controll',
-    menu: 'create',
-    subapp: AccessControlContainer,
-    props: {
-      imageSource: '../../designer/img/illustration-help-circle.svg',
-    },
   },
   {
     path: '/:org/:app/deploy',

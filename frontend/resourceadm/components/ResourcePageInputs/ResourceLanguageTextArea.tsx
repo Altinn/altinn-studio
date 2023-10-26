@@ -1,56 +1,19 @@
 import React, { forwardRef } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Paragraph, Label, LegacyTextArea } from '@digdir/design-system-react';
+import { Textarea } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceLanguageTextAreaProps = {
-  /**
-   * The label of the text field
-   */
   label: string;
-  /**
-   * The description of the text field
-   */
   description: string;
-  /**
-   * The value in the field
-   */
   value: string;
-  /**
-   * Function that updates the value in the field
-   * @param value the new value
-   * @returns void
-   */
   onChangeValue: (value: string) => void;
-  /**
-   * Function to be executed when the field is focused
-   * @returns void
-   */
   onFocus: () => void;
-  /**
-   * The id of the field
-   */
   id: string;
-  /**
-   * Flag for if the value is valid
-   */
   isValid: boolean;
-  /**
-   * Function to be executed on key down
-   */
   onKeyDown?: React.KeyboardEventHandler<HTMLTextAreaElement>;
-  /**
-   * Function to be executed on blur
-   * @returns void
-   */
   onBlur: () => void;
-  /**
-   * Flag for if the error message should be shown
-   */
   showErrorMessage?: boolean;
-  /**
-   * The text to be shown
-   */
   errorText?: string;
 };
 
@@ -95,21 +58,17 @@ export const ResourceLanguageTextArea = forwardRef<
     return (
       <>
         <div className={classes.divider} />
-        <Label size='small' htmlFor={id}>
-          {label}
-        </Label>
         <div className={classes.inputWrapper}>
-          <Paragraph size='small' spacing className={classes.description}>
-            {description}
-          </Paragraph>
-          <LegacyTextArea
+          <Textarea
+            label={label}
+            description={description}
+            size='small'
             value={value}
-            resize='vertical'
             onChange={(e) => onChangeValue(e.currentTarget.value)}
             onFocus={onFocus}
             rows={5}
             id={id}
-            isValid={isValid}
+            error={!isValid}
             ref={ref}
             onKeyDown={onKeyDown}
             onBlur={onBlur}

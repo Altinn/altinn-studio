@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { CogIcon, TabsIcon } from '@navikt/aksel-icons';
-import { Link } from 'react-router-dom';
+import { TabsIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
@@ -57,16 +56,6 @@ export const ThreeDotsMenu = ({
               <span>{t('dashboard.repository')}</span>
             </a>
           </li>
-          {!onlyShowRepository && (
-            <li>
-              <Link to={`/${org}/${app}/accesscontrol`} className={classes.link}>
-                <span className={classes.iconWrapper}>
-                  <CogIcon className={classes.icon} />
-                </span>
-                <span>{t('sync_header.settings')}</span>
-              </Link>
-            </li>
-          )}
         </ul>
       </LegacyPopover>
       {hasCloneModal && <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />}

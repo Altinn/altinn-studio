@@ -1,12 +1,7 @@
 .documentation {
-  background-color: #fbfbfc;
-  border: solid 2px #efefef;
-  border-radius: 6px;
-
   font-family: var(--studio-font-family);
   font-size: 15px;
 
-  padding: var(--fds-spacing-4);
   position: relative;
 }
 

@@ -1,3 +1,4 @@
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
 /**
@@ -22,7 +23,7 @@ const formatDateFromBackendToDDMMYYYY = (dateString: string): string => {
  * @returns the sorted and mapped list
  */
 export const sortResourceListByDateAndMap = (
-  resourceList: ResourceListItem[]
+  resourceList: ResourceListItem[],
 ): ResourceListItem[] => {
   const sorted = resourceList.sort((a, b) => {
     return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime();
@@ -31,5 +32,20 @@ export const sortResourceListByDateAndMap = (
   return sorted.map((r) => ({
     ...r,
     lastChanged: formatDateFromBackendToDDMMYYYY(r.lastChanged),
+  }));
+};
+
+/**
+ * Maps an Altinn2LinkService object to an object with value and label to be
+ * used for a Select option.
+ *
+ * @param linkServices the list of link services from Altinn 2
+ *
+ * @returns an object that looks like this: { value: string, label: string }
+ */
+export const mapAltinn2LinkServiceToSelectOption = (linkServices: Altinn2LinkService[]) => {
+  return linkServices.map((ls: Altinn2LinkService) => ({
+    value: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
+    label: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
   }));
 };
