@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -17,6 +17,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -74,12 +75,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Gets the application metadata.
         /// </summary>
-        public async Task<Application> GetApplicationMetadata(CancellationToken cancellationToken = default)
+        public async Task<ApplicationMetadata> GetApplicationMetadata(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
             string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath, cancellationToken);
-            Application applicationMetaData = JsonSerializer.Deserialize<Application>(fileContent, _jsonOptions);
+            ApplicationMetadata applicationMetaData = JsonSerializer.Deserialize<ApplicationMetadata>(fileContent, _jsonOptions);
 
             return applicationMetaData;
         }
@@ -94,7 +95,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Saves the application metadata file to disk.
         /// </summary>
         /// <param name="applicationMetadata">The updated application metadata to persist.</param>
-        public async Task SaveApplicationMetadata(Application applicationMetadata)
+        public async Task SaveApplicationMetadata(ApplicationMetadata applicationMetadata)
         {
             string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, _jsonOptions);
             string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);

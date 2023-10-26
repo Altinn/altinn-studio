@@ -8,7 +8,7 @@ using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Schema;
-
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
@@ -291,7 +291,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static async Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string typeName)
         {
-            Application application = await altinnAppGitRepository.GetApplicationMetadata();
+            ApplicationMetadata application = await altinnAppGitRepository.GetApplicationMetadata();
 
             UpdateApplicationWithAppLogicModel(application, schemaName, "Altinn.App.Models." + typeName);
 
@@ -305,7 +305,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="application">The <see cref="Application"/> object to be updated.</param>
         /// <param name="dataTypeId">The id of the datatype to bed added.</param>
         /// <param name="classRef">The C# class reference of the data type.</param>
-        private static void UpdateApplicationWithAppLogicModel(Application application, string dataTypeId, string classRef)
+        private static void UpdateApplicationWithAppLogicModel(ApplicationMetadata application, string dataTypeId, string classRef)
         {
             if (application.DataTypes == null)
             {
