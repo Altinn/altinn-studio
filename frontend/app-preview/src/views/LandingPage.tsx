@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import classes from './LandingPage.module.css';
-import { PreviewContext } from '../PreviewContext';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
@@ -79,46 +78,45 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   }
 
   return (
-    <PreviewContext>
-      <>
-        <div className={classes.header}>
-          <AltinnHeader
-            menu={menu}
-            showSubMenu={true}
-            activeMenuSelection={TopBarAppPreviewMenu.Preview}
-            org={org}
-            app={app}
-            user={user}
-            repository={repository}
-            buttonActions={appPreviewButtonActions(org, app, instanceId)}
-            variant={variant}
-            subMenuContent={
-              <AppPreviewSubMenu
-                setViewSize={setPreviewViewSize}
-                viewSize={previewViewSize}
-                selectedLayoutSet={selectedLayoutSetInEditor}
-                handleChangeLayoutSet={handleChangeLayoutSet}
-              />
-            }
-          />
-        </div>
-        <div className={classes.gridContainer}>
-        {showPreviewLimitationsInfo &&
-          <Alert severity='info' className={classes.previewLimitationsInfo}>
-            <div className={classes.alert}>
-              {t('preview.limitations_info')}
-              <LegacyPopover
-                  trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
-                  open={openSaveChoiceInSession}
-              >
-                {t('session.reminder')}
-                <span className={classes.row}>
-                  <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>{t('session.do_show_again')}</Button>
-                  <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>{t('session.dont_show_again')}</Button>
-                </span>
-              </LegacyPopover>
-            </div>
-          </Alert>}
+    <>
+      <div className={classes.header}>
+        <AltinnHeader
+          menu={menu}
+          showSubMenu={true}
+          activeMenuSelection={TopBarAppPreviewMenu.Preview}
+          org={org}
+          app={app}
+          user={user}
+          repository={repository}
+          buttonActions={appPreviewButtonActions(org, app, instanceId)}
+          variant={variant}
+          subMenuContent={
+            <AppPreviewSubMenu
+              setViewSize={setPreviewViewSize}
+              viewSize={previewViewSize}
+              selectedLayoutSet={selectedLayoutSetInEditor}
+              handleChangeLayoutSet={handleChangeLayoutSet}
+            />
+          }
+        />
+      </div>
+      <div className={classes.gridContainer}>
+      {showPreviewLimitationsInfo &&
+        <Alert severity='info' className={classes.previewLimitationsInfo}>
+          <div className={classes.alert}>
+            {t('preview.limitations_info')}
+            <LegacyPopover
+                trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
+                open={openSaveChoiceInSession}
+            >
+              {t('session.reminder')}
+              <span className={classes.row}>
+                <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>{t('session.do_show_again')}</Button>
+                <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>{t('session.dont_show_again')}</Button>
+              </span>
+            </LegacyPopover>
+          </div>
+        </Alert>}
         <div className={classes.iframeContainer}>
           <iframe
             title={t('preview.iframe_title')}
@@ -127,8 +125,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
         </div>
-        </div>
-      </>
-    </PreviewContext>
+      </div>
+    </>
   );
 };
