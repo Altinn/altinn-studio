@@ -25,6 +25,10 @@ namespace Altinn.Studio.Designer.Filters.Git
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, GitErrorCodes.NonFastForwardError, HttpStatusCode.Conflict)) { StatusCode = (int)HttpStatusCode.Conflict };
             }
 
+            if (context.Exception is LibGit2Sharp.RepositoryNotFoundException)
+            {
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, GitErrorCodes.RepositoryNotFound, HttpStatusCode.NotFound)) { StatusCode = (int)HttpStatusCode.NotFound };
+            }
         }
     }
 }

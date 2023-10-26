@@ -9,14 +9,14 @@ import userEvent from '@testing-library/user-event';
 describe('Preview', () => {
   it('Renders an iframe with the ref from AppContext', () => {
     const previewIframeRef = createRef<HTMLIFrameElement>();
-    renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview />);
+    renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview/>);
     expect(screen.getByTitle(textMock('ux_editor.preview'))).toBe(previewIframeRef.current);
   });
 
   it('should be able to toggle between mobile and desktop view', async () => {
     const user = userEvent.setup();
     const previewIframeRef = createRef<HTMLIFrameElement>();
-    renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview />);
+    renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview/>);
 
     const switchButton = screen.getByRole('checkbox', {
       name: textMock('ux_editor.mobilePreview'),
@@ -30,7 +30,15 @@ describe('Preview', () => {
 
   it('should render a message when no page is selected', () => {
     const mockedLayout = { layout: { selectedLayout: undefined } } as IAppState['formDesigner'];
-    renderWithMockStore({ formDesigner: mockedLayout }, {}, queryClientMock)(<Preview />);
+    renderWithMockStore({ formDesigner: mockedLayout }, {}, queryClientMock)(<Preview/>);
     expect(screen.getByText(textMock('ux_editor.no_components_selected'))).toBeInTheDocument();
+  });
+
+  it('Renders the information alert with preview being limited', () => {
+    const previewIframeRef = createRef<HTMLIFrameElement>();
+    renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview/>);
+
+    const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
+    expect(previewLimitationsAlert).toBeInTheDocument();
   });
 });

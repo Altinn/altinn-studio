@@ -7,9 +7,6 @@ import {
 export const selectedLayoutNameSelector: AppStateSelector<string> =
   (state) => state.formDesigner.layout.selectedLayout;
 
-export const selectedLayoutSetSelector: AppStateSelector<string> =
-  (state) => state.formDesigner.layout.selectedLayoutSet;
-
 export const getAllLayoutContainers: FormLayoutsSelector<IFormDesignerContainers> =
   (formLayoutsData) => Object
     .values(formLayoutsData)

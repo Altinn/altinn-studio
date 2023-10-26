@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Configuration;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -48,7 +48,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationMetadata">The application metadata to be updated</param>
-        public Task UpdateApplicationMetaDataLocally(string org, string app, Application applicationMetadata);
+        public Task UpdateApplicationMetaDataLocally(string org, string app, ApplicationMetadata applicationMetadata);
 
         /// <summary>
         /// Returns the application metadata for an application.
@@ -56,7 +56,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The application  metadata for an application.</returns>
-        public Task<Application> GetApplicationMetadataFromRepository(string org, string app);
+        public Task<ApplicationMetadata> GetApplicationMetadataFromRepository(string org, string app);
 
         /// <summary>
         /// Returns the application metadata exists in repo.

@@ -1,5 +1,10 @@
 {
   "id": "ttd/frontend-test",
+  "logo": {
+    "source": "resource",
+    "displayAppOwnerNameInHeader": false,
+    "size": "medium"
+  },
   "org": "ttd",
   "title": {
     "nb": "frontend-test",
@@ -163,9 +168,6 @@
     "subUnit": false
   },
   "autoDeleteOnProcessEnd": false,
-  "onEntry": {
-    "show": "select-instance"
-  },
   "created": "2021-02-06T15:18:12.2060944Z",
   "createdBy": "jeeva",
   "lastChanged": "2021-02-06T15:18:12.2062288Z",
