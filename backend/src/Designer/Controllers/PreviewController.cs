@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
@@ -18,6 +19,8 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ApplicationLanguage = Altinn.Studio.Designer.Models.ApplicationLanguage;
+using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -70,16 +73,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Get status if app is ready for preview
-        /// </summary>
-        [HttpGet]
-        [Route("preview/preview-status")]
-        public ActionResult<string> PreviewStatus()
-        {
-            return Ok();
-        }
-
-        /// <summary>
         /// Action for getting local app-images
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -120,11 +113,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The application metadata for the app</returns>
         [HttpGet]
         [Route("api/v1/applicationmetadata")]
-        public async Task<ActionResult<Application>> ApplicationMetadata(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult<ApplicationMetadata>> ApplicationMetadata(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
             return Ok(applicationMetadata);
         }
 
@@ -141,7 +134,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
             ApplicationSettings applicationSettings = new()
             {
                 Id = applicationMetadata.Id,
@@ -859,7 +852,7 @@ namespace Altinn.Studio.Designer.Controllers
         private string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
         {
             Uri refererUri = new(refererHeader);
-            string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSetInEditor"];
+            string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
 
             return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
         }

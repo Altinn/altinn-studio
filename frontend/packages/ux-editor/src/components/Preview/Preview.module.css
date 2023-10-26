@@ -24,3 +24,29 @@
   width: 100%;
   height: 100%;
 }
+
+.previewLimitationsInfo {
+  padding: 10px;
+  font-size: 9px;
+  align-content: center;
+}
+
+.alert {
+  display: flex;
+  flex-direction: row;
+  align-self: center;
+  align-items: center;
+  width: fit-content;
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-rows: auto max-content;
+  height: 100%;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}

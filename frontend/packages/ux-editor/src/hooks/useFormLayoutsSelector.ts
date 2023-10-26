@@ -1,13 +1,14 @@
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { useSelector } from 'react-redux';
 import { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
-import { selectedLayoutNameSelector, selectedLayoutSetSelector } from "../selectors/formLayoutSelectors";
+import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { createEmptyLayout } from '../utils/formLayoutUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from './useAppContext';
 
 export const useFormLayouts = (): IFormLayouts => {
   const { org, app } = useStudioUrlParams();
-  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
   const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data } = formLayoutsQuery;
   return data;
