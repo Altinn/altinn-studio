@@ -36,7 +36,6 @@ import {
   ruleConfigPath,
   ruleHandlerPath,
   serviceConfigPath,
-  serviceNamePath,
   textLanguagesPath,
   textResourcesPath,
   userCurrentPath,
@@ -68,7 +67,6 @@ import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 
-export const getServiceName = (org: string, app: string) => get<string>(serviceNamePath(org, app));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDatamodel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(datamodelPath(owner, app, modelPath));

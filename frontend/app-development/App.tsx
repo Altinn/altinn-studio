@@ -161,7 +161,7 @@ export function App() {
         </div>
       );
     case 'error':
-      if (repoStatusError.response.status === ServerCodes.NOT_FOUND) {
+      if (repoStatusError.response.status === ServerCodes.NotFound) {
         // This has to be moved to its own route when issue #11444 is solved.
         return <NotFoundPage />;
       }
@@ -190,7 +190,6 @@ export function App() {
             <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
           </AltinnPopoverSimple>
           <PageHeader showSubMenu={!repoStatus.hasMergeConflict} org={org} app={app} />
-
           <div className={classes.contentWrapper} data-testid={testids.appContentWrapper}>
             {repoStatus.hasMergeConflict ? (
               <MergeConflictWarning org={org} app={app} />

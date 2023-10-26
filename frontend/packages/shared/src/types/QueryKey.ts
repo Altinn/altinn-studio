@@ -36,7 +36,6 @@ export enum QueryKey {
   TextResources = 'TextResources',
   Widgets = 'Widgets',
   AppConfig = 'AppConfig',
-  ServiceName = 'ServiceName',
 
   // Resourceadm
   ResourceList = 'ResourceList',
