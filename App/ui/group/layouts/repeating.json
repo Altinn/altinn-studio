@@ -578,6 +578,23 @@
         }
       },
       {
+        "id": "reduxOptions-expressions",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Options fra repeterende gruppe med dynamiske uttrykk"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonTelefonnummer-datadef-3.value"
+        },
+        "required": false,
+        "source": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
+          "label": ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-1"]]],
+          "description": "Heck",
+          "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        }
+      },
+      {
         "id": "hideRepeatingGroupRow",
         "type": "Input",
         "textResourceBindings": {
