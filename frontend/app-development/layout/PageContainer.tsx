@@ -6,7 +6,15 @@ interface ILeftMenuProps {
   subAppClassName?: string;
 }
 
-export const PageContainer = ({ subAppClassName }: ILeftMenuProps) => {
+export const PageContainer = ({ subAppClassName }: ILeftMenuProps) => (
+  <div className={subAppClassName}>
+    <Routes>
+      {routes.map((route) => (
+        <Route key={route.path} path={route.path} element={<route.subapp {...route.props} />} />
+      ))}
+    </Routes>
+  </div>
+);```
   return (
     <div className={subAppClassName}>
       <Routes>
