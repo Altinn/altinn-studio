@@ -14,14 +14,4 @@ export const PageContainer = ({ subAppClassName }: ILeftMenuProps) => (
       ))}
     </Routes>
   </div>
-);```
-  return (
-    <div className={subAppClassName}>
-      <Routes>
-        {routes.map((route) => (
-          <Route key={route.path} path={route.path} element={<route.subapp {...route.props} />} />
-        ))}
-      </Routes>
-    </div>
-  );
-};
+);
