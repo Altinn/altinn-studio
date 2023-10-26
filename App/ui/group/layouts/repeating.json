@@ -590,7 +590,24 @@
         "source": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
           "label": ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-1"]]],
-          "description": "Heck",
+          "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        }
+      },
+      {
+        "id": "reduxOptions-expressions-radiobuttons",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Radio buttons med dynamiske uttrykk fra repeterende gruppe"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonTelefonnummer-datadef-3.value"
+        },
+        "required": false,
+        "source": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
+          "label": ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-2"]]],
+          "description": ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-2"]]],
+          "helpText":  ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-2"]]],
           "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
         }
       },
