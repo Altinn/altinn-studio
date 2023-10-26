@@ -55,7 +55,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
         {
             List<AvailableService>? availableServices = null;
             string bridgeBaseUrl = GetSblBridgeUrl(environment);
-            string availabbleServicePath = $"h{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
+            string availabbleServicePath = $"{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
 
             HttpResponseMessage response = await _httpClient.GetAsync(availabbleServicePath);
 
@@ -70,7 +70,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
         private string GetSblBridgeUrl(string environment)
         {
-            if (!_rrs.TryGetValue(environment, out ResourceRegistryEnvironmentSettings envSettings))
+            if (!_rrs.TryGetValue(environment.ToLower(), out ResourceRegistryEnvironmentSettings envSettings))
             {
                 throw new ArgumentException($"Invalid environment. Missing environment config for {environment}");
             }

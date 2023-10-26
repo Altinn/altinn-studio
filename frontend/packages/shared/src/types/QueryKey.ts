@@ -51,4 +51,6 @@ export enum QueryKey {
   ValidatePolicy = 'ValidatePolicy',
   ValidateResource = 'ValidateResource',
   PublishResource = 'PublishResource',
+  Altinn2Services = 'Altinn2Services',
+  ImportAltinn2Resource = 'ImportAltinn2Resource',
 }

@@ -16,6 +16,7 @@ import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 enum PageState {
   Idle = 'Idle',
@@ -111,7 +112,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
             );
           },
           onError: (error: { response: { status: number } }) => {
-            if (error.response.status === 409) {
+            if (error.response.status === ServerCodes.Conflict) {
               setRepoErrorMessage(t('dashboard.app_already_exists'));
             }
 
