@@ -173,7 +173,7 @@
     "typescript": "5.2.2",
     "uuid": "9.0.1"
   },
-  "packageManager": "yarn@3.6.4",
+  "packageManager": "yarn@4.0.0",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       ".husky/pre-commit-check-for-skipped-tests",
