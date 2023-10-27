@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './AltinnHeaderMenu.module.css';
 import classNames from 'classnames';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export interface IAltinnHeaderMenuProps {
   activeSubHeaderSelection?: string;
@@ -10,6 +11,7 @@ export interface IAltinnHeaderMenuProps {
 export interface AltinnHeaderMenuItem {
   key: string;
   link: JSX.Element;
+  path: RoutePaths;
 }
 
 export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHeaderMenuProps) => {
@@ -22,7 +24,7 @@ export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHead
           key={item.key}
           className={classNames(
             classes.menuItem,
-            activeSubHeaderSelection === item.key && classes.active
+            activeSubHeaderSelection === item.path && classes.active,
           )}
         >
           {item.link}

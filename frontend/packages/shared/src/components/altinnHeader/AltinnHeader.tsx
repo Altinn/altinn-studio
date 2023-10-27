@@ -10,10 +10,11 @@ import classnames from 'classnames';
 import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
 import { AltinnHeaderMenuItem } from '../altinnHeaderMenu/AltinnHeaderMenu';
 import { Repository } from 'app-shared/types/Repository';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export interface AltinnHeaderProps {
   menu: AltinnHeaderMenuItem[];
-  activeMenuSelection?: string;
+  activeMenuSelection?: RoutePaths;
   showSubMenu: boolean;
   subMenuContent?: JSX.Element;
   repository: Repository;
@@ -36,6 +37,7 @@ export const AltinnHeader = ({
   buttonActions,
   variant = 'regular',
 }: AltinnHeaderProps) => {
+  console.log('active route in header', activeMenuSelection);
   return (
     <div id='altinn-header-container'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
