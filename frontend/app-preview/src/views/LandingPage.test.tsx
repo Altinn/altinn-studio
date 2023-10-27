@@ -58,7 +58,7 @@ describe('LandingPage', () => {
         await act(() => user.click(hidePreviewLimitationsTemporaryButton));
 
         expect(hidePreviewLimitationsPopover).not.toBeInTheDocument();
-        expect(window.sessionStorage.getItem('showPreviewLimitationsInfo')).toBeNull();
+        expect(window.localStorage.getItem('showPreviewLimitationsInfo')).toBeNull();
     });
 
     it('should close popover and set value in session storage when hidePreviewLimitationsForSessionButton is clicked', async () => {
@@ -79,6 +79,6 @@ describe('LandingPage', () => {
         await act(() => user.click(hidePreviewLimitationsForSessionButton));
 
         expect(hidePreviewLimitationsPopover).not.toBeInTheDocument();
-        expect(window.sessionStorage.getItem('showPreviewLimitationsInfo')).toBe('false');
+        expect(window.localStorage.getItem('showPreviewLimitationsInfo')).toBe('false');
     });
 });
