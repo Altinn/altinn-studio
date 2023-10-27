@@ -30,6 +30,9 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
 import { PageSpinner } from 'app-shared/components';
 import * as testids from '../testing/testids';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { NotFoundPage } from './features/notFound';
+import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -49,10 +52,17 @@ i18next.use(initReactI18next).init({
 export function App() {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
-  const { org, app } = match.params;
+  const org = match?.params?.org ?? '';
+  const app = match?.params?.app ?? '';
+
   const repositoryType = getRepositoryType(org, app);
   const { t } = useTranslation();
-  const { data: repoStatus, refetch } = useRepoStatusQuery(org, app);
+  const {
+    status: repoStatusStatus,
+    data: repoStatus,
+    error: repoStatusError,
+    refetch,
+  } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes,
   );
@@ -142,38 +152,52 @@ export function App() {
     },
     [dispatch],
   );
-  if (!repoStatus) {
-    return (
-      <div className={classes.appSpinner}>
-        <PageSpinner />
-      </div>
-    );
-  }
-  return (
-    <div className={classes.container} ref={sessionExpiredPopoverRef}>
-      <AltinnPopoverSimple
-        anchorEl={sessionExpiredPopoverRef.current}
-        open={remainingSessionMinutes < 11}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-        handleClose={(event: string) => handleSessionExpiresClose(event)}
-        btnCancelText={t('general.sign_out')}
-        btnConfirmText={t('general.continue')}
-        btnClick={handleSessionExpiresClose}
-        paperProps={{ style: { margin: '2.4rem' } }}
-      >
-        <h2>{t('session.expires')}</h2>
-        <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
-      </AltinnPopoverSimple>
-      <PageHeader showSubMenu={!repoStatus.hasMergeConflict} org={org} app={app} />
 
-      <div className={classes.contentWrapper} data-testid={testids.appContentWrapper}>
-        {repoStatus.hasMergeConflict ? (
-          <MergeConflictWarning org={org} app={app} />
-        ) : (
-          <PageContainer subAppClassName={classes.subApp} />
-        )}
-      </div>
-    </div>
-  );
+  switch (repoStatusStatus) {
+    case 'loading':
+      return (
+        <div className={classes.appSpinner}>
+          <PageSpinner />
+        </div>
+      );
+    case 'error':
+      if (repoStatusError?.response?.status === ServerCodes.NotFound) {
+        // This has to be moved to its own route when issue #11444 is solved.
+        return <NotFoundPage />;
+      }
+      return (
+        <Alert severity='danger'>
+          <Paragraph size='small'>{t('general.fetch_error_message')}</Paragraph>
+          <Paragraph size='small'>{t('general.error_message_with_colon')}</Paragraph>
+          {repoStatusError && <ErrorMessage size='small'>{repoStatusError.message}</ErrorMessage>}
+        </Alert>
+      );
+    case 'success':
+      return (
+        <div className={classes.container} ref={sessionExpiredPopoverRef}>
+          <AltinnPopoverSimple
+            anchorEl={sessionExpiredPopoverRef.current}
+            open={remainingSessionMinutes < 11}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+            handleClose={(event: string) => handleSessionExpiresClose(event)}
+            btnCancelText={t('general.sign_out')}
+            btnConfirmText={t('general.continue')}
+            btnClick={handleSessionExpiresClose}
+            paperProps={{ style: { margin: '2.4rem' } }}
+          >
+            <h2>{t('session.expires')}</h2>
+            <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
+          </AltinnPopoverSimple>
+          <PageHeader showSubMenu={!repoStatus.hasMergeConflict} org={org} app={app} />
+          <div className={classes.contentWrapper} data-testid={testids.appContentWrapper}>
+            {repoStatus.hasMergeConflict ? (
+              <MergeConflictWarning org={org} app={app} />
+            ) : (
+              <PageContainer subAppClassName={classes.subApp} />
+            )}
+          </div>
+        </div>
+      );
+  }
 }
