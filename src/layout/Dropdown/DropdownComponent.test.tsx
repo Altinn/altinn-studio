@@ -172,4 +172,54 @@ describe('DropdownComponent', () => {
     await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('Value for second', { validate: true }));
     expect(handleDataChange).toHaveBeenCalledTimes(2);
   });
+
+  it('should present the options list in the order it is provided when sortOrder is not specified', async () => {
+    render({
+      component: {
+        optionsId: 'countries',
+      },
+      options: countries.options,
+    });
+
+    await userEvent.click(await screen.findByRole('combobox'));
+    const options = await screen.findAllByRole('option');
+
+    expect(options[0]).toHaveValue('norway');
+    expect(options[1]).toHaveValue('sweden');
+    expect(options[2]).toHaveValue('denmark');
+  });
+
+  it('should present the provided options list sorted alphabetically in ascending order when providing sortOrder "asc"', async () => {
+    render({
+      component: {
+        optionsId: 'countries',
+        sortOrder: 'asc',
+      },
+      options: countries.options,
+    });
+
+    await userEvent.click(await screen.findByRole('combobox'));
+    const options = await screen.findAllByRole('option');
+
+    expect(options[0]).toHaveValue('denmark');
+    expect(options[1]).toHaveValue('norway');
+    expect(options[2]).toHaveValue('sweden');
+  });
+
+  it('should present the provided options list sorted alphabetically in descending order when providing sortOrder "desc"', async () => {
+    render({
+      component: {
+        optionsId: 'countries',
+        sortOrder: 'desc',
+      },
+      options: countries.options,
+    });
+
+    await userEvent.click(await screen.findByRole('combobox'));
+    const options = await screen.findAllByRole('option');
+
+    expect(options[0]).toHaveValue('sweden');
+    expect(options[1]).toHaveValue('norway');
+    expect(options[2]).toHaveValue('denmark');
+  });
 });
