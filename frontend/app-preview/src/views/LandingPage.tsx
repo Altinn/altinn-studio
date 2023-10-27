@@ -17,7 +17,7 @@ import { Alert, Button, LegacyPopover } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { previewPage } from 'app-shared/api/paths';
-import { typedSessionStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -33,7 +33,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const [openSaveChoiceInSession, setOpenShowSaveChoiceInSession] = useState<boolean>(false);
-  const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem('showPreviewLimitationsInfo');
+  const showPreviewLimitationsInfoSession: boolean = typedLocalStorage.getItem('showPreviewLimitationsInfo');
   const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(showPreviewLimitationsInfoSession ?? true);
   const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
@@ -58,7 +58,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   };
 
   const handleRememberChoiceForSession = () => {
-    typedSessionStorage.setItem('showPreviewLimitationsInfo', false);
+    typedLocalStorage.setItem('showPreviewLimitationsInfo', false);
     handleHidePreviewLimitations();
   };
 
@@ -107,7 +107,9 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
                 trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
                 open={openSaveChoiceInSession}
             >
-              {t('session.reminder')}
+              <div className={classes.popOver}>
+                {t('session.reminder')}
+              </div>
               <span className={classes.row}>
                 <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>{t('session.do_show_again')}</Button>
                 <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>{t('session.dont_show_again')}</Button>

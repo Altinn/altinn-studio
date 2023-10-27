@@ -12,7 +12,7 @@ import { Alert, Button, Paragraph, LegacyPopover } from '@digdir/design-system-r
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { Center } from 'app-shared/components/Center';
 import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
-import { typedSessionStorage } from "app-shared/utils/webStorage";
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 export const Preview = () => {
   const layoutName = useSelector(selectedLayoutNameSelector);
@@ -44,7 +44,7 @@ const PreviewFrame = () => {
   const { previewIframeRef } = useAppContext();
   const layoutName = useSelector(selectedLayoutNameSelector);
   const [openSaveChoiceInSession, setOpenShowSaveChoiceInSession] = useState<boolean>(false);
-  const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem('showPreviewLimitationsInfo');
+  const showPreviewLimitationsInfoSession: boolean = typedLocalStorage.getItem('showPreviewLimitationsInfo');
   const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(showPreviewLimitationsInfoSession ?? true);
 
   const handleHidePreviewLimitations = () => {
@@ -53,7 +53,7 @@ const PreviewFrame = () => {
   };
 
   const handleRememberChoiceForSession = () => {
-    typedSessionStorage.setItem('showPreviewLimitationsInfo', false);
+    typedLocalStorage.setItem('showPreviewLimitationsInfo', false);
     handleHidePreviewLimitations();
   };
 

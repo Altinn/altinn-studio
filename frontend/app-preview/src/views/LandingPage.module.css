@@ -45,6 +45,10 @@
   font-family: var(--font-family);
 }
 
+.popOver {
+  max-width: 320px;
+}
+
 .row {
   display: flex;
   flex-direction: row;
