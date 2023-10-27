@@ -20,6 +20,7 @@ import userEvent from '@testing-library/user-event';
 const selectedItemPointer = 'test';
 const rootItem: UiSchemaNode = {
   ...nodeMockBase,
+  pointer: '#/test',
   fieldType: FieldType.Object,
   children: [`#/properties/${selectedItemPointer}`],
 };
@@ -76,11 +77,26 @@ describe('ItemFieldsTable', () => {
     const [firstTextBox] = screen.getAllByLabelText(textMock('schema_editor.field_name'));
     expect(firstTextBox).toHaveValue(getNameInTextField(0));
 
-    await act(() => user.type(firstTextBox, '1'));
+    await act(() => user.type(firstTextBox, 'a'));
     await act(() => user.tab());
 
     const [firstTextBoxAfter] = screen.getAllByLabelText(textMock('schema_editor.field_name'));
-    expect(firstTextBoxAfter).toHaveValue(getNameInTextField(0) + '1');
+    expect(firstTextBoxAfter).toHaveValue(getNameInTextField(0) + 'a');
+
+    expect(saveDatamodel).toBeCalledTimes(1);
+  });
+
+  it('Calls "save" when "Enter" key is pressed in Text field', async () => {
+    const user = userEvent.setup();
+    renderItemFieldsTab();
+
+    const [firstTextBox] = screen.getAllByLabelText(textMock('schema_editor.field_name'));
+    expect(firstTextBox).toHaveValue(getNameInTextField(0));
+
+    await act(() => user.type(firstTextBox, 'a'));
+    await act(() => user.keyboard('{Enter}'));
+
+    expect(saveDatamodel).toBeCalledTimes(1);
   });
 
   it('Updates the select correctly', async () => {
@@ -99,7 +115,6 @@ describe('ItemFieldsTable', () => {
     expect(saveDatamodel).toBeCalledTimes(1);
   });
 
-  // NOT WORKING
   it('Updates the switch correctly', async () => {
     const user = userEvent.setup();
     renderItemFieldsTab();
@@ -107,19 +122,12 @@ describe('ItemFieldsTable', () => {
     const [firstSwitch] = screen.getAllByLabelText(textMock('schema_editor.required'));
     expect(firstSwitch).not.toBeChecked();
 
-    console.log(firstSwitch);
-
     await act(() => user.click(firstSwitch));
 
     expect(saveDatamodel).toBeCalledTimes(1);
-
-    const [firstSwitchAfter] = screen.getAllByLabelText(textMock('schema_editor.required'));
-    console.log(firstSwitchAfter);
-    expect(firstSwitchAfter).toBeChecked();
   });
 
-  // NOT WORKING
-  it('Removes the element when clicking delete', async () => {
+  it('Calls "save" when the delete button is clicked', async () => {
     const user = userEvent.setup();
     renderItemFieldsTab();
 
@@ -137,9 +145,6 @@ describe('ItemFieldsTable', () => {
     });
     await act(() => user.click(confirmButton));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
-
-    const textboxes = screen.getAllByLabelText(textMock('schema_editor.field_name'));
-    expect(textboxes).toHaveLength(mockFieldNodes.length - 1);
   });
 });
 

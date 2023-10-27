@@ -12,6 +12,7 @@ import { getTypeOptions } from '../../helpers/options';
 import { useDispatch } from 'react-redux';
 import { removeSelection } from '../../../../features/editor/schemaEditorSlice';
 import { TrashIcon } from '@navikt/aksel-icons';
+import { Center } from 'app-shared/components/Center';
 
 export type ItemFieldsTableRowProps = {
   fieldNode: UiSchemaNode & {
@@ -21,6 +22,16 @@ export type ItemFieldsTableRowProps = {
   onEnterKeyPress: () => void;
 };
 
+/**
+ * @component
+ *    Displays a row in the Item Fields Table
+ *
+ * @property {UiSchemaNode & { domId: string }}[fieldNoe] - The field node
+ * @property {boolean}[readonly] - If the field is readonly or not
+ * @property {function}[onEnterKeyPress] - Function to be executed on enter keypress
+ *
+ * @returns {ReactNode} - the rendered component
+ */
 export const ItemFieldsTableRow = ({
   fieldNode,
   readonly,
@@ -64,7 +75,7 @@ export const ItemFieldsTableRow = ({
 
   return (
     <tr>
-      <td className={cn(classes.tableColumn1, classes.tableData)}>
+      <td className={cn(classes.tableColumnName, classes.tableCell)}>
         <NameField
           id={fieldNode.domId}
           disabled={readonly}
@@ -74,7 +85,7 @@ export const ItemFieldsTableRow = ({
           aria-label={t('schema_editor.field_name')}
         />
       </td>
-      <td className={cn(classes.tableColumn2, classes.tableData)}>
+      <td className={cn(classes.tableColumnType, classes.tableCell)}>
         <Select
           hideLabel
           inputId={`${fieldNode.domId}-typeselect`}
@@ -84,8 +95,8 @@ export const ItemFieldsTableRow = ({
           value={fieldNode.fieldType as FieldType}
         />
       </td>
-      <td className={cn(classes.tableColumn3, classes.tableData)}>
-        <div className={classes.tableDataCenterWrapper}>
+      <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
+        <Center>
           <Switch
             size='small'
             aria-label={t('schema_editor.required')}
@@ -94,10 +105,10 @@ export const ItemFieldsTableRow = ({
             name='checkedArray'
             onChange={changeRequiredHandler}
           />
-        </div>
+        </Center>
       </td>
-      <td className={cn(classes.tableColumn4, classes.tableData)}>
-        <div className={classes.tableDataCenterWrapper}>
+      <td className={cn(classes.tableColumnDelete, classes.tableCell)}>
+        <Center>
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
             confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
@@ -117,7 +128,7 @@ export const ItemFieldsTableRow = ({
             <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
             <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
           </AltinnConfirmDialog>
-        </div>
+        </Center>
       </td>
     </tr>
   );

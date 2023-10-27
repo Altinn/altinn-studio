@@ -14,6 +14,16 @@ export type ItemFieldsTableProps = {
   selectedItem: UiSchemaNode;
 };
 
+/**
+ * @component
+ *    Displays the Item Fields as a table
+ *
+ * @property {(UiSchemaNode & { domId: string })[]}[fieldNoes] - The field nodes
+ * @property {boolean}[readonly] - If the fields are readonly
+ * @property {UiSchemaNode}[selectedItem] - The selected node
+ *
+ * @returns {ReactNode} - The rendered component
+ */
 export const ItemFieldsTable = ({
   fieldNodes,
   readonly,
@@ -38,16 +48,24 @@ export const ItemFieldsTable = ({
     <table className={classes.table}>
       <thead>
         <tr>
-          <th className={cn(classes.tableColumn1, classes.tableHeaderLeft)}>
+          <th className={cn(classes.tableColumnName, classes.tableCell, classes.tableHeaderLeft)}>
             {t('schema_editor.field_name')}
           </th>
-          <th className={cn(classes.tableColumn2, classes.tableHeaderLeft)}>
+          <th className={cn(classes.tableColumnType, classes.tableCell, classes.tableHeaderLeft)}>
             {t('schema_editor.type')}
           </th>
-          <th className={cn(classes.tableColumn3, classes.tableHeaderCenter)}>
+          <th
+            className={cn(
+              classes.tableColumnRequired,
+              classes.tableCell,
+              classes.tableHeaderCenter,
+            )}
+          >
             {t('schema_editor.required')}
           </th>
-          <th className={cn(classes.tableColumn4, classes.tableHeaderCenter)}>
+          <th
+            className={cn(classes.tableColumnDelete, classes.tableCell, classes.tableHeaderCenter)}
+          >
             {t('schema_editor.delete')}
           </th>
         </tr>

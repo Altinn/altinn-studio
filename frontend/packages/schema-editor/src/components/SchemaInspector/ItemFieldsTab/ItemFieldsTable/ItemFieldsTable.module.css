@@ -1,49 +1,41 @@
 .table {
-  --table-column-1-width: 35%;
-  --table-column-2-width: 25%;
-  --table-column-3-width: 15%;
-  --table-column-4-width: 5%;
-
-  --padding-right-first-three-columns: 3%;
-  --padding-inline-last-column: 2%;
+  --table-column-name-width: 35%;
+  --table-column-type-width: 25%;
+  --table-column-required-width: 15%;
+  --table-column-delete-width: 5%;
 }
 
-.tableColumn1 {
-  width: var(--table-column-1-width);
-  padding-right: var(--padding-right-first-three-columns);
+.tableColumnName {
+  width: var(--table-column-name-width);
 }
 
-.tableColumn2 {
-  width: var(--table-column-2-width);
-  padding-right: var(--padding-right-first-three-columns);
+.tableColumnType {
+  width: var(--table-column-type-width);
 }
 
-.tableColumn3 {
-  width: var(--table-column-3-width);
-  padding-right: var(--padding-right-first-three-columns);
+.tableColumnRequired {
+  width: var(--table-column-required-width);
 }
 
-.tableColumn4 {
-  width: var(--table-column-1-width);
-  padding-right: var(--padding-inline-last-column);
+.tableColumnDelete {
+  width: var(--table-column-delete-width);
 }
 
 .tableHeaderLeft {
   text-align: left;
-  padding-bottom: 1rem;
 }
 
 .tableHeaderCenter {
   text-align: center;
-  padding-bottom: 1rem;
 }
 
-.tableData {
+.tableCell {
   vertical-align: middle;
   padding-bottom: 1rem;
+  box-sizing: border-box;
+  padding-right: 1rem;
 }
 
-.tableDataCenterWrapper {
-  display: flex;
-  justify-content: center;
+.tableCell:last-child {
+  padding-right: 0;
 }

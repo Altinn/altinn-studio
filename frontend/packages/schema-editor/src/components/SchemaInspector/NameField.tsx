@@ -36,7 +36,13 @@ export function NameField({ id, pointer, handleSave, label, ...props }: NameFiel
   };
 
   const onNameBlur = (newNodeName: string, errorCode: string) => {
-    if (errorCode || newNodeName === nodeName) return;
+    if (errorCode || newNodeName === nodeName) {
+      console.log('errorCode', errorCode);
+
+      return;
+    }
+
+    console.log('In blur');
     handleSave(newNodeName, errorCode);
   };
 
