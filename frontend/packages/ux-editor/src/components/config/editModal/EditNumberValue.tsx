@@ -5,6 +5,7 @@ import { FormField } from '../../FormField';
 import { LegacyTextField } from '@digdir/design-system-react';
 import { getComponentPropertyLabel } from '../../../utils/language';
 import { setComponentProperty } from '../../../utils/component';
+import { StudioNumberInput } from 'app-shared/components/StudioNumberInput';
 
 export interface EditNumberValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -38,7 +39,12 @@ export const EditNumberValue = ({
         }
       }}
     >
-      {({ onChange }) => (
+      {() => <StudioNumberInput label={getComponentPropertyLabel(propertyKey, t)} />}
+    </FormField>
+  );
+};
+/*
+{({ onChange }) => (
         <LegacyTextField
           name={`component-${propertyKey}-input-${component.id}`}
           onChange={(e) => onChange(e.target.value as unknown as number, e)}
@@ -46,6 +52,4 @@ export const EditNumberValue = ({
           formatting={{ number: {} }}
         />
       )}
-    </FormField>
-  );
-};
+*/
