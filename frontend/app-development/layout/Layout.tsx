@@ -5,11 +5,16 @@ import { routes } from 'app-development/config/routes';
 import { Center } from 'app-shared/components/Center';
 import { PageHeader } from './PageHeader';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 export const Layout = (): React.ReactNode => {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
+
+  const { data: repoStatus, error: repoStatusError } = useRepoStatusQuery(org, app);
+
+  console.log('repoStatusError', repoStatusError);
 
   // Idea to solve issue with not found on org and app
   // - do query calls to 'useOrganizationQuery' and 'useUserQuery'.

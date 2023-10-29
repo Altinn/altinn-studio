@@ -61,22 +61,31 @@ export const PageHeader = ({ org, app, activeRoute }: PageHeaderProps) => {
   const repoType = getRepositoryType(org, app);
   const { t } = useTranslation();
   const { data: user } = useUserQuery();
-  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
+  const repository = useAppSelector((state) => {
+    // This gives null when invalid url
+    console.log('state in pageHeader', state.serviceInformation.repositoryInfo);
+    return state.serviceInformation.repositoryInfo;
+  });
   const menu = getTopBarMenu(repoType, t);
 
+  console.log('repository in pageHeader', repository);
+  // TODO - Handle empty repository / repo error
+  // When editing URL, repo gets issues
   return (
-    <AltinnHeader
-      menu={menu}
-      // TODO - SET TO FALSE IF THERE IS A MERGE CONFLICT?
-      // TODO - Hide on error page
-      showSubMenu={true} //route.activeSubHeaderSelection !== TopBarMenu.None}
-      subMenuContent={subMenuContent({ org, app })}
-      activeMenuSelection={activeRoute}
-      org={org}
-      app={app}
-      user={user}
-      repository={{ ...repository }}
-      buttonActions={buttonActions(org, app)}
-    />
+    user && (
+      <AltinnHeader
+        menu={menu}
+        // TODO - SET TO FALSE IF THERE IS A MERGE CONFLICT?
+        // TODO - Hide on error page
+        showSubMenu={true} //route.activeSubHeaderSelection !== TopBarMenu.None}
+        subMenuContent={subMenuContent({ org, app })}
+        activeMenuSelection={activeRoute}
+        org={org}
+        app={app}
+        user={user}
+        repository={repository} //{ ...repository }}
+        buttonActions={buttonActions(org, app)}
+      />
+    )
   );
 };

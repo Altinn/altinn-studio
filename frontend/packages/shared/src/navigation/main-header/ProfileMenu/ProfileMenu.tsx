@@ -34,7 +34,13 @@ export const ProfileMenu = ({
   const menuRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // TODO ------
+  // Lift org and app up, as they get the wrong values here.
+  // Add a prop for "show repo button"
   const { org, app } = useStudioUrlParams();
+  console.log('org in ProfileMenu', org);
+  console.log('app in ProfileMenu', app);
+
   const handleClick = (event: any) => setMenuOpen(true);
   const handleClose = () => setMenuOpen(false);
   const { t } = useTranslation();

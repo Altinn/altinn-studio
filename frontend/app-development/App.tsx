@@ -148,13 +148,13 @@ export function App() {
     },
     [dispatch],
   );
-  if (!repoStatus) {
+  /*if (!repoStatus) {
     return (
       <div className={classes.appSpinner}>
         <PageSpinner />
       </div>
     );
-  }
+  }*/
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
       <AltinnPopoverSimple
@@ -172,11 +172,10 @@ export function App() {
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
       <div data-testid={testids.appContentWrapper}>
-        {repoStatus.hasMergeConflict ? (
+        {/*repoStatus?.hasMergeConflict ? (
           <MergeConflictWarning org={org} app={app} />
-        ) : (
-          <PageRoutes />
-        )}
+        ) : (*/}
+        <PageRoutes />
       </div>
     </div>
   );
