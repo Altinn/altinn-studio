@@ -62,9 +62,11 @@ describe('ItemFieldsTable', () => {
     expect(textboxes).toHaveLength(mockFieldNodes.length);
     textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(getNameInTextField(i)));
     expect(screen.getAllByRole('checkbox')).toHaveLength(mockFieldNodes.length);
-    expect(screen.queryAllByLabelText(textMock('schema_editor.delete_field'))).toHaveLength(
-      mockFieldNodes.length,
-    );
+    expect(
+      screen.getAllByRole('button', {
+        name: textMock('schema_editor.delete_field'),
+      }),
+    ).toHaveLength(mockFieldNodes.length);
 
     // Added to avoid the "Warning: An update to Select inside a test was not wrapped in act(...)." bug
     await act(() => user.tab());
@@ -132,9 +134,9 @@ describe('ItemFieldsTable', () => {
     renderItemFieldsTab();
 
     const lastIndex = mockFieldNodes.length - 1;
-    const lastDeleteButton = screen.getAllByLabelText(textMock('schema_editor.delete_field'))[
-      lastIndex
-    ];
+    const lastDeleteButton = screen.getAllByRole('button', {
+      name: textMock('schema_editor.delete_field'),
+    })[lastIndex];
     await act(() => user.click(lastDeleteButton));
 
     const dialog = screen.getByRole('dialog');

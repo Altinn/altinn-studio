@@ -116,7 +116,7 @@ export const ItemFieldsTableRow = ({
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
             trigger={
               <Button
-                aria-label={t('schema_editor.delete_field')}
+                title={t('schema_editor.delete_field')}
                 icon={<TrashIcon />}
                 onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
                 color='danger'

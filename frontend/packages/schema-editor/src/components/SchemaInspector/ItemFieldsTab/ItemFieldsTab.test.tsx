@@ -104,7 +104,11 @@ describe('ItemFieldsTab', () => {
     expect(textboxes).toHaveLength(numberOfFields);
     textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(fieldNames[i]));
     expect(screen.getAllByRole('checkbox')).toHaveLength(numberOfFields);
-    expect(screen.queryAllByLabelText(textDeleteField)).toHaveLength(numberOfFields);
+    expect(
+      screen.getAllByRole('button', {
+        name: textDeleteField,
+      }),
+    ).toHaveLength(numberOfFields);
   });
 
   test('"Add property" button appears', async () => {
@@ -158,7 +162,7 @@ describe('ItemFieldsTab', () => {
   test('Model is saved correctly when delete button is clicked', async () => {
     renderItemFieldsTab();
 
-    const deleteButton = screen.queryAllByLabelText(textDeleteField)[0];
+    const deleteButton = screen.getAllByRole('button', { name: textDeleteField })[0];
     await act(() => user.click(deleteButton));
 
     const dialog = screen.getByRole('dialog');
