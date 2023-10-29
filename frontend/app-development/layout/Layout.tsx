@@ -30,16 +30,25 @@ const basePath = '/:org/:app';
 // TODO:
 // - Legge på MergeConflict Handling
 // - Move the component to its own place
-export const PageRoutes = () => (
-  <div className={classes.root}>
-    <Routes>
-      <Route path={basePath} element={<Layout />}>
-        {routes.map((route) => (
-          <Route key={route.path} path={route.path} element={<route.subapp {...route.props} />} />
-        ))}
-        <Route path='*' element={<Center>TODO - Replace with NotFoundPage</Center>} />
-      </Route>
-      <Route path='*' element={<Center>TODO - Replace with NotFoundPage</Center>} />
-    </Routes>
-  </div>
-);
+// - Make it possible to get to error page when org or url is wrong
+
+// Idea to solve issue with not found on org and app
+// - do query calls to 'useOrganizationQuery' and 'useUserQuery'.
+// - case 'loading': return Spinner
+// - case 'error': Display error message (and potentially the 404 page IF there is a 404 error)
+// - case 'success': return the app
+export const PageRoutes = () => {
+  return (
+    <div className={classes.root}>
+      <Routes>
+        <Route path={basePath} element={<Layout />}>
+          {routes.map((route) => (
+            <Route key={route.path} path={route.path} element={<route.subapp {...route.props} />} />
+          ))}
+          <Route path='*' element={<Center>TODO - Replace with Ugyldig address</Center>} />
+        </Route>
+        <Route path='*' element={<Center>TODO - Replace with Ugyldig address</Center>} />
+      </Routes>
+    </div>
+  );
+};

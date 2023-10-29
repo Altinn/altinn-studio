@@ -37,7 +37,6 @@ export const AltinnHeader = ({
   buttonActions,
   variant = 'regular',
 }: AltinnHeaderProps) => {
-  console.log('active route in header', activeMenuSelection);
   return (
     <div id='altinn-header-container'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
