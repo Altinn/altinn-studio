@@ -1,6 +1,4 @@
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import { routes } from '../config/routes';
 import { AltinnHeader } from 'app-shared/components/altinnHeader/AltinnHeader';
 import { getTopBarMenu } from './AppBar/appBarConfig';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -12,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 type SubMenuContentProps = {
   org: string;
@@ -53,39 +52,31 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
 };
 
 type PageHeaderProps = {
-  showSubMenu: boolean;
   org: string;
   app: string;
+  activeRoute: RoutePaths;
 };
 
-export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {
+export const PageHeader = ({ org, app, activeRoute }: PageHeaderProps) => {
   const repoType = getRepositoryType(org, app);
   const { t } = useTranslation();
   const { data: user } = useUserQuery();
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
-  const menu = getTopBarMenu(org, app, repoType, t);
+  const menu = getTopBarMenu(repoType, t);
 
   return (
-    <Routes>
-      {routes.map((route) => (
-        <Route
-          key={route.path}
-          path={route.path}
-          element={
-            <AltinnHeader
-              menu={menu}
-              showSubMenu={showSubMenu}
-              subMenuContent={subMenuContent({ org, app })}
-              activeMenuSelection={route.activeSubHeaderSelection}
-              org={org}
-              app={app}
-              user={user}
-              repository={{ ...repository }}
-              buttonActions={buttonActions(org, app)}
-            />
-          }
-        />
-      ))}
-    </Routes>
+    <AltinnHeader
+      menu={menu}
+      // TODO - SET TO FALSE IF THERE IS A MERGE CONFLICT?
+      // TODO - Hide on error page
+      showSubMenu={true} //route.activeSubHeaderSelection !== TopBarMenu.None}
+      subMenuContent={subMenuContent({ org, app })}
+      activeMenuSelection={activeRoute}
+      org={org}
+      app={app}
+      user={user}
+      repository={{ ...repository }}
+      buttonActions={buttonActions(org, app)}
+    />
   );
 };

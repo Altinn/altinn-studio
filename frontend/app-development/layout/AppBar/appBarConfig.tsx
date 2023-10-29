@@ -5,10 +5,11 @@ import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
 import { SupportedFeatureFlags, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon } from '@navikt/aksel-icons';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export interface TopBarMenuItem {
   key: TopBarMenu;
-  link: string;
+  link: RoutePaths;
   icon?: React.FC<React.SVGProps<SVGSVGElement>>;
   repositoryTypes: RepositoryType[];
   featureFlagName?: SupportedFeatureFlags;
@@ -29,30 +30,30 @@ export enum TopBarMenu {
 export const menu: TopBarMenuItem[] = [
   {
     key: TopBarMenu.About,
-    link: '/:org/:app',
+    link: RoutePaths.About,
     repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
   },
   {
     key: TopBarMenu.Create,
-    link: '/:org/:app/ui-editor',
+    link: RoutePaths.UIEditor,
     icon: PencilIcon,
     repositoryTypes: [RepositoryType.App],
   },
   {
     key: TopBarMenu.Datamodel,
-    link: '/:org/:app/datamodel',
+    link: RoutePaths.DataModel,
     icon: DatabaseIcon,
     repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
   },
   {
     key: TopBarMenu.Text,
-    link: '/:org/:app/text-editor',
+    link: RoutePaths.Text,
     icon: Density3Icon,
     repositoryTypes: [RepositoryType.App],
   },
   {
     key: TopBarMenu.ProcessEditor,
-    link: '/:org/:app/process-editor',
+    link: RoutePaths.ProcessEditor,
     icon: TenancyIcon,
     repositoryTypes: [RepositoryType.App],
     featureFlagName: 'processEditor',
@@ -60,8 +61,6 @@ export const menu: TopBarMenuItem[] = [
 ];
 
 export const getTopBarMenu = (
-  org: string,
-  app: string,
   repositoryType: RepositoryType,
   t: TFunction,
 ): AltinnHeaderMenuItem[] => {
@@ -71,7 +70,8 @@ export const getTopBarMenu = (
     .map((item) => {
       return {
         key: item.key,
-        link: <Link to={item.link.replace(':org', org).replace(':app', app)}>{t(item.key)} </Link>,
+        path: item.link,
+        link: <Link to={item.link}>{t(item.key)} </Link>,
       } as AltinnHeaderMenuItem;
     });
 };
