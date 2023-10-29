@@ -11,6 +11,12 @@ export const Layout = (): React.ReactNode => {
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
 
+  // Idea to solve issue with not found on org and app
+  // - do query calls to 'useOrganizationQuery' and 'useUserQuery'.
+  // - case 'loading': return Spinner
+  // - case 'error': Display error message (and potentially the 404 page IF there is a 404 error)
+  // - case 'success': return the app/outlet
+
   // clean up the URL so that it becomes only the route path
   const pathNameWithoutOrgAndApp: RoutePaths = pathname
     .replace(org, '')
@@ -31,12 +37,6 @@ const basePath = '/:org/:app';
 // - Legge på MergeConflict Handling
 // - Move the component to its own place
 // - Make it possible to get to error page when org or url is wrong
-
-// Idea to solve issue with not found on org and app
-// - do query calls to 'useOrganizationQuery' and 'useUserQuery'.
-// - case 'loading': return Spinner
-// - case 'error': Display error message (and potentially the 404 page IF there is a 404 error)
-// - case 'success': return the app
 export const PageRoutes = () => {
   return (
     <div className={classes.root}>

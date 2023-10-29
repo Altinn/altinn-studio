@@ -27,7 +27,8 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { PageSpinner } from 'app-shared/components';
 import * as testids from '../testing/testids';
-import { Layout, PageRoutes } from './layout/Layout';
+import { PageRoutes } from './layout/Layout';
+import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -163,16 +164,13 @@ export function App() {
         <h2>{t('session.expires')}</h2>
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
-      <PageRoutes />
-      {/*<PageHeader showSubMenu={!repoStatus.hasMergeConflict} org={org} app={app} />
-
-      <div className={classes.contentWrapper} data-testid={testids.appContentWrapper}>
+      <div data-testid={testids.appContentWrapper}>
         {repoStatus.hasMergeConflict ? (
           <MergeConflictWarning org={org} app={app} />
         ) : (
-          <PageContainer subAppClassName={classes.subApp} />
+          <PageRoutes />
         )}
-        </div>*/}
+      </div>
     </div>
   );
 }

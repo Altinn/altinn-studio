@@ -68,6 +68,7 @@ export const PageHeader = ({ org, app, activeRoute }: PageHeaderProps) => {
     <AltinnHeader
       menu={menu}
       // TODO - SET TO FALSE IF THERE IS A MERGE CONFLICT?
+      // TODO - Hide on error page
       showSubMenu={true} //route.activeSubHeaderSelection !== TopBarMenu.None}
       subMenuContent={subMenuContent({ org, app })}
       activeMenuSelection={activeRoute}
