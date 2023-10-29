@@ -1,0 +1,46 @@
+import React from 'react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
+import { StudioNumberInput, StudioNumberInputProps } from './StudioNumberInput';
+import userEvent from '@testing-library/user-event';
+
+const user = userEvent.setup();
+
+describe('StudioNumberInput', () => {
+  it('should render description and input field', () => {
+    render({ description: 'description' });
+    expect(screen.getByText('description')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  it('should update input value on change', async () => {
+    render({ description: 'description' });
+    const inputElement = screen.getByRole('textbox');
+    await act(() => user.type(inputElement, '123'));
+
+    expect(inputElement).toHaveValue('123');
+  });
+
+  it('should not allow non-numeric input', async () => {
+    render({ description: 'description' });
+    const inputElement = screen.getByRole('textbox');
+    await act(() => user.type(inputElement, 'abc'));
+
+    expect(inputElement).toHaveValue('');
+  });
+
+  it('should not allow non-numeric input after numeric input', async () => {
+    render({ description: 'description' });
+    const inputElement = screen.getByRole('textbox');
+    await act(() => user.type(inputElement, '123abc'));
+
+    expect(inputElement).toHaveValue('123');
+  });
+});
+
+const render = (props: Partial<StudioNumberInputProps> = {}) => {
+  const allProps: StudioNumberInputProps = {
+    description: 'description',
+    ...props,
+  } as StudioNumberInputProps;
+  rtlRender(<StudioNumberInput {...allProps} />);
+};

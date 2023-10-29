@@ -1,22 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Textfield } from '@digdir/design-system-react';
-
-// -----------
-
-// -----------
+import { useTranslation } from 'react-i18next';
 
 export interface StudioNumberInputProps {
-  label: string;
+  description: string;
 }
 
-export const StudioNumberInput = ({ label }: StudioNumberInputProps) => {
+export const StudioNumberInput = ({ description }: StudioNumberInputProps) => {
   const [inputValue, setInputValue] = useState('');
-  const [isTouched, setIsTouched] = useState(false);
+  const [clicked, setClicked] = useState(false);
   const inputRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    document.addEventListener('click', handleOutsideClick);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, []);
 
   const validateNumber = (value: string) => {
     const numberRegex = /^[0-9]+$/;
-    return isTouched && !numberRegex.test(value) ? 'Du må skrive et tall' : undefined;
+    return clicked && !numberRegex.test(value) ? t('validation_errors.numbers_only') : undefined;
+  };
+
+  const handleOutsideClick = (e: MouseEvent) => {
+    if (inputRef.current && !(inputRef.current as any).contains(e.target)) {
+      setClicked(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,27 +35,13 @@ export const StudioNumberInput = ({ label }: StudioNumberInputProps) => {
     if (!isNaN(Number(input)) || input === '') {
       setInputValue(input);
     }
-    setIsTouched(true);
+    setClicked(true);
   };
-
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (inputRef.current && !(inputRef.current as any).contains(e.target)) {
-        setIsTouched(false);
-      }
-    };
-
-    document.addEventListener('click', handleOutsideClick);
-
-    return () => {
-      document.removeEventListener('click', handleOutsideClick);
-    };
-  }, []);
 
   return (
     <div ref={inputRef}>
       <Textfield
-        label={label}
+        description={description}
         value={inputValue}
         onChange={handleInputChange}
         error={validateNumber(inputValue)}
