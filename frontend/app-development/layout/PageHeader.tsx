@@ -9,6 +9,7 @@ import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 type SubMenuContentProps = {
   org: string;
@@ -60,12 +61,12 @@ export const PageHeader = ({ org, app }: PageHeaderProps) => {
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const menuItems = getFilteredTopBarMenu(repoType);
 
+  const { data: repoStatus } = useRepoStatusQuery(org, app);
+
   return (
     <AltinnHeader
       menuItems={menuItems}
-      // TODO - SET TO FALSE IF THERE IS A MERGE CONFLICT?
-      // TODO - Hide on error page
-      showSubMenu={true} //route.activeSubHeaderSelection !== TopBarMenu.None}
+      showSubMenu={!repoStatus.hasMergeConflict}
       subMenuContent={subMenuContent({ org, app })}
       org={org}
       app={app}
