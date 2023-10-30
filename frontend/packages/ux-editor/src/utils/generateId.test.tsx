@@ -7,6 +7,7 @@ describe('generateComponentId', () => {
     layout1: {
       containers: {
         container1: {
+          id: 'container1',
           index: 0,
           itemType: 'CONTAINER',
         },
@@ -28,6 +29,7 @@ describe('generateComponentId', () => {
     layout2: {
       containers: {
         container2: {
+          id: 'container2',
           index: 0,
           itemType: 'CONTAINER',
         },

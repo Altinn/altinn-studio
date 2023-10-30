@@ -27,8 +27,8 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { PageSpinner } from 'app-shared/components';
 import * as testids from '../testing/testids';
-import { PageRoutes } from './layout/Layout';
 import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
+import { PageRoutes } from './router/PageRoutes';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 

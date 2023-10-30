@@ -1,6 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormItem } from '../types/FormItem';
-import { FormPanelVariant } from '../types/FormComponent';
+import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import React, { RefAttributes, SVGProps } from 'react';
 import ActionButtonSchema from '../testing/schemas/json/component/ActionButton.schema.v1.json';
 import {
@@ -187,6 +187,7 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       itemType: 'COMPONENT',
       type: ComponentType.FileUpload,
+      description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 25,
@@ -202,6 +203,7 @@ export const formItemConfigs: FormItemConfigs = {
       id: '',
       itemType: 'COMPONENT',
       type: ComponentType.FileUploadWithTag,
+      description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 25,
@@ -226,6 +228,7 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Group]: {
     name: ComponentType.Group,
     defaultProperties: {
+      id: '',
       itemType: 'CONTAINER',
       propertyPath: 'definitions/groupComponent',
     },

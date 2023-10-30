@@ -3,11 +3,11 @@ import { Administration } from '../features/administration/components/Administra
 import { LegacyAdministration } from '../features/administration/components/LegacyAdministration';
 import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
-import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
 import { ProcessEditor } from 'app-development/features/processEditor';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -40,14 +40,14 @@ export const routes: IRoute[] = [
     subapp: SubApp,
   },
   {
-    path: RoutePaths.About,
+    path: RoutePaths.Overview,
     exact: true,
     activeSubHeaderSelection: TopBarMenu.About,
     activeLeftMenuSelection: 'Om appen',
     subapp: shouldDisplayFeature('newAdministration') ? Administration : LegacyAdministration,
   },
   {
-    path: RoutePaths.DataModel,
+    path: RoutePaths.Datamodel,
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Datamodel,
     activeLeftMenuSelection: '',

@@ -1,36 +1,14 @@
-import React from 'react';
-import { AltinnHeaderMenuItem } from 'app-shared/components/altinnHeaderMenu/AltinnHeaderMenu';
 import { RepositoryType } from 'app-shared/types/global';
-import { Link } from 'react-router-dom';
-import { TFunction } from 'i18next';
-import { SupportedFeatureFlags, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon } from '@navikt/aksel-icons';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-
-export interface TopBarMenuItem {
-  key: TopBarMenu;
-  link: RoutePaths;
-  icon?: React.FC<React.SVGProps<SVGSVGElement>>;
-  repositoryTypes: RepositoryType[];
-  featureFlagName?: SupportedFeatureFlags;
-}
-
-export enum TopBarMenu {
-  About = 'top_menu.about',
-  Create = 'top_menu.create',
-  Datamodel = 'top_menu.datamodel',
-  Text = 'top_menu.texts',
-  Preview = 'top_menu.preview',
-  Deploy = 'top_menu.deploy',
-  Access = 'top_menu.access-controll',
-  ProcessEditor = 'top_menu.process-editor',
-  None = '',
-}
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 
 export const menu: TopBarMenuItem[] = [
   {
     key: TopBarMenu.About,
-    link: RoutePaths.About,
+    link: RoutePaths.Overview,
     repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
   },
   {
@@ -41,7 +19,7 @@ export const menu: TopBarMenuItem[] = [
   },
   {
     key: TopBarMenu.Datamodel,
-    link: RoutePaths.DataModel,
+    link: RoutePaths.Datamodel,
     icon: DatabaseIcon,
     repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
   },
@@ -60,20 +38,10 @@ export const menu: TopBarMenuItem[] = [
   },
 ];
 
-export const getTopBarMenu = (
-  repositoryType: RepositoryType,
-  t: TFunction,
-): AltinnHeaderMenuItem[] => {
+export const getFilteredTopBarMenu = (repositoryType: RepositoryType): TopBarMenuItem[] => {
   return menu
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
-    .filter(filterRoutesByFeatureFlag)
-    .map((item) => {
-      return {
-        key: item.key,
-        path: item.link,
-        link: <Link to={item.link}>{t(item.key)} </Link>,
-      } as AltinnHeaderMenuItem;
-    });
+    .filter(filterRoutesByFeatureFlag);
 };
 
 const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {

@@ -3,14 +3,14 @@ import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { Heading } from '@digdir/design-system-react';
 
-import { TopBarMenu, menu } from 'app-development/layout/AppBar/appBarConfig';
-import { Link, useParams } from 'react-router-dom';
+import { menu } from 'app-development/layout/AppBar/appBarConfig';
+import { Link } from 'react-router-dom';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 export const Navigation = () => {
   const { t } = useTranslation();
-  const { org, app } = useParams();
 
-  const links = menu.filter((item) => item.key !== TopBarMenu.About);
+  const menuItems = menu.filter((item) => item.key !== TopBarMenu.About);
 
   return (
     <div className={classes.navigation}>
@@ -18,15 +18,11 @@ export const Navigation = () => {
         {t('administration.navigation_title')}
       </Heading>
       <div className={classes.links}>
-        {links.map((link) => {
+        {menuItems.map((menuItem) => {
           return (
-            <Link
-              key={link.key}
-              to={link.link.replace(':org', org).replace(':app', app)}
-              className={classes.link}
-            >
-              <link.icon className={classes.icon} />
-              <span>{t(link.key)}</span>
+            <Link key={menuItem.key} to={menuItem.link} className={classes.link}>
+              <menuItem.icon className={classes.icon} />
+              <span>{t(menuItem.key)}</span>
             </Link>
           );
         })}

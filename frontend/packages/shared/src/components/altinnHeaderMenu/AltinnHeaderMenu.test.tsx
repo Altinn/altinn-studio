@@ -1,21 +1,28 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { AltinnHeaderMenu, AltinnHeaderMenuItem, IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
+import { AltinnHeaderMenu, IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
 import { MemoryRouter } from 'react-router-dom';
+import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { RepositoryType } from 'app-shared/types/global';
 
 describe('AltinnHeaderMenu', () => {
-  const mockMenu: AltinnHeaderMenuItem[] = [
+  const mockMenuItems: TopBarMenuItem[] = [
     {
-      key: 'key1',
-      link: <a href='link1'>Link1</a>,
+      key: TopBarMenu.About,
+      link: RoutePaths.Overview,
+      repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
     },
     {
-      key: 'key2',
-      link: <a href='link1'>Link2</a>,
+      key: TopBarMenu.Create,
+      link: RoutePaths.UIEditor,
+      repositoryTypes: [RepositoryType.App],
     },
     {
-      key: 'key3',
-      link: <a href='link1'>Link3</a>,
+      key: TopBarMenu.Datamodel,
+      link: RoutePaths.Datamodel,
+      repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
     },
   ];
   it('Should render nothing if there are no provided meny items', () => {
@@ -24,20 +31,19 @@ describe('AltinnHeaderMenu', () => {
   });
 
   it('should render all provided menu items', () => {
-    render({ menu: mockMenu });
+    render({ menuItems: mockMenuItems });
     expect(screen.queryAllByRole('link')).toHaveLength(3);
   });
 });
 
 const render = (props: Partial<IAltinnHeaderMenuProps> = {}) => {
   const defaultProps: IAltinnHeaderMenuProps = {
-    activeSubHeaderSelection: 'create',
-    menu: [],
+    menuItems: [],
   };
 
   return rtlRender(
     <MemoryRouter>
       <AltinnHeaderMenu {...defaultProps} {...props} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

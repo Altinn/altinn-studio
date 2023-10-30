@@ -3,7 +3,7 @@ import { Switch, Select } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
-import { FormPanelVariant } from '../../../../types/FormComponent';
+import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import { FormField } from '../../../FormField';
 
 export const PanelComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {

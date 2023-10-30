@@ -22,11 +22,12 @@ const newLayout: IInternalLayout = {
       type: componentType,
       itemType: 'COMPONENT',
       dataModelBindings: {},
+      pageIndex: null,
     },
   },
   containers: {
-    [baseContaierId]: { itemType: 'CONTAINER' },
-    [containerId]: { itemType: 'CONTAINER' },
+    [baseContaierId]: { id: baseContaierId, itemType: 'CONTAINER', pageIndex: null },
+    [containerId]: { id: containerId, itemType: 'CONTAINER', pageIndex: null },
   },
   order: {
     [baseContaierId]: [containerId],
@@ -86,10 +87,7 @@ describe('useFormLayoutMutation', () => {
   });
 });
 
-const renderAndMutate = (
-  layout: IInternalLayout,
-  appContext: Partial<AppContextProps> = {},
-) =>
+const renderAndMutate = (layout: IInternalLayout, appContext: Partial<AppContextProps> = {}) =>
   renderHookWithMockStore(
     {},
     {},
