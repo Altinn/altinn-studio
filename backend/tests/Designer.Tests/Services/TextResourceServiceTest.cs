@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Services.Implementation;
-using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 
 using AltinnCore.Authentication.Constants;

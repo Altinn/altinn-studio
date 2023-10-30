@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Studio.Designer.Services.Models;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
 {

@@ -3,15 +3,14 @@ import Modal from 'react-modal';
 import { Typography } from '@mui/material';
 import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
-import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
 import { RuleConnection } from 'app-shared/types/RuleConfig';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
-import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -22,7 +21,7 @@ export interface IRuleModalProps {
 export function RuleModal(props: IRuleModalProps) {
   const { org, app } = useStudioUrlParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
   const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);
   const { data: ruleModelElements } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSet);

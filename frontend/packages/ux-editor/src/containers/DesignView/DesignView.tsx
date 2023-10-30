@@ -1,6 +1,5 @@
 import React, { ReactNode, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
+import { useDispatch } from 'react-redux';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './DesignView.module.css';
@@ -20,53 +19,46 @@ import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
 import { PageAccordion } from './PageAccordion';
 import { RenderedFormContainer } from './RenderedFormContainer';
 import { ReceiptContent } from './ReceiptContent';
+import { useAppContext } from '../../hooks/useAppContext';
+
+/**
+ * Maps the IFormLayouts object to a list of FormLayouts
+ */
+const mapIFormLayoutsToFormLayouts = (formLayouts: IFormLayouts): FormLayout[] => {
+  return Object.entries(formLayouts).map(([key, value]) => ({
+    page: key,
+    data: value,
+  }));
+};
 
 /**
  * @component
- *    Displays the column containing accordions with componnets for each page
+ *    Displays the column containing accordions with components for each page
  *
  * @returns {ReactNode} - The rendered component
  */
 export const DesignView = (): ReactNode => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
-  const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
+  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const receiptName = formLayoutSettingsQuery.data.receiptLayoutName;
-
-  const layoutOrder = formLayoutSettingsQuery.data.pages.order;
+  const receiptName = formLayoutSettings?.receiptLayoutName;
+  const layoutOrder = formLayoutSettings?.pages.order;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsLayout = searchParams.get('layout');
+  const [openAccordion, setOpenAccordion] = useState(searchParamsLayout);
 
   const { t } = useTranslation();
 
-  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
-
-  const [openAccordion, setOpenAccordion] = useState(searchParamsLayout);
-
-  /**
-   * Maps the IFormLayouts object to a list of FormLayouts
-   */
-  const mapIFormLayoutsToFormLayouts = (iFormLayouts: IFormLayouts): FormLayout[] => {
-    return Object.entries(iFormLayouts).map(([key, value]) => ({
-      page: key,
-      data: value,
-    }));
-  };
-
-  const [formLayoutData, setFormLayoutData] = useState<FormLayout[]>(
-    mapIFormLayoutsToFormLayouts(layouts),
-  );
-
   useEffect(() => {
     setOpenAccordion(searchParamsLayout);
-    setFormLayoutData(mapIFormLayoutsToFormLayouts(layouts));
-  }, [layouts, searchParamsLayout]);
+  }, [searchParamsLayout]);
+
+  const formLayoutData = mapIFormLayoutsToFormLayouts(layouts);
 
   /**
    * Checks if the layout name provided is valid
@@ -133,7 +125,7 @@ export const DesignView = (): ReactNode => {
    * Displays the pages as an ordered list
    */
   const displayPageAccordions = layoutOrder.map((pageName, i) => {
-    const layout = formLayoutData.find((formLayout) => formLayout.page === pageName);
+    const layout = formLayoutData?.find((formLayout) => formLayout.page === pageName);
 
     // If the layout does not exist, return null
     if (layout === undefined) return null;

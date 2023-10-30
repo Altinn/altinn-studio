@@ -159,6 +159,16 @@ namespace Designer.Tests.GiteaIntegrationTests
         [Theory]
         [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task RepoStatus_ShouldReturn404NotFoundWhenInvalidRepo(string org)
+        {
+            // Call status endpoint
+            using HttpResponseMessage statusResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/123/status");
+            statusResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
+        [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task GetOrgRepos_ShouldBehaveAsExpected(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");

@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.Filters
             {
                 Title = $"{exceptionType} occured.",
                 Detail = ex.Message,
-                Status = (int)HttpStatusCode.Conflict,
+                Status = (int)statusCode,
                 Type = exceptionType
             };
             details.Extensions.Add("errorCode", customErrorCode);

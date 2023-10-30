@@ -7,6 +7,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -39,7 +40,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string applicationMetadataFile = await File.ReadAllTextAsync(Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json"));
-            var applicationMetadata = JsonSerializer.Deserialize<Application>(applicationMetadataFile, JsonSerializerOptions);
+            var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFile, JsonSerializerOptions);
 
             var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == payload.Id);
             attachmentDataType.MaxCount.Should().Be(payload.MaxCount);
