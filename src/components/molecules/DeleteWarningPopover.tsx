@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, Popover } from '@digdir/design-system-react';
+import { Button, LegacyPopover } from '@digdir/design-system-react';
 import { makeStyles } from '@material-ui/core';
 
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -37,7 +37,7 @@ export function DeleteWarningPopover({
   const classes = useStyles();
   const { lang } = useLanguage();
   return (
-    <Popover
+    <LegacyPopover
       variant='warning'
       placement={placement}
       trigger={children}
@@ -65,6 +65,6 @@ export function DeleteWarningPopover({
           {lang('general.cancel')}
         </Button>
       </div>
-    </Popover>
+    </LegacyPopover>
   );
 }

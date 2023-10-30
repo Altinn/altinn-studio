@@ -232,14 +232,14 @@ describe('RadioButtonsContainerComponent', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'Help Text: The value from the group is: Label for first' }),
     );
-    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
       'Help Text: The value from the group is: Label for first',
     );
 
     await userEvent.click(
       screen.getByRole('button', { name: 'Help Text: The value from the group is: Label for second' }),
     );
-    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
       'Help Text: The value from the group is: Label for second',
     );
 

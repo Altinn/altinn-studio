@@ -39,9 +39,8 @@ export class AppFrontend {
   public printButton = 'button:contains("Print / Lagre PDF")';
 
   public helpText = {
-    open: 'button[aria-expanded=false]',
-    close: 'button[aria-expanded=true]',
-    alert: 'div[role="tooltip"]',
+    button: 'button[class^="HelpText"]',
+    alert: 'div[role="dialog"]',
   };
 
   public navMenu = '#navigation-menu';

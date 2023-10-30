@@ -18,8 +18,9 @@ describe('UI Components', () => {
         .parentsUntil(appFrontend.message.logoFormContent)
         .eq(1)
         .should('have.css', 'justify-content', 'center');
-      cy.wrap(image).parent().siblings().find(appFrontend.helpText.open).click();
-      cy.get(appFrontend.helpText.alert).contains('Altinn logo').type('{esc}');
+      cy.wrap(image).parent().siblings().find(appFrontend.helpText.button).click();
+      cy.get(appFrontend.helpText.alert).should('contain.text', 'Altinn logo');
+      cy.get(appFrontend.helpText.alert).trigger('keydown', { keyCode: 27 }); // Press ESC key
       cy.get(appFrontend.helpText.alert).should('not.exist');
     });
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
@@ -256,17 +257,15 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.confirmChangeName).findByText('Dette er en beskrivelse.').should('be.visible');
     cy.get(appFrontend.changeOfName.confirmChangeName).findByRole('button').click();
     cy.get(appFrontend.changeOfName.confirmChangeName)
-      .findByRole('tooltip', { name: 'Dette er en hjelpetekst.' })
-      .should('be.visible');
+      .findByRole('dialog')
+      .should('contain.text', 'Dette er en hjelpetekst.');
 
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
 
     cy.get(appFrontend.changeOfName.reasons).findByText('Dette er en beskrivelse.').should('be.visible');
     cy.get(appFrontend.changeOfName.reasons).findByRole('button').click();
-    cy.get(appFrontend.changeOfName.reasons)
-      .findByRole('tooltip', { name: 'Dette er en hjelpetekst.' })
-      .should('be.visible');
+    cy.get(appFrontend.changeOfName.reasons).findByRole('dialog').should('contain.text', 'Dette er en hjelpetekst.');
   });
 
   it("alert on change if radioButton or checkBox has 'alertOnChange' set to true", () => {
