@@ -30,6 +30,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             string url = $"{bridgeBaseUrl}metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
             string contentString = await response.Content.ReadAsStringAsync();
             ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(contentString);
             return serviceResource;
@@ -41,6 +43,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             string url = $"{bridgeBaseUrl}authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
             string contentString = await response.Content.ReadAsStringAsync();
             XacmlPolicy policy;
             using (XmlReader reader = XmlReader.Create(new StringReader(contentString)))
@@ -55,9 +59,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
         {
             List<AvailableService>? availableServices = null;
             string bridgeBaseUrl = GetSblBridgeUrl(environment);
-            string availabbleServicePath = $"h{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
+            string availabbleServicePath = $"{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
 
             HttpResponseMessage response = await _httpClient.GetAsync(availabbleServicePath);
+
+            response.EnsureSuccessStatusCode();
 
             string availableServiceString = await response.Content.ReadAsStringAsync();
             if (!string.IsNullOrEmpty(availableServiceString))
@@ -70,7 +76,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
         private string GetSblBridgeUrl(string environment)
         {
-            if (!_rrs.TryGetValue(environment, out ResourceRegistryEnvironmentSettings envSettings))
+            if (!_rrs.TryGetValue(environment.ToLower(), out ResourceRegistryEnvironmentSettings envSettings))
             {
                 throw new ArgumentException($"Invalid environment. Missing environment config for {environment}");
             }

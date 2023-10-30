@@ -18,13 +18,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Altinn.App.Core" />
     <PackageReference Include="Altinn.Authorization.ABAC" />
     <PackageReference Include="Altinn.ApiClients.Maskinporten" />
     <PackageReference Include="Altinn.Common.AccessToken" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" />
-    <PackageReference Include="Altinn.Platform.Models" />
-    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" />
     <PackageReference Include="CompilerAttributes" />
     <PackageReference Include="ini-parser-netstandard" />
     <PackageReference Include="JWTCookieAuthentication" />
@@ -76,6 +76,7 @@
     <Watch Remove="Enums\ReferenceType.cs" />
     <Watch Remove="Enums\ResourceType.cs" />
     <Watch Remove="Enums\ServiceType.cs" />
+    <Watch Remove="Helpers\OrgUtil.cs" />
     <Watch Remove="Helpers\ResourceAdminHelper.cs" />
     <Watch Remove="Models\AvailableService.cs" />
     <Watch Remove="Models\ConceptSchema.cs" />

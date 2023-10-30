@@ -39,7 +39,6 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
       buttonColor: 'inverted',
       headerButtonsClasses: undefined,
       handleClick: () => (window.location.href = previewPath(org, app)),
-      inBeta: true,
     },
     {
       title: 'top_menu.deploy',

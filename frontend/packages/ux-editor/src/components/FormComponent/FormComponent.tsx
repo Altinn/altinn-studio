@@ -11,14 +11,13 @@ import { ITextResource } from 'app-shared/types/global';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../../utils/language';
-import { selectedLayoutSetSelector } from '../../selectors/formLayoutSelectors';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
 import { useTextResourcesSelector } from '../../hooks';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -37,7 +36,6 @@ export const FormComponent = memo(function FormComponent({
   handleDiscard,
   handleEdit,
   handleSave,
-  debounceSave,
   id,
   isEditMode,
 }: IFormComponentProps) {
@@ -47,14 +45,14 @@ export const FormComponent = memo(function FormComponent({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
-  const selectedLayoutSetName = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
   const Icon = formItemConfigs[component.type]?.icon;
 
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(
     org,
     app,
-    selectedLayoutSetName,
+    selectedLayoutSet,
   );
 
   const handleDelete = (): void => {

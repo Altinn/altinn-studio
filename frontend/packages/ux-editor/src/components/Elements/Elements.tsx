@@ -2,12 +2,10 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import { useText } from '../../hooks';
 import {
   selectedLayoutNameSelector,
-  selectedLayoutSetSelector,
 } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
@@ -17,14 +15,15 @@ import { Accordion } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import classes from './Elements.module.css';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
-  const selectedLayoutSet: string = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
-  const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const { receiptLayoutName } = formLayoutSettingsQuery.data;
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutSetNames = layoutSetsQuery?.data?.sets;
 
   const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
@@ -56,7 +55,7 @@ export const Elements = () => {
           <Paragraph className={classes.noPageSelected} size='small'>
             {t('left_menu.no_components_selected')}
           </Paragraph>
-        ) : receiptLayoutName === selectedLayout ? (
+        ) : receiptName === selectedLayout ? (
           <ConfPageToolbar />
         ) : (
           <DefaultToolbar />

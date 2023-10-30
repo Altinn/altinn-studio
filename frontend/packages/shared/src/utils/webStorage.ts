@@ -8,7 +8,7 @@ export type TypedStorage = {
   removeItem: (key: string) => void;
 };
 
-type WebStorage = Pick<Storage, 'setItem' | 'getItem' | 'removeItem'>;
+type WebStorage = Pick<Storage, 'setItem' | 'getItem' | 'removeItem' >;
 
 const createWebStorage = (storage: WebStorage): TypedStorage => {
   if (!storage) {

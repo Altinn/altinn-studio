@@ -41,39 +41,6 @@ describe('AltinnHeaderbuttons', () => {
     await act(() => user.click(button));
     await waitFor(() => expect(handleClick).toHaveBeenCalledTimes(1));
   });
-
-  it('should render information icon if action is in beta', () => {
-    render({
-      action: {
-        buttonVariant: 'primary',
-        headerButtonsClasses: undefined,
-        menuKey: 'menu-1',
-        title: 'Button1',
-        handleClick: jest.fn(),
-        inBeta: true,
-      },
-    });
-    expect(screen.getByRole('img', { name: 'information' })).toBeInTheDocument();
-  });
-
-  it('should render popover with beta message when hovering over information icon', async () => {
-    const user = userEvent.setup();
-
-    render({
-      action: {
-        buttonVariant: 'primary',
-        headerButtonsClasses: undefined,
-        menuKey: 'menu-1',
-        title: 'Button1',
-        handleClick: jest.fn(),
-        inBeta: true,
-      },
-    });
-    const button = screen.getByRole('img', { name: 'information' });
-    await act(() => user.hover(button));
-
-    await screen.findByText(textMock('top_menu.preview_is_beta_message'));
-  });
 });
 
 const render = (props?: Partial<AltinnHeaderButtonProps>) => {

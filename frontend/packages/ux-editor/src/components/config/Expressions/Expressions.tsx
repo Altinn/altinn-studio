@@ -40,6 +40,7 @@ export const Expressions = () => {
 
   useEffect(() => {
     if (form) {
+      const potentialConvertedExternalExpressions: Expression[] = getAllConvertedExpressions(form);
       if (potentialConvertedExternalExpressions.length) {
         setExpressions(potentialConvertedExternalExpressions);
       } else {
@@ -52,7 +53,6 @@ export const Expressions = () => {
 
   if (!formId || !form) return t('right_menu.content_empty');
 
-  const potentialConvertedExternalExpressions: Expression[] = getAllConvertedExpressions(form);
   const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
     handleUpdate(updatedComponent);
     await handleSave(formId, updatedComponent);

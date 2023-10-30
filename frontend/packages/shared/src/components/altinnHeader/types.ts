@@ -10,5 +10,4 @@ export interface AltinnButtonActionItem {
   buttonColor?: ButtonProps['color'];
   headerButtonsClasses: any;
   handleClick: () => void;
-  inBeta?: boolean;
 }

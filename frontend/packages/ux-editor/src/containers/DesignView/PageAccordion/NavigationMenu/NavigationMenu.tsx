@@ -15,7 +15,6 @@ import { useUpdateLayoutNameMutation } from '../../../../hooks/mutations/useUpda
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelector } from 'react-redux';
 import { useDeleteLayoutMutation } from '../../../../hooks/mutations/useDeleteLayoutMutation';
-import { selectedLayoutSetSelector } from '../../../../selectors/formLayoutSelectors';
 import type { IAppState } from '../../../../types/global';
 import { Divider } from 'app-shared/primitives';
 import { AltinnConfirmDialog } from 'app-shared/components';
@@ -23,6 +22,7 @@ import { useSearchParams } from 'react-router-dom';
 import { firstAvailableLayout } from '../../../../utils/formLayoutsUtils';
 import { InputPopover } from './InputPopover';
 import { deepCopy } from 'app-shared/pure';
+import { useAppContext } from '../../../../hooks/useAppContext';
 
 export type NavigationMenuProps = {
   /**
@@ -45,7 +45,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const { org, app } = useStudioUrlParams();
 
-  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
   const invalidLayouts: string[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.invalidLayouts,
   );
