@@ -1,8 +1,10 @@
 /* eslint-disable no-console */
 const env = require('dotenv').config().parsed;
+const path = require('path');
 
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { EsbuildPlugin } = require('esbuild-loader');
 
@@ -69,12 +71,18 @@ module.exports = {
     historyApiFallback: true,
     allowedHosts: 'all',
     hot: true,
-    headers: { 'Access-Control-Allow-Origin': '*' },
+    headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*' },
     client: {
       overlay: {
         errors: true,
         warnings: false,
       },
     },
+    static: [
+      {
+        directory: path.join(__dirname, 'schemas'),
+        publicPath: '/schemas',
+      },
+    ],
   },
 };

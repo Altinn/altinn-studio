@@ -16,6 +16,7 @@ describe('layoutSlice', () => {
           layouts,
           navigationConfig,
           hiddenLayoutsExpressions,
+          layoutSetId: null,
         }),
       );
 
@@ -42,6 +43,7 @@ describe('layoutSlice', () => {
           layouts,
           navigationConfig,
           hiddenLayoutsExpressions,
+          layoutSetId: null,
         }),
       );
 
@@ -59,6 +61,7 @@ describe('layoutSlice', () => {
           layouts,
           navigationConfig,
           hiddenLayoutsExpressions,
+          layoutSetId: null,
         }),
       );
 

@@ -19,7 +19,7 @@ import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ThemeWrapper } from 'src/components/ThemeWrapper';
 import { AppQueriesContextProvider } from 'src/contexts/appQueriesContext';
 import { DevTools } from 'src/features/devtools/DevTools';
-import { LayoutValidationProvider } from 'src/features/layoutValidation/useLayoutValidationCurrentPage';
+import { LayoutValidationProvider } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { AllOptionsProvider } from 'src/features/options/useAllOptions';
 import * as queries from 'src/queries/queries';
 import { initSagas } from 'src/redux/sagas';

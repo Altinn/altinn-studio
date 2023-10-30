@@ -91,6 +91,7 @@ describe('fetchFormLayoutSagas', () => {
             layouts: { page1: [] },
             navigationConfig: { page1: undefined },
             hiddenLayoutsExpressions: { ...hiddenExprPage1 },
+            layoutSetId: null,
           }),
         )
         .put(
@@ -116,6 +117,7 @@ describe('fetchFormLayoutSagas', () => {
             layouts: { FormLayout: [] },
             navigationConfig: {},
             hiddenLayoutsExpressions: { FormLayout: hiddenExprPage1['page1'] },
+            layoutSetId: null,
           }),
         )
         .put(
@@ -164,6 +166,7 @@ describe('fetchFormLayoutSagas', () => {
               ...hiddenExprPage1,
               page2: undefined,
             },
+            layoutSetId: null,
           }),
         )
         .put(
@@ -195,6 +198,7 @@ describe('fetchFormLayoutSagas', () => {
               ...hiddenExprPage1,
               ...hiddenExprPage2,
             },
+            layoutSetId: null,
           }),
         )
         .put(
@@ -220,6 +224,7 @@ describe('fetchFormLayoutSagas', () => {
             layouts: { page1: [] },
             navigationConfig: { page1: undefined },
             hiddenLayoutsExpressions: { ...hiddenExprPage1 },
+            layoutSetId: null,
           }),
         )
         .put(
@@ -245,6 +250,7 @@ describe('fetchFormLayoutSagas', () => {
             layouts: { page1: [] },
             navigationConfig: { page1: undefined },
             hiddenLayoutsExpressions: { ...hiddenExprPage1 },
+            layoutSetId: null,
           }),
         )
         .put(

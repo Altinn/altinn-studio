@@ -102,6 +102,7 @@ export function* fetchLayoutSaga(): SagaIterator {
         layouts,
         navigationConfig,
         hiddenLayoutsExpressions,
+        layoutSetId: layoutSetId ?? null,
       }),
     );
     yield put(

@@ -1,17 +1,25 @@
 import React from 'react';
 import type { JSX } from 'react';
 
+import type { ErrorObject } from 'ajv';
+
 import { GroupDef } from 'src/layout/Group/config.def.generated';
 import { GroupRenderer } from 'src/layout/Group/GroupRenderer';
 import { GroupHierarchyGenerator } from 'src/layout/Group/hierarchy';
 import { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
+import {
+  groupIsNonRepeatingExt,
+  groupIsNonRepeatingPanelExt,
+  groupIsRepeatingExt,
+  groupIsRepeatingLikertExt,
+} from 'src/layout/Group/tools';
 import { runValidationOnNodes } from 'src/utils/validation/validation';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
+import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { IFormData } from 'src/features/formData';
-import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
 import type { ComponentValidation, GroupValidation, PropsFromGenericComponent } from 'src/layout';
-import type { CompInternal, HierarchyDataSources } from 'src/layout/layout';
+import type { CompExternalExact, CompInternal, HierarchyDataSources } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -124,5 +132,25 @@ export class Group extends GroupDef implements GroupValidation, ComponentValidat
     }
 
     return [];
+  }
+
+  /**
+   * Override layout validation to select a specific pointer depending on the type of group.
+   */
+  validateLayoutConfing(
+    component: CompExternalExact<'Group'>,
+    validatate: (pointer: string, data: unknown) => ErrorObject[] | undefined,
+  ): ErrorObject[] | undefined {
+    let schemaPointer = '#/definitions/AnyComponent';
+    if (groupIsNonRepeatingExt(component)) {
+      schemaPointer = '#/definitions/CompGroupNonRepeating';
+    } else if (groupIsNonRepeatingPanelExt(component)) {
+      schemaPointer = '#/definitions/CompGroupNonRepeatingPanel';
+    } else if (groupIsRepeatingLikertExt(component)) {
+      schemaPointer = '#/definitions/CompGroupRepeatingLikert';
+    } else if (groupIsRepeatingExt(component)) {
+      schemaPointer = '#/definitions/CompGroupRepeating';
+    }
+    return validatate(schemaPointer, component);
   }
 }

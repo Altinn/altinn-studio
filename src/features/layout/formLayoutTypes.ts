@@ -18,6 +18,7 @@ export interface IFetchLayoutFulfilled {
   layouts: ILayouts;
   navigationConfig?: INavigationConfig;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
+  layoutSetId: string | null;
 }
 
 export interface IFetchLayoutSetsFulfilled {

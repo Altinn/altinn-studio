@@ -6,7 +6,7 @@ import { ListComponent } from 'src/layout/List/ListComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { getFieldName } from 'src/utils/formComponentUtils';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
-import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
+import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';

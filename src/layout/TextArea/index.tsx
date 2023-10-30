@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TextAreaDef } from 'src/layout/TextArea/config.def.generated';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
-import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
+import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';

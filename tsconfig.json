@@ -23,7 +23,8 @@
     "paths": {
       "src/*": ["src/*"],
       "test/*": ["test/*"],
-      "schemas/*": ["schemas/*"]
+      "schemas/*": ["schemas/*"],
+      "scripts/*": ["scripts/*"]
     },
     "allowSyntheticDefaultImports": true,
     "exactOptionalPropertyTypes": false,
@@ -37,6 +38,6 @@
     "noUncheckedIndexedAccess": false,
     "noUnusedParameters": false
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts"],
   "exclude": ["node_modules/cypress"]
 }

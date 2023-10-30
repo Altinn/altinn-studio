@@ -25,6 +25,7 @@ import type { ILayoutSets, IPagesSettings, IRepeatingGroups, IUiConfig } from 's
 
 export interface ILayoutState {
   layouts: ILayouts | null;
+  layoutSetId: string | null;
   error: Error | null;
   uiConfig: IUiConfig;
   layoutsets: ILayoutSets | null;
@@ -32,6 +33,7 @@ export interface ILayoutState {
 
 export const initialState: ILayoutState = {
   layouts: null,
+  layoutSetId: null,
   error: null,
   uiConfig: {
     focus: null,
@@ -81,13 +83,14 @@ export const formLayoutSlice = () => {
         }),
         fetchFulfilled: mkAction<LayoutTypes.IFetchLayoutFulfilled>({
           reducer: (state, action) => {
-            const { layouts, navigationConfig, hiddenLayoutsExpressions } = action.payload;
+            const { layouts, navigationConfig, hiddenLayoutsExpressions, layoutSetId } = action.payload;
             state.layouts = layouts;
             state.uiConfig.navigationConfig = navigationConfig;
             state.uiConfig.tracks.order = Object.keys(layouts);
             state.uiConfig.tracks.hiddenExpr = hiddenLayoutsExpressions;
             state.error = null;
             state.uiConfig.repeatingGroups = null;
+            state.layoutSetId = layoutSetId;
           },
         }),
         fetchRejected: genericReject,

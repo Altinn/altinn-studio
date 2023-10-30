@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { Alert, Button } from '@digdir/design-system-react';
@@ -10,8 +10,8 @@ import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInsp
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { DevToolsTab } from 'src/features/devtools/data/types';
+import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
-import { useLayoutValidationCurrentPage } from 'src/features/layoutValidation/useLayoutValidationCurrentPage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { useExprContext } from 'src/utils/layout/ExprContext';
@@ -24,6 +24,14 @@ export const LayoutInspector = () => {
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
   const [error, setError] = useState<boolean>(false);
   const nodes = useExprContext();
+
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = 'auto';
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+    }
+  }, [componentProperties]);
 
   const dispatch = useDispatch();
   const setSelectedComponent = useCallback(
@@ -38,7 +46,7 @@ export const LayoutInspector = () => {
 
   const currentLayout = layouts?.[currentView];
   const matchingNodes = selectedComponent ? nodes?.findAllById(selectedComponent) || [] : [];
-  const validationErrors = useLayoutValidationCurrentPage();
+  const validationErrorsForPage = useLayoutValidationForPage() || {};
 
   useEffect(() => {
     setSelectedComponent(undefined);
@@ -118,7 +126,9 @@ export const LayoutInspector = () => {
               key={component.id}
               component={component}
               selected={selectedComponent === component.id}
-              hasErrors={validationErrors[component.id] !== undefined}
+              hasErrors={
+                validationErrorsForPage[component.id] !== undefined && validationErrorsForPage[component.id].length > 0
+              }
               onClick={() => setSelectedComponent(component.id)}
             />
           ))}
@@ -128,14 +138,14 @@ export const LayoutInspector = () => {
         <div className={classes.properties}>
           <div className={classes.header}>
             <h3>Egenskaper</h3>
-            {validationErrors[selectedComponent] && (
+            {validationErrorsForPage[selectedComponent] && validationErrorsForPage[selectedComponent].length > 0 && (
               <Alert
                 className={classes.errorAlert}
                 severity={'warning'}
               >
                 <div className={classes.errorList}>
                   <ul>
-                    {validationErrors[selectedComponent].map((error) => (
+                    {validationErrorsForPage[selectedComponent].map((error) => (
                       <li key={error}>{getParsedLanguageFromText(error)}</li>
                     ))}
                   </ul>
@@ -161,6 +171,7 @@ export const LayoutInspector = () => {
             />
           </div>
           <textarea
+            ref={textAreaRef}
             value={componentProperties ?? ''}
             onChange={handleChange}
             onKeyDown={(event) => {
@@ -175,6 +186,7 @@ export const LayoutInspector = () => {
           {error && <span className={classes.error}>Ugyldig JSON</span>}
           {propertiesHaveChanged && (
             <Button
+              fullWidth
               size='small'
               onClick={handleSave}
             >

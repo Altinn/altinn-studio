@@ -6,3 +6,11 @@ export interface LayoutValidationCtx<T extends CompTypes> {
   node: LayoutNode<T>;
   lookupBinding(binding: string): ReturnType<typeof lookupBindingInSchema>;
 }
+
+export interface LayoutValidationErrors {
+  [layoutSetId: string]: {
+    [pageName: string]: {
+      [componentId: string]: string[];
+    };
+  };
+}

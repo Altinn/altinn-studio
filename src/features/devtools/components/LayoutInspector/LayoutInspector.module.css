@@ -60,25 +60,21 @@
   padding-left: 12px;
 }
 
-.properties,
-.richProperties {
-  display: flex;
-  flex-direction: column;
+.properties {
+  font-family: monospace;
   width: 100%;
   height: 100%;
   background: white;
   padding: 4px;
-}
-
-.properties {
-  font-family: monospace;
+  overflow-y: auto;
 }
 
 .properties > textarea {
-  background: transparent;
-  font-family: monospace;
+  width: 100%;
+  background-color: #efefef;
+  padding: 6px 4px;
+  border-radius: 4px;
   line-height: 1.2;
-  flex: 1;
   resize: none;
   font-size: 0.8rem;
   border: none;
@@ -98,7 +94,7 @@
   height: 32px;
   width: 32px;
   position: absolute;
-  top: 36px;
+  top: 49px;
   right: 0;
   z-index: 1001;
 }
@@ -113,8 +109,14 @@
 }
 
 .errorList {
-  font-size: initial;
-  font-family: initial;
+  font-size: 0.8rem;
+  font-family: var(--font-family);
+}
+
+.errorList code {
+  background-color: #efefef;
+  padding: 2px 4px;
+  border-radius: 4px;
 }
 
 .error {

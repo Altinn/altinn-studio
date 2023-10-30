@@ -7,7 +7,7 @@ import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
+import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IInputFormatting } from 'src/layout/Input/config.generated';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';

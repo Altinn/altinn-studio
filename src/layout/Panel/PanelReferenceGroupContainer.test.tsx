@@ -58,6 +58,7 @@ describe('PanelGroupContainer', () => {
     layouts: {
       FormLayout: [],
     },
+    layoutSetId: null,
     uiConfig: {
       ...initialState.formLayout.uiConfig,
       hiddenFields: [],

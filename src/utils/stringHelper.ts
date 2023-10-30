@@ -33,3 +33,12 @@ export const getPlainTextFromNode = (node: ReactNode): string => {
   }
   return '';
 };
+
+export function duplicateStringFilter(currentString: string, currentIndex: number, strings: string[]): boolean {
+  for (let i = 0; i < currentIndex; i++) {
+    if (currentString === strings[i]) {
+      return false;
+    }
+  }
+  return true;
+}

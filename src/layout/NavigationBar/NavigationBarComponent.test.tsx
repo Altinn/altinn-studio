@@ -28,6 +28,7 @@ const render = ({ dispatch = jest.fn() }: Props = {}) => {
       state.formLayout = {
         error: null,
         layoutsets: null,
+        layoutSetId: null,
         uiConfig: {
           tracks: {
             order: ['page1', 'page2', 'page3'],

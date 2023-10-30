@@ -30,6 +30,7 @@ const getLayout = (group: CompGroupRepeatingExternal, components: CompOrGroupExt
     layouts: {
       FormLayout: [group, ...components],
     },
+    layoutSetId: null,
     uiConfig: {
       hiddenFields: [],
       repeatingGroups: {

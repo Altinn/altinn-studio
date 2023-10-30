@@ -8,7 +8,7 @@ import { getLayoutComponentObject } from 'src/layout';
 import { ensureAppsDirIsSet, getAllLayoutSetsWithDataModelSchema, parseJsonTolerantly } from 'src/test/allApps';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import { getRootElementPath } from 'src/utils/schemaUtils';
-import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
+import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 
 describe('Data model lookups in real apps', () => {
   const dir = ensureAppsDirIsSet();

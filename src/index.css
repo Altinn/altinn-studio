@@ -3,7 +3,8 @@
 
 /* Font */
 :root {
-  font-family: 'Inter', sans-serif;
+  --font-family: 'Inter', sans-serif;
+  font-family: var(--font-family);
   font-size: 1rem;
   font-weight: normal;
   line-height: 1.5;
@@ -13,7 +14,7 @@
 
 @supports (font-variation-settings: normal) {
   :root {
-    font-family: 'Inter var', sans-serif;
+    --font-family: 'Inter var', sans-serif;
   }
   * {
     font-feature-settings: 'cv05';

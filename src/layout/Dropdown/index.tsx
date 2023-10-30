@@ -5,7 +5,7 @@ import { getSelectedValueToText } from 'src/features/options/getSelectedValueToT
 import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import type { LayoutValidationCtx } from 'src/features/layoutValidation/types';
+import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
