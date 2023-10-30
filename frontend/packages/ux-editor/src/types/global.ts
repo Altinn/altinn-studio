@@ -34,6 +34,9 @@ export interface IInternalLayout {
   customDataProperties: KeyValuePairs;
 }
 
+export type InternalLayoutData = Omit<IInternalLayout, 'customRootProperties'>;
+export type InternalLayoutComponents = Omit<InternalLayoutData, 'customDataProperties'>;
+
 export interface IInternalLayoutWithName {
   layout: IInternalLayout;
   layoutName: string;

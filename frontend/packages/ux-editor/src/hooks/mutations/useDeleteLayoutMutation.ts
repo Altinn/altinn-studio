@@ -10,11 +10,11 @@ import { ILayoutSettings } from 'app-shared/types/global';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
-import { convertInternalToLayoutFormat } from '../../utils/formLayoutUtils';
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useText } from '../useText';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
@@ -30,7 +30,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
   const queryClient = useQueryClient();
 
   const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
-    const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
+    const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
     return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, convertedLayout);
   };
 

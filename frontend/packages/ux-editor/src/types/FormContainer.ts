@@ -3,10 +3,11 @@ import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export interface FormContainer {
   dataModelBindings?: IDataModelBindings;
-  id?: string;
+  id: string;
   index?: number;
   itemType: 'CONTAINER';
   maxCount?: number;
+  pageIndex?: number;
   tableHeaders?: string[];
   textResourceBindings?: ITextResourceBindings;
   propertyPath?: string;
