@@ -6,7 +6,7 @@ import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
-import type { FormMapLayer } from '../../../../types/FormComponent';
+import type { MapLayer } from 'app-shared/types/MapLayer';
 
 export const MapComponent = ({
   component,
@@ -117,7 +117,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
     });
   };
 
-  const updateLayer = (index: number, subdomains: string[]): FormMapLayer[] => {
+  const updateLayer = (index: number, subdomains: string[]): MapLayer[] => {
     return [
       ...component.layers.slice(0, index),
       {

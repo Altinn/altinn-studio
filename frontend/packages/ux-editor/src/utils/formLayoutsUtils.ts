@@ -1,7 +1,6 @@
 import { IFormLayouts, IInternalLayout } from '../types/global';
 import {
   addNavigationButtons,
-  convertFromLayoutToInternalFormat,
   createEmptyLayout,
   hasNavigationButtons,
   removeComponentsByType,
@@ -12,6 +11,7 @@ import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { removeDuplicates } from 'app-shared/utils/arrayUtils';
+import { externalLayoutToInternal } from '../converters/formLayoutConverters';
 
 /**
  * Update layouts to have navigation buttons if there are multiple layouts, or remove them if this is the only one.
@@ -82,7 +82,7 @@ export const convertExternalLayoutsToInternalFormat = (
       convertedLayouts[name] = createEmptyLayout();
     } else {
       try {
-        convertedLayouts[name] = convertFromLayoutToInternalFormat(layouts[name]);
+        convertedLayouts[name] = externalLayoutToInternal(layouts[name]);
       } catch {
         invalidLayouts.push(name);
       }
