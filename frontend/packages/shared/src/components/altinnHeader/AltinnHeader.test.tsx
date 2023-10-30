@@ -3,14 +3,19 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import { AltinnHeader, AltinnHeaderProps } from './AltinnHeader';
 import { Button } from '@digdir/design-system-react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { RepositoryType } from 'app-shared/types/global';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { MemoryRouter } from 'react-router-dom';
 
 describe('AltinnHeader', () => {
   it('should render AltinnHeaderMenu', () => {
     render({
-      menu: [
+      menuItems: [
         {
-          key: 'test-key',
-          link: <a href='somewhere'>test-key</a>,
+          key: TopBarMenu.About,
+          link: RoutePaths.Overview,
+          repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
         },
       ],
     });
@@ -59,10 +64,9 @@ describe('AltinnHeader', () => {
 
 const render = (props: Partial<AltinnHeaderProps> = {}) => {
   const defaultProps: AltinnHeaderProps = {
-    menu: [],
+    menuItems: [],
     showSubMenu: true,
     subMenuContent: null,
-    activeMenuSelection: null,
     app: 'test-app',
     org: 'test-org',
     user: {
@@ -112,5 +116,9 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
     buttonActions: [],
   };
 
-  return rtlRender(<AltinnHeader {...defaultProps} {...props} />);
+  return rtlRender(
+    <MemoryRouter>
+      <AltinnHeader {...defaultProps} {...props} />
+    </MemoryRouter>,
+  );
 };

@@ -1,19 +1,11 @@
-import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
-import { SupportedFeatureFlags, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon } from '@navikt/aksel-icons';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 
-export interface TopBarMenuNamesItem {
-  key: TopBarMenu;
-  link: RoutePaths;
-  icon?: React.FC<React.SVGProps<SVGSVGElement>>;
-  repositoryTypes: RepositoryType[];
-  featureFlagName?: SupportedFeatureFlags;
-}
-
-export const menu: TopBarMenuNamesItem[] = [
+export const menu: TopBarMenuItem[] = [
   {
     key: TopBarMenu.About,
     link: RoutePaths.Overview,
@@ -27,7 +19,7 @@ export const menu: TopBarMenuNamesItem[] = [
   },
   {
     key: TopBarMenu.Datamodel,
-    link: RoutePaths.DataModel,
+    link: RoutePaths.Datamodel,
     icon: DatabaseIcon,
     repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
   },
@@ -46,13 +38,13 @@ export const menu: TopBarMenuNamesItem[] = [
   },
 ];
 
-export const getFilteredTopBarMenu = (repositoryType: RepositoryType): TopBarMenuNamesItem[] => {
+export const getFilteredTopBarMenu = (repositoryType: RepositoryType): TopBarMenuItem[] => {
   return menu
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
     .filter(filterRoutesByFeatureFlag);
 };
 
-const filterRoutesByFeatureFlag = (menuItem: TopBarMenuNamesItem): boolean => {
+const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {
   // If no feature tag is set, the menu item should be displayed
   if (!menuItem.featureFlagName) return true;
 

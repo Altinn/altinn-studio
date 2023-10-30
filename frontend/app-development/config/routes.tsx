@@ -47,7 +47,7 @@ export const routes: IRoute[] = [
     subapp: shouldDisplayFeature('newAdministration') ? Administration : LegacyAdministration,
   },
   {
-    path: RoutePaths.DataModel,
+    path: RoutePaths.Datamodel,
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Datamodel,
     activeLeftMenuSelection: '',
