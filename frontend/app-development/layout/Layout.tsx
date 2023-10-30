@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './Layout.module.css';
-import { Outlet, Route, Routes, matchPath, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, matchPath, useLocation } from 'react-router-dom';
 import { routes } from 'app-development/config/routes';
 import { Center } from 'app-shared/components/Center';
 import { PageHeader } from './PageHeader';
@@ -17,15 +17,9 @@ export const Layout = (): React.ReactNode => {
   // - case 'error': Display error message (and potentially the 404 page IF there is a 404 error)
   // - case 'success': return the app/outlet
 
-  // clean up the URL so that it becomes only the route path
-  const pathNameWithoutOrgAndApp: RoutePaths = pathname
-    .replace(org, '')
-    .replace(app, '')
-    .replaceAll('/', '') as RoutePaths;
-
   return (
     <>
-      <PageHeader org={org} app={app} activeRoute={pathNameWithoutOrgAndApp} />
+      <PageHeader org={org} app={app} />
       <Outlet />
     </>
   );
@@ -42,6 +36,8 @@ export const PageRoutes = () => {
     <div className={classes.root}>
       <Routes>
         <Route path={basePath} element={<Layout />}>
+          {/* Redirects from /:org/:app to child route /overview */}
+          <Route path={RoutePaths.Root} element={<Navigate to={RoutePaths.Overview} />} />
           {routes.map((route) => (
             <Route key={route.path} path={route.path} element={<route.subapp {...route.props} />} />
           ))}

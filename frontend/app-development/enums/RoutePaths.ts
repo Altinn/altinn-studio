@@ -1,5 +1,6 @@
 export enum RoutePaths {
-  About = '',
+  Root = '',
+  Overview = 'overview',
   UIEditor = 'ui-editor',
   DataModel = 'datamodel',
   Deploy = 'deploy',

@@ -38,6 +38,6 @@ const render = (props: Partial<IAltinnHeaderMenuProps> = {}) => {
   return rtlRender(
     <MemoryRouter>
       <AltinnHeaderMenu {...defaultProps} {...props} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

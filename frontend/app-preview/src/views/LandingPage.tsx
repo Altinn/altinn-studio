@@ -7,10 +7,7 @@ import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import {
-  getTopBarAppPreviewMenu,
-  TopBarAppPreviewMenu,
-} from '../components/AppBarConfig/AppPreviewBarConfig';
+import { getTopBarAppPreviewMenu } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { Alert, Button, LegacyPopover } from '@digdir/design-system-react';
@@ -18,6 +15,7 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { previewPage } from 'app-shared/api/paths';
 import { typedSessionStorage } from 'app-shared/utils/webStorage';
+import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -33,16 +31,23 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const [openSaveChoiceInSession, setOpenShowSaveChoiceInSession] = useState<boolean>(false);
-  const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem('showPreviewLimitationsInfo');
-  const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(showPreviewLimitationsInfoSession ?? true);
-  const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
+  const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem(
+    'showPreviewLimitationsInfo',
+  );
+  const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(
+    showPreviewLimitationsInfoSession ?? true,
+  );
+  const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>(
+    'layoutSet/' + app,
+    null,
+  );
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
     'desktop',
   );
 
   const repoType = getRepositoryType(org, app);
-  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
+  const menuItems: TopBarMenuItem[] = getTopBarAppPreviewMenu(org, app, repoType, t);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
@@ -79,9 +84,8 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     <>
       <div className={classes.header}>
         <AltinnHeader
-          menu={menu}
+          menuItems={menuItems}
           showSubMenu={true}
-          activeMenuSelection={TopBarAppPreviewMenu.Preview}
           org={org}
           app={app}
           user={user}
@@ -99,22 +103,34 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
         />
       </div>
       <div className={classes.gridContainer}>
-      {showPreviewLimitationsInfo &&
-        <Alert severity='info' className={classes.previewLimitationsInfo}>
-          <div className={classes.alert}>
-            {t('preview.limitations_info')}
-            <LegacyPopover
-                trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
+        {showPreviewLimitationsInfo && (
+          <Alert severity='info' className={classes.previewLimitationsInfo}>
+            <div className={classes.alert}>
+              {t('preview.limitations_info')}
+              <LegacyPopover
+                trigger={
+                  <Button
+                    onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)}
+                    size='small'
+                    variant='tertiary'
+                    icon={<XMarkIcon />}
+                  />
+                }
                 open={openSaveChoiceInSession}
-            >
-              {t('session.reminder')}
-              <span className={classes.row}>
-                <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>{t('session.do_show_again')}</Button>
-                <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>{t('session.dont_show_again')}</Button>
-              </span>
-            </LegacyPopover>
-          </div>
-        </Alert>}
+              >
+                {t('session.reminder')}
+                <span className={classes.row}>
+                  <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>
+                    {t('session.do_show_again')}
+                  </Button>
+                  <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>
+                    {t('session.dont_show_again')}
+                  </Button>
+                </span>
+              </LegacyPopover>
+            </div>
+          </Alert>
+        )}
         <div className={classes.iframeContainer}>
           <iframe
             title={t('preview.iframe_title')}

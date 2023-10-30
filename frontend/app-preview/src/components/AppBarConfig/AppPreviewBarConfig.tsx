@@ -1,36 +1,27 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
-import { Link } from 'react-router-dom';
 import { TFunction } from 'i18next';
 import { editorPath } from 'app-shared/api/paths';
 import { Button, Select, LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
-import { TopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
 import { useLayoutSetsQuery } from '../../../../packages/ux-editor/src/hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 
 export interface AppPreviewMenuItem {
   key: string;
   link: JSX.Element;
 }
 
-export interface TopBarAppPreviewMenuItem {
-  key: TopBarAppPreviewMenu;
-  link: string;
-  repositoryTypes: RepositoryType[];
-}
-
-export enum TopBarAppPreviewMenu {
-  Preview = 'general.preview',
-}
-
-export const menu: TopBarAppPreviewMenuItem[] = [
+export const menu: TopBarMenuItem[] = [
   {
-    key: TopBarAppPreviewMenu.Preview,
+    key: TopBarMenu.Preview,
     link: '/:org/:app',
     repositoryTypes: [RepositoryType.App],
   },
@@ -41,15 +32,8 @@ export const getTopBarAppPreviewMenu = (
   app: string,
   repositoryType: RepositoryType,
   t: TFunction,
-): AppPreviewMenuItem[] => {
-  return menu
-    .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
-    .map((item) => {
-      return {
-        key: item.key,
-        link: <Link to={item.link.replace(':org', org).replace(':app', app)}>{t(item.key)} </Link>,
-      } as AppPreviewMenuItem;
-    });
+): TopBarMenuItem[] => {
+  return menu.filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType));
 };
 
 export const SubPreviewMenuLeftContent = ({
@@ -118,7 +102,7 @@ export const appPreviewButtonActions = (
   app: string,
   instanceId: string,
 ): AltinnButtonActionItem[] => {
-  const subUrl = `/ui-editor?layout=`;
+  const subUrl = `/${RoutePaths.UIEditor}?layout=`;
   const action: AltinnButtonActionItem[] = [
     {
       title: 'top_menu.preview_back_to_editing',
