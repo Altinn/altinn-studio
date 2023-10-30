@@ -12,12 +12,4 @@ export const Config = new CG.component({
   },
 })
   .makeSelectionComponent()
-  .addDataModelBinding(CG.common('IDataModelBindingsSimple').optional({ onlyIn: Variant.Internal }))
-  .addProperty(
-    new CG.prop(
-      'sortOrder',
-      new CG.enum('asc', 'desc')
-        .setDescription('Sorts the code list in either ascending or descending order by label.')
-        .optional(),
-    ),
-  );
+  .addDataModelBinding(CG.common('IDataModelBindingsSimple').optional({ onlyIn: Variant.Internal }));

@@ -291,6 +291,12 @@ const common = {
               'server (allows for user/instance-specific options)',
           ),
       ),
+      new CG.prop(
+        'sortOrder',
+        new CG.enum('asc', 'desc')
+          .setDescription('Sorts the code list in either ascending or descending order by label.')
+          .optional(),
+      ),
       new CG.prop('source', CG.common('IOptionSource').optional()),
     ),
   ISelectionComponentFull: () =>
