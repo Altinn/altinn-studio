@@ -52,10 +52,10 @@ context('datamodel', () => {
       .invoke('val')
       .should('match', /\/testdatamodel.schema.json$/)
       .then((value) => {
-        cy.findByRole('combobox', { value }).should('exist');
+        cy.findAllByRole('option', { value }).should('exist');
         cy.findByRole('button', { name: texts['schema_editor.delete_data_model'] }).click();
         cy.findByRole('button', { name: texts['schema_editor.confirm_deletion'] }).click();
-        cy.findByRole('combobox', { value }).should('not.match', /\/testdatamodel.schema.json$/);
+        cy.findByRole('option', { value }).should('not.exist');
       });
   });
 });
