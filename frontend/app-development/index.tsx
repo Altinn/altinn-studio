@@ -14,6 +14,7 @@ import 'app-shared/design-tokens';
 import { LoggerConfig, LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import 'app-shared/design-tokens';
 import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
+import { QueryClientConfig } from '@tanstack/react-query';
 
 const store = setupStore();
 
@@ -31,16 +32,25 @@ run();
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
 
+const queryClientConfig: QueryClientConfig = {
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+};
+
 root.render(
   <LoggerContextProvider config={loggerConfig}>
     <Provider store={store}>
       <BrowserRouter basename={APP_DEVELOPMENT_BASENAME}>
-        <ServicesContextProvider {...queries} {...mutations}>
+        <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
           <PreviewConnectionContextProvider>
             <App />
           </PreviewConnectionContextProvider>
         </ServicesContextProvider>
       </BrowserRouter>
     </Provider>
-  </LoggerContextProvider>
+  </LoggerContextProvider>,
 );

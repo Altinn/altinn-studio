@@ -14,6 +14,7 @@ export interface IProfileMenuComponentProps {
   showlogout?: boolean;
   user: User;
   userNameAndOrg: string;
+  repositoryError?: boolean;
 }
 
 /**
@@ -30,16 +31,12 @@ export const ProfileMenu = ({
   showlogout,
   user,
   userNameAndOrg,
+  repositoryError,
 }: IProfileMenuComponentProps): ReactNode => {
   const menuRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // TODO ------
-  // Lift org and app up, as they get the wrong values here.
-  // Add a prop for "show repo button"
   const { org, app } = useStudioUrlParams();
-  console.log('org in ProfileMenu', org);
-  console.log('app in ProfileMenu', app);
 
   const handleClick = (event: any) => setMenuOpen(true);
   const handleClose = () => setMenuOpen(false);
@@ -112,7 +109,7 @@ export const ProfileMenu = ({
           // workaround for highlighted menu item not changing.
           // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
         }
-        {org && app && (
+        {org && app && !repositoryError && (
           <MenuItem className={classes.menuItem}>
             <a href={repositoryPath(org, app)} target='_blank' rel='noopener noreferrer'>
               {t('dashboard.open_repository')}

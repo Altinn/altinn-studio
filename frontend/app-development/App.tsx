@@ -25,9 +25,7 @@ import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import { PageSpinner } from 'app-shared/components';
 import * as testids from '../testing/testids';
-import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
 import { PageRoutes } from './router/PageRoutes';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
@@ -53,12 +51,7 @@ export function App() {
 
   const repositoryType = getRepositoryType(org, app);
   const { t } = useTranslation();
-  const {
-    status: repoStatusStatus,
-    data: repoStatus,
-    error: repoStatusError,
-    refetch,
-  } = useRepoStatusQuery(org, app);
+  const { refetch } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes,
   );
@@ -148,13 +141,6 @@ export function App() {
     },
     [dispatch],
   );
-  /*if (!repoStatus) {
-    return (
-      <div className={classes.appSpinner}>
-        <PageSpinner />
-      </div>
-    );
-  }*/
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
       <AltinnPopoverSimple
@@ -172,9 +158,6 @@ export function App() {
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
       <div data-testid={testids.appContentWrapper}>
-        {/*repoStatus?.hasMergeConflict ? (
-          <MergeConflictWarning org={org} app={app} />
-        ) : (*/}
         <PageRoutes />
       </div>
     </div>
