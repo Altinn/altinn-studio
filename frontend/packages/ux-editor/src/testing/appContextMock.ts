@@ -6,5 +6,8 @@ const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
 };
 
 export const appContextMock: AppContextProps = {
-  previewIframeRef: previewIframeRefMock
+  previewIframeRef: previewIframeRefMock,
+  selectedLayoutSet: 'test-layout-set',
+  setSelectedLayoutSet: (layoutSet: string) => {},
+  removeSelectedLayoutSet: () => {},
 };

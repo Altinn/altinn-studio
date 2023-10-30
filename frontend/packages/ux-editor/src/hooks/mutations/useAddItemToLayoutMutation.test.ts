@@ -5,7 +5,7 @@ import { AddFormItemMutationArgs, useAddItemToLayoutMutation } from './useAddIte
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import { IAppState } from '../../types/global';
-import { externalLayoutsMock, layoutSetsMock } from "../../testing/layoutMock";
+import { externalLayoutsMock, layoutSetsMock } from '../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 

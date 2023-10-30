@@ -4,14 +4,11 @@ import { Typography } from '@mui/material';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
 import RuleButton from './RuleButton';
 import type { IRuleModelFieldElement } from '../../types/global';
-import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { useFormLayouts } from '../../hooks';
 import {
   getAllLayoutContainers,
   getAllLayoutComponents,
-  getFullLayoutOrder,
-  selectedLayoutSetSelector,
+  getFullLayoutOrder
 } from '../../selectors/formLayoutSelectors';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
@@ -19,6 +16,8 @@ import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutati
 import { ConditionalRenderingConnection } from 'app-shared/types/RuleConfig';
 import { addConditionalRenderingConnection, deleteConditionalRenderingConnection } from '../../utils/ruleConfigUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
+import { useAppContext } from "../../hooks/useAppContext";
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -29,11 +28,11 @@ export interface IConditionalRenderingModalProps {
 export function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
   const { org, app } = useStudioUrlParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
   const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);
   const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSet);
-  const formLayouts = useFormLayouts();
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const layoutContainers = getAllLayoutContainers(formLayouts);
   const layoutComponents = getAllLayoutComponents(formLayouts);
   const layoutOrder = getFullLayoutOrder(formLayouts);

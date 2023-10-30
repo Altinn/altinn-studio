@@ -2,7 +2,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Models;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<Application>(expectedApplicationMetadata, SerializerOptions), SerializerOptions);
+            string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadata, SerializerOptions), SerializerOptions);
             JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
         }
     }
