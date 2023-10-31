@@ -52,10 +52,10 @@ context('datamodel', () => {
       .invoke('val')
       .should('match', /\/testdatamodel.schema.json$/)
       .then((value) => {
-        cy.findAllByRole('option', { value }).should('exist');
+        cy.get(`option[value="${value}"]`).should('exist');
         cy.findByRole('button', { name: texts['schema_editor.delete_data_model'] }).click();
         cy.findByRole('button', { name: texts['schema_editor.confirm_deletion'] }).click();
-        cy.findByRole('option', { value }).should('not.exist');
+        cy.get(`option[value="${value}"]`).should('not.exist');
       });
   });
 });
