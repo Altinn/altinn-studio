@@ -51,7 +51,7 @@ export const Layout = (): React.ReactNode => {
         app={app}
         showSubMenu={!repoStatus?.hasMergeConflict}
         user={user}
-        isRepoError={repoStatusError !== undefined}
+        isRepoError={repoStatusError !== null}
       />
       {renderPages()}
     </>
