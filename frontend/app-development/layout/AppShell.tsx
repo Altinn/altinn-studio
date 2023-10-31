@@ -5,7 +5,7 @@ import { PageHeader } from './PageHeader';
 /**
  * Displays the layout for the app development pages
  */
-export const Layout = (): React.ReactNode => {
+export const AppShell = (): React.ReactNode => {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;

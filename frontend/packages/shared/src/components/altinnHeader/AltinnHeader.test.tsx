@@ -4,7 +4,6 @@ import { AltinnHeader, AltinnHeaderProps } from './AltinnHeader';
 import { Button } from '@digdir/design-system-react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { RepositoryType } from 'app-shared/types/global';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -14,7 +13,7 @@ describe('AltinnHeader', () => {
       menuItems: [
         {
           key: TopBarMenu.About,
-          link: RoutePaths.Overview,
+          link: 'Link1',
           repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
         },
       ],
