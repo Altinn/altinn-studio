@@ -45,7 +45,7 @@
   font-family: var(--font-family);
 }
 
-.popOver {
+.popover {
   max-width: 320px;
 }
 

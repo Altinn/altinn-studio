@@ -79,7 +79,9 @@ const PreviewFrame = () => {
                   trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
                   open={openSaveChoiceInSession}
               >
-                {t('session.reminder')}
+                <div className={classes.popover}>
+                  {t('session.reminder')}
+                </div>
                 <span className={classes.row}>
                   <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>{t('session.do_show_again')}</Button>
                   <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>{t('session.dont_show_again')}</Button>

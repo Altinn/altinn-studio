@@ -107,7 +107,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
                 trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
                 open={openSaveChoiceInSession}
             >
-              <div className={classes.popOver}>
+              <div className={classes.popover}>
                 {t('session.reminder')}
               </div>
               <span className={classes.row}>

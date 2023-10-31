@@ -50,3 +50,7 @@
   flex-direction: row;
   gap: 1rem;
 }
+
+.popover {
+  max-width: 320px;
+}
