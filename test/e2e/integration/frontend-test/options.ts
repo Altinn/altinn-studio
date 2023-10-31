@@ -45,6 +45,42 @@ describe('Options', () => {
     cy.get(appFrontend.group.options).should('have.value', 'Endre fra: 1, Endre til: 2');
   });
 
+  it('is possible to use dynamic expressions in "source" when building options from repeating groups', () => {
+    cy.goto('group');
+    cy.get(appFrontend.navMenu).should('be.visible');
+    cy.get(appFrontend.nextButton).click();
+
+    cy.findByRole('checkbox', { name: /ja/i }).click();
+    cy.addItemToGroup(1, 2, 'automation');
+    cy.addItemToGroup(3, 4, 'altinn');
+
+    cy.findAllByRole('combobox', { name: /Velg/ }).last().click();
+
+    /**
+     * This tests that a Dropdown which has added dynamic expressions for the label property
+     * The expression: ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-1"]]]
+     */
+    cy.findByRole('option', { name: 'Endre fra: 1, Endre til: 2 Gjør du leksene dine?' }).should('be.visible');
+    cy.findByRole('option', { name: 'Endre fra: 3, Endre til: 4 Gjør du leksene dine?' }).should('be.visible');
+  });
+
+  it('is possible to use dynamic expressions in "source" when building options from repeating groups with Radio buttons', () => {
+    cy.goto('group');
+    cy.get(appFrontend.navMenu).should('be.visible');
+    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('checkbox', { name: /ja/i }).click();
+    cy.addItemToGroup(1, 2, 'automation');
+    cy.addItemToGroup(3, 4, 'altinn');
+
+    /**
+     * This tests that a RadioButtons which has added dynamic expressions for the label,
+     *  description, and helpText properties. The expression:
+     * ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-2"]]]
+     */
+    cy.findByRole('radio', { name: /endre fra: 1, endre til: 2 fungerer kalkulatoren din/i }).should('exist');
+    cy.findByRole('radio', { name: /endre fra: 3, endre til: 4 fungerer kalkulatoren din/i }).should('exist');
+  });
+
   it('mapping updates options, but does not always unselect previous options', () => {
     for (const optionsId of ['references', 'test']) {
       cy.intercept({ method: 'GET', url: `**/options/${optionsId}**` }, (req) => {
