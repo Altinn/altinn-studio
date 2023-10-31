@@ -10,9 +10,9 @@ import { useTranslation } from 'react-i18next';
 import { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
 import { useLayoutSetsQuery } from '../../../../packages/ux-editor/src/hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export interface AppPreviewMenuItem {
   key: string;
