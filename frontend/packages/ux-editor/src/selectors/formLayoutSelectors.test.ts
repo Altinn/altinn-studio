@@ -38,10 +38,12 @@ const formLayoutsData: IFormLayouts = {
   [layout1Name]: {
     containers: {
       [container0Id]: {
+        id: container0Id,
         index: 0,
         itemType: 'CONTAINER'
       },
       [container1Id]: {
+        id: container1Id,
         index: 1,
         itemType: 'CONTAINER'
       }
@@ -62,6 +64,7 @@ const formLayoutsData: IFormLayouts = {
   [layout2Name]: {
     containers: {
       [container2Id]: {
+        id: container2Id,
         index: 0,
         itemType: 'CONTAINER'
       },
