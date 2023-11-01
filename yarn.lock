@@ -1749,9 +1749,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.34.0":
-  version: 0.34.0
-  resolution: "@digdir/design-system-react@npm:0.34.0"
+"@digdir/design-system-react@npm:0.35.0":
+  version: 0.35.0
+  resolution: "@digdir/design-system-react@npm:0.35.0"
   dependencies:
     "@altinn/figma-design-tokens": ^6.0.1
     "@digdir/design-system-tokens": ^0.8.1
@@ -1761,7 +1761,7 @@ __metadata:
   peerDependencies:
     react: ">=18.2.0"
     react-dom: ">=18.2.0"
-  checksum: 025ca15e4d5a7ccd687ec06a3991bc8288d288b5e8190a563a64d8e5c934cf50b5ed76ca704f445ec0d8b08e646dfeefc307240eca59ee90f6aa7ce01b2e991c
+  checksum: cb9911fe5b83eca24db09adec63ca8a72e913f41ce9c0df502460e5bce229371f6f2cec46749411babf34ac05a15ea45d1b548e04da55cd5c4ffa4f0db44523a
   languageName: node
   linkType: hard
 
@@ -5575,7 +5575,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.29.1
     "@altinn/figma-design-tokens": 6.0.1
-    "@digdir/design-system-react": 0.34.0
+    "@digdir/design-system-react": 0.35.0
     "@digdir/design-system-tokens": 0.8.1
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0

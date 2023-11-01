@@ -242,7 +242,7 @@ export const DeployResourcePage = ({
       case 'loading': {
         return (
           <div className={classes.spinnerWrapper}>
-            <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
+            <Spinner size='xlarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
           </div>
         );
       }
