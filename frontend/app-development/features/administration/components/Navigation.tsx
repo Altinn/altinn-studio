@@ -3,14 +3,14 @@ import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { Heading } from '@digdir/design-system-react';
 
-import { menu } from 'app-development/layout/AppBar/appBarConfig';
+import { topBarMenuItem } from 'app-development/layout/AppBar/appBarConfig';
 import { Link } from 'react-router-dom';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 export const Navigation = () => {
   const { t } = useTranslation();
 
-  const menuItems = menu.filter((item) => item.key !== TopBarMenu.About);
+  const menuItems = topBarMenuItem.filter((item) => item.key !== TopBarMenu.About);
 
   return (
     <div className={classes.navigation}>

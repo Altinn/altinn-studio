@@ -1,5 +1,5 @@
 import { RepositoryType } from 'app-shared/types/global';
-import { getFilteredTopBarMenu, menu } from './appBarConfig';
+import { getFilteredTopBarMenu, topBarMenuItem } from './appBarConfig';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
@@ -8,7 +8,7 @@ import { DatabaseIcon } from '@navikt/aksel-icons';
 
 describe('getTopBarMenu', () => {
   it('should return all items when provided repository type is "App" which is not hidden behind feature-flags', () => {
-    const menuLength = menu.filter((menuItem) => !menuItem.featureFlagName).length;
+    const menuLength = topBarMenuItem.filter((menuItem) => !menuItem.featureFlagName).length;
     expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(menuLength);
   });
 
@@ -38,6 +38,6 @@ describe('getTopBarMenu', () => {
 
   it('should return menu items including items hidden behind feature flag, if the flag i activated', () => {
     typedLocalStorage.setItem('featureFlags', ['processEditor']);
-    expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(menu.length);
+    expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(topBarMenuItem.length);
   });
 });

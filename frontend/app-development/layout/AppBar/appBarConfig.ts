@@ -5,7 +5,7 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 
-export const menu: TopBarMenuItem[] = [
+export const topBarMenuItem: TopBarMenuItem[] = [
   {
     key: TopBarMenu.About,
     link: RoutePaths.Overview,
@@ -39,7 +39,7 @@ export const menu: TopBarMenuItem[] = [
 ];
 
 export const getFilteredTopBarMenu = (repositoryType: RepositoryType): TopBarMenuItem[] => {
-  return menu
+  return topBarMenuItem
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
     .filter(filterRoutesByFeatureFlag);
 };

@@ -22,7 +22,7 @@ interface IRouteProps {
   language?: any;
 }
 
-interface IRoute {
+interface RouterRoute {
   path: RoutePaths;
   exact: boolean;
   activeSubHeaderSelection: TopBarMenu;
@@ -31,7 +31,7 @@ interface IRoute {
   props?: IRouteProps;
 }
 
-export const routes: IRoute[] = [
+export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.UIEditor,
     exact: true,

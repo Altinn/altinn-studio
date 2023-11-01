@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout } from './Layout';
+import { AppShell } from './AppShell';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
@@ -100,7 +100,7 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
     ...queries,
   };
 
-  renderWithProviders(<Layout />, {
+  renderWithProviders(<AppShell />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
     queries: allQueries,
   });

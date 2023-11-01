@@ -4,24 +4,23 @@ import { AltinnHeaderMenu, IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
 import { MemoryRouter } from 'react-router-dom';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { RepositoryType } from 'app-shared/types/global';
 
 describe('AltinnHeaderMenu', () => {
   const mockMenuItems: TopBarMenuItem[] = [
     {
       key: TopBarMenu.About,
-      link: RoutePaths.Overview,
+      link: 'Link1',
       repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
     },
     {
       key: TopBarMenu.Create,
-      link: RoutePaths.UIEditor,
+      link: 'Link2',
       repositoryTypes: [RepositoryType.App],
     },
     {
       key: TopBarMenu.Datamodel,
-      link: RoutePaths.Datamodel,
+      link: 'Link3',
       repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
     },
   ];
