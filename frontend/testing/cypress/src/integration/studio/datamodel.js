@@ -44,12 +44,18 @@ context('datamodel', () => {
     datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
   });
 
-  it('Allows to upload an XSD file and displays the data model when the upload is complete', () => {
+  it('Allows to upload and then delete an XSD file', () => {
     cy.findAllByTestId(testids.fileSelectorInput)
       .first()
       .selectFile('src/fixtures/testdatamodel.xsd', { force: true });
     cy.findByRole('combobox', { name: texts['schema_editor.choose_model'] })
       .invoke('val')
-      .should('match', /\/testdatamodel.schema.json$/);
+      .should('match', /\/testdatamodel.schema.json$/)
+      .then((value) => {
+        cy.get(`option[value="${value}"]`).should('exist');
+        cy.findByRole('button', { name: texts['schema_editor.delete_data_model'] }).click();
+        cy.findByRole('button', { name: texts['schema_editor.confirm_deletion'] }).click();
+        cy.get(`option[value="${value}"]`).should('not.exist');
+      });
   });
 });
