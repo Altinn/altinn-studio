@@ -24,7 +24,7 @@ export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Poli
           ...rule,
           subject: rule.subject.map((s) => s.toLowerCase()),
         })),
-        requiredAuthenticationLevelEndUser: '3',
+        requiredAuthenticationLevelEndUser: response?.requiredAuthenticationLevelEndUser ?? '3',
         requiredAuthenticationLevelOrg: '3',
       }),
     },
