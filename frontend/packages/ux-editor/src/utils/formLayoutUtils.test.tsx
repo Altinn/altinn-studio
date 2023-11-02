@@ -5,7 +5,9 @@ import {
   addNavigationButtons,
   createEmptyLayout,
   findParentId,
+  getChildIds,
   getDepth,
+  getItem,
   hasNavigationButtons,
   hasSubContainers,
   isContainer,
@@ -460,6 +462,26 @@ describe('formLayoutUtils', () => {
       };
       layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
       expect(validateDepth(layout)).toBe(false);
+    });
+  });
+
+  describe('getChildIds', () => {
+    it('Returns the ids of the children of the given container', () => {
+      expect(getChildIds(mockInternal, groupId)).toEqual([paragraphInGroupId, groupInGroupId]);
+    });
+
+    it('Returns an empty array when called with something that is not a container with children', () => {
+      expect(getChildIds(mockInternal, headerId)).toEqual([]);
+    });
+  });
+
+  describe('getItem', () => {
+    it('Returns the item with the given id when it is a component', () => {
+      expect(getItem(mockInternal, paragraphId)).toEqual(paragraphComponent);
+    });
+
+    it('Returns the item with the given id when it is a container', () => {
+      expect(getItem(mockInternal, groupId)).toEqual(groupContainer);
     });
   });
 });

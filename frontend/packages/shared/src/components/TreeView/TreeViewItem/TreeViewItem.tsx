@@ -21,7 +21,7 @@ import {
 } from '../utils/domUtils';
 import { AnimateHeight } from 'app-shared/components/AnimateHeight';
 import { TreeViewItemContext } from './TreeViewItemContext';
-import { ChevronDownIcon, ChevronRightIcon } from '@navikt/aksel-icons';
+import { ChevronDownIcon, ChevronRightIcon } from '@altinn/icons';
 import { Button } from '@digdir/design-system-react';
 import classes from './TreeViewItem.module.css';
 import cn from 'classnames';
@@ -30,6 +30,7 @@ export type TreeViewItemProps = {
   as?: ElementType;
   children?: ReactNode;
   className?: string;
+  icon?: ReactNode;
   label: ReactNode;
   labelWrapper?: (children: ReactNode) => ReactNode;
   nodeId: string;
@@ -39,6 +40,7 @@ export const TreeViewItem = ({
   as = 'li',
   className,
   children,
+  icon,
   label,
   labelWrapper = (lab) => lab,
   nodeId,
@@ -95,6 +97,7 @@ export const TreeViewItem = ({
 
   const treeItemId = makeDomTreeItemId(rootId, nodeId);
   const listId = makeDomGroupId(rootId, nodeId);
+  const hasChildren = !!children;
 
   const renderLabel = () => (
     <Button
@@ -103,6 +106,8 @@ export const TreeViewItem = ({
       aria-owns={listId}
       aria-selected={selected}
       className={classes.button}
+      color='first'
+      icon={<Icon customIcon={icon} hasChildren={hasChildren} open={open} />}
       id={treeItemId}
       onClick={handleClick}
       onFocus={handleFocus}
@@ -114,9 +119,6 @@ export const TreeViewItem = ({
       type='button'
       variant='tertiary'
     >
-      <span aria-hidden className={classes.chevronWrapper}>
-        {children && (open ? <ChevronDownIcon /> : <ChevronRightIcon />)}
-      </span>
       {label}
     </Button>
   );
@@ -127,9 +129,9 @@ export const TreeViewItem = ({
     <TreeViewItemContext.Provider value={{ level: level + 1 }}>
       <Component role='none' {...rest} className={cn(classes.listItem, className)}>
         {labelWrapper(renderLabel())}
-        {children && (
+        {hasChildren && (
           <AnimateHeight open={open}>
-            <ul role='group' id={listId} aria-hidden={!open}>
+            <ul role='group' id={listId} aria-hidden={!open} className={classes.childItemList}>
               {children}
             </ul>
           </AnimateHeight>
@@ -137,4 +139,16 @@ export const TreeViewItem = ({
       </Component>
     </TreeViewItemContext.Provider>
   );
+};
+
+interface IconProps {
+  customIcon: ReactNode;
+  hasChildren: boolean;
+  open: boolean;
+}
+
+const Icon = ({ customIcon, hasChildren, open }: IconProps) => {
+  if (customIcon) return customIcon;
+  if (!hasChildren) return null;
+  return open ? <ChevronDownIcon /> : <ChevronRightIcon />;
 };
