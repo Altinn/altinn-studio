@@ -4,6 +4,8 @@ import type { Policy } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { AxiosError } from 'axios';
 
+const DEFAULT_AUTH_LEVEL = '3';
+
 /**
  * Query to get a policy of an app.
  *
@@ -24,8 +26,9 @@ export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Poli
           ...rule,
           subject: rule.subject.map((s) => s.toLowerCase()),
         })),
-        requiredAuthenticationLevelEndUser: response?.requiredAuthenticationLevelEndUser ?? '3',
-        requiredAuthenticationLevelOrg: '3',
+        requiredAuthenticationLevelEndUser:
+          response?.requiredAuthenticationLevelEndUser ?? DEFAULT_AUTH_LEVEL,
+        requiredAuthenticationLevelOrg: DEFAULT_AUTH_LEVEL,
       }),
     },
   );

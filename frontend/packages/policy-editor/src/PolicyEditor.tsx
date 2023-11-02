@@ -174,9 +174,6 @@ export const PolicyEditor = ({
     handleSavePolicy(updatedRules);
   };
 
-  /**
-   * Handle the saving of the updated policy
-   */
   const handleSavePolicy = (rules: PolicyRuleCard[]) => {
     const policyEditorRules: PolicyRule[] = rules.map((pr) =>
       mapPolicyRuleToPolicyRuleBackendObject(
@@ -189,9 +186,6 @@ export const PolicyEditor = ({
     onSave({ ...policy, rules: policyEditorRules });
   };
 
-  /**
-   * Handle the saving of the updated policy from the select
-   */
   const handleSavePolicyAuthLevel = (authLevel: RequiredAuthLevel) => {
     onSave({ ...policy, requiredAuthenticationLevelEndUser: authLevel });
   };
