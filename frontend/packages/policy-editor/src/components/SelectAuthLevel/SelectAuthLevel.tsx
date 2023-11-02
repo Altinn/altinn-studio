@@ -9,25 +9,9 @@ export const authlevelOptions = [
 ];
 
 export type SelectAuthLevelProps = {
-  /**
-   * The value selected
-   */
   value: RequiredAuthLevel;
-  /**
-   * Function that sets the value selected
-   * @param v the value
-   * @returns void
-   */
   setValue: (v: RequiredAuthLevel) => void;
-  /**
-   * Hidden form label for the input field
-   */
   label: string;
-  /**
-   * Function to be executed on blur
-   * @returns
-   */
-  onBlur: () => void;
 };
 
 /**
@@ -37,16 +21,14 @@ export type SelectAuthLevelProps = {
  * @property {RequiredAuthLevel}[value] - The value selected
  * @property {function}[setValue] - Function that sets the value selected
  * @property {string}[label] - Hidden form label for the input field
- * @property {function}[onBlur] - Function to be executed on blur
  */
-export const SelectAuthLevel = ({ value, setValue, label, onBlur }: SelectAuthLevelProps) => {
+export const SelectAuthLevel = ({ value, setValue, label }: SelectAuthLevelProps) => {
   return (
     <Select
       options={authlevelOptions}
       onChange={(v: RequiredAuthLevel) => setValue(v)}
       value={value}
       label={label}
-      onBlur={onBlur}
     />
   );
 };
