@@ -35,13 +35,16 @@ export const mapPolicySubjectToSubjectTitle = (
     const splitted = s.split(':');
     return splitted[splitted.length - 1];
   });
-
   return subjectIds.map((subjectId) => {
-    if (subjectOptions.map((s) => s.subjectId).includes(subjectId)) {
-      return subjectOptions.find((s) => s.subjectId === subjectId).subjectTitle;
-    }
+    const subjectOption = findSubjectOptionBySubjectId(subjectOptions, subjectId);
+
+    return subjectOption?.subjectTitle || subjectId;
   });
 };
+const findSubjectOptionBySubjectId = (
+  subjectOptions: PolicySubject[],
+  subjectId: string,
+): PolicySubject => subjectOptions.find((s) => s.subjectId === subjectId);
 
 /**
  * Maps the resource string from backend to a resource object with type and id.
