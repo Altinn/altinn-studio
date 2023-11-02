@@ -57,15 +57,15 @@ import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { User } from 'app-shared/types/User';
 import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
-import { componentSchemaUrl, orgsListUrl } from '../cdn-paths';
+import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import { expressionSchemaUrl, layoutSchemaUrl, numberFormatSchemaUrl } from '../cdn-paths';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import type { Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import { NewsList } from 'app-shared/types/api/NewsList';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -81,6 +81,7 @@ export const getFormLayouts = (owner: string, app: string, layoutSetName: string
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
+export const getNewsList = (language: 'nb' | 'en') => get<NewsList>(newsListUrl(language));
 export const getOrgList = () => get<OrgsState>(orgsListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
 export const getRepoInitialCommit = (owner: string, app: string) => get<Commit>(repoInitialCommitPath(owner, app));

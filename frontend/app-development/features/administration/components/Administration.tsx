@@ -11,6 +11,7 @@ import { AppLogs } from './AppLogs';
 import { Navigation } from './Navigation';
 import { AltinnSpinner } from 'app-shared/components';
 import { Center } from 'app-shared/components/Center';
+import { News } from './News';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -66,9 +67,8 @@ export const Administration = () => {
             <div className={classes.asideBlock}>
               <Documentation />
             </div>
-            <hr className={classes.divider} />
-            <div className={classes.asideBlock} style={{ height: '500px' }}>
-              {/* NEWS PLACEHOLDER */}
+            <div>
+              <News />
             </div>
           </aside>
         </div>
