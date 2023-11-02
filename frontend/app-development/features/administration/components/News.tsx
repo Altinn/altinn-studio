@@ -44,11 +44,15 @@ export const News = () => {
 type NewsTemplateProps = {
   children: React.ReactNode;
 };
+
 const NewsTemplate = ({ children }: NewsTemplateProps) => {
-  <>
-    <Heading level={2} size='xxsmall' spacing>
-      {t('administration.news_title')}
-    </Heading>
-    <div className={classes.news}>{children}</div>
-  </>;
+  const { t } = useTranslation();
+  return (
+    <>
+      <Heading level={2} size='xxsmall' spacing>
+        {t('administration.news_title')}
+      </Heading>
+      <div className={classes.news}>{children}</div>
+    </>
+  );
 };

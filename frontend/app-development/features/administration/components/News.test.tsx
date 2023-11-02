@@ -49,7 +49,7 @@ describe('News', () => {
     };
     render(newsList);
 
-    await screen.findByText(textMock('general.loading'));
+    await screen.findByText(textMock('administration.fetch_news_loading_message'));
   });
 
   it('error message is shown when content fails to load', async () => {
