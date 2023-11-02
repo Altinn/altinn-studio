@@ -84,7 +84,6 @@
         <label for="exampleInputEmail1">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
       </div>
-      <button type="submit" class="btn btn-primary" name="action" value="reauthenticate">Refresh authentication</button>
       @if(Model.AppModeIsHttp)
       {
         <div class="form-group">
@@ -95,23 +94,16 @@
           <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
         </div>
       }
-      <button type="submit" class="btn btn-primary" name="action" value="start">Proceed to app</button>
-    }
-
-    <div class="alert alert-light" role="alert">
-      To access attachments XML and other data, visit <a href="/LocalPlatformStorage/">/LocalPlatformStorage</a>
-    </div>
-
-    @if(string.IsNullOrWhiteSpace(Model.LocalFrontendUrl))
-    {
-      <div class="alert alert-light" role="alert">
-        @Html.ActionLink("Use a different frontend version", "FrontendVersion", "Home")
+      <div class="form-group">
+        <button type="submit" class="btn btn-light" name="action" value="reauthenticate">Refresh authentication</button>
+        <button type="submit" class="btn btn-primary" name="action" value="start">Proceed to app</button>
       </div>
     }
-    else
+
+    @if(!string.IsNullOrWhiteSpace(Model.LocalFrontendUrl))
     {
       <div class="alert alert-primary" role="alert">
-        You are using frontend js and css from @(Model.LocalFrontendUrl). @Html.ActionLink("Use a different frontend version", "FrontendVersion", "Home")
+        You are using frontend js and css from @(Model.LocalFrontendUrl). @Html.ActionLink("Use a different frontend version", "Index", "FrontendVersion")
       </div>
     }
   </div>

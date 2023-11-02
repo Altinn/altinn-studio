@@ -1,4 +1,5 @@
 #nullable enable
+using System.Text.Json.Serialization;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
@@ -12,7 +13,12 @@ namespace LocalTest.Services.TestData;
 /// </summary>
 public class AppTestDataModel
 {
+    [JsonPropertyOrder(int.MinValue)]
+    [JsonPropertyName("$schema")]
+    public string Schema => "https://altinncdn.no/schemas/json/test-users/test-users.schema.v1.json";
+    [JsonPropertyName("persons")]
     public List<AppTestPerson> Persons { get; set; } = default!;
+    [JsonPropertyName("orgs")]
     public List<AppTestOrg> Orgs { get; set; } = default!;
 
     public TestDataModel GetTestDataModel()
@@ -155,27 +161,49 @@ public class AppTestDataModel
         };
         return constructedAppData;
     }
+
+    public bool IsEmpty()
+    {
+        return Persons.Count == 0 && Orgs.Count == 0;
+    }
 }
 
 public class AppTestOrg
 {
+    [JsonPropertyName("partyId")]
     public int PartyId { get; set; }
+    [JsonPropertyName("orgNumber")]
     public string OrgNumber { get; set; } = default!;
 
+    [JsonPropertyName("parentPartyId")]
     public int? ParentPartyId { get; set; }
+    [JsonPropertyName("name")]
     public string? Name { get; set; }
+    [JsonPropertyName("businessAddress")]
     public string? BusinessAddress { get; set; }
+    [JsonPropertyName("businessPostalCity")]
     public string? BusinessPostalCity { get; set; }
+    [JsonPropertyName("businessPostalCode")]
     public string? BusinessPostalCode { get; set; }
+    [JsonPropertyName("eMailAddress")]
     public string? EMailAddress { get; set; }
+    [JsonPropertyName("faxNumber")]
     public string? FaxNumber { get; set; }
+    [JsonPropertyName("internetAddress")]
     public string? InternetAddress { get; set; }
+    [JsonPropertyName("mailingAddress")]
     public string? MailingAddress { get; set; }
+    [JsonPropertyName("mailingPostalCity")]
     public string? MailingPostalCity { get; set; }
+    [JsonPropertyName("mailingPostalCode")]
     public string? MailingPostalCode { get; set; }
+    [JsonPropertyName("mobileNumber")]
     public string? MobileNumber { get; set; }
+    [JsonPropertyName("telephoneNumber")]
     public string? TelephoneNumber { get; set; }
+    [JsonPropertyName("unitStatus")]
     public string? UnitStatus { get; set; }
+    [JsonPropertyName("unitType")]
     public string? UnitType { get; set; }
 
     public Party ToParty(List<AppTestOrg>? potentialChildOrgs = null)
@@ -226,28 +254,51 @@ public class AppTestOrg
 
 public class AppTestPerson
 {
+    [JsonPropertyName("partyId")]
     public int PartyId { get; set; } = default!;
+    [JsonPropertyName("ssn")]
     public string SSN { get; set; } = default!;
-    public string FirstName { get; set; } = default!;
-    public string MiddleName { get; set; } = default!;
+    [JsonPropertyName("firstName")]
+    public string? FirstName { get; set; } = default!;
+    [JsonPropertyName("middleName")]
+    public string? MiddleName { get; set; }
+    [JsonPropertyName("lastName")]
     public string LastName { get; set; } = default!;
+    [JsonPropertyName("customClaims")]
     public List<CustomClaim> CustomClaims { get; set; } = new();
+    [JsonPropertyName("partyRoles")]
     public Dictionary<int, List<Role>> PartyRoles { get; set; } = new();
+    [JsonPropertyName("addressCity")]
     public string? AddressCity { get; set; }
+    [JsonPropertyName("addressHouseLetter")]
     public string? AddressHouseLetter { get; set; }
+    [JsonPropertyName("addressHouseNumber")]
     public string? AddressHouseNumber { get; set; }
+    [JsonPropertyName("addressMunicipalName")]
     public string? AddressMunicipalName { get; set; }
+    [JsonPropertyName("addressMunicipalNumber")]
     public string? AddressMunicipalNumber { get; set; }
+    [JsonPropertyName("addressPostalCode")]
     public string? AddressPostalCode { get; set; }
+    [JsonPropertyName("addressStreetName")]
     public string? AddressStreetName { get; set; }
+    [JsonPropertyName("mailingAddress")]
     public string? MailingAddress { get; set; }
+    [JsonPropertyName("mailingPostalCity")]
     public string? MailingPostalCity { get; set; }
+    [JsonPropertyName("mailingPostalCode")]
     public string? MailingPostalCode { get; set; }
+    [JsonPropertyName("mobileNumber")]
     public string? MobileNumber { get; set; }
+    [JsonPropertyName("telephoneNumber")]
     public string? TelephoneNumber { get; set; }
+    [JsonPropertyName("email")]
     public string? Email { get; set; }
+    [JsonPropertyName("userId")]
     public int UserId { get; set; }
+    [JsonPropertyName("language")]
     public string? Language { get; set; }
+    [JsonPropertyName("userName")]
     public string? UserName { get; set; }
 
     public string GetFullName() => string.IsNullOrWhiteSpace(MiddleName) ? $"{FirstName} {LastName}" : $"{FirstName} {MiddleName} {LastName}";

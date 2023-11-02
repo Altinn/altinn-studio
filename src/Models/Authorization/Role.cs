@@ -1,7 +1,5 @@
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Authorization.Interface.Models
 {
@@ -15,12 +13,14 @@ namespace Authorization.Interface.Models
         /// Gets or sets the role type
         /// </summary>
         [JsonProperty]
+        [JsonPropertyName("type")]
         public string Type { get; set; }
 
         /// <summary>
         /// Gets or sets the role
         /// </summary>
         [JsonProperty]
+        [JsonPropertyName("value")]
         public string Value { get; set; }
     }
 }

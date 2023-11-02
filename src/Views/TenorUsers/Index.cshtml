@@ -1,0 +1,106 @@
+@model LocalTest.Models.TenorViewModel
+
+@using Microsoft.Extensions.Options
+@using LocalTest.Configuration
+@using LocalTest.Services.TestData
+
+@inject IOptions<LocalPlatformSettings> LocalPlatformSettings
+
+
+@{
+    ViewData["Title"] = "Local users and orgs (preview)";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    By default Altinn Studio publishes a limited set of test accouns for local testing. For most apps these will be
+    enough, but if you have more specific needs, or want the same users as in tt02, you probably want to import data
+    from <a href="https://www.skatteetaten.no/skjema/testdata/">Tenor testdata</a> to use for your local development
+</p>
+
+<p>
+    Tenor requires login with an official norwegian ID (like BankID), so you currently have to login and download
+    "kildedata" for the persons and organisations that you want to reference. Make sure you find suitable users and
+    organisations and download "kildedata" for each org/user.
+</p>
+
+<div class="alert alert-info" role="alert">
+    Currently there isn't any syncronization between role assignments in tt02 and tenor, so you might need to manually
+    add the relevant roles for your apps to work as in tt02. The functionality presented here is mainly a simple way to
+    copy names, personal identification number and organization numbers.
+</div>
+
+<div class="card" style="width:30rem">
+    <div class="card-header">
+        <h3 class="card-title">Last opp tenor kildefiler</h3>
+    </div>
+    @using (Html.BeginForm("Upload", "TenorUsers", FormMethod.Post, new
+    {
+        Class = "form-signin",
+        enctype =
+    "multipart/form-data"
+    }))
+    {
+        @Html.AntiForgeryToken()
+        ;
+        <div class="card-body">
+            <input type="file" class="form-control" accept=".json, application/json" name="tenorJsonFiles" multiple="multiple" />
+        </div>
+        <div class="card-body">
+            <input type="submit" class="btn btn-primary" value="Upload tenor files to storage" />
+        </div>
+    }
+</div>
+
+@using (Html.BeginForm("Update", "TenorUsers", FormMethod.Post, new { }))
+{
+    <table class="table">
+    <thead>
+        <tr>
+            <th>Velg</th>
+            <th>Filename</th>
+            <th>Name</th>
+            <th>Fnr/org</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.FileItems)
+            {
+                <tr class='@(item.Valid ? "":"table-danger")'>
+                    <td>
+                        <input type="checkbox" name="@item.FileName" />
+                    </td>
+                    <td>@item.FileName</td>
+                    @if (item.Brreg is not null)
+                    {
+                        <td>@item.Brreg.Navn</td>
+                        <td>@item.Brreg.Organisasjonsnummer</td>
+                        <td></td>
+                    }
+                    else if (item.Freg is not null)
+                    {
+
+                        <td>@item.Freg.Navn?.FirstErGjeldende()?.Fornavn @item.Freg.Navn?.FirstErGjeldende()?.Mellomnavn
+                            @item.Freg.Navn?.FirstErGjeldende()?.Etternavn</td>
+                        <td>@item.Freg.Identifikasjonsnummer?.FirstErGjeldende()?.FoedselsEllerDNummer</td>
+                        <td></td>
+
+                    }
+                    else
+                    {
+                        <td colspan="3">
+                            <pre>@item.RawFileContent</pre>
+                        </td>
+
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    <input type="submit" name="Delete" class="btn btn-danger" value="Slett markerte" />
+    <div class="btn-group">
+        <input type="submit" name="DownloadFile" class="btn btn-primary" value="Last ned markerte personer og enheter som testData.json" />
+        <input type="submit" name="Download" class="btn btn-secondary" value="Vis testData.json " />
+    </div>
+}

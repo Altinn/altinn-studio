@@ -1,0 +1,39 @@
+<div class="alert alert-info" role="alert">
+    To get xml files to use for prefill, it is important to not just copy text from the browser preview, but to actually save directly to file in the browser.
+    <br><br>
+    This is because browser preview of xml removes some escaping, and you might get an invalid xml (eg <em>&amp;amp;</em> gets displayed as <em>&amp;</em>)
+</div>
+
+<iframe id="localPlatformIframe" src="/LocalPlatformStorage/" title="" style="width: 100%; min-height:50vh;"
+    scrolling="no" onload="resizeIframe(this)"></iframe>
+
+<script>
+    var iframe = document.getElementById("localPlatformIframe");
+    function resizeIframe() {
+        iframe.style.height = '100px';
+        iframe.style.width = '100%';
+        setTimeout(() => {
+            // ensure that actual size gets set after a render
+            var iframeDoc = iframe.contentWindow.document.documentElement;
+            iframe.style.height = (iframeDoc.scrollHeight + iframeDoc.sc) + 'px';
+            iframe.style.width = (iframeDoc.scrollWidth) + 'px';
+        }, 0);
+    }
+    function handleOnLoad(event) {
+        console.log(iframe.contentDocument.contentType);
+        if (iframe.contentDocument.contentType != "text/html") {
+            // Bust out of iframe when the content type isn't text/html
+            window.location.replace(iframe.contentWindow.location.href);
+            return;
+        }
+        resizeIframe();
+    }
+    iframe.addEventListener("load", handleOnLoad);
+    window.addEventListener("resize", resizeIframe);
+
+    var downloadButton = document.getElementById("download");
+    downloadButton.addEventListener("click", () => {
+        window.open(iframe.contentWindow.location.href, "_blank");
+    })
+
+</script>

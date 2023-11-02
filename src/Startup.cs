@@ -109,6 +109,7 @@ namespace LocalTest
             services.AddSingleton<IPDP, PDPAppSI>();
             services.AddTransient<IPersonLookup, PersonLookupService>();
             services.AddTransient<TestDataService>();
+            services.AddTransient<TenorDataRepository>();
 
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();

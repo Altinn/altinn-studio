@@ -9,13 +9,15 @@ namespace LocalTest.Services.TestData;
 public class TestDataService
 {
     private readonly ILocalApp _localApp;
-    private readonly LocalPlatformSettings _settings;
+    private readonly TenorDataRepository _tenorDataRepository;
     private readonly IMemoryCache _cache;
+    private readonly LocalPlatformSettings _settings;
     private readonly ILogger<TestDataService> _logger;
-    public TestDataService(ILocalApp localApp, IOptions<LocalPlatformSettings> settings, IMemoryCache memoryCache, ILogger<TestDataService> logger)
+    public TestDataService(ILocalApp localApp, TenorDataRepository tenorDataRepository, IOptions<LocalPlatformSettings> settings, IMemoryCache memoryCache, ILogger<TestDataService> logger)
     {
-        _cache = memoryCache;
         _localApp = localApp;
+        _tenorDataRepository = tenorDataRepository;
+        _cache = memoryCache;
         _settings = settings.Value;
         _logger = logger;
     }
@@ -42,6 +44,14 @@ public class TestDataService
                     _logger.LogInformation(e, "Fetching Test data from app failed.");
                 }
 
+                var tenorUsers = await _tenorDataRepository.GetAppTestDataModel();
+                if (tenorUsers is not null && !tenorUsers.IsEmpty())
+                {
+                    // Use tenor users if they exist
+                    return tenorUsers.GetTestDataModel();
+                }
+
+                //Fallback to Ola Nordmann, Sofie Salt ... if no other users are availible
                 return await TestDataDiskReader.ReadFromDisk(_settings.LocalTestingStaticTestDataPath);
             }))!;
     }

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using System.Xml;
 
 using Microsoft.AspNetCore.Authentication;
@@ -24,6 +23,7 @@ using LocalTest.Services.TestData;
 
 namespace LocalTest.Controllers
 {
+    [Route("/Home/[action]")]
     public class HomeController : Controller
     {
         private readonly GeneralSettings _generalSettings;
@@ -32,7 +32,7 @@ namespace LocalTest.Controllers
         private readonly IAuthentication _authenticationService;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IParties _partiesService;
-        private readonly IClaims _claimsService;
+
         private readonly ILocalApp _localApp;
         private readonly TestDataService _testDataService;
 
@@ -43,7 +43,6 @@ namespace LocalTest.Controllers
             IAuthentication authenticationService,
             IApplicationRepository applicationRepository,
             IParties partiesService,
-            IClaims claimsService,
             ILocalApp localApp,
             TestDataService testDataService)
         {
@@ -53,40 +52,14 @@ namespace LocalTest.Controllers
             _authenticationService = authenticationService;
             _applicationRepository = applicationRepository;
             _partiesService = partiesService;
-            _claimsService = claimsService;
             _localApp = localApp;
             _testDataService = testDataService;
         }
 
         [AllowAnonymous]
-        public async Task<IActionResult> LocalTestUsersRaw()
-        {
-            var localData = await TestDataDiskReader.ReadFromDisk(_localPlatformSettings.LocalTestingStaticTestDataPath);
-
-            return Json(localData);
-        }
-
-        //Debugging endpoint
-        [AllowAnonymous]
-        public async Task<IActionResult> LocalTestUsers()
-        {
-            var localData = await TestDataDiskReader.ReadFromDisk(_localPlatformSettings.LocalTestingStaticTestDataPath);
-            var constructedAppData = AppTestDataModel.FromTestDataModel(localData);
-
-            return Json(constructedAppData);
-        }
-
-        // Debugging endpoint
-        [AllowAnonymous]
-        public async Task<IActionResult> LocalTestUsersRoundTrip()
-        {
-            var localData = await TestDataDiskReader.ReadFromDisk(_localPlatformSettings.LocalTestingStaticTestDataPath);
-            var constructedAppData = AppTestDataModel.FromTestDataModel(localData);
-
-            return Json(constructedAppData.GetTestDataModel());
-        }
-
-        [AllowAnonymous]
+        [HttpGet("/")]
+        [HttpGet("/Home")]
+        [HttpGet("/Home/Index")]
         public async Task<IActionResult> Index()
         {
             StartAppModel model = new StartAppModel()
@@ -95,7 +68,7 @@ namespace LocalTest.Controllers
                 AppPath = _localPlatformSettings.AppRepositoryBasePath,
                 StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath,
                 LocalAppUrl = _localPlatformSettings.LocalAppUrl,
-                LocalFrontendUrl = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME],
+                LocalFrontendUrl = HttpContext.Request.Cookies[FrontendVersionController.FRONTEND_URL_COOKIE_NAME],
             };
 
             try
@@ -232,76 +205,6 @@ namespace LocalTest.Controllers
             string token = await _authenticationService.GenerateTokenForOrg(id, orgNumber);
 
             return Ok(token);
-        }
-
-        /// <summary>
-        ///  See src\development\loadbalancer\nginx.conf
-        /// </summary>
-        public static readonly string FRONTEND_URL_COOKIE_NAME = "frontendVersion";
-
-        [HttpGet]
-        public async Task<ActionResult> FrontendVersion([FromServices] HttpClient client)
-        {
-            var versionFromCookie = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
-
-
-
-            var frontendVersion = new FrontendVersion()
-            {
-                Version = versionFromCookie,
-                Versions = new List<SelectListItem>()
-                {
-                    new ()
-                    {
-                        Text = "Keep as is",
-                        Value = "",
-                    },
-                    new ()
-                    {
-                        Text = "localhost:8080 (local dev)",
-                        Value = "http://localhost:8080/"
-                    }
-                }
-            };
-            var cdnVersionsString = await client.GetStringAsync("https://altinncdn.no/toolkits/altinn-app-frontend/index.json");
-            var groupCdnVersions = new SelectListGroup() { Name = "Specific version from cdn" };
-            var versions = JsonSerializer.Deserialize<List<string>>(cdnVersionsString);
-            versions.Reverse();
-            versions.ForEach(version =>
-            {
-                frontendVersion.Versions.Add(new()
-                {
-                    Text = version,
-                    Value = $"https://altinncdn.no/toolkits/altinn-app-frontend/{version}/",
-                    Group = groupCdnVersions
-                });
-            });
-
-            return View(frontendVersion);
-        }
-        public ActionResult FrontendVersion(FrontendVersion frontendVersion)
-        {
-            var options = new CookieOptions
-            {
-                Expires = DateTime.MaxValue,
-                HttpOnly = true,
-            };
-            ICookieManager cookieManager = new ChunkingCookieManager();
-            if (string.IsNullOrWhiteSpace(frontendVersion.Version))
-            {
-                cookieManager.DeleteCookie(HttpContext, FRONTEND_URL_COOKIE_NAME, options);
-            }
-            else
-            {
-                cookieManager.AppendResponseCookie(
-                    HttpContext,
-                    FRONTEND_URL_COOKIE_NAME,
-                    frontendVersion.Version,
-                    options
-                    );
-            }
-
-            return RedirectToAction("Index");
         }
 
         private async Task<IEnumerable<SelectListItem>> GetTestUsersForList()

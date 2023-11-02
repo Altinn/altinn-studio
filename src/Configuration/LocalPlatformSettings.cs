@@ -68,5 +68,7 @@ namespace LocalTest.Configuration
         public string RolesFolder { get; set; } = "roles/";
 
         public string ClaimsFolder { get; set; } = "claims/";
+
+        public string TenorDataFolder { get; set; } = "tenorUsers";
     }
 }

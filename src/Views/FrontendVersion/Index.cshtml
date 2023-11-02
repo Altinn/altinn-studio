@@ -1,13 +1,13 @@
 ﻿@model FrontendVersion
 
 @{
-    ViewData["Title"] = "Frontend version";
+  ViewData["Title"] = "Frontend version";
 }
 <h1>@ViewData["Title"]</h1>
 
-@using (Html.BeginForm("FrontendVersion", "Home", FormMethod.Post, new { Class = "form-signin" }))
+@using (Html.BeginForm("Index", "FrontendVersion", FormMethod.Post, new { Class = "form-signin" }))
 {
-  @Html.AntiForgeryToken();
+  @Html.AntiForgeryToken()
   <div class="form-group">
     <label for="exampleInputEmail1">Select your desired frontend version</label>
     @Html.DropDownListFor(model => model.Version, Model.Versions, new { Class = "form-control" })
