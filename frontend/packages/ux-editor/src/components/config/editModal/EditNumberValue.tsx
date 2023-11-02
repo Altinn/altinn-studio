@@ -32,7 +32,12 @@ export const EditNumberValue = ({
       propertyPath={component.propertyPath}
       helpText={helpText}
     >
-      {() => <StudioNumberInput description={getComponentPropertyLabel(propertyKey, t)} />}
+      {({ onChange }) => (
+        <StudioNumberInput
+          onChange={onChange}
+          description={getComponentPropertyLabel(propertyKey, t)}
+        />
+      )}
     </FormField>
   );
 };

@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 
 export interface StudioNumberInputProps {
   description: string;
+  onChange: (value: number) => void;
 }
 
-export const StudioNumberInput = ({ description }: StudioNumberInputProps) => {
+export const StudioNumberInput = ({ description, onChange }: StudioNumberInputProps) => {
   const [inputValue, setInputValue] = useState('');
   const [clicked, setClicked] = useState(false);
   const inputRef = useRef<HTMLDivElement>(null);
@@ -25,7 +26,7 @@ export const StudioNumberInput = ({ description }: StudioNumberInputProps) => {
   };
 
   const handleOutsideClick = (e: MouseEvent) => {
-    if (inputRef.current && !(inputRef.current as any).contains(e.target)) {
+    if (inputRef.current && !inputRef.current?.contains(e.target as Node)) {
       setClicked(false);
     }
   };
@@ -36,6 +37,7 @@ export const StudioNumberInput = ({ description }: StudioNumberInputProps) => {
       setInputValue(input);
     }
     setClicked(true);
+    onChange(Number(input));
   };
 
   return (
