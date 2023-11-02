@@ -12,6 +12,13 @@ describe('StudioNumberInput', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
+  it("should allow decimal numbers with '.'", async () => {
+    render({ description });
+    const inputElement = screen.getByRole('textbox');
+    await act(() => user.type(inputElement, '123.456'));
+    expect(inputElement).toHaveValue('123.456');
+  });
+
   it('should update input value on change', async () => {
     render({ description });
     const inputElement = screen.getByRole('textbox');

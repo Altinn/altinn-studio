@@ -20,7 +20,7 @@ export const StudioNumberInput = ({ description }: StudioNumberInputProps) => {
   }, []);
 
   const validateNumber = (value: string) => {
-    const numberRegex = /^[0-9]+$/;
+    const numberRegex = /^[0-9]+(\.[0-9]*)?$/;
     return clicked && !numberRegex.test(value) ? t('validation_errors.numbers_only') : undefined;
   };
 
