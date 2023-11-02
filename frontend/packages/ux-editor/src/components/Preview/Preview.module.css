@@ -45,12 +45,12 @@
   height: 100%;
 }
 
-.row {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
+.grid {
+  display: grid;
+  grid-template-columns: min-content min-content;
+  gap: .5rem;
 }
-
-.popover {
-  max-width: 320px;
-}
+.message { grid-area: 1 / 1 / 2 / 3; margin: 0 }
+.yes { grid-area: 2 / 1 / 3 / 2 }
+.no { grid-area: 2 / 2 / 3 / 3 }
+.button { white-space: nowrap }
