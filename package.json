@@ -12,7 +12,7 @@
     "start": "yarn gen && cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",
     "build": "yarn gen && yarn copy-schemas && cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
     "docker": "yarn gen && yarn copy-schemas && cross-env NODE_ENV=development webpack --config webpack.config.development.js --progress && yarn serve 8080",
-    "serve": "http-server dist --cors -p",
+    "serve": "http-server dist --cors='*' -p",
     "test": "yarn gen && jest",
     "test:watch": "yarn gen && jest --watch",
     "test:watchall": "yarn gen && jest --watchAll",
