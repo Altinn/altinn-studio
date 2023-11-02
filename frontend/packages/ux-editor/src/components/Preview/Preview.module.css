@@ -4,53 +4,30 @@
   flex: var(--preview-width-fraction);
 }
 
+.iframeContainer {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+  background-color: var(--fds-semantic-surface-neutral-dark);
+}
+
 .iframe {
   border: 0;
   margin: 0 auto;
 }
 
-.iframe.mobile {
-  width: 390px;
-  height: 844px;
+.previewArea {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 
-  /* Next four lines of CSS is for visually emulate a phone */
-  margin-top: 22px;
-  border-radius: 40px;
-  border: 16px solid #1f1f1f;
-  outline: 8px solid #000;
+.iframe.mobile {
+  --phone-width: 390px;
+  width: var(--phone-width);
 }
 
 .iframe.desktop {
   width: 100%;
   height: 100%;
 }
-
-.previewLimitationsInfo {
-  padding: 10px;
-  font-size: 9px;
-  align-content: center;
-}
-
-.alert {
-  display: flex;
-  flex-direction: row;
-  align-self: center;
-  align-items: center;
-  width: fit-content;
-}
-
-.gridContainer {
-  display: grid;
-  grid-template-rows: auto max-content;
-  height: 100%;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: min-content min-content;
-  gap: .5rem;
-}
-.message { grid-area: 1 / 1 / 2 / 3; margin: 0 }
-.yes { grid-area: 2 / 1 / 3 / 2 }
-.no { grid-area: 2 / 2 / 3 / 3 }
-.button { white-space: nowrap }

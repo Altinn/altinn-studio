@@ -15,47 +15,22 @@
   border: none;
 }
 
-.previewLimitationsInfo {
-  max-width: 1000px;
-  width: 100%;
-  margin: 10px auto;
-}
-
 .iframeContainer {
   display: flex;
   justify-content: center;
-  background-color: #efefef;
-  height: calc(100vh - var(--header-height));
+  background-color: var(--fds-semantic-surface-neutral-dark);
+  flex: 1;
 }
 
 .iframeMobile {
-  height: 844px;
-  width: calc(390px + 48px);
-  padding: 20px 0;
+  --phone-width: 390px;
+  width: var(--phone-width);
   border: none;
-  margin: 0;
 }
 
-.alert {
+.previewArea {
   display: flex;
-  flex-direction: row;
-  align-self: center;
-  align-items: center;
-  width: fit-content;
-  font-family: var(--font-family);
+  flex-direction: column;
+  height: calc(100vh - var(--header-height));
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: min-content min-content;
-  gap: .5rem;
-}
-.message { grid-area: 1 / 1 / 2 / 3; margin: 0 }
-.yes { grid-area: 2 / 1 / 3 / 2 }
-.no { grid-area: 2 / 2 / 3 / 3 }
-.button { white-space: nowrap }
-
-.gridContainer {
-  display: grid;
-  grid-template-rows: max-content max-content;
-}
