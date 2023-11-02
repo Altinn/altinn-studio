@@ -8,27 +8,47 @@ import classes from './News.module.css';
 export const News = () => {
   const { data: newsList, isLoading, isError } = useNewsListQuery();
   const { t } = useTranslation();
+
+  if (isLoading) {
+    return (
+      <NewsTemplate>
+        <AltinnSpinner spinnerText={t('administration.fetch_news_loading_message')} />
+      </NewsTemplate>
+    );
+  }
+
+  if (isError) {
+    return (
+      <NewsTemplate>
+        <Alert severity='danger'>{t('administration.fetch_news_error_message')}</Alert>
+      </NewsTemplate>
+    );
+  }
+
   return (
     <div>
-      <Heading level={2} size='xxsmall' spacing>
-        {t('administration.news_title')}
-      </Heading>
-      <div className={classes.news}>
-        {isLoading && (
-          <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />
-        )}
-        {isError && <Alert severity='danger'>{t('administration.fetch_news_error_message')}</Alert>}
-        {!isLoading &&
-          !isError &&
-          newsList?.news?.map((news) => (
-            <div className={classes.newsContent} key={news.title}>
-              <Label level={3} size='small'>
-                {news.title}
-              </Label>
-              <Paragraph size='xsmall'>{news.content}</Paragraph>
-            </div>
-          ))}
-      </div>
+      <NewsTemplate>
+        {newsList.news?.map(({ title, content }) => (
+          <div className={classes.newsContent} key={title}>
+            <Label level={3} size='small'>
+              {title}
+            </Label>
+            <Paragraph size='xsmall'>{content}</Paragraph>
+          </div>
+        ))}
+      </NewsTemplate>
     </div>
   );
+};
+
+type NewsTemplateProps = {
+  children: React.ReactNode;
+};
+const NewsTemplate = ({ children }: NewsTemplateProps) => {
+  <>
+    <Heading level={2} size='xxsmall' spacing>
+      {t('administration.news_title')}
+    </Heading>
+    <div className={classes.news}>{children}</div>
+  </>;
 };
