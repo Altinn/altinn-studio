@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const env = require('dotenv').config().parsed;
+const env = require('dotenv').config().parsed ?? {};
 const path = require('path');
 
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
