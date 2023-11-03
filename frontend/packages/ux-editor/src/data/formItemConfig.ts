@@ -359,7 +359,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: ChevronDownIcon,
+    icon: Select,
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
