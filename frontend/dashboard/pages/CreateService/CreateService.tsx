@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { FormEventHandler, useState } from 'react';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import { validateRepoName } from '../../utils/repoUtils';
@@ -27,11 +27,9 @@ type CreateServiceProps = {
   organizations: Organization[];
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
-  const selectedFormat = DatamodelFormat.XSD;
+  const { t } = useTranslation();
   const selectedContext = useSelectedContext();
-
-  const defaultSelectedOrgOrUser: string =
-    selectedContext === SelectedContextType.Self ? user.login : selectedContext;
+  const navigate = useNavigate();
 
   const [formError, setFormError] = useState<CreateAppForm>({
     org: '',
@@ -41,15 +39,16 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const { mutateAsync: addRepo, isLoading: isCreatingRepo } = useAddRepoMutation({
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
-  const { t } = useTranslation();
-  const navigate = useNavigate();
 
+  const dataModellingPreference = DatamodelFormat.XSD;
+  const defaultSelectedOrgOrUser: string =
+    selectedContext === SelectedContextType.Self ? user.login : selectedContext;
   const createAppRepo = async (createAppForm: CreateAppForm) => {
     await addRepo(
       {
         org: createAppForm.org,
         repository: createAppForm.repoName,
-        datamodellingPreference: selectedFormat,
+        datamodellingPreference: dataModellingPreference,
       },
       {
         onSuccess: (repository): void => {
@@ -72,17 +71,19 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     );
   };
 
-  const handleCreateAppFormSubmit = async (event: any): Promise<void> => {
+  const handleCreateAppFormSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault();
 
-    const formData = new FormData(event.target);
+    const formData: FormData = new FormData(event.currentTarget);
 
     const createAppForm: CreateAppForm = {
       org: formData.get('org') as string,
       repoName: formData.get('repoName') as string,
     };
 
-    const isFormValid = validateCreateAppForm(createAppForm);
+    const isFormValid: boolean = validateCreateAppForm(createAppForm);
     if (isFormValid) {
       await createAppRepo(createAppForm);
     }
