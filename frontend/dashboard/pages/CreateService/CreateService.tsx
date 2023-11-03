@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import { validateRepoName } from '../../utils/repoUtils';
-import { applicationAboutPage } from '../../utils/urlUtils';
+import { getAppDevelopmentRootRoute } from '../../utils/urlUtils';
 import classes from './CreateService.module.css';
 import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
@@ -53,19 +53,17 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       },
       {
         onSuccess: (repository): void => {
-          window.location.assign(
-            applicationAboutPage({
-              org: repository.owner.login,
-              repo: repository.name,
-            }),
-          );
+          navigateToAppDevelopment(repository.org, repository.repo);
         },
         onError: (error: AxiosError): void => {
-          if (error.response.status === ServerCodes.Conflict) {
-            setFormError((prevErrors) => ({
-              ...prevErrors,
-              repoName: t('dashboard.app_already_exists'),
-            }));
+          const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
+          if (appNameAlreadyExists) {
+            setFormError(
+              (prevErrors): CreateAppForm => ({
+                ...prevErrors,
+                repoName: t('dashboard.app_already_exists'),
+              }),
+            );
           }
         },
       },
@@ -173,4 +171,9 @@ const repoNameValidation = (repoName: string | undefined): ValidationResult => {
     errorMessage: null,
     isValid: true,
   };
+};
+
+const navigateToAppDevelopment = (org: string, app: string): void => {
+  const appDevelopmentRootRoute: string = getAppDevelopmentRootRoute({ org, app });
+  window.location.assign(appDevelopmentRootRoute);
 };
