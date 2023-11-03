@@ -44,7 +44,7 @@ export const mapPolicySubjectToSubjectTitle = (
 const findSubjectOptionBySubjectId = (
   subjectOptions: PolicySubject[],
   subjectId: string,
-): PolicySubject => subjectOptions.find((s) => s.subjectId === subjectId);
+): PolicySubject => subjectOptions.find((s) => s.subjectId === subjectId.trim()); // .trim() is added to make sure there is no additional whitespace on the ID before it's being checked.
 
 /**
  * Maps the resource string from backend to a resource object with type and id.
