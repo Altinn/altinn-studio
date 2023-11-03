@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
@@ -13,11 +13,9 @@ import {
 } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
-import { Alert, Button, LegacyPopover } from '@digdir/design-system-react';
-import { XMarkIcon } from '@navikt/aksel-icons';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { previewPage } from 'app-shared/api/paths';
-import { typedSessionStorage } from 'app-shared/utils/webStorage';
+import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -32,9 +30,6 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const [openSaveChoiceInSession, setOpenShowSaveChoiceInSession] = useState<boolean>(false);
-  const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem('showPreviewLimitationsInfo');
-  const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(showPreviewLimitationsInfoSession ?? true);
   const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
@@ -51,17 +46,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
   };
-
-  const handleHidePreviewLimitations = () => {
-    setShowPreviewLimitationsInfo(false);
-    setOpenShowSaveChoiceInSession(false);
-  };
-
-  const handleRememberChoiceForSession = () => {
-    typedSessionStorage.setItem('showPreviewLimitationsInfo', false);
-    handleHidePreviewLimitations();
-  };
-
+  
   if (previewConnection) {
     previewConnection.on('ReceiveMessage', function (message) {
       const frame = document.getElementById('app-frontend-react-iframe');
@@ -98,23 +83,8 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
           }
         />
       </div>
-      <div className={classes.gridContainer}>
-      {showPreviewLimitationsInfo &&
-        <Alert severity='info' className={classes.previewLimitationsInfo}>
-          <div className={classes.alert}>
-            {t('preview.limitations_info')}
-            <LegacyPopover
-                trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
-                open={openSaveChoiceInSession}
-            >
-              {t('session.reminder')}
-              <span className={classes.row}>
-                <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>{t('session.do_show_again')}</Button>
-                <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>{t('session.dont_show_again')}</Button>
-              </span>
-            </LegacyPopover>
-          </div>
-        </Alert>}
+      <div className={classes.previewArea}>
+        <PreviewLimitationsInfo />
         <div className={classes.iframeContainer}>
           <iframe
             title={t('preview.iframe_title')}

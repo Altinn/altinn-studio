@@ -615,7 +615,7 @@
   "popover.popover_button_helptext": "Klikk her for hjelpetekst popover",
   "popover.popover_open": "Popover åpen",
   "preview.iframe_title": "Forhåndsvisning",
-  "preview.limitations_info": "Forhåndsvisningen til Altinn Studio er en forenkling som lar deg se sluttresultatet av skjemasider som ikke krever logikk. Du kan derfor ikke teste hele flyten i applikasjonen her.",
+  "preview.limitations_info": "Forhåndsvisningen til Altinn Studio lar deg se en forenklet visning av skjemasidene. Visningen tar ikke hensyn til forhåndsutfylling og egendefinerte funksjoner. Du får derfor ikke testet hele flyten i applikasjonen her.",
   "preview.subheader.restart": "Restart",
   "preview.subheader.sharelink": "Del lenke",
   "preview.subheader.showas": "Vis som",
