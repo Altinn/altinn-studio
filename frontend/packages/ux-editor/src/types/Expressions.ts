@@ -1,6 +1,9 @@
 import { UseText } from '../hooks';
 import { LayoutItemType } from './global';
 
+export type ExternalExpression = [string, ...any];
+export type ExternalInnerExpression = [any, any];
+
 export interface Expression {
   id?: string;
   operator?: Operator;
@@ -20,7 +23,7 @@ export interface SubExpression {
 
 export enum Operator {
   And = 'and',
-  Or = 'or'
+  Or = 'or',
 }
 
 export type ExpressionProperty = ExpressionPropertyBase | ExpressionPropertyForGroup;
@@ -58,13 +61,17 @@ export enum DataSource { // comments reflects available values to select if choo
   String = 'string', // custom input field for string
   Number = 'number', // custom input field for number
   Boolean = 'boolean', // togglebuttons?
-  Null  = 'null', // no additional field
+  Null = 'null', // no additional field
 }
 
-export const getExpressionPropertiesBasedOnComponentType = (componentType: LayoutItemType.Component | LayoutItemType.Container): ExpressionProperty[] => {
+export const getExpressionPropertiesBasedOnComponentType = (
+  componentType: LayoutItemType.Component | LayoutItemType.Container,
+): ExpressionProperty[] => {
   const expressionProperties = Object.values(ExpressionPropertyBase) as string[];
   if (componentType === LayoutItemType.Container) {
-    return expressionProperties.concat(Object.values(ExpressionPropertyForGroup) as string[]) as ExpressionProperty[];
+    return expressionProperties.concat(
+      Object.values(ExpressionPropertyForGroup) as string[],
+    ) as ExpressionProperty[];
   }
   return expressionProperties as ExpressionProperty[];
 };
@@ -83,20 +90,36 @@ export const expressionPropertyTexts = (t: UseText) => ({
   [ExpressionPropertyBase.Hidden]: t('right_menu.expressions_property_hidden'),
   [ExpressionPropertyBase.ReadOnly]: t('right_menu.expressions_property_read_only'),
   [ExpressionPropertyBase.Required]: t('right_menu.expressions_property_required'),
-  [ExpressionPropertyForGroup.EditAddButton]: t('right_menu.expressions_group_property_show_add_button'),
-  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t('right_menu.expressions_group_property_show_edit_button'),
-  [ExpressionPropertyForGroup.EditDeleteButton]: t('right_menu.expressions_group_property_show_delete_button'),
-  [ExpressionPropertyForGroup.EditSaveButton]: t('right_menu.expressions_group_property_show_save_button'),
+  [ExpressionPropertyForGroup.EditAddButton]: t(
+    'right_menu.expressions_group_property_show_add_button',
+  ),
+  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t(
+    'right_menu.expressions_group_property_show_edit_button',
+  ),
+  [ExpressionPropertyForGroup.EditDeleteButton]: t(
+    'right_menu.expressions_group_property_show_delete_button',
+  ),
+  [ExpressionPropertyForGroup.EditSaveButton]: t(
+    'right_menu.expressions_group_property_show_save_button',
+  ),
 });
 
 export const expressionInPreviewPropertyTexts = (t: UseText) => ({
   [ExpressionPropertyBase.Hidden]: t('right_menu.expressions_property_preview_hidden'),
   [ExpressionPropertyBase.ReadOnly]: t('right_menu.expressions_property_preview_read_only'),
   [ExpressionPropertyBase.Required]: t('right_menu.expressions_property_preview_required'),
-  [ExpressionPropertyForGroup.EditAddButton]: t('right_menu.expressions_group_property_preview_show_add_button'),
-  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t('right_menu.expressions_group_property_preview_show_edit_button'),
-  [ExpressionPropertyForGroup.EditDeleteButton]: t('right_menu.expressions_group_property_preview_show_delete_button'),
-  [ExpressionPropertyForGroup.EditSaveButton]: t('right_menu.expressions_group_property_preview_show_save_button'),
+  [ExpressionPropertyForGroup.EditAddButton]: t(
+    'right_menu.expressions_group_property_preview_show_add_button',
+  ),
+  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t(
+    'right_menu.expressions_group_property_preview_show_edit_button',
+  ),
+  [ExpressionPropertyForGroup.EditDeleteButton]: t(
+    'right_menu.expressions_group_property_preview_show_delete_button',
+  ),
+  [ExpressionPropertyForGroup.EditSaveButton]: t(
+    'right_menu.expressions_group_property_preview_show_save_button',
+  ),
 });
 
 export const expressionDataSourceTexts = (t: UseText) => ({
