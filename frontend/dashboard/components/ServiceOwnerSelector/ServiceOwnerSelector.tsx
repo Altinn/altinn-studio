@@ -1,88 +1,67 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { AltinnPopper } from 'app-shared/components/AltinnPopper';
+import React from 'react';
 import { Select } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { Organization } from 'app-shared/types/Organization';
 import { User } from 'app-shared/types/User';
 
-const zIndex = {
-  zIndex: 1300,
-};
-
-interface ICombineCurrentUserAndOrg {
-  user: User;
-  organizations: Organization[];
-}
-
-const combineCurrentUserAndOrg = ({ organizations = [], user }: ICombineCurrentUserAndOrg) => {
-  const allUsers = organizations.map((props: any) => {
-    return {
-      value: props.username,
-      label: props.full_name || props.username,
-    };
-  });
-
-  allUsers.push({
-    value: user.login,
-    label: user.full_name || user.login,
-  });
-
-  return allUsers;
-};
-
-interface ServiceOwnerSelectorProps {
+type ServiceOwnerSelectorProps = {
   selectedOrgOrUser: string;
   user: User;
   organizations: Organization[];
   errorMessage?: string;
-  onServiceOwnerChanged: (newValue: string) => void;
-}
+  name?: string;
+};
 
 export const ServiceOwnerSelector = ({
   selectedOrgOrUser,
   user,
   organizations,
   errorMessage,
-  onServiceOwnerChanged,
+  name,
 }: ServiceOwnerSelectorProps) => {
   const { t } = useTranslation();
 
-  const serviceOwnerRef = useRef(null);
+  const selectableUser: SelectableItem = mapUserToSelectableItem(user);
+  const selectableOrganizations: SelectableItem[] = mapOrganizationToSelectableItems(organizations);
+  const selectableOptions: SelectableItem[] = [selectableUser, ...selectableOrganizations];
 
-  const selectableOrgsOrUser = useMemo(() => {
-    return combineCurrentUserAndOrg({
-      organizations,
-      user,
-    });
-  }, [organizations, user]);
+  const defaultValue: string =
+    selectableOptions.length === 1 ? selectableOptions[0].value : selectedOrgOrUser;
 
-  useEffect(() => {
-    if (selectableOrgsOrUser.length === 1) {
-      onServiceOwnerChanged(selectableOrgsOrUser[0].value); // auto-select the option when theres only 1 option
-    }
-  }, [selectableOrgsOrUser, onServiceOwnerChanged]);
-
-  useLayoutEffect(() => {
-    serviceOwnerRef.current = document.querySelector('#service-owner');
-  });
-
-  const handleChange = (value: string) => onServiceOwnerChanged(value);
-  const value =
-    selectableOrgsOrUser.length === 1 ? selectableOrgsOrUser[0].value : selectedOrgOrUser;
+  const isSelectDisabled: boolean = selectableOptions.length === 1;
+  const hasError = !!errorMessage;
 
   return (
     <div>
       <Select
+        error={hasError}
         inputId='service-owner'
+        // inputName={name} TODO should be added when the new version of digdir designsystem is released
         label={t('general.service_owner')}
-        onChange={handleChange}
-        options={selectableOrgsOrUser}
-        value={value}
-        disabled={selectableOrgsOrUser.length === 1}
+        options={selectableOptions}
+        value={defaultValue}
+        disabled={isSelectDisabled}
       />
-      {errorMessage && (
-        <AltinnPopper anchorEl={serviceOwnerRef.current} message={errorMessage} styleObj={zIndex} />
-      )}
     </div>
   );
+};
+
+type SelectableItem = {
+  value: string;
+  label: string;
+};
+const mapOrganizationToSelectableItems = (organizations: Organization[]): SelectableItem[] => {
+  return organizations.map(
+    ({ username, full_name }): SelectableItem => ({
+      value: username,
+      label: full_name || username,
+    }),
+  );
+};
+
+const mapUserToSelectableItem = (user: User): SelectableItem => {
+  return {
+    value: user.login,
+    label: user.full_name || user.login,
+  };
 };
