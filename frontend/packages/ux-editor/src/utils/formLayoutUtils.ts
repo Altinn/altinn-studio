@@ -376,3 +376,9 @@ export const getDepth = (layout: IInternalLayout): number => {
  */
 export const validateDepth = (layout: IInternalLayout): boolean =>
   getDepth(layout) <= MAX_NESTED_GROUP_LEVEL;
+
+export const getChildIds = (layout: IInternalLayout, parentId: string): string[] =>
+  layout.order?.[parentId] || [];
+
+export const getItem = (layout: IInternalLayout, itemId: string): FormComponent | FormContainer =>
+  layout.components[itemId] || layout.containers[itemId];

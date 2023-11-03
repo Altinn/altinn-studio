@@ -5,14 +5,17 @@ import { DragAndDropTreeRootContext } from './DragAndDropTreeRootContext';
 
 export interface DragAndDropTreeRootProps {
   children?: ReactNode;
+  onSelect?: (nodeId: string) => void;
 }
 
-export const DragAndDropTreeRoot = ({ children }: DragAndDropTreeRootProps) => {
+export const DragAndDropTreeRoot = ({ children, onSelect }: DragAndDropTreeRootProps) => {
   const [hoveredNodeParent, setHoveredNodeParent] = useState<string | null>(null);
   return (
     <DragAndDropTreeRootContext.Provider value={{ hoveredNodeParent, setHoveredNodeParent }}>
       <DragAndDrop.List>
-        <TreeView.Root onMouseOut={() => setHoveredNodeParent(null)}>{children}</TreeView.Root>
+        <TreeView.Root onSelect={onSelect} onMouseOut={() => setHoveredNodeParent(null)}>
+          {children}
+        </TreeView.Root>
       </DragAndDrop.List>
     </DragAndDropTreeRootContext.Provider>
   );

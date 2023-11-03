@@ -15,7 +15,6 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
@@ -26,6 +25,7 @@ import { useSearchParams } from 'react-router-dom';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { Preview } from '../components/Preview';
 import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
+import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -120,7 +120,7 @@ export const FormDesigner = ({
     };
 
     return (
-      <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
+      <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
             <Elements />
@@ -131,7 +131,7 @@ export const FormDesigner = ({
             <Preview />
           </div>
         </div>
-      </DragAndDrop.Provider>
+      </DragAndDropTree.Provider>
     );
   }
   return <PageSpinner />;

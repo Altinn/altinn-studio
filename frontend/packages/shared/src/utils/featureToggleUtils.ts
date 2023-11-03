@@ -9,7 +9,8 @@ export type SupportedFeatureFlags =
   | 'expressions'
   | 'processEditor'
   | 'configureLayoutSet'
-  | 'newAdministration';
+  | 'newAdministration'
+  | 'formTree';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

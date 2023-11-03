@@ -39,6 +39,7 @@ export const queriesMock: ServicesContextProps = {
   getInstanceIdForPreview: jest.fn(),
   getLayoutSchema: jest.fn(),
   getLayoutSets: jest.fn(),
+  getNewsList: jest.fn(),
   getNumberFormatSchema: jest.fn(),
   getOptionListIds: jest.fn(),
   getOrgList: jest.fn(),
