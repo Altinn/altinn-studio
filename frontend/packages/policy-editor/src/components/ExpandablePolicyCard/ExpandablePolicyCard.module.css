@@ -5,6 +5,7 @@
 
 .chipWrapper {
   display: flex;
+  flex-wrap: wrap;
 }
 
 .textAreaWrapper {
