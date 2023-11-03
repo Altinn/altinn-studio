@@ -5,7 +5,7 @@ export type DragAndDropTreeProviderProps<T> = Omit<DragAndDropProviderProps<T>, 
 
 export function DragAndDropTreeProvider<T>(props: DragAndDropTreeProviderProps<T>) {
   return (
-    <DragAndDrop.Provider {...props} gap='4px'>
+    <DragAndDrop.Provider {...props} gap='.25rem'>
       {props.children}
     </DragAndDrop.Provider>
   );

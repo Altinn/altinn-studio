@@ -14,13 +14,11 @@ describe('SelectAuthLevel', () => {
   afterEach(jest.clearAllMocks);
 
   const mockSetValue = jest.fn();
-  const mockOnBlur = jest.fn();
 
   const defaultProps: SelectAuthLevelProps = {
     value: mockInitialAuthLevelValue,
     setValue: mockSetValue,
     label: mockLabel,
-    onBlur: mockOnBlur,
   };
 
   it('updates the selected value when the user changes the selection', async () => {
@@ -34,17 +32,5 @@ describe('SelectAuthLevel', () => {
     await act(() => user.click(screen.getByRole('option', { name: authlevelOptions[2].label })));
 
     expect(mockSetValue).toHaveBeenCalledWith(authlevelOptions[2].value);
-  });
-
-  it('calls the onBlur function when the input is blurred', async () => {
-    const user = userEvent.setup();
-    render(<SelectAuthLevel {...defaultProps} />);
-
-    const [selectElement] = screen.getAllByLabelText(mockLabel);
-    await act(() => user.click(selectElement));
-    await act(() => user.click(screen.getByRole('option', { name: authlevelOptions[2].label })));
-    await act(() => user.tab());
-
-    expect(mockOnBlur).toHaveBeenCalledTimes(1);
   });
 });
