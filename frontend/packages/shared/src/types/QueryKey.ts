@@ -20,6 +20,7 @@ export enum QueryKey {
   JsonSchema = 'JsonSchema',
   LayoutSchema = 'LayoutSchema',
   LayoutSets = 'LayoutSets',
+  NewsList = 'NewsList',
   OptionListIds = 'OptionListIds',
   OrgList = 'OrgList',
   Organizations = 'Organizations',

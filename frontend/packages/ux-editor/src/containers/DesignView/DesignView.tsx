@@ -19,6 +19,8 @@ import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
 import { PageAccordion } from './PageAccordion';
 import { RenderedFormContainer } from './RenderedFormContainer';
 import { ReceiptContent } from './ReceiptContent';
+import { FormTree } from './FormTree';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useAppContext } from '../../hooks/useAppContext';
 
 /**
@@ -130,8 +132,20 @@ export const DesignView = (): ReactNode => {
     // If the layout does not exist, return null
     if (layout === undefined) return null;
 
-    // Display the accordion with the layout data
     const { order, containers, components } = layout.data;
+
+    const renderForm = () =>
+      shouldDisplayFeature('formTree') ? (
+        <FormTree layout={layout.data} />
+      ) : (
+        <RenderedFormContainer
+          containerId={BASE_CONTAINER_ID}
+          formLayoutOrder={order}
+          formDesignerContainers={containers}
+          formDesignerComponents={components}
+        />
+      );
+
     return (
       <PageAccordion
         pageName={layout.page}
@@ -139,14 +153,7 @@ export const DesignView = (): ReactNode => {
         isOpen={layout.page === openAccordion}
         onClick={() => handleClickAccordion(layout.page)}
       >
-        {layout.page === openAccordion && (
-          <RenderedFormContainer
-            containerId={BASE_CONTAINER_ID}
-            formLayoutOrder={order}
-            formDesignerContainers={containers}
-            formDesignerComponents={components}
-          />
-        )}
+        {layout.page === openAccordion && renderForm()}
       </PageAccordion>
     );
   });
@@ -156,9 +163,7 @@ export const DesignView = (): ReactNode => {
       <div>
         <div className={classes.wrapper}>
           <div className={classes.accordionWrapper}>
-            <Accordion color='neutral' className={classes.accordion}>
-              {displayPageAccordions}
-            </Accordion>
+            <Accordion color='neutral'>{displayPageAccordions}</Accordion>
           </div>
         </div>
         <ReceiptContent

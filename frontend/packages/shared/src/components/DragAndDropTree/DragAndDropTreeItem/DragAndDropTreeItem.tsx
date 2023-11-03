@@ -8,6 +8,7 @@ import cn from 'classnames';
 
 export interface DragAndDropTreeItemProps {
   children?: ReactNode;
+  icon?: ReactNode;
   label: string;
   labelWrapper?: (children: ReactNode) => ReactNode;
   nodeId: string;
@@ -15,6 +16,7 @@ export interface DragAndDropTreeItemProps {
 
 export const DragAndDropTreeItem = ({
   children,
+  icon,
   label,
   labelWrapper,
   nodeId,
@@ -25,6 +27,8 @@ export const DragAndDropTreeItem = ({
   const subList = children ? <DragAndDrop.List>{children}</DragAndDrop.List> : null;
   const renderLabel = labelWrapper ?? ((node) => node);
   const handleDragOver = () => setHoveredNodeParent(parentId);
+  const hasHoveredItemClass = hoveredNodeParent === nodeId ? classes.hasHoveredItem : null;
+  const labelButtonWrapperClass = cn(classes.labelButtonWrapper, hasHoveredItemClass);
 
   return (
     <DragAndDrop.ListItem
@@ -35,10 +39,15 @@ export const DragAndDropTreeItem = ({
         <DragAndDropTreeItemContext.Provider value={{ nodeId }}>
           <TreeView.Item
             as='div'
-            className={cn(classes.item, hoveredNodeParent === nodeId && classes.hasHoveredItem)}
+            className={cn(classes.item, hasHoveredItemClass)}
             nodeId={nodeId}
+            icon={icon}
             label={label}
-            labelWrapper={(node) => renderLabel(<div ref={dragHandleRef}>{node}</div>)}
+            labelWrapper={(node) => (
+              <div ref={dragHandleRef} className={labelButtonWrapperClass}>
+                {renderLabel(node)}
+              </div>
+            )}
           >
             {subList}
           </TreeView.Item>

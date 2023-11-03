@@ -1,0 +1,16 @@
+.news {
+  height: 380px;
+  overflow-y: scroll;
+  padding-top: 24px;
+  border-top: #efefef solid 1px;
+}
+
+.newsContent {
+  margin-bottom: var(--fds-spacing-4);
+  background-color: var(--fds-semantic-surface-warning-subtle);
+  padding: var(--fds-spacing-3) var(--fds-spacing-6);
+}
+
+.newsContainer {
+  padding-top: 24px;
+}
