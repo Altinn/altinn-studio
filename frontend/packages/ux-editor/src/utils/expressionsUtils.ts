@@ -3,7 +3,7 @@ import {
   Expression,
   SubExpression,
   ExternalExpression,
-  ExternalInnerExpression,
+  ExternalExpressionElement,
   ExpressionFunction,
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
@@ -21,7 +21,7 @@ import { UseText } from '../hooks';
 
 export const convertInternalExpressionToExternal = (
   expression: Expression,
-): ExternalExpression | [] => {
+): string | [] | ExternalExpression => {
   if (complexExpressionIsSet(expression.complexExpression)) {
     return expression.complexExpression;
   }
@@ -139,32 +139,32 @@ export const convertExternalExpressionToInternal = (
 };
 
 export function convertSubExpression(
-  internalExpEl: SubExpression,
-  externalExpEl: ExternalInnerExpression,
+  internalSubExp: SubExpression,
+  externalExpEl: ExternalExpressionElement,
   isComparable: boolean,
 ): SubExpression {
-  const newInternalExpEl = deepCopy(internalExpEl);
+  const newInternalSubExp = deepCopy(internalSubExp);
   if (Array.isArray(externalExpEl)) {
     isComparable
-      ? (newInternalExpEl.comparableDataSource = externalExpEl[0] as DataSource)
-      : (newInternalExpEl.dataSource = externalExpEl[0] as DataSource);
+      ? (newInternalSubExp.comparableDataSource = externalExpEl[0] as DataSource)
+      : (newInternalSubExp.dataSource = externalExpEl[0] as DataSource);
     isComparable
-      ? (newInternalExpEl.comparableValue = externalExpEl[1])
-      : (newInternalExpEl.value = externalExpEl[1]);
+      ? (newInternalSubExp.comparableValue = externalExpEl[1])
+      : (newInternalSubExp.value = externalExpEl[1]);
   } else if (externalExpEl === null) {
     isComparable
-      ? (newInternalExpEl.comparableDataSource = DataSource.Null)
-      : (newInternalExpEl.dataSource = DataSource.Null);
-    isComparable ? (newInternalExpEl.comparableValue = null) : (newInternalExpEl.value = null);
+      ? (newInternalSubExp.comparableDataSource = DataSource.Null)
+      : (newInternalSubExp.dataSource = DataSource.Null);
+    isComparable ? (newInternalSubExp.comparableValue = null) : (newInternalSubExp.value = null);
   } else {
     isComparable
-      ? (newInternalExpEl.comparableDataSource = typeof externalExpEl as DataSource)
-      : (newInternalExpEl.dataSource = typeof externalExpEl as DataSource); // to string. Can be string, number, boolean
+      ? (newInternalSubExp.comparableDataSource = typeof externalExpEl as DataSource)
+      : (newInternalSubExp.dataSource = typeof externalExpEl as DataSource); // to string. Can be string, number, boolean
     isComparable
-      ? (newInternalExpEl.comparableValue = externalExpEl)
-      : (newInternalExpEl.value = externalExpEl);
+      ? (newInternalSubExp.comparableValue = externalExpEl)
+      : (newInternalSubExp.value = externalExpEl);
   }
-  return newInternalExpEl;
+  return newInternalSubExp;
 }
 
 export const convertAndAddExpressionToComponent = (
@@ -269,14 +269,13 @@ export const updateOperator = (oldExpression: Expression, operator: Operator): E
   return newExpression;
 };
 
-// What does this one do?
 export const updateExpression = (
   oldExpression: Expression,
   index: number,
   subExpression: SubExpression,
 ): Expression => {
   const newExpression = deepCopy(oldExpression);
-  newExpression.subExpressions[index] = { id: uuidv4(), ...subExpression };
+  newExpression.subExpressions[index] = subExpression;
   return newExpression;
 };
 
@@ -383,12 +382,12 @@ export const stringifyValueForDisplay = (
 
 export const tryParseExpression = (
   oldExpression: Expression,
-  complexExpression: string,
+  complexExpression: string | [] | ExternalExpression,
 ): Expression => {
   // TODO: Try format expression for better readability
   const newExpression = deepCopy(oldExpression);
   try {
-    newExpression.complexExpression = JSON.parse(complexExpression);
+    newExpression.complexExpression = JSON.parse(complexExpression as string);
   } catch (error) {
     newExpression.complexExpression = complexExpression;
   }

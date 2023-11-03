@@ -2,7 +2,7 @@ import { UseText } from '../hooks';
 import { LayoutItemType } from './global';
 
 export type ExternalExpression = [string, ...any];
-export type ExternalInnerExpression = [any, any];
+export type ExternalExpressionElement = [any, any] | string | number | boolean | null;
 
 export interface Expression {
   id?: string;
@@ -53,15 +53,15 @@ export enum ExpressionFunction {
   LessThanEq = 'lessThanEq',
 }
 
-export enum DataSource { // comments reflects available values to select if choosing the specific datasource
-  Component = 'component', // get all components-ids in layoutset
-  DataModel = 'dataModel', // get all datamodel-ids in selected datamodel
-  InstanceContext = 'instanceContext', // restrict to only; instanceOwnerPartyId, instanceId, appId
+export enum DataSource {
+  Component = 'component',
+  DataModel = 'dataModel',
+  InstanceContext = 'instanceContext',
   ApplicationSettings = 'applicationSettings', // get all fields from section "FrontEndSettings" in applicationSettings
-  String = 'string', // custom input field for string
-  Number = 'number', // custom input field for number
-  Boolean = 'boolean', // togglebuttons?
-  Null = 'null', // no additional field
+  String = 'string',
+  Number = 'number',
+  Boolean = 'boolean',
+  Null = 'null',
 }
 
 export const getExpressionPropertiesBasedOnComponentType = (
