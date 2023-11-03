@@ -8,7 +8,6 @@ import {
   CalendarIcon,
   Checkbox,
   ChevronDownDoubleIcon,
-  ChevronDownIcon,
   ExclamationmarkTriangleIcon,
   FileTextIcon,
   FingerButtonIcon,
