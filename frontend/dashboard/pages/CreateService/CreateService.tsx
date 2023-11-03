@@ -12,7 +12,7 @@ import { useAddRepoMutation } from 'dashboard/hooks/mutations/useAddRepoMutation
 import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AltinnSpinner } from 'app-shared/components';
@@ -29,7 +29,6 @@ type CreateServiceProps = {
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
-  const navigate = useNavigate();
 
   const [formError, setFormError] = useState<CreateAppForm>({
     org: '',
@@ -121,9 +120,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
             <span>{t('dashboard.create_service_btn')}</span>
           )}
         </Button>
-        <Button type='button' color='inverted' onClick={() => navigate(-1)} size='small'>
-          {t('general.cancel')}
-        </Button>
+        <Link to='/'>{t('general.cancel')}</Link>
       </div>
     </form>
   );

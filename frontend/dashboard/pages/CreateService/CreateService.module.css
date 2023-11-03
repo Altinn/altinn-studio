@@ -9,5 +9,6 @@
 
 .actionContainer {
   display: inline-flex;
+  align-items: center;
   gap: 24px;
 }
