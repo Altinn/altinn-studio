@@ -98,7 +98,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor@workspace:frontend/packages/process-editor"
   dependencies:
-    bpmn-js: ^13.2.2
+    bpmn-js: ^14.0.0
     jest: 29.7.0
   peerDependencies:
     react: 18.2.0
@@ -6417,24 +6417,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bpmn-js@npm:^13.2.2":
-  version: 13.2.2
-  resolution: "bpmn-js@npm:13.2.2"
+"bpmn-js@npm:^14.0.0":
+  version: 14.2.0
+  resolution: "bpmn-js@npm:14.2.0"
   dependencies:
-    bpmn-moddle: ^8.0.0
-    diagram-js: ^12.2.0
+    bpmn-moddle: ^8.0.1
+    diagram-js: ^12.5.0
     diagram-js-direct-editing: ^2.0.0
-    ids: ^1.0.0
+    ids: ^1.0.5
     inherits-browser: ^0.1.0
-    min-dash: ^4.0.0
+    min-dash: ^4.1.1
     min-dom: ^4.0.3
     object-refs: ^0.3.0
     tiny-svg: ^3.0.0
-  checksum: 592beefe4422a66daad4c15e9e8d8ef56c77cbb37874b83701e6f577ae141589e6d1ceafa15ff8e0c6f8d419c9f5f0f5ac7a25bd7af4ae50a9a832c98737609a
+  checksum: 65947c8f103d7279111c0df5436898a6d9b4c10a22a22a397ad56f5ad66f2af3829e78eae35cddbd76bc000ab1419acf3010c9036acda0bd10cafdca72c71094
   languageName: node
   linkType: hard
 
-"bpmn-moddle@npm:^8.0.0":
+"bpmn-moddle@npm:^8.0.1":
   version: 8.0.1
   resolution: "bpmn-moddle@npm:8.0.1"
   dependencies:
@@ -7782,9 +7782,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diagram-js@npm:^12.2.0":
-  version: 12.3.0
-  resolution: "diagram-js@npm:12.3.0"
+"diagram-js@npm:^12.5.0":
+  version: 12.7.0
+  resolution: "diagram-js@npm:12.7.0"
   dependencies:
     "@bpmn-io/diagram-js-ui": ^0.2.2
     clsx: ^2.0.0
@@ -7796,7 +7796,7 @@ __metadata:
     object-refs: ^0.3.0
     path-intersection: ^2.2.1
     tiny-svg: ^3.0.1
-  checksum: 6feb5b4fafe4c8b24ee13761ef80a75065191324915ade4679fd9b11917dc1186311951e5e6c0e001ffc9f5be9f5854690f58184957f4551a78b105fd293cdcc
+  checksum: fcb9a6315df7ba9d35e9f7f86b942fde1f0f7a3d22309df039638e2848b2a527b45c56dbd0f1d1650433a2e986d030f9c1c0be9294cbcd8663c8e453cea55c4c
   languageName: node
   linkType: hard
 
@@ -10019,7 +10019,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ids@npm:^1.0.0":
+"ids@npm:^1.0.5":
   version: 1.0.5
   resolution: "ids@npm:1.0.5"
   checksum: c964546d4e012c7c7b5de7abf2e5d02667a70509120ace429ab9ebeef03e31aed0a98c8a423c07ec86536c3a48fa30275e401d6f8e4c032ef424664cd8e35995
@@ -12156,7 +12156,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"min-dash@npm:^4.0.0, min-dash@npm:^4.1.0":
+"min-dash@npm:^4.0.0, min-dash@npm:^4.1.0, min-dash@npm:^4.1.1":
   version: 4.1.1
   resolution: "min-dash@npm:4.1.1"
   checksum: e8ac86200da39d1efa5d3b54326dc4dcd1488d7cd778059512bd462f06ac0d2cd021cdd41e8cfb2e0ea2d3825688bf6f65b6713cc1d0c0cbe805e2a58d0ac630
