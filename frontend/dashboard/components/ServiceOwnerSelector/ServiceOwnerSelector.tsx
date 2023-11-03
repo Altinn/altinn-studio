@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { Label, Select } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { Organization } from 'app-shared/types/Organization';
@@ -20,6 +20,7 @@ export const ServiceOwnerSelector = ({
   name,
 }: ServiceOwnerSelectorProps) => {
   const { t } = useTranslation();
+  const serviceOwnerId: stirng = useId();
 
   const selectableUser: SelectableItem = mapUserToSelectableItem(user);
   const selectableOrganizations: SelectableItem[] = mapOrganizationToSelectableItems(organizations);
@@ -32,13 +33,13 @@ export const ServiceOwnerSelector = ({
 
   return (
     <div>
-      <Label spacing htmlFor='service-owner'>
+      <Label spacing htmlFor={serviceOwnerId}>
         {t('general.service_owner')}
       </Label>
       <Select
         hideLabel
         error={hasError}
-        inputId='service-owner'
+        inputId={serviceOwnerId}
         // inputName={name} TODO should be added when the new version of digdir designsystem is released
         options={selectableOptions}
         value={defaultValue}
