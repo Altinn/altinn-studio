@@ -8,17 +8,19 @@ export interface StudioNumberInputProps {
 }
 
 export const StudioNumberInput = ({ description, onChange }: StudioNumberInputProps) => {
+  const { t } = useTranslation();
+  const inputRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [clicked, setClicked] = useState(false);
-  const inputRef = useRef<HTMLDivElement>(null);
-  const { t } = useTranslation();
 
-  useEffect(() => {
-    document.addEventListener('click', handleOutsideClick);
-    return () => {
-      document.removeEventListener('click', handleOutsideClick);
-    };
-  }, []);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    if (!isNaN(Number(input)) || input === '') {
+      setInputValue(input);
+    }
+    setClicked(true);
+    onChange(Number(input));
+  };
 
   const validateNumber = (value: string) => {
     const numberRegex = /^[0-9]+(\.[0-9]*)?$/;
@@ -31,14 +33,12 @@ export const StudioNumberInput = ({ description, onChange }: StudioNumberInputPr
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    if (!isNaN(Number(input)) || input === '') {
-      setInputValue(input);
-    }
-    setClicked(true);
-    onChange(Number(input));
-  };
+  useEffect(() => {
+    document.addEventListener('click', handleOutsideClick);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, []);
 
   return (
     <div ref={inputRef}>
