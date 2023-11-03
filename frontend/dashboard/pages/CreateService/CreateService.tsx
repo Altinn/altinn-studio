@@ -1,4 +1,4 @@
-import React, { FormEventHandler, useState } from 'react';
+import React, { useState } from 'react';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import { validateRepoName } from '../../utils/repoUtils';
@@ -104,34 +104,32 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   };
 
   return (
-    <div className={classes.createServiceContainer}>
-      <form onSubmit={handleCreateAppFormSubmit}>
-        <ServiceOwnerSelector
-          name='org'
-          user={user}
-          organizations={organizations}
-          errorMessage={formError.org}
-          selectedOrgOrUser={defaultSelectedOrgOrUser}
-        />
-        <RepoNameInput name='repoName' errorMessage={formError.repoName} />
-        <div className={classes.buttonContainer}>
-          <Button type='submit' color='first' size='small' disabled={isCreatingRepo}>
-            {isCreatingRepo ? (
-              <AltinnSpinner size='xSmall' aria-label={t('dashboard.creating_your_service')} />
-            ) : (
-              <span>{t('dashboard.create_service_btn')}</span>
-            )}
-          </Button>
-          <Button type='button' color='inverted' onClick={() => navigate(-1)} size='small'>
-            {t('general.cancel')}
-          </Button>
-        </div>
-      </form>
-    </div>
+    <form onSubmit={handleCreateAppFormSubmit} className={classes.createAppForm}>
+      <ServiceOwnerSelector
+        name='org'
+        user={user}
+        organizations={organizations}
+        errorMessage={formError.org}
+        selectedOrgOrUser={defaultSelectedOrgOrUser}
+      />
+      <RepoNameInput name='repoName' errorMessage={formError.repoName} />
+      <div className={classes.actionContainer}>
+        <Button type='submit' color='first' size='small' disabled={isCreatingRepo}>
+          {isCreatingRepo ? (
+            <AltinnSpinner size='xSmall' aria-label={t('dashboard.creating_your_service')} />
+          ) : (
+            <span>{t('dashboard.create_service_btn')}</span>
+          )}
+        </Button>
+        <Button type='button' color='inverted' onClick={() => navigate(-1)} size='small'>
+          {t('general.cancel')}
+        </Button>
+      </div>
+    </form>
   );
 };
 
-// Utilities method for the CreateServiceComponent below.
+// Utilities/Pure functions below.
 type ValidationResult = {
   errorMessage: string | null;
   isValid: boolean;
@@ -163,7 +161,9 @@ const repoNameValidation = (repoName: string | undefined): ValidationResult => {
       isValid: false,
     };
   }
-  if (repoName.length > 30) {
+
+  const MAX_ALLOWED_NAME_LENGTH = 30;
+  if (repoName.length > MAX_ALLOWED_NAME_LENGTH) {
     return {
       errorMessage: 'dashboard.service_name_is_too_long',
       isValid: false,

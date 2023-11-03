@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select } from '@digdir/design-system-react';
+import { Label, Select } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { Organization } from 'app-shared/types/Organization';
 import { User } from 'app-shared/types/User';
@@ -28,19 +28,20 @@ export const ServiceOwnerSelector = ({
   const defaultValue: string =
     selectableOptions.length === 1 ? selectableOptions[0].value : selectedOrgOrUser;
 
-  const isSelectDisabled: boolean = selectableOptions.length === 1;
-  const hasError = !!errorMessage;
+  const hasError: boolean = !!errorMessage;
 
   return (
     <div>
+      <Label spacing htmlFor='service-owner'>
+        {t('general.service_owner')}
+      </Label>
       <Select
+        hideLabel
         error={hasError}
         inputId='service-owner'
         // inputName={name} TODO should be added when the new version of digdir designsystem is released
-        label={t('general.service_owner')}
         options={selectableOptions}
         value={defaultValue}
-        disabled={isSelectDisabled}
       />
     </div>
   );
