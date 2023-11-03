@@ -17,6 +17,8 @@ import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AltinnSpinner } from 'app-shared/components';
 
+const DASHBOARD_ROOT_ROUTE: string = '/';
+
 type CreateAppForm = {
   org?: string;
   repoName?: string;
@@ -120,7 +122,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
             <span>{t('dashboard.create_service_btn')}</span>
           )}
         </Button>
-        <Link to='/'>{t('general.cancel')}</Link>
+        <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
       </div>
     </form>
   );
