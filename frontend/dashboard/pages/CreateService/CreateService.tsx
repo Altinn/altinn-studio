@@ -155,7 +155,7 @@ const repoNameValidation = (repoName: string | undefined): ValidationResult => {
       isValid: false,
     };
   }
-  if (repoName && !validateRepoName(repoName)) {
+  if (!validateRepoName(repoName)) {
     return {
       errorMessage: 'dashboard.service_name_has_illegal_characters',
       isValid: false,
