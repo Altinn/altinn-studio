@@ -3,7 +3,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { ReceiptContent, ReceiptContentProps } from './ReceiptContent';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { FormLayout } from '../../../types/FormLayout';
+import { FormLayoutPage } from '../../../types/FormLayoutPage';
 import {
   component1Mock,
   component2Mock,
@@ -35,7 +35,7 @@ const mockPageData: IInternalLayout = {
   order: { mockContainerId: [] },
 };
 
-const mockFormLayoutData: FormLayout[] = [
+const mockFormLayoutData: FormLayoutPage[] = [
   { page: mockPageName1, data: mockPageData },
   { page: mockPageName2, data: mockPageData },
   { page: mockReceiptName, data: mockPageData },
