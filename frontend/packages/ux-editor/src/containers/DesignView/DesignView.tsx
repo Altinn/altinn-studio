@@ -1,13 +1,12 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
-import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Accordion, Button } from '@digdir/design-system-react';
 import { IFormLayouts } from '../../types/global';
-import type { FormLayout } from '../../types/FormLayout';
+import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useSearchParams } from 'react-router-dom';
@@ -17,16 +16,14 @@ import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation
 import cn from 'classnames';
 import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
 import { PageAccordion } from './PageAccordion';
-import { RenderedFormContainer } from './RenderedFormContainer';
 import { ReceiptContent } from './ReceiptContent';
-import { FormTree } from './FormTree';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useAppContext } from '../../hooks/useAppContext';
+import { FormLayout } from './FormLayout';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
  */
-const mapIFormLayoutsToFormLayouts = (formLayouts: IFormLayouts): FormLayout[] => {
+const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutPage[] => {
   return Object.entries(formLayouts).map(([key, value]) => ({
     page: key,
     data: value,
@@ -60,7 +57,7 @@ export const DesignView = (): ReactNode => {
     setOpenAccordion(searchParamsLayout);
   }, [searchParamsLayout]);
 
-  const formLayoutData = mapIFormLayoutsToFormLayouts(layouts);
+  const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
 
   /**
    * Checks if the layout name provided is valid
@@ -132,20 +129,6 @@ export const DesignView = (): ReactNode => {
     // If the layout does not exist, return null
     if (layout === undefined) return null;
 
-    const { order, containers, components } = layout.data;
-
-    const renderForm = () =>
-      shouldDisplayFeature('formTree') ? (
-        <FormTree layout={layout.data} />
-      ) : (
-        <RenderedFormContainer
-          containerId={BASE_CONTAINER_ID}
-          formLayoutOrder={order}
-          formDesignerContainers={containers}
-          formDesignerComponents={components}
-        />
-      );
-
     return (
       <PageAccordion
         pageName={layout.page}
@@ -153,7 +136,7 @@ export const DesignView = (): ReactNode => {
         isOpen={layout.page === openAccordion}
         onClick={() => handleClickAccordion(layout.page)}
       >
-        {layout.page === openAccordion && renderForm()}
+        {layout.page === openAccordion && <FormLayout layout={layout.data} />}
       </PageAccordion>
     );
   });
