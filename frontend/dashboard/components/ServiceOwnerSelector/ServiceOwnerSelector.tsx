@@ -1,5 +1,5 @@
 import React, { useId } from 'react';
-import { Label, Select } from '@digdir/design-system-react';
+import { ErrorMessage, Label, Select } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { Organization } from 'app-shared/types/Organization';
 import { User } from 'app-shared/types/User';
@@ -21,6 +21,7 @@ export const ServiceOwnerSelector = ({
 }: ServiceOwnerSelectorProps) => {
   const { t } = useTranslation();
   const serviceOwnerId: stirng = useId();
+  const serviceOwnerErrorId: string = `error-message-${serviceOwnerId}`;
 
   const selectableUser: SelectableItem = mapUserToSelectableItem(user);
   const selectableOrganizations: SelectableItem[] = mapOrganizationToSelectableItems(organizations);
@@ -40,10 +41,12 @@ export const ServiceOwnerSelector = ({
         hideLabel
         error={hasError}
         inputId={serviceOwnerId}
-        // inputName={name} TODO should be added when the new version of digdir designsystem is released
+        inputName={name}
         options={selectableOptions}
         value={defaultValue}
+        aria-describedby={hasError ? serviceOwnerErrorId : undefined}
       />
+      <ErrorMessage id={serviceOwnerErrorId}>{errorMessage}</ErrorMessage>
     </div>
   );
 };
