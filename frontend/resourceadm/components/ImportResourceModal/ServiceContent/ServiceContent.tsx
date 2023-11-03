@@ -63,7 +63,7 @@ export const ServiceContent = ({
       return (
         <Center className={classes.contentWrapper}>
           <Spinner
-            size='2xLarge'
+            size='xlarge'
             variant='interaction'
             title={t('resourceadm.import_resource_spinner')}
           />

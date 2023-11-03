@@ -252,7 +252,7 @@ export const ResourcePage = (): React.ReactNode => {
       {resourceLoading ? (
         <div className={classes.spinnerWrapper}>
           <Spinner
-            size='3xLarge'
+            size='xlarge'
             variant='interaction'
             title={t('resourceadm.about_resource_spinner')}
           />
