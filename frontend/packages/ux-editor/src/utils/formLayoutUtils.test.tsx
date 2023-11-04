@@ -8,6 +8,7 @@ import {
   getChildIds,
   getDepth,
   getItem,
+  hasMultiPageGroup,
   hasNavigationButtons,
   hasSubContainers,
   isContainer,
@@ -482,6 +483,16 @@ describe('formLayoutUtils', () => {
 
     it('Returns the item with the given id when it is a container', () => {
       expect(getItem(mockInternal, groupId)).toEqual(groupContainer);
+    });
+  });
+
+  describe('hasMultiPageGroup', () => {
+    it('Returns true if the layout contains a multi page group', () => {
+      expect(hasMultiPageGroup(internalLayoutWithMultiPageGroup)).toBe(true);
+    });
+
+    it('Returns false if the layout does not contain a multi page group', () => {
+      expect(hasMultiPageGroup(mockInternal)).toBe(false);
     });
   });
 });

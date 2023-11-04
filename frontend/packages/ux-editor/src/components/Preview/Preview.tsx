@@ -8,11 +8,10 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
-import { Alert, Button, Paragraph, LegacyPopover } from '@digdir/design-system-react';
-import { XMarkIcon } from '@navikt/aksel-icons';
+import { Paragraph } from '@digdir/design-system-react';
 import { Center } from 'app-shared/components/Center';
 import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
-import { typedSessionStorage } from "app-shared/utils/webStorage";
+import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
 export const Preview = () => {
   const layoutName = useSelector(selectedLayoutNameSelector);
@@ -43,19 +42,6 @@ const PreviewFrame = () => {
   const { t } = useTranslation();
   const { previewIframeRef } = useAppContext();
   const layoutName = useSelector(selectedLayoutNameSelector);
-  const [openSaveChoiceInSession, setOpenShowSaveChoiceInSession] = useState<boolean>(false);
-  const showPreviewLimitationsInfoSession: boolean = typedSessionStorage.getItem('showPreviewLimitationsInfo');
-  const [showPreviewLimitationsInfo, setShowPreviewLimitationsInfo] = useState<boolean>(showPreviewLimitationsInfoSession ?? true);
-
-  const handleHidePreviewLimitations = () => {
-    setShowPreviewLimitationsInfo(false);
-    setOpenShowSaveChoiceInSession(false);
-  };
-
-  const handleRememberChoiceForSession = () => {
-    typedSessionStorage.setItem('showPreviewLimitationsInfo', false);
-    handleHidePreviewLimitations();
-  };
 
   useUpdate(() => {
     previewIframeRef.current?.contentWindow?.location.reload();
@@ -64,29 +50,16 @@ const PreviewFrame = () => {
   return (
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
-      <div className={classes.gridContainer}>
-      <iframe
-        ref={previewIframeRef}
-        className={cn(classes.iframe, classes[viewportToSimulate])}
-        title={t('ux_editor.preview')}
-        src={previewPage(org, app, selectedLayoutSet)}
-      />
-      {showPreviewLimitationsInfo &&
-          <Alert severity='info' className={classes.previewLimitationsInfo}>
-            <div className={classes.alert}>
-              {t('preview.limitations_info')}
-              <LegacyPopover
-                  trigger={<Button onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)} size='small' variant='tertiary' icon={<XMarkIcon />}/>}
-                  open={openSaveChoiceInSession}
-              >
-                {t('session.reminder')}
-                <span className={classes.row}>
-                  <Button onClick={handleHidePreviewLimitations} size='small' variant='secondary'>{t('session.do_show_again')}</Button>
-                  <Button onClick={handleRememberChoiceForSession} size='small' variant='secondary'>{t('session.dont_show_again')}</Button>
-                </span>
-              </LegacyPopover>
-            </div>
-          </Alert>}
+      <div className={classes.previewArea}>
+        <div className={classes.iframeContainer}>
+          <iframe
+            ref={previewIframeRef}
+            className={cn(classes.iframe, classes[viewportToSimulate])}
+            title={t('ux_editor.preview')}
+            src={previewPage(org, app, selectedLayoutSet)}
+          />
+        </div>
+        <PreviewLimitationsInfo />
       </div>
     </div>
   );

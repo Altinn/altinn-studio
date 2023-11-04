@@ -323,7 +323,7 @@ export const addItemOfType = <T extends ComponentType>(
   position: number = -1,
 ): IInternalLayout => {
   const newItem: FormItem<T> = generateFormItem<T>(componentType, id);
-  return (newItem.itemType === 'COMPONENT')
+  return newItem.itemType === 'COMPONENT'
     ? addComponent(layout, newItem as FormComponent<T>, parentId, position)
     : addContainer(layout, newItem, id, parentId, position);
 };
@@ -382,3 +382,6 @@ export const getChildIds = (layout: IInternalLayout, parentId: string): string[]
 
 export const getItem = (layout: IInternalLayout, itemId: string): FormComponent | FormContainer =>
   layout.components[itemId] || layout.containers[itemId];
+
+export const hasMultiPageGroup = (layout: IInternalLayout): boolean =>
+  Object.values(layout.containers).some((container) => container.edit?.multiPage);

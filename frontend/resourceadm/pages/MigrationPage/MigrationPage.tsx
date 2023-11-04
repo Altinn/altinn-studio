@@ -69,7 +69,7 @@ export const MigrationPage = ({
     if (validatePolicyLoading || validateResourceLoading) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn migreringsstatus' />
+          <Spinner size='xlarge' variant='interaction' title='Laster inn migreringsstatus' />
         </div>
       );
     }

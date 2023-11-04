@@ -63,11 +63,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     if (resourceListLoading || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner
-            size='3xLarge'
-            variant='interaction'
-            title={t('resourceadm.dashboard_spinner')}
-          />
+          <Spinner size='xlarge' variant='interaction' title={t('resourceadm.dashboard_spinner')} />
         </div>
       );
     } else {
