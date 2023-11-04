@@ -73,7 +73,7 @@ export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): 
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner
-            size='3xLarge'
+            size='xlarge'
             variant='interaction'
             title={t('resourceadm.policy_editor_spinner')}
           />

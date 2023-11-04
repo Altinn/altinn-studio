@@ -16,7 +16,7 @@ type PageLoadingProps = {
 export const PageLoading = ({ title, variant = 'interaction' }: PageLoadingProps): JSX.Element => {
   return (
     <div className={classes.container}>
-      <Spinner title={title} variant={variant} size='2xLarge' />
+      <Spinner title={title} variant={variant} size='xlarge' />
       <p aria-live='assertive' role='alert'>
         {title}
       </p>

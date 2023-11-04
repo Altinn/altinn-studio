@@ -382,3 +382,6 @@ export const getChildIds = (layout: IInternalLayout, parentId: string): string[]
 
 export const getItem = (layout: IInternalLayout, itemId: string): FormComponent | FormContainer =>
   layout.components[itemId] || layout.containers[itemId];
+
+export const hasMultiPageGroup = (layout: IInternalLayout): boolean =>
+  Object.values(layout.containers).some((container) => container.edit?.multiPage);

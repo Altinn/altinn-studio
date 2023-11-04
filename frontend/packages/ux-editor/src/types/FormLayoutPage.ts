@@ -1,6 +1,6 @@
 import { IInternalLayout } from './global';
 
-export interface FormLayout {
+export interface FormLayoutPage {
   page: string;
   data: IInternalLayout;
 }

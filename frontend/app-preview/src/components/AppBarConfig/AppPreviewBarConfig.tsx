@@ -12,7 +12,7 @@ import { useLayoutSetsQuery } from '../../../../packages/ux-editor/src/hooks/que
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { RoutePaths } from '../../enums/RoutePaths';
 
 export interface AppPreviewMenuItem {
   key: string;
