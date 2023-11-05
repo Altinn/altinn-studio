@@ -175,6 +175,37 @@ describe('AppDeploymentComponent', () => {
     ).toBeInTheDocument();
   });
 
+  it('should handle build.finished as null when latest deploy has status failed but app is reachable', () => {
+    const deployHistory: IDeployment[] = [
+      {
+        app: 'test-app',
+        created: new Date().toDateString(),
+        createdBy: 'test-user',
+        envName: 'testEnv',
+        id: 'test-id',
+        org: 'test-org',
+        tagName: 'testTag',
+        build: {
+          id: 'test-id',
+          finished: null,
+          result: 'failed',
+          status: 'Completed',
+          started: new Date().toDateString(),
+        },
+        deployedInEnv: true,
+      },
+    ];
+    render({ deployHistory });
+    expect(
+      screen.getByText(
+        textMock('app_publish.deployment_in_env.status_missing', {
+          envName: 'testEnv',
+          tagName: 'testTag',
+        }),
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('should render deploy dropdown with image options', async () => {
     const imageOptions: ImageOption[] = [
       {
