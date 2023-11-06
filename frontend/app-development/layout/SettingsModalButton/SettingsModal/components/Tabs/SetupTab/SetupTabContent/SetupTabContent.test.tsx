@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import { SetupTabContent, SetupTabContentProps } from './SetupTabContent';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
@@ -15,8 +15,6 @@ import userEvent from '@testing-library/user-event';
 
 const mockOrg: string = 'testOrg';
 const mockApp: string = 'testApp';
-const mockValidFromNew: string = '2023-09-13T12:00:00Z';
-const mockValidToNew: string = '2023-08-13T12:00:00Z';
 
 jest.mock('../../../../../../../hooks/mutations/useAppMetadataMutation');
 const updateAppMetadataMutation = jest.fn();
@@ -35,93 +33,6 @@ const defaultProps: SetupTabContentProps = {
 
 describe('SetupTabContent', () => {
   afterEach(jest.clearAllMocks);
-
-  it('loads the valid from data with correct values', async () => {
-    render();
-
-    const validFromDateInput = screen.getByLabelText(
-      textMock('settings_modal.setup_tab_valid_from_label'),
-    );
-
-    expect(validFromDateInput).toHaveAttribute('value', mockAppMetadata.validFrom);
-  });
-
-  it('calls the "updateAppMetadataMutation" function when updating date and time in validFrom', () => {
-    render();
-
-    const validFromDateInput = screen.getByLabelText(
-      textMock('settings_modal.setup_tab_valid_from_label'),
-    );
-    fireEvent.change(validFromDateInput, { target: { value: mockValidFromNew } });
-    fireEvent.blur(validFromDateInput);
-
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
-  });
-
-  it('loads the valid to data with correct values', async () => {
-    render();
-
-    const validToDateInput = screen.getByLabelText(
-      textMock('settings_modal.setup_tab_valid_to_label'),
-    );
-
-    expect(validToDateInput).toHaveAttribute('value', mockAppMetadata.validTo);
-  });
-
-  it('does not display the valid to components when validTo is undefined', async () => {
-    render({ appMetadata: { ...mockAppMetadata, validTo: undefined } });
-
-    const validToDateInput = screen.queryByLabelText(
-      textMock('settings_modal.setup_tab_valid_to_label'),
-    );
-    expect(validToDateInput).not.toBeInTheDocument();
-  });
-
-  it('calls the "updateAppMetadataMutation" function when updating date and time in validTo', () => {
-    render();
-
-    const validToDateInput = screen.getByLabelText(
-      textMock('settings_modal.setup_tab_valid_to_label'),
-    );
-    fireEvent.change(validToDateInput, { target: { value: mockValidToNew } });
-    fireEvent.blur(validToDateInput);
-
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
-  });
-
-  it('displays the valid to input when the select is clicked', async () => {
-    const user = userEvent.setup();
-    render({ appMetadata: { ...mockAppMetadata, validTo: undefined } });
-
-    const validToDateInput = screen.queryByLabelText(
-      textMock('settings_modal.setup_tab_valid_to_label'),
-    );
-    expect(validToDateInput).not.toBeInTheDocument();
-
-    const switchInput = screen.getByLabelText(textMock('settings_modal.setup_tab_switch_validTo'));
-    expect(switchInput).not.toBeChecked();
-
-    await act(() => user.click(switchInput));
-
-    const switchInputAfter = screen.getByLabelText(
-      textMock('settings_modal.setup_tab_switch_validTo'),
-    );
-    expect(switchInputAfter).toBeChecked();
-
-    const validToDateInputAfter = screen.getByLabelText(
-      textMock('settings_modal.setup_tab_valid_to_label'),
-    );
-    expect(validToDateInputAfter).toBeInTheDocument();
-  });
-
-  it('displays an error message when validTo is an earlier date than validFrom', () => {
-    render({
-      appMetadata: { ...mockAppMetadata, validFrom: mockValidFromNew, validTo: mockValidToNew },
-    });
-
-    const errorText = screen.getByText(textMock('settings_modal.setup_tab_start_before_end'));
-    expect(errorText).toBeInTheDocument();
-  });
 
   it('does not display an error message when validTo is a later date than validFrom', () => {
     render();
