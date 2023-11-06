@@ -1,40 +1,40 @@
 [
   {
-    "label": "Slektskap",
+    "label": "reasons.related",
     "value": "1"
   },
   {
-    "label": "Adoptivforelders etternavn eller mellomnavn",
+    "label": "reasons.adoptive",
     "value": "2"
   },
   {
-    "label": "Ste- eller fosterforeldres etternavn eller mellomnavn",
+    "label": "reasons.stepParents",
     "value": "3"
   },
   {
-    "label": "Ektefelles etternavn eller mellomnavn",
+    "label": "reasons.spouse",
     "value": "4"
   },
   {
-    "label": "Samboers etternavn eller mellomnavn",
+    "label": "reasons.cohabitant",
     "value": "5"
   },
   {
-    "label": "Tidligere etternavn eller mellomnavn",
+    "label": "reasons.pastName",
     "value": "6"
   },
   {
-    "label": "Gårdsbruk",
+    "label": "reasons.farm",
     "value": "7"
   },
   {
-    "label": "Jeg tror navnet er nytt i Norge",
+    "label": "reasons.newName",
     "value": "8",
     "description": "Dette er en beskrivelse.",
     "helpText": "Dette er en hjelpetekst."
   },
   {
-    "label": "Annen begrunnelse ",
+    "label": "reasons.other",
     "value": "9"
   }
 ]

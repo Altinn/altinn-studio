@@ -128,11 +128,11 @@
     },
     {
       "id": "PersonNyttEtternavn",
-      "value": "Nytt etternavn"
+      "value": "New surname"
     },
     {
       "id": "PersonNyttFornavn",
-      "value": "Nytt fornavn"
+      "value": "New first name"
     },
     {
       "id": "PersonNyttFornavn.helptext",
@@ -299,6 +299,42 @@
           "dataSource": "dataModel.default"
         }
       ]
+    },
+    {
+      "id": "reasons.related",
+      "value": "Kinship"
+    },
+    {
+      "id": "reasons.adoptive",
+      "value": "Adoptive parent's surname or middle name"
+    },
+    {
+      "id": "reasons.stepParents",
+      "value": "Step- or foster parent's surname or middle name"
+    },
+    {
+      "id": "reasons.spouse",
+      "value": "Spouse's surname or middle name"
+    },
+    {
+      "id": "reasons.cohabitant",
+      "value": "Cohabitant's surname or middle name"
+    },
+    {
+      "id": "reasons.pastName",
+      "value": "Previous surname or middle name"
+    },
+    {
+      "id": "reasons.farm",
+      "value": "Farmstead"
+    },
+    {
+      "id": "reasons.newName",
+      "value": "I believe the name is new in Norway"
+    },
+    {
+      "id": "reasons.other",
+      "value": "Other reason"
     }
   ]
 }

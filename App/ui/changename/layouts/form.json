@@ -164,6 +164,7 @@
         "dataModelBindings": {
           "simpleBinding": "Radioknapp"
         },
+        "sortOrder": "asc",
         "optionsId": "reasons",
         "required": true,
         "readOnly": false,
