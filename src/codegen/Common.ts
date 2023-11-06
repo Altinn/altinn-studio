@@ -231,9 +231,11 @@ const common = {
       ),
       new CG.prop(
         'label',
-        new CG.str()
+        new CG.expr(ExprVal.String)
           .setTitle('Label')
-          .setDescription('Reference to a text resource to be used as the option label.')
+          .setDescription(
+            'A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
+          )
           .addExample('some.text.key'),
       ),
       new CG.prop(
@@ -245,21 +247,21 @@ const common = {
       ),
       new CG.prop(
         'description',
-        new CG.str()
+        new CG.expr(ExprVal.String)
           .optional()
           .setTitle('Description')
           .setDescription(
-            'A description of the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.',
+            'A description of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
           )
           .addExample('some.text.key', 'My Description'),
       ),
       new CG.prop(
         'helpText',
-        new CG.str()
+        new CG.expr(ExprVal.String)
           .optional()
           .setTitle('Help Text')
           .setDescription(
-            'A help text for the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.',
+            'A help text for the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
           )
           .addExample('some.text.key', 'My Help Text'),
       ),

@@ -4,7 +4,7 @@ import { useGetOptionsQuery } from 'src/hooks/queries/useGetOptionsQuery';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { useSourceOptions } from 'src/hooks/useSourceOptions';
 import { duplicateOptionFilter } from 'src/utils/options';
-import type { IMapping, IOption, IOptionSource } from 'src/layout/common.generated';
+import type { IMapping, IOption, IOptionSourceExternal } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type ValueType = 'single' | 'multi';
@@ -41,9 +41,7 @@ interface Props<T extends ValueType> {
   secure?: boolean;
   mapping?: IMapping;
   queryParameters?: Record<string, string>;
-
-  // Fetch options from repeating group
-  source?: IOptionSource;
+  source?: IOptionSourceExternal;
 
   sortOrder?: SortOrder;
 }

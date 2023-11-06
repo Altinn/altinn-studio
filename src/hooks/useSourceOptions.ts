@@ -10,12 +10,12 @@ import { convertDataBindingToModel, getKeyWithoutIndexIndicators } from 'src/uti
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
 import { memoize } from 'src/utils/memoize';
-import type { IOption, IOptionSource } from 'src/layout/common.generated';
+import type { IOption, IOptionSourceExternal } from 'src/layout/common.generated';
 import type { HierarchyDataSources } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface IUseSourceOptionsArgs {
-  source: IOptionSource | undefined;
+  source: IOptionSourceExternal | undefined;
   node: LayoutNode;
 }
 
