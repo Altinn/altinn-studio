@@ -57,7 +57,6 @@ const handleError = (
     const errorMessageKey = `api_errors.${errorCode}`;
 
     if (i18n.exists(errorMessageKey)) {
-      // THIS IS CALLED 100 TIMES
       toast.error(t(errorMessageKey), { toastId: errorMessageKey });
       return;
     }

@@ -21,8 +21,9 @@ describe('NotFoundPage', () => {
     });
     expect(link).toBeInTheDocument();
 
-    const image = screen.getByAltText('');
+    const image = screen.getByRole('img');
     expect(image).toBeInTheDocument();
+
     expect(image.tagName).toBe('IMG');
   });
 });
