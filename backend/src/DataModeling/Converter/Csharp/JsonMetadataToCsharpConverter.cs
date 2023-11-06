@@ -215,11 +215,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 classBuilder.AppendLine(Indent(2) + "[BindNever]");
                 if (dataType.Equals("string"))
                 {
-                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " {get; set; } = \"" + element.FixedValue + "\";\n");
+                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; } = \"" + element.FixedValue + "\";\n");
                 }
                 else
                 {
-                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " {get; set;} = " + element.FixedValue + ";\n");
+                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; } = " + element.FixedValue + ";\n");
                 }
             }
             else

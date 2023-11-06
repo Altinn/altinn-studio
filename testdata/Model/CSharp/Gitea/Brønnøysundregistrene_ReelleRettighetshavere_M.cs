@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
 namespace Altinn.App.Models
 {
-    [XmlRoot(ElementName = "melding")]
+    [XmlRoot(ElementName="melding")]
     public class ReelleRettighetshavere_M
     {
         [XmlAttribute("versjon")]
@@ -81,6 +81,7 @@ namespace Altinn.App.Models
         {
             return hfHentRollerFeilet.HasValue;
         }
+
     }
 
     public class Skjemadata
@@ -221,12 +222,8 @@ namespace Altinn.App.Models
         [XmlElement("erEidEllerKontrollertAvOffentligVirksomhet", Order = 1)]
         [JsonProperty("erEidEllerKontrollertAvOffentligVirksomhet")]
         [JsonPropertyName("erEidEllerKontrollertAvOffentligVirksomhet")]
+        [Required]
         public bool? erEidEllerKontrollertAvOffentligVirksomhet { get; set; }
-
-        public bool ShouldSerializeerEidEllerKontrollertAvOffentligVirksomhet()
-        {
-            return erEidEllerKontrollertAvOffentligVirksomhet.HasValue;
-        }
 
         [XmlElement("erOffentligVirksomhetUtenlandsk", Order = 2)]
         [JsonProperty("erOffentligVirksomhetUtenlandsk")]
@@ -247,11 +244,6 @@ namespace Altinn.App.Models
         [JsonPropertyName("erRegistrertIFolkeregisteret")]
         [Required]
         public bool? erRegistrertIFolkeregisteret { get; set; }
-
-        public bool ShouldSerializeerRegistrertIFolkeregisteret()
-        {
-            return erRegistrertIFolkeregisteret.HasValue;
-        }
 
         [XmlElement("hfErPreutfylt", Order = 2)]
         [JsonProperty("hfErPreutfylt")]
@@ -284,7 +276,7 @@ namespace Altinn.App.Models
         [JsonPropertyName("hfEtternavnForFolkeregistrertPerson")]
         public string hfEtternavnForFolkeregistrertPerson { get; set; }
 
-        [Range(Int64.MinValue, Int64.MaxValue)]
+        [Range(Int64.MinValue,Int64.MaxValue)]
         [XmlElement("hfSoekFolkeregistrertPersonFeilkode", Order = 7)]
         [JsonProperty("hfSoekFolkeregistrertPersonFeilkode")]
         [JsonPropertyName("hfSoekFolkeregistrertPersonFeilkode")]
@@ -458,11 +450,6 @@ namespace Altinn.App.Models
         [JsonPropertyName("erUtenlandskVirksomhet")]
         [Required]
         public bool? erUtenlandskVirksomhet { get; set; }
-
-        public bool ShouldSerializeerUtenlandskVirksomhet()
-        {
-            return erUtenlandskVirksomhet.HasValue;
-        }
 
         [XmlElement("norskVirksomhet", Order = 2)]
         [JsonProperty("norskVirksomhet")]
