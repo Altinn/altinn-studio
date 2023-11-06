@@ -8,7 +8,6 @@ import {
   CalendarIcon,
   Checkbox,
   ChevronDownDoubleIcon,
-  ChevronDownIcon,
   ExclamationmarkTriangleIcon,
   FileTextIcon,
   FingerButtonIcon,
@@ -359,7 +358,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: ChevronDownIcon,
+    icon: Select,
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
