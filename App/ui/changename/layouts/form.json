@@ -462,6 +462,39 @@
         "required": false
       },
       {
+        "id": "kommune",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Kommune"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Adresse.Kommune",
+          "metadata": "Adresse.KommunerMetadata"
+        },
+        "optionsId": "kommuner",
+        "required": false,
+        "readOnly": false,
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
+        "id": "kommuner-metadata",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Kommuner metadata"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Adresse.KommunerMetadata"
+        },
+        "readOnly": false,
+        "grid": {
+          "xs": 12,
+          "sm": 6
+        }
+      },
+      {
         "id": "fileUpload-changename",
         "type": "FileUpload",
         "textResourceBindings": {

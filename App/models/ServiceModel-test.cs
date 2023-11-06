@@ -2081,6 +2081,17 @@ namespace Altinn.App.Models
         [JsonProperty("Poststed")]
         [JsonPropertyName("Poststed")]
         public string? Poststed { get; set; }
+
+        [XmlElement("Kommune", Order = 4)]
+        [JsonProperty("Kommune")]
+        [JsonPropertyName("Kommune")]
+        public string? Kommune { get; set; }
+
+        [XmlElement("KommunerMetadata", Order = 5)]
+        [JsonProperty("KommunerMetadata")]
+        [JsonPropertyName("KommunerMetadata")]
+        public string? KommunerMetadata { get; set; }
+
     }
 
     public class GridData

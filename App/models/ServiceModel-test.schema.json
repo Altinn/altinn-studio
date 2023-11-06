@@ -434,6 +434,9 @@
             },
             "Poststed": {
               "type": "string"
+            },
+            "Kommune": {
+              "type": "string"
             }
           },
           "required": [

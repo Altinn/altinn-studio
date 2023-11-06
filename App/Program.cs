@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Altinn.Codelists.Extensions;
 
 void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
 {
@@ -58,6 +59,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
 
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
+
+    // Add support for retrieving shared codelists
+    services.AddAltinnCodelists();
 
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>
