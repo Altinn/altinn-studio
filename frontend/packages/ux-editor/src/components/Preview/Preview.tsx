@@ -51,15 +51,15 @@ const PreviewFrame = () => {
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
       <div className={classes.previewArea}>
-          <div className={classes.iframeContainer}>
+        <div className={classes.iframeContainer}>
           <iframe
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
             src={previewPage(org, app, selectedLayoutSet)}
           />
-          </div>
-          <PreviewLimitationsInfo />
+        </div>
+        <PreviewLimitationsInfo />
       </div>
     </div>
   );

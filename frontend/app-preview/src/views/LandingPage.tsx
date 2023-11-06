@@ -7,14 +7,12 @@ import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import {
-  getTopBarAppPreviewMenu,
-  TopBarAppPreviewMenu,
-} from '../components/AppBarConfig/AppPreviewBarConfig';
+import { getTopBarAppPreviewMenu } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { previewPage } from 'app-shared/api/paths';
+import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
 export interface LandingPageProps {
@@ -30,14 +28,17 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
+  const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>(
+    'layoutSet/' + app,
+    null,
+  );
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
     'desktop',
   );
 
   const repoType = getRepositoryType(org, app);
-  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
+  const menuItems: TopBarMenuItem[] = getTopBarAppPreviewMenu(org, app, repoType, t);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
@@ -46,7 +47,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
   };
-  
+
   if (previewConnection) {
     previewConnection.on('ReceiveMessage', function (message) {
       const frame = document.getElementById('app-frontend-react-iframe');
@@ -64,9 +65,8 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     <>
       <div className={classes.header}>
         <AltinnHeader
-          menu={menu}
+          menuItems={menuItems}
           showSubMenu={true}
-          activeMenuSelection={TopBarAppPreviewMenu.Preview}
           org={org}
           app={app}
           user={user}

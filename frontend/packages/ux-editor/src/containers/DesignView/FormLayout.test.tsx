@@ -15,7 +15,6 @@ const defaultProps: FormLayoutProps = {
 };
 
 describe('FormLayout', () => {
-
   it('Does not display a tree view component by default', () => {
     render();
     expect(screen.queryByRole('tree')).not.toBeInTheDocument();
@@ -44,5 +43,5 @@ const render = (props?: Partial<FormLayoutProps>) =>
       <FormContextProvider>
         <FormLayout {...defaultProps} {...props} />
       </FormContextProvider>
-    </DragAndDropTree.Provider>
+    </DragAndDropTree.Provider>,
   );

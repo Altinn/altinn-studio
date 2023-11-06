@@ -323,7 +323,7 @@ export const addItemOfType = <T extends ComponentType>(
   position: number = -1,
 ): IInternalLayout => {
   const newItem: FormItem<T> = generateFormItem<T>(componentType, id);
-  return (newItem.itemType === 'COMPONENT')
+  return newItem.itemType === 'COMPONENT'
     ? addComponent(layout, newItem as FormComponent<T>, parentId, position)
     : addContainer(layout, newItem, id, parentId, position);
 };

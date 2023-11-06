@@ -8,12 +8,11 @@ import { AltinnHeaderProfile } from '../AltinnHeaderProfile';
 import { User } from 'app-shared/types/User';
 import classnames from 'classnames';
 import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
-import { AltinnHeaderMenuItem } from '../altinnHeaderMenu/AltinnHeaderMenu';
 import { Repository } from 'app-shared/types/Repository';
+import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 
 export interface AltinnHeaderProps {
-  menu: AltinnHeaderMenuItem[];
-  activeMenuSelection?: string;
+  menuItems: TopBarMenuItem[];
   showSubMenu: boolean;
   subMenuContent?: JSX.Element;
   repository: Repository;
@@ -25,9 +24,8 @@ export interface AltinnHeaderProps {
 }
 
 export const AltinnHeader = ({
-  menu,
+  menuItems,
   showSubMenu,
-  activeMenuSelection,
   repository,
   org,
   app,
@@ -46,7 +44,7 @@ export const AltinnHeader = ({
           <span className={classes.bigSlash}>/</span>
           <span className={classes.appName}>{app || ''}</span>
         </div>
-        <AltinnHeaderMenu activeSubHeaderSelection={activeMenuSelection} menu={menu} />
+        <AltinnHeaderMenu menuItems={menuItems} />
         <div className={classes.rightContent}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>

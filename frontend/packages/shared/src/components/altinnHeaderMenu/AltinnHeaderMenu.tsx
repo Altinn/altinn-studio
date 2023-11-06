@@ -1,31 +1,25 @@
 import React from 'react';
 import classes from './AltinnHeaderMenu.module.css';
-import classNames from 'classnames';
+import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 
 export interface IAltinnHeaderMenuProps {
-  activeSubHeaderSelection?: string;
-  menu: AltinnHeaderMenuItem[];
+  menuItems: TopBarMenuItem[];
 }
 
-export interface AltinnHeaderMenuItem {
-  key: string;
-  link: JSX.Element;
-}
+export const AltinnHeaderMenu = ({ menuItems }: IAltinnHeaderMenuProps) => {
+  const { t } = useTranslation();
 
-export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHeaderMenuProps) => {
-  if (!menu?.length) return null;
+  if (!menuItems?.length) return null;
 
   return (
     <ul className={classes.menu}>
-      {menu.map((item) => (
-        <li
-          key={item.key}
-          className={classNames(
-            classes.menuItem,
-            activeSubHeaderSelection === item.key && classes.active
-          )}
-        >
-          {item.link}
+      {menuItems.map((item) => (
+        <li key={item.key} className={classes.menuItem}>
+          <NavLink to={item.link} className={({ isActive }) => (isActive ? classes.active : '')}>
+            {t(item.key)}
+          </NavLink>
         </li>
       ))}
     </ul>

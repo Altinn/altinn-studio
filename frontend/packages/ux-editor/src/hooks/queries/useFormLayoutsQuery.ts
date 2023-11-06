@@ -14,9 +14,8 @@ export const useFormLayoutsQuery = (
 ): UseQueryResult<IFormLayouts> => {
   const { getFormLayouts } = useServicesContext();
   const dispatch = useDispatch();
-  return useQuery(
-    [QueryKey.FormLayouts, org, app, layoutSetName],
-    () => getFormLayouts(org, app, layoutSetName).then((formLayouts) => {
+  return useQuery([QueryKey.FormLayouts, org, app, layoutSetName], () =>
+    getFormLayouts(org, app, layoutSetName).then((formLayouts) => {
       const { convertedLayouts, invalidLayouts } =
         convertExternalLayoutsToInternalFormat(formLayouts);
       dispatch(FormLayoutActions.setInvalidLayouts(invalidLayouts));
