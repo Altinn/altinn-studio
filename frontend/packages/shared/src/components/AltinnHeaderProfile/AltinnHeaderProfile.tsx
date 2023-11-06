@@ -28,22 +28,25 @@ export const AltinnHeaderProfile = ({
 }: AltinnHeaderProfileProps): ReactNode => {
   const { t } = useTranslation();
 
+  const getUserNameAndOrg = (loggedInUser: User) => {
+    const userName: string = loggedInUser.full_name || loggedInUser.login;
+    if (!repository) return userName;
+    if (org && user.login !== org) {
+      return t('shared.header_user_for_org', {
+        user: user.full_name || user.login,
+        org: repository.owner.full_name || repository.owner.login,
+      });
+    }
+    return userName;
+  };
+
   return (
     <div className={classes.profileMenuWrapper}>
       {user && (
         <ProfileMenu
           showlogout
           user={user}
-          userNameAndOrg={
-            !repository
-              ? user.full_name || user.login
-              : org && user.login !== org
-              ? t('shared.header_user_for_org', {
-                  user: user.full_name || user.login,
-                  org: repository.owner.full_name || repository.owner.login,
-                })
-              : user.full_name || user.login
-          }
+          userNameAndOrg={getUserNameAndOrg(user)}
           repositoryError={!repository}
         />
       )}

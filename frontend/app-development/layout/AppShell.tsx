@@ -32,9 +32,6 @@ export const AppShell = (): React.ReactNode => {
     );
   }
 
-  /**
-   * Render different pages based on different statuses
-   */
   const renderPages = () => {
     if (repoStatusError?.response?.status === ServerCodes.NotFound) {
       return <NotFoundPage />;
@@ -44,6 +41,7 @@ export const AppShell = (): React.ReactNode => {
     }
     return <Outlet />;
   };
+
   return (
     <>
       <PageHeader
