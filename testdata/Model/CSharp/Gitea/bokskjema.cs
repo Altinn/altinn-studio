@@ -63,6 +63,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("meantForPress")]
     public bool? meantForPress { get; set; }
 
+    public bool ShouldSerializemeantForPress()
+    {
+      return meantForPress.HasValue;
+    }
+
     [XmlElement("language", Order = 11)]
     [JsonProperty("language")]
     [JsonPropertyName("language")]
@@ -93,6 +98,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("hasISBN")]
     public bool? hasISBN { get; set; }
 
+    public bool ShouldSerializehasISBN()
+    {
+      return hasISBN.HasValue;
+    }
+
     [RegularExpression(@"(?=[\S\s]{13}$|[\S\s]{17}$)[\S\s]*^(978([\-]?)[0-9]{2}([\-]?)([0-1][0-9]|[2-6][0-9]{2}|[78][0-9]{3}|9[0-8][0-9]{3}|99[0-9]{4}|69[0-9]{4})([\-]?)[0-9]{1,5}([\-]?)[xX0-9])$")]
     [XmlElement("isbn", Order = 17)]
     [JsonProperty("isbn")]
@@ -108,6 +118,11 @@ namespace Altinn.App.Models
     [JsonProperty("isSeries")]
     [JsonPropertyName("isSeries")]
     public bool? isSeries { get; set; }
+
+    public bool ShouldSerializeisSeries()
+    {
+      return isSeries.HasValue;
+    }
 
     [RegularExpression(@"(?=[\S\s]{8}$|[\S\s]{9}$)[\S\s]*^([0-9]{4}([\-]?)[0-9]{3}[xX0-9])$")]
     [XmlElement("issn", Order = 20)]
@@ -155,6 +170,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("hasISMN")]
     public bool? hasISMN { get; set; }
 
+    public bool ShouldSerializehasISMN()
+    {
+      return hasISMN.HasValue;
+    }
+
     [RegularExpression(@"(?=[\S\s]{13}$|[\S\s]{17}$)[\S\s]*^(979([\-]?)0([\-]?)(0[0-9]{2}|[1-3][0-9]{3}|[4-6][0-9]{4}|[78][0-9]{5}|9[0-9]{6})([\-]?)[0-9]{1,5}([\-]?)[xX0-9])$")]
     [XmlElement("ismn", Order = 29)]
     [JsonProperty("ismn")]
@@ -167,10 +187,20 @@ namespace Altinn.App.Models
     [JsonPropertyName("orgNumber")]
     public decimal? orgNumber { get; set; }
 
+    public bool ShouldSerializeorgNumber()
+    {
+      return orgNumber.HasValue;
+    }
+
     [XmlElement("access", Order = 31)]
     [JsonProperty("access")]
     [JsonPropertyName("access")]
     public bool? access { get; set; }
+
+    public bool ShouldSerializeaccess()
+    {
+      return access.HasValue;
+    }
 
     [XmlElement("comment", Order = 32)]
     [JsonProperty("comment")]

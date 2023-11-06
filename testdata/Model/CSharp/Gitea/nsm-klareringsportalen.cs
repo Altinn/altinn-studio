@@ -205,6 +205,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("ishatttidligerenavn")]
     public bool? ishatttidligerenavn { get; set; }
 
+    public bool ShouldSerializeishatttidligerenavn()
+    {
+      return ishatttidligerenavn.HasValue;
+    }
+
     [XmlElement("hatttidligerenavn", Order = 8)]
     [JsonProperty("hatttidligerenavn")]
     [JsonPropertyName("hatttidligerenavn")]

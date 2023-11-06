@@ -150,6 +150,10 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
                 bool shouldBeNullable = isValueType && !element.IsTagContent; // Can't use complex type for XmlText.
                 classBuilder.AppendLine(Indent(2) + "public " + dataType + (shouldBeNullable ? "?" : string.Empty) + " " + element.Name + " { get; set; }\n");
+                if (shouldBeNullable && element.Nillable.HasValue && !element.Nillable.Value && element.MinOccurs == 0)
+                {
+                    WriteShouldSerializeMethod(classBuilder, element.Name);
+                }
             }
         }
 
@@ -211,11 +215,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 classBuilder.AppendLine(Indent(2) + "[BindNever]");
                 if (dataType.Equals("string"))
                 {
-                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " {get; set; } = \"" + element.FixedValue + "\";\n");
+                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; } = \"" + element.FixedValue + "\";\n");
                 }
                 else
                 {
-                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " {get; set;} = " + element.FixedValue + ";\n");
+                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; } = " + element.FixedValue + ";\n");
                 }
             }
             else
@@ -427,7 +431,18 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 BaseValueType.Long => ("long", true),
                 _ => throw new CsharpGenerationException("Unsupported type: " + typeName)
             };
+        }
 
+        /// <summary>
+        /// When nillable is set in xsd and minOccurs set to 0 nil attribute should not be set when serializing. Xml serializer by default sets attribute as true for nullable types.
+        /// </summary>
+        private void WriteShouldSerializeMethod(StringBuilder classBuilder, string propName)
+        {
+            classBuilder.AppendLine(Indent(2) + $"public bool ShouldSerialize{propName}()");
+            classBuilder.AppendLine(Indent(2) + "{");
+            classBuilder.AppendLine(Indent(3) + $"return {propName}.HasValue;");
+            classBuilder.AppendLine(Indent(2) + "}");
+            classBuilder.AppendLine();
         }
     }
 }
