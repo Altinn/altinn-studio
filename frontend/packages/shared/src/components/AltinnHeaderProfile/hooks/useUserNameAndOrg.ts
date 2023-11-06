@@ -19,7 +19,7 @@ export const useUserNameAndOrg = (
   t: typeof i18next.t,
 ): string => {
   const getUserNameAndOrg = () => {
-    const userName: string = user.full_name || user.login;
+    const userName: string = user?.full_name || user?.login;
     if (!repository) return userName;
     if (org && user.login !== org) {
       return t('shared.header_user_for_org', {
