@@ -68,6 +68,11 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
               onChange={(e) => setNewOption({ ...newOption, value: e.target.value })}
               value={newOption.value}
             />
+            {!isNewValueValid && (
+              <div className={classes.errorMessage}>
+                {t('ux_editor.add_option_new_valid_value_error')}
+              </div>
+            )}
           </div>
         </div>
         <div className={classes.addButtons}>
@@ -97,6 +102,7 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
       >
         <span className={addButtonClass}>
           <PlusIcon />
+          <span>jgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgf</span>
         </span>
         {t('ux_editor.add_option')}
       </Button>
