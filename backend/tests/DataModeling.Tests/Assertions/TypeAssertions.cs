@@ -34,10 +34,11 @@ public static class TypeAssertions
             }
         }
 
-        if (expected.IsClass)
+        if (expected.IsClass && !expected.IsGenericType)
         {
             IsEquivalentTo(expected.GetFields(), actual.GetFields());
             IsEquivalentTo(expected.GetProperties(), actual.GetProperties());
+            IsEquivalentTo(expected.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly), actual.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly));
         }
 
         IsEquivalentTo(expected.Attributes, actual.Attributes);
@@ -66,12 +67,10 @@ public static class TypeAssertions
     private static void IsEquivalentTo(IReadOnlyCollection<PropertyInfo> expected, IReadOnlyCollection<PropertyInfo> actual)
     {
         expected.Count.Should().Be(actual.Count);
+        foreach (var expectedItem in expected)
         {
-            foreach (var expectedItem in expected)
-            {
-                var actualItem = actual.Single(x => x.Name == expectedItem.Name);
-                IsEquivalentTo(expectedItem, actualItem);
-            }
+            var actualItem = actual.Single(x => x.Name == expectedItem.Name);
+            IsEquivalentTo(expectedItem, actualItem);
         }
     }
 
@@ -95,6 +94,23 @@ public static class TypeAssertions
     private static void IsEquivalentTo(TypeAttributes expected, TypeAttributes actual)
     {
         expected.Should().Be(actual);
+    }
+
+    private static void IsEquivalentTo(IReadOnlyCollection<MethodInfo> expected, IReadOnlyCollection<MethodInfo> actual)
+    {
+        expected.Count.Should().Be(actual.Count);
+        foreach (var expectedItem in expected)
+        {
+            var actualItem = actual.Single(x => x.Name == expectedItem.Name);
+            IsEquivalentTo(expectedItem, actualItem);
+        }
+    }
+
+    private static void IsEquivalentTo(MethodInfo expected, MethodInfo actual)
+    {
+        expected.Name.Should().Be(actual.Name);
+        IsEquivalentTo(expected.ReturnType, actual.ReturnType);
+        actual.IsPublic.Should().Be(expected.IsPublic);
     }
 
     public static void PropertyShouldContainCustomAnnotationAndHaveTypeType(Type type, string propertyName, string propertyType, string expectedAnnotationString)

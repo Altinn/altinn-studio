@@ -141,5 +141,11 @@ namespace Altinn.Studio.DataModeling.Metamodel
         /// </summary>
         [JsonProperty(PropertyName = "displayString")]
         public string DisplayString { get; set; }
+
+        /// <summary>
+        /// Used for xsd context. Indicates if nillable is set in xsd schema.
+        /// </summary>
+        [JsonProperty(PropertyName = "nillable")]
+        public bool? Nillable { get; set; }
     }
 }

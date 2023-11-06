@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="melding" type="ReelleRettighetshavere_M" />
+  <xs:complexType name="ReelleRettighetshavere_M">
+    <xs:sequence>
+      <xs:element name="skjemainnhold" type="Skjemainnhold" />
+    </xs:sequence>
+    <xs:attribute fixed="0.0.3" name="versjon" type="xs:string" use="required" />
+    <xs:attribute fixed="2023-09-14" name="endret" type="xs:string" use="required" />
+    <xs:anyAttribute namespace="##any" />
+  </xs:complexType>
+  <xs:complexType name="Metadata">
+    <xs:sequence>
+      <xs:element name="tjeneste" type="Tekst" />
+      <xs:element name="tjenestehandling" type="Tekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Skjemadata">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="rettighetsinformasjonsid" type="Tekst" />
+      <xs:element minOccurs="0" name="registreringsid" type="Tekst" />
+      <xs:element minOccurs="0" name="endret" type="Tekst" />
+      <xs:element name="registreringspliktigVirksomhet" type="NorskVirksomhet" />
+      <xs:element minOccurs="0" name="reelleRettighetshavereidentifikasjon" type="Tekst" />
+      <xs:element minOccurs="0" name="aarsakTilAtVirksomhetIkkeHarReelleRettighetshavere" type="AarsakTilAtVirksomhetIkkeHarReelleRettighetshavere" />
+      <xs:element minOccurs="0" name="finnesDetReelleRettighetshavereITilleggTilRolleinnehavereForStiftelse" type="Alternativ" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="reellRettighetshaver" type="ReellRettighetshaver" />
+      <xs:element minOccurs="0" name="kanIkkeIdentifisereFlereReelleRettighetshavere" type="Alternativ" />
+      <xs:element minOccurs="0" name="erVirksomhetRegistrertPaaRegulertMarked" type="Alternativ" />
+      <xs:element minOccurs="0" name="regulertMarked" type="Marked" />
+      <xs:element minOccurs="0" name="erReelleRettighetshavereRegistrertIUtenlandskRegister" type="Alternativ" />
+      <xs:element minOccurs="0" name="utenlandskRegister" type="UtenlandskRegister" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="rolleinnehaver" type="Rolleinnehaver" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ReellRettighetshaver">
+    <xs:sequence>
+      <xs:element name="erRegistrertIFolkeregisteret" type="Alternativ" />
+      <xs:element minOccurs="0" name="hfErPreutfylt" type="Alternativ" />
+      <xs:element minOccurs="0" name="foedselsEllerDNummer" type="Tekst" />
+      <xs:element minOccurs="0" name="foedselsdato" type="Dato" />
+      <xs:element minOccurs="0" name="fulltNavn" type="Tekst" />
+      <xs:element minOccurs="0" name="hfEtternavnForFolkeregistrertPerson" type="Tekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="hfSoekFolkeregistrertPersonFeilkode" type="Tall" />
+      <xs:element minOccurs="0" name="statsborgerskap" type="Tekst" />
+      <xs:element minOccurs="0" name="bostedsland" type="Tekst" />
+      <xs:element minOccurs="0" name="harPosisjonEierskap" type="Alternativ" />
+      <xs:element minOccurs="0" name="posisjonEierskap" type="Posisjon" />
+      <xs:element minOccurs="0" name="harPosisjonKontrollOverStemmerettigheter" type="Alternativ" />
+      <xs:element minOccurs="0" name="posisjonKontrollOverStemmerettigheter" type="Posisjon" />
+      <xs:element minOccurs="0" name="harPosisjonRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene" type="Alternativ" />
+      <xs:element minOccurs="0" name="grunnlagForPosisjonenRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene" type="Tekst" />
+      <xs:element minOccurs="0" name="harPosisjonKontrollPaaAnnenMaate" type="Alternativ" />
+      <xs:element minOccurs="0" name="beskrivelseAvPosisjonenKontrollPaaAnnenMaate" type="Tekst" />
+      <xs:element minOccurs="0" name="harPosisjonAvgittGrunnkapital" type="Alternativ" />
+      <xs:element minOccurs="0" name="posisjonAvgittGrunnkapital" type="PosisjonForStiftelse" />
+      <xs:element minOccurs="0" name="harPosisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene" type="Alternativ" />
+      <xs:element minOccurs="0" name="posisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene" type="PosisjonForStiftelse" />
+      <xs:element minOccurs="0" name="harPosisjonSaerligeRettigheter" type="Alternativ" />
+      <xs:element minOccurs="0" name="posisjonSaerligeRettigheter" type="PosisjonForStiftelse" />
+      <xs:element minOccurs="0" name="harPosisjonDestinatar" type="Alternativ" />
+      <xs:element minOccurs="0" name="posisjonDestinatar" type="PosisjonForStiftelse" />
+      <xs:element minOccurs="0" name="hfPosisjonsbeskrivelse" type="Tekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Rolleinnehaver">
+    <xs:sequence>
+      <xs:element name="foedselsdato" type="Dato" />
+      <xs:element name="fulltNavn" type="Tekst" />
+      <xs:element name="rolle" type="Tekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Integrasjon">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="hfHentPreutfyllingFeilet" type="Alternativ" />
+      <xs:element minOccurs="0" name="hfHentRollerFeilet" type="Alternativ" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="MellomliggendeVirksomhet">
+    <xs:sequence>
+      <xs:element minOccurs="1" name="erUtenlandskVirksomhet" type="Alternativ" />
+      <xs:element minOccurs="0" name="norskVirksomhet" type="NorskVirksomhet" />
+      <xs:element minOccurs="0" name="utenlandskVirksomhet" type="UtenlandskVirksomhet" />
+      <xs:element minOccurs="0" name="hfOrganisasjonsnummerEllerRegistreringsnummerIHjemlandet" type="Tekst" />
+      <xs:element minOccurs="0" name="hfNavn" type="Tekst" />
+      <xs:element minOccurs="0" name="hfLandnavn" type="Tekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="UtenlandskVirksomhet">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="registreringsnummerIHjemlandet" type="Tekst" />
+      <xs:element name="navn" type="Tekst" />
+      <xs:element name="adresse" type="InternasjonalAdresse" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="Tekst">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  <xs:complexType name="NorskVirksomhet">
+    <xs:sequence>
+      <xs:element name="organisasjonsnummer" type="Tekst" />
+      <xs:element minOccurs="0" name="hfSoekOrganisasjonsnummerFeilkode" type="Tekst" />
+      <xs:element minOccurs="0" name="hfNavn" type="Tekst" />
+      <xs:element minOccurs="0" name="hfOrganisasjonsform" type="Tekst" />
+      <xs:element minOccurs="0" name="hfForretningsadresse" type="Tekst" />
+      <xs:element minOccurs="0" name="hfNavnPaaHovedvirksomhetRegistrertIEoes" type="Tekst" />
+      <xs:element minOccurs="0" name="hfLandnavnForHovedvirksomhetRegistrertIEoes" type="Tekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Skjemainnhold">
+    <xs:sequence>
+      <xs:element name="metadata" type="Metadata" />
+      <xs:element minOccurs="0" name="integrasjon" type="Integrasjon" />
+      <xs:element name="skjemadata" type="Skjemadata" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="Alternativ">
+    <xs:restriction base="xs:boolean" />
+  </xs:simpleType>
+  <xs:simpleType name="Tall">
+    <xs:restriction base="xs:long" />
+  </xs:simpleType>
+  <xs:simpleType name="Dato">
+    <xs:restriction base="xs:date" />
+  </xs:simpleType>
+  <xs:complexType name="InternasjonalAdresse">
+    <xs:sequence>
+      <xs:element name="friAdressetekst1" type="Tekst" />
+      <xs:element minOccurs="0" name="friAdressetekst2" type="Tekst" />
+      <xs:element minOccurs="0" name="friAdressetekst3" type="Tekst" />
+      <xs:element name="landkode" type="Tekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Marked">
+    <xs:sequence>
+      <xs:element minOccurs="1" name="markedstype" type="Tekst" />
+      <xs:element minOccurs="0" name="hfLandnavn" type="Tekst" />
+      <xs:element minOccurs="0" name="hfInternettadresse" type="Tekst" />
+      <xs:element minOccurs="0" name="detaljerForMarkedstypeAnnen" type="MarkedstypeAnnen" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="UtenlandskRegister">
+    <xs:sequence>
+      <xs:element minOccurs="1" name="registertype" type="Tekst" />
+      <xs:element minOccurs="0" name="hfLandnavn" type="Tekst" />
+      <xs:element minOccurs="0" name="hfNavn" type="Tekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AarsakTilAtVirksomhetIkkeHarReelleRettighetshavere">
+    <xs:sequence>
+      <xs:element name="erEidEllerKontrollertAvOffentligVirksomhet" type="Alternativ" />
+      <xs:element minOccurs="0" name="erOffentligVirksomhetUtenlandsk" type="Alternativ" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Posisjon">
+    <xs:sequence>
+      <xs:element name="stoerrelsesintervall" type="Tekst" />
+      <xs:element name="grunnlag" type="Tekst" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="mellomliggendeVirksomhet" type="MellomliggendeVirksomhet" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="MarkedstypeAnnen">
+    <xs:sequence>
+      <xs:element name="navn" type="Tekst" />
+      <xs:element name="landkode" type="Tekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PosisjonForStiftelse">
+    <xs:sequence>
+      <xs:element name="grunnlag" type="Tekst" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="mellomliggendeVirksomhet" type="MellomliggendeVirksomhet" />
+    </xs:sequence>
+  </xs:complexType>
+</xsd:schema>

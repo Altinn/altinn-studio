@@ -476,7 +476,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     Restrictions = context.Restrictions,
                     DataBindingName = GetDataBindingName(ElementType.Group, maxOccurs, id, null, xPath),
                     DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs),
-                    IsTagContent = context.XmlText
+                    IsTagContent = context.XmlText,
+                    Nillable = context.IsNillable
                 });
         }
 
@@ -531,7 +532,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     FixedValue = fixedValue,
                     DataBindingName = GetDataBindingName(@type, maxOccurs, id, fixedValue, xPath),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs),
-                    IsTagContent = context.XmlText
+                    IsTagContent = context.XmlText,
+                    Nillable = context.IsNillable
                 });
         }
 
