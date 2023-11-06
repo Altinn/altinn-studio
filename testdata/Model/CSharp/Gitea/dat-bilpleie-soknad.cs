@@ -145,6 +145,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallAnsatte")]
     public decimal? AntallAnsatte { get; set; }
 
+    public bool ShouldSerializeAntallAnsatte()
+    {
+      return AntallAnsatte.HasValue;
+    }
+
     [XmlElement("Underenheter", Order = 6)]
     [JsonProperty("Underenheter")]
     [JsonPropertyName("Underenheter")]
@@ -191,10 +196,20 @@ namespace Altinn.App.Models
     [JsonPropertyName("ErIStatensVegvesen")]
     public bool? ErIStatensVegvesen { get; set; }
 
+    public bool ShouldSerializeErIStatensVegvesen()
+    {
+      return ErIStatensVegvesen.HasValue;
+    }
+
     [XmlElement("KunAnsvarligSkalArbeide", Order = 2)]
     [JsonProperty("KunAnsvarligSkalArbeide")]
     [JsonPropertyName("KunAnsvarligSkalArbeide")]
     public bool? KunAnsvarligSkalArbeide { get; set; }
+
+    public bool ShouldSerializeKunAnsvarligSkalArbeide()
+    {
+      return KunAnsvarligSkalArbeide.HasValue;
+    }
 
     [Range(0,Double.MaxValue)]
     [XmlElement("AntallAnsatteEgenUtfylt", Order = 3)]
@@ -202,16 +217,31 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallAnsatteEgenUtfylt")]
     public decimal? AntallAnsatteEgenUtfylt { get; set; }
 
+    public bool ShouldSerializeAntallAnsatteEgenUtfylt()
+    {
+      return AntallAnsatteEgenUtfylt.HasValue;
+    }
+
     [Range(0,Double.MaxValue)]
     [XmlElement("AntallHMSKort", Order = 4)]
     [JsonProperty("AntallHMSKort")]
     [JsonPropertyName("AntallHMSKort")]
     public decimal? AntallHMSKort { get; set; }
 
+    public bool ShouldSerializeAntallHMSKort()
+    {
+      return AntallHMSKort.HasValue;
+    }
+
     [XmlElement("SkalUnderenheterJobbeMedBilpleie", Order = 5)]
     [JsonProperty("SkalUnderenheterJobbeMedBilpleie")]
     [JsonPropertyName("SkalUnderenheterJobbeMedBilpleie")]
     public bool? SkalUnderenheterJobbeMedBilpleie { get; set; }
+
+    public bool ShouldSerializeSkalUnderenheterJobbeMedBilpleie()
+    {
+      return SkalUnderenheterJobbeMedBilpleie.HasValue;
+    }
 
     [XmlElement("UnderenheterSomSkalBilpleie", Order = 6)]
     [JsonProperty("UnderenheterSomSkalBilpleie")]
@@ -223,6 +253,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("OmfattetAvForurensingsforskriften")]
     public bool? OmfattetAvForurensingsforskriften { get; set; }
 
+    public bool ShouldSerializeOmfattetAvForurensingsforskriften()
+    {
+      return OmfattetAvForurensingsforskriften.HasValue;
+    }
+
     [XmlElement("UnderenheterOmfattetAvForurensingsforskriften", Order = 8)]
     [JsonProperty("UnderenheterOmfattetAvForurensingsforskriften")]
     [JsonPropertyName("UnderenheterOmfattetAvForurensingsforskriften")]
@@ -232,6 +267,11 @@ namespace Altinn.App.Models
     [JsonProperty("HarVerneombud")]
     [JsonPropertyName("HarVerneombud")]
     public bool? HarVerneombud { get; set; }
+
+    public bool ShouldSerializeHarVerneombud()
+    {
+      return HarVerneombud.HasValue;
+    }
 
     [MinLength(0)]
     [MaxLength(255)]
@@ -252,16 +292,31 @@ namespace Altinn.App.Models
     [JsonPropertyName("AlternativOrdning")]
     public bool? AlternativOrdning { get; set; }
 
+    public bool ShouldSerializeAlternativOrdning()
+    {
+      return AlternativOrdning.HasValue;
+    }
+
     [XmlElement("HarAMU", Order = 13)]
     [JsonProperty("HarAMU")]
     [JsonPropertyName("HarAMU")]
     public bool? HarAMU { get; set; }
+
+    public bool ShouldSerializeHarAMU()
+    {
+      return HarAMU.HasValue;
+    }
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("BHTorgnr", Order = 14)]
     [JsonProperty("BHTorgnr")]
     [JsonPropertyName("BHTorgnr")]
     public decimal? BHTorgnr { get; set; }
+
+    public bool ShouldSerializeBHTorgnr()
+    {
+      return BHTorgnr.HasValue;
+    }
 
     [XmlElement("Arbeidsavtaler", Order = 15)]
     [JsonProperty("Arbeidsavtaler")]
@@ -272,6 +327,11 @@ namespace Altinn.App.Models
     [JsonProperty("ErUtfyllerKontaktPerson")]
     [JsonPropertyName("ErUtfyllerKontaktPerson")]
     public bool? ErUtfyllerKontaktPerson { get; set; }
+
+    public bool ShouldSerializeErUtfyllerKontaktPerson()
+    {
+      return ErUtfyllerKontaktPerson.HasValue;
+    }
 
     [MinLength(0)]
     [MaxLength(255)]
@@ -299,10 +359,20 @@ namespace Altinn.App.Models
     [JsonPropertyName("BekreftOpplysninger")]
     public bool? BekreftOpplysninger { get; set; }
 
+    public bool ShouldSerializeBekreftOpplysninger()
+    {
+      return BekreftOpplysninger.HasValue;
+    }
+
     [XmlElement("BekreftStraff", Order = 21)]
     [JsonProperty("BekreftStraff")]
     [JsonPropertyName("BekreftStraff")]
     public bool? BekreftStraff { get; set; }
+
+    public bool ShouldSerializeBekreftStraff()
+    {
+      return BekreftStraff.HasValue;
+    }
 
   }
 }
