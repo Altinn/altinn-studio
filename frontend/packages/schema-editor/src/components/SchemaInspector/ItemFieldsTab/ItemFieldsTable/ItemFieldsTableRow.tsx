@@ -4,15 +4,15 @@ import cn from 'classnames';
 import { FieldType, UiSchemaNode, deleteNode, setType } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { Button, Select, Switch } from '@digdir/design-system-react';
+import { Button, NativeSelect, Switch } from '@digdir/design-system-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { setRequired, setPropertyName } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { getTypeOptions } from '../../helpers/options';
 import { useDispatch } from 'react-redux';
 import { removeSelection } from '../../../../features/editor/schemaEditorSlice';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { Center } from 'app-shared/components/Center';
+import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 
 export type ItemFieldsTableRowProps = {
   fieldNode: UiSchemaNode & {
@@ -82,16 +82,14 @@ export const ItemFieldsTableRow = ({
           handleSave={handleChangeNodeName}
           onKeyDown={onKeyDown}
           pointer={fullPath}
+          size='small'
           aria-label={t('schema_editor.field_name')}
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
-        <Select
-          hideLabel
-          inputId={`${fieldNode.domId}-typeselect`}
-          label={t('schema_editor.type')}
-          onChange={(fieldType) => onChangeType(fullPath, fieldType as FieldType)}
-          options={getTypeOptions(t)}
+        <TypeSelect
+          id={`${fieldNode.domId}-typeselect`}
+          onChange={(fieldType) => onChangeType(fullPath, fieldType)}
           value={fieldNode.fieldType as FieldType}
         />
       </td>
@@ -131,5 +129,32 @@ export const ItemFieldsTableRow = ({
         </Center>
       </td>
     </tr>
+  );
+};
+
+interface TypeSelectProps {
+  id: string;
+  onChange: (type: FieldType) => void;
+  value: FieldType;
+}
+
+const TypeSelect = ({ id, onChange, value }: TypeSelectProps) => {
+  const typeOptions = useTypeOptions();
+  const { t } = useTranslation();
+  return (
+    <NativeSelect
+      hideLabel
+      id={id}
+      label={t('schema_editor.type')}
+      onChange={(event) => onChange(event.target.value as FieldType)}
+      value={value}
+      size='small'
+    >
+      {typeOptions.map(({ value: fieldType, label }) => (
+        <option key={fieldType} value={fieldType}>
+          {label}
+        </option>
+      ))}
+    </NativeSelect>
   );
 };
