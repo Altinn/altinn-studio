@@ -1,6 +1,5 @@
 import React from 'react';
 import classes from './LandingPage.module.css';
-import { PreviewContext } from '../PreviewContext';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
@@ -8,14 +7,13 @@ import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import {
-  getTopBarAppPreviewMenu,
-  TopBarAppPreviewMenu,
-} from '../components/AppBarConfig/AppPreviewBarConfig';
+import { getTopBarAppPreviewMenu } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { previewPage } from 'app-shared/api/paths';
+import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -30,20 +28,22 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const repoType = getRepositoryType(org, app);
-  const menu = getTopBarAppPreviewMenu(org, app, repoType, t);
-  const [selectedLayoutSetInEditor, setSelectedLayoutSetInEditor] = useLocalStorage<string>(
+  const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>(
     'layoutSet/' + app,
+    null,
   );
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
     'desktop',
   );
+
+  const repoType = getRepositoryType(org, app);
+  const menuItems: TopBarMenuItem[] = getTopBarAppPreviewMenu(org, app, repoType, t);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
   const handleChangeLayoutSet = (layoutSet: string) => {
-    setSelectedLayoutSetInEditor(layoutSet);
+    setSelectedLayoutSet(layoutSet);
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
   };
@@ -62,39 +62,38 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   }
 
   return (
-    <PreviewContext>
-      <>
-        <div className={classes.header}>
-          <AltinnHeader
-            menu={menu}
-            showSubMenu={true}
-            activeMenuSelection={TopBarAppPreviewMenu.Preview}
-            org={org}
-            app={app}
-            user={user}
-            repository={repository}
-            buttonActions={appPreviewButtonActions(org, app, instanceId)}
-            variant={variant}
-            subMenuContent={
-              <AppPreviewSubMenu
-                setViewSize={setPreviewViewSize}
-                viewSize={previewViewSize}
-                selectedLayoutSet={selectedLayoutSetInEditor}
-                handleChangeLayoutSet={handleChangeLayoutSet}
-              />
-            }
-          />
-        </div>
-        <div className={classes.iframeMobileViewContainer}>
+    <>
+      <div className={classes.header}>
+        <AltinnHeader
+          menuItems={menuItems}
+          showSubMenu={true}
+          org={org}
+          app={app}
+          user={user}
+          repository={repository}
+          buttonActions={appPreviewButtonActions(org, app, instanceId)}
+          variant={variant}
+          subMenuContent={
+            <AppPreviewSubMenu
+              setViewSize={setPreviewViewSize}
+              viewSize={previewViewSize}
+              selectedLayoutSet={selectedLayoutSet}
+              handleChangeLayoutSet={handleChangeLayoutSet}
+            />
+          }
+        />
+      </div>
+      <div className={classes.previewArea}>
+        <PreviewLimitationsInfo />
+        <div className={classes.iframeContainer}>
           <iframe
             title={t('preview.iframe_title')}
             id='app-frontend-react-iframe'
-            src={previewPage(org, app, selectedLayoutSetInEditor)}
+            src={previewPage(org, app, selectedLayoutSet)}
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
-          {previewViewSize === 'mobile' && <div className={classes.iframeMobileViewOverlay}></div>}
         </div>
-      </>
-    </PreviewContext>
+      </div>
+    </>
   );
 };

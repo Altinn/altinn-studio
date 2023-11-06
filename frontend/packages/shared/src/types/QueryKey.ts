@@ -20,6 +20,7 @@ export enum QueryKey {
   JsonSchema = 'JsonSchema',
   LayoutSchema = 'LayoutSchema',
   LayoutSets = 'LayoutSets',
+  NewsList = 'NewsList',
   OptionListIds = 'OptionListIds',
   OrgList = 'OrgList',
   Organizations = 'Organizations',
@@ -50,4 +51,6 @@ export enum QueryKey {
   ValidatePolicy = 'ValidatePolicy',
   ValidateResource = 'ValidateResource',
   PublishResource = 'PublishResource',
+  Altinn2Services = 'Altinn2Services',
+  ImportAltinn2Resource = 'ImportAltinn2Resource',
 }

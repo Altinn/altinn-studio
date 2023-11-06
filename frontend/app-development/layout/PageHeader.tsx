@@ -1,17 +1,15 @@
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import { routes } from '../config/routes';
 import { AltinnHeader } from 'app-shared/components/altinnHeader/AltinnHeader';
-import { getTopBarMenu } from './AppBar/appBarConfig';
+import { getFilteredTopBarMenu } from './AppBar/appBarConfig';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useUserQuery } from 'app-development/hooks/queries';
 import { useAppSelector } from 'app-development/hooks';
 import { previewPath, publishPath } from 'app-shared/api/paths';
-import { TopBarMenu } from './AppBar/appBarConfig';
-import { useTranslation } from 'react-i18next';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 
 type SubMenuContentProps = {
   org: string;
@@ -39,7 +37,6 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
       buttonColor: 'inverted',
       headerButtonsClasses: undefined,
       handleClick: () => (window.location.href = previewPath(org, app)),
-      inBeta: true,
     },
     {
       title: 'top_menu.deploy',
@@ -54,39 +51,28 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
 };
 
 type PageHeaderProps = {
-  showSubMenu: boolean;
   org: string;
   app: string;
 };
 
-export const PageHeader = ({ showSubMenu, org, app }: PageHeaderProps) => {
+export const PageHeader = ({ org, app }: PageHeaderProps) => {
   const repoType = getRepositoryType(org, app);
-  const { t } = useTranslation();
   const { data: user } = useUserQuery();
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
-  const menu = getTopBarMenu(org, app, repoType, t);
+  const menuItems = getFilteredTopBarMenu(repoType);
+
+  const { data: repoStatus } = useRepoStatusQuery(org, app);
 
   return (
-    <Routes>
-      {routes.map((route) => (
-        <Route
-          key={route.path}
-          path={route.path}
-          element={
-            <AltinnHeader
-              menu={menu}
-              showSubMenu={showSubMenu}
-              subMenuContent={subMenuContent({ org, app })}
-              activeMenuSelection={route.activeSubHeaderSelection}
-              org={org}
-              app={app}
-              user={user}
-              repository={{ ...repository }}
-              buttonActions={buttonActions(org, app)}
-            />
-          }
-        />
-      ))}
-    </Routes>
+    <AltinnHeader
+      menuItems={menuItems}
+      showSubMenu={!repoStatus.hasMergeConflict}
+      subMenuContent={subMenuContent({ org, app })}
+      org={org}
+      app={app}
+      user={user}
+      repository={{ ...repository }}
+      buttonActions={buttonActions(org, app)}
+    />
   );
 };

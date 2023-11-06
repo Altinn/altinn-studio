@@ -1,6 +1,6 @@
 import { useFormLayouts, useFormLayout, useSelectedFormLayout, useSelectedFormLayoutWithName } from './useFormLayoutsSelector';
 import { renderHookWithMockStore } from '../testing/mocks';
-import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
+import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { externalLayoutsMock, layoutMock, layout1NameMock } from '../testing/layoutMock';
 import { waitFor } from '@testing-library/react';
 import { convertExternalLayoutsToInternalFormat } from '../utils/formLayoutsUtils';

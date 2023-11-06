@@ -69,7 +69,7 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER' } },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -133,7 +133,7 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER' } },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -161,7 +161,7 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER' } },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -172,7 +172,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         null,
-        layoutReceiptId
+        layoutReceiptId,
       );
       const layout1Components = Object.values(updatedLayouts[layoutId].components);
       expect(layout1Components.length).toBe(0);
@@ -195,7 +195,7 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER' } },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -206,7 +206,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         null,
-        layoutReceiptId
+        layoutReceiptId,
       );
       const layout1Components = Object.values(updatedLayouts[layoutId].components);
       const layoutReceiptComponents = Object.values(updatedLayouts[layoutReceiptId].components);
@@ -228,7 +228,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         layoutReceiptId,
-        layoutReceiptId
+        layoutReceiptId,
       );
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(layoutReceiptId, updatedLayouts[layoutReceiptId]);

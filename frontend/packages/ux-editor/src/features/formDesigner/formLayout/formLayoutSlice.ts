@@ -40,10 +40,7 @@ const formLayoutSlice = createSlice({
     },
     updateSelectedLayout: (state, action: PayloadAction<string>) => {
       state.selectedLayout = action.payload;
-    },
-    updateSelectedLayoutSet: (state, action: PayloadAction<string>) => {
-      state.selectedLayoutSet = action.payload;
-    },
+    }
   },
 });
 

@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {

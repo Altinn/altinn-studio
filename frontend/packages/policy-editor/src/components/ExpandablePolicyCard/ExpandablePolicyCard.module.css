@@ -5,6 +5,7 @@
 
 .chipWrapper {
   display: flex;
+  flex-wrap: wrap;
 }
 
 .textAreaWrapper {
@@ -31,4 +32,8 @@
 
 .inputParagraph {
   margin-bottom: 5px;
+}
+
+.descriptionInput {
+  margin-top: 30px;
 }

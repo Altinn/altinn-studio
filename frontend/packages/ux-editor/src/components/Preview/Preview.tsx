@@ -3,10 +3,7 @@ import classes from './Preview.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelector } from 'react-redux';
 import cn from 'classnames';
-import {
-  selectedLayoutNameSelector,
-  selectedLayoutSetSelector,
-} from '../../selectors/formLayoutSelectors';
+import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
@@ -14,6 +11,7 @@ import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
 import { Center } from 'app-shared/components/Center';
 import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
+import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
 export const Preview = () => {
   const layoutName = useSelector(selectedLayoutNameSelector);
@@ -40,7 +38,7 @@ const NoSelectedPageMessage = () => {
 const PreviewFrame = () => {
   const { org, app } = useStudioUrlParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
-  const selectedLayoutSet = useSelector(selectedLayoutSetSelector);
+  const { selectedLayoutSet } = useAppContext();
   const { t } = useTranslation();
   const { previewIframeRef } = useAppContext();
   const layoutName = useSelector(selectedLayoutNameSelector);
@@ -52,12 +50,17 @@ const PreviewFrame = () => {
   return (
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
-      <iframe
-        ref={previewIframeRef}
-        className={cn(classes.iframe, classes[viewportToSimulate])}
-        title={t('ux_editor.preview')}
-        src={previewPage(org, app, selectedLayoutSet)}
-      />
+      <div className={classes.previewArea}>
+        <div className={classes.iframeContainer}>
+          <iframe
+            ref={previewIframeRef}
+            className={cn(classes.iframe, classes[viewportToSimulate])}
+            title={t('ux_editor.preview')}
+            src={previewPage(org, app, selectedLayoutSet)}
+          />
+        </div>
+        <PreviewLimitationsInfo />
+      </div>
     </div>
   );
 };

@@ -1,19 +1,18 @@
 import React from 'react';
-import {
-  formLayoutSettingsMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
-} from '../../testing/mocks';
+import { formLayoutSettingsMock, renderWithMockStore } from '../../testing/mocks';
 import { DesignView } from './DesignView';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { FormContextProvider } from '../FormContext';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from '../../testing/mocks';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { externalLayoutsMock } from '../../testing/layoutMock';
+import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 
 const mockOrg = 'org';
 const mockApp = 'app';
@@ -76,24 +75,29 @@ describe('DesignView', () => {
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalled();
   });
+
+  it('Displays the tree view version of the layout when the formTree feature flag is enabled', async () => {
+    typedLocalStorage.setItem('featureFlags', ['formTree']);
+    await render();
+    expect(screen.getByRole('tree')).toBeInTheDocument();
+  });
 });
-
-const waitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
-  ).renderHookResult.result;
-
-  const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
-  ).renderHookResult.result;
-
-  await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
-};
-
 const render = async () => {
-  await waitForData();
-  return renderWithMockStore()(
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(
+    [QueryKey.FormLayouts, mockOrg, mockApp, mockSelectedLayoutSet],
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
+  );
+  queryClient.setQueryData(
+    [QueryKey.FormLayoutSettings, mockOrg, mockApp, mockSelectedLayoutSet],
+    formLayoutSettingsMock,
+  );
+
+  return renderWithMockStore(
+    {},
+    {},
+    queryClient,
+  )(
     <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormContextProvider>
         <DesignView />

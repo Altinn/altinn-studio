@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
@@ -312,7 +313,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
 
-            PlatformStorageModels.Application appMetadata = await targetAppRepository.GetApplicationMetadata();
+            ApplicationMetadata appMetadata = await targetAppRepository.GetApplicationMetadata();
             appMetadata.Id = $"{org}/{targetRepository}";
             appMetadata.CreatedBy = developer;
             appMetadata.LastChangedBy = developer;
@@ -662,7 +663,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task<string> GetModelName(string org, string app)
         {
-            PlatformStorageModels.Application application = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            ApplicationMetadata application = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
             string dataTypeId = string.Empty;
 
             if (application == null)

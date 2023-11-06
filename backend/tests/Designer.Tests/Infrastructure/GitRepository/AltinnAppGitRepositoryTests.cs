@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Designer.Tests.Utils;
@@ -37,7 +38,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
 
             applicationMetadata.Id.Should().Be("yabbin/hvem-er-hvem");
             applicationMetadata.Org.Should().Be("yabbin");

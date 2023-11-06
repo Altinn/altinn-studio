@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import classes from './ReceiptContent.module.css';
-import type { FormLayout } from '../../../types/FormLayout';
+import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import { PageAccordion } from '../PageAccordion';
 import { RenderedFormContainer } from '../RenderedFormContainer';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
@@ -19,7 +19,7 @@ export type ReceiptContentProps = {
   /**
    * The list of all form layouts
    */
-  formLayoutData: FormLayout[];
+  formLayoutData: FormLayoutPage[];
   /**
    * To be executed when clicking the accordion
    * @returns void
@@ -38,7 +38,7 @@ export type ReceiptContentProps = {
  *
  * @property {string}[receiptName] - Name of receipt page
  * @property {string}[selectedAccordion] - The currently open accordion
- * @property {FormLayout[]}[formLayoutData] - The list of all form layouts
+ * @property {FormLayoutPage[]}[formLayoutData] - The list of all form layouts
  * @property {function}[onClickAccordion] - To be executed when clicking the accordion
  * @property {function}[onClickAddPage] - To be executed when clicking add receipt
  *

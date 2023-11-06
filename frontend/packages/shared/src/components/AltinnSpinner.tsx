@@ -12,7 +12,7 @@ export type IAltinnSpinnerComponentProvidedProps = {
 export const AltinnSpinner = ({
   spinnerText,
   className,
-  size = '1xLarge',
+  size = 'medium',
   variant = 'interaction',
 }: IAltinnSpinnerComponentProvidedProps) => {
   const { t } = useTranslation();

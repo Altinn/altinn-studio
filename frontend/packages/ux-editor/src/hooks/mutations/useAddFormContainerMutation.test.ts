@@ -12,6 +12,7 @@ const app = 'app';
 const id = 'testid';
 const selectedLayoutSet = 'test-layout-set';
 const container: FormContainer = {
+  id,
   itemType: 'CONTAINER',
 }
 const defaultArgs: AddFormContainerMutationArgs = {

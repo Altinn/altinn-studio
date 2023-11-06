@@ -5,7 +5,7 @@ import {
   ErrorMessage,
   Select,
   Paragraph,
-  LegacyTextArea,
+  Textarea,
 } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import classes from './ExpandablePolicyCard.module.css';
@@ -29,56 +29,17 @@ import {
 import { useTranslation } from 'react-i18next';
 
 export type ExpandablePolicyCardProps = {
-  /**
-   * The rule to display in the card
-   */
   policyRule: PolicyRuleCard;
-  /**
-   * The possible actions to select from
-   */
   actions: PolicyAction[];
-  /**
-   * The possible subjects to select from
-   */
   subjects: PolicySubject[];
-  /**
-   * The list of all the rules
-   */
   rules: PolicyRuleCard[];
-  /**
-   * useState function to update the list of rules
-   */
   setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>;
-  /**
-   * The ID of the resource
-   */
   resourceId: string;
-  /**
-   * The type of the resource
-   */
   resourceType: string;
-  /**
-   * Function to be executed when clicking duplicate rule
-   * @returns void
-   */
   handleCloneRule: () => void;
-  /**
-   * Function to be executed when clicking delete rule
-   * @returns void
-   */
   handleDeleteRule: () => void;
-  /**
-   * Flag to decide if errors should be shown or not
-   */
   showErrors: boolean;
-  /**
-   * Function to save the policy
-   * @returns
-   */
   savePolicy: (rules: PolicyRuleCard[]) => void;
-  /**
-   * The usage type of the policy editor
-   */
   usageType: PolicyEditorUsage;
 };
 
@@ -518,17 +479,16 @@ export const ExpandablePolicyCard = ({
         {showErrors &&
           hasSubjectsError &&
           displayWarningCard(t('policy_editor.rule_card_subjects_error'))}
-        <Label className={classes.label} size='small' htmlFor={`description-${uniqueId}`}>
-          {t('policy_editor.rule_card_description_title')}
-        </Label>
         <div className={classes.textAreaWrapper}>
-          <LegacyTextArea
-            resize='vertical'
+          <Textarea
+            label={t('policy_editor.rule_card_description_title')}
+            size='small'
             value={policyRule.description}
             onChange={(e) => handleChangeDescription(e.currentTarget.value)}
             rows={5}
             onBlur={() => savePolicy(rules)}
             id={`description-${uniqueId}`}
+            className={classes.descriptionInput}
           />
         </div>
       </ExpandablePolicyElement>

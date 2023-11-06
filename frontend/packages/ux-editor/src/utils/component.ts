@@ -92,7 +92,7 @@ export const generateRandomOption = (): IOption =>
  */
 export const generateFormItem = <T extends ComponentType>(type: T, id: string): FormItem<T> => {
   const { defaultProperties } = formItemConfigs[type];
-  return type === ComponentType.Group ? defaultProperties : { ...defaultProperties, id };
+  return { ...defaultProperties, id };
 };
 
 /**

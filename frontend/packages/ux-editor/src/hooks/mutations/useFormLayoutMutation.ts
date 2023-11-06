@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { IFormLayouts, IInternalLayout } from '../../types/global';
-import { convertInternalToLayoutFormat } from '../../utils/formLayoutUtils';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { useAppContext } from '../useAppContext';
+import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 
 export const useFormLayoutMutation = (
   org: string,
@@ -20,7 +20,7 @@ export const useFormLayoutMutation = (
 
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {
-      const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(layout);
+      const convertedLayout: ExternalFormLayout = internalLayoutToExternal(layout);
       return saveFormLayout(org, app, layoutName, layoutSetName, convertedLayout).then(
         () => layout,
       );

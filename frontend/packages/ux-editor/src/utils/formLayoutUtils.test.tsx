@@ -3,12 +3,12 @@ import {
   addContainer,
   addItemOfType,
   addNavigationButtons,
-  convertFromLayoutToInternalFormat,
-  convertInternalToLayoutFormat,
   createEmptyLayout,
-  extractChildrenFromGroup,
   findParentId,
+  getChildIds,
   getDepth,
+  getItem,
+  hasMultiPageGroup,
   hasNavigationButtons,
   hasSubContainers,
   isContainer,
@@ -22,24 +22,26 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { IInternalLayout } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
-import type {
-  FormButtonComponent,
-  FormComponent,
-  FormHeaderComponent,
-  FormParagraphComponent,
-} from '../types/FormComponent';
+import type { FormComponent } from '../types/FormComponent';
 import { FormContainer } from '../types/FormContainer';
-import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { deepCopy } from 'app-shared/pure';
+import {
+  internalLayoutWithMultiPageGroup,
+  component3_1_1Id,
+  component3_1Id,
+  component3_2Id,
+  component3Id,
+} from '../testing/layoutWithMultiPageGroupMocks';
 
 // Test data:
 const baseContainer: FormContainer = {
+  id: BASE_CONTAINER_ID,
   index: 0,
   itemType: 'CONTAINER',
 };
 const customProperty = 'some-custom-property';
 const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
-const headerComponent: FormHeaderComponent = {
+const headerComponent: FormComponent<ComponentType.Header> = {
   id: headerId,
   type: ComponentType.Header,
   itemType: 'COMPONENT',
@@ -50,7 +52,7 @@ const headerComponent: FormHeaderComponent = {
   size: 'L',
 };
 const paragraphId = 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729';
-const paragraphComponent: FormParagraphComponent = {
+const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
   id: paragraphId,
   type: ComponentType.Paragraph,
   itemType: 'COMPONENT',
@@ -63,10 +65,11 @@ const paragraphComponent: FormParagraphComponent = {
 const groupId = 'group-container';
 const groupContainer: FormContainer = {
   dataModelBindings: {},
+  id: groupId,
   itemType: 'CONTAINER',
 };
 const paragraphInGroupId = 'group-paragraph';
-const paragraphInGroupComponent: FormParagraphComponent = {
+const paragraphInGroupComponent: FormComponent<ComponentType.Paragraph> = {
   id: paragraphInGroupId,
   type: ComponentType.Paragraph,
   itemType: 'COMPONENT',
@@ -78,10 +81,11 @@ const paragraphInGroupComponent: FormParagraphComponent = {
 const groupInGroupId = 'group-child-container';
 const groupInGroupContainer: FormContainer = {
   dataModelBindings: {},
+  id: groupInGroupId,
   itemType: 'CONTAINER',
 };
 const paragraphInGroupInGroupId = 'group-child-paragraph';
-const paragraphInGroupInGroupComponent: FormParagraphComponent = {
+const paragraphInGroupInGroupComponent: FormComponent<ComponentType.Paragraph> = {
   id: paragraphInGroupInGroupId,
   type: ComponentType.Paragraph,
   itemType: 'COMPONENT',
@@ -112,320 +116,10 @@ const mockInternal: IInternalLayout = {
 };
 
 describe('formLayoutUtils', () => {
-  let mockLayout: ExternalFormLayout;
-
-  beforeEach(() => {
-    mockLayout = {
-      $schema: null,
-      data: {
-        layout: [
-          {
-            id: '17314adc-f75d-4a49-b726-242e2ae32ad2',
-            type: ComponentType.Input,
-            textResourceBindings: {
-              title: 'Input',
-            },
-            dataModelBindings: {},
-            required: false,
-            readOnly: false,
-          },
-          {
-            id: '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a',
-            type: ComponentType.Input,
-            textResourceBindings: {
-              title: 'Input',
-            },
-            dataModelBindings: {},
-            required: false,
-            readOnly: false,
-            customProperty,
-          },
-        ],
-        ...customDataPropertiesMock,
-      },
-      hidden: undefined,
-      ...customRootPropertiesMock,
-    };
-  });
-
-  describe('convertFromLayoutToInternalFormat', () => {
-    it('should convert to correct format', () => {
-      const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
-      const expectedResult: IInternalLayout = {
-        components: {
-          '17314adc-f75d-4a49-b726-242e2ae32ad2': {
-            dataModelBindings: {},
-            id: '17314adc-f75d-4a49-b726-242e2ae32ad2',
-            itemType: 'COMPONENT',
-            propertyPath: 'definitions/inputComponent',
-            readOnly: false,
-            required: false,
-            textResourceBindings: {
-              title: 'Input',
-            },
-            type: ComponentType.Input,
-          },
-          '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a': {
-            dataModelBindings: {},
-            id: '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a',
-            itemType: 'COMPONENT',
-            propertyPath: 'definitions/inputComponent',
-            readOnly: false,
-            required: false,
-            textResourceBindings: {
-              title: 'Input',
-            },
-            type: ComponentType.Input,
-            customProperty,
-          },
-        },
-        containers: {
-          [BASE_CONTAINER_ID]: {
-            itemType: 'CONTAINER',
-          },
-        },
-        order: {
-          [BASE_CONTAINER_ID]: [
-            '17314adc-f75d-4a49-b726-242e2ae32ad2',
-            '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a',
-          ],
-        },
-        customDataProperties: customDataPropertiesMock,
-        customRootProperties: customRootPropertiesMock,
-      };
-
-      expect(convertedLayout.components).toEqual(expectedResult.components);
-    });
-
-    it('should initiate a form layout with a base container', () => {
-      const convertedLayout = convertFromLayoutToInternalFormat(null);
-      expect(Object.keys(convertedLayout.containers).length).toEqual(1);
-      expect(Object.keys(convertedLayout.components).length).toEqual(0);
-      expect(Object.keys(convertedLayout.order).length).toEqual(1);
-    });
-
-    it('if the element contains children, extractChildrenFromContainer should run', () => {
-      mockLayout.data.layout = [
-        {
-          id: 'mockChildID_1',
-          type: ComponentType.Group,
-          children: ['mockChildID_2'],
-        },
-        {
-          id: 'mockChildID_3',
-          type: ComponentType.Group,
-          children: ['mockChildID_4', 'mockChildID_6'],
-        },
-        {
-          id: 'mockChildID_2',
-          type: ComponentType.Header,
-          dataModelBindings: {},
-          someProp: '2',
-          size: 'normal',
-        },
-        {
-          id: 'mockChildID_4',
-          type: ComponentType.Paragraph,
-          dataModelBindings: {},
-          someProp: '4',
-        },
-        {
-          id: 'mockChildID_5',
-          type: ComponentType.Dropdown,
-          dataModelBindings: {},
-          someProp: '5',
-          optionsId: 'mockChildID_5_options',
-        },
-        {
-          id: 'mockChildID_6',
-          type: ComponentType.Group,
-          children: ['mockChildID_7'],
-        },
-        {
-          id: 'mockChildID_7',
-          type: ComponentType.Input,
-          dataModelBindings: {},
-          someProp: '7',
-        },
-      ];
-      const expectedComponentResult: IInternalLayout = {
-        containers: {
-          mockChildID_1: { itemType: 'CONTAINER' },
-          mockChildID_3: { itemType: 'CONTAINER' },
-          mockChildID_6: { itemType: 'CONTAINER' },
-        },
-        components: {
-          mockChildID_2: {
-            id: 'mockChildID_2',
-            someProp: '2',
-            type: ComponentType.Header,
-            itemType: 'COMPONENT',
-            propertyPath: 'definitions/headerComponent',
-            size: 'normal',
-            dataModelBindings: {},
-          },
-          mockChildID_4: {
-            id: 'mockChildID_4',
-            someProp: '4',
-            type: ComponentType.Paragraph,
-            itemType: 'COMPONENT',
-            propertyPath: undefined,
-            dataModelBindings: {},
-          },
-          mockChildID_5: {
-            id: 'mockChildID_5',
-            someProp: '5',
-            type: ComponentType.Dropdown,
-            itemType: 'COMPONENT',
-            propertyPath: 'definitions/selectionComponents',
-            optionsId: 'mockChildID_5_options',
-            dataModelBindings: {},
-          },
-          mockChildID_7: {
-            id: 'mockChildID_7',
-            someProp: '7',
-            type: ComponentType.Input,
-            itemType: 'COMPONENT',
-            propertyPath: 'definitions/inputComponent',
-            dataModelBindings: {},
-          },
-        },
-        order: {
-          [BASE_CONTAINER_ID]: ['mockChildID_1', 'mockChildID_3', 'mockChildID_5'],
-          mockChildID_1: ['mockChildID_2'],
-          mockChildID_3: ['mockChildID_4', 'mockChildID_6'],
-          mockChildID_6: ['mockChildID_7'],
-        },
-        customRootProperties: customRootPropertiesMock,
-        customDataProperties: customDataPropertiesMock,
-      };
-
-      const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
-      expect(convertedLayout.components).toEqual(expectedComponentResult.components);
-      expect(Object.keys(convertedLayout.order).length).toEqual(4);
-    });
-  });
-
-  describe('convertInternalToLayoutFormat', () => {
-    it('should convert to correct format', () => {
-      const convertedLayout = convertInternalToLayoutFormat(mockInternal);
-      const expectedResult: ExternalFormLayout = {
-        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
-        data: {
-          layout: [
-            {
-              id: headerId,
-              type: ComponentType.Header,
-              textResourceBindings: { title: 'ServiceName' },
-              dataModelBindings: {},
-              size: 'L',
-            },
-            {
-              id: paragraphId,
-              type: ComponentType.Paragraph,
-              textResourceBindings: { title: 'ServiceName' },
-              dataModelBindings: {},
-              customProperty,
-            },
-            {
-              id: groupId,
-              type: ComponentType.Group,
-              dataModelBindings: {},
-              children: [paragraphInGroupId, groupInGroupId],
-            },
-            {
-              id: paragraphInGroupId,
-              type: ComponentType.Paragraph,
-              textResourceBindings: { title: 'ServiceName' },
-              dataModelBindings: {},
-            },
-            {
-              id: groupInGroupId,
-              type: ComponentType.Group,
-              dataModelBindings: {},
-              children: [paragraphInGroupInGroupId],
-            },
-            {
-              id: paragraphInGroupInGroupId,
-              type: ComponentType.Paragraph,
-              textResourceBindings: { title: 'ServiceName' },
-              dataModelBindings: {},
-            },
-          ],
-          ...customDataPropertiesMock,
-        },
-        ...customRootPropertiesMock,
-      };
-      expect(Array.isArray(convertedLayout.data.layout)).toBe(true);
-      expect(convertedLayout).toEqual(expectedResult);
-    });
-  });
-
-  describe('extractChildrenFromGroup', () => {
-    it('should return all children from a container', () => {
-      const mockGroup: ExternalComponent = {
-        id: 'mock-group-id',
-        type: ComponentType.Group,
-        children: ['mock-component-1', 'mock-component-2'],
-      };
-      const mockComponents: ExternalComponent[] = [
-        {
-          id: 'mock-component-1',
-          type: ComponentType.Header,
-          dataModelBindings: {},
-          someProp: '1',
-          size: 'normal',
-        },
-        {
-          id: 'mock-component-2',
-          type: ComponentType.Paragraph,
-          dataModelBindings: {},
-          someProp: '2',
-        },
-      ];
-      const mockConvertedLayout: IInternalLayout = {
-        containers: {},
-        components: {},
-        order: {},
-        customRootProperties: {},
-        customDataProperties: {},
-      };
-      const expectedConvertedLayoutResult: IInternalLayout = {
-        containers: {
-          'mock-group-id': { itemType: 'CONTAINER', propertyPath: 'definitions/groupComponent' },
-        },
-        components: {
-          'mock-component-1': {
-            someProp: '1',
-            itemType: 'COMPONENT',
-            propertyPath: 'definitions/headerComponent',
-            type: ComponentType.Header,
-            id: 'mock-component-1',
-            size: 'normal',
-            dataModelBindings: {},
-          },
-          'mock-component-2': {
-            someProp: '2',
-            itemType: 'COMPONENT',
-            propertyPath: undefined,
-            type: ComponentType.Paragraph,
-            id: 'mock-component-2',
-            dataModelBindings: {},
-          },
-        },
-        order: { 'mock-group-id': ['mock-component-1', 'mock-component-2'] },
-        customRootProperties: {},
-        customDataProperties: {},
-      };
-      extractChildrenFromGroup(mockGroup, mockComponents, mockConvertedLayout);
-      expect(mockConvertedLayout).toEqual(expectedConvertedLayoutResult);
-    });
-  });
-
   describe('hasNavigationButtons', () => {
     it('Returns true if navigation buttons are present', () => {
       const navigationButtonsId = 'navigationButtons';
-      const navigationButtonsComponent: FormButtonComponent = {
+      const navigationButtonsComponent: FormComponent<ComponentType.NavigationButtons> = {
         id: navigationButtonsId,
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
@@ -472,7 +166,7 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addComponent', () => {
-    const newComponent: FormParagraphComponent = {
+    const newComponent: FormComponent<ComponentType.Paragraph> = {
       id: 'newComponent',
       type: ComponentType.Paragraph,
       itemType: 'COMPONENT',
@@ -495,11 +189,34 @@ describe('formLayoutUtils', () => {
       expect(layout.order[groupId][position]).toEqual(newComponent.id);
       expect(layout.order[groupId].length).toEqual(mockInternal.order[groupId].length + 1);
     });
+
+    it('Sets pageIndex to null if the parent element is not multipage', () => {
+      const layout = addComponent(mockInternal, newComponent, groupId);
+      expect(layout.components[newComponent.id].pageIndex).toBeNull();
+    });
+
+    it.each([
+      [undefined, 1],
+      [0, 0],
+      [1, 0],
+      [3, 1],
+    ])(
+      'Adds component to the same page as the previous element in the same group when the position is %s',
+      (position, expectedPageIndex) => {
+        const layout = addComponent(
+          internalLayoutWithMultiPageGroup,
+          newComponent,
+          component3_1Id,
+          position,
+        );
+        expect(layout.components[newComponent.id].pageIndex).toEqual(expectedPageIndex);
+      },
+    );
   });
 
   describe('addContainer', () => {
     const id = 'testId';
-    const newContainer: FormContainer = { itemType: 'CONTAINER' };
+    const newContainer: FormContainer = { id, itemType: 'CONTAINER' };
 
     it('Adds container to the end of the base container by default', () => {
       const layout = addContainer(mockInternal, newContainer, id);
@@ -519,6 +236,30 @@ describe('formLayoutUtils', () => {
       expect(layout.order[groupId].length).toEqual(mockInternal.order[groupId].length + 1);
       expect(layout.order[id]).toEqual([]);
     });
+
+    it('Sets pageIndex to null if the parent element is not multipage', () => {
+      const layout = addContainer(mockInternal, newContainer, id, groupId);
+      expect(layout.containers[id].pageIndex).toBeNull();
+    });
+
+    it.each([
+      [undefined, 1],
+      [0, 0],
+      [1, 0],
+      [3, 1],
+    ])(
+      'Adds container to the same page as the previous element in the same group when the position is %s',
+      (position, expectedPageIndex) => {
+        const layout = addContainer(
+          internalLayoutWithMultiPageGroup,
+          newContainer,
+          id,
+          component3_1Id,
+          position,
+        );
+        expect(layout.containers[id].pageIndex).toEqual(expectedPageIndex);
+      },
+    );
   });
 
   describe('updateContainer', () => {
@@ -584,6 +325,7 @@ describe('formLayoutUtils', () => {
         'showBackButton',
         'textResourceBindings',
         'type',
+        'pageIndex',
       ];
 
       expect(Object.keys(navButtonsComponent)).toEqual(expectedProperties);
@@ -598,6 +340,26 @@ describe('formLayoutUtils', () => {
         paragraphInGroupInGroupId,
         paragraphInGroupId,
       ]); // Checks that paragraphInGroupId is now in the desired position of the target group
+    });
+
+    it('Adds page index if the item is moved to a multipage group', () => {
+      const updatedLayout = moveLayoutItem(
+        internalLayoutWithMultiPageGroup,
+        component3_2Id,
+        component3_1Id,
+        1,
+      );
+      expect(updatedLayout.components[component3_2Id].pageIndex).toEqual(0);
+    });
+
+    it('Removes page index if the item is moved to a regular group', () => {
+      const updatedLayout = moveLayoutItem(
+        internalLayoutWithMultiPageGroup,
+        component3_1_1Id,
+        component3Id,
+        0,
+      );
+      expect(updatedLayout.components[component3_1_1Id].pageIndex).toBeNull();
     });
   });
 
@@ -652,13 +414,15 @@ describe('formLayoutUtils', () => {
     });
 
     it('Returns 1 if there is a group', () => {
-      const container: FormContainer = { itemType: 'CONTAINER' };
-      const layout: IInternalLayout = addContainer(createEmptyLayout(), container, 'test');
+      const id = 'test';
+      const container: FormContainer = { id, itemType: 'CONTAINER', pageIndex: null };
+      const layout: IInternalLayout = addContainer(createEmptyLayout(), container, id);
       expect(getDepth(layout)).toBe(1);
     });
 
     it('Returns 1 if there is a group with components only', () => {
-      const container: FormContainer = { itemType: 'CONTAINER' };
+      const id = 'test';
+      const container: FormContainer = { id, itemType: 'CONTAINER', pageIndex: null };
       const containerId = 'sometestgroup';
       const component: FormComponent = {
         itemType: 'COMPONENT',
@@ -677,7 +441,10 @@ describe('formLayoutUtils', () => {
 
     it('Returns 3 if there is a group within a group within a group', () => {
       let layout = deepCopy(mockInternal);
-      const container: FormContainer = { itemType: 'CONTAINER' };
+      const container: FormContainer = {
+        id: groupInGroupId,
+        itemType: 'CONTAINER',
+      };
       layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
       expect(getDepth(layout)).toBe(3);
     });
@@ -690,9 +457,42 @@ describe('formLayoutUtils', () => {
 
     it('Returns false if the depth is invalid', () => {
       let layout = deepCopy(mockInternal);
-      const container: FormContainer = { itemType: 'CONTAINER' };
+      const container: FormContainer = {
+        id: groupInGroupId,
+        itemType: 'CONTAINER',
+      };
       layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
       expect(validateDepth(layout)).toBe(false);
+    });
+  });
+
+  describe('getChildIds', () => {
+    it('Returns the ids of the children of the given container', () => {
+      expect(getChildIds(mockInternal, groupId)).toEqual([paragraphInGroupId, groupInGroupId]);
+    });
+
+    it('Returns an empty array when called with something that is not a container with children', () => {
+      expect(getChildIds(mockInternal, headerId)).toEqual([]);
+    });
+  });
+
+  describe('getItem', () => {
+    it('Returns the item with the given id when it is a component', () => {
+      expect(getItem(mockInternal, paragraphId)).toEqual(paragraphComponent);
+    });
+
+    it('Returns the item with the given id when it is a container', () => {
+      expect(getItem(mockInternal, groupId)).toEqual(groupContainer);
+    });
+  });
+
+  describe('hasMultiPageGroup', () => {
+    it('Returns true if the layout contains a multi page group', () => {
+      expect(hasMultiPageGroup(internalLayoutWithMultiPageGroup)).toBe(true);
+    });
+
+    it('Returns false if the layout does not contain a multi page group', () => {
+      expect(hasMultiPageGroup(mockInternal)).toBe(false);
     });
   });
 });
