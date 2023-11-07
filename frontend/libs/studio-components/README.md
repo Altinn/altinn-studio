@@ -4,7 +4,7 @@ Studio-Components is a tool that wraps around `@digdir/design-system-react` and 
 
 ## Contribute with new components
 
-All components must start with the prefix `Studio` to make it clear that it is a studio component.
+All components must start with the prefix `Studio` to make it clear that it is a studio component. We have added `eslint-rules` to check that all components have this prefix. It is important that all exported components has the same name as the folder they are in.
 All components must be properly tested with written unit tests.
 All components must be inside their own folder, together with their CSS and unit test.
 
