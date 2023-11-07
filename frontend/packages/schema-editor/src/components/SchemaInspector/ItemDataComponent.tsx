@@ -8,13 +8,7 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import {
-  LegacyFieldSet,
-  Select,
-  LegacyTextArea,
-  LegacyTextField,
-  Switch,
-} from '@digdir/design-system-react';
+import { Fieldset, Select, LegacyTextArea, Textfield, Switch } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import {
@@ -203,9 +197,9 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         </>
       )}
       <Divider marginless />
-      <LegacyFieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
+      <Fieldset legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
-          <LegacyTextField
+          <Textfield
             id={titleId}
             label={t('schema_editor.title')}
             aria-label={t('schema_editor.title')}
@@ -227,7 +221,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             value={itemDescription}
           />
         </div>
-      </LegacyFieldSet>
+      </Fieldset>
     </div>
   );
 }

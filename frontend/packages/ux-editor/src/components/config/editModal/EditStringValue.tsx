@@ -2,7 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { Select, LegacyTextField } from '@digdir/design-system-react';
+import { Select, Textfield } from '@digdir/design-system-react';
 import { getComponentPropertyLabel } from '../../../utils/language';
 
 export interface EditStringValueProps extends IGenericEditComponent {
@@ -56,7 +56,7 @@ export const EditStringValue = ({
             />
           )
         : ({ onChange }) => (
-            <LegacyTextField
+            <Textfield
               name={`component-id-input${component.id}`}
               onChange={(e) => onChange(e.target.value, e)}
             />
