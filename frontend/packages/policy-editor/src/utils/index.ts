@@ -133,7 +133,6 @@ export const mapSubjectTitleToSubjectString = (
   subjectTitle: string,
 ): string => {
   const subject: PolicySubject = subjectOptions.find((s) => s.subjectTitle === subjectTitle);
-  console.log('subject', subject);
   return `urn:${subject.subjectSource}:${subject.subjectId}`;
 };
 

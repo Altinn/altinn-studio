@@ -39,6 +39,7 @@ const mockSubjectId1: string = 'subject1';
 const mockSubjectId2: string = 'subject2';
 const mockSubjectId3: string = 'subject3';
 const mockSubjectSourceRolecode: string = 'urn:altinn:rolecode';
+const mockSubjectSourceRolecodeWithoutUrn: string = 'altinn:rolecode';
 const mockSubjectSourceOrg: string = 'urn:altinn:org';
 
 const mockPolicySubject1: PolicySubject = {
@@ -147,15 +148,18 @@ describe('policyTabUtils', () => {
     it('creates a new subject from subject string correctly', () => {
       const newSubject = createNewSubjectFromSubjectString(mockSubjectString1);
 
-      expect(newSubject).toEqual({ ...mockPolicySubject1, subjectTitle: mockSubjectId1 });
+      expect(newSubject).toEqual({
+        ...mockPolicySubject1,
+        subjectSource: mockSubjectSourceRolecodeWithoutUrn,
+        subjectTitle: mockSubjectId1,
+      });
     });
   });
 
   describe('convertSubjectStringToSubjectSource', () => {
     it('converts subject string to subject source correctly', () => {
       const subjectSource = convertSubjectStringToSubjectSource(mockSubjectString1);
-
-      expect(subjectSource).toBe(mockSubjectSourceRolecode);
+      expect(subjectSource).toBe(mockSubjectSourceRolecodeWithoutUrn);
     });
   });
 });
