@@ -7,6 +7,6 @@ import { QueryStatus } from '@tanstack/react-query';
  */
 export const mergeQueryStatuses = (...queryStatuses: QueryStatus[]): QueryStatus => {
   if (queryStatuses.includes('error')) return 'error';
-  if (queryStatuses.includes('loading')) return 'loading';
+  if (queryStatuses.includes('pending')) return 'pending';
   return 'success';
-}
+};

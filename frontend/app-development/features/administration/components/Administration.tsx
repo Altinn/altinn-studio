@@ -17,7 +17,7 @@ export const Administration = () => {
   const { org, app } = useStudioUrlParams();
   const {
     data: orgs = { orgs: {} },
-    isLoading: isLoadingOrgs,
+    isPending: isPendingOrgs,
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
@@ -27,7 +27,7 @@ export const Administration = () => {
   const {
     data: appConfigData,
     isError: isAppConfigError,
-    isLoading: isLoadingAppConfig,
+    isPending: isPendingAppConfig,
   } = useAppConfigQuery(org, app, { hideDefaultError: true });
   const { t } = useTranslation();
 
@@ -35,7 +35,7 @@ export const Administration = () => {
     toast.error(t('administration.fetch_title_error_message'));
   }
 
-  if (isLoadingAppConfig || isLoadingOrgs) {
+  if (isPendingAppConfig || isPendingOrgs) {
     return (
       <Center>
         <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />

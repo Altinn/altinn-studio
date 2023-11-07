@@ -6,10 +6,10 @@ import { useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 
 export const News = () => {
-  const { data: newsList, isLoading, isError } = useNewsListQuery();
+  const { data: newsList, isPending, isError } = useNewsListQuery();
   const { t } = useTranslation();
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <NewsTemplate>
         <AltinnSpinner spinnerText={t('administration.fetch_news_loading_message')} />
