@@ -57,7 +57,7 @@ describe('SetupTab Component', () => {
     );
 
     const componentFromChild = screen.getByLabelText(
-      textMock('settings_modal.setup_tab_valid_from_label'),
+      textMock('settings_modal.setup_tab_switch_autoDeleteOnProcessEnd'),
     );
 
     expect(componentFromChild).toBeInTheDocument();

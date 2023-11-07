@@ -257,6 +257,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallEnerom")]
     public decimal? AntallEnerom { get; set; }
 
+    public bool ShouldSerializeAntallEnerom()
+    {
+      return AntallEnerom.HasValue;
+    }
+
     [XmlElement("AlleRomHarBadOgToalett", Order = 5)]
     [JsonProperty("AlleRomHarBadOgToalett")]
     [JsonPropertyName("AlleRomHarBadOgToalett")]
@@ -272,6 +277,11 @@ namespace Altinn.App.Models
     [JsonProperty("AntallRomMedKjokken")]
     [JsonPropertyName("AntallRomMedKjokken")]
     public decimal? AntallRomMedKjokken { get; set; }
+
+    public bool ShouldSerializeAntallRomMedKjokken()
+    {
+      return AntallRomMedKjokken.HasValue;
+    }
 
     [XmlElement("TilbysMatservering", Order = 8)]
     [JsonProperty("TilbysMatservering")]
@@ -328,6 +338,11 @@ namespace Altinn.App.Models
     [JsonProperty("BekreftetRiktig")]
     [JsonPropertyName("BekreftetRiktig")]
     public bool? BekreftetRiktig { get; set; }
+
+    public bool ShouldSerializeBekreftetRiktig()
+    {
+      return BekreftetRiktig.HasValue;
+    }
 
     [MinLength(0)]
     [MaxLength(255)]

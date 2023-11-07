@@ -186,6 +186,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallAnsatte")]
     public decimal? AntallAnsatte { get; set; }
 
+    public bool ShouldSerializeAntallAnsatte()
+    {
+      return AntallAnsatte.HasValue;
+    }
+
     [XmlElement("ASellerASAiHjemland", Order = 2)]
     [JsonProperty("ASellerASAiHjemland")]
     [JsonPropertyName("ASellerASAiHjemland")]
