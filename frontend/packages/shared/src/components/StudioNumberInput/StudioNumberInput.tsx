@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,44 +9,38 @@ export interface StudioNumberInputProps {
 
 export const StudioNumberInput = ({ description, onChange }: StudioNumberInputProps) => {
   const { t } = useTranslation();
-  const inputRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
-  const [clicked, setClicked] = useState(false);
+  const [showError, setShowError] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
-    if (!isNaN(Number(input)) || input === '') {
-      setInputValue(input);
-    }
-    setClicked(true);
-    onChange(Number(input));
+    setInputValue(input);
+    onChange(Number(input.replace(',', '.')));
   };
 
   const validateNumber = (value: string) => {
-    const numberRegex = /^[0-9]+(\.[0-9]*)?$/;
-    return clicked && !numberRegex.test(value) ? t('validation_errors.numbers_only') : undefined;
+    const numberRegex = /^[0-9]+([.,][0-9]*)?$/;
+    return showError && !numberRegex.test(value) ? t('validation_errors.numbers_only') : undefined;
   };
 
-  const handleOutsideClick = (e: MouseEvent) => {
-    if (inputRef.current && !inputRef.current?.contains(e.target as Node)) {
-      setClicked(false);
+  const handleBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    setShowError(true);
+    if (input === '') {
+      setShowError(false);
     }
   };
 
-  useEffect(() => {
-    document.addEventListener('click', handleOutsideClick);
-    return () => {
-      document.removeEventListener('click', handleOutsideClick);
-    };
-  }, []);
-
   return (
-    <div ref={inputRef}>
+    <div>
       <Textfield
         description={description}
         value={inputValue}
         onChange={handleInputChange}
         error={validateNumber(inputValue)}
+        onFocus={() => setShowError(false)}
+        onBlur={handleBlur}
+        inputMode='decimal'
       />
     </div>
   );
