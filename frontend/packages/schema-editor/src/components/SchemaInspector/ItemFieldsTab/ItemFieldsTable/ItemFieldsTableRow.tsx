@@ -54,7 +54,7 @@ export const ItemFieldsTableRow = ({
     );
   };
 
-  const onChangeType = (path: string, type: FieldType) => save(setType(data, { path, type }));
+  const onTypeChange = (path: string, type: FieldType) => save(setType(data, { path, type }));
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
@@ -89,7 +89,7 @@ export const ItemFieldsTableRow = ({
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
         <TypeSelect
           id={`${fieldNode.domId}-typeselect`}
-          onChange={(fieldType) => onChangeType(fullPath, fieldType)}
+          onChange={(fieldType) => onTypeChange(fullPath, fieldType)}
           value={fieldNode.fieldType as FieldType}
         />
       </td>
