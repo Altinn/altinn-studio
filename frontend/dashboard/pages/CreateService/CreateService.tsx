@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
-import { validateRepoName } from '../../utils/repoUtils';
-import { getAppDevelopmentRootRoute } from '../../utils/urlUtils';
 import classes from './CreateService.module.css';
 import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +14,8 @@ import { Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AltinnSpinner } from 'app-shared/components';
+import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
+import { useNavigateToAppDevelopment } from './hooks/useNavigateToAppDevelopment';
 
 const DASHBOARD_ROOT_ROUTE: string = '/';
 
@@ -29,8 +29,11 @@ type CreateServiceProps = {
   organizations: Organization[];
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
+  const dataModellingPreference: DatamodelFormat.XSD = DatamodelFormat.XSD;
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
+  const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
+  const { navigateToAppDevelopment } = useNavigateToAppDevelopment();
 
   const [formError, setFormError] = useState<CreateAppForm>({
     org: '',
@@ -41,7 +44,6 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
 
-  const dataModellingPreference = DatamodelFormat.XSD;
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self ? user.login : selectedContext;
   const createAppRepo = async (createAppForm: CreateAppForm) => {
@@ -53,7 +55,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       },
       {
         onSuccess: (repository): void => {
-          navigateToAppDevelopment(repository.org, repository.repo);
+          navigateToAppDevelopment(repository.org, repository.app);
         },
         onError: (error: AxiosError): void => {
           const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
@@ -89,14 +91,16 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   };
 
   const validateCreateAppForm = (createAppForm: CreateAppForm): boolean => {
-    const { errorMessage: orgErrorMessage, isValid: isOrgValid } = orgValidation(createAppForm.org);
-    const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = repoNameValidation(
+    const { errorMessage: orgErrorMessage, isValid: isOrgValid } = validateRepoOwnerName(
+      createAppForm.org,
+    );
+    const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
       createAppForm.repoName,
     );
 
     setFormError({
-      org: isOrgValid ? '' : t(orgErrorMessage),
-      repoName: isRepoNameValid ? '' : t(repoNameErrorMessage),
+      org: isOrgValid ? '' : orgErrorMessage,
+      repoName: isRepoNameValid ? '' : repoNameErrorMessage,
     });
 
     return isOrgValid && isRepoNameValid;
@@ -124,56 +128,4 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       </div>
     </form>
   );
-};
-
-// Utilities/Pure functions below.
-type ValidationResult = {
-  errorMessage: string | null;
-  isValid: boolean;
-};
-
-const orgValidation = (selectedOrgOrUser: string | undefined): ValidationResult => {
-  if (!selectedOrgOrUser) {
-    return {
-      errorMessage: 'dashboard.field_cannot_be_empty',
-      isValid: false,
-    };
-  }
-  return {
-    errorMessage: null,
-    isValid: true,
-  };
-};
-
-const repoNameValidation = (repoName: string | undefined): ValidationResult => {
-  if (!repoName) {
-    return {
-      errorMessage: 'dashboard.field_cannot_be_empty',
-      isValid: false,
-    };
-  }
-  if (!validateRepoName(repoName)) {
-    return {
-      errorMessage: 'dashboard.service_name_has_illegal_characters',
-      isValid: false,
-    };
-  }
-
-  const MAX_ALLOWED_NAME_LENGTH = 30;
-  if (repoName.length > MAX_ALLOWED_NAME_LENGTH) {
-    return {
-      errorMessage: 'dashboard.service_name_is_too_long',
-      isValid: false,
-    };
-  }
-
-  return {
-    errorMessage: null,
-    isValid: true,
-  };
-};
-
-const navigateToAppDevelopment = (org: string, app: string): void => {
-  const appDevelopmentRootRoute: string = getAppDevelopmentRootRoute({ org, app });
-  window.location.assign(appDevelopmentRootRoute);
 };
