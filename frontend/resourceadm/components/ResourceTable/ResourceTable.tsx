@@ -52,7 +52,7 @@ export const ResourceTable = ({
           t('resourceadm.dashboard_table_row_missing_title'),
       };
     });
-  }, [list]);
+  }, [list, i18n?.language, t]);
 
   const NoResults = () => {
     return (
