@@ -38,7 +38,7 @@ export enum ExpressionPropertyForGroup {
   EditDeleteButton = 'edit.deleteButton',
   EditSaveButton = 'edit.saveButton',
   EditSaveAndNextButton = 'edit.saveAndNextButton',
-}
+} // TODO: Remove prefix and sync with FormContainer type. https://github.com/Altinn/altinn-studio/issues/11524
 
 export enum ExpressionFunction {
   Equals = 'equals',
@@ -58,7 +58,7 @@ export enum DataSource { // comments reflects available values to select if choo
   String = 'string', // custom input field for string
   Number = 'number', // custom input field for number
   Boolean = 'boolean', // togglebuttons?
-  Null  = 'null', // no additional field
+  Null = 'null', // no additional field
 }
 
 export const getExpressionPropertiesBasedOnComponentType = (componentType: LayoutItemType.Component | LayoutItemType.Container): ExpressionProperty[] => {

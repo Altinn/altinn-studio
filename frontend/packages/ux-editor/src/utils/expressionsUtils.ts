@@ -8,7 +8,7 @@ import {
   Operator,
   getExpressionPropertiesBasedOnComponentType,
 } from '../types/Expressions';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'; // TODO: Refactor so that we don't need this. https://github.com/Altinn/altinn-studio/issues/11523
 import { deepCopy } from 'app-shared/pure';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { IFormLayouts, LayoutItemType } from '../types/global';
@@ -390,11 +390,11 @@ export const getAllComponentPropertiesThatCanHaveExpressions = (
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(
     form.itemType as LayoutItemType,
   );
-  let editPropertiesForGroup = [];
+  let editPropertiesForGroup: ExpressionPropertyForGroup[] = [];
   if (form['edit']) {
-    editPropertiesForGroup = Object.keys(form['edit']).map(
-      (property) => ('edit.' + property) as ExpressionPropertyForGroup,
-    );
+    editPropertiesForGroup = Object.keys(form['edit'])
+      .map((property) => 'edit.' + property)
+      .filter(canGroupPropertyHaveExpressions);
   }
   const generalFormPropertiesThatCouldHaveExpressions = Object.keys(form)
     .filter((property) => expressionProperties?.includes(property as ExpressionPropertyBase))
@@ -405,24 +405,27 @@ export const getAllComponentPropertiesThatCanHaveExpressions = (
   };
 };
 
+const canGroupPropertyHaveExpressions = (
+  property: string,
+): property is ExpressionPropertyForGroup =>
+  Object.values(ExpressionPropertyForGroup).includes(property as ExpressionPropertyForGroup);
+
 export const getAllConvertedExpressions = (form: FormComponent | FormContainer) => {
   const { generalProperties, propertiesForGroup } =
     getAllComponentPropertiesThatCanHaveExpressions(form);
-  const potentialConvertedExternalExpressionsForGroupProperties = propertiesForGroup.map(
-    (property) => {
-      const editPropertyForGroup = property.split('edit.')[1];
-      const value = form['edit'][editPropertyForGroup];
-      if (typeof value !== 'boolean') {
-        return convertExternalExpressionToInternal(property, value);
-      }
-    },
-  );
-  const potentialConvertedExternalExpressionsForGeneralProperties: Expression[] = generalProperties
+  const convertedExternalExpressionsForGroupProperties = propertiesForGroup.map((property) => {
+    const editPropertyForGroup = property.split('edit.')[1];
+    const value = form['edit'][editPropertyForGroup];
+    if (typeof value !== 'boolean') {
+      return convertExternalExpressionToInternal(property, value);
+    }
+  });
+  const convertedExternalExpressionsForGeneralProperties: Expression[] = generalProperties
     ?.filter((property) => typeof form[property] !== 'boolean')
     ?.map((property) => convertExternalExpressionToInternal(property, form[property]));
 
-  return potentialConvertedExternalExpressionsForGroupProperties.concat(
-    potentialConvertedExternalExpressionsForGeneralProperties,
+  return convertedExternalExpressionsForGroupProperties.concat(
+    convertedExternalExpressionsForGeneralProperties,
   );
 };
 
