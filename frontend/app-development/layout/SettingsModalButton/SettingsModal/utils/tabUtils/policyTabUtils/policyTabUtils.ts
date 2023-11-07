@@ -88,5 +88,5 @@ export const createNewSubjectFromSubjectString = (subjectString: string): Policy
 
 export const convertSubjectStringToSubjectSource = (subjectString: string): string => {
   const subjectStringAsArray: string[] = subjectString.split(':');
-  return subjectStringAsArray.slice(0, subjectStringAsArray.length - 1).join(':');
+  return subjectStringAsArray.slice(1, subjectStringAsArray.length - 1).join(':'); // Starting at 1 to remove 'urn'
 };
