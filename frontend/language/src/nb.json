@@ -131,6 +131,18 @@
   "app_release.release_title": "Applikasjonen bygges basert på",
   "app_release.release_title_link": "siste commit til master",
   "app_release.release_version": "Versjon:",
+  "contact.email.content": "Du kan sende skriftlig henvendelse til Altinn servicedesk på e-post ved sporsmål om å opprette organisasjoner eller miljøer, ved tekniske problemer, om dokumentasjonen eller annet.",
+  "contact.email.heading": "Send e-post",
+  "contact.email.link": "<0 href=\"mailto:servicedesk@altinn.no\">servicedesk@altinn.no</0>",
+  "contact.heading": "Kontakt og hjelp",
+  "contact.slack.content": "Dersom du har sporsmål om hvordan du bygger en applikasjon, kan du snakke direkte med utviklingsteamet i Altinn Studio på Slack. De kan hjelpe deg med:",
+  "contact.slack.content_list": [
+    "å bygge applikasjonene slik du onsker",
+    "svare på sporsmal og veilede",
+    "utvikle ny funksjonalitet det er behov for"
+  ],
+  "contact.slack.heading": "Skriv melding i vår Slack-kanal",
+  "contact.slack.link": "<0 href=\"https://altinn.slack.com\">altinn.slack.com</0>",
   "dashboard.all_apps": "Alle applikasjoner",
   "dashboard.all_datamodels": "Alle datamodeller",
   "dashboard.app_already_exists": "En app med det navnet finnes allerede.",
