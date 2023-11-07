@@ -1,6 +1,7 @@
 import { SubApp } from '../../packages/ux-editor/src/SubApp';
 import { Administration } from '../features/administration/components/Administration';
 import { LegacyAdministration } from '../features/administration/components/LegacyAdministration';
+import { Contact } from '../features/Contact';
 import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
@@ -45,6 +46,13 @@ export const routerRoutes: RouterRoute[] = [
     activeSubHeaderSelection: TopBarMenu.About,
     activeLeftMenuSelection: 'Om appen',
     subapp: shouldDisplayFeature('newAdministration') ? Administration : LegacyAdministration,
+  },
+  {
+    path: RoutePaths.Contact,
+    exact: true,
+    activeSubHeaderSelection: TopBarMenu.About,
+    activeLeftMenuSelection: 'Om appen',
+    subapp: Contact,
   },
   {
     path: RoutePaths.Datamodel,
