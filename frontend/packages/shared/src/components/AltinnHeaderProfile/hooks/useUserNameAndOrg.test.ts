@@ -53,19 +53,19 @@ const mockRepository: Repository = {
 
 describe('useUserNameAndOrg', () => {
   it('returns user´s full name when repository is not provided and full_name is present', () => {
-    const result = useUserNameAndOrg(mockUser, mockOrg, null, textMock);
+    const result = useUserNameAndOrg(mockUser, mockOrg, null);
 
     expect(result).toBe(mockUser.full_name);
   });
 
   it('returns user´s login when repository is not provided and full_name is not present', () => {
-    const result = useUserNameAndOrg({ ...mockUser, full_name: '' }, mockOrg, null, textMock);
+    const result = useUserNameAndOrg({ ...mockUser, full_name: '' }, mockOrg, null);
 
     expect(result).toBe(mockUser.login);
   });
 
   it('returns user´s full name when org is the same as user login and full_name is present', () => {
-    const result = useUserNameAndOrg(mockUser, mockUser.login, mockRepository, textMock);
+    const result = useUserNameAndOrg(mockUser, mockUser.login, mockRepository);
 
     expect(result).toBe(mockUser.full_name);
   });
@@ -75,14 +75,13 @@ describe('useUserNameAndOrg', () => {
       { ...mockUser, full_name: '' },
       mockUser.login,
       mockRepository,
-      textMock,
     );
 
     expect(result).toBe(mockUser.login);
   });
 
   it('returns translated string when org is different from user login', () => {
-    const result = useUserNameAndOrg(mockUser, mockOrg, mockRepository, textMock);
+    const result = useUserNameAndOrg(mockUser, mockOrg, mockRepository);
 
     const text = textMock('shared.header_user_for_org', {
       user: mockUser.full_name,
