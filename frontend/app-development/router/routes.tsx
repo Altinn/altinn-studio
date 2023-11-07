@@ -3,10 +3,11 @@ import { Administration } from '../features/administration/components/Administra
 import { LegacyAdministration } from '../features/administration/components/LegacyAdministration';
 import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
-import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
 import { ProcessEditor } from 'app-development/features/processEditor';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -21,63 +22,56 @@ interface IRouteProps {
   language?: any;
 }
 
-interface IRoute {
-  path: string;
+interface RouterRoute {
+  path: RoutePaths;
   exact: boolean;
   activeSubHeaderSelection: TopBarMenu;
-  menu: string;
   subapp: any;
   activeLeftMenuSelection?: string;
   props?: IRouteProps;
 }
 
-export const routes: IRoute[] = [
+export const routerRoutes: RouterRoute[] = [
   {
-    path: '/:org/:app/ui-editor',
+    path: RoutePaths.UIEditor,
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Create,
     activeLeftMenuSelection: 'UI-Editor',
-    menu: 'create',
     subapp: SubApp,
   },
   {
-    path: '/:org/:app',
+    path: RoutePaths.Overview,
     exact: true,
     activeSubHeaderSelection: TopBarMenu.About,
     activeLeftMenuSelection: 'Om appen',
-    menu: 'about',
     subapp: shouldDisplayFeature('newAdministration') ? Administration : LegacyAdministration,
   },
   {
-    path: '/:org/:app/datamodel',
+    path: RoutePaths.Datamodel,
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Datamodel,
     activeLeftMenuSelection: '',
-    menu: 'datamodel',
     subapp: DataModellingContainer,
   },
   {
-    path: '/:org/:app/deploy',
+    path: RoutePaths.Deploy,
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Deploy,
     activeLeftMenuSelection: '',
-    menu: 'deploy',
     subapp: DeployPage,
   },
   {
     activeSubHeaderSelection: TopBarMenu.Text,
     activeLeftMenuSelection: 'Tekster',
-    path: '/:org/:app/text-editor',
+    path: RoutePaths.Text,
     exact: true,
-    menu: 'texts',
     subapp: TextEditor,
   },
   {
     activeSubHeaderSelection: TopBarMenu.ProcessEditor,
     activeLeftMenuSelection: '',
-    path: '/:org/:app/process-editor',
+    path: RoutePaths.ProcessEditor,
     exact: true,
-    menu: 'process-editor',
     subapp: ProcessEditor,
   },
 ];

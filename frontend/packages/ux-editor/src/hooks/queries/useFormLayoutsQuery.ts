@@ -7,17 +7,19 @@ import { useDispatch } from 'react-redux';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 
-export const useFormLayoutsQuery =
-  (org: string, app: string, layoutSetName: string): UseQueryResult<IFormLayouts> => {
-    const { getFormLayouts } = useServicesContext();
-    const dispatch = useDispatch();
-    return useQuery(
-  [QueryKey.FormLayouts, org, app, layoutSetName],
-      () => getFormLayouts(org, app, layoutSetName).then((formLayouts) => {
-        const { convertedLayouts, invalidLayouts } = convertExternalLayoutsToInternalFormat(formLayouts);
-        dispatch(FormLayoutActions.setInvalidLayouts(invalidLayouts));
-        return convertedLayouts;
-      }
-    )
-    );
-  }
+export const useFormLayoutsQuery = (
+  org: string,
+  app: string,
+  layoutSetName: string,
+): UseQueryResult<IFormLayouts> => {
+  const { getFormLayouts } = useServicesContext();
+  const dispatch = useDispatch();
+  return useQuery([QueryKey.FormLayouts, org, app, layoutSetName], () =>
+    getFormLayouts(org, app, layoutSetName).then((formLayouts) => {
+      const { convertedLayouts, invalidLayouts } =
+        convertExternalLayoutsToInternalFormat(formLayouts);
+      dispatch(FormLayoutActions.setInvalidLayouts(invalidLayouts));
+      return convertedLayouts;
+    }),
+  );
+};

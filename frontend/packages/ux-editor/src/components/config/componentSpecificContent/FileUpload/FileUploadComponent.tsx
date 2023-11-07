@@ -1,5 +1,5 @@
 import React from 'react';
-import { LegacyFieldSet, Radio, LegacyTextField } from '@digdir/design-system-react';
+import { Fieldset, LegacyTextField, Radio, Textfield } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -62,7 +62,7 @@ export const FileUploadComponent = ({
   };
 
   return (
-    <LegacyFieldSet className={classes.fieldset}>
+    <Fieldset className={classes.fieldset}>
       <FormField
         id={component.id}
         value={fileUploaderComponent.hasCustomFileEndings}
@@ -89,7 +89,7 @@ export const FileUploadComponent = ({
           propertyPath={`${component.propertyPath}/properties/validFileEndings`}
         >
           {({ onChange }) => (
-            <LegacyTextField
+            <Textfield
               name='modal-properties-valid-file-endings'
               onChange={(e) => onChange(e.target.value, e)}
             />
@@ -158,6 +158,6 @@ export const FileUploadComponent = ({
           />
         )}
       </FormField>
-    </LegacyFieldSet>
+    </Fieldset>
   );
 };

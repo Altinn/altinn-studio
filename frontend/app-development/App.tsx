@@ -7,9 +7,7 @@ import {
   keepAliveSession,
   signOutUser,
 } from './sharedResources/user/userSlice';
-import { PageHeader } from './layout/PageHeader';
 import './App.css';
-import { PageContainer } from './layout/PageContainer';
 import { matchPath, useLocation } from 'react-router-dom';
 import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from './hooks';
@@ -27,9 +25,8 @@ import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import { MergeConflictWarning } from './features/simpleMerge/MergeConflictWarning';
-import { PageSpinner } from 'app-shared/components';
 import * as testids from '../testing/testids';
+import { PageRoutes } from './router/PageRoutes';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -49,10 +46,12 @@ i18next.use(initReactI18next).init({
 export function App() {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
-  const { org, app } = match.params;
+  const org = match?.params?.org ?? '';
+  const app = match?.params?.app ?? '';
+
   const repositoryType = getRepositoryType(org, app);
   const { t } = useTranslation();
-  const { data: repoStatus, refetch } = useRepoStatusQuery(org, app);
+  const { refetch } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes,
   );
@@ -142,13 +141,6 @@ export function App() {
     },
     [dispatch],
   );
-  if (!repoStatus) {
-    return (
-      <div className={classes.appSpinner}>
-        <PageSpinner />
-      </div>
-    );
-  }
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
       <AltinnPopoverSimple
@@ -165,14 +157,8 @@ export function App() {
         <h2>{t('session.expires')}</h2>
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
-      <PageHeader showSubMenu={!repoStatus.hasMergeConflict} org={org} app={app} />
-
-      <div className={classes.contentWrapper} data-testid={testids.appContentWrapper}>
-        {repoStatus.hasMergeConflict ? (
-          <MergeConflictWarning org={org} app={app} />
-        ) : (
-          <PageContainer subAppClassName={classes.subApp} />
-        )}
+      <div data-testid={testids.appContentWrapper}>
+        <PageRoutes />
       </div>
     </div>
   );

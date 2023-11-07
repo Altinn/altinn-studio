@@ -10,7 +10,7 @@ export type PageSpinnerProps = {
 export const PageSpinner = ({ spinnerText }: PageSpinnerProps) => {
   return (
     <Center>
-      <AltinnSpinner spinnerText={spinnerText} size='3xLarge' className={classes.spinnerText} />
+      <AltinnSpinner spinnerText={spinnerText} size='xlarge' className={classes.spinnerText} />
     </Center>
   );
-}
+};

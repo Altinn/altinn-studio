@@ -1,11 +1,9 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode } from 'react';
 import classes from './SetupTabContent.module.css';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useTranslation } from 'react-i18next';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { ErrorMessage, Paragraph, Switch, Textfield } from '@digdir/design-system-react';
-import { Divider } from 'app-shared/primitives';
-import { getIsDatesValid } from 'app-development/layout/SettingsModalButton/SettingsModal/utils/tabUtils/setupTabUtils';
+import { Paragraph, Switch } from '@digdir/design-system-react';
 
 export type SetupTabContentProps = {
   appMetadata: ApplicationMetadata;
@@ -26,68 +24,10 @@ export type SetupTabContentProps = {
 export const SetupTabContent = ({ appMetadata, org, app }: SetupTabContentProps): ReactNode => {
   const { t } = useTranslation();
 
-  const [startDate, setStartDate] = useState<string>(appMetadata?.validFrom ?? '');
-  const [endDate, setEndDate] = useState<string>(appMetadata?.validTo ?? '');
-  const [showEndDate, setShowEndDate] = useState<boolean>(appMetadata.validTo !== undefined);
-
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
-
-  const isInvalidDates: boolean = !getIsDatesValid(appMetadata?.validFrom, appMetadata?.validTo);
 
   return (
     <>
-      <Switch
-        size='small'
-        className={classes.switch}
-        checked={showEndDate}
-        onChange={(e) => {
-          setShowEndDate(e.target.checked);
-          updateAppMetadataMutation({
-            ...appMetadata,
-            validTo: e.target.checked ? endDate : undefined,
-          });
-        }}
-      >
-        <Paragraph size='small'>{t('settings_modal.setup_tab_switch_validTo')}</Paragraph>
-      </Switch>
-      <div className={classes.dateWrapper}>
-        <div className={classes.dateInputFields}>
-          <Textfield
-            type='datetime-local'
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            label={t('settings_modal.setup_tab_valid_from_label')}
-            size='small'
-            onBlur={() => {
-              updateAppMetadataMutation({ ...appMetadata, validFrom: startDate });
-            }}
-            error={isInvalidDates}
-            aria-errormessage='invalidDates'
-          />
-          {showEndDate && (
-            <Textfield
-              type='datetime-local'
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              label={t('settings_modal.setup_tab_valid_to_label')}
-              size='small'
-              onBlur={() => {
-                updateAppMetadataMutation({ ...appMetadata, validTo: endDate });
-              }}
-              error={isInvalidDates}
-              aria-errormessage='invalidDates'
-            />
-          )}
-        </div>
-        {isInvalidDates ? (
-          <ErrorMessage id='invalidDates' size='small'>
-            {t('settings_modal.setup_tab_start_before_end')}
-          </ErrorMessage>
-        ) : (
-          <div className={classes.errorMessagePlaceHolder} />
-        )}
-      </div>
-      <Divider className={classes.divider} marginless />
       <Switch
         size='small'
         className={classes.switch}
