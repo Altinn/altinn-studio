@@ -34,7 +34,7 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
 
   const {
     status: appMetadataStatus,
-    isLoading: appMetadataLoading,
+    isPending: appMetadataPending,
     data: appMetadata,
     error: appMetadataError,
   } = useAppMetadataQuery(org, app);
@@ -46,10 +46,10 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
   );
 
   useEffect(() => {
-    if (!appMetadataLoading) {
+    if (!appMetadataPending) {
       setPartyTypesAllowed(appMetadata?.partyTypesAllowed ?? initialPartyTypes);
     }
-  }, [appMetadataLoading, appMetadata]);
+  }, [appMetadataPending, appMetadata]);
 
   /**
    * Update the selected party types when clicking an option

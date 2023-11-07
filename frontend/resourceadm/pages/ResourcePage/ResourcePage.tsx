@@ -75,7 +75,7 @@ export const ResourcePage = (): React.ReactNode => {
   const {
     data: resourceData,
     refetch: refetchResource,
-    isLoading: resourceLoading,
+    isPending: resourcePending,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
 
   // Mutation function for editing a resource
@@ -249,7 +249,7 @@ export const ResourcePage = (): React.ReactNode => {
           selectedTab={currentPage}
         />
       </div>
-      {resourceLoading ? (
+      {resourcePending ? (
         <div className={classes.spinnerWrapper}>
           <Spinner
             size='xlarge'
