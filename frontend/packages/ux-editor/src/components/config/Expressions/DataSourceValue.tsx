@@ -2,8 +2,8 @@ import React from 'react';
 import {
   Select,
   SingleSelectOption,
-  LegacyTextField,
   LegacyToggleButtonGroup,
+  LegacyTextField,
 } from '@digdir/design-system-react';
 import { DataSource, SubExpression } from '../../../types/Expressions';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';

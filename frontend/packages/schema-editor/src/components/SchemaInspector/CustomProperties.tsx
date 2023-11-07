@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Button,
-  LegacyFieldSet,
-  HelpText,
-  LegacyTextField,
-  Switch,
-} from '@digdir/design-system-react';
+import { Button, Fieldset, HelpText, LegacyTextField, Switch } from '@digdir/design-system-react';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
@@ -85,7 +79,7 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
   }
 
   return (
-    <LegacyFieldSet
+    <Fieldset
       className={classes.root}
       description={t('schema_editor.custom_props_help')}
       legend={t('schema_editor.custom_props')}
@@ -105,7 +99,7 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
           />
         </div>
       ))}
-    </LegacyFieldSet>
+    </Fieldset>
   );
 };
 
