@@ -15,7 +15,7 @@ import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AltinnSpinner } from 'app-shared/components';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
-import { useNavigateToAppDevelopment } from './hooks/useNavigateToAppDevelopment';
+import { navigateToAppDevelopment } from "./utils/navigationUtils";
 
 const DASHBOARD_ROOT_ROUTE: string = '/';
 
@@ -33,7 +33,6 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
-  const { navigateToAppDevelopment } = useNavigateToAppDevelopment();
 
   const [formError, setFormError] = useState<CreateAppForm>({
     org: '',
