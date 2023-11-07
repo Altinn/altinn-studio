@@ -129,7 +129,7 @@ export const ResourceTable = ({
       autoHeight
       rows={listData}
       getRowId={(row) => row.identifier}
-      isRowSelectable={() => false}
+      disableSelectionOnClick
       disableColumnMenu
       sx={gridStyleOverride}
       hideFooterPagination
