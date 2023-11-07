@@ -77,7 +77,11 @@ export const mapPolicyActionsToActionTitle = (
   actionOptions: PolicyAction[],
   actionIds: string[],
 ): string[] => {
-  return actionIds.map((aId) => actionOptions.find((a) => aId === a.actionId).actionTitle);
+  return actionIds.map(
+    (actionId) =>
+      actionOptions.find((actionOption) => actionId === actionOption.actionId)?.actionTitle ||
+      actionId,
+  );
 };
 
 /**
@@ -129,6 +133,7 @@ export const mapSubjectTitleToSubjectString = (
   subjectTitle: string,
 ): string => {
   const subject: PolicySubject = subjectOptions.find((s) => s.subjectTitle === subjectTitle);
+  console.log('subject', subject);
   return `urn:${subject.subjectSource}:${subject.subjectId}`;
 };
 
