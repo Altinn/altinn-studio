@@ -102,7 +102,6 @@ export const AddOption = <T extends FormCheckboxesComponent | FormRadioButtonsCo
       >
         <span className={addButtonClass}>
           <PlusIcon />
-          <span>jgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgfgf</span>
         </span>
         {t('ux_editor.add_option')}
       </Button>
