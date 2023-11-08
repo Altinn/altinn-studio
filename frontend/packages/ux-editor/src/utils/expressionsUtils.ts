@@ -2,8 +2,6 @@ import {
   DataSource,
   Expression,
   SubExpression,
-  ExternalExpression,
-  ExternalExpressionElement,
   ExpressionFunction,
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
@@ -19,9 +17,7 @@ import { SingleSelectOption } from '@digdir/design-system-react';
 import { FormContainer } from '../types/FormContainer';
 import { UseText } from '../hooks';
 
-export const convertInternalExpressionToExternal = (
-  expression: Expression,
-): string | [] | ExternalExpression => {
+export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
     return expression.complexExpression;
   }
@@ -31,7 +27,7 @@ export const convertInternalExpressionToExternal = (
   if (expression.subExpressions.length === 1) {
     return convertInternalSubExpressionToExternal(expression.subExpressions[0]);
   }
-  const multiExpression: ExternalExpression = [expression.operator];
+  const multiExpression: any = [expression.operator];
   expression.subExpressions.map((subExp) => {
     const convertedSubExpression = convertInternalSubExpressionToExternal(subExp);
     multiExpression.push(convertedSubExpression);
@@ -39,10 +35,8 @@ export const convertInternalExpressionToExternal = (
   return multiExpression;
 };
 
-export const convertInternalSubExpressionToExternal = (
-  subExp: SubExpression,
-): ExternalExpression => {
-  const expressionObject: ExternalExpression = [subExp.function];
+export const convertInternalSubExpressionToExternal = (subExp: SubExpression): any => {
+  const expressionObject: any = [subExp.function];
   if (
     subExp.dataSource === DataSource.ApplicationSettings ||
     subExp.dataSource === DataSource.Component ||
@@ -97,7 +91,7 @@ export const isStudioFriendlyExpression = (expression: any): boolean => {
 
 export const convertExternalExpressionToInternal = (
   booleanValue: string,
-  expression: ExternalExpression,
+  expression: any,
 ): Expression => {
   const hasMoreExpressions: boolean = Object.values(Operator).includes(expression[0] as Operator);
   const convertedExpression: Expression = {
@@ -140,7 +134,7 @@ export const convertExternalExpressionToInternal = (
 
 export function convertSubExpression(
   internalSubExp: SubExpression,
-  externalExpEl: ExternalExpressionElement,
+  externalExpEl: any,
   isComparable: boolean,
 ): SubExpression {
   const newInternalSubExp = deepCopy(internalSubExp);
@@ -382,7 +376,7 @@ export const stringifyValueForDisplay = (
 
 export const tryParseExpression = (
   oldExpression: Expression,
-  complexExpression: string | [] | ExternalExpression,
+  complexExpression: any,
 ): Expression => {
   // TODO: Try format expression for better readability
   const newExpression = deepCopy(oldExpression);

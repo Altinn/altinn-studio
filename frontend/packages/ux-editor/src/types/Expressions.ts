@@ -1,9 +1,6 @@
 import { UseText } from '../hooks';
 import { LayoutItemType } from './global';
 
-export type ExternalExpression = [string, ...any];
-export type ExternalExpressionElement = [any, any] | string | number | boolean | null;
-
 export interface Expression {
   id?: string;
   operator?: Operator;

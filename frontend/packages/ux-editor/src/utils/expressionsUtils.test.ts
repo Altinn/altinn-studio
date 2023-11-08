@@ -3,7 +3,6 @@ import {
   Expression,
   ExpressionFunction,
   ExpressionPropertyBase,
-  ExternalExpression,
   Operator,
   SubExpression,
 } from '../types/Expressions';
@@ -237,7 +236,7 @@ describe('expressionsUtils', () => {
   });
   describe('convertInternalSubExpressionToExternal', () => {
     it('converts most basic valid internal sub expression', () => {
-      const externalExpression: ExternalExpression =
+      const externalExpression: any =
         convertInternalSubExpressionToExternal(baseInternalSubExpression);
 
       expect(externalExpression).toBeInstanceOf(Array);
@@ -246,8 +245,7 @@ describe('expressionsUtils', () => {
       expect(externalExpression[2]).toBe(nullValue);
     });
     it('converts valid internal sub expression', () => {
-      const externalExpression: ExternalExpression =
-        convertInternalSubExpressionToExternal(subExpression0);
+      const externalExpression: any = convertInternalSubExpressionToExternal(subExpression0);
 
       expect(externalExpression).toBeInstanceOf(Array);
       expect(externalExpression[0]).toBe(ExpressionFunction.Equals);
@@ -258,11 +256,7 @@ describe('expressionsUtils', () => {
   });
   describe('convertExternalExpressionToInternal', () => {
     it('converts expression with one subExpression where first part is array and second null to valid internal expression', () => {
-      const externalExpression: ExternalExpression = [
-        'equals',
-        ['component', componentId],
-        nullValue,
-      ];
+      const externalExpression: any = ['equals', ['component', componentId], nullValue];
       const internalExpression: Expression = convertExternalExpressionToInternal(
         ExpressionPropertyBase.Hidden,
         externalExpression,
@@ -278,7 +272,7 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[0].comparableValue).toBe(nullValue);
     });
     it('converts expression with one subExpression where first part is string and second number to valid internal expression', () => {
-      const externalExpression: ExternalExpression = ['equals', stringValue, numberValue];
+      const externalExpression: any = ['equals', stringValue, numberValue];
       const internalExpression: Expression = convertExternalExpressionToInternal(
         ExpressionPropertyBase.Hidden,
         externalExpression,
@@ -294,7 +288,7 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[0].comparableValue).toBe(numberValue);
     });
     it('converts expression with one subExpression where both parts are null number to valid internal expression', () => {
-      const externalExpression: ExternalExpression = ['equals', nullValue, nullValue];
+      const externalExpression: any = ['equals', nullValue, nullValue];
       const internalExpression: Expression = convertExternalExpressionToInternal(
         ExpressionPropertyBase.Hidden,
         externalExpression,

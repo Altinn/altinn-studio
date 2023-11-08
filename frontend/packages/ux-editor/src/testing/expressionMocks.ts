@@ -3,7 +3,6 @@ import {
   Expression,
   ExpressionFunction,
   ExpressionPropertyBase,
-  ExternalExpression,
   Operator,
   SubExpression,
 } from '../types/Expressions';
@@ -64,7 +63,7 @@ export const equivalentExternalExpressionWithMultipleSubExpressions = [
   ['equals', nullValue, numberValue],
   ['equals', booleanValue, [DataSource.Component, componentId]],
 ];
-export const parsableExternalExpression: ExternalExpression = [
+export const parsableExternalExpression: any = [
   'and',
   ['equals', stringValue, nullValue],
   ['equals', numberValue, booleanValue],
@@ -72,11 +71,8 @@ export const parsableExternalExpression: ExternalExpression = [
 ];
 export const unParsableComplexExpression = '["equals, [datamodel, test, true]';
 export const parsableComplexExpression = '["equals", ["datamodel", "test"], true]';
-export const parsableNotStudioFriendlyComplexExpression: ExternalExpression = [
-  'dataModel',
-  'some-field',
-];
-export const parsableNotStudioFriendlyLongComplexExpression: ExternalExpression = [
+export const parsableNotStudioFriendlyComplexExpression: any = ['dataModel', 'some-field'];
+export const parsableNotStudioFriendlyLongComplexExpression: any = [
   'and',
   ['equals', ['equals', ['dataModel', 'some-field'], 'true'], 'true'],
   ['equals', ['dataModel', 'some-field'], 'true'],
