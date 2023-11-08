@@ -34,6 +34,7 @@ public class CSharpEnd2EndTestData : IEnumerable<object[]>
         yield return new object[] { "Model/XmlSchema/Gitea/aal-vedlegg.xsd", "Model/CSharp/Gitea/aal-vedlegg.cs" };
         yield return new object[] { "Model/XmlSchema/Gitea/krt-1188a-1.xsd", "Model/CSharp/Gitea/krt-1188a-1.cs" };
         yield return new object[] { "Model/XmlSchema/Gitea/Brønnøysundregistrene_ReelleRettighetshavere_M.xsd", "Model/CSharp/Gitea/Brønnøysundregistrene_ReelleRettighetshavere_M.cs" };
+        yield return new object[] { "Model/XmlSchema/Gitea/dev-nill-test.xsd", "Model/CSharp/Gitea/dev-nill-test.cs" };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

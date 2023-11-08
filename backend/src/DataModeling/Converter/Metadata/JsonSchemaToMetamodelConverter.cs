@@ -349,6 +349,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         {
             if (IsRefType(subSchema))
             {
+                context.IsNillable = IsNillableType(path);
                 ProcessRefType(subSchema, context);
             }
             else if (IsNillableType(path))
