@@ -488,7 +488,8 @@
         "dataModelBindings": {
           "simpleBinding": "Adresse.KommunerMetadata"
         },
-        "readOnly": false,
+        "readOnly": true,
+        "hidden": ["notEquals", ["component", "kommune"], "0301"],
         "grid": {
           "xs": 12,
           "sm": 6
