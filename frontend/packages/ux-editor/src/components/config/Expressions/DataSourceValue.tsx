@@ -12,7 +12,7 @@ import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery'
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
 import { useText } from '../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from "../../../hooks/useAppContext";
+import { useAppContext } from '../../../hooks/useAppContext';
 
 export interface DataSourceValueProps {
   subExpression: SubExpression;
