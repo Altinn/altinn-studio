@@ -1,17 +1,14 @@
 import React from 'react';
-import { LegacyFieldSet } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/design-system-react';
 import classes from './ButtonComponent.module.css';
 import { EditSettings, IGenericEditComponent } from '../../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { EditTextResourceBindings } from '../../editModal/EditTextResourceBindings';
 
-export const ButtonComponent = ({
-  component,
-  handleComponentChange,
-}: IGenericEditComponent) => {
+export const ButtonComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   return (
-    <LegacyFieldSet className={classes.root}>
+    <Fieldset className={classes.root}>
       {component.type === ComponentType.Button && (
         <EditTextResourceBinding
           component={component}
@@ -28,6 +25,6 @@ export const ButtonComponent = ({
           textResourceBindingKeys={['next', 'back']}
         />
       )}
-    </LegacyFieldSet>
+    </Fieldset>
   );
 };

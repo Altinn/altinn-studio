@@ -1,6 +1,6 @@
 import React from 'react';
-import { Select } from '@digdir/design-system-react';
-import { LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
+import { Select, Textfield } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
@@ -65,7 +65,7 @@ export const ImageComponent = ({
   const placementSelectId = `image_placement-input-${component.id}`;
 
   return (
-    <LegacyFieldSet className={classes.root}>
+    <Fieldset className={classes.root}>
       <FormField
         id={component.id}
         label={t('ux_editor.modal_properties_image_src_value_label')}
@@ -74,7 +74,7 @@ export const ImageComponent = ({
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
       >
         {({ value, onChange }) => (
-          <LegacyTextField
+          <Textfield
             name={`image_nb_src-input-${component.id}`}
             onChange={(e) => onChange({ nb: e.target.value }, e)}
             value={value?.nb || ''}
@@ -101,7 +101,7 @@ export const ImageComponent = ({
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
         >
           {({ onChange }) => (
-            <LegacyTextField
+            <Textfield
               name={`image_width-input-${component.id}`}
               onChange={(e) => onChange(e.target.value, e)}
             />
@@ -137,6 +137,6 @@ export const ImageComponent = ({
           </a>
         </p>
       </div>
-    </LegacyFieldSet>
+    </Fieldset>
   );
 };
