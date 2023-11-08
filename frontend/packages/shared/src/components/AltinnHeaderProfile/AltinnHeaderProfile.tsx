@@ -2,8 +2,8 @@ import { ProfileMenu } from 'app-shared/navigation/main-header/ProfileMenu';
 import { Repository } from 'app-shared/types/Repository';
 import { User } from 'app-shared/types/User';
 import React, { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
 import classes from './AltinnHeaderProfile.module.css';
+import { useUserNameAndOrg } from './hooks/useUserNameAndOrg';
 
 export interface AltinnHeaderProfileProps {
   user: User;
@@ -26,22 +26,16 @@ export const AltinnHeaderProfile = ({
   repository,
   org,
 }: AltinnHeaderProfileProps): ReactNode => {
-  const { t } = useTranslation();
+  const userNameAndOrg = useUserNameAndOrg(user, org, repository);
 
   return (
     <div className={classes.profileMenuWrapper}>
-      {user && repository && (
+      {user && (
         <ProfileMenu
           showlogout
           user={user}
-          userNameAndOrg={
-            org && user.login !== org
-              ? t('shared.header_user_for_org', {
-                  user: user.full_name || user.login,
-                  org: repository.owner.full_name || repository.owner.login,
-                })
-              : user.full_name || user.login
-          }
+          userNameAndOrg={userNameAndOrg}
+          repositoryError={!repository}
         />
       )}
     </div>

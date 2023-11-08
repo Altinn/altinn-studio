@@ -13,6 +13,10 @@ import {
 } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { TabContent } from '../../TabContent';
+import {
+  mergeActionsFromPolicyWithActionOptions,
+  mergeSubjectsFromPolicyWithSubjectOptions,
+} from '../../../utils/tabUtils/policyTabUtils';
 
 export type PolicyTabProps = {
   org: string;
@@ -64,11 +68,24 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
         );
       }
       case 'success': {
+        // Merge the list of actions from the policy with the list of options to make sure
+        // that "old" options are also added to the options list
+        const mergedActionList = mergeActionsFromPolicyWithActionOptions(
+          policyData.rules,
+          actionData,
+        );
+        // Merge the list of subjects from the policy with the list of options to make sure
+        // that "old" options are also added to the options list
+        const mergedSubjectList = mergeSubjectsFromPolicyWithSubjectOptions(
+          policyData.rules,
+          subjectData,
+        );
+
         return (
           <PolicyEditorImpl
             policy={policyData}
-            actions={actionData}
-            subjects={subjectData}
+            actions={mergedActionList}
+            subjects={mergedSubjectList}
             onSave={updateAppPolicyMutation}
             showAllErrors
             usageType='app'

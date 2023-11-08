@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Modal, ModalProps } from './Modal';
+import { StudioModal, StudioModalProps } from './StudioModal';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
-const mockTitle = (
+const mockTitle: ReactNode = (
   <div>
     <h2>Title</h2>
   </div>
@@ -21,7 +21,7 @@ describe('Modal', () => {
 
   const mockOnClose = jest.fn();
 
-  const defaultProps: ModalProps = {
+  const defaultProps: StudioModalProps = {
     isOpen: true,
     onClose: mockOnClose,
     title: mockTitle,
@@ -30,7 +30,7 @@ describe('Modal', () => {
 
   it('calls onClose when the close button is clicked', async () => {
     const user = userEvent.setup();
-    render(<Modal {...defaultProps} />);
+    render(<StudioModal {...defaultProps} />);
 
     const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
     await act(() => user.click(closeButton));
@@ -38,7 +38,7 @@ describe('Modal', () => {
   });
 
   it('does not show content when modal is clsoed', () => {
-    render(<Modal {...defaultProps} isOpen={false} />);
+    render(<StudioModal {...defaultProps} isOpen={false} />);
 
     const closeButton = screen.queryByRole('button', { name: textMock('modal.close_icon') });
     expect(closeButton).not.toBeInTheDocument();

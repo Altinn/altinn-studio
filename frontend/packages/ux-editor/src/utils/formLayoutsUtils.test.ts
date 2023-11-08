@@ -44,7 +44,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         null,
-        layoutReceiptId
+        layoutReceiptId,
       );
 
       const layoutComponents = Object.values(updatedLayouts[layoutId].components);
@@ -80,7 +80,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         null,
-        layoutReceiptId
+        layoutReceiptId,
       );
 
       const layoutComponents = Object.values(updatedLayouts[layoutId].components);
@@ -104,7 +104,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         layout1id,
-        layoutReceiptId
+        layoutReceiptId,
       );
       const layout1Components = Object.values(updatedLayouts[layout1id].components);
       const layout2Components = Object.values(updatedLayouts[layout2id].components);

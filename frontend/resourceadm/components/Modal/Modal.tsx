@@ -2,29 +2,13 @@ import React, { ReactNode } from 'react';
 import classes from './Modal.module.css';
 import cn from 'classnames';
 import { Heading } from '@digdir/design-system-react';
-import { Modal as SharedModal } from 'app-shared/components/Modal';
+import { StudioModal } from '@altinn/studio-components';
 
 type ModalProps = {
-  /**
-   * Boolean for if the modal is open
-   */
   isOpen: boolean;
-  /**
-   * Title to be displayed in the modal
-   */
   title: string;
-  /**
-   * Function to handle close of the modal
-   * @returns void
-   */
   onClose?: () => void;
-  /**
-   * React components inside the Modal
-   */
   children: ReactNode;
-  /**
-   * Classname for the content
-   */
   contentClassName?: string;
 };
 
@@ -53,7 +37,7 @@ export const Modal = ({
   contentClassName,
 }: ModalProps): React.ReactNode => {
   return (
-    <SharedModal
+    <StudioModal
       isOpen={isOpen}
       onClose={onClose}
       title={
@@ -65,6 +49,6 @@ export const Modal = ({
       }
     >
       <div className={cn(classes.content, contentClassName)}>{children}</div>
-    </SharedModal>
+    </StudioModal>
   );
 };
