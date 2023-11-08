@@ -9,7 +9,7 @@ import {
   ShieldLockIcon,
   SidebarBothIcon,
 } from '@navikt/aksel-icons';
-import { Modal } from 'app-shared/components/Modal';
+import { StudioModal } from '@altinn/studio-components';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
@@ -122,7 +122,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
   };
 
   return (
-    <Modal
+    <StudioModal
       isOpen={isOpen}
       onClose={onClose}
       title={
@@ -144,6 +144,6 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
         </div>
         {displayTabs()}
       </div>
-    </Modal>
+    </StudioModal>
   );
 };
