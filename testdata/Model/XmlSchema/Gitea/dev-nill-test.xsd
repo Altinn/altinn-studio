@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="modell">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="element" type="ModelType" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:complexType name="ModelType">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="nonNillableRef" type="BooleanRef" />
+      <xsd:element minOccurs="0" name="nillableRef" nillable="true" type="BooleanRef" />
+      <xsd:element minOccurs="0" name="nonNillableBoolean" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="nillableBoolean" nillable="true" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="s1" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="BooleanRef">
+    <xsd:restriction base="xsd:boolean" />
+  </xsd:simpleType>
+</xs:schema>
