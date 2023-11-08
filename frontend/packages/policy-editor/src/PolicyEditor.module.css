@@ -1,17 +1,3 @@
-.alertWrapper {
-  width: 590px;
-  min-width: 590px;
-  margin-bottom: 20px;
-}
-
-.selectAuthLevelWrapper {
-  width: 100%;
-}
-
-.selectAuthLevel {
-  width: 450px;
-}
-
 .addCardButtonWrapper {
   margin-block: 20px;
   width: 595px;
@@ -30,9 +16,4 @@
 
 .label {
   margin-top: 30px;
-}
-
-.alert {
-  display: flex;
-  align-items: center;
 }

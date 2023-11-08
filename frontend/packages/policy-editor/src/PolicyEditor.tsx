@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading } from '@digdir/design-system-react';
 import type {
   PolicyAction,
   Policy,
@@ -18,11 +18,11 @@ import {
 } from './utils';
 import classes from './PolicyEditor.module.css';
 import { VerificationModal } from './components/VerificationModal';
-import { SelectAuthLevel } from './components/SelectAuthLevel';
 import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 import { CardButton } from './components/CardButton';
 import { deepCopy } from 'app-shared/pure';
 import { useTranslation } from 'react-i18next';
+import { SecurityLevel } from './components/SecurityLevel';
 
 export type PolicyEditorProps = {
   policy: Policy;
@@ -192,27 +192,11 @@ export const PolicyEditor = ({
 
   return (
     <div>
-      <div className={classes.alertWrapper}>
-        <Alert severity='info' className={classes.alert}>
-          <Paragraph size='small'>
-            {t('policy_editor.alert', {
-              usageType:
-                usageType === 'app'
-                  ? t('policy_editor.alert_app')
-                  : t('policy_editor.alert_resource'),
-            })}
-          </Paragraph>
-        </Alert>
-      </div>
-      <div className={classes.selectAuthLevelWrapper}>
-        <div className={classes.selectAuthLevel}>
-          <SelectAuthLevel
-            value={policy.requiredAuthenticationLevelEndUser}
-            setValue={(authLevel: RequiredAuthLevel) => handleSavePolicyAuthLevel(authLevel)}
-            label={t('policy_editor.select_auth_level_label')}
-          />
-        </div>
-      </div>
+      <SecurityLevel
+        usageType={usageType}
+        requiredAuthenticationLevelEndUser={policy.requiredAuthenticationLevelEndUser}
+        onSave={handleSavePolicyAuthLevel}
+      />
       <Heading size='xxsmall' className={classes.label} level={2}>
         {t('policy_editor.rules')}
       </Heading>

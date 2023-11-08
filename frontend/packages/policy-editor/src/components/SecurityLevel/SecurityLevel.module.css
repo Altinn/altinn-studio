@@ -1,0 +1,18 @@
+.alertWrapper {
+  width: 590px;
+  min-width: 590px;
+  margin-bottom: 20px;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+}
+
+.selectAuthLevelWrapper {
+  width: 100%;
+}
+
+.selectAuthLevel {
+  width: 450px;
+}
