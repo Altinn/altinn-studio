@@ -21,7 +21,7 @@ import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceDashboardPage = (): React.ReactNode => {
-  const { selectedContext } = useParams();
+  const { org: selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const { t } = useTranslation();
