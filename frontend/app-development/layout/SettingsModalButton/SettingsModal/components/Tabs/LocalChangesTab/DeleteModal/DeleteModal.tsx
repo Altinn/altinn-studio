@@ -1,28 +1,14 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { Modal } from 'app-shared/components/Modal';
+import { StudioModal } from '@altinn/studio-components';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { Button, Heading, Paragraph, Textfield } from '@digdir/design-system-react';
 
 export type DeleteModalProps = {
-  /**
-   * If the modal is open or not
-   */
   isOpen: boolean;
-  /**
-   * Function to execute on close
-   * @returns void
-   */
   onClose: () => void;
-  /**
-   * Function to execute on click delete
-   * @returns void
-   */
   onDelete: () => void;
-  /**
-   * The name of the app to delete changes on
-   */
   appName: string;
 };
 
@@ -59,7 +45,7 @@ export const DeleteModal = ({
   };
 
   return (
-    <Modal
+    <StudioModal
       isOpen={isOpen}
       onClose={handleClose}
       title={
@@ -96,6 +82,6 @@ export const DeleteModal = ({
           </Button>
         </div>
       </div>
-    </Modal>
+    </StudioModal>
   );
 };
