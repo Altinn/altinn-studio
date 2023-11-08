@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { SchemaState } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { SchemaTree } from '@altinn/schema-editor/components/SchemaTree';
 
 export type ModelsPanelProps = {
   expandedPropNodes: string[];
@@ -49,7 +50,7 @@ export const ModelsPanel = ({
         location: makePointer(Keyword.Properties),
         props: newNode,
         callback: (newPointer) => dispatch(setSelectedAndFocusedNode(newPointer)),
-      })
+      }),
     );
   };
 
@@ -57,47 +58,47 @@ export const ModelsPanel = ({
     setExpandedPropNodes(nodeIds);
   return (
     <>
-        <ActionMenu
-          items={[
-            {
-              action: () => handleAddProperty(ObjectKind.Field),
-              icon: IconImage.Object,
-              text: t('field'),
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Reference),
-              icon: IconImage.Reference,
-              text: t('reference'),
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Combination),
-              icon: IconImage.Combination,
-              text: t('combination'),
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
-              className: classes.dividerAbove,
-              icon: IconImage.String,
-              text: t('string'),
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
-              icon: IconImage.Number,
-              text: t('integer'),
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
-              icon: IconImage.Number,
-              text: t('number'),
-            },
-            {
-              action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
-              icon: IconImage.Boolean,
-              text: t('boolean'),
-            },
-          ]}
-          openButtonText={t('add')}
-        />
+      <ActionMenu
+        items={[
+          {
+            action: () => handleAddProperty(ObjectKind.Field),
+            icon: IconImage.Object,
+            text: t('field'),
+          },
+          {
+            action: () => handleAddProperty(ObjectKind.Reference),
+            icon: IconImage.Reference,
+            text: t('reference'),
+          },
+          {
+            action: () => handleAddProperty(ObjectKind.Combination),
+            icon: IconImage.Combination,
+            text: t('combination'),
+          },
+          {
+            action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
+            className: classes.dividerAbove,
+            icon: IconImage.String,
+            text: t('string'),
+          },
+          {
+            action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
+            icon: IconImage.Number,
+            text: t('integer'),
+          },
+          {
+            action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
+            icon: IconImage.Number,
+            text: t('number'),
+          },
+          {
+            action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
+            icon: IconImage.Boolean,
+            text: t('boolean'),
+          },
+        ]}
+        openButtonText={t('add')}
+      />
       <SchemaTreeView
         expanded={expandedPropNodes}
         items={properties}
@@ -105,6 +106,7 @@ export const ModelsPanel = ({
         selectedPointer={selectedPropertyNodeId}
         isPropertiesView={true}
       />
+      <SchemaTree nodes={data} />
     </>
   );
 };
