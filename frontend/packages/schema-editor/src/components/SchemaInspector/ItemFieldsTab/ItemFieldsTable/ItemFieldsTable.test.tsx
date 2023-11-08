@@ -1,13 +1,13 @@
 import React from 'react';
-import { screen, act } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import { ItemFieldsTable, ItemFieldsTableProps } from './ItemFieldsTable';
 import {
+  createChildNode,
   FieldType,
+  getNameFromPointer,
   ObjectKind,
   UiSchemaNode,
   UiSchemaNodes,
-  createChildNode,
-  getNameFromPointer,
 } from '@altinn/schema-model';
 import {
   renderWithProviders,
@@ -105,15 +105,14 @@ describe('ItemFieldsTable', () => {
     const user = userEvent.setup();
     renderItemFieldsTab();
 
-    const [firstSelect] = screen.getAllByLabelText(textMock('schema_editor.type'));
-    expect(firstSelect).toHaveValue(textMock('schema_editor.object'));
+    const [firstSelect] = screen.getAllByRole('combobox', { name: textMock('schema_editor.type') });
+    const objectOption = within(firstSelect).getByRole('option', {
+      name: textMock('schema_editor.object'),
+    }) as HTMLOptionElement;
+    expect(objectOption.selected).toBe(true);
 
-    await act(() => user.click(firstSelect));
-    await act(() =>
-      user.click(screen.getByRole('option', { name: textMock('schema_editor.string') })),
-    );
+    await act(() => user.selectOptions(firstSelect, textMock('schema_editor.string')));
 
-    expect(firstSelect).toHaveValue(textMock('schema_editor.string'));
     expect(saveDatamodel).toBeCalledTimes(1);
   });
 
@@ -152,6 +151,5 @@ describe('ItemFieldsTable', () => {
 
 const getNameInTextField = (pos: number): string => {
   const pointer = mockFieldNodes[pos].pointer;
-  const name = getNameFromPointer({ pointer });
-  return name;
+  return getNameFromPointer({ pointer });
 };

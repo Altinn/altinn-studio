@@ -7,7 +7,7 @@ import {
   setSelectedNode,
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
-import { getCombinationOptions, getTypeOptions } from './helpers/options';
+import { getCombinationOptions } from './helpers/options';
 import { Fieldset, Select, LegacyTextArea, Textfield, Switch } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
@@ -38,6 +38,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { useTypeOptions } from './hooks/useTypeOptions';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -58,6 +59,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const dispatch = useDispatch();
   const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
+  const typeOptions = useTypeOptions();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title);
   const [itemDescription, setItemItemDescription] = useState<string>(description);
@@ -135,13 +137,14 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           label={t('schema_editor.name')}
           handleSave={handleChangeNodeName}
           pointer={pointer}
+          size='small'
         />
       )}
       {objectKind === ObjectKind.Field && (
         <Select
           label={t('schema_editor.type')}
           onChange={(type: FieldType) => onChangeFieldType(type)}
-          options={getTypeOptions(t)}
+          options={typeOptions}
           value={fieldType as string}
         />
       )}
