@@ -7,7 +7,7 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
 
 const mockInitialAuthLevelValue: RequiredAuthLevel = '0';
-const mockInitialAuthLevelLabel: string = authlevelOptions[0].label;
+const mockInitialAuthLevelLabel: string = textMock(authlevelOptions[0].label);
 const mockLabel: string = textMock('policy_editor.select_auth_level_label');
 
 const mockOnSave = jest.fn();
@@ -16,7 +16,6 @@ describe('SelectAuthLevel', () => {
   afterEach(jest.clearAllMocks);
 
   const defaultProps: SecurityLevelProps = {
-    usageType: 'app',
     requiredAuthenticationLevelEndUser: mockInitialAuthLevelValue,
     onSave: mockOnSave,
   };
@@ -26,10 +25,13 @@ describe('SelectAuthLevel', () => {
     render(<SecurityLevel {...defaultProps} />);
 
     const [selectElement] = screen.getAllByLabelText(mockLabel);
+
     expect(selectElement).toHaveValue(mockInitialAuthLevelLabel);
+
     await act(() => user.click(selectElement));
 
-    await act(() => user.click(screen.getByRole('option', { name: authlevelOptions[2].label })));
+    const mockOption2 = textMock(authlevelOptions[2].label);
+    await act(() => user.click(screen.getByRole('option', { name: mockOption2 })));
 
     expect(mockOnSave).toHaveBeenCalledWith(authlevelOptions[2].value);
   });

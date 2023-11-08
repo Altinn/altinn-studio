@@ -6,10 +6,10 @@ import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { Policy, RequiredAuthLevel, PolicyEditorUsage } from './types';
 import { mockActions, mockPolicyRules, mockResourecId1, mockSubjects } from './data-mocks';
-import { authlevelOptions } from './components/SelectAuthLevel/SelectAuthLevel';
+import { authlevelOptions } from './components/SecurityLevel/SecurityLevel';
 
 const mockRequiredAuthLevel: RequiredAuthLevel = '3';
-const mockRequiredAuthLevelLabel: string = authlevelOptions[1].label;
+const mockRequiredAuthLevelLabel: string = textMock(authlevelOptions[3].label);
 
 const mockPolicy: Policy = {
   rules: mockPolicyRules,
@@ -39,10 +39,10 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} />);
 
     const alertTextApp = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
     );
     const alertTextResource = screen.queryByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
     );
 
     // Fix to remove act error
@@ -57,10 +57,10 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} usageType='resource' />);
 
     const alertTextApp = screen.queryByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
     );
     const alertTextResource = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') })
+      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
     );
 
     // Fix to remove act error
@@ -75,17 +75,19 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} />);
 
     const [selectElement] = screen.getAllByLabelText(
-      textMock('policy_editor.select_auth_level_label')
+      textMock('policy_editor.select_auth_level_label'),
     );
     expect(selectElement).toHaveValue(mockRequiredAuthLevelLabel);
 
     await act(() => user.click(selectElement));
-    await act(() => user.click(screen.getByRole('option', { name: authlevelOptions[2].label })));
+
+    const mockOption2 = textMock(authlevelOptions[2].label);
+    await act(() => user.click(screen.getByRole('option', { name: mockOption2 })));
 
     const [selectElementAfter] = screen.getAllByLabelText(
-      textMock('policy_editor.select_auth_level_label')
+      textMock('policy_editor.select_auth_level_label'),
     );
-    expect(selectElementAfter).toHaveValue(authlevelOptions[2].label);
+    expect(selectElementAfter).toHaveValue(mockOption2);
   });
 
   it('calls "onSave" when the auth level changes', async () => {
@@ -93,10 +95,12 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} />);
 
     const [selectElement] = screen.getAllByLabelText(
-      textMock('policy_editor.select_auth_level_label')
+      textMock('policy_editor.select_auth_level_label'),
     );
     await act(() => user.click(selectElement));
-    await act(() => user.click(screen.getByRole('option', { name: authlevelOptions[2].label })));
+
+    const mockOption2 = textMock(authlevelOptions[2].label);
+    await act(() => user.click(screen.getByRole('option', { name: mockOption2 })));
     await act(() => user.tab());
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);
@@ -107,7 +111,7 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} />);
 
     const aLabelFromPolicyCard = screen.getAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title')
+      textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
     // Fix to remove act error
@@ -121,7 +125,7 @@ describe('PolicyEditor', () => {
     render(<PolicyEditor {...defaultProps} policy={{ ...mockPolicy, rules: [] }} />);
 
     const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title')
+      textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
     // Fix to remove act error
@@ -143,7 +147,7 @@ describe('PolicyEditor', () => {
     await act(() => user.click(addButton));
 
     const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title')
+      textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
     expect(aLabelFromPolicyCard.length).toEqual(originalLength + 1);

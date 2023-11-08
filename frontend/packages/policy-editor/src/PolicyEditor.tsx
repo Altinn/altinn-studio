@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heading } from '@digdir/design-system-react';
+import { Alert, Paragraph, Label } from '@digdir/design-system-react';
 import type {
   PolicyAction,
   Policy,
@@ -193,13 +193,24 @@ export const PolicyEditor = ({
   return (
     <div>
       <SecurityLevel
-        usageType={usageType}
         requiredAuthenticationLevelEndUser={policy.requiredAuthenticationLevelEndUser}
         onSave={handleSavePolicyAuthLevel}
       />
-      <Heading size='xxsmall' className={classes.label} level={2}>
+      <Label as='p' spacing size='medium' className={classes.label}>
         {t('policy_editor.rules')}
-      </Heading>
+      </Label>
+      <div className={classes.alertWrapper}>
+        <Alert severity='info' className={classes.alert}>
+          <Paragraph size='small'>
+            {t('policy_editor.alert', {
+              usageType:
+                usageType === 'app'
+                  ? t('policy_editor.alert_app')
+                  : t('policy_editor.alert_resource'),
+            })}
+          </Paragraph>
+        </Alert>
+      </div>
       {displayRules}
       <div className={classes.addCardButtonWrapper}>
         <CardButton buttonText={t('policy_editor.card_button_text')} onClick={handleAddCardClick} />

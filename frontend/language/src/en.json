@@ -546,7 +546,6 @@
   "policy_editor.rule_card_subjects_select_add": "Add a subject",
   "policy_editor.rule_card_subjects_select_all_selected": "All subjects are selected",
   "policy_editor.rule_card_subjects_title": "Who should have these rights?",
-  "policy_editor.rules": "Rules",
   "policy_editor.select_auth_level_label": "Select the minimum required security level for the user",
   "policy_editor.verification_modal_action_button": "Yes, delete rule",
   "policy_editor.verification_modal_close_button": "No, go back",

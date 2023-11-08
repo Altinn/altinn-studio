@@ -1,18 +1,18 @@
-.alertWrapper {
-  width: 590px;
-  min-width: 590px;
+.selectAuthLevel {
+  width: 450px;
+}
+
+.labelAndHelpTextWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 5px;
+}
+
+.paragraph {
   margin-bottom: 20px;
 }
 
-.alert {
-  display: flex;
-  align-items: center;
-}
-
-.selectAuthLevelWrapper {
-  width: 100%;
-}
-
-.selectAuthLevel {
-  width: 450px;
+.link {
+  display: inline;
 }
