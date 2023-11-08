@@ -72,8 +72,9 @@ export const getExistingSubjectIds = (subjects: PolicySubject[]): string[] =>
   subjects.map((subject) => subject.subjectId);
 
 export const convertSubjectStringToSubjectId = (subjectString: string): string => {
-  const subjectStringAsArray: string[] = subjectString.split(':');
-  return subjectStringAsArray[subjectStringAsArray.length - 1]; // The final element is the ID
+  const lastColonIndex = subjectString.lastIndexOf(':');
+  // The final element is the id
+  return subjectString.slice(lastColonIndex + 1);
 };
 
 export const createNewSubjectFromSubjectString = (subjectString: string): PolicySubject => {
@@ -87,6 +88,8 @@ export const createNewSubjectFromSubjectString = (subjectString: string): Policy
 };
 
 export const convertSubjectStringToSubjectSource = (subjectString: string): string => {
-  const subjectStringAsArray: string[] = subjectString.split(':');
-  return subjectStringAsArray.slice(1, subjectStringAsArray.length - 1).join(':'); // Starting at 1 to remove 'urn'
+  const firstColonIndex = subjectString.indexOf(':');
+  const lastColonIndex = subjectString.lastIndexOf(':');
+  // Starting at 1 to remove 'urn', and excluding the final to remove the id
+  return subjectString.slice(firstColonIndex + 1, lastColonIndex);
 };
