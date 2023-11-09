@@ -137,11 +137,7 @@
   "contact.fetch_app_error_message": "Kunne ikke laste inn tittelen for denne appen. Prøv igjen senere.",
   "contact.heading": "Kontakt og hjelp",
   "contact.slack.content": "Dersom du har sporsmål om hvordan du bygger en applikasjon, kan du snakke direkte med utviklingsteamet i Altinn Studio på Slack. De kan hjelpe deg med:",
-  "contact.slack.content_list": [
-    "å bygge applikasjonene slik du onsker",
-    "svare på sporsmal og veilede",
-    "utvikle ny funksjonalitet det er behov for"
-  ],
+  "contact.slack.content_list": "<0>å bygge applikasjonene slik du onsker</0><0>svare på sporsmal og veilede</0><0>utvikle ny funksjonalitet det er behov for</0>",
   "contact.slack.heading": "Skriv melding i vår Slack-kanal",
   "contact.slack.link": "<0 href=\"https://altinn.slack.com\">altinn.slack.com</0>",
   "dashboard.all_apps": "Alle applikasjoner",
