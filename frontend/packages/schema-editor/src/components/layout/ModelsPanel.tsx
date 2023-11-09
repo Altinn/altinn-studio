@@ -106,7 +106,7 @@ export const ModelsPanel = ({
         selectedPointer={selectedPropertyNodeId}
         isPropertiesView={true}
       />
-      <SchemaTree nodes={data} />
+      <SchemaTree schema={data} rootPointer='#' />
     </>
   );
 };

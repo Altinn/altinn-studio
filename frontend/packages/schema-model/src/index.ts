@@ -24,6 +24,7 @@ export * from './lib/mutations/ui-schema-reducers';
 export { getCapabilities, Capabilites } from './lib/capabilities';
 export {
   getChildNodesByPointer,
+  getChildPropertiesByPointer,
   getNodeByPointer,
   getNodeIndexByPointer,
   getParentNodeByPointer,

@@ -59,6 +59,10 @@ export const replaceLastPointerSegment = (pointer: string, newLastSegment: strin
   return [base, newLastSegment].join('/');
 };
 
+export const isProperty = (node: UiSchemaNode) => pointerIsProperty(node.pointer);
+
+const pointerIsProperty = (pointer: string) => !pointerIsDefinition(pointer);
+
 export const pointerIsDefinition = (pointer: string) =>
   pointer.startsWith(makePointer(Keyword.Definitions)) && !pointer.includes(Keyword.Properties);
 
