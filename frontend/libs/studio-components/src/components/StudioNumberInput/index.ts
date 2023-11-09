@@ -1,0 +1,1 @@
+export { StudioDecimalInput } from './StudioDecimalInput';

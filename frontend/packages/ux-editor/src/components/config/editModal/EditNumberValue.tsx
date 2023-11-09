@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
 import { getComponentPropertyLabel } from '../../../utils/language';
 import { setComponentProperty } from '../../../utils/component';
-import { StudioNumberInput } from 'app-shared/components/StudioNumberInput';
+import { StudioDecimalInput } from '../../../../../../libs/studio-components/src/components/StudioNumberInput/StudioDecimalInput';
 
 export interface EditNumberValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -33,7 +33,7 @@ export const EditNumberValue = ({
       helpText={helpText}
     >
       {({ onChange }) => (
-        <StudioNumberInput
+        <StudioDecimalInput
           onChange={onChange}
           description={getComponentPropertyLabel(propertyKey, t)}
         />
