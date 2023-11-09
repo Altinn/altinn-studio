@@ -34,7 +34,7 @@ const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
 >;
 mockUpdateAppConfigMutation.mockReturnValue({
   mutate: updateAppConfigMutation,
-} as unknown as UseMutationResult<void, unknown, AppConfig, unknown>);
+} as unknown as UseMutationResult<void, Error, AppConfig, unknown>);
 
 describe('SettingsModal', () => {
   const user = userEvent.setup();

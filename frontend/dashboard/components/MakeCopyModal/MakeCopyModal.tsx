@@ -11,6 +11,7 @@ import { SimpleContainer } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
 import { AxiosError } from 'axios';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
@@ -25,7 +26,9 @@ const transformAnchorOrigin: PopoverOrigin = {
 
 export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
   const { mutate: copyAppMutate, isPending: isCopyAppPending } = useCopyAppMutation({
-    hideDefaultError: (error: AxiosError) => error?.response?.status === 409,
+    errorMessage: (error: AxiosError) =>
+      error?.response?.status === ServerCodes.Conflict ? t('dashboard.app_already_exists') : '',
+    hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
   const [repoName, setRepoName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>(null);
@@ -39,11 +42,6 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
         {
           onSuccess: () => {
             window.location.href = `${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`;
-          },
-          onError: (error: { response: { status: number } }) => {
-            if (error?.response?.status === 409) {
-              setErrorMessage(t('dashboard.app_already_exists'));
-            }
           },
         },
       );

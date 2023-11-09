@@ -9,7 +9,8 @@ export const useFrontEndSettingsQuery = (
   app: string,
 ): UseQueryResult<IFrontEndSettings> => {
   const { getFrontEndSettings } = useServicesContext();
-  return useQuery<IFrontEndSettings>([QueryKey.FrontEndSettings, org, app], () =>
-    getFrontEndSettings(org, app),
-  );
+  return useQuery<IFrontEndSettings>({
+    queryKey: [QueryKey.FrontEndSettings, org, app],
+    queryFn: () => getFrontEndSettings(org, app),
+  });
 };

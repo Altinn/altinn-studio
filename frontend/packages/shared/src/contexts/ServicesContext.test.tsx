@@ -46,14 +46,16 @@ describe('ServicesContext', () => {
 
     const { result } = renderHook(
       () =>
-        useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(401)), {
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401)),
           retry: false,
         }),
       {
         wrapper: ({ children }) => {
           return wrapper({ children, queries: { logout } });
         },
-      }
+      },
     );
 
     await waitFor(() => result.current.isError);
@@ -65,9 +67,14 @@ describe('ServicesContext', () => {
   it('Displays a toast message for "GT_01" error code', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const errorCode = 'GT_01';
-    const { result } = renderHook( () =>
-      useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(409, errorCode)), { retry: false }),
-      { wrapper }
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(409, errorCode)),
+          retry: false,
+        }),
+      { wrapper },
     );
     await waitFor(() => result.current.isError);
     expect(await screen.findByText(texts['api_errors.GT_01'])).toBeInTheDocument();
@@ -78,10 +85,12 @@ describe('ServicesContext', () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const { result } = renderHook(
       () =>
-        useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(500, 'DM_01')), {
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(500, 'DM_01')),
           retry: false,
         }),
-      { wrapper }
+      { wrapper },
     );
 
     await waitFor(() => result.current.isError);
@@ -94,10 +103,12 @@ describe('ServicesContext', () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const { result } = renderHook(
       () =>
-        useQuery(['fetchData'], () => Promise.reject(createApiErrorMock(500, 'DM_02')), {
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(500, 'DM_02')),
           retry: false,
         }),
-      { wrapper }
+      { wrapper },
     );
 
     await waitFor(() => result.current.isError);
@@ -109,8 +120,8 @@ describe('ServicesContext', () => {
   it('displays a default error message if an API call fails', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const { result } = renderHook(
-      () => useQuery(['fetchData'], () => Promise.reject(), { retry: false }),
-      { wrapper }
+      () => useQuery({ queryKey: ['fetchData'], queryFn: () => Promise.reject(), retry: false }),
+      { wrapper },
     );
 
     await waitFor(() => result.current.isError);

@@ -7,6 +7,6 @@ export const useUserQuery = (): UseQueryResult<User> => {
   const { getUser } = useServicesContext();
   return useQuery({
     queryKey: [QueryKey.CurrentUser],
-    queryFunction: getUser,
+    queryFn: getUser,
   });
 };

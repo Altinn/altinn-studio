@@ -81,7 +81,7 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
 
   const displayContent = () => {
     switch (appMetadataStatus) {
-      case 'loading': {
+      case 'pending': {
         return <LoadingTabData />;
       }
       case 'error': {

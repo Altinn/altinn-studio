@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
@@ -72,11 +72,17 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
   const [repoName, setRepoName] = useState('');
   const [pageState, setPageState] = useState(PageState.Idle);
-  const { mutate: addRepo } = useAddRepoMutation({
-    hideDefaultError: (error: AxiosError) => error?.response?.status === 409,
+  const { mutateAsync: addRepo, isError: hasAddRepoError } = useAddRepoMutation({
+    errorMessage: (error: AxiosError): string =>
+      error.response.status === ServerCodes.Conflict ? t('dashboard.app_already_exists') : '',
+    hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setPageState(PageState.Idle);
+  }, [hasAddRepoError]);
 
   const handleServiceOwnerChanged = useCallback((newValue: string) => {
     setSelectedOrgOrUser(newValue);
@@ -110,13 +116,6 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
                 repo: repository.name,
               }),
             );
-          },
-          onError: (error: { response: { status: number } }) => {
-            if (error.response.status === ServerCodes.Conflict) {
-              setRepoErrorMessage(t('dashboard.app_already_exists'));
-            }
-
-            setPageState(PageState.Idle);
           },
         },
       );
