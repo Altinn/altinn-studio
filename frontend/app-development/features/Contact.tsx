@@ -45,17 +45,19 @@ export const Contact = () => {
         </div>
         <div className={classes.content}>
           <div className={classes.heading}>
-            <Heading size='xlarge'>{t('contact.heading')}</Heading>
+            <Heading size='small' spacing>
+              {t('contact.heading')}
+            </Heading>
           </div>
           <div className={classes.block}>
             <div className={classes.iconContainer}>
               <EnvelopeClosedIcon className={classes.icon} />
             </div>
             <div className={classes.textContainer}>
-              <Heading level={2} size='xsmall'>
+              <Heading level={2} size='xsmall' spacing className={classes.subHeading}>
                 {t('contact.email.heading')}
               </Heading>
-              <Paragraph>{t('contact.email.content')}</Paragraph>
+              <Paragraph spacing>{t('contact.email.content')}</Paragraph>
               <Paragraph className={classes.link}>
                 <Trans i18nKey='contact.email.link'>
                   <Link> </Link>
@@ -68,11 +70,11 @@ export const Contact = () => {
               <Slack />
             </div>
             <div className={classes.textContainer}>
-              <Heading level={2} size='xsmall'>
+              <Heading level={2} size='xsmall' spacing className={classes.subHeading}>
                 {t('contact.slack.heading')}
               </Heading>
-              <Paragraph>{t('contact.slack.content')}</Paragraph>
-              <Paragraph>
+              <Paragraph spacing>{t('contact.slack.content')}</Paragraph>
+              <Paragraph spacing>
                 <ul>
                   {t('contact.slack.content_list', { returnObjects: true }).map((item) => (
                     <li key={item}>{item}</li>
