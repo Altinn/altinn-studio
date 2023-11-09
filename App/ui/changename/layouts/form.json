@@ -67,8 +67,7 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "PersonNyttMellomnavn",
-          "description": "HintMellomnavn",
-          "somethingThatIsVeryInvalid": null
+          "description": "HintMellomnavn"
         },
         "dataModelBindings": {
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value"
@@ -91,7 +90,6 @@
         "textResourceBindings": {
           "title": "DineEndringer"
         },
-        "dataModelBindings": {},
         "size": "L"
       },
       {
@@ -152,7 +150,6 @@
           "body": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
         },
         "severity": "danger",
-        "useAsAlert": true,
         "hidden": ["not", ["equals", ["dataModel", "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"], "Ja"]]
       },
       {
@@ -383,7 +380,6 @@
         "textResourceBindings": {
           "title": "Referanser"
         },
-        "dataModelBindings": {},
         "children": ["sources", "reference", "reference2"]
       },
       {
@@ -449,9 +445,6 @@
       {
         "id": "adresse",
         "type": "AddressComponent",
-        "textResourceBindings": {
-          "title": "Adresse"
-        },
         "dataModelBindings": {
           "address": "Adresse.Gateadresse_æøå",
           "zipCode": "Adresse.Postnr",
@@ -613,24 +606,21 @@
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "accordion-paragraph-test"
-        },
-        "dataModelBindings": {}
+        }
       },
       {
         "id": "test-accordion-paragraph-2",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "Dette er en tittel med litt mere tekst"
-        },
-        "dataModelBindings": {}
+        }
       },
       {
         "id": "test-accordion-paragraph-3",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "Dette er en Accordion utenfor en AccordionGroup"
-        },
-        "dataModelBindings": {}
+        }
       },
       {
         "id": "pageSummary",
@@ -638,7 +628,6 @@
         "textResourceBindings": {
           "title": "Oppsummering"
         },
-        "dataModelBindings": {},
         "size": "L"
       },
       {
@@ -658,8 +647,7 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "PersonNyttMellomnavn",
-          "description": "HintMellomnavn",
-          "somethingThatIsVeryInvalid": null
+          "description": "HintMellomnavn"
         },
         "dataModelBindings": {
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value"
@@ -681,9 +669,6 @@
       {
         "id": "adresseSummary",
         "type": "AddressComponent",
-        "textResourceBindings": {
-          "title": "Adresse"
-        },
         "dataModelBindings": {
           "address": "Adresse.Gateadresse_æøå",
           "zipCode": "Adresse.Postnr",
@@ -703,11 +688,9 @@
       {
         "id": "toSummary",
         "type": "NavigationButtons",
-        "showPrev": false,
         "textResourceBindings": {
           "next": "Neste"
         },
-        "dataModelBindings": {},
         "triggers": ["validatePage"]
       }
     ]

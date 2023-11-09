@@ -11,8 +11,7 @@
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "summaryTitle"
-        },
-        "dataModelBindings": {}
+        }
       },
       {
         "id": "nameChanges",
@@ -25,56 +24,47 @@
       {
         "id": "summary-1",
         "type": "Summary",
-        "componentRef": "changeNameFrom",
-        "pageRef": "form"
+        "componentRef": "changeNameFrom"
       },
       {
         "id": "summary-2",
         "type": "Summary",
-        "componentRef": "changeNameTo_æøå",
-        "pageRef": "form"
+        "componentRef": "changeNameTo_æøå"
       },
       {
         "id": "summary-3",
         "type": "Summary",
-        "componentRef": "reason",
-        "pageRef": "form"
+        "componentRef": "reason"
       },
       {
         "id": "summary-4",
         "type": "Summary",
-        "componentRef": "dateOfEffect",
-        "pageRef": "form"
+        "componentRef": "dateOfEffect"
       },
       {
         "id": "summary-5",
         "type": "Summary",
-        "componentRef": "fileUpload-changename",
-        "pageRef": "form"
+        "componentRef": "fileUpload-changename"
       },
       {
         "id": "summary-6",
         "type": "Summary",
-        "componentRef": "fileUploadWithTags-changename",
-        "pageRef": "form"
+        "componentRef": "fileUploadWithTags-changename"
       },
       {
         "id": "summary-reference",
         "type": "Summary",
-        "componentRef": "reference-group",
-        "pageRef": "form"
+        "componentRef": "reference-group"
       },
       {
         "id": "summaryGrid1",
         "type": "Summary",
-        "componentRef": "page3-grid",
-        "pageRef": "grid"
+        "componentRef": "page3-grid"
       },
       {
         "id": "summaryGrid2",
         "type": "Summary",
-        "componentRef": "all-grid-components",
-        "pageRef": "grid"
+        "componentRef": "all-grid-components"
       },
       {
         "id": "startAgain",
@@ -86,12 +76,9 @@
       {
         "id": "nav-buttons-from-summary",
         "type": "NavigationButtons",
-        "showPrev": true,
         "textResourceBindings": {
-          "prev": "Forrige",
           "next": "Neste"
-        },
-        "dataModelBindings": {}
+        }
       }
     ]
   }

@@ -435,7 +435,6 @@
         "id": "grid-example-image",
         "type": "Image",
         "textResourceBindings": {
-          "title": "Image example",
           "altTextImg": "Altinn logo"
         },
         "image": {
@@ -443,7 +442,7 @@
             "nb": "/ttd/frontend-test/images/altinn-logo.svg"
           },
           "width": "100%",
-          "align": "left"
+          "align": "flex-start"
         }
       },
       {
@@ -477,22 +476,16 @@
       {
         "id": "page3-navbtns",
         "type": "NavigationButtons",
-        "showPrev": true,
         "textResourceBindings": {
-          "prev": "Forrige",
           "next": "Neste"
-        },
-        "dataModelBindings": {}
+        }
       },
       {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {
           "title": "Send inn"
-        },
-        "dataModelBindings": {},
-        "textResourceId": "Standard.Button.Button",
-        "customType": "Standard"
+        }
       }
     ]
   }
