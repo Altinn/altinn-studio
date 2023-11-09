@@ -20,6 +20,7 @@ import { Organization } from 'app-shared/types/Organization';
 import { useStarredReposQuery } from '../../hooks/queries';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import * as testids from '../../../testing/testids';
+import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
 
 type DashboardProps = {
   user: User;
@@ -108,6 +109,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                 organizations={organizations}
                 starredRepos={starredRepos}
               />
+              <ResourcesRepoList organizations={organizations} />
             </>
           )}
         </div>

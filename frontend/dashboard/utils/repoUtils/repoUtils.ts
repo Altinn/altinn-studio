@@ -8,6 +8,7 @@ type GetReposLabel = {
   orgs: Organization[];
   t: typeof i18next.t;
   isDatamodelsRepo?: boolean;
+  isResourcesRepo?: boolean;
 };
 
 export type MergeReposProps = {
@@ -20,23 +21,33 @@ export const getReposLabel = ({
   orgs,
   t,
   isDatamodelsRepo = false,
+  isResourcesRepo = false,
 }: GetReposLabel) => {
+  const orgName =
+    orgs.length > 0 && orgs.find((org) => org.username === selectedContext)?.full_name;
+  const stringsConfig = {
+    all: t('dashboard.all_apps'),
+    mine: t('dashboard.my_apps'),
+    org: orgName ? t('dashboard.org_apps', { orgName }) : t('dashboard.apps'),
+    ...(isDatamodelsRepo && {
+      all: t('dashboard.all_datamodels'),
+      mine: t('dashboard.my_datamodels'),
+      org: orgName ? t('dashboard.org_datamodels', { orgName }) : t('dashboard.datamodels'),
+    }),
+    ...(isResourcesRepo && {
+      all: t('dashboard.all_resources'),
+      mine: t('dashboard.my_resources'),
+      org: orgName ? t('dashboard.org_resources', { orgName }) : t('dashboard.resources'),
+    }),
+  };
+
   if (selectedContext === SelectedContextType.All) {
-    return isDatamodelsRepo ? t('dashboard.all_datamodels') : t('dashboard.all_apps');
+    return stringsConfig.all;
   }
-
   if (selectedContext === SelectedContextType.Self) {
-    return isDatamodelsRepo ? t('dashboard.my_datamodels') : t('dashboard.my_apps');
+    return stringsConfig.mine;
   }
-
-  const orgName = orgs.length > 0 && orgs.find((org) => org.username === selectedContext).full_name;
-
-  return orgName
-    ? t(
-      isDatamodelsRepo ? 'dashboard.org_datamodels' : 'dashboard.org_apps',
-      { orgName }
-    )
-    : t(isDatamodelsRepo ? 'dashboard.datamodels' : 'dashboard.apps');
+  return stringsConfig.org;
 };
 
 export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
