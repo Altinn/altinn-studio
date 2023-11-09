@@ -134,6 +134,7 @@
   "contact.email.content": "Du kan sende skriftlig henvendelse til Altinn servicedesk på e-post ved sporsmål om å opprette organisasjoner eller miljøer, ved tekniske problemer, om dokumentasjonen eller annet.",
   "contact.email.heading": "Send e-post",
   "contact.email.link": "<0 href=\"mailto:servicedesk@altinn.no\">servicedesk@altinn.no</0>",
+  "contact.fetch_app_error_message": "Kunne ikke laste inn tittelen for denne appen. Prøv igjen senere.",
   "contact.heading": "Kontakt og hjelp",
   "contact.slack.content": "Dersom du har sporsmål om hvordan du bygger en applikasjon, kan du snakke direkte med utviklingsteamet i Altinn Studio på Slack. De kan hjelpe deg med:",
   "contact.slack.content_list": [
