@@ -74,12 +74,10 @@ export const Contact = () => {
                 {t('contact.slack.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.slack.content')}</Paragraph>
-              <Paragraph spacing>
-                <ul>
-                  {t('contact.slack.content_list', { returnObjects: true }).map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
+              <Paragraph spacing as='ul'>
+                <Trans i18nKey='contact.slack.content_list'>
+                  <li />
+                </Trans>
               </Paragraph>
               <Paragraph className={classes.link}>
                 <Trans i18nKey='contact.slack.link'>
