@@ -1,8 +1,10 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Contact } from './Contact';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
+import { queriesMock } from 'app-development/test/mocks';
+import { textMock } from '../../testing/mocks/i18nMock';
 
 // Test data
 const org = 'org';
@@ -10,16 +12,52 @@ const app = 'app';
 const title = 'test';
 
 describe('Contact', () => {
-  it('renders component', async () => {
+  it('should display spinner while loading', () => {
     render();
+    expect(screen.getByText(textMock('general.loading')));
+  });
 
-    expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: app })).not.toBeInTheDocument();
+  it('renders component', async () => {
+    render({
+      getAppConfig: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          serviceName: title,
+        }),
+      ),
+    });
+
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+
+    expect(screen.getByRole('heading', { name: textMock('contact.heading') })).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('heading', { name: textMock('contact.email.heading') }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('contact.email.content'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('contact.email.link'))).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('heading', { name: textMock('contact.slack.heading') }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('contact.slack.content'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('contact.slack.content_list'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('contact.slack.link'))).toBeInTheDocument();
+  });
+
+  it('should display error message if fetching goes wrong', async () => {
+    render({
+      getAppConfig: jest.fn().mockImplementation(() => Promise.reject()),
+    });
+    expect(await screen.findByText(textMock('contact.fetch_app_error_message')));
   });
 });
 
-const render = () => {
+const render = (queries = {}) => {
   return renderWithProviders(<Contact />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
+    queries: {
+      ...queriesMock,
+      ...queries,
+    },
   });
 };
