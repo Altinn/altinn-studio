@@ -2,9 +2,9 @@ import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Contact } from './Contact';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { renderWithProviders } from '../test/testUtils';
+import { renderWithProviders } from '../../../test/testUtils';
 import { queriesMock } from 'app-development/test/mocks';
-import { textMock } from '../../testing/mocks/i18nMock';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 
 // Test data
 const org = 'org';
