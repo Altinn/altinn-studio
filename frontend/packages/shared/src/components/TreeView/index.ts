@@ -1,5 +1,5 @@
 import { TreeViewRoot } from './TreeViewRoot';
-import type { TreeViewRootProps } from './TreeViewRoot';
+import type { TreeViewRootProps, TreeViewRootRef } from './TreeViewRoot';
 import { TreeViewItem } from './TreeViewItem';
 import type { TreeViewItemProps } from './TreeViewItem';
 
@@ -13,4 +13,4 @@ export const TreeView: TreeViewComponent = {
   Item: TreeViewItem,
 };
 
-export type { TreeViewRootProps, TreeViewItemProps };
+export type { TreeViewRootProps, TreeViewRootRef, TreeViewItemProps };

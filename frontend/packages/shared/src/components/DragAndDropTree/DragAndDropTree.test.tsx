@@ -9,6 +9,7 @@ const user = userEvent.setup();
 const onAdd = jest.fn();
 const onMove = jest.fn();
 const rootId = 'rootId';
+const emptyMessage = 'No items';
 const rootNodeId1 = '1';
 const rootNodeLabel1 = 'Test 1';
 const subNodeId1_1 = '1.1';
@@ -25,7 +26,7 @@ const subNodeLabel2_1 = 'Test 2.1';
 const render = () =>
   renderRtl(
     <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
-      <DragAndDropTree.Root>
+      <DragAndDropTree.Root emptyMessage={emptyMessage}>
         <DragAndDropTree.Item label={rootNodeLabel1} nodeId={rootNodeId1}>
           <DragAndDropTree.Item label={subNodeLabel1_1} nodeId={subNodeId1_1}>
             <DragAndDropTree.Item label={subSubNodeLabel1_1_1} nodeId={subSubNodeId1_1_1} />
@@ -70,5 +71,51 @@ describe('DragAndDropTree', () => {
     const firstItem = screen.getByRole('treeitem', { name: rootNodeLabel1 });
     await act(() => user.type(firstItem, '{arrowdown}'));
     expect(screen.getByRole('treeitem', { name: rootNodeLabel2 })).toHaveFocus();
+  });
+
+  it('Does not display empty message when there are items', () => {
+    render();
+    expect(screen.queryByText(emptyMessage)).not.toBeInTheDocument();
+  });
+
+  it('Displays empty message when there are no items', () => {
+    renderRtl(
+      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
+        <DragAndDropTree.Root emptyMessage={emptyMessage} />
+      </DragAndDropTree.Provider>,
+    );
+    expect(screen.getByText(emptyMessage)).toBeInTheDocument();
+  });
+
+  it('Removes empty message when items are added', () => {
+    const { rerender } = renderRtl(
+      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
+        <DragAndDropTree.Root emptyMessage={emptyMessage} />
+      </DragAndDropTree.Provider>,
+    );
+    rerender(
+      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
+        <DragAndDropTree.Root emptyMessage={emptyMessage}>
+          <DragAndDropTree.Item label={rootNodeLabel1} nodeId={rootNodeId1} />
+        </DragAndDropTree.Root>
+      </DragAndDropTree.Provider>,
+    );
+    expect(screen.queryByText(emptyMessage)).not.toBeInTheDocument();
+  });
+
+  it('Adds empty message when items are removed', () => {
+    const { rerender } = renderRtl(
+      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
+        <DragAndDropTree.Root emptyMessage={emptyMessage}>
+          <DragAndDropTree.Item label={rootNodeLabel1} nodeId={rootNodeId1} />
+        </DragAndDropTree.Root>
+      </DragAndDropTree.Provider>,
+    );
+    rerender(
+      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
+        <DragAndDropTree.Root emptyMessage={emptyMessage} />
+      </DragAndDropTree.Provider>,
+    );
+    expect(screen.getByText(emptyMessage)).toBeInTheDocument();
   });
 });
