@@ -297,15 +297,15 @@ describe('UI Components', () => {
     //RadioButtons: try to change the radiobutton to see if we get an alert
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
 
-    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(0)').should('be.checked');
+    cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
-    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(1)').click();
+    cy.findByRole('radio', { name: /Gårdsbruk/ }).click();
     cy.get(appFrontend.changeOfName.popOverCancelButton).click();
-    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(0)').should('be.checked');
+    cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
-    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(1)').click();
+    cy.findByRole('radio', { name: /Gårdsbruk/ }).click();
     cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
-    cy.get(appFrontend.changeOfName.reasons).find('input[type="radio"]:eq(1)').should('be.checked');
+    cy.findByRole('radio', { name: /Gårdsbruk/ }).should('be.checked');
   });
 
   it('should render components as summary', () => {
