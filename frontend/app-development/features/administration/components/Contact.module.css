@@ -73,11 +73,6 @@
 }
 
 @media (min-width: 768px) {
-  .pageContainer::before {
-    background-position: center 0;
-    background-size: 100% auto;
-  }
-
   .content {
     margin: var(--fds-spacing-18);
   }
