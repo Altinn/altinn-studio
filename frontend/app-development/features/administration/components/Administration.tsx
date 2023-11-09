@@ -12,6 +12,7 @@ import { Navigation } from './Navigation';
 import { AltinnSpinner } from 'app-shared/components';
 import { Center } from 'app-shared/components/Center';
 import { News } from './News';
+import { PageContainer } from './PageContainer';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -44,7 +45,7 @@ export const Administration = () => {
   }
 
   return (
-    <div className={classes.pageContainer}>
+    <PageContainer>
       <div className={classes.container}>
         <div className={classes.header}>
           <Heading size='xlarge'>{appConfigData?.serviceName || app}</Heading>
@@ -73,6 +74,6 @@ export const Administration = () => {
           </aside>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };

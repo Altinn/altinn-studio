@@ -10,6 +10,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { AltinnSpinner } from 'app-shared/components';
 import { Center } from 'app-shared/components/Center';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { PageContainer } from './PageContainer';
 
 export const Contact = () => {
   const { org, app } = useStudioUrlParams();
@@ -36,7 +37,7 @@ export const Contact = () => {
   const appName = appConfigData?.serviceName || app;
 
   return (
-    <div className={classes.pageContainer}>
+    <PageContainer>
       <div className={classes.container}>
         <div className={classes.breadcrumb}>
           <Link href={RoutePaths.Overview}>{appName}</Link>
@@ -88,6 +89,6 @@ export const Contact = () => {
           </div>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };
