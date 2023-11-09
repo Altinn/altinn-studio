@@ -5,6 +5,7 @@ import { FormItemList } from './FormItemList';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useFormContext } from '../../FormContext';
 import { getItem } from '../../../utils/formLayoutUtils';
+import { useTranslation } from 'react-i18next';
 
 export type FormTreeProps = {
   layout: IInternalLayout;
@@ -12,11 +13,12 @@ export type FormTreeProps = {
 
 export const FormTree = ({ layout }: FormTreeProps) => {
   const { handleEdit } = useFormContext();
+  const { t } = useTranslation();
 
   const handleSelect = async (id: string) => handleEdit(getItem(layout, id));
 
   return (
-    <DragAndDropTree.Root onSelect={handleSelect}>
+    <DragAndDropTree.Root onSelect={handleSelect} emptyMessage={t('ux_editor.container_empty')}>
       <FormItemList layout={layout} parentId={BASE_CONTAINER_ID} />
     </DragAndDropTree.Root>
   );

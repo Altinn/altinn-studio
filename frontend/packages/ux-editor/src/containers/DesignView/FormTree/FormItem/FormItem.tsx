@@ -5,8 +5,8 @@ import { FormItemList } from '../FormItemList';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
-import { EmptyGroupContent } from './EmptyGroupContent';
 import { useItemTitle } from './useItemTitle';
+import { useTranslation } from 'react-i18next';
 
 export type FormItemProps = {
   layout: IInternalLayout;
@@ -15,6 +15,7 @@ export type FormItemProps = {
 
 export const FormItem = ({ layout, id }: FormItemProps) => {
   const itemTitle = useItemTitle();
+  const { t } = useTranslation();
 
   const item = getItem(layout, id);
   const Icon = formItemConfigs[item.type]?.icon;
@@ -23,6 +24,8 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
   return (
     <DragAndDropTree.Item
       icon={Icon && <Icon />}
+      emptyMessage={t('ux_editor.container_empty')}
+      expandable={isContainer(layout, id)}
       label={itemTitle(item)}
       labelWrapper={labelWrapper}
       nodeId={id}
@@ -33,8 +36,7 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
 };
 
 const renderChildren = (layout: IInternalLayout, id: string) => {
-  if (!isContainer(layout, id)) return;
   const childIds = getChildIds(layout, id);
-  if (!childIds.length) return <EmptyGroupContent />;
+  if (!childIds.length) return;
   else return <FormItemList layout={layout} parentId={id} />;
 };

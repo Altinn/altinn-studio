@@ -85,4 +85,23 @@ describe('DragAndDropTreeItem', () => {
     const item = container.querySelector('.item');
     expect(item).toHaveClass('hasHoveredItem');
   });
+
+  it('Does not display the empty message by default', () => {
+    const emptyMessage = 'Empty';
+    render({ props: { emptyMessage } });
+    expect(screen.queryByText(emptyMessage)).not.toBeInTheDocument();
+  });
+
+  it('Displays the empty message when the component is expandable and there are no children', () => {
+    const emptyMessage = 'Empty';
+    render({ props: { expandable: true, emptyMessage } });
+    expect(screen.getByText(emptyMessage)).toBeInTheDocument();
+  });
+
+  it('Does not display the empty message when the component is expandable and there are subitems', () => {
+    const emptyMessage = 'Empty';
+    const children = <DragAndDropTreeItem label='Sub-item' nodeId='subitem' />;
+    render({ props: { expandable: true, emptyMessage, children } });
+    expect(screen.queryByText(emptyMessage)).not.toBeInTheDocument();
+  });
 });
