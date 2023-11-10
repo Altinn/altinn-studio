@@ -34,14 +34,14 @@ export const Contact = () => {
               <ChevronRightIcon />
             </li>
             <li className={classes.breadcrumbItem}>
-              <span aria-current='page'>{t('contact.heading')}</span>
+              <span aria-current='page'>{t('general.contact')}</span>
             </li>
           </ol>
         </nav>
         <div className={classes.content}>
-          <div className={classes.heading}>
-            <Heading size='small' spacing>
-              {t('contact.heading')}
+          <div>
+            <Heading size='medium' spacing>
+              {t('general.contact')}
             </Heading>
           </div>
           <section className={classes.section}>
