@@ -72,16 +72,17 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const [repoErrorMessage, setRepoErrorMessage] = useState(null);
   const [repoName, setRepoName] = useState('');
   const [pageState, setPageState] = useState(PageState.Idle);
-  const { mutateAsync: addRepo, isError: hasAddRepoError } = useAddRepoMutation({
-    errorMessage: (error: AxiosError): string =>
-      error.response.status === ServerCodes.Conflict ? t('dashboard.app_already_exists') : '',
+  const { mutate: addRepo, isError: hasAddRepoError } = useAddRepoMutation({
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    setPageState(PageState.Idle);
+    if (hasAddRepoError) {
+      setRepoErrorMessage(t('dashboard.app_already_exists'));
+      setPageState(PageState.Idle);
+    }
   }, [hasAddRepoError]);
 
   const handleServiceOwnerChanged = useCallback((newValue: string) => {
@@ -106,7 +107,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     if (isValid) {
       setPageState(PageState.Creating);
 
-      await addRepo(
+      addRepo(
         { org: selectedOrgOrUser, repository: repoName, datamodellingPreference: selectedFormat },
         {
           onSuccess: (repository) => {

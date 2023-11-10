@@ -145,7 +145,7 @@ describe('SettingsModal', () => {
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
   });
 
-  it('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
+  it.only('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(

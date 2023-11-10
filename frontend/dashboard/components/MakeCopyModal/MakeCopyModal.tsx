@@ -1,5 +1,5 @@
 import type { MouseEvent, ChangeEvent } from 'react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import type { PopoverOrigin } from '@mui/material';
@@ -25,15 +25,24 @@ const transformAnchorOrigin: PopoverOrigin = {
 };
 
 export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
-  const { mutate: copyAppMutate, isPending: isCopyAppPending } = useCopyAppMutation({
-    errorMessage: (error: AxiosError) =>
-      error?.response?.status === ServerCodes.Conflict ? t('dashboard.app_already_exists') : '',
+  const {
+    mutate: copyAppMutate,
+    isPending: isCopyAppPending,
+    isError: hasCopyAppError,
+  } = useCopyAppMutation({
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
   const [repoName, setRepoName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>(null);
 
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (hasCopyAppError) {
+      t('dashboard.app_already_exists');
+    }
+  }, [hasCopyAppError]);
+
   const handleClone = async () => {
     if (validAppName()) {
       const [org, app] = serviceFullName.split('/');
