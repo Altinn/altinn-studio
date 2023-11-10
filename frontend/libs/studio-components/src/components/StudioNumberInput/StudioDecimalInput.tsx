@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Textfield, TextfieldProps } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
 
 export interface StudioDecimalInputProps extends Omit<TextfieldProps, 'onChange'> {
   description: string;
@@ -20,18 +21,20 @@ export const StudioDecimalInput = ({
   const isEmpty = inputValue === '';
 
   useEffect(() => {
-    if (!isEmpty && isStringValidDecimalNumber(inputValue)) {
-      setInputValue(convertNumberToString(value));
+    const newInputValue = convertNumberToString(value);
+    if (!isEmpty && isStringValidDecimalNumber(newInputValue)) {
+      setInputValue(newInputValue);
     }
-  }, [value]);
+  }, [isEmpty, value]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const input = e.target.value;
       setInputValue(input);
+      if (isEmpty) setHasBeenBlurred(false);
       onChange(convertStringToNumber(input));
     },
-    [setInputValue, onChange],
+    [setInputValue, onChange, isEmpty, setHasBeenBlurred],
   );
 
   const errorMessage = useMemo(() => {
@@ -46,20 +49,8 @@ export const StudioDecimalInput = ({
       onChange={handleInputChange}
       error={errorMessage}
       onBlur={() => setHasBeenBlurred(true)}
-      onFocus={() => setHasBeenBlurred(false)}
       inputMode='decimal'
       {...rest}
     />
   );
 };
-
-const isStringValidDecimalNumber = (value: string): boolean => {
-  const numberRegex = /^[0-9]+([.,][0-9]*)?$/;
-  return numberRegex.test(value);
-};
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const convertStringToNumber = (value: string): number => Number(value.replace(',', '.'));
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const convertNumberToString = (value: number): string => value.toString().replace('.', ',');

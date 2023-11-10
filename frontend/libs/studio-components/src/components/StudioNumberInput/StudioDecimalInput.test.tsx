@@ -2,8 +2,9 @@ import React from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import { StudioDecimalInput, StudioDecimalInputProps } from './StudioDecimalInput';
 import userEvent from '@testing-library/user-event';
-import { convertStringToNumber } from './StudioDecimalInput';
-import { convertNumberToString } from './StudioDecimalInput';
+import { convertStringToNumber } from './utils';
+import { convertNumberToString } from './utils';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const description = 'description';
@@ -45,7 +46,7 @@ describe('StudioDecimalInput', () => {
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, 'abc'));
     await act(() => user.click(document.body));
-    expect(screen.getByText(/validation_errors.numbers_only/i)).toBeInTheDocument();
+    expect(screen.getByText(textMock('validation_errors.numbers_only'))).toBeInTheDocument();
   });
 
   it("should allow decimal numbers with ','", async () => {
@@ -96,7 +97,7 @@ describe('StudioDecimalInput', () => {
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123!'));
     await act(() => user.click(document.body));
-    expect(screen.getByText(/validation_errors.numbers_only/i)).toBeInTheDocument();
+    expect(screen.getByText(textMock('validation_errors.numbers_only'))).toBeInTheDocument();
   });
 
   it('should show error message when typing special characters like for example ! @ # ', async () => {
@@ -104,7 +105,7 @@ describe('StudioDecimalInput', () => {
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '!@#'));
     await act(() => user.click(document.body));
-    expect(screen.getByText(/validation_errors.numbers_only/i)).toBeInTheDocument();
+    expect(screen.getByText(textMock('validation_errors.numbers_only'))).toBeInTheDocument();
   });
 
   it('show error message when user types number followed by character and clicks outside the field', async () => {
@@ -112,7 +113,7 @@ describe('StudioDecimalInput', () => {
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123abc'));
     await act(() => user.click(document.body));
-    expect(screen.getByText(/validation_errors.numbers_only/i)).toBeInTheDocument();
+    expect(screen.getByText(textMock('validation_errors.numbers_only'))).toBeInTheDocument();
   });
 });
 
