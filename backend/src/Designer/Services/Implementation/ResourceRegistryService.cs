@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -181,6 +183,75 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return null;
+        }
+
+        public async Task<List<ServiceResource>> GetResources(string env)
+        {
+            string resourceUrl;
+
+            //Checks if not tested locally by passing dev as env parameter
+            if (!env.ToLower().Equals("dev"))
+            {
+                resourceUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/search/";
+            }
+            else
+            {
+                resourceUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/search/";
+            }
+
+            HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(resourceUrl);
+            if (getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
+            {
+                string responseContent = await getResourceResponse.Content.ReadAsStringAsync();
+                List<ServiceResource> res = JsonSerializer.Deserialize<List<ServiceResource>>(responseContent, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                return res;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Get resource list
+        /// </summary>
+        /// <returns>List of all resources</returns>
+        public async Task<List<ServiceResource>> GetResourceList(string env)
+        {
+
+            string endpointUrl;
+
+            //Checks if not tested locally by passing dev as env parameter
+            if (!env.ToLower().Equals("dev"))
+            {
+                endpointUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/";
+            }
+            else
+            {
+                endpointUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/";
+            }
+
+            List<ServiceResource> resources = null;
+
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+            };
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(endpointUrl);
+                string content = await response.Content.ReadAsStringAsync();
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    return JsonSerializer.Deserialize<List<ServiceResource>>(content, options);
+                }
+
+                HttpStatusException error = JsonSerializer.Deserialize<HttpStatusException>(content, options);
+                throw error;
+            }
+            catch (Exception ex) when (ex is not HttpStatusException)
+            {
+                throw;
+            }
         }
 
         private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
