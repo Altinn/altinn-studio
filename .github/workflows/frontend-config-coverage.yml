@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
 
       - name: 'Installing Dependencies'
-        run: cd frontend/stats && yarn install
+        run: cd frontend/stats && yarn --immutable
 
       - name: 'Running stats generation'
-        run: yarn run generate-config-coverage-stats
+        run: cd frontend/stats && yarn run generate-config-coverage-stats
