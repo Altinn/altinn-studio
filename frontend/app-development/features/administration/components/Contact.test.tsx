@@ -21,7 +21,7 @@ describe('Contact', () => {
       ),
     });
 
-    expect(screen.getByRole('heading', { name: textMock('contact.heading') })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: textMock('general.contact') })).toBeInTheDocument();
 
     expect(
       screen.getByRole('heading', { name: textMock('contact.email.heading') }),
