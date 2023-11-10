@@ -1,9 +1,10 @@
 import {
   DataSource,
+  Expression,
   ExpressionFunction,
   ExpressionPropertyBase,
   Operator,
-  SubExpression
+  SubExpression,
 } from '../types/Expressions';
 import {
   addProperty,
@@ -18,7 +19,9 @@ import {
   addDataSource,
   addDataSourceValue,
   tryParseExpression,
-  stringifyValueForDisplay, deleteExpressionFromComponent,
+  stringifyValueForDisplay,
+  deleteExpressionFromComponent,
+  convertInternalSubExpressionToExternal,
 } from './expressionsUtils';
 import { component1Mock } from '../testing/layoutMock';
 import {
@@ -26,82 +29,114 @@ import {
   baseInternalSubExpression,
   booleanValue,
   componentId,
-  datamodelField, equivalentExternalExpressionWithMultipleSubExpressions,
-  internalExpressionWithMultipleSubExpressions, internalParsableComplexExpression,
+  datamodelField,
+  equivalentExternalExpressionWithMultipleSubExpressions,
+  internalExpressionWithMultipleSubExpressions,
+  internalParsableComplexExpression,
   internalUnParsableComplexExpression,
   nullValue,
-  numberValue, parsableComplexExpression,
+  numberValue,
+  parsableComplexExpression,
   parsableExternalExpression,
   parsableNotStudioFriendlyComplexExpression,
   parsableNotStudioFriendlyLongComplexExpression,
   simpleInternalExpression,
-  stringValue, subExpression0, subExpression1, subExpression2,
-  unParsableComplexExpression
-
+  stringValue,
+  subExpression0,
+  subExpression1,
+  subExpression2,
+  unParsableComplexExpression,
 } from '../testing/expressionMocks';
 import { deepCopy } from 'app-shared/pure';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 describe('expressionsUtils', () => {
-
   describe('convertSubExpression', () => {
     it('converts first part of external subexpression in array format to internal subexpression where dataSource and dataSourceValue are set', () => {
-      const extSubExpression: any = ['component', 'test-comp'];
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, false);
+      const externalExpEl: [string, string] = ['component', 'test-comp'];
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        false,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(DataSource.Component);
-      expect(convertedSubExpression.value).toBe(extSubExpression[1]);
+      expect(convertedSubExpression.value).toBe(externalExpEl[1]);
       expect(convertedSubExpression.comparableDataSource).toBe(undefined);
       expect(convertedSubExpression.comparableValue).toBe(undefined);
     });
     it('converts comparable part of external subexpression in array format to internal subexpression where compDataSource and compDataSourceValue are set', () => {
-      const extSubExpression: any = ['component', 'test-comp'];
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, true);
+      const externalExpEl: [string, string] = ['component', 'test-comp'];
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        true,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(undefined);
       expect(convertedSubExpression.value).toBe(undefined);
       expect(convertedSubExpression.comparableDataSource).toBe(DataSource.Component);
-      expect(convertedSubExpression.comparableValue).toBe(extSubExpression[1]);
+      expect(convertedSubExpression.comparableValue).toBe(externalExpEl[1]);
     });
     it('converts first part of external subexpression in string format to internal subexpression where dataSource and dataSourceValue are set', () => {
-      const extSubExpression: any = 'test-string';
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, false);
+      const externalExpEl = 'test-string';
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        false,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(DataSource.String);
-      expect(convertedSubExpression.value).toBe(extSubExpression);
+      expect(convertedSubExpression.value).toBe(externalExpEl);
       expect(convertedSubExpression.comparableDataSource).toBe(undefined);
       expect(convertedSubExpression.comparableValue).toBe(undefined);
     });
     it('converts comparable part of external subexpression in string format to internal subexpression where compDataSource and compDataSourceValue are set', () => {
-      const extSubExpression: any = 'test-string';
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, true);
+      const externalExpEl = 'test-string';
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        true,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(undefined);
       expect(convertedSubExpression.value).toBe(undefined);
       expect(convertedSubExpression.comparableDataSource).toBe(DataSource.String);
-      expect(convertedSubExpression.comparableValue).toBe(extSubExpression);
+      expect(convertedSubExpression.comparableValue).toBe(externalExpEl);
     });
     it('converts first part of external subexpression in number format to internal subexpression where dataSource and dataSourceValue are set', () => {
-      const extSubExpression: any = 1024;
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, false);
+      const externalExpEl = 1024;
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        false,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(DataSource.Number);
-      expect(convertedSubExpression.value).toBe(extSubExpression);
+      expect(convertedSubExpression.value).toBe(externalExpEl);
       expect(convertedSubExpression.comparableDataSource).toBe(undefined);
       expect(convertedSubExpression.comparableValue).toBe(undefined);
     });
     it('converts comparable part of external subexpression in number format to internal subexpression where compDataSource and compDataSourceValue are set', () => {
-      const extSubExpression: any = 1024;
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, true);
+      const externalExpEl = 1024;
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        true,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(undefined);
       expect(convertedSubExpression.value).toBe(undefined);
       expect(convertedSubExpression.comparableDataSource).toBe(DataSource.Number);
-      expect(convertedSubExpression.comparableValue).toBe(extSubExpression);
+      expect(convertedSubExpression.comparableValue).toBe(externalExpEl);
     });
     it('converts first part of external subexpression as null to internal subexpression where dataSource is set', () => {
-      const extSubExpression: any = null;
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, false);
+      const externalExpEl = null;
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        false,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(DataSource.Null);
       expect(convertedSubExpression.value).toBe(null);
@@ -109,8 +144,12 @@ describe('expressionsUtils', () => {
       expect(convertedSubExpression.comparableValue).toBe(undefined);
     });
     it('converts comparable part of external subexpression as null to internal subexpression where compDataSource is set', () => {
-      const extSubExpression: any = null;
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, true);
+      const externalExpEl = null;
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        true,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(undefined);
       expect(convertedSubExpression.value).toBe(undefined);
@@ -118,22 +157,30 @@ describe('expressionsUtils', () => {
       expect(convertedSubExpression.comparableValue).toBe(null);
     });
     it('converts first part of external subexpression as boolean to internal subexpression where dataSource and dataSourceValue are set', () => {
-      const extSubExpression: any = true;
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, false);
+      const externalExpEl = true;
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        false,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(DataSource.Boolean);
-      expect(convertedSubExpression.value).toBe(extSubExpression);
+      expect(convertedSubExpression.value).toBe(externalExpEl);
       expect(convertedSubExpression.comparableDataSource).toBe(undefined);
       expect(convertedSubExpression.comparableValue).toBe(undefined);
     });
     it('converts comparable part of external subexpression as boolean to internal subexpression where compDataSource and compDataSourceValue are set', () => {
-      const extSubExpression: any = false;
-      const convertedSubExpression: SubExpression = convertSubExpression(baseInternalSubExpression, extSubExpression, true);
+      const externalExpEl = false;
+      const convertedSubExpression: SubExpression = convertSubExpression(
+        baseInternalSubExpression,
+        externalExpEl,
+        true,
+      );
 
       expect(convertedSubExpression.dataSource).toBe(undefined);
       expect(convertedSubExpression.value).toBe(undefined);
       expect(convertedSubExpression.comparableDataSource).toBe(DataSource.Boolean);
-      expect(convertedSubExpression.comparableValue).toBe(extSubExpression);
+      expect(convertedSubExpression.comparableValue).toBe(externalExpEl);
     });
   });
   describe('convertInternalExpressionToExternal', () => {
@@ -150,7 +197,9 @@ describe('expressionsUtils', () => {
       expect(externalExpression[2]).toBe(stringValue);
     });
     it('converts internal expression with multiple subExpressions and boolean-, null- and number-usage.', () => {
-      const externalExpression = convertInternalExpressionToExternal(internalExpressionWithMultipleSubExpressions);
+      const externalExpression = convertInternalExpressionToExternal(
+        internalExpressionWithMultipleSubExpressions,
+      );
 
       expect(externalExpression).toBeInstanceOf(Array);
       expect(externalExpression.length).toBe(3);
@@ -177,23 +226,41 @@ describe('expressionsUtils', () => {
       expect(externalExpression[2]).toBe(nullValue);
     });
     it('converts un-parsable internal complex expression to plain string', () => {
-      const externalExpression = convertInternalExpressionToExternal(internalUnParsableComplexExpression);
+      const externalExpression = convertInternalExpressionToExternal(
+        internalUnParsableComplexExpression,
+      );
 
       expect(typeof externalExpression).toBe('string');
       expect(externalExpression).toBe(unParsableComplexExpression);
     });
   });
+  describe('convertInternalSubExpressionToExternal', () => {
+    it('converts most basic valid internal sub expression', () => {
+      const externalExpression: any =
+        convertInternalSubExpressionToExternal(baseInternalSubExpression);
+
+      expect(externalExpression).toBeInstanceOf(Array);
+      expect(externalExpression[0]).toBe(ExpressionFunction.Equals);
+      expect(externalExpression[1]).toBe(nullValue);
+      expect(externalExpression[2]).toBe(nullValue);
+    });
+    it('converts valid internal sub expression', () => {
+      const externalExpression: any = convertInternalSubExpressionToExternal(subExpression0);
+
+      expect(externalExpression).toBeInstanceOf(Array);
+      expect(externalExpression[0]).toBe(ExpressionFunction.Equals);
+      expect(externalExpression[1][0]).toBe(DataSource.Component);
+      expect(externalExpression[1][1]).toBe(componentId);
+      expect(externalExpression[2]).toBe(stringValue);
+    });
+  });
   describe('convertExternalExpressionToInternal', () => {
     it('converts expression with one subExpression where first part is array and second null to valid internal expression', () => {
-      const externalExpression = [
-        'equals',
-        [
-          'component',
-          componentId
-        ],
-        nullValue
-      ];
-      const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, externalExpression);
+      const externalExpression: any = ['equals', ['component', componentId], nullValue];
+      const internalExpression: Expression = convertExternalExpressionToInternal(
+        ExpressionPropertyBase.Hidden,
+        externalExpression,
+      );
 
       expect(internalExpression.complexExpression).toBe(undefined);
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
@@ -205,12 +272,11 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[0].comparableValue).toBe(nullValue);
     });
     it('converts expression with one subExpression where first part is string and second number to valid internal expression', () => {
-      const externalExpression = [
-        'equals',
-        stringValue,
-        numberValue
-      ];
-      const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, externalExpression);
+      const externalExpression: any = ['equals', stringValue, numberValue];
+      const internalExpression: Expression = convertExternalExpressionToInternal(
+        ExpressionPropertyBase.Hidden,
+        externalExpression,
+      );
 
       expect(internalExpression.complexExpression).toBe(undefined);
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
@@ -222,12 +288,11 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[0].comparableValue).toBe(numberValue);
     });
     it('converts expression with one subExpression where both parts are null number to valid internal expression', () => {
-      const externalExpression = [
-        'equals',
-        nullValue,
-        nullValue
-      ];
-      const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, externalExpression);
+      const externalExpression: any = ['equals', nullValue, nullValue];
+      const internalExpression: Expression = convertExternalExpressionToInternal(
+        ExpressionPropertyBase.Hidden,
+        externalExpression,
+      );
 
       expect(internalExpression.complexExpression).toBe(undefined);
       expect(internalExpression.operator).toBe(undefined);
@@ -240,7 +305,10 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[0].comparableValue).toBe(nullValue);
     });
     it('converts expression with multiple subExpressions to valid internal expression', () => {
-      const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, parsableExternalExpression);
+      const internalExpression: Expression = convertExternalExpressionToInternal(
+        ExpressionPropertyBase.Hidden,
+        parsableExternalExpression,
+      );
 
       expect(internalExpression.complexExpression).toBe(undefined);
       expect(internalExpression.operator).toBe(Operator.And);
@@ -263,7 +331,10 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[2].comparableValue).toBe(datamodelField);
     });
     it('converts non-studio-friendly expression to internal complex expression', () => {
-      const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, parsableNotStudioFriendlyComplexExpression);
+      const internalExpression: Expression = convertExternalExpressionToInternal(
+        ExpressionPropertyBase.Hidden,
+        parsableNotStudioFriendlyComplexExpression,
+      );
 
       expect(internalExpression.complexExpression).toBe(parsableNotStudioFriendlyComplexExpression);
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
@@ -271,9 +342,14 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions).toBe(undefined);
     });
     it('converts expression with multiple nested subExpressions to internal complex expression', () => {
-      const internalExpression = convertExternalExpressionToInternal(ExpressionPropertyBase.Hidden, parsableNotStudioFriendlyLongComplexExpression);
+      const internalExpression: Expression = convertExternalExpressionToInternal(
+        ExpressionPropertyBase.Hidden,
+        parsableNotStudioFriendlyLongComplexExpression,
+      );
 
-      expect(internalExpression.complexExpression).toBe(parsableNotStudioFriendlyLongComplexExpression);
+      expect(internalExpression.complexExpression).toBe(
+        parsableNotStudioFriendlyLongComplexExpression,
+      );
       expect(internalExpression.property).toBe(ExpressionPropertyBase.Hidden);
       expect(internalExpression.operator).toBe(undefined);
       expect(internalExpression.subExpressions).toBe(undefined);
@@ -281,18 +357,29 @@ describe('expressionsUtils', () => {
   });
   describe('convertAndAddExpressionToComponent', () => {
     it('converted expression is set on form component hidden property', async () => {
-      const updatedComponent = convertAndAddExpressionToComponent(component1Mock, internalExpressionWithMultipleSubExpressions);
+      const updatedComponent = convertAndAddExpressionToComponent(
+        component1Mock,
+        internalExpressionWithMultipleSubExpressions,
+      );
 
-      expect(updatedComponent.hidden).toStrictEqual(equivalentExternalExpressionWithMultipleSubExpressions);
+      expect(updatedComponent.hidden).toStrictEqual(
+        equivalentExternalExpressionWithMultipleSubExpressions,
+      );
     });
     it('converted and parsed complex expression is set as array on form component hidden property', () => {
-      const updatedComponent = convertAndAddExpressionToComponent(component1Mock, internalParsableComplexExpression);
+      const updatedComponent = convertAndAddExpressionToComponent(
+        component1Mock,
+        internalParsableComplexExpression,
+      );
 
       expect(updatedComponent.hidden).toStrictEqual(parsableExternalExpression);
       expect(updatedComponent.hidden).toBeInstanceOf(Array);
     });
     it('converted complex expression is set as string on form component hidden property', () => {
-      const updatedComponent = convertAndAddExpressionToComponent(component1Mock, internalUnParsableComplexExpression);
+      const updatedComponent = convertAndAddExpressionToComponent(
+        component1Mock,
+        internalUnParsableComplexExpression,
+      );
 
       expect(updatedComponent.hidden).toStrictEqual(unParsableComplexExpression);
       expect(typeof updatedComponent.hidden).toBe('string');
@@ -300,7 +387,10 @@ describe('expressionsUtils', () => {
   });
   describe('deleteExpressionFromComponent', () => {
     it('should delete the property on the form component connected to the expression', () => {
-      const newExpressions = deleteExpressionFromComponent(component1Mock, internalExpressionWithMultipleSubExpressions);
+      const newExpressions = deleteExpressionFromComponent(
+        component1Mock,
+        internalExpressionWithMultipleSubExpressions,
+      );
 
       expect(newExpressions.hidden).toBeUndefined();
     });
@@ -324,7 +414,10 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete];
-      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(expressionToDelete, oldExpressions);
+      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(
+        expressionToDelete,
+        oldExpressions,
+      );
 
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0].id).not.toBe(internalExpressionWithMultipleSubExpressions.id);
@@ -334,7 +427,10 @@ describe('expressionsUtils', () => {
       component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
       const expressionToDelete = internalExpressionWithMultipleSubExpressions;
       const oldExpressions = [expressionToDelete, internalParsableComplexExpression];
-      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(expressionToDelete, oldExpressions);
+      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(
+        expressionToDelete,
+        oldExpressions,
+      );
 
       expect(updatedExpressions).toHaveLength(1);
       expect(updatedExpressions[0]).toStrictEqual(internalParsableComplexExpression);
@@ -357,17 +453,25 @@ describe('expressionsUtils', () => {
   describe('removeSubExpressionAndAdaptParentProps', () => {
     it('should remove a subExpression and do nothing more with parent properties when there are more than 2 subExpressions to start with', () => {
       const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
-      internalExpressionCopy.subExpressions.push(subExpression0)
-      const newExpression = removeSubExpressionAndAdaptParentProps(internalExpressionCopy, subExpression0);
+      internalExpressionCopy.subExpressions.push(subExpression0);
+      const newExpression = removeSubExpressionAndAdaptParentProps(
+        internalExpressionCopy,
+        subExpression0,
+      );
 
       expect(newExpression.operator).toBe(Operator.Or);
       expect(newExpression.property).toBe(ExpressionPropertyBase.Hidden);
       expect(newExpression.subExpressions).toHaveLength(2);
-      expect(newExpression.subExpressions).toStrictEqual(internalExpressionWithMultipleSubExpressions.subExpressions);
+      expect(newExpression.subExpressions).toStrictEqual(
+        internalExpressionWithMultipleSubExpressions.subExpressions,
+      );
     });
     it('should remove a subExpression and clear operator when there is only one subExpression left', () => {
       const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
-      const newExpression = removeSubExpressionAndAdaptParentProps(internalExpressionCopy, subExpression1);
+      const newExpression = removeSubExpressionAndAdaptParentProps(
+        internalExpressionCopy,
+        subExpression1,
+      );
 
       expect(newExpression.operator).toBeUndefined();
       expect(newExpression.property).toBe(ExpressionPropertyBase.Hidden);
@@ -377,7 +481,10 @@ describe('expressionsUtils', () => {
     it('should have no subExpressions and clear operator and property when there is no subExpressions left', () => {
       const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
       internalExpressionCopy.subExpressions.pop();
-      const newExpression = removeSubExpressionAndAdaptParentProps(internalExpressionCopy, subExpression1);
+      const newExpression = removeSubExpressionAndAdaptParentProps(
+        internalExpressionCopy,
+        subExpression1,
+      );
 
       expect(newExpression.operator).toBeUndefined();
       expect(newExpression.property).toBeUndefined();
@@ -386,11 +493,16 @@ describe('expressionsUtils', () => {
   });
   describe('addProperty', () => {
     it('should add an action to the expression when action is not "default"', () => {
-      const newExpression = addProperty(internalExpressionWithMultipleSubExpressions, ExpressionPropertyBase.Required);
+      const newExpression = addProperty(
+        internalExpressionWithMultipleSubExpressions,
+        ExpressionPropertyBase.Required,
+      );
 
       expect(newExpression).toBeDefined();
       expect(newExpression.operator).toBe(Operator.Or);
-      expect(newExpression.property).not.toBe(internalExpressionWithMultipleSubExpressions.property);
+      expect(newExpression.property).not.toBe(
+        internalExpressionWithMultipleSubExpressions.property,
+      );
       expect(newExpression.property).toBe(ExpressionPropertyBase.Required);
       expect(newExpression.subExpressions).toHaveLength(2);
       expect(newExpression.subExpressions[0].id).toBe(subExpression1.id);
@@ -398,7 +510,10 @@ describe('expressionsUtils', () => {
     });
     it('should return nothing when action is "default"', () => {
       const propertyToAdd = 'default';
-      const newExpression = addProperty(internalExpressionWithMultipleSubExpressions, propertyToAdd);
+      const newExpression = addProperty(
+        internalExpressionWithMultipleSubExpressions,
+        propertyToAdd,
+      );
 
       expect(newExpression).toStrictEqual(internalExpressionWithMultipleSubExpressions);
     });
@@ -517,13 +632,19 @@ describe('expressionsUtils', () => {
   });
   describe('tryParseExpression', () => {
     it('should parse valid JSON complexExpression', () => {
-      const newExpression = tryParseExpression(baseInternalExpression, parsableComplexExpression);
+      const newExpression: Expression = tryParseExpression(
+        baseInternalExpression,
+        parsableComplexExpression,
+      );
       const parsedComplexExpression = JSON.parse(parsableComplexExpression);
 
       expect(newExpression.complexExpression).toStrictEqual(parsedComplexExpression);
     });
     it('should handle invalid JSON complexExpression and keep it as a string', () => {
-      const newExpression = tryParseExpression(baseInternalExpression, unParsableComplexExpression);
+      const newExpression: Expression = tryParseExpression(
+        baseInternalExpression,
+        unParsableComplexExpression,
+      );
 
       expect(newExpression.complexExpression).toStrictEqual(unParsableComplexExpression);
     });
@@ -551,9 +672,7 @@ describe('expressionsUtils', () => {
     });
     it('should return string representation for numeric value', () => {
       const result = stringifyValueForDisplay(textMock, numberValue);
-      expect
-      (result).toBe('1024');
+      expect(result).toBe('1024');
     });
   });
 });
-
