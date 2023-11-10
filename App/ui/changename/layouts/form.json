@@ -445,6 +445,9 @@
       {
         "id": "adresse",
         "type": "AddressComponent",
+        "textResourceBindings": {
+          "title": "Adresse"
+        },
         "dataModelBindings": {
           "address": "Adresse.Gateadresse_æøå",
           "zipCode": "Adresse.Postnr",
