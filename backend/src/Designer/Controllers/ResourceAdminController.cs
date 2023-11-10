@@ -271,11 +271,11 @@ namespace Altinn.Studio.Designer.Controllers
                 List<AvailableService> unfiltered = new List<AvailableService>();
                 List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(environment.ToLower());
 
-                foreach (ServiceResource resource in allResources )
+                foreach (ServiceResource resource in allResources)
                 {
                     if (resource?.HasCompetentAuthority.Orgcode != null)
                     {
-                        if(resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode)))
+                        if (resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode)))
                         {
                             AvailableService service = new AvailableService();
                             if (resource.Title.ContainsKey("nb"))
@@ -284,7 +284,7 @@ namespace Altinn.Studio.Designer.Controllers
                             }
 
                             service.ExternalServiceCode = resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceCode)).Reference;
-                            service.ExternalServiceEditionCode =  Convert.ToInt32(resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceEditionCode)).Reference);
+                            service.ExternalServiceEditionCode = Convert.ToInt32(resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceEditionCode)).Reference);
                             service.ServiceOwnerCode = resource.HasCompetentAuthority.Orgcode;
                             unfiltered.Add(service);
                         }
@@ -302,7 +302,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 else
                 {
-                    linkServices = unfiltered.Where(a =>  a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
+                    linkServices = unfiltered.Where(a => a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
                 }
 
                 _memoryCache.Set(cacheKey, linkServices, cacheEntryOptions);
