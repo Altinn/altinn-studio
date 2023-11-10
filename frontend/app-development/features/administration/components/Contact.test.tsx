@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { Contact } from './Contact';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
@@ -12,11 +12,6 @@ const app = 'app';
 const title = 'test';
 
 describe('Contact', () => {
-  it('should display spinner while loading', () => {
-    render();
-    expect(screen.getByText(textMock('general.loading')));
-  });
-
   it('renders component', async () => {
     render({
       getAppConfig: jest.fn().mockImplementation(() =>
@@ -25,8 +20,6 @@ describe('Contact', () => {
         }),
       ),
     });
-
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
 
     expect(screen.getByRole('heading', { name: textMock('contact.heading') })).toBeInTheDocument();
 

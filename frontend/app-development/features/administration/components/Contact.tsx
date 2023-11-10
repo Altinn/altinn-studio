@@ -7,31 +7,19 @@ import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import Slack from 'app-shared/icons/Slack.svg';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { AltinnSpinner } from 'app-shared/components';
-import { Center } from 'app-shared/components/Center';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { PageContainer } from './PageContainer';
 
 export const Contact = () => {
   const { org, app } = useStudioUrlParams();
 
-  const {
-    data: appConfigData,
-    isError: isAppConfigError,
-    isLoading: isLoadingAppConfig,
-  } = useAppConfigQuery(org, app, { hideDefaultError: true });
+  const { data: appConfigData, isError: isAppConfigError } = useAppConfigQuery(org, app, {
+    hideDefaultError: true,
+  });
   const { t } = useTranslation();
 
   if (isAppConfigError) {
     toast.error(t('contact.fetch_app_error_message'));
-  }
-
-  if (isLoadingAppConfig) {
-    return (
-      <Center>
-        <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />
-      </Center>
-    );
   }
 
   const appName = appConfigData?.serviceName || app;
@@ -39,23 +27,29 @@ export const Contact = () => {
   return (
     <PageContainer>
       <div className={classes.container}>
-        <div className={classes.breadcrumb}>
-          <Link href={RoutePaths.Overview}>{appName}</Link>
-          <ChevronRightIcon />
-          {t('contact.heading')}
-        </div>
+        <nav aria-label='Breadcrumb'>
+          <ol className={classes.breadcrumb}>
+            <li className={classes.breadcrumbItem}>
+              <Link href={RoutePaths.Overview}>{appName}</Link>
+              <ChevronRightIcon />
+            </li>
+            <li className={classes.breadcrumbItem}>
+              <span aria-current='page'>{t('contact.heading')}</span>
+            </li>
+          </ol>
+        </nav>
         <div className={classes.content}>
           <div className={classes.heading}>
             <Heading size='small' spacing>
               {t('contact.heading')}
             </Heading>
           </div>
-          <div className={classes.block}>
+          <section className={classes.section}>
             <div className={classes.iconContainer}>
               <EnvelopeClosedIcon className={classes.icon} />
             </div>
             <div className={classes.textContainer}>
-              <Heading level={2} size='xsmall' spacing className={classes.subHeading}>
+              <Heading level={2} size='xsmall' spacing>
                 {t('contact.email.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.email.content')}</Paragraph>
@@ -65,13 +59,13 @@ export const Contact = () => {
                 </Trans>
               </Paragraph>
             </div>
-          </div>
-          <div className={classes.block}>
+          </section>
+          <section className={classes.section}>
             <div className={classes.iconContainer}>
               <Slack />
             </div>
             <div className={classes.textContainer}>
-              <Heading level={2} size='xsmall' spacing className={classes.subHeading}>
+              <Heading level={2} size='xsmall' spacing>
                 {t('contact.slack.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.slack.content')}</Paragraph>
@@ -86,7 +80,7 @@ export const Contact = () => {
                 </Trans>
               </Paragraph>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </PageContainer>
