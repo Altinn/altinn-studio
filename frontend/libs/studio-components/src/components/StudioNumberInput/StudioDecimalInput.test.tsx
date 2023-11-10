@@ -1,21 +1,37 @@
-import React from 'react';
+import React, { RefObject } from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import { StudioDecimalInput, StudioDecimalInputProps } from './StudioDecimalInput';
 import userEvent from '@testing-library/user-event';
-import { convertStringToNumber } from './utils';
-import { convertNumberToString } from './utils';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const description = 'description';
 const onChange = jest.fn();
-const value = '123.456';
+
+const defaultProps: StudioDecimalInputProps = {
+  description,
+  onChange,
+  value: undefined,
+};
 
 describe('StudioDecimalInput', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should render description and input field', () => {
     render();
-    expect(screen.getByText('description')).toBeInTheDocument();
+    expect(screen.getByText(description)).toBeInTheDocument();
     expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  it('Renders with given value', () => {
+    const value = 123;
+    render({ value });
+    expect(screen.getByRole('textbox')).toHaveValue('123');
+  });
+
+  it('Renders with empty input value when value is undefined', () => {
+    render();
+    expect(screen.getByRole('textbox')).toHaveValue('');
   });
 
   it('should not show error message when input is an integer number and user clicks outside the field', async () => {
@@ -68,21 +84,11 @@ describe('StudioDecimalInput', () => {
     expect(inputElement).toHaveValue('789.123');
   });
 
-  it("should convert string to number with '.' ", () => {
-    const result = convertStringToNumber('123,456');
-    expect(result).toEqual(123.456);
-  });
-
-  it("should convert number to string with ','", () => {
-    const result = convertNumberToString(123.456);
-    expect(result).toEqual('123,456');
-  });
-
   it('should call onChange with correct value when input is valid', async () => {
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123.456'));
-    expect(onChange).toHaveBeenCalledWith(123.456);
+    expect(defaultProps.onChange).toHaveBeenCalledWith(123.456);
   });
 
   it('should update input value on change', async () => {
@@ -115,14 +121,49 @@ describe('StudioDecimalInput', () => {
     await act(() => user.click(document.body));
     expect(screen.getByText(textMock('validation_errors.numbers_only'))).toBeInTheDocument();
   });
+
+  it('Calls onChange function with correct number value when the user changes it', async () => {
+    render();
+    const inputElement = screen.getByRole('textbox');
+    await act(() => user.type(inputElement, '1,2'));
+    expect(onChange).toHaveBeenLastCalledWith(1.2);
+  });
+
+  it('Does not call onChange when value is invalid', async () => {
+    render();
+    const inputElement = screen.getByRole('textbox');
+    await act(() => user.type(inputElement, 'abc'));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('Updates the value when the component receives a new value prop', async () => {
+    const { rerender } = render();
+    const newValue = 12;
+    rerender(<StudioDecimalInput {...defaultProps} value={newValue} />);
+    const inputElement = screen.getByRole('textbox');
+    expect(inputElement).toHaveValue('12');
+  });
+
+  it('Renders with "0" as input value when value is 0', () => {
+    const value = 0;
+    render({ value });
+    expect(screen.getByRole('textbox')).toHaveValue('0');
+  });
+
+  it('Accepts a ref prop', () => {
+    const ref = React.createRef<HTMLInputElement>();
+    render({}, ref);
+    expect(ref.current).toBe(screen.getByRole('textbox'));
+  });
 });
 
-const render = (props: Partial<StudioDecimalInputProps> = {}) => {
+const render = (
+  props: Partial<StudioDecimalInputProps> = {},
+  ref?: RefObject<HTMLInputElement>,
+) => {
   const allProps: StudioDecimalInputProps = {
-    description,
-    onChange,
-    value,
+    ...defaultProps,
     ...props,
-  } as StudioDecimalInputProps;
-  rtlRender(<StudioDecimalInput {...allProps} />);
+  };
+  return rtlRender(<StudioDecimalInput {...allProps} ref={ref} />);
 };
