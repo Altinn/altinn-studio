@@ -1,7 +1,7 @@
 import React from 'react';
 import { IInternalLayout } from '../../../../types/global';
-import { getChildIds, getItem, isContainer } from '../../../../utils/formLayoutUtils';
-import { FormItemList } from '../FormItemList';
+import { getItem, isContainer } from '../../../../utils/formLayoutUtils';
+import { renderItemList } from '../renderItemList';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
@@ -30,13 +30,7 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
       labelWrapper={labelWrapper}
       nodeId={id}
     >
-      {renderChildren(layout, id)}
+      {renderItemList(layout, id)}
     </DragAndDropTree.Item>
   );
-};
-
-const renderChildren = (layout: IInternalLayout, id: string) => {
-  const childIds = getChildIds(layout, id);
-  if (!childIds.length) return;
-  else return <FormItemList layout={layout} parentId={id} />;
 };

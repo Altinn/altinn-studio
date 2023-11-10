@@ -1,6 +1,6 @@
-import React, { ReactNode, useLayoutEffect, useRef, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
-import { TreeView, TreeViewRootRef } from 'app-shared/components/TreeView';
+import { TreeView } from 'app-shared/components/TreeView';
 import { DragAndDropTreeRootContext } from './DragAndDropTreeRootContext';
 import { EmptyList } from 'app-shared/components/DragAndDropTree/EmptyList';
 
@@ -16,24 +16,12 @@ export const DragAndDropTreeRoot = ({
   onSelect,
 }: DragAndDropTreeRootProps) => {
   const [hoveredNodeParent, setHoveredNodeParent] = useState<string | null>(null);
-  const listRef = useRef<TreeViewRootRef>(null);
-  const [isEmpty, setIsEmpty] = useState<boolean>(false);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useLayoutEffect(() => {
-    setIsEmpty(!listRef.current.hasItems());
-  });
 
   return (
     <DragAndDropTreeRootContext.Provider value={{ hoveredNodeParent, setHoveredNodeParent }}>
       <DragAndDrop.List>
-        <TreeView.Root
-          onSelect={onSelect}
-          onMouseOut={() => setHoveredNodeParent(null)}
-          ref={listRef}
-        >
-          {children}
-          {isEmpty && <EmptyList>{emptyMessage}</EmptyList>}
+        <TreeView.Root onSelect={onSelect} onMouseOut={() => setHoveredNodeParent(null)}>
+          {children || <EmptyList>{emptyMessage}</EmptyList>}
         </TreeView.Root>
       </DragAndDrop.List>
     </DragAndDropTreeRootContext.Provider>

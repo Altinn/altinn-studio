@@ -44,8 +44,6 @@ export const findAllParentIds = (rootId: string, nodeId: string): string[] => {
   return parentIds;
 };
 
-export const hasItems = (rootId: string): boolean => !!findAllNodeIds(rootId).length;
-
 export const findAllNodeIds = (rootId: string): string[] => {
   const root = document.getElementById(rootId);
   const items = root.querySelectorAll('[role="treeitem"]');
