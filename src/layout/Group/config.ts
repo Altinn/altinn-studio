@@ -163,18 +163,6 @@ function makeRepeatingGroup() {
               .setDescription('The mode of the repeating group'),
           ),
           new CG.prop(
-            'filter',
-            new CG.arr(
-              new CG.obj(new CG.prop('key', new CG.str()), new CG.prop('value', new CG.str())).exportAs('IGroupFilter'),
-            )
-              .optional()
-              .setTitle('Filter')
-              .setDescription(
-                'Optionally filter out certain rows from the repeating group ' +
-                  '(deprecated, use an expression in the "hiddenRow" property instead)',
-              ),
-          ),
-          new CG.prop(
             'addButton',
             new CG.expr(ExprVal.Boolean)
               .optional({ default: true })
@@ -495,8 +483,8 @@ function makeRepeatingLikertGroup() {
               .optional()
               .setTitle('Filter')
               .setDescription(
-                'Optionally filter out certain rows from the repeating group ' +
-                  '(deprecated, use an expression in the "hiddenRow" property instead)',
+                'Optionally filter specific rows within the likert group using start/stop indexes for displaying the desired ones' +
+                  '(in other cases use an expression in the "hiddenRow" property instead)',
               ),
           ),
         ).exportAs('IGroupEditPropertiesLikert'),

@@ -15,7 +15,6 @@ import { Triggers } from 'src/layout/common.generated';
 import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
-import { getRepeatingGroupFilteredIndices } from 'src/utils/formLayout';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
@@ -50,13 +49,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
   const deletingIndexes = groupState?.deletingIndex ?? [];
   const multiPageIndex = groupState?.multiPageIndex ?? -1;
   const repeatingGroupIndex = groupState?.index ?? -1;
-  const formData = useAppSelector((state) => state.formData.formData);
   const { lang, langAsString } = useLanguage();
-
-  const filteredIndexList = React.useMemo(
-    () => getRepeatingGroupFilteredIndices(formData, edit?.filter),
-    [formData, edit],
-  );
 
   const setMultiPageIndex = useCallback(
     (index: number) => {
@@ -189,7 +182,6 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
           onClickRemove={handleOnRemoveClick}
           setMultiPageIndex={setMultiPageIndex}
           multiPageIndex={multiPageIndex}
-          filteredIndexes={filteredIndexList}
           rowsBefore={node.item.rowsBefore}
           rowsAfter={node.item.rowsAfter}
         />
@@ -207,34 +199,27 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
               setEditIndex={setEditIndex}
               multiPageIndex={multiPageIndex}
               setMultiPageIndex={setMultiPageIndex}
-              filteredIndexes={filteredIndexList}
             />
           )}
           {edit?.mode === 'showAll' &&
             // Generate array of length repeatingGroupIndex and iterate over indexes
             Array(repeatingGroupIndex + 1)
               .fill(0)
-              .map((_, index) => {
-                if (filteredIndexList && filteredIndexList.length > 0 && !filteredIndexList.includes(index)) {
-                  return null;
-                }
-
-                return (
-                  <div
-                    key={index}
-                    style={{ width: '100%', marginBottom: !isNested && index == repeatingGroupIndex ? 15 : 0 }}
-                  >
-                    <RepeatingGroupsEditContainer
-                      node={node}
-                      editIndex={index}
-                      deleting={deletingIndexes.includes(index)}
-                      setEditIndex={setEditIndex}
-                      onClickRemove={handleOnRemoveClick}
-                      forceHideSaveButton={true}
-                    />
-                  </div>
-                );
-              })}
+              .map((_, index) => (
+                <div
+                  key={index}
+                  style={{ width: '100%', marginBottom: !isNested && index == repeatingGroupIndex ? 15 : 0 }}
+                >
+                  <RepeatingGroupsEditContainer
+                    node={node}
+                    editIndex={index}
+                    deleting={deletingIndexes.includes(index)}
+                    setEditIndex={setEditIndex}
+                    onClickRemove={handleOnRemoveClick}
+                    forceHideSaveButton={true}
+                  />
+                </div>
+              ))}
         </>
       </ConditionalWrapper>
       {edit?.mode === 'showAll' && displayBtn && <AddButton />}

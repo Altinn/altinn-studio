@@ -73,12 +73,13 @@ describe('Hierarchical layout tools', () => {
       ...repGroup,
       edit: {
         multiPage: true,
+        mode: 'likert',
         filter: [
           { key: 'start', value: '1' },
           { key: 'stop', value: '2' },
         ],
       },
-    } as Omit<CompGroupRepeatingExternal, 'children'>,
+    },
     group3h: { id: 'group3_header', ...header },
     group3i: { id: 'group3_input', ...input },
     group3n: { id: 'group3nested', ...repGroup },
@@ -343,6 +344,7 @@ describe('Hierarchical layout tools', () => {
           children: ['g1c'],
           dataModelBindings: { group: 'Group' },
           edit: {
+            mode: 'likert',
             filter: [
               { key: 'start', value: '0' },
               { key: 'stop', value: '3' },
@@ -361,6 +363,7 @@ describe('Hierarchical layout tools', () => {
           children: ['g2c'],
           dataModelBindings: { group: 'Group' },
           edit: {
+            mode: 'likert',
             filter: [
               { key: 'start', value: '3' },
               { key: 'stop', value: '6' },

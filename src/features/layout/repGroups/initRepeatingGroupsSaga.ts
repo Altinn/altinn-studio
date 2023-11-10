@@ -6,7 +6,7 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { selectFormLayouts } from 'src/features/layout/update/updateFormLayoutSagas';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { groupIsRepeatingExt } from 'src/layout/Group/tools';
-import { getRepeatingGroupFilteredIndices, getRepeatingGroups } from 'src/utils/formLayout';
+import { getRepeatingGroups } from 'src/utils/formLayout';
 import { selectNotNull } from 'src/utils/sagas';
 import { removeGroupValidationsByIndex } from 'src/utils/validation/validation';
 import type { IFormData } from 'src/features/formData';
@@ -61,12 +61,10 @@ export function* initRepeatingGroupsSaga({
     const group = newGroups[key];
     const container = groupContainers.find((element) => element.id === key);
     if (container && group.index >= 0 && groupIsRepeatingExt(container)) {
-      const filteredIndexList = getRepeatingGroupFilteredIndices(formData, container.edit?.filter);
-
       if (container.edit?.openByDefault === 'first') {
-        group.editIndex = filteredIndexList ? filteredIndexList[0] : 0;
+        group.editIndex = 0;
       } else if (container.edit?.openByDefault === 'last') {
-        group.editIndex = filteredIndexList ? filteredIndexList.at(-1) : group.index;
+        group.editIndex = group.index;
       }
     }
   });

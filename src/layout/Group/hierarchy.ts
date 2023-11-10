@@ -8,6 +8,7 @@ import type {
   CompGroupRepeatingInternal,
   CompGroupRepeatingLikertInternal,
   HRepGroupRows,
+  IGroupEditPropertiesLikert,
 } from 'src/layout/Group/config.generated';
 import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import type {
@@ -202,12 +203,11 @@ export class GroupHierarchyGenerator extends ComponentHierarchyGenerator<'Group'
       delete (props.item as any)['children'];
       const item = props.item as CompGroupExternal;
       const me = ctx.generator.makeNode(props);
-
       const rows: HRepGroupRows = [];
       const lastIndex = (ctx.generator.repeatingGroups || {})[props.item.id]?.index;
       const { startIndex, stopIndex } = getRepeatingGroupStartStopIndex(
         lastIndex,
-        'edit' in props.item ? props.item.edit : {},
+        'edit' in props.item ? (props.item.edit as IGroupEditPropertiesLikert) : {},
       );
 
       for (let rowIndex = startIndex; rowIndex <= stopIndex; rowIndex++) {

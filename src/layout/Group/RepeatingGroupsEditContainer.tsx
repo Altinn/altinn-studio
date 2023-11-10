@@ -22,7 +22,6 @@ export interface IRepeatingGroupsEditContainer {
   forceHideSaveButton?: boolean;
   multiPageIndex?: number;
   setMultiPageIndex?: (index: number) => void;
-  filteredIndexes?: number[] | null;
 }
 
 export function RepeatingGroupsEditContainer({
@@ -64,7 +63,6 @@ function RepeatingGroupsEditContainerInternal({
   forceHideSaveButton,
   multiPageIndex,
   setMultiPageIndex,
-  filteredIndexes,
   group,
   row,
 }: IRepeatingGroupsEditContainer & {
@@ -94,13 +92,7 @@ function RepeatingGroupsEditContainerInternal({
     return nextDisplayedIndex > -1 ? nextDisplayedIndex : null;
   };
 
-  let nextIndex: number | null = null;
-  if (filteredIndexes) {
-    const filteredIndex = filteredIndexes.indexOf(editIndex);
-    nextIndex = filteredIndexes.slice(filteredIndex).length > 1 ? filteredIndexes[filteredIndex + 1] : null;
-  } else {
-    nextIndex = nextDisplayedGroup();
-  }
+  const nextIndex: number | null = nextDisplayedGroup();
 
   const saveClicked = () => {
     setEditIndex(-1);
