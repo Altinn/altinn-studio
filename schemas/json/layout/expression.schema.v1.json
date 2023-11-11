@@ -69,6 +69,7 @@
         { "$ref": "#/definitions/func-instanceContext" },
         { "$ref": "#/definitions/func-frontendSettings" },
         { "$ref": "#/definitions/func-concat" },
+        { "$ref": "#/definitions/func-formatDate" },
         { "$ref": "#/definitions/func-round" },
         { "$ref": "#/definitions/func-text" },
         { "$ref": "#/definitions/func-language" },
@@ -316,6 +317,17 @@
         { "$ref": "#/definitions/boolean" }
       ],
       "additionalItems": { "$ref": "#/definitions/boolean" }
+    },
+    "func-formatDate": {
+      "title": "Format date function",
+      "description": "This function formats a string in ISO date format to a human readable format. Uses the language settings to determine the date format, but a custom format can also be specified",
+      "type": "array",
+      "items": [
+        { "const":  "formatDate" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
     },
     "func-round": {
       "title": "Round function",

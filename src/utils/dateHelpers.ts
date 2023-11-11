@@ -50,3 +50,7 @@ export function getDateConstraint(dateOrFlag: string | DateFlags | undefined, co
     return DatepickerMaxDateDefault;
   }
 }
+
+export function isDate(date: string): boolean {
+  return !isNaN(new Date(date).getTime());
+}

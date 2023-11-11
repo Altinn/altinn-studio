@@ -12,6 +12,8 @@ import { ExprContext } from 'src/features/expressions/ExprContext';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
 import { implementsDisplayData } from 'src/layout';
+import { isDate } from 'src/utils/dateHelpers';
+import { formatDateLocale } from 'src/utils/formatDateLocale';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
@@ -577,7 +579,18 @@ export const ExprFunctions = {
     args: [ExprVal.String] as const,
     returns: ExprVal.String,
   }),
-
+  formatDate: defineFunc({
+    impl(date: string, format: string | null): string | null {
+      const { selectedLanguage } = this.dataSources.langTools;
+      if (!isDate(date)) {
+        return null;
+      }
+      return formatDateLocale(selectedLanguage, new Date(date), format ?? undefined);
+    },
+    minArguments: 1,
+    args: [ExprVal.String, ExprVal.String] as const,
+    returns: ExprVal.String,
+  }),
   round: defineFunc({
     impl(number, decimalPoints) {
       const realNumber = number === null ? 0 : number;

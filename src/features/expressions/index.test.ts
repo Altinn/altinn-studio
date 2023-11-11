@@ -76,4 +76,52 @@ describe('Expressions', () => {
 
     expect(logSpy).toHaveBeenCalledTimes(2);
   });
+
+  describe('formatDate', () => {
+    it('should be able to format a date when the selected language is norwegian', () => {
+      const dataSources = {
+        formData: {},
+        applicationSettings: {},
+        hiddenFields: new Set<string>(),
+        instanceContext: {},
+        langTools: {
+          selectedLanguage: 'nb',
+        },
+      } as ContextDataSources;
+      const node = new NodeNotFoundWithoutContext('test');
+
+      const result = evalExpr(['formatDate', '2023-10-26T13:12:38.069Z'], node, dataSources);
+      expect(result).toEqual('26.10.2023');
+    });
+
+    it('should be able to format a date when the selected language is english', () => {
+      const dataSources = {
+        formData: {},
+        applicationSettings: {},
+        hiddenFields: new Set<string>(),
+        instanceContext: {},
+        langTools: {
+          selectedLanguage: 'en',
+        },
+      } as ContextDataSources;
+      const node = new NodeNotFoundWithoutContext('test');
+
+      const result = evalExpr(['formatDate', '2023-10-26T13:12:38.069Z'], node, dataSources);
+      expect(result).toEqual('10/26/23');
+    });
+
+    it('should be able to specify a custom format in which the date should be formatted', () => {
+      const dataSources = {
+        formData: {},
+        applicationSettings: {},
+        hiddenFields: new Set<string>(),
+        instanceContext: {},
+        langTools: {},
+      } as ContextDataSources;
+      const node = new NodeNotFoundWithoutContext('test');
+
+      const result = evalExpr(['formatDate', '2023-10-26T13:12:38.069Z', 'dd.MM'], node, dataSources);
+      expect(result).toEqual('26.10');
+    });
+  });
 });

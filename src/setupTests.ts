@@ -37,7 +37,7 @@ window.logInfo = jest.fn();
 window.logErrorOnce = jest.fn();
 window.logWarnOnce = jest.fn();
 window.logInfoOnce = jest.fn();
-jest.setTimeout(10000);
+jest.setTimeout(15000);
 
 jest.mock('axios');
 

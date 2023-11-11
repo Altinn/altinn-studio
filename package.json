@@ -219,7 +219,8 @@
     "testEnvironment": "jsdom",
     "transformIgnorePatterns": [
       "node_modules/(?!react-leaflet)/"
-    ]
+    ],
+    "globalSetup": "./src/globalSetup.ts"
   },
   "browserslist": {
     "production": [
