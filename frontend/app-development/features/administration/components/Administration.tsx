@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './Administration.module.css';
 import { useAppConfigQuery, useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Heading } from '@digdir/design-system-react';
+import { Heading, Link } from '@digdir/design-system-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { Documentation } from './Documentation';
@@ -13,6 +13,7 @@ import { AltinnSpinner } from 'app-shared/components';
 import { Center } from 'app-shared/components/Center';
 import { News } from './News';
 import { PageContainer } from './PageContainer';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -47,31 +48,36 @@ export const Administration = () => {
   return (
     <PageContainer>
       <div className={classes.container}>
-        <div className={classes.header}>
+        <header className={classes.header}>
           <Heading size='xlarge'>{appConfigData?.serviceName || app}</Heading>
-        </div>
-        <div className={classes.content}>
-          <main className={classes.main}>
-            <div className={classes.mainBlock}>
-              <AppEnvironments />
-            </div>
-            {hasEnvironments && (
-              <div className={classes.mainBlock}>
-                <AppLogs />
-              </div>
-            )}
-            <div className={classes.mainBlock}>
-              <Navigation />
-            </div>
-          </main>
-          <aside className={classes.aside}>
-            <div className={classes.asideBlock}>
-              <Documentation />
-            </div>
-            <div>
-              <News />
-            </div>
-          </aside>
+        </header>
+        <div className={classes.panel}>
+          <div className={classes.content}>
+            <main className={classes.main}>
+              <section className={classes.mainSection}>
+                <AppEnvironments />
+              </section>
+              {hasEnvironments && (
+                <section className={classes.mainSection}>
+                  <AppLogs />
+                </section>
+              )}
+              <section className={classes.mainSection}>
+                <Navigation />
+              </section>
+            </main>
+            <aside className={classes.aside}>
+              <section className={classes.asideSection}>
+                <Documentation />
+              </section>
+              <section>
+                <News />
+              </section>
+            </aside>
+          </div>
+          <footer className={classes.footer}>
+            <Link href={RoutePaths.Contact}>{t('general.contact')}</Link>
+          </footer>
         </div>
       </div>
     </PageContainer>
