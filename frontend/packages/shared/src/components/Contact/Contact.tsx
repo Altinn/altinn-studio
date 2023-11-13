@@ -8,7 +8,7 @@ import { EnvelopeClosedIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import Slack from 'app-shared/icons/Slack.svg';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { PageContainer } from './PageContainer';
+import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 
 export const Contact = () => {
   const { org, app } = useStudioUrlParams();

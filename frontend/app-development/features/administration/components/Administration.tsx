@@ -12,7 +12,7 @@ import { Navigation } from './Navigation';
 import { AltinnSpinner } from 'app-shared/components';
 import { Center } from 'app-shared/components/Center';
 import { News } from './News';
-import { PageContainer } from './PageContainer';
+import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export const Administration = () => {

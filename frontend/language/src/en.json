@@ -239,7 +239,7 @@
   "general.disabled": "Disabled",
   "general.edit": "Edit",
   "general.enabled": "Enabled",
-  "general.error_message": "An error has occurred!",
+  "general.error_message": "An error has occurred! If the problem persists, please <a>contact us</a>.",
   "general.error_message_with_colon": "Error message:",
   "general.fetch_error_message": "Failed to load required data for this page. Please reload the page to try again",
   "general.fetch_error_title": "An error occurred while loading",
