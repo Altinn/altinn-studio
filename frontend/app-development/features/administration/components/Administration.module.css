@@ -12,7 +12,6 @@
 
 .pageContainer::before {
   background-image: url('/designer/img/overview-background.svg');
-  background-position: left 0;
   background-size: 768px auto;
   background-repeat: no-repeat;
 
