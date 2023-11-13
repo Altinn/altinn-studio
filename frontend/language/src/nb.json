@@ -294,6 +294,7 @@
   "general.create": "Opprett",
   "general.create_new": "Lag ny",
   "general.customer_service_phone_number": "+47 75 00 60 00",
+  "general.dashboard": "Dashbord",
   "general.dataModel": "datamodell",
   "general.date": "Dato",
   "general.date_time_format": "{{date}} kl. {{time}}",

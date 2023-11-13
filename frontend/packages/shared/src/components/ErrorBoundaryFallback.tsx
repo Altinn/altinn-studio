@@ -5,7 +5,6 @@ import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { Alert, Button, ErrorMessage, Link, Paragraph } from '@digdir/design-system-react';
 import { Center } from './Center';
 import classes from './ErrorBoundaryFallback.module.css';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export type ErrorBoundaryFallbackProps = {
   error: Error;
@@ -21,7 +20,7 @@ export const ErrorBoundaryFallback = ({ error }: ErrorBoundaryFallbackProps) => 
         <Paragraph>
           <Trans
             i18nKey={'general.error_message'}
-            components={{ a: <Link href={RoutePaths.Contact}> </Link> }}
+            components={{ a: <Link href='/contact'> </Link> }}
           />
         </Paragraph>
         {!_useIsProdHack && <ErrorMessage>{error.message}</ErrorMessage>}

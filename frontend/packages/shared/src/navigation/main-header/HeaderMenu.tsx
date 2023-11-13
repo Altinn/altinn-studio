@@ -49,7 +49,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
   };
 
   const getRepoPath = () => {
-    const owner = org || user.login;
+    const owner = org || user?.login;
     if (owner && repo) {
       return repositoryPath(owner, repo);
     }
@@ -64,7 +64,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
       <Grid container spacing={2} alignItems='center'>
         <Grid item>
           <Typography className={classes.typography}>
-            {user.full_name || user.login}{' '}
+            {user?.full_name || user?.login}{' '}
             {selectedContext !== SelectedContextType.All &&
               selectedContext !== SelectedContextType.Self && (
                 <>
@@ -77,7 +77,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
         <Grid item>
           <IconButton className={classes.iconButton} onClick={openMenu}>
             <Avatar
-              src={user.avatar_url}
+              src={user?.avatar_url}
               className={classes.avatar}
               alt={t('shared.header_button_alt')}
             />
@@ -109,7 +109,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
           selected={selectedContext === SelectedContextType.Self}
           onClick={() => handleSetSelectedContext('')}
         >
-          {user.full_name || user.login}
+          {user?.full_name || user?.login}
         </MenuItem>
         <Divider />
         <MenuItem key='placeholder' style={{ display: 'none' }} />

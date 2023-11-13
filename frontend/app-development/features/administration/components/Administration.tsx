@@ -13,7 +13,6 @@ import { AltinnSpinner } from 'app-shared/components';
 import { Center } from 'app-shared/components/Center';
 import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -76,7 +75,7 @@ export const Administration = () => {
             </aside>
           </div>
           <footer className={classes.footer}>
-            <Link href={RoutePaths.Contact}>{t('general.contact')}</Link>
+            <Link href='/contact'>{t('general.contact')}</Link>
           </footer>
         </div>
       </div>

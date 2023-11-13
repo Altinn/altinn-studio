@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 volumes:
   designer-git-data:
@@ -15,7 +15,7 @@ services:
     build:
       context: ./development/azure-devops-mock
     ports:
-      - "6161:6161"
+      - '6161:6161'
     environment:
       - DESIGNER_HOST=studio-loadbalancer
 
@@ -24,13 +24,14 @@ services:
     container_name: studio-loadbalancer
     restart: always
     ports:
-      - "80:80"
+      - '80:80'
     environment:
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
       - DEVELOP_RESOURCE_ADMIN=${DEVELOP_RESOURCE_ADMIN:-0}
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_PREVIEW=${DEVELOP_PREVIEW:-0}
+      - DEVELOP_CONTACT=${DEVELOP_CONTACT:-0}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
       - NGINX_HOST=localhost
@@ -39,7 +40,7 @@ services:
     depends_on:
       - studio_repositories
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     volumes:
       - ./frontend/language/src:/www-root/designer/frontend/lang:ro
       - ./development/load-balancer:/etc/nginx/templates/:ro
@@ -50,8 +51,8 @@ services:
     image: designer:${COMMIT:-latest}
     restart: always
     volumes:
-      - "designer-git-data:/AltinnCore/Repos"
-      - "keys:/mnt/keys"
+      - 'designer-git-data:/AltinnCore/Repos'
+      - 'keys:/mnt/keys'
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:6000
@@ -77,22 +78,22 @@ services:
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
       - Integrations:AzureDevOpsSettings:BaseUri=http://studio-azure-mock:6161/_apis/
     ports:
-      - "6000:6000"
+      - '6000:6000'
     depends_on:
       - studio_repositories
     build:
       context: .
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
 
   studio_repositories:
     container_name: studio-repositories
     image: repositories:latest
     restart: always
     volumes:
-      - "gitea-git-data:/var/lib/gitea/git"
-      - "gitea-avatars-data:/var/lib/gitea/avatars"
-      - "gitea-attachments-data:/var/lib/gitea/attachments"
+      - 'gitea-git-data:/var/lib/gitea/git'
+      - 'gitea-avatars-data:/var/lib/gitea/avatars'
+      - 'gitea-attachments-data:/var/lib/gitea/attachments'
     environment:
       - GITEA____RUN_MODE=prod
       - GITEA__database__DB_TYPE=postgres
@@ -116,12 +117,12 @@ services:
       - USER_GID=1000
       - USER_UID=1000
     ports:
-      - "3000:3000"
-      - "222:22"
+      - '3000:3000'
+      - '222:22'
     build:
       context: ./gitea/
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
 
   studio_db:
     container_name: studio-db
@@ -132,7 +133,7 @@ services:
       POSTGRES_USER: designer_admin
       POSTGRES_DB: designerdb
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./development/db/data.sql:/data.sql

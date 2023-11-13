@@ -1,28 +1,13 @@
 import React from 'react';
 import classes from './Contact.module.css';
-import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { Heading, Link, Paragraph } from '@digdir/design-system-react';
-import { toast } from 'react-toastify';
 import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, ChevronRightIcon } from '@navikt/aksel-icons';
-import Slack from 'app-shared/icons/Slack.svg';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
+import Slack from 'app-shared/icons/Slack.svg';
 
 export const Contact = () => {
-  const { org, app } = useStudioUrlParams();
-
-  const { data: appConfigData, isError: isAppConfigError } = useAppConfigQuery(org, app, {
-    hideDefaultError: true,
-  });
   const { t } = useTranslation();
-
-  if (isAppConfigError) {
-    toast.error(t('contact.fetch_app_error_message'));
-  }
-
-  const appName = appConfigData?.serviceName || app;
 
   return (
     <PageContainer>
@@ -30,7 +15,7 @@ export const Contact = () => {
         <nav aria-label='Breadcrumb'>
           <ol className={classes.breadcrumb}>
             <li className={classes.breadcrumbItem}>
-              <Link href={RoutePaths.Overview}>{appName}</Link>
+              <Link href='/dashboard'>{t('general.dashboard')}</Link>
               <ChevronRightIcon />
             </li>
             <li className={classes.breadcrumbItem}>

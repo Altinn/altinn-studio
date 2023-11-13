@@ -23,7 +23,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { Link } from '@digdir/design-system-react';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
@@ -70,7 +69,7 @@ const handleError = (
         i18nKey={'general.error_message'}
         components={{
           a: (
-            <Link href={RoutePaths.Contact} inverted={true}>
+            <Link href='/contact' inverted={true}>
               {' '}
             </Link>
           ),
