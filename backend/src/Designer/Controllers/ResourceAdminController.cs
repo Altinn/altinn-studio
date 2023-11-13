@@ -273,22 +273,19 @@ namespace Altinn.Studio.Designer.Controllers
 
                 foreach (ServiceResource resource in allResources)
                 {
-                    if (resource?.HasCompetentAuthority.Orgcode != null)
+                    if (resource?.HasCompetentAuthority.Orgcode != null
+                        && resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode)))
                     {
-                        if (resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode)))
+                        AvailableService service = new AvailableService();
+                        if (resource.Title.ContainsKey("nb"))
                         {
-                            AvailableService service = new AvailableService();
-                            if (resource.Title.ContainsKey("nb"))
-                            {
-                                service.ServiceName = resource.Title["nb"];
-                            }
-
-                            service.ExternalServiceCode = resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceCode)).Reference;
-                            service.ExternalServiceEditionCode = Convert.ToInt32(resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceEditionCode)).Reference);
-                            service.ServiceOwnerCode = resource.HasCompetentAuthority.Orgcode;
-                            unfiltered.Add(service);
+                            service.ServiceName = resource.Title["nb"];
                         }
 
+                        service.ExternalServiceCode = resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceCode)).Reference;
+                        service.ExternalServiceEditionCode = Convert.ToInt32(resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceEditionCode)).Reference);
+                        service.ServiceOwnerCode = resource.HasCompetentAuthority.Orgcode;
+                        unfiltered.Add(service);
                     }
                 }
 
