@@ -205,7 +205,7 @@ namespace Altinn.App.Api.Controllers
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
             object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
-            if (!string.IsNullOrEmpty(deserializer.Error))
+            if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
             {
                 return BadRequest(deserializer.Error);
             }
@@ -248,7 +248,7 @@ namespace Altinn.App.Api.Controllers
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
             object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
-            if (!string.IsNullOrEmpty(deserializer.Error))
+            if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
             {
                 return BadRequest(deserializer.Error);
             }

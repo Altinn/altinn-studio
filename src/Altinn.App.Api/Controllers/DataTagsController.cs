@@ -1,3 +1,4 @@
+#nullable enable
 using System.Net.Mime;
 using System.Text.RegularExpressions;
 
@@ -65,7 +66,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Unable to find instance based on the given parameters.");
             }
 
-            DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
+            DataElement? dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
 
             if (dataElement == null)
             {
@@ -112,7 +113,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound("Unable to find instance based on the given parameters.");
             }
 
-            DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
+            DataElement? dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
             
             if (dataElement == null)
             {
@@ -161,7 +162,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound("Unable to find instance based on the given parameters.");
             }
 
-            DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
+            DataElement? dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
 
             if (dataElement == null)
             {

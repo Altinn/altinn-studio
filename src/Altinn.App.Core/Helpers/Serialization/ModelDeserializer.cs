@@ -41,13 +41,13 @@ namespace Altinn.App.Core.Helpers.Serialization
         /// <param name="stream">The data stream to deserialize.</param>
         /// <param name="contentType">The content type of the stream.</param>
         /// <returns>An instance of the initialized type if deserializing succeed.</returns>
-        public async Task<object?> DeserializeAsync(Stream stream, string contentType)
+        public async Task<object?> DeserializeAsync(Stream stream, string? contentType)
         {
             Error = null;
 
             if (contentType == null)
             {
-                Error = $"Unknown content type {contentType}. Cannot read the data.";
+                Error = $"Unknown content type \"null\". Cannot read the data.";
                 return null;
             }
 

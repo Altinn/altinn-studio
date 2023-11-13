@@ -1,3 +1,5 @@
+#nullable enable
+
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients;
@@ -50,13 +52,13 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            Instance? instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound();
             }
 
-            string taskId = instance.Process?.CurrentTask?.ElementId;
+            string? taskId = instance.Process?.CurrentTask?.ElementId;
             if (taskId == null)
             {
                 throw new ValidationException("Unable to validate instance without a started process.");
@@ -96,7 +98,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceId,
             [FromRoute] Guid dataGuid)
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerId, instanceId);
+            Instance? instance = await _instanceClient.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
             {
                 return NotFound();
@@ -112,7 +114,7 @@ namespace Altinn.App.Api.Controllers
 
             List<ValidationIssue> messages = new List<ValidationIssue>();
 
-            DataElement element = instance.Data.FirstOrDefault(d => d.Id == dataGuid.ToString());
+            DataElement? element = instance.Data.FirstOrDefault(d => d.Id == dataGuid.ToString());
 
             if (element == null)
             {
@@ -121,7 +123,7 @@ namespace Altinn.App.Api.Controllers
 
             Application application = await _appMetadata.GetApplicationMetadata();
 
-            DataType dataType = application.DataTypes.FirstOrDefault(et => et.Id == element.DataType);
+            DataType? dataType = application.DataTypes.FirstOrDefault(et => et.Id == element.DataType);
 
             if (dataType == null)
             {

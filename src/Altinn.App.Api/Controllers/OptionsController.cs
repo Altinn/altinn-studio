@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -38,10 +40,10 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("{optionsId}")]
         public async Task<IActionResult> Get(
             [FromRoute] string optionsId,
-            [FromQuery] string language,
+            [FromQuery] string? language,
             [FromQuery] Dictionary<string, string> queryParams)
         {
-            AppOptions appOptions = await _appOptionsService.GetOptionsAsync(optionsId, language, queryParams);
+            AppOptions appOptions = await _appOptionsService.GetOptionsAsync(optionsId, language ?? "nb", queryParams);
             if (appOptions.Options == null)
             {
                 return NotFound();
@@ -74,12 +76,12 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] string optionsId,
-            [FromQuery] string language,
+            [FromQuery] string? language,
             [FromQuery] Dictionary<string, string> queryParams)
         {
             var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
-            AppOptions appOptions = await _appOptionsService.GetOptionsAsync(instanceIdentifier, optionsId, language, queryParams);
+            AppOptions appOptions = await _appOptionsService.GetOptionsAsync(instanceIdentifier, optionsId, language ?? "nb", queryParams);
 
             // Only return NotFound if we can't find an options provider.
             // If we find the options provider, but it doesnt' have values, return empty list.

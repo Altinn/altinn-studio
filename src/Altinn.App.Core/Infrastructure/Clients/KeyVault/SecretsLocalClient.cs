@@ -3,7 +3,6 @@ using Altinn.App.Core.Internal.Secrets;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
 {
@@ -24,29 +23,19 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
         }
 
         /// <inheritdoc />
-        public async Task<byte[]> GetCertificateAsync(string certificateId)
+        public Task<byte[]> GetCertificateAsync(string certificateName)
         {
-            string token = GetTokenFromSecrets(certificateId);
-            if (!string.IsNullOrEmpty(token))
-            {
-                byte[] localCertBytes = Convert.FromBase64String(token);
-                return await Task.FromResult(localCertBytes);
-            }
-
-            return null;
+            string token = GetTokenFromSecrets(certificateName);
+            byte[] localCertBytes = Convert.FromBase64String(token);
+            return Task.FromResult(localCertBytes);
         }
 
         /// <inheritdoc />
-        public async Task<JsonWebKey> GetKeyAsync(string keyId)
+        public Task<JsonWebKey> GetKeyAsync(string keyName)
         {
-            string token = GetTokenFromSecrets(keyId);
-            if (!string.IsNullOrEmpty(token))
-            {
-                JsonWebKey key = JsonSerializer.Deserialize<JsonWebKey>(token);
-                return await Task.FromResult(key);
-            }
-
-            return null;
+            string token = GetTokenFromSecrets(keyName);
+            JsonWebKey key = JsonSerializer.Deserialize<JsonWebKey>(token)!;
+            return Task.FromResult(key);
         }
 
         /// <inheritdoc />
@@ -62,25 +51,28 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
             return await Task.FromResult(token);
         }
 
-        private string GetTokenFromSecrets(string tokenId)
-            => GetTokenFromConfiguration(tokenId) ??
-                GetTokenFromLocalSecrets(tokenId);
+        private string GetTokenFromSecrets(string secretId)
+            =>  GetTokenFromLocalSecrets(secretId) ??
+                GetTokenFromConfiguration(secretId) ??
+                throw new ArgumentException($"SecretId={secretId} does not exist in appsettings or secrets.json");
 
-        private string GetTokenFromConfiguration(string tokenId)
+        private string? GetTokenFromConfiguration(string tokenId)
             => _configuration[tokenId];
 
-        private static string GetTokenFromLocalSecrets(string tokenId)
+        private static string? GetTokenFromLocalSecrets(string secretId)
         {
             string path = Path.Combine(Directory.GetCurrentDirectory(), @"secrets.json");
             if (File.Exists(path))
             {
                 string jsonString = File.ReadAllText(path);
-                JObject keyVault = JObject.Parse(jsonString);
-                keyVault.TryGetValue(tokenId, out JToken? token);
-                return token != null ? token.ToString() : string.Empty;
+                var document = JsonDocument.Parse(jsonString, new JsonDocumentOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
+                if (document.RootElement.TryGetProperty(secretId, out var jsonElement))
+                {
+                    return jsonElement.GetString();
+                }
             }
 
-            return string.Empty;
+            return null;
         }
     }
 }

@@ -257,7 +257,7 @@ namespace Altinn.App.Api.Controllers
                 
                 Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
-                if (instance.Process == null)
+                if (instance?.Process == null)
                 {
                     return Conflict($"Process is not started. Use start!");
                 }
@@ -267,7 +267,7 @@ namespace Altinn.App.Api.Controllers
                     return Conflict($"Process is ended.");
                 }
 
-                string? altinnTaskType = instance?.Process?.CurrentTask?.AltinnTaskType;
+                string? altinnTaskType = instance.Process?.CurrentTask?.AltinnTaskType;
 
                 if (altinnTaskType == null)
                 {
@@ -276,7 +276,7 @@ namespace Altinn.App.Api.Controllers
 
                 bool authorized;
                 string? checkedAction = EnsureActionNotTaskType(processNext?.Action ?? altinnTaskType);
-                authorized = await AuthorizeAction(checkedAction, org, app, instanceOwnerPartyId, instanceGuid, instance?.Process?.CurrentTask?.ElementId);
+                authorized = await AuthorizeAction(checkedAction, org, app, instanceOwnerPartyId, instanceGuid, instance.Process?.CurrentTask?.ElementId);
 
                 if (!authorized)
                 {
@@ -370,9 +370,9 @@ namespace Altinn.App.Api.Controllers
             int counter = 0;
             do
             {
-                string? altinnTaskType = EnsureActionNotTaskType(instance?.Process?.CurrentTask?.AltinnTaskType);
+                string altinnTaskType = EnsureActionNotTaskType(instance.Process.CurrentTask.AltinnTaskType);
 
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid, instance?.Process?.CurrentTask?.ElementId);
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid, instance.Process.CurrentTask.ElementId);
                 if (!authorized)
                 {
                     return Forbid();
@@ -404,7 +404,12 @@ namespace Altinn.App.Api.Controllers
                         }
                     }
 
-                    currentTaskId = result.ProcessStateChange?.NewProcessState.CurrentTask.ElementId;
+                    if (result.ProcessStateChange?.NewProcessState is null)
+                    {
+                        return StatusCode(500, "Something is not right");
+                    }
+
+                    currentTaskId = result.ProcessStateChange.NewProcessState.CurrentTask.ElementId;
                 }
                 catch (Exception ex)
                 {
@@ -413,11 +418,11 @@ namespace Altinn.App.Api.Controllers
 
                 counter++;
             }
-            while (instance?.Process?.EndEvent == null || counter > MaxIterationsAllowed);
+            while (instance.Process.EndEvent == null || counter > MaxIterationsAllowed);
 
             if (counter > MaxIterationsAllowed)
             {
-                _logger.LogError($"More than {counter} iterations detected in process. Possible loop. Fix app {org}/{app}'s process definition!");
+                _logger.LogError($"More than {MaxIterationsAllowed} iterations detected in process. Possible loop. Fix app's process definition!");
                 return StatusCode(500, $"More than {counter} iterations detected in process. Possible loop. Fix app process definition!");
             }
 
@@ -477,14 +482,12 @@ namespace Altinn.App.Api.Controllers
         {
             _logger.LogError(exception, message);
 
-            if (exception is PlatformHttpException)
+            if (exception is PlatformHttpException phe)
             {
-                PlatformHttpException phe = exception as PlatformHttpException;
                 return StatusCode((int)phe.Response.StatusCode, phe.Message);
             }
-            else if (exception is ServiceException)
+            else if (exception is ServiceException se)
             {
-                ServiceException se = exception as ServiceException;
                 return StatusCode((int)se.StatusCode, se.Message);
             }
 
@@ -496,7 +499,7 @@ namespace Altinn.App.Api.Controllers
             return await _authorization.AuthorizeAction(new AppIdentifier(org, app), new InstanceIdentifier(instanceOwnerPartyId, instanceGuid), HttpContext.User, action, taskId);
         }
 
-        private static string? EnsureActionNotTaskType(string? actionOrTaskType)
+        private static string EnsureActionNotTaskType(string actionOrTaskType)
         {
             switch (actionOrTaskType)
             {

@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+#nullable enable
+
 using Altinn.App.Core.Helpers.Extensions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 
@@ -62,15 +59,13 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                 {
                     MultipartReader reader = new MultipartReader(GetBoundary(), request.Body);
 
-                    MultipartSection section;
+                    MultipartSection? section;
                     while ((section = await reader.ReadNextSectionAsync()) != null)
                     {
                         partCounter++;
 
-                        bool hasContentDispositionHeader = ContentDispositionHeaderValue
-                               .TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-
-                        if (!hasContentDispositionHeader)
+                        if (!ContentDispositionHeaderValue
+                               .TryParse(section.ContentDisposition, out ContentDispositionHeaderValue? contentDisposition))
                         {
                             Errors.Add(string.Format("Part number {0} doesn't have a content disposition", partCounter));
                             continue;
@@ -82,8 +77,8 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                             continue;
                         }
 
-                        string sectionName = contentDisposition.Name.HasValue ? contentDisposition.Name.Value : null;
-                        string contentFileName = null;
+                        string? sectionName = contentDisposition.Name.Value;
+                        string? contentFileName = null;
                         if (contentDisposition.FileNameStar.HasValue)
                         {
                             contentFileName = contentDisposition.FileNameStar.Value;
@@ -135,7 +130,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
         private string GetBoundary()
         {
             MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
-            return mediaType.Boundary.Value.Trim('"');
+            return mediaType.Boundary.Value!.Trim('"');
         }
     }
 }

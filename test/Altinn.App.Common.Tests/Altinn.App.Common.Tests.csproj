@@ -5,6 +5,12 @@
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
+
+    <NoWarn>$(NoWarn);CS1591;CS0618</NoWarn>
+    <!--
+      CS1591: Don't warn for missing XML doc
+      CS0618: This is a test project, so we usually continue testing [Obsolete] apis
+    -->
   </PropertyGroup>
 
   <ItemGroup>

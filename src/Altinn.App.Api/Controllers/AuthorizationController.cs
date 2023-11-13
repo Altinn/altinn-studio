@@ -1,3 +1,5 @@
+#nullable enable
+
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
@@ -70,7 +72,7 @@ namespace Altinn.App.Api.Controllers
                 }
             }
 
-            string cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
+            string? cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
             if (!int.TryParse(cookieValue, out int partyIdFromCookie))
             {
                 partyIdFromCookie = 0;

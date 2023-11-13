@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Altinn.Platform.Storage.Interface.Models;
@@ -26,7 +28,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
         /// </summary>
         /// <param name="part">The request part to be validated.</param>
         /// <returns>null if no errors where found. Otherwise an error message.</returns>
-        public string ValidatePart(RequestPart part)
+        public string? ValidatePart(RequestPart part)
         {
             if (part.Name == "instance")
             {
@@ -44,7 +46,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                 Console.WriteLine($"// {DateTime.Now} // Debug // appinfo : {appInfo}");
                 Console.WriteLine($"// {DateTime.Now} // Debug // appinfo.Id : {appInfo.Id}");
 
-                DataType dataType = appInfo.DataTypes.Find(e => e.Id == part.Name);
+                DataType? dataType = appInfo.DataTypes.Find(e => e.Id == part.Name);
 
                 Console.WriteLine($"// {DateTime.Now} // Debug // elementType : {dataType}");
 
@@ -91,11 +93,11 @@ namespace Altinn.App.Api.Helpers.RequestHandling
         /// </summary>
         /// <param name="parts">The list of request parts to be validated.</param>
         /// <returns>null if no errors where found. Otherwise an error message.</returns>
-        public string ValidateParts(List<RequestPart> parts)
+        public string? ValidateParts(List<RequestPart> parts)
         {
             foreach (RequestPart part in parts)
             {
-                string partError = ValidatePart(part);
+                string? partError = ValidatePart(part);
                 if (partError != null)
                 {
                     return partError;

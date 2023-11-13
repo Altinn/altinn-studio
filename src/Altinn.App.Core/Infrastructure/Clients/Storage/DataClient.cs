@@ -293,7 +293,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream, string? generatedFromTask = null)
+        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string? filename, Stream stream, string? generatedFromTask = null)
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
             if(!string.IsNullOrEmpty(generatedFromTask))

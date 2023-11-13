@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using FluentAssertions;
 
 namespace Altinn.App.Api.Tests.Controllers
 {
@@ -16,6 +17,29 @@ namespace Altinn.App.Api.Tests.Controllers
     {
         public DataControllerTests(WebApplicationFactory<Program> factory) : base(factory)
         {
+        }
+
+        [Fact]
+        public async Task PutDataElement_MissingDataType_ReturnsBadRequest()
+        {
+            // Setup test data
+            string org = "tdd";
+            string app = "contributer-restriction";
+            int instanceOwnerPartyId = 1337;
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            HttpClient client = GetRootedClient(org, app);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            TestData.DeleteInstance(org, app, instanceOwnerPartyId, guid);
+            TestData.PrepareInstance(org, app, instanceOwnerPartyId, guid);
+
+
+            using var content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json"); // empty valid json
+            var response = await client.PostAsync($"/{org}/{app}/instances/{instanceOwnerPartyId}/{guid}/data", content);
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            responseContent.Should().Contain("dataType");
         }
 
         [Fact]

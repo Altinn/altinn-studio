@@ -1,3 +1,5 @@
+#nullable enable
+
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models
@@ -28,7 +30,7 @@ namespace Altinn.App.Core.Models
         /// </summary>
         /// <param name="dataElement">The DataElement base object</param>
         /// <param name="changedFields">The changed fields</param>
-        public CalculationResult(DataElement dataElement, Dictionary<string, object> changedFields)
+        public CalculationResult(DataElement dataElement, Dictionary<string, object?> changedFields)
         {
             MapDataElementToCalculationResult(dataElement);
             ChangedFields = changedFields;
@@ -37,7 +39,7 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// The key-value pair of fields changed by a calculation
         /// </summary>
-        public Dictionary<string, object> ChangedFields { get; set; }
+        public Dictionary<string, object?>? ChangedFields { get; set; }
 
         private void MapDataElementToCalculationResult(DataElement dataElement)
         {

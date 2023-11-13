@@ -218,14 +218,14 @@ namespace Altinn.App.Api.Controllers
                 // create minimum instance template
                 instanceTemplate = new Instance
                 {
-                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() }
+                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId!.Value.ToString() }
                 };
             }
 
             ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 
             RequestPartValidator requestValidator = new RequestPartValidator(application);
-            string multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
+            string? multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
 
             if (!string.IsNullOrEmpty(multipartError))
             {
@@ -469,7 +469,7 @@ namespace Altinn.App.Api.Controllers
 
                 instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
 
-                if (copySourceInstance)
+                if (copySourceInstance && source is not null)
                 {
                     await CopyDataFromSourceInstance(application, instance, source);
                 }
@@ -958,7 +958,7 @@ namespace Altinn.App.Api.Controllers
                 DataElement dataElement;
                 if (dataType?.AppLogic?.ClassRef != null)
                 {
-                    _logger.LogInformation($"Storing part {part.Name}");
+                    _logger.LogInformation("Storing part {partName}", part.Name);
 
                     Type type;
                     try
@@ -973,12 +973,12 @@ namespace Altinn.App.Api.Controllers
                     ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
                     object? data = await deserializer.DeserializeAsync(part.Stream, part.ContentType);
 
-                    if (!string.IsNullOrEmpty(deserializer.Error))
+                    if (!string.IsNullOrEmpty(deserializer.Error) || data is null)
                     {
                         throw new InvalidOperationException(deserializer.Error);
                     }
 
-                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name!, data);
 
                     await _instantiationProcessor.DataCreation(instance, data, null);
 
@@ -989,11 +989,11 @@ namespace Altinn.App.Api.Controllers
                         org,
                         app,
                         instanceOwnerIdAsInt,
-                        part.Name);
+                        part.Name!);
                 }
                 else
                 {
-                    dataElement = await _dataClient.InsertBinaryData(instance.Id, part.Name, part.ContentType, part.FileName, part.Stream);
+                    dataElement = await _dataClient.InsertBinaryData(instance.Id, part.Name!, part.ContentType, part.FileName, part.Stream);
                 }
 
                 if (dataElement == null)

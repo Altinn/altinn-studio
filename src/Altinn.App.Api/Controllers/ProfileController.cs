@@ -1,3 +1,5 @@
+#nullable enable
+
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Profile;
 using Microsoft.AspNetCore.Authorization;
@@ -14,16 +16,14 @@ namespace Altinn.App.Api.Controllers
     public class ProfileController : Controller
     {
         private readonly IProfileClient _profileClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileController"/> class
         /// </summary>
-        public ProfileController(IProfileClient profileClient, IHttpContextAccessor httpContextAccessor, ILogger<ProfileController> logger)
+        public ProfileController(IProfileClient profileClient, ILogger<ProfileController> logger)
         {
             _profileClient = profileClient;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
 
@@ -35,7 +35,7 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("user")]
         public async Task<ActionResult> GetUser()
         {
-            int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
+            int userId = AuthenticationHelper.GetUserId(HttpContext);
             if (userId == 0)
             {
                 return BadRequest("The userId is not proviced in the context.");
