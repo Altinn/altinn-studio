@@ -302,7 +302,7 @@
   "general.disabled": "Deaktivert",
   "general.edit": "Endre",
   "general.enabled": "Aktivert",
-  "general.error_message": "Det har oppstått en feil!",
+  "general.error_message": "Det har oppstått en feil! Om problemet vedvarer, <a>ta kontakt med oss</a>.",
   "general.error_message_with_colon": "Feilmelding:",
   "general.false": "Usann",
   "general.fetch_error_message": "Kunne ikke laste inn nødvendig data for denne siden. Last siden på nytt for å prøve igjen.",
