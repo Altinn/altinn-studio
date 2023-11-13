@@ -18,9 +18,6 @@ declare namespace Cypress {
      */
     deleteAllApps(orgName: string, token: string): Chainable<Element>;
 
-    /** Custom command to deleta a given app using the Gitea API */
-    deleteApp(orgName: string, appName: string, token: string): Chainable<Element>;
-
     /**
      * Custom command to make an user owner of an org using gitea api
      * @example cy.makeUserOwner(ttd, testUser, token)
@@ -98,5 +95,6 @@ declare namespace Cypress {
      * @example cy.getRepoByAppId('ttd/app', token)
      */
     getRepoByAppId(appId: string, token: string): Chainable<Element>;
+
   }
 }
