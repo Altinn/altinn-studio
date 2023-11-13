@@ -34,8 +34,8 @@ describe('Administration', () => {
 
   it('should display error message if fetching goes wrong', async () => {
     render({
-      getOrgList: jest.fn().mockImplementation(() => Promise.reject()),
-      getAppConfig: jest.fn().mockImplementation(() => Promise.reject()),
+      getAppConfig: () => Promise.reject(),
+      getOrgList: () => Promise.reject(),
     });
     expect(await screen.findByText(textMock('administration.fetch_title_error_message')));
   });

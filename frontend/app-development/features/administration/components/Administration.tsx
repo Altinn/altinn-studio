@@ -16,12 +16,12 @@ import { News } from './News';
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
   const {
-    data: orgs = { orgs: {} },
+    data: orgs,
     isPending: isPendingOrgs,
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
-  const selectedOrg = orgs.orgs[org];
+  const selectedOrg = orgs?.orgs[org];
   const hasEnvironments = selectedOrg?.environments?.length > 0;
 
   const {
@@ -31,6 +31,7 @@ export const Administration = () => {
   } = useAppConfigQuery(org, app, { hideDefaultError: true });
   const { t } = useTranslation();
 
+  console.log({ isAppConfigError, isOrgsError, isPendingAppConfig, isPendingOrgs });
   if (isAppConfigError || isOrgsError) {
     toast.error(t('administration.fetch_title_error_message'));
   }
