@@ -12,7 +12,7 @@ export enum SelectedContextType {
 }
 
 export interface IHeaderContext {
-  selectableOrgs: IGiteaOrganisation[];
+  selectableOrgs?: IGiteaOrganisation[];
   user: IUser;
 }
 

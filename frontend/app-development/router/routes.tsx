@@ -1,7 +1,6 @@
 import { SubApp } from '../../packages/ux-editor/src/SubApp';
 import { Administration } from '../features/administration/components/Administration';
 import { LegacyAdministration } from '../features/administration/components/LegacyAdministration';
-import { Contact } from 'app-shared/components/Contact/Contact';
 import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
@@ -36,10 +35,6 @@ export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.Overview,
     subapp: shouldDisplayFeature('newAdministration') ? Administration : LegacyAdministration,
-  },
-  {
-    path: RoutePaths.Contact,
-    subapp: Contact,
   },
   {
     path: RoutePaths.Datamodel,

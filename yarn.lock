@@ -7120,6 +7120,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"contact@workspace:frontend/contact":
+  version: 0.0.0-use.local
+  resolution: "contact@workspace:frontend/contact"
+  dependencies:
+    "@mui/x-data-grid": 5.17.26
+    cross-env: 7.0.3
+    jest: 29.7.0
+    react: 18.2.0
+    react-dom: 18.2.0
+    react-router-dom: 6.18.0
+    react-use: 17.4.0
+    typescript: 5.2.2
+    webpack: 5.89.0
+    webpack-dev-server: 4.15.1
+  languageName: unknown
+  linkType: soft
+
 "content-disposition@npm:0.5.4":
   version: 0.5.4
   resolution: "content-disposition@npm:0.5.4"
