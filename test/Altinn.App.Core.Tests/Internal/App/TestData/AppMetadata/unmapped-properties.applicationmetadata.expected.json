@@ -10,6 +10,7 @@
     "Show": "select-instance"
   },
   "Logo": null,
+  "AltinnNugetVersion": "--AltinnNugetVersion--",
   "VersionId": null,
   "Org": "tdd",
   "Title": {

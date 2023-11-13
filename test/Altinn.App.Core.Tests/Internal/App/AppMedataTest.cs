@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
@@ -482,8 +483,9 @@ namespace Altinn.App.Core.Tests.Internal.App
             AppSettings appSettings = GetAppSettings("AppMetadata", "unmapped-properties.applicationmetadata.json");
             IAppMetadata appMetadata = SetupAppMedata(Options.Create(appSettings));
             var appMetadataObj = await appMetadata.GetApplicationMetadata();
-            string serialized = JsonSerializer.Serialize(appMetadataObj, new JsonSerializerOptions { WriteIndented = true });
+            string serialized = JsonSerializer.Serialize(appMetadataObj, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
             string expected = File.ReadAllText(Path.Join(appBasePath, "AppMetadata", "unmapped-properties.applicationmetadata.expected.json"));
+            expected = expected.Replace("--AltinnNugetVersion--", typeof(ApplicationMetadata).Assembly!.GetName().Version!.ToString());
             serialized.Should().Be(expected);
         }
 
