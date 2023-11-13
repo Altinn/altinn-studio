@@ -7,14 +7,8 @@ import {
   setSelectedNode,
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
-import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import {
-  LegacyFieldSet,
-  Select,
-  LegacyTextArea,
-  LegacyTextField,
-  Switch,
-} from '@digdir/design-system-react';
+import { getCombinationOptions } from './helpers/options';
+import { Fieldset, Select, LegacyTextArea, Textfield, Switch } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import {
@@ -44,6 +38,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { useTypeOptions } from './hooks/useTypeOptions';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -64,6 +59,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const dispatch = useDispatch();
   const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
+  const typeOptions = useTypeOptions();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title);
   const [itemDescription, setItemItemDescription] = useState<string>(description);
@@ -141,13 +137,14 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           label={t('schema_editor.name')}
           handleSave={handleChangeNodeName}
           pointer={pointer}
+          size='small'
         />
       )}
       {objectKind === ObjectKind.Field && (
         <Select
           label={t('schema_editor.type')}
           onChange={(type: FieldType) => onChangeFieldType(type)}
-          options={getTypeOptions(t)}
+          options={typeOptions}
           value={fieldType as string}
         />
       )}
@@ -200,9 +197,9 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         </>
       )}
       <Divider marginless />
-      <LegacyFieldSet legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
+      <Fieldset legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
-          <LegacyTextField
+          <Textfield
             id={titleId}
             label={t('schema_editor.title')}
             aria-label={t('schema_editor.title')}
@@ -224,7 +221,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             value={itemDescription}
           />
         </div>
-      </LegacyFieldSet>
+      </Fieldset>
     </div>
   );
 }

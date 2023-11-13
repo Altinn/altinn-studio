@@ -1,6 +1,6 @@
 {
   "name": "@altinn/icons",
-  "packageManager": "yarn@3.6.3",
+  "packageManager": "yarn@3.6.4",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, LegacyFieldSet } from '@digdir/design-system-react';
+import { Switch, Fieldset } from '@digdir/design-system-react';
 import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import { IGenericEditComponent } from '../../componentConfig';
@@ -20,7 +20,7 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
   };
 
   return (
-    <LegacyFieldSet className={classes.root}>
+    <Fieldset className={classes.root}>
       <FormField
         id={component.id}
         value={(component as FormAddressComponent).simplified || false}
@@ -52,6 +52,6 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
           />
         );
       })}
-    </LegacyFieldSet>
+    </Fieldset>
   );
 };

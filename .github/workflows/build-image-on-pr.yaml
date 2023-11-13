@@ -3,6 +3,10 @@ on:
   pull_request:
     branches: [ master ]
     types: [opened, synchronize, reopened]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - '.github/workflows/build-image-on-pr.yaml'
   workflow_dispatch:
 
 jobs:

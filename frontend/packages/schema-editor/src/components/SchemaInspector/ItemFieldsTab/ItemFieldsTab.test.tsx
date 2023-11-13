@@ -90,12 +90,12 @@ describe('ItemFieldsTab', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));
   afterEach(jest.clearAllMocks);
 
-  test('Header texts appear', async () => {
+  test('Header texts appear', () => {
     renderItemFieldsTab();
-    expect(await screen.findByText(textFieldName)).toBeDefined();
-    expect(await screen.findByText(textType)).toBeDefined();
-    expect(await screen.findAllByText(textRequired)).toBeDefined();
-    expect(await screen.findByText(textDelete)).toBeDefined();
+    expect(screen.getByRole('columnheader', { name: textFieldName })).toBeDefined();
+    expect(screen.getByRole('columnheader', { name: textType })).toBeDefined();
+    expect(screen.getByRole('columnheader', { name: textRequired })).toBeDefined();
+    expect(screen.getByRole('columnheader', { name: textDelete })).toBeDefined();
   });
 
   test('Inputs and delete buttons appear for all fields', async () => {
@@ -130,9 +130,7 @@ describe('ItemFieldsTab', () => {
     renderItemFieldsTab();
     const newType = FieldType.Integer;
     for (let i = 0; i < fieldNames.length; i++) {
-      await act(() => user.click(screen.getAllByRole('combobox')[i]));
-      await act(() => user.click(screen.getByRole('option', { name: fieldTypeNames[newType] })));
-      await act(() => user.tab());
+      await act(() => user.selectOptions(screen.getAllByRole('combobox')[i], newType));
       expect(saveDatamodel).toHaveBeenCalledTimes(i + 1);
       const updatedModel = getSavedModel(saveDatamodel, i);
       const updatedNode = getNodeByPointer(updatedModel, childNodes[i].pointer);
