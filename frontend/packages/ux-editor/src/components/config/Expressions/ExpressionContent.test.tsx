@@ -2,10 +2,10 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
+  componentId,
   internalParsableComplexExpression,
   internalUnParsableComplexExpression,
   simpleInternalExpression,
-  subExpression0
 } from '../../../testing/expressionMocks';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
@@ -16,6 +16,7 @@ import { ExpressionContent, ExpressionContentProps } from './ExpressionContent';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { ExpressionPropertyBase } from '../../../types/Expressions';
 
 const org = 'org';
 const app = 'app';
@@ -31,27 +32,42 @@ describe('ExpressionContent', () => {
   it('renders the expression in edit mode with saveButton when complex expression is not set and the expressions id is in editMode', () => {
     render({});
 
-    const propertySelectComponent = screen.getByRole('combobox', { name: textMock('right_menu.expressions_property') });
+    const propertySelectComponent = screen.getByRole('combobox', {
+      name: textMock('right_menu.expressions_property'),
+    });
     expect(propertySelectComponent).toBeInTheDocument();
-    const functionSelectComponent = screen.getByRole('combobox', { name: textMock('right_menu.expressions_function') });
+    const functionSelectComponent = screen.getByRole('combobox', {
+      name: textMock('right_menu.expressions_function'),
+    });
     expect(functionSelectComponent).toBeInTheDocument();
-    const dataSourceSelectComponent = screen.getByRole('combobox', { name: textMock('right_menu.expressions_data_source') });
+    const dataSourceSelectComponent = screen.getByRole('combobox', {
+      name: textMock('right_menu.expressions_data_source'),
+    });
     expect(dataSourceSelectComponent).toBeInTheDocument();
-    const dataSourceValueSelectComponent = screen.getByRole('combobox', { name: textMock('right_menu.expressions_data_source_value') });
+    const dataSourceValueSelectComponent = screen.getByRole('combobox', {
+      name: textMock('right_menu.expressions_data_source_value'),
+    });
     expect(dataSourceValueSelectComponent).toBeInTheDocument();
-    const comparableDataSourceSelectComponent = screen.getByRole('combobox', { name: textMock('right_menu.expressions_comparable_data_source') });
+    const comparableDataSourceSelectComponent = screen.getByRole('combobox', {
+      name: textMock('right_menu.expressions_comparable_data_source'),
+    });
     expect(comparableDataSourceSelectComponent).toBeInTheDocument();
     const comparableDataSourceValueSelectComponent = screen.getByRole('textbox');
     expect(comparableDataSourceValueSelectComponent).toBeInTheDocument();
-    expect(comparableDataSourceValueSelectComponent).toHaveValue(simpleInternalExpression.subExpressions[0].comparableValue as string);
+    expect(comparableDataSourceValueSelectComponent).toHaveValue(
+      simpleInternalExpression.subExpressions[0].comparableValue as string,
+    );
     const saveExpressionButton = screen.getByRole('button', { name: textMock('general.save') });
     expect(saveExpressionButton).toBeInTheDocument();
   });
   it('does not show save button when expression is in previewMode', () => {
     render({
       props: {
-        expressionInEditMode: false,
-      }
+        expressionState: {
+          editMode: false,
+          expression: simpleInternalExpression,
+        },
+      },
     });
 
     const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
@@ -60,11 +76,11 @@ describe('ExpressionContent', () => {
   it('renders the complex expression in edit mode with save button when complex expression is set and the expressions id is in editMode', () => {
     render({
       props: {
-        expression: {
-          ...internalUnParsableComplexExpression,
-          id: simpleInternalExpression.id
-        }
-      }
+        expressionState: {
+          editMode: true,
+          expression: internalUnParsableComplexExpression,
+        },
+      },
     });
 
     const complexExpression = screen.getByRole('textbox');
@@ -77,12 +93,11 @@ describe('ExpressionContent', () => {
   it('renders the complex expression in preview mode when complex expression is set and the expressions id is not in editMode', () => {
     render({
       props: {
-        expressionInEditMode: false,
-        expression: {
-          ...internalUnParsableComplexExpression,
-          id: simpleInternalExpression.id
-        }
-      }
+        expressionState: {
+          editMode: false,
+          expression: internalUnParsableComplexExpression,
+        },
+      },
     });
 
     const complexExpression = screen.getByRole('textbox');
@@ -92,89 +107,82 @@ describe('ExpressionContent', () => {
     const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
     expect(saveExpressionButton).not.toBeInTheDocument();
   });
-  it('does not show saveExpression button when there are no function set', () => {
+  it('SaveExpression button is disabled when there are no function set', () => {
     render({
       props: {
-        expression: {
-          subExpressions: [
-            {
-              ...subExpression0,
-              function: undefined
-            }
-          ]
-        }
-      }
+        expressionState: {
+          editMode: true,
+          expression: {
+            property: ExpressionPropertyBase.Hidden,
+            subExpressions: [
+              {
+                function: undefined,
+              },
+            ],
+          },
+        },
+      },
     });
     const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
-    expect(saveExpressionButton).not.toBeInTheDocument();
+    expect(saveExpressionButton).toHaveAttribute('disabled');
   });
-  it('does not show saveExpression button when there are no subExpressions', () => {
+  it('saveExpression button is disabled when there are no subExpressions', () => {
     render({
       props: {
-        expression: {
-          subExpressions: []
-        }
-      }
+        expressionState: {
+          editMode: true,
+          expression: {
+            property: ExpressionPropertyBase.Hidden,
+          },
+        },
+      },
     });
     const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
-    expect(saveExpressionButton).not.toBeInTheDocument();
-  });
-  it('does not show saveExpression button when expression has no property set', () => {
-    render({
-      props: {
-        expression: {
-          ...simpleInternalExpression,
-          property: undefined,
-        }
-      }
-    });
-    const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
-    expect(saveExpressionButton).not.toBeInTheDocument();
-  });
-  it('does not show saveExpression button when complex expression has no property set', () => {
-    render({
-      props: {
-        expression: {
-          ...internalUnParsableComplexExpression,
-          property: undefined,
-        }
-      }
-    });
-    const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
-    expect(saveExpressionButton).not.toBeInTheDocument();
+    expect(saveExpressionButton).toHaveAttribute('disabled');
   });
   it('shows successfullyAdded check mark when conditions imply for a simple expression', () => {
     render({
       props: {
-        expressionInEditMode: false,
-        successfullyAddedExpression: true
-      }
+        expressionState: {
+          editMode: false,
+          expression: simpleInternalExpression,
+        },
+        successfullyAddedExpression: true,
+      },
     });
-    const successfullyAddedExpressionButton = screen.getByText(textMock('right_menu.expression_successfully_added_text'));
+    const successfullyAddedExpressionButton = screen.getByText(
+      textMock('right_menu.expression_successfully_added_text'),
+    );
     expect(successfullyAddedExpressionButton).toBeInTheDocument();
   });
   it('does not show successfullyAdded check mark when successfullyAddedExpressionId is not the id of expression', () => {
     render({
       props: {
-        expressionInEditMode: false,
-        successfullyAddedExpression: false
-      }
+        expressionState: {
+          editMode: false,
+          expression: simpleInternalExpression,
+        },
+        successfullyAddedExpression: false,
+      },
     });
-    const successfullyAddedExpressionButton = screen.queryByText(textMock('right_menu.expression_successfully_added_text'));
+    const successfullyAddedExpressionButton = screen.queryByText(
+      textMock('right_menu.expression_successfully_added_text'),
+    );
     expect(successfullyAddedExpressionButton).not.toBeInTheDocument();
   });
   it('shows successfullyAdded check mark when conditions imply for a complex expression', () => {
     render({
       props: {
-        expression: {
-          ...internalUnParsableComplexExpression,
-          id: simpleInternalExpression.id
+        expressionState: {
+          editMode: false,
+          expression: internalUnParsableComplexExpression,
         },
-        expressionInEditMode: false,
         successfullyAddedExpression: true,
-      }
+      },
     });
-    const successfullyAddedExpressionButton = screen.getByText(textMock('right_menu.expression_successfully_added_text'));
+    const successfullyAddedExpressionButton = screen.getByText(
+      textMock('right_menu.expression_successfully_added_text'),
+    );
     expect(successfullyAddedExpressionButton).toBeInTheDocument();
   });
   it('calls saveExpression when saveExpression button is clicked', async () => {
@@ -182,8 +190,8 @@ describe('ExpressionContent', () => {
     const mockOnSaveExpression = jest.fn();
     render({
       props: {
-        onSaveExpression: mockOnSaveExpression
-      }
+        onSaveExpression: mockOnSaveExpression,
+      },
     });
     const saveExpressionButton = screen.getByRole('button', { name: textMock('general.save') });
     await act(() => user.click(saveExpressionButton));
@@ -195,10 +203,12 @@ describe('ExpressionContent', () => {
     const mockOnRemoveExpression = jest.fn();
     render({
       props: {
-        onRemoveExpression: mockOnRemoveExpression
-      }
+        onRemoveExpression: mockOnRemoveExpression,
+      },
     });
-    const deleteExpressionButton = screen.getByRole('button', { name: textMock('right_menu.expression_delete') });
+    const deleteExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_delete'),
+    });
     await act(() => user.click(deleteExpressionButton));
     expect(mockOnRemoveExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnRemoveExpression).toHaveBeenCalledTimes(1);
@@ -208,11 +218,16 @@ describe('ExpressionContent', () => {
     const mockOnRemoveExpression = jest.fn();
     render({
       props: {
-        expressionInEditMode: false,
-        onRemoveExpression: mockOnRemoveExpression
-      }
+        expressionState: {
+          editMode: false,
+          expression: simpleInternalExpression,
+        },
+        onRemoveExpression: mockOnRemoveExpression,
+      },
     });
-    const deleteExpressionButton = screen.getByRole('button', { name: textMock('right_menu.expression_delete') });
+    const deleteExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_delete'),
+    });
     await act(() => user.click(deleteExpressionButton));
     expect(mockOnRemoveExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnRemoveExpression).toHaveBeenCalledTimes(1);
@@ -222,11 +237,16 @@ describe('ExpressionContent', () => {
     const mockOnEditExpression = jest.fn();
     render({
       props: {
-        expressionInEditMode: false,
-        onEditExpression: mockOnEditExpression
-      }
+        expressionState: {
+          editMode: false,
+          expression: simpleInternalExpression,
+        },
+        onEditExpression: mockOnEditExpression,
+      },
     });
-    const editExpressionButton = screen.getByRole('button', { name: textMock('right_menu.expression_edit') });
+    const editExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_edit'),
+    });
     await act(() => user.click(editExpressionButton));
     expect(mockOnEditExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnEditExpression).toHaveBeenCalledTimes(1);
@@ -234,44 +254,53 @@ describe('ExpressionContent', () => {
   it('displays disabled free-style-editing-switch if complex expression can not be interpreted by Studio', () => {
     render({
       props: {
-        expression: internalUnParsableComplexExpression,
-    }
-  });
-  const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', { name: textMock('right_menu.expression_enable_free_style_editing') });
-  expect(enableFreeStyleEditingSwitch).toHaveAttribute('readonly');
+        expressionState: {
+          editMode: true,
+          expression: internalUnParsableComplexExpression,
+        },
+      },
+    });
+    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
+      name: textMock('right_menu.expression_enable_free_style_editing'),
+    });
+    expect(enableFreeStyleEditingSwitch).toHaveAttribute('readonly');
   });
   it('displays toggled on free-style-editing-switch which is not readOnly if complex expression can be interpreted by Studio', () => {
     render({
       props: {
-        expression: internalParsableComplexExpression,
-      }
+        expressionState: {
+          editMode: true,
+          expression: internalParsableComplexExpression,
+        },
+      },
     });
-    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', { name: textMock('right_menu.expression_enable_free_style_editing') });
+    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
+      name: textMock('right_menu.expression_enable_free_style_editing'),
+    });
     expect(enableFreeStyleEditingSwitch).toHaveAttribute('checked');
   });
   it('displays toggled off free-style-editing-switch if expression is not complex', () => {
     render({});
-    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', { name: textMock('right_menu.expression_enable_free_style_editing') });
+    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
+      name: textMock('right_menu.expression_enable_free_style_editing'),
+    });
     expect(enableFreeStyleEditingSwitch).not.toHaveAttribute('checked');
   });
 });
 
-const render = ({ props = {}, queries = {}, }: {
+const render = ({
+  props = {},
+  queries = {},
+}: {
   props?: Partial<ExpressionContentProps>;
   queries?: Partial<ServicesContextProps>;
 }) => {
-  const mockOnGetProperties = jest.fn(() => ({
-    availableProperties: ['readOnly', 'required'],
-    expressionProperties: ['hidden', 'readOnly', 'required'],
-  }));
   const defaultProps: ExpressionContentProps = {
-    componentName: simpleInternalExpression.id,
-    expression: simpleInternalExpression,
-    onGetProperties: mockOnGetProperties,
-    showRemoveExpressionButton: true,
+    componentName: componentId,
+    expressionState: { expression: simpleInternalExpression, editMode: true },
+    onGetProperties: jest.fn(() => ['readOnly', 'required']),
     onSaveExpression: jest.fn(),
     successfullyAddedExpression: false,
-    expressionInEditMode: true,
     onUpdateExpression: jest.fn(),
     onRemoveExpression: jest.fn(),
     onRemoveSubExpression: jest.fn(),
@@ -279,5 +308,9 @@ const render = ({ props = {}, queries = {}, }: {
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  return renderWithMockStore({}, queries, queryClient)(<ExpressionContent {...defaultProps} {...props} />);
+  return renderWithMockStore(
+    {},
+    queries,
+    queryClient,
+  )(<ExpressionContent {...defaultProps} {...props} />);
 };

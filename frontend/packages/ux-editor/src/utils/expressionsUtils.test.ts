@@ -7,21 +7,20 @@ import {
   SubExpression,
 } from '../types/Expressions';
 import {
-  addProperty,
+  addDataSource,
+  addDataSourceValue,
   addExpressionIfLimitNotReached,
+  addPropertyToExpression,
   convertAndAddExpressionToComponent,
   convertExternalExpressionToInternal,
   convertInternalExpressionToExternal,
-  convertSubExpression,
-  deleteExpressionAndAddDefaultIfEmpty,
-  removeInvalidExpressions,
-  removeSubExpressionAndAdaptParentProps,
-  addDataSource,
-  addDataSourceValue,
-  tryParseExpression,
-  stringifyValueForDisplay,
-  deleteExpressionFromComponent,
   convertInternalSubExpressionToExternal,
+  convertSubExpression,
+  deleteExpression,
+  deleteExpressionFromComponent,
+  removeSubExpression,
+  stringifyValueForDisplay,
+  tryParseExpression,
 } from './expressionsUtils';
 import { component1Mock } from '../testing/layoutMock';
 import {
@@ -397,67 +396,46 @@ describe('expressionsUtils', () => {
   });
   describe('addExpressionIfLimitNotReached', () => {
     it('should add a new expression if the limit is not reached', () => {
-      const oldExpressions = [];
-      const newExpressions = addExpressionIfLimitNotReached(oldExpressions, false);
+      const oldExpressionsState = [];
+      const newExpressionsState = addExpressionIfLimitNotReached(
+        oldExpressionsState,
+        ExpressionPropertyBase.ReadOnly,
+        false,
+      );
 
-      expect(newExpressions).toHaveLength(1);
+      expect(newExpressionsState).toHaveLength(1);
     });
     it('should not add a new expression if the limit is reached', () => {
-      const oldExpressions = [internalExpressionWithMultipleSubExpressions];
-      const newExpressions = addExpressionIfLimitNotReached(oldExpressions, true);
-
-      expect(newExpressions).toEqual(oldExpressions);
-    });
-  });
-  describe('deleteExpressionAndAddDefaultIfEmpty', () => {
-    it('should delete the expression property from component and add a default expression when expressionToDelete was the only pre-existing', () => {
-      component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
-      const expressionToDelete = internalExpressionWithMultipleSubExpressions;
-      const oldExpressions = [expressionToDelete];
-      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(
-        expressionToDelete,
-        oldExpressions,
+      const oldExpressionsState = [
+        { expression: internalExpressionWithMultipleSubExpressions, editMode: false },
+      ];
+      const newExpressionsState = addExpressionIfLimitNotReached(
+        oldExpressionsState,
+        ExpressionPropertyBase.Hidden,
+        true,
       );
 
-      expect(updatedExpressions).toHaveLength(1);
-      expect(updatedExpressions[0].id).not.toBe(internalExpressionWithMultipleSubExpressions.id);
+      expect(newExpressionsState).toEqual(oldExpressionsState);
     });
-
-    it('should not add a default expression when there are more than one pre-existing expressions', () => {
-      component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
-      const expressionToDelete = internalExpressionWithMultipleSubExpressions;
-      const oldExpressions = [expressionToDelete, internalParsableComplexExpression];
-      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(
-        expressionToDelete,
-        oldExpressions,
+  });
+  describe('deleteExpression', () => {
+    it('should delete the expression from the expressionsState', () => {
+      const oldExpressionsState = [
+        { expression: internalExpressionWithMultipleSubExpressions, editMode: false },
+      ];
+      const updatedExpressionsState = deleteExpression(
+        internalExpressionWithMultipleSubExpressions,
+        oldExpressionsState,
       );
 
-      expect(updatedExpressions).toHaveLength(1);
-      expect(updatedExpressions[0]).toStrictEqual(internalParsableComplexExpression);
+      expect(updatedExpressionsState).toHaveLength(0);
     });
   });
-  describe('removeInvalidExpressions', () => {
-    it('should remove expressions with invalid properties', () => {
-      const expression1 = { id: '1', property: ExpressionPropertyBase.Hidden };
-      const expression2 = { id: '2' };
-      const expression3 = { id: '3', complexExpression: 'some-complex-expression' };
-      const expression4 = { id: '4' };
-      const oldExpressions = [expression1, expression2, expression3, expression4];
-      const updatedExpressions = removeInvalidExpressions(oldExpressions);
-
-      expect(updatedExpressions).toHaveLength(2);
-      expect(updatedExpressions).toContainEqual(expression1);
-      expect(updatedExpressions).toContainEqual(expression3);
-    });
-  });
-  describe('removeSubExpressionAndAdaptParentProps', () => {
+  describe('removeSubExpression', () => {
     it('should remove a subExpression and do nothing more with parent properties when there are more than 2 subExpressions to start with', () => {
       const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
       internalExpressionCopy.subExpressions.push(subExpression0);
-      const newExpression = removeSubExpressionAndAdaptParentProps(
-        internalExpressionCopy,
-        subExpression0,
-      );
+      const newExpression = removeSubExpression(internalExpressionCopy, subExpression0);
 
       expect(newExpression.operator).toBe(Operator.Or);
       expect(newExpression.property).toBe(ExpressionPropertyBase.Hidden);
@@ -467,9 +445,8 @@ describe('expressionsUtils', () => {
       );
     });
     it('should remove a subExpression and clear operator when there is only one subExpression left', () => {
-      const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
-      const newExpression = removeSubExpressionAndAdaptParentProps(
-        internalExpressionCopy,
+      const newExpression = removeSubExpression(
+        internalExpressionWithMultipleSubExpressions,
         subExpression1,
       );
 
@@ -477,23 +454,10 @@ describe('expressionsUtils', () => {
       expect(newExpression.property).toBe(ExpressionPropertyBase.Hidden);
       expect(newExpression.subExpressions).toHaveLength(1);
     });
-
-    it('should have no subExpressions and clear operator and property when there is no subExpressions left', () => {
-      const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
-      internalExpressionCopy.subExpressions.pop();
-      const newExpression = removeSubExpressionAndAdaptParentProps(
-        internalExpressionCopy,
-        subExpression1,
-      );
-
-      expect(newExpression.operator).toBeUndefined();
-      expect(newExpression.property).toBeUndefined();
-      expect(newExpression.subExpressions).toBeUndefined();
-    });
   });
-  describe('addProperty', () => {
+  describe('addPropertyToExpression', () => {
     it('should add an action to the expression when action is not "default"', () => {
-      const newExpression = addProperty(
+      const newExpression = addPropertyToExpression(
         internalExpressionWithMultipleSubExpressions,
         ExpressionPropertyBase.Required,
       );
@@ -505,12 +469,12 @@ describe('expressionsUtils', () => {
       );
       expect(newExpression.property).toBe(ExpressionPropertyBase.Required);
       expect(newExpression.subExpressions).toHaveLength(2);
-      expect(newExpression.subExpressions[0].id).toBe(subExpression1.id);
-      expect(newExpression.subExpressions[1].id).toBe(subExpression2.id);
+      expect(newExpression.subExpressions[0]).toStrictEqual(subExpression1);
+      expect(newExpression.subExpressions[1]).toStrictEqual(subExpression2);
     });
     it('should return nothing when action is "default"', () => {
       const propertyToAdd = 'default';
-      const newExpression = addProperty(
+      const newExpression = addPropertyToExpression(
         internalExpressionWithMultipleSubExpressions,
         propertyToAdd,
       );
@@ -518,12 +482,15 @@ describe('expressionsUtils', () => {
       expect(newExpression).toStrictEqual(internalExpressionWithMultipleSubExpressions);
     });
     it('should create a new subExpression when there are no subExpressions', () => {
-      const newExpression = addProperty(baseInternalExpression, ExpressionPropertyBase.ReadOnly);
+      const newExpression = addPropertyToExpression(
+        baseInternalExpression,
+        ExpressionPropertyBase.ReadOnly,
+      );
 
       expect(newExpression).toBeDefined();
       expect(newExpression.property).toBe(ExpressionPropertyBase.ReadOnly);
       expect(newExpression.subExpressions).toHaveLength(1);
-      expect(newExpression.subExpressions[0]).toHaveProperty('id');
+      expect(newExpression.subExpressions[0]).toMatchObject({});
     });
   });
   describe('addDataSource', () => {

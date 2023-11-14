@@ -1,21 +1,17 @@
 .subExpressionTop {
   display: flex;
   justify-content: space-between;
-  margin-top: -20px;
+  margin-top: -1rem;
 }
 
-.expression {
+.subExpression {
   display: flex;
   flex-direction: column;
   background-color: #e9eaec;
-  margin-top: 20px;
+  padding: 1rem;
+  gap: 0.5rem;
   border: 1px solid #d1d1d1;
   border-radius: 5px;
-}
-
-.expressionDetails {
-  flex-grow: 1;
-  margin: 20px 20px 20px 20px;
 }
 
 .expressionFunction {

@@ -1,39 +1,41 @@
 import React, { useContext, useEffect } from 'react';
-import { Alert, Button } from '@digdir/design-system-react';
+import { Alert } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
-import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
 import {
   Expression,
   SubExpression,
   getExpressionPropertiesBasedOnComponentType,
   ExpressionProperty,
+  expressionPropertyTexts,
 } from '../../../types/Expressions';
 import {
   addExpressionIfLimitNotReached,
   convertAndAddExpressionToComponent,
-  deleteExpressionAndAddDefaultIfEmpty,
+  deleteExpression,
   deleteExpressionFromComponent,
   getAllConvertedExpressions,
-  removeInvalidExpressions,
-  removeSubExpressionAndAdaptParentProps,
+  getNonOverlappingElementsFromTwoLists,
+  removeSubExpression,
 } from '../../../utils/expressionsUtils';
 import classes from './Expressions.module.css';
-import { v4 as uuidv4 } from 'uuid';
-import { deepCopy } from 'app-shared/pure';
 import { LayoutItemType } from '../../../types/global';
 import { FormComponent } from '../../../types/FormComponent';
 import { FormContainer } from '../../../types/FormContainer';
 import { FormContext } from '../../../containers/FormContext';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { Trans } from 'react-i18next';
+import { deepCopy } from 'app-shared/pure';
+import { NewExpressionButton } from './NewExpressionButton';
+
+export interface ExpressionState {
+  expression: Expression;
+  editMode: boolean;
+}
 
 export const Expressions = () => {
   const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
-  const [expressions, setExpressions] = React.useState<Expression[]>([]);
-  const [expressionInEditModeId, setExpressionInEditModeId] = React.useState<string | undefined>(
-    undefined,
-  );
+  const [expressionsState, setExpressionsState] = React.useState<ExpressionState[]>([]);
   const [successfullyAddedExpressionProperty, setSuccessfullyAddedExpressionProperty] =
     React.useState<ExpressionProperty | undefined>(undefined);
   const t = useText();
@@ -42,11 +44,12 @@ export const Expressions = () => {
     if (form) {
       const convertedExpressions: Expression[] = getAllConvertedExpressions(form);
       if (convertedExpressions.length) {
-        setExpressions(convertedExpressions);
+        const nonEditModeExpressions: ExpressionState[] = convertedExpressions.map((exp) => {
+          return { expression: exp, editMode: false };
+        });
+        setExpressionsState(nonEditModeExpressions);
       } else {
-        const defaultExpression: Expression = { id: uuidv4() };
-        setExpressionInEditModeId(defaultExpression.id);
-        setExpressions([defaultExpression]);
+        setExpressionsState([]);
       }
     }
   }, [form]);
@@ -58,59 +61,66 @@ export const Expressions = () => {
     await handleSave(formId, updatedComponent);
   };
 
-  // adapt list of actions if component is group
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(
     form.itemType as LayoutItemType,
   );
-  const showRemoveExpressionButton = expressions?.length > 1 || !!expressions[0]?.property;
-  const isExpressionLimitReached = expressions?.length >= expressionProperties?.length;
+  const alreadyUsedProperties = expressionsState.map(
+    (expressionState) => expressionState.expression.property,
+  );
+  const isExpressionLimitReached = expressionsState?.length >= expressionProperties?.length;
+
+  const availableProperties = [
+    {
+      label: t('right_menu.expressions_property_select'),
+      value: 'default',
+    },
+  ].concat(
+    getNonOverlappingElementsFromTwoLists(expressionProperties, alreadyUsedProperties).map(
+      (property: ExpressionProperty) => ({
+        label: expressionPropertyTexts(t)[property],
+        value: property,
+      }),
+    ),
+  );
 
   const saveExpressionAndSetCheckMark = async (index: number, expression: Expression) => {
     const updatedComponent = convertAndAddExpressionToComponent(form, expression);
     await updateAndSaveLayout(updatedComponent);
-    // Need to use property as expression reference since the id will be changed when the component is updated.
     setSuccessfullyAddedExpressionProperty(expression.property);
-    setExpressionInEditModeId(undefined);
+    const newExpressions: ExpressionState[] = expressionsState.map((expressionState) =>
+      expressionState.expression === expression
+        ? { ...expressionState, editMode: false }
+        : expressionState,
+    );
+    setExpressionsState(newExpressions);
   };
 
-  const addNewExpression = async () => {
-    // TODO: Check if expression is in edit mode and try to save?
-    const validExpressions = removeInvalidExpressions(expressions);
+  const addNewExpression = async (property: ExpressionProperty) => {
     const newExpressions = addExpressionIfLimitNotReached(
-      validExpressions,
+      expressionsState,
+      property,
       isExpressionLimitReached,
     );
-    setExpressionInEditModeId(newExpressions[newExpressions.length - 1].id);
-    setExpressions(newExpressions);
+    setExpressionsState(newExpressions);
   };
 
   const updateExpression = (index: number, newExpression: Expression) => {
-    const newExpressions = deepCopy(expressions);
-    newExpressions[index] = newExpression;
-    setExpressions(newExpressions);
+    const newExpressionsState = deepCopy(expressionsState);
+    newExpressionsState[index].expression = newExpression;
+    setExpressionsState(newExpressionsState);
   };
 
-  const editExpression = (expression: Expression) => {
-    // TODO: Check if expression is in edit mode and try to save?
-    const validExpressions = removeInvalidExpressions(expressions);
-    setExpressionInEditModeId(expression.id);
-    setExpressions(validExpressions);
+  const editExpression = (index: number) => {
+    const newExpressionsState = deepCopy(expressionsState);
+    newExpressionsState[index].editMode = true;
+    setExpressionsState(newExpressionsState);
   };
 
-  const deleteExpression = async (expression: Expression) => {
-    const newExpressions = deleteExpressionAndAddDefaultIfEmpty(expression, expressions);
+  const removeExpression = async (expression: Expression) => {
+    const newExpressionsState = deleteExpression(expression, expressionsState);
     const updatedComponent = deleteExpressionFromComponent(form, expression);
     await updateAndSaveLayout(updatedComponent);
-    if (newExpressions.length === 1 && !newExpressions[0].property) {
-      // Set default expression as expression in edit mode if it has been added
-      setExpressionInEditModeId(newExpressions[0].id);
-    } else if (expressionInEditModeId !== expression.id) {
-      setExpressionInEditModeId(expressionInEditModeId);
-    } else {
-      // Unset expression in edit mode if expression to delete was in edit mode
-      setExpressionInEditModeId(undefined);
-    }
-    setExpressions(newExpressions);
+    setExpressionsState(newExpressionsState);
   };
 
   const deleteSubExpression = async (
@@ -118,23 +128,17 @@ export const Expressions = () => {
     subExpression: SubExpression,
     expression: Expression,
   ) => {
-    const newExpression = removeSubExpressionAndAdaptParentProps(expression, subExpression);
+    const newExpression = removeSubExpression(expression, subExpression);
     const updatedComponent = convertAndAddExpressionToComponent(form, newExpression);
     await updateAndSaveLayout(updatedComponent);
     updateExpression(index, newExpression);
   };
 
-  const getProperties = (expression: Expression) => {
-    const alreadyUsedProperties = expressions.map((prevExpression) => {
-      if (expression !== prevExpression) return prevExpression.property;
-    }) as string[];
-    const availableProperties = expressionProperties.filter(
-      (expressionProperty) => !Object.values(alreadyUsedProperties).includes(expressionProperty),
-    );
-    return { availableProperties, expressionProperties };
+  const getProperties = (): string[] => {
+    return getNonOverlappingElementsFromTwoLists(expressionProperties, alreadyUsedProperties);
   };
 
-  console.log('expressions: ', expressions); // TODO: Remove when fully tested
+  console.log('expressions: ', expressionsState); // TODO: Remove when fully tested
   return (
     <div className={classes.root}>
       <Trans i18nKey={'right_menu.read_more_about_expressions'}>
@@ -144,24 +148,24 @@ export const Expressions = () => {
           rel='noopener noreferrer'
         />
       </Trans>
-      {Object.values(expressions).map((expression: Expression, index: number) => (
-        <React.Fragment key={expression.id}>
+      {Object.values(expressionsState).map((expressionState: ExpressionState, index: number) => (
+        <React.Fragment key={expressionState.expression.property}>
           <ExpressionContent
             componentName={form.id}
-            expression={expression}
-            onGetProperties={() => getProperties(expression)}
-            showRemoveExpressionButton={showRemoveExpressionButton}
-            onSaveExpression={() => saveExpressionAndSetCheckMark(index, expression)}
+            expressionState={expressionState}
+            onGetProperties={getProperties}
+            onSaveExpression={() =>
+              saveExpressionAndSetCheckMark(index, expressionState.expression)
+            }
             successfullyAddedExpression={
-              expression.property === successfullyAddedExpressionProperty
+              expressionState.expression.property === successfullyAddedExpressionProperty
             }
-            expressionInEditMode={expression.id === expressionInEditModeId}
             onUpdateExpression={(newExpression) => updateExpression(index, newExpression)}
-            onRemoveExpression={() => deleteExpression(expression)}
+            onRemoveExpression={() => removeExpression(expressionState.expression)}
             onRemoveSubExpression={(subExpression) =>
-              deleteSubExpression(index, subExpression, expression)
+              deleteSubExpression(index, subExpression, expressionState.expression)
             }
-            onEditExpression={() => editExpression(expression)}
+            onEditExpression={() => editExpression(index)}
           />
         </React.Fragment>
       ))}
@@ -170,18 +174,21 @@ export const Expressions = () => {
           {t('right_menu.expressions_expressions_limit_reached_alert')}
         </Alert>
       ) : (
-        <Button
-          title={t('right_menu.expressions_add')}
-          color='first'
-          fullWidth
-          icon={<PlusIcon />}
-          id='right_menu.dynamics_add'
-          onClick={addNewExpression}
-          size='small'
-          variant='secondary'
-        >
-          {t('right_menu.expressions_add')}
-        </Button>
+        <>
+          {expressionsState.length === 0 && (
+            <p>
+              <Trans
+                i18nKey={'right_menu.expressions_property_on_component'}
+                values={{ componentName: form.id }}
+                components={{ bold: <strong /> }}
+              />
+            </p>
+          )}
+          <NewExpressionButton
+            options={availableProperties}
+            onAddExpression={(property: ExpressionProperty) => addNewExpression(property)}
+          />
+        </>
       )}
     </div>
   );

@@ -1,14 +1,14 @@
 import {
   DataSource,
   Expression,
-  SubExpression,
   ExpressionFunction,
+  ExpressionProperty,
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
-  Operator,
   getExpressionPropertiesBasedOnComponentType,
+  Operator,
+  SubExpression,
 } from '../types/Expressions';
-import { v4 as uuidv4 } from 'uuid'; // TODO: Refactor so that we don't need this. https://github.com/Altinn/altinn-studio/issues/11523
 import { deepCopy } from 'app-shared/pure';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { IFormLayouts, LayoutItemType } from '../types/global';
@@ -16,6 +16,7 @@ import { FormComponent } from '../types/FormComponent';
 import { SingleSelectOption } from '@digdir/design-system-react';
 import { FormContainer } from '../types/FormContainer';
 import { UseText } from '../hooks';
+import { ExpressionState } from '../components/config/Expressions/Expressions';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
@@ -65,7 +66,7 @@ export const convertInternalSubExpressionToExternal = (subExp: SubExpression): a
 };
 
 export const isStudioFriendlyExpression = (expression: any): boolean => {
-  if (expression?.length === 0) {
+  if (!expression[0]) {
     // For building expressions free style from beginning
     return true;
   }
@@ -95,7 +96,6 @@ export const convertExternalExpressionToInternal = (
 ): Expression => {
   const hasMoreExpressions: boolean = Object.values(Operator).includes(expression[0] as Operator);
   const convertedExpression: Expression = {
-    id: uuidv4(),
     property: booleanValue as ExpressionPropertyBase | ExpressionPropertyForGroup,
     subExpressions: [],
   };
@@ -108,7 +108,6 @@ export const convertExternalExpressionToInternal = (
 
   if (!hasMoreExpressions) {
     const subExp: SubExpression = {
-      id: uuidv4(),
       function: expression[0] as ExpressionFunction,
     };
     const updatedExpAddingValue = convertSubExpression(subExp, expression[1], false);
@@ -120,8 +119,7 @@ export const convertExternalExpressionToInternal = (
     convertedExpression.operator = expression[0] as Operator;
     expression.slice(1).map((expEl) => {
       const exp: SubExpression = {
-        id: uuidv4(),
-        function: expEl[0] as ExpressionFunction, // might need an error handling if function is invalid
+        function: expEl[0] as ExpressionFunction,
       };
       const updatedExpAddingValue = convertSubExpression(exp, expEl[1], false);
       convertedExpression.subExpressions.push(
@@ -199,71 +197,66 @@ export const deleteExpressionFromComponent = (
 };
 
 export const addExpressionIfLimitNotReached = (
-  oldExpressions: Expression[],
+  oldExpressionsState: ExpressionState[],
+  property: ExpressionProperty,
   isExpressionLimitReached: boolean,
-): Expression[] => {
-  const newExpressions = deepCopy(oldExpressions);
-  const newExpression: Expression = { id: uuidv4() };
-  return isExpressionLimitReached ? newExpressions : newExpressions.concat(newExpression);
+): ExpressionState[] => {
+  const newExpressionsState = deepCopy(oldExpressionsState);
+  const newExpression: Expression = addPropertyToExpression({}, property);
+  const newExpressionState: ExpressionState = { expression: newExpression, editMode: true };
+  return isExpressionLimitReached
+    ? newExpressionsState
+    : newExpressionsState.concat(newExpressionState);
 };
 
-export const deleteExpressionAndAddDefaultIfEmpty = (
+export const deleteExpression = (
   expressionToDelete: Expression,
-  oldExpressions: Expression[],
-): Expression[] => {
-  const expressionsCopy = deepCopy(oldExpressions);
-  let newExpressions = expressionsCopy;
-  if (expressionToDelete.property) {
-    newExpressions = expressionsCopy.filter(
-      (prevExpression) => prevExpression.id !== expressionToDelete.id,
-    );
-    if (newExpressions.length === 0) {
-      const defaultExpression: Expression = { id: uuidv4() };
-      newExpressions = [defaultExpression];
-    }
-  }
-  return newExpressions;
-};
-
-export const removeInvalidExpressions = (oldExpressions: Expression[]): Expression[] => {
-  const newExpressions = deepCopy(oldExpressions);
-  return newExpressions.filter(
-    (prevExpression) =>
-      prevExpression.property || complexExpressionIsSet(prevExpression.complexExpression),
+  expressionsState: ExpressionState[],
+): ExpressionState[] => {
+  return expressionsState.filter(
+    (prevExpression) => prevExpression.expression.property !== expressionToDelete.property,
   );
 };
 
-export const addProperty = (oldExpression: Expression, property: string): Expression => {
+export const addPropertyToExpression = (
+  oldExpression: Expression,
+  property: string,
+): Expression => {
   const newExpression = deepCopy(oldExpression);
   if (property === 'default') {
     return newExpression;
   }
   newExpression.property = property as ExpressionPropertyBase;
-  if (!newExpression.subExpressions) {
-    const newSubExpression: SubExpression = { id: uuidv4() };
-    newExpression.subExpressions = [newSubExpression];
-  }
   return newExpression;
 };
 
 export const addSubExpressionToExpression = (
   oldExpression: Expression,
+  operator?: Operator,
+): Expression => {
+  const newExpression = deepCopy(oldExpression);
+  const newSubExpression: SubExpression = {};
+  if (!newExpression.subExpressions) {
+    newExpression.subExpressions = [newSubExpression];
+    return newExpression;
+  }
+  if (newExpression.subExpressions.length > 0) {
+    newExpression.operator = operator;
+  }
+  newExpression.subExpressions.push(newSubExpression);
+  return newExpression;
+};
+
+export const updateOperatorOnExpression = (
+  oldExpression: Expression,
   operator: Operator,
 ): Expression => {
   const newExpression = deepCopy(oldExpression);
-  const newSubExpression: SubExpression = { id: uuidv4() };
-  newExpression.subExpressions.push(newSubExpression);
   newExpression.operator = operator;
   return newExpression;
 };
 
-export const updateOperator = (oldExpression: Expression, operator: Operator): Expression => {
-  const newExpression = deepCopy(oldExpression);
-  newExpression.operator = operator;
-  return newExpression;
-};
-
-export const updateExpression = (
+export const updateSubExpressionOnExpression = (
   oldExpression: Expression,
   index: number,
   subExpression: SubExpression,
@@ -273,7 +266,7 @@ export const updateExpression = (
   return newExpression;
 };
 
-export const updateComplexExpression = (
+export const updateComplexExpressionOnExpression = (
   oldExpression: Expression,
   complexExpression: any,
 ): Expression => {
@@ -282,23 +275,17 @@ export const updateComplexExpression = (
   return newExpression;
 };
 
-export const removeSubExpressionAndAdaptParentProps = (
+export const removeSubExpression = (
   oldExpression: Expression,
   subExpression: SubExpression,
 ): Expression => {
   const newExpression = deepCopy(oldExpression);
-  const updatedSubExpressions = newExpression.subExpressions.filter(
-    (expEl: SubExpression) => expEl.id !== subExpression.id,
+  newExpression.subExpressions = oldExpression.subExpressions.filter(
+    (expEl: SubExpression) => expEl !== subExpression,
   );
-  if (updatedSubExpressions.length === 0) {
-    delete newExpression.operator;
-    delete newExpression.property;
-    delete newExpression.subExpressions;
-    return newExpression;
-  } else if (updatedSubExpressions.length === 1) {
+  if (newExpression.subExpressions.length < 2) {
     delete newExpression.operator;
   }
-  newExpression.subExpressions = updatedSubExpressions;
   return newExpression;
 };
 
@@ -441,6 +428,10 @@ export const getAllConvertedExpressions = (form: FormComponent | FormContainer):
   return convertedExternalExpressionsForGroupProperties.concat(
     convertedExternalExpressionsForGeneralProperties,
   );
+};
+
+export const getNonOverlappingElementsFromTwoLists = (list1: any[], list2: any[]): any[] => {
+  return list1.filter((item) => !list2.includes(item));
 };
 
 // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855

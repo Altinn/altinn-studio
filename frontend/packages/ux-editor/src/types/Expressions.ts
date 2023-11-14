@@ -2,7 +2,6 @@ import { UseText } from '../hooks';
 import { LayoutItemType } from './global';
 
 export interface Expression {
-  id?: string;
   operator?: Operator;
   property?: ExpressionProperty;
   subExpressions?: SubExpression[];
@@ -10,7 +9,6 @@ export interface Expression {
 }
 
 export interface SubExpression {
-  id: string;
   function?: ExpressionFunction;
   dataSource?: string;
   value?: string | number | boolean;

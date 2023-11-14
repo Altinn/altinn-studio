@@ -877,7 +877,7 @@
   "right_menu.expression_enable_free_style_editing": "Rediger med fritekst",
   "right_menu.expression_successfully_added_text": "Lagt til",
   "right_menu.expressions_add": "Lag en ny logikkregel",
-  "right_menu.expressions_add_expression": "Utvid regelen",
+  "right_menu.expressions_add_sub_expression": "Utvid regelen",
   "right_menu.expressions_comparable_data_source": "Sammenlignbar datakilde",
   "right_menu.expressions_complex_expression_message": "Formatet på dette uttrykket kan ikke tolkes av Studio, men du kan redigere det manuelt",
   "right_menu.expressions_data_source": "Datakilde",

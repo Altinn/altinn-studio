@@ -25,45 +25,44 @@ describe('SimpleExpression', () => {
 
   it('displays two data source selector components from subExpressionContent when there are two subExpressions in the expression', () => {
     render({});
-    const subExpressionDataSourceSelectors = screen.queryAllByRole('combobox', { name: textMock('right_menu.expressions_data_source') });
-    expect(subExpressionDataSourceSelectors).toHaveLength(2);
-  });
-  it('displays no data source selector components from subExpressionContent when allowToSpecifyExpression is false', () => {
-    render({
-      props: {
-        allowToSpecifyExpression: false
-      }
+    const subExpressionDataSourceSelectors = screen.queryAllByRole('combobox', {
+      name: textMock('right_menu.expressions_data_source'),
     });
-    const subExpressionDataSourceSelectors = screen.queryAllByRole('combobox', { name: textMock('right_menu.expressions_data_source') });
-    expect(subExpressionDataSourceSelectors).toHaveLength(0);
+    expect(subExpressionDataSourceSelectors).toHaveLength(2);
   });
   it('displays one addSubExpressionButton and one toggleButtonGroup with OR operator pressed', () => {
     render({});
-    const addSubExpressionButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add_expression') });
-    const operatorToggleGroupOr = screen.getByRole('button', { name: textMock('right_menu.expressions_operator_or') });
-    const operatorToggleGroupAnd = screen.getByRole('button', { name: textMock('right_menu.expressions_operator_and') });
-    expect(addSubExpressionButton).toBeInTheDocument();
+    const operatorToggleGroupOr = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_operator_or'),
+    });
+    const operatorToggleGroupAnd = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_operator_and'),
+    });
     expect(operatorToggleGroupOr).toBeInTheDocument();
     expect(operatorToggleGroupOr).toHaveAttribute('aria-pressed', 'true');
     expect(operatorToggleGroupAnd).toBeInTheDocument();
     expect(operatorToggleGroupAnd).toHaveAttribute('aria-pressed', 'false');
-
   });
 });
 
-const render = ({ props = {}, queries = {}, }: {
+const render = ({
+  props = {},
+  queries = {},
+}: {
   props?: Partial<SimpleExpressionProps>;
   queries?: Partial<ServicesContextProps>;
 }) => {
   const defaultProps: SimpleExpressionProps = {
-    allowToSpecifyExpression: true,
     expression: internalExpressionWithMultipleSubExpressions,
-    onAddSubExpression: jest.fn(),
     onRemoveSubExpression: jest.fn(),
     onUpdateExpressionOperator: jest.fn(),
     onUpdateSubExpression: jest.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  return renderWithMockStore({}, queries, queryClient)(<SimpleExpression {...defaultProps} {...props} />);
+  return renderWithMockStore(
+    {},
+    queries,
+    queryClient,
+  )(<SimpleExpression {...defaultProps} {...props} />);
 };

@@ -116,14 +116,15 @@ describe('Expressions', () => {
     render({
       component: componentWithoutExpressions,
     });
-
-    const defaultExpressionSelectProperty = screen.getByRole('combobox', {
-      name: textMock('right_menu.expressions_property'),
-    });
-    expect(defaultExpressionSelectProperty).toBeInTheDocument();
-    expect(defaultExpressionSelectProperty).toHaveValue(
-      textMock('right_menu.expressions_property_select'),
+    
+    const createRuleForComponentIdText = screen.getByText(
+      textMock('right_menu.expressions_property_on_component'),
     );
+    expect(createRuleForComponentIdText).toBeInTheDocument();
+    const createNewExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_add'),
+    });
+    expect(createNewExpressionButton).toBeInTheDocument();
   });
 
   it('renders link to docs', () => {
