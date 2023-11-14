@@ -38,7 +38,7 @@ export enum ExpressionPropertyForGroup {
   EditDeleteButton = 'edit.deleteButton',
   EditSaveButton = 'edit.saveButton',
   EditSaveAndNextButton = 'edit.saveAndNextButton',
-}
+} // TODO: Remove prefix and sync with FormContainer type. https://github.com/Altinn/altinn-studio/issues/11524
 
 export enum ExpressionFunction {
   Equals = 'equals',

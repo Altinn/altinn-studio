@@ -25,11 +25,20 @@ context('datamodel', () => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
-  it('add a new data model', () => {
+  it('add a new data model, and then add an object to the data model', () => {
     datamodel.getCreateNewButton().click();
     cy.findByRole('textbox').type('datamodel');
     cy.findByRole('button', { name: texts['schema_editor.create_model_confirm_button'] }).click();
     datamodel.getProperty('property1').click();
+    cy.findByRole('button', { name: texts['schema_editor.add'] }).click();
+    cy.findByRole('menuitem', { name: texts['schema_editor.object'] })
+      .should('exist')
+      .click()
+      .then(() => {
+        datamodel.getProperty('name').should('exist');
+        datamodel.getNameField().clear().type('test');
+        datamodel.getNameField().invoke('val').should('eq', 'test');
+      });
   });
 
   it('edit a data model', () => {
