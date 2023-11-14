@@ -229,8 +229,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 endpointUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/";
             }
 
-            List<ServiceResource> resources = null;
-
             JsonSerializerOptions options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
