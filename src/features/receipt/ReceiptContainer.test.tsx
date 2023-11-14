@@ -101,7 +101,6 @@ function getMockState({
       id: 'ReceiptAttachmentList',
       type: 'AttachmentList',
       dataTypeIds: ['ref-data-as-pdf'],
-      includePDF: true,
     },
   ];
 

@@ -1,10 +1,11 @@
 import React from 'react';
 
 import { List, ListItem, ListItemIcon, ListItemText, makeStyles, Typography } from '@material-ui/core';
-import { FileIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { useLanguage } from 'src/hooks/useLanguage';
+import { FileExtensionIcon } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
+import { getFileEnding } from 'src/utils/attachment';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IAttachment } from 'src/types/shared';
 
@@ -103,9 +104,9 @@ export function AltinnAttachment({ attachments, listDisableVerticalPadding, nest
                 key={index}
               >
                 <ListItemIcon>
-                  <FileIcon
+                  <FileExtensionIcon
+                    fileEnding={getFileEnding(attachment.name)}
                     className={classes.icon}
-                    aria-hidden
                   />
                 </ListItemIcon>
                 <ListItemText

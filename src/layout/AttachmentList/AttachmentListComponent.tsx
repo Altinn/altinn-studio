@@ -6,16 +6,19 @@ import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { selectAttachments, selectDataTypesByIds } from 'src/selectors/dataTypes';
+import { DataTypeReference } from 'src/utils/attachmentsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
 
 export function AttachmentListComponent({ node }: IAttachmentListProps) {
-  const { dataTypeIds, includePDF } = node.item;
   const { lang } = useLanguage();
-  const dataForTask = useAppSelector(selectDataTypesByIds(dataTypeIds));
-  const attachments = useAppSelector(selectAttachments(includePDF, dataForTask));
+  const dataForTask = useAppSelector(selectDataTypesByIds(node.item.dataTypeIds));
 
+  const includePdf = node.item.dataTypeIds?.some((id) =>
+    [DataTypeReference.RefDataAsPdf, DataTypeReference.IncludeAll].includes(id as DataTypeReference),
+  );
+  const attachments = useAppSelector(selectAttachments(dataForTask, includePdf));
   return (
     <Grid
       item={true}

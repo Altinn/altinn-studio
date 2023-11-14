@@ -26,13 +26,4 @@ export const Config = new CG.component({
         .setTitle('Data type IDs')
         .setDescription('List of data type IDs for the attachment list to show'),
     ),
-  )
-  .addProperty(
-    new CG.prop(
-      'includePDF',
-      new CG.bool()
-        .optional()
-        .setTitle('Include PDF?')
-        .setDescription('Whether to include the generated PDF summary files in the attachment list'),
-    ),
   );

@@ -15,7 +15,11 @@ import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { getAppReceiver } from 'src/language/sharedLanguage';
 import { layoutsSelector } from 'src/selectors/layout';
-import { getAttachmentGroupings, getInstancePdf, mapInstanceAttachments } from 'src/utils/attachmentsUtils';
+import {
+  filterInstanceAttachments,
+  filterInstancePdfAttachments,
+  getAttachmentGroupings,
+} from 'src/utils/attachmentsUtils';
 import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
@@ -68,7 +72,7 @@ export const returnInstanceMetaDataObject = (
 
 export const ReceiptContainer = () => {
   const dispatch = useAppDispatch();
-  const [attachments, setAttachments] = useState<IAttachment[]>([]);
+  const [attachments, setAttachments] = useState<IAttachment[] | undefined>([]);
   const [pdf, setPdf] = useState<IAttachment[] | undefined>(undefined);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState<SummaryDataObject>({});
@@ -114,14 +118,13 @@ export const ReceiptContainer = () => {
 
   useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
-      const appLogicDataTypes = applicationMetadata.dataTypes.filter((dataType) => !!dataType.appLogic);
+      const defaultElementIds = applicationMetadata.dataTypes
+        .filter((dataType) => !!dataType.appLogic)
+        .map((type) => type.id);
 
-      const attachmentsResult = mapInstanceAttachments(
-        instance.data,
-        appLogicDataTypes.map((type) => type.id),
-      );
+      const attachmentsResult = filterInstanceAttachments(instance.data, defaultElementIds);
       setAttachments(attachmentsResult);
-      setPdf(getInstancePdf(instance.data));
+      setPdf(filterInstancePdfAttachments(instance.data));
       setLastChangedDateTime(moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm'));
     }
   }, [instance, applicationMetadata]);
