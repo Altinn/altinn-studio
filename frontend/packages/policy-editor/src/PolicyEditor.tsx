@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Paragraph, Label } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type {
   PolicyAction,
   Policy,
@@ -22,7 +22,7 @@ import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 import { CardButton } from './components/CardButton';
 import { deepCopy } from 'app-shared/pure';
 import { useTranslation } from 'react-i18next';
-import { SecurityLevel } from './components/SecurityLevel';
+import { SecurityLevelSelect } from './components/SecurityLevelSelect';
 
 export type PolicyEditorProps = {
   policy: Policy;
@@ -192,13 +192,13 @@ export const PolicyEditor = ({
 
   return (
     <div>
-      <SecurityLevel
+      <SecurityLevelSelect
         requiredAuthenticationLevelEndUser={policy.requiredAuthenticationLevelEndUser}
         onSave={handleSavePolicyAuthLevel}
       />
-      <Label as='p' spacing size='medium' className={classes.label}>
+      <Heading level={2} size='xxsmall' spacing className={classes.heading}>
         {t('policy_editor.rules')}
-      </Label>
+      </Heading>
       <div className={classes.alertWrapper}>
         <Alert severity='info' className={classes.alert}>
           <Paragraph size='small'>

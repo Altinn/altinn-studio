@@ -1,7 +1,7 @@
-import React, { ReactNode } from 'react';
-import classes from './SecurityLevel.module.css';
-import { Select, Label, Paragraph, HelpText, Link } from '@digdir/design-system-react';
-import { useTranslation, Trans } from 'react-i18next';
+import React, { ReactNode, useMemo } from 'react';
+import classes from './SecurityLevelSelect.module.css';
+import { Select, Heading, Label, Paragraph, HelpText, Link } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 import { RequiredAuthLevel } from '../../types';
 
 const SELECT_AUTH_LEVEL_ID: string = 'select-auth-level';
@@ -16,27 +16,38 @@ export const authlevelOptions = [
   { value: '4', label: 'policy_editor.auth_level_option_4' },
 ];
 
-export type SecurityLevelProps = {
+export type SecurityLevelSelectProps = {
   requiredAuthenticationLevelEndUser: RequiredAuthLevel;
   onSave: (authLevel: RequiredAuthLevel) => void;
 };
 
-export const SecurityLevel = ({
+/**
+ * @component
+ *    Displays the security level area in the policy editor
+ *
+ * @property {RequiredAuthLevel}[requiredAuthenticationLevelEndUser] - The required auth level in the policy
+ * @property {function}[onSave] - Function to be executed when saving the policy
+ *
+ * @returns {ReactNode} - The rendered component
+ */
+export const SecurityLevelSelect = ({
   requiredAuthenticationLevelEndUser,
   onSave,
-}: SecurityLevelProps): ReactNode => {
+}: SecurityLevelSelectProps): ReactNode => {
   const { t } = useTranslation();
 
-  const authLevelOptionKeysAsDisplayStrings = authlevelOptions.map((option) => ({
-    ...option,
-    label: t(option.label),
-  }));
+  const authLevelOptionKeysAsDisplayStrings = useMemo(() => {
+    return authlevelOptions.map((option) => ({
+      ...option,
+      label: t(option.label),
+    }));
+  }, [t]);
 
   return (
     <div>
-      <Label as='p' size='medium' spacing>
+      <Heading level={2} size='xxsmall' spacing>
         {t('policy_editor.security_level_label')}
-      </Label>
+      </Heading>
       <Paragraph className={classes.paragraph} size='small'>
         {t('policy_editor.security_level_description')}
       </Paragraph>
@@ -47,18 +58,14 @@ export const SecurityLevel = ({
             {t('policy_editor.select_auth_level_label')}
           </Label>
           <HelpText title={t('policy_editor.select_auth_level_help_text')}>
-            <Trans i18nKey={'policy_editor.select_auth_level_help_text_content'}>
-              <Link
-                href={URL_TO_SECURITY_LEVEL_PAGE}
-                target='_newTab'
-                rel='noopener noreferrer'
-                className={classes.link}
-                // This is needed to be inline in the code for some reason. If moved to CSS, the text and the link is placed on different lines
-                style={{ display: 'inline' }}
-              >
-                sikkerhetsnivå og innlogging for sluttbruker
-              </Link>
-            </Trans>
+            <Link
+              href={URL_TO_SECURITY_LEVEL_PAGE}
+              target='_newTab'
+              rel='noopener noreferrer'
+              className={classes.link}
+            >
+              {t('policy_editor.select_auth_level_help_text_content')}
+            </Link>
           </HelpText>
         </div>
         <Select

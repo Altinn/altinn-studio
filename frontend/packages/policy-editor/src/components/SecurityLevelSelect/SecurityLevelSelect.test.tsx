@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SecurityLevel, SecurityLevelProps, authlevelOptions } from './SecurityLevel';
+import {
+  SecurityLevelSelect,
+  SecurityLevelSelectProps,
+  authlevelOptions,
+} from './SecurityLevelSelect';
 import { RequiredAuthLevel } from '../../types';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
@@ -15,14 +19,14 @@ const mockOnSave = jest.fn();
 describe('SelectAuthLevel', () => {
   afterEach(jest.clearAllMocks);
 
-  const defaultProps: SecurityLevelProps = {
+  const defaultProps: SecurityLevelSelectProps = {
     requiredAuthenticationLevelEndUser: mockInitialAuthLevelValue,
     onSave: mockOnSave,
   };
 
   it('updates the selected value when the user changes the selection', async () => {
     const user = userEvent.setup();
-    render(<SecurityLevel {...defaultProps} />);
+    render(<SecurityLevelSelect {...defaultProps} />);
 
     const [selectElement] = screen.getAllByLabelText(mockLabel);
 

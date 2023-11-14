@@ -6,7 +6,7 @@ import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { Policy, RequiredAuthLevel, PolicyEditorUsage } from './types';
 import { mockActions, mockPolicyRules, mockResourecId1, mockSubjects } from './data-mocks';
-import { authlevelOptions } from './components/SecurityLevel/SecurityLevel';
+import { authlevelOptions } from './components/SecurityLevelSelect/SecurityLevelSelect';
 
 const mockRequiredAuthLevel: RequiredAuthLevel = '3';
 const mockRequiredAuthLevelLabel: string = textMock(authlevelOptions[3].label);
