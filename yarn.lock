@@ -1776,6 +1776,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@digdir/design-system-react@npm:0.36.0":
+  version: 0.36.0
+  resolution: "@digdir/design-system-react@npm:0.36.0"
+  dependencies:
+    "@altinn/figma-design-tokens": ^6.0.1
+    "@digdir/design-system-tokens": ^0.9.0
+    "@floating-ui/react": 0.25.2
+    "@navikt/aksel-icons": ^3.2.4
+    react-number-format: 5.2.2
+  peerDependencies:
+    react: ">=18.2.0"
+    react-dom: ">=18.2.0"
+  checksum: 8e1c4421495a1415e829ed30bd7f21bcb9a318ced0df645fedddd54cab95323df755aeb5fbb590dc30293da9c667203c9213f7c7fe5e7548ccf0c65ef50bfda3
+  languageName: node
+  linkType: hard
+
 "@digdir/design-system-tokens@npm:0.8.1, @digdir/design-system-tokens@npm:^0.8.1":
   version: 0.8.1
   resolution: "@digdir/design-system-tokens@npm:0.8.1"
@@ -1787,6 +1803,13 @@ __metadata:
   version: 0.1.7
   resolution: "@digdir/design-system-tokens@npm:0.1.7"
   checksum: dabe357c8d262cd6f6430a722f30dc3aa70243bd12cdc39886b655b1ee9a22c471e5131906944a6164c166ef54b86e69526fec5fa8750ad8c9f4444a4aeedf0d
+  languageName: node
+  linkType: hard
+
+"@digdir/design-system-tokens@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "@digdir/design-system-tokens@npm:0.9.0"
+  checksum: 89b2fa83803510111e5e3bfd746034a118f87bc957abf548f0e4e763a5128561e68ec638ae22724cfc778c075d3e0636ef3af3d6c04c5b1785eb838eff9df64f
   languageName: node
   linkType: hard
 
@@ -5546,7 +5569,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.29.1
     "@altinn/figma-design-tokens": 6.0.1
-    "@digdir/design-system-react": 0.35.0
+    "@digdir/design-system-react": 0.36.0
     "@digdir/design-system-tokens": 0.8.1
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
