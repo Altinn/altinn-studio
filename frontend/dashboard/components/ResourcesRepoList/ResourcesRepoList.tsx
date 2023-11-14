@@ -19,14 +19,19 @@ export const ResourcesRepoList = ({ organizations }: ResourcesRepoListProps): Re
   const selectedContext = useSelectedContext();
   const repo = `${selectedContext}-resources`;
 
-  const { data: resourceListData, isLoading } = useGetResourceListQuery(selectedContext);
+  const isOrganisation =
+    selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
+  const { data: resourceListData, isLoading } = useGetResourceListQuery(
+    selectedContext,
+    !isOrganisation,
+  );
 
-  if (selectedContext === SelectedContextType.All || selectedContext === SelectedContextType.Self) {
+  if (!isOrganisation) {
     return null;
   }
 
   return (
-    <div>
+    <div data-testid='resource-table-wrapper'>
       <h2>
         {getReposLabel({
           selectedContext,
@@ -36,7 +41,7 @@ export const ResourcesRepoList = ({ organizations }: ResourcesRepoListProps): Re
         })}
       </h2>
       {isLoading ? (
-        <AltinnSpinner />
+        <AltinnSpinner spinnerText={t('general.loading')} />
       ) : (
         <div>
           <a href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
@@ -47,7 +52,7 @@ export const ResourcesRepoList = ({ organizations }: ResourcesRepoListProps): Re
             onClickEditResource={(id: string) => {
               // we have to do a hard navigation (without react-router) to load the correct script files
               const resourceUrl = getResourcePageURL(selectedContext, repo, id, 'about');
-              window.location.href = `${RESOURCEADM_BASENAME}${resourceUrl}`;
+              window.location.assign(`${RESOURCEADM_BASENAME}${resourceUrl}`);
             }}
           />
         </div>
