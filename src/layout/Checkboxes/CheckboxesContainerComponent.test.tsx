@@ -2,6 +2,7 @@ import React from 'react';
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { AxiosResponse } from 'axios';
 
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { LayoutStyle } from 'src/layout/common.generated';
@@ -45,7 +46,9 @@ const render = ({ component, genericProps, options }: Props = {}) =>
     },
     mockedQueries: {
       fetchOptions: () =>
-        options ? Promise.resolve(options) : Promise.reject(new Error('No options provided to render()')),
+        options
+          ? Promise.resolve({ data: options, headers: {} } as AxiosResponse<IOption[], any>)
+          : Promise.reject(new Error('No options provided to render()')),
     },
   });
 const getCheckbox = ({ name, isChecked = false }) =>

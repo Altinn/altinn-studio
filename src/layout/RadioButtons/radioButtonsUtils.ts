@@ -13,6 +13,11 @@ export const useRadioButtons = ({ node, handleDataChange, formData }: IRadioButt
   const { options: calculatedOptions, isFetching: fetchingOptions } = useGetOptions({
     ...node.item,
     node,
+    metadata: {
+      setValue: (metadata) => {
+        handleDataChange(metadata, { key: 'metadata' });
+      },
+    },
     formData: {
       type: 'single',
       value: selected,

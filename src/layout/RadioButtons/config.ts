@@ -12,7 +12,7 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
   },
 })
-  .addDataModelBinding(CG.common('IDataModelBindingsSimple').optional({ onlyIn: Variant.Internal }))
+  .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple').optional({ onlyIn: Variant.Internal }))
   .makeSelectionComponent()
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()))
   .addProperty(

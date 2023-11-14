@@ -12,4 +12,4 @@ export const Config = new CG.component({
   },
 })
   .makeSelectionComponent()
-  .addDataModelBinding(CG.common('IDataModelBindingsSimple').optional({ onlyIn: Variant.Internal }));
+  .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple').optional({ onlyIn: Variant.Internal }));

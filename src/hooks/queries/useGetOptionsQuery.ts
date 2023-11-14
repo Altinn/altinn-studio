@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
+import type { AxiosResponse } from 'axios';
 
 import { useAppQueries } from 'src/contexts/appQueriesContext';
 import { OptionsActions } from 'src/features/options/optionsSlice';
@@ -14,7 +15,7 @@ export const useGetOptionsQuery = (
   mapping?: IMapping,
   queryParameters?: Record<string, string>,
   secure?: boolean,
-): UseQueryResult<IOption[]> => {
+): UseQueryResult<AxiosResponse<IOption[], any>> => {
   const dispatch = useAppDispatch();
   const { fetchOptions } = useAppQueries();
   const formData = useAppSelector((state) => state.formData.formData);

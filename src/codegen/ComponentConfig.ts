@@ -100,7 +100,9 @@ export class ComponentConfig extends GenerateComponentLike {
   }
 
   addDataModelBinding(
-    type: GenerateCommonImport<'IDataModelBindingsSimple' | 'IDataModelBindingsList'> | GenerateObject<any>,
+    type:
+      | GenerateCommonImport<'IDataModelBindingsSimple' | 'IDataModelBindingsList' | 'IDataModelBindingsOptionsSimple'>
+      | GenerateObject<any>,
   ): this {
     this.ensureNotOverridden();
     return super.addDataModelBinding(type);

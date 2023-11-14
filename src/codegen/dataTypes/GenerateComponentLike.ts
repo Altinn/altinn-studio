@@ -57,7 +57,9 @@ export class GenerateComponentLike {
    * Adding multiple data model bindings to the component makes it a union
    */
   public addDataModelBinding(
-    type: GenerateCommonImport<'IDataModelBindingsSimple' | 'IDataModelBindingsList'> | GenerateObject<any>,
+    type:
+      | GenerateCommonImport<'IDataModelBindingsSimple' | 'IDataModelBindingsList' | 'IDataModelBindingsOptionsSimple'>
+      | GenerateObject<any>,
   ): this {
     const name = 'dataModelBindings';
     const existing = this.inner.getProperty(name)?.type;

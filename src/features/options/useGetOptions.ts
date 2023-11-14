@@ -34,6 +34,8 @@ interface Props<T extends ValueType> {
         disable: 'I have read the code and know that core functionality will be missing';
       };
 
+  metadata?: Omit<ValueObj<'single'>, 'type' | 'value'>;
+
   // Simple options, static and pre-defined
   options?: IOption[];
 
@@ -66,11 +68,17 @@ const compareOptionAlphabetically =
   };
 
 export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResult {
-  const { node, options, optionsId, secure, removeDuplicates, source, mapping, queryParameters, sortOrder } = props;
+  const { node, options, optionsId, secure, removeDuplicates, source, mapping, queryParameters, sortOrder, metadata } =
+    props;
   const sourceOptions = useSourceOptions({ source, node });
-  const { data: fetchedOptions, isFetching } = useGetOptionsQuery(optionsId, mapping, queryParameters, secure);
   const staticOptions = optionsId ? undefined : options;
-  const calculatedOptions = sourceOptions || fetchedOptions || staticOptions;
+  const setMetadata = metadata?.setValue;
+  const { data: fetchedOptions, isFetching } = useGetOptionsQuery(optionsId, mapping, queryParameters, secure);
+  const calculatedOptions = sourceOptions || fetchedOptions?.data || staticOptions;
+  const downstreamParameters: string = fetchedOptions?.headers['altinn-downstreamparameters'];
+  if (!!setMetadata && downstreamParameters) {
+    setMetadata(downstreamParameters);
+  }
   const { selectedLanguage, langAsString } = useLanguage();
 
   usePreselectedOptionIndex(calculatedOptions, props);

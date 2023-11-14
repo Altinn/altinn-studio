@@ -5,6 +5,7 @@ import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render as rtlRender } from '@testing-library/react';
 import type { RenderOptions } from '@testing-library/react';
+import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 import type { PreloadedState } from 'redux';
 
@@ -19,6 +20,7 @@ import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
+import type { IOption } from 'src/layout/common.generated';
 import type { CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppStore, RootState } from 'src/redux/store';
 import type { ILayoutSets, IRuntimeState } from 'src/types';
@@ -53,7 +55,7 @@ export const renderWithProviders = (
       fetchRefreshJwtToken: () => Promise.resolve({}),
       fetchCustomValidationConfig: () => Promise.resolve(null),
       fetchFormData: () => Promise.resolve({}),
-      fetchOptions: () => Promise.resolve([]),
+      fetchOptions: () => Promise.resolve({ data: [], headers: {} } as unknown as AxiosResponse<IOption[], any>),
       fetchDataList: () => Promise.resolve({} as unknown as IDataList),
       fetchPdfFormat: () => Promise.resolve({ excludedPages: [], excludedComponents: [] }),
       fetchDynamics: () => Promise.resolve(null),

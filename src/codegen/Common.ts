@@ -144,6 +144,23 @@ const common = {
         'Describes the location in the data model where the component should store its value(s). A simple ' +
           'binding is used for components that only store a single value, usually a string.',
       ),
+  IDataModelBindingsOptionsSimple: () =>
+    new CG.obj(
+      new CG.prop('simpleBinding', new CG.str()),
+      new CG.prop(
+        'metadata',
+        new CG.str()
+          .optional()
+          .setDescription(
+            'Describes the location where metadata for the option based component should be stored in the datamodel.',
+          ),
+      ),
+    )
+      .setTitle('Data model binding')
+      .setDescription(
+        'Describes the location in the data model where the component should store its value(s). A simple ' +
+          'binding is used for components that only store a single value, usually a string.',
+      ),
   IDataModelBindingsList: () =>
     new CG.obj(new CG.prop('list', new CG.str()))
       .setTitle('Data model binding')

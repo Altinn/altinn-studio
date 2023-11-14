@@ -16,6 +16,15 @@ export async function httpGet(url: string, options?: AxiosRequestConfig): Promis
   return response.data ? response.data : null;
 }
 
+export async function httpGetRaw(url: string, options?: AxiosRequestConfig): Promise<any> {
+  const headers = options?.headers as RawAxiosRequestHeaders | undefined;
+  const response: AxiosResponse = await axios.get(url, {
+    ...options,
+    headers: { ...headers, Pragma: 'no-cache' },
+  });
+  return response.data ? response : null;
+}
+
 export async function httpPost(url: string, options?: AxiosRequestConfig, data?: any): Promise<AxiosResponse> {
   return await axios.post(url, data, options);
 }

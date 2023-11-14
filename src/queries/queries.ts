@@ -1,8 +1,8 @@
-import type { AxiosRequestConfig } from 'axios';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
-import { httpPost, putWithoutConfig } from 'src/utils/network/networking';
+import { httpGetRaw, httpPost, putWithoutConfig } from 'src/utils/network/networking';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import {
   applicationMetadataApiUrl,
@@ -54,7 +54,7 @@ export const fetchFooterLayout = (): Promise<IFooterLayout> => httpGet(getFooter
 
 export const fetchLayoutSets = (): Promise<ILayoutSets> => httpGet(getLayoutSetsUrl());
 
-export const fetchOptions = (url: string): Promise<IOption[]> => httpGet(url);
+export const fetchOptions = (url: string): Promise<AxiosResponse<IOption[], any>> => httpGetRaw(url);
 
 export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
 

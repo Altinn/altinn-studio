@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen, within } from '@testing-library/react';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import type { AxiosResponse } from 'axios';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
@@ -232,7 +233,7 @@ export const render = ({
     {
       store: mockStore,
     },
-    { fetchOptions: () => Promise.resolve(mockOptions) },
+    { fetchOptions: () => Promise.resolve({ data: mockOptions, headers: {} } as AxiosResponse<IOption[], any>) },
   );
 
   return { mockStoreDispatch };

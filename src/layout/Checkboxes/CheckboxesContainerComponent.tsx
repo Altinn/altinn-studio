@@ -41,6 +41,11 @@ export const CheckboxContainerComponent = ({
   const { options: calculatedOptions, isFetching } = useGetOptions({
     ...node.item,
     node,
+    metadata: {
+      setValue: (metadata) => {
+        handleDataChange(metadata, { key: 'metadata' });
+      },
+    },
     formData: {
       type: 'multi',
       values: selected,

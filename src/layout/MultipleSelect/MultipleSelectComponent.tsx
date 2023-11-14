@@ -24,6 +24,11 @@ export function MultipleSelectComponent({
   const { options: calculatedOptions } = useGetOptions({
     ...node.item,
     node,
+    metadata: {
+      setValue: (metadata) => {
+        handleDataChange(metadata, { key: 'metadata' });
+      },
+    },
     formData: {
       type: 'multi',
       values: selected,

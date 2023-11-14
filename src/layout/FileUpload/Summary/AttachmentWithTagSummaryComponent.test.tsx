@@ -13,26 +13,38 @@ import type { RootState } from 'src/redux/store';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const availableOptions = {
-  'https://local.altinn.cloud/ttd/test/api/options/a?language=nb&b=undefined': [
-    { value: 'a', label: 'aa option value' },
-    { value: 'b', label: 'ab option value' },
-    { value: 'c', label: 'ac option value' },
-  ],
-  'https://local.altinn.cloud/ttd/test/api/options/b?language=nb': [
-    { value: 'a', label: 'ba option value' },
-    { value: 'b', label: 'bb option value' },
-    { value: 'c', label: 'bc option value' },
-  ],
-  'https://local.altinn.cloud/ttd/test/api/options/c?language=nb': [
-    { value: 'a', label: 'ca option value' },
-    { value: 'b', label: 'cb option value' },
-    { value: 'c', label: 'cc option value' },
-  ],
-  'https://local.altinn.cloud/ttd/test/api/options/d?language=nb&b=undefined': [
-    { value: 'a', label: 'da option value' },
-    { value: 'b', label: 'db option value' },
-    { value: 'c', label: 'dc option value' },
-  ],
+  'https://local.altinn.cloud/ttd/test/api/options/a?language=nb&b=undefined': {
+    data: [
+      { value: 'a', label: 'aa option value' },
+      { value: 'b', label: 'ab option value' },
+      { value: 'c', label: 'ac option value' },
+    ],
+    headers: {},
+  },
+  'https://local.altinn.cloud/ttd/test/api/options/b?language=nb': {
+    data: [
+      { value: 'a', label: 'ba option value' },
+      { value: 'b', label: 'bb option value' },
+      { value: 'c', label: 'bc option value' },
+    ],
+    headers: {},
+  },
+  'https://local.altinn.cloud/ttd/test/api/options/c?language=nb': {
+    data: [
+      { value: 'a', label: 'ca option value' },
+      { value: 'b', label: 'cb option value' },
+      { value: 'c', label: 'cc option value' },
+    ],
+    headers: {},
+  },
+  'https://local.altinn.cloud/ttd/test/api/options/d?language=nb&b=undefined': {
+    data: [
+      { value: 'a', label: 'da option value' },
+      { value: 'b', label: 'db option value' },
+      { value: 'c', label: 'dc option value' },
+    ],
+    headers: {},
+  },
 };
 
 describe('AttachmentWithTagSummaryComponent', () => {
