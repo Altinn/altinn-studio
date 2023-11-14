@@ -25,7 +25,7 @@ context('datamodel', () => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
-  it('add a new data model, and then add an object to the data model', () => {
+  it('add a new data model, then add an object to the data model and rename it, after that add two string(text1 and text2) and one integer(number1) to the newly added object (test). ', () => {
     datamodel.getCreateNewButton().click();
     cy.findByRole('textbox').type('datamodel');
     cy.findByRole('button', { name: texts['schema_editor.create_model_confirm_button'] }).click();
@@ -37,7 +37,58 @@ context('datamodel', () => {
       .then(() => {
         datamodel.getProperty('name').should('exist');
         datamodel.getNameField().clear().type('test');
+        cy.get('body').click();
         datamodel.getNameField().invoke('val').should('eq', 'test');
+        datamodel.getProperty('test').should('exist').click();
+      });
+
+    // Add text1
+    cy.findAllByRole('button', { name: texts['schema_editor.open_action_menu'] }).last().click();
+    cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
+      .should('exist')
+      .click()
+      .then(() => {
+        datamodel.getProperty('name').should('exist');
+        datamodel.getNameField().clear().type('text1');
+        cy.get('body').click();
+        datamodel.getNameField().invoke('val').should('eq', 'text1');
+        datamodel.getProperty('text1').should('exist');
+      });
+
+    // Add text2
+    cy.findAllByRole('button', { name: texts['schema_editor.open_action_menu'] })
+      .should('exist')
+      .then((button) => {
+        button[3].click();
+      });
+    cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
+      .should('exist')
+      .click()
+      .then(() => {
+        datamodel.getProperty('name').should('exist');
+        datamodel.getNameField().clear().type('text2');
+        cy.get('body').click();
+        datamodel.getNameField().invoke('val').should('eq', 'text2');
+        datamodel.getProperty('text2').should('exist');
+      });
+
+    //Add number1
+    cy.findAllByRole('button', { name: texts['schema_editor.open_action_menu'] })
+      .should('exist')
+      .then((button) => {
+        button[3].click();
+      });
+    cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
+      .should('exist')
+      .click()
+      .then(() => {
+        datamodel.getTypeField().click();
+        cy.findByRole('option', { name: texts['schema_editor.integer'] }).should('exist').click();
+        datamodel.getProperty('name').should('exist');
+        datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
+        datamodel.getNameField().clear().type('number1');
+        cy.get('body').click();
+        datamodel.getProperty('number1').should('exist');
       });
   });
 
