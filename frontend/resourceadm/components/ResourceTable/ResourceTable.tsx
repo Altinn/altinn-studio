@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import cn from 'classnames';
 import classes from './ResourceTable.module.css';
-import { CaretDownFillIcon, CaretUpFillIcon } from '@navikt/aksel-icons';
-import { ResourceTableDataRow } from './ResourceTableDataRow';
-import { Button } from '@digdir/design-system-react';
+import { PencilIcon } from '@navikt/aksel-icons';
+import { Tag } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridOverlay,
+  GridRenderCellParams,
+  GridRowParams,
+} from '@mui/x-data-grid';
 
 export type ResourceTableProps = {
   /**
@@ -18,6 +24,7 @@ export type ResourceTableProps = {
    * @returns void
    */
   onClickEditResource: (id: string) => void;
+  onToggleFavourite?: (id: string) => void;
 };
 
 /**
@@ -33,58 +40,104 @@ export const ResourceTable = ({
   list,
   onClickEditResource,
 }: ResourceTableProps): React.ReactNode => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  const [isSortedByNewest, setIsSortedByNewest] = useState(true);
+  const listData = useMemo(() => {
+    return list.map((listItem) => {
+      return {
+        ...listItem,
+        title:
+          listItem.title[i18n?.language] ||
+          listItem.title.nb ||
+          t('resourceadm.dashboard_table_row_missing_title'),
+      };
+    });
+  }, [list, i18n?.language, t]);
 
-  /**
-   * Displays a row for each resource in the list
-   */
-  const displayRows = list.map((resource: ResourceListItem) => {
+  const NoResults = () => {
     return (
-      <ResourceTableDataRow
-        key={resource.identifier}
-        resource={resource}
-        onClickEditResource={() => {
-          onClickEditResource(resource.identifier);
-        }}
-      />
+      <GridOverlay>
+        <p>{t('resourceadm.dashboard_no_resources_result')}</p>
+      </GridOverlay>
     );
-  });
-
-  const handleSortTable = () => {
-    setIsSortedByNewest((prev) => !prev);
-    return list.reverse();
   };
 
+  const gridStyleOverride = {
+    border: 'none',
+    width: '100%',
+    '.MuiDataGrid-iconSeparator': {
+      visibility: 'hidden',
+    },
+  };
+
+  const columns = [
+    {
+      field: 'title',
+      headerName: t('resourceadm.dashboard_table_header_name'),
+      width: 200,
+    },
+    {
+      field: 'createdBy',
+      headerName: t('resourceadm.dashboard_table_header_createdby'),
+      width: 180,
+    },
+    {
+      field: 'lastChanged',
+      headerName: t('resourceadm.dashboard_table_header_last_changed'),
+      width: 120,
+    },
+    {
+      field: 'hasPolicy',
+      headerName: t('resourceadm.dashboard_table_header_policy_rules'),
+      flex: 1,
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Tag color={params.row.hasPolicy ? 'info' : 'danger'} variant='secondary' size='xsmall'>
+            {params.row.hasPolicy
+              ? t('resourceadm.dashboard_table_row_has_policy')
+              : t('resourceadm.dashboard_table_row_missing_policy')}
+          </Tag>
+        );
+      },
+    },
+    {
+      field: 'links',
+      width: 50,
+      renderHeader: (): null => null,
+      type: 'actions',
+      getActions: (params: GridRowParams) => {
+        return [
+          <GridActionsCellItem
+            icon={
+              <PencilIcon
+                title={t('resourceadm.dashboard_table_row_edit')}
+                className={cn(classes.editLink)}
+              />
+            }
+            label={t('resourceadm.dashboard_table_row_edit')}
+            key={`dashboard.edit_resource${params.row.identifier}`}
+            onClick={() => onClickEditResource(params.row.identifier)}
+            showInMenu={false}
+          />,
+        ];
+      },
+    },
+  ];
+
   return (
-    <table className={classes.table}>
-      <tbody>
-        <tr>
-          <th className={cn(classes.tableHeaderXLarge, classes.tableHeader)}>Ressurser</th>
-          <th className={cn(classes.tableHeaderLarge, classes.tableHeader)}>Opprettet av</th>
-          <th className={cn(classes.tableHeaderMedium, classes.tableHeaderLastChanged)}>
-            <Button
-              variant='tertiary'
-              icon={isSortedByNewest ? <CaretDownFillIcon /> : <CaretUpFillIcon />}
-              onClick={handleSortTable}
-              iconPlacement='right'
-              color='second'
-              size='small'
-            >
-              {t('resourceadm.dashboard_table_header_last_changed')}
-            </Button>
-          </th>
-          <th className={cn(classes.tableHeaderMedium, classes.tableHeader)}>
-            {t('resourceadm.dashboard_table_header_policy_rules')}
-          </th>
-          <th
-            className={cn(classes.tableHeaderSmall, classes.tableHeader)}
-            aria-label={t('resourceadm.dashboard_table_header_edit')}
-          />
-        </tr>
-        {displayRows}
-      </tbody>
-    </table>
+    <DataGrid
+      autoHeight
+      rows={listData}
+      getRowId={(row) => row.identifier}
+      disableSelectionOnClick
+      disableColumnMenu
+      sx={gridStyleOverride}
+      hideFooterPagination
+      disableVirtualization
+      columns={columns}
+      components={{
+        NoRowsOverlay: NoResults,
+      }}
+    />
   );
 };
