@@ -10,7 +10,7 @@ import { ErrorPage } from '../ErrorPage';
  * @returns {React.ReactNode} - The rendered component
  */
 export const RedirectPage = (): React.ReactNode => {
-  const { selectedContext } = useParams();
+  const { org: selectedContext } = useParams();
 
   return (
     <div className={classes.pageWrapper}>
