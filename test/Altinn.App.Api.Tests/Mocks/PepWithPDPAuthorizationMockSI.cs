@@ -61,7 +61,7 @@ namespace Altinn.App.Api.Tests.Mocks
             }
             catch
             {
-                return null;
+                return null!;
             }
         }
 

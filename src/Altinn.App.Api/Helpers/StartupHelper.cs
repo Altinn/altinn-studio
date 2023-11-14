@@ -43,6 +43,6 @@ public static class StartupHelper
     {
         string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
         JObject appMetadataJObject = JObject.Parse(appMetaDataString);
-        return appMetadataJObject.SelectToken("id").Value<string>();
+        return appMetadataJObject.SelectToken("id")?.Value<string>() ?? throw new Exception("config/applicationmetadata.json does not contain an \"id\" property");
     }
 }

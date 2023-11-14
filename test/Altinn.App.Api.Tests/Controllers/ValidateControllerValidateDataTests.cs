@@ -9,6 +9,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
+using FluentAssertions;
 using Moq;
 using Xunit;
 
@@ -221,7 +222,7 @@ public class ValidationControllerValidateDataTests
         {
             var result = await validateController.ValidateData(org, app, instanceOwnerId, testScenario.InstanceId,
                 testScenario.DataGuid);
-            Assert.IsType(testScenario.ExpectedResult, result);
+            result.Should().BeOfType(testScenario.ExpectedResult);
         }
         else
         {

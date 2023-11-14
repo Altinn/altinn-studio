@@ -31,8 +31,8 @@ namespace Altinn.App.Api.Controllers
         /// <param name="pageOrder">The page order service</param>
         public PagesController(
             IAppModel appModel,
-            IAppResources resources, 
-            IPageOrder pageOrder, 
+            IAppResources resources,
+            IPageOrder pageOrder,
             ILogger<PagesController> logger)
         {
             _appModel = appModel;

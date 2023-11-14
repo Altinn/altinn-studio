@@ -14,7 +14,7 @@ namespace Altinn.App.Api.Tests.Mocks.Authentication
     public class JwtCookiePostConfigureOptionsStub : IPostConfigureOptions<JwtCookieOptions>
     {
         /// <inheritdoc />
-        public void PostConfigure(string name, JwtCookieOptions options)
+        public void PostConfigure(string? name, JwtCookieOptions options)
         {
             if (string.IsNullOrEmpty(options.JwtCookieName))
             {
