@@ -21,8 +21,7 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   handleDeleteElement?: () => void;
   handleUpdateFormData?: (formData: any) => void;
   handleUpdateDataModel?: (dataModelBinding: string) => void;
-  disabled?: boolean; // Add dynamic type?
-  // TODO: Figure out if it is necessary to have the Dynamic type here since the type is not actually added to the field?
+  disabled?: boolean;
   required?: boolean | any;
   hidden?: boolean | any;
   readOnly?: boolean | any;

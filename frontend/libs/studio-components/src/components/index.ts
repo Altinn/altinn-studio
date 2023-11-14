@@ -1,1 +1,2 @@
-export { StudioModal } from './StudioModal';
+export * from './StudioModal';
+export * from './StudioNumberInput';
