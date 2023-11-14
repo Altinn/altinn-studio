@@ -2,7 +2,7 @@ import type { IUiConfig } from 'src/types';
 
 export const getUiConfigStateMock = (customStates?: Partial<IUiConfig>): IUiConfig => ({
   focus: null,
-  tracks: {
+  pageOrderConfig: {
     hidden: [],
     hiddenExpr: {},
     order: ['FormLayout'],
@@ -23,7 +23,6 @@ export const getUiConfigStateMock = (customStates?: Partial<IUiConfig>): IUiConf
     },
   },
   currentView: 'FormLayout',
-  navigationConfig: {},
   excludePageFromPdf: [],
   excludeComponentFromPdf: [],
   ...customStates,

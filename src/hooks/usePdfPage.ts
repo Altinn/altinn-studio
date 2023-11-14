@@ -10,7 +10,7 @@ import type { IPdfFormat } from 'src/features/pdf/types';
 import type { CompInstanceInformationExternal } from 'src/layout/InstanceInformation/config.generated';
 import type { HierarchyDataSources, ILayout } from 'src/layout/layout';
 import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
-import type { IRepeatingGroups, ITracks } from 'src/types';
+import type { IPageOrderConfig, IRepeatingGroups } from 'src/types';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
@@ -19,7 +19,7 @@ const PDF_LAYOUT_NAME = '__pdf__';
 export const usePdfPage = (): LayoutPage | null => {
   const layoutPages = useExprContext();
   const dataSources = useAppSelector(dataSourcesFromState);
-  const tracks = useAppSelector((state) => state.formLayout.uiConfig.tracks);
+  const pageOrderConfig = useAppSelector((state) => state.formLayout.uiConfig.pageOrderConfig);
   const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
   const pdfLayoutName = useAppSelector((state) => state.formLayout.uiConfig.pdfLayoutName);
 
@@ -32,10 +32,10 @@ export const usePdfPage = (): LayoutPage | null => {
 
   const automaticPdfPage = useMemo(() => {
     if (readyForPrint && method === 'auto') {
-      return generateAutomaticPage(pdfFormat!, tracks!, layoutPages!, dataSources, repeatingGroups!);
+      return generateAutomaticPage(pdfFormat!, pageOrderConfig!, layoutPages!, dataSources, repeatingGroups!);
     }
     return null;
-  }, [readyForPrint, method, pdfFormat, tracks, layoutPages, dataSources, repeatingGroups]);
+  }, [readyForPrint, method, pdfFormat, pageOrderConfig, layoutPages, dataSources, repeatingGroups]);
 
   if (!readyForPrint) {
     return null;
@@ -50,7 +50,7 @@ export const usePdfPage = (): LayoutPage | null => {
 
 function generateAutomaticPage(
   pdfFormat: IPdfFormat,
-  tracks: ITracks,
+  pageOrderConfig: IPageOrderConfig,
   layoutPages: LayoutPages,
   dataSources: HierarchyDataSources,
   repeatingGroups: IRepeatingGroups,
@@ -75,8 +75,8 @@ function generateAutomaticPage(
 
   const excludedPages = new Set(pdfFormat?.excludedPages);
   const excludedComponents = new Set(pdfFormat?.excludedComponents);
-  const hiddenPages = new Set(tracks.hidden);
-  const pageOrder = tracks.order;
+  const hiddenPages = new Set(pageOrderConfig.hidden);
+  const pageOrder = pageOrderConfig.order;
 
   // Iterate over all pages, and add all components that should be included in the automatic PDF as summary components
   Object.entries(layoutPages.all())

@@ -47,8 +47,8 @@ describe('Header', () => {
             ...mockFormLayout.uiConfig,
             showProgress: true,
             currentView: '3',
-            tracks: {
-              ...mockFormLayout.uiConfig.tracks,
+            pageOrderConfig: {
+              ...mockFormLayout.uiConfig.pageOrderConfig,
               order: ['1', '2', '3', '4', '5', '6'],
             },
           },
@@ -67,8 +67,8 @@ describe('Header', () => {
             ...mockFormLayout.uiConfig,
             showProgress: true,
             currentView: '3',
-            tracks: {
-              ...mockFormLayout.uiConfig.tracks,
+            pageOrderConfig: {
+              ...mockFormLayout.uiConfig.pageOrderConfig,
               order: ['1', '2', '3', '4', '5', '6'],
             },
           },

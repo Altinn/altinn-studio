@@ -89,7 +89,6 @@ describe('fetchFormLayoutSagas', () => {
         .put(
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [] },
-            navigationConfig: { page1: undefined },
             hiddenLayoutsExpressions: { ...hiddenExprPage1 },
             layoutSetId: null,
           }),
@@ -115,7 +114,6 @@ describe('fetchFormLayoutSagas', () => {
         .put(
           FormLayoutActions.fetchFulfilled({
             layouts: { FormLayout: [] },
-            navigationConfig: {},
             hiddenLayoutsExpressions: { FormLayout: hiddenExprPage1['page1'] },
             layoutSetId: null,
           }),
@@ -161,7 +159,6 @@ describe('fetchFormLayoutSagas', () => {
         .put(
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [], page2: [] },
-            navigationConfig: { page1: undefined, page2: undefined },
             hiddenLayoutsExpressions: {
               ...hiddenExprPage1,
               page2: undefined,
@@ -193,7 +190,6 @@ describe('fetchFormLayoutSagas', () => {
         .put(
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [], page2: [] },
-            navigationConfig: { page1: undefined, page2: undefined },
             hiddenLayoutsExpressions: {
               ...hiddenExprPage1,
               ...hiddenExprPage2,
@@ -222,7 +218,6 @@ describe('fetchFormLayoutSagas', () => {
         .put(
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [] },
-            navigationConfig: { page1: undefined },
             hiddenLayoutsExpressions: { ...hiddenExprPage1 },
             layoutSetId: null,
           }),
@@ -248,7 +243,6 @@ describe('fetchFormLayoutSagas', () => {
         .put(
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [] },
-            navigationConfig: { page1: undefined },
             hiddenLayoutsExpressions: { ...hiddenExprPage1 },
             layoutSetId: null,
           }),

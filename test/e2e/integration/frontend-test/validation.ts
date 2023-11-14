@@ -557,7 +557,7 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.uploadedTable).find('tbody > tr').should('have.length', 1);
   });
 
-  it('Submitting should be rejected if validation fails on field hidden by tracks', () => {
+  it('Submitting should be rejected if validation fails on field hidden by pageOrderConfig', () => {
     cy.goto('changename');
     cy.fillOut('changename');
 
@@ -606,7 +606,7 @@ describe('Validation', () => {
     cy.intercept('POST', '**/pages/order*', (req) => {
       req.reply((res) => {
         res.send({
-          // Always reply with all pages, as none should be hidden using tracks here
+          // Always reply with all pages, as none should be hidden using pageOrderConfig here
           body: ['prefill', 'repeating', 'repeating2', 'hide', 'summary'],
         });
       });

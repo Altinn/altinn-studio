@@ -12,10 +12,9 @@ import { repGroupAddRowSaga } from 'src/features/layout/repGroups/repGroupAddRow
 import { repGroupDeleteRowSaga } from 'src/features/layout/repGroups/repGroupDeleteRowSaga';
 import { updateRepeatingGroupEditIndexSaga } from 'src/features/layout/repGroups/updateRepeatingGroupEditIndexSaga';
 import {
-  calculatePageOrderAndMoveToNextPageSaga,
   findAndMoveToNextVisibleLayout,
+  moveToNextPageSaga,
   updateCurrentViewSaga,
-  watchInitialCalculatePageOrderAndMoveToNextPageSaga,
 } from 'src/features/layout/update/updateFormLayoutSagas';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type * as LayoutTypes from 'src/features/layout/formLayoutTypes';
@@ -41,8 +40,7 @@ export const initialState: ILayoutState = {
     repeatingGroups: null,
     receiptLayoutName: undefined,
     currentView: 'FormLayout',
-    navigationConfig: {},
-    tracks: {
+    pageOrderConfig: {
       hidden: [],
       hiddenExpr: {},
       order: null,
@@ -76,18 +74,16 @@ export const formLayoutSlice = () => {
     return {
       name: 'formLayout',
       initialState,
-      extraSagas: [watchInitialCalculatePageOrderAndMoveToNextPageSaga],
       actions: {
         fetch: mkAction<void>({
           saga: () => watchFetchFormLayoutSaga,
         }),
         fetchFulfilled: mkAction<LayoutTypes.IFetchLayoutFulfilled>({
           reducer: (state, action) => {
-            const { layouts, navigationConfig, hiddenLayoutsExpressions, layoutSetId } = action.payload;
+            const { layouts, hiddenLayoutsExpressions, layoutSetId } = action.payload;
             state.layouts = layouts;
-            state.uiConfig.navigationConfig = navigationConfig;
-            state.uiConfig.tracks.order = Object.keys(layouts);
-            state.uiConfig.tracks.hiddenExpr = hiddenLayoutsExpressions;
+            state.uiConfig.pageOrderConfig.order = Object.keys(layouts);
+            state.uiConfig.pageOrderConfig.hiddenExpr = hiddenLayoutsExpressions;
             state.error = null;
             state.uiConfig.repeatingGroups = null;
             state.layoutSetId = layoutSetId;
@@ -121,7 +117,7 @@ export const formLayoutSlice = () => {
               updateCommonPageSettings(state, settings.pages);
               const order = settings.pages.order;
               if (order) {
-                state.uiConfig.tracks.order = order;
+                state.uiConfig.pageOrderConfig.order = order;
                 if (state.uiConfig.currentViewCacheKey) {
                   let currentView: string;
                   const lastVisitedPage = localStorage.getItem(state.uiConfig.currentViewCacheKey);
@@ -241,21 +237,24 @@ export const formLayoutSlice = () => {
             }
           },
         }),
-        calculatePageOrderAndMoveToNextPage: mkAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPage>({
-          takeEvery: calculatePageOrderAndMoveToNextPageSaga,
+        moveToNextPage: mkAction<LayoutTypes.IMoveToNextPage>({
+          takeEvery: moveToNextPageSaga,
         }),
-        calculatePageOrderAndMoveToNextPageFulfilled:
-          mkAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPageFulfilled>({
-            reducer: (state, action) => {
-              const { order } = action.payload;
-              state.uiConfig.tracks.order = order;
-            },
-          }),
-        calculatePageOrderAndMoveToNextPageRejected: genericReject,
+        /**
+         * This action (setPageOrder) is used by the e2e-tests
+         * in summary.ts. It is not used in the application.
+         */
+        setPageOrder: mkAction<{ order: string[] }>({
+          reducer: (state, action) => {
+            const { order } = action.payload;
+            state.uiConfig.pageOrderConfig.order = order;
+          },
+        }),
+        moveToNextPageRejected: genericReject,
         updateHiddenLayouts: mkAction<LayoutTypes.IHiddenLayoutsUpdate>({
           takeEvery: findAndMoveToNextVisibleLayout,
           reducer: (state, action) => {
-            state.uiConfig.tracks.hidden = action.payload.hiddenLayouts;
+            state.uiConfig.pageOrderConfig.hidden = action.payload.hiddenLayouts;
           },
         }),
         initRepeatingGroups: mkAction<LayoutTypes.IInitRepeatingGroups>({

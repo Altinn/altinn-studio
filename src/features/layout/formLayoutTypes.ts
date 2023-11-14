@@ -1,13 +1,7 @@
 import type { IFormData } from 'src/features/formData';
 import type { Triggers } from 'src/layout/common.generated';
 import type { ILayouts } from 'src/layout/layout';
-import type {
-  IHiddenLayoutsExternal,
-  ILayoutSets,
-  ILayoutSettings,
-  INavigationConfig,
-  TriggersPageValidation,
-} from 'src/types';
+import type { IHiddenLayoutsExternal, ILayoutSets, ILayoutSettings, TriggersPageValidation } from 'src/types';
 
 export interface IFormLayoutActionRejected {
   error: Error | null;
@@ -16,7 +10,6 @@ export interface IFormLayoutActionRejected {
 
 export interface IFetchLayoutFulfilled {
   layouts: ILayouts;
-  navigationConfig?: INavigationConfig;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
   layoutSetId: string | null;
 }
@@ -86,14 +79,9 @@ export interface IKeepComponentScrollPos {
   offsetTop: number | undefined;
 }
 
-export interface ICalculatePageOrderAndMoveToNextPage {
+export interface IMoveToNextPage {
   runValidations?: TriggersPageValidation;
-  skipMoveToNext?: boolean;
   keepScrollPos?: IKeepComponentScrollPos;
-}
-
-export interface ICalculatePageOrderAndMoveToNextPageFulfilled {
-  order: string[];
 }
 
 export interface IHiddenLayoutsUpdate {

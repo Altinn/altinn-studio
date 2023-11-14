@@ -56,7 +56,6 @@ export function* fetchLayoutSaga(): SagaIterator {
       getLayoutsUrl(layoutSetId || null),
     );
     const layouts: ILayouts = {};
-    const navigationConfig: any = {};
     const hiddenLayoutsExpressions: IHiddenLayoutsExternal = {};
     let firstLayoutKey: string;
     if ('data' in layoutResponse && 'layout' in layoutResponse.data && layoutResponse.data.layout) {
@@ -81,7 +80,6 @@ export function* fetchLayoutSaga(): SagaIterator {
         const file: ILayoutFileExternal = layoutResponse[key];
         layouts[key] = cleanLayout(file.data.layout);
         hiddenLayoutsExpressions[key] = file.data.hidden;
-        navigationConfig[key] = file.data.navigation;
       });
     }
 
@@ -100,7 +98,6 @@ export function* fetchLayoutSaga(): SagaIterator {
     yield put(
       FormLayoutActions.fetchFulfilled({
         layouts,
-        navigationConfig,
         hiddenLayoutsExpressions,
         layoutSetId: layoutSetId ?? null,
       }),

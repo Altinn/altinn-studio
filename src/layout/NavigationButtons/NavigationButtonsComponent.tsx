@@ -1,5 +1,4 @@
 import React from 'react';
-import { shallowEqual } from 'react-redux';
 
 import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
@@ -8,16 +7,12 @@ import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
-import { Triggers } from 'src/layout/common.generated';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
-import { getLayoutOrderFromTracks, selectLayoutOrder } from 'src/selectors/getLayoutOrder';
+import { selectLayoutOrder, selectPreviousAndNextPage } from 'src/selectors/getLayoutOrder';
 import { reducePageValidations } from 'src/types';
-import { getNextView } from 'src/utils/formLayout';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { ILayoutNavigation } from 'src/layout/common.generated';
-import type { IRuntimeState } from 'src/types';
 export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 
 export function NavigationButtonsComponent({ node }: INavigationButtons) {
@@ -34,7 +29,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const orderedLayoutKeys = useAppSelector(selectLayoutOrder);
   const returnToView = useAppSelector((state) => state.formLayout.uiConfig.returnToView);
   const pageTriggers = useAppSelector((state) => state.formLayout.uiConfig.pageTriggers);
-  const { next, previous } = useAppSelector((state) => getNavigationConfigForCurrentView(state), shallowEqual);
+  const { next, previous } = useAppSelector(selectPreviousAndNextPage);
   const activeTriggers = triggers || pageTriggers;
   const nextTextKey = returnToView ? 'form_filler.back_to_summary' : textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
@@ -68,25 +63,16 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
       offsetTop: getScrollPosition(),
     };
 
-    if (activeTriggers?.includes(Triggers.CalculatePageOrder)) {
+    const goToView =
+      returnToView || next || (orderedLayoutKeys && orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1]);
+    if (goToView) {
       dispatch(
-        FormLayoutActions.calculatePageOrderAndMoveToNextPage({
+        FormLayoutActions.updateCurrentView({
+          newView: goToView,
           runValidations,
           keepScrollPos: keepScrollPosAction,
         }),
       );
-    } else {
-      const goToView =
-        returnToView || next || (orderedLayoutKeys && orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1]);
-      if (goToView) {
-        dispatch(
-          FormLayoutActions.updateCurrentView({
-            newView: goToView,
-            runValidations,
-            keepScrollPos: keepScrollPosAction,
-          }),
-        );
-      }
     }
   };
 
@@ -136,16 +122,4 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
       )}
     </div>
   );
-}
-
-function getNavigationConfigForCurrentView(state: IRuntimeState): ILayoutNavigation {
-  const currentView = state.formLayout.uiConfig.currentView;
-  const navConfig =
-    state.formLayout.uiConfig.navigationConfig && state.formLayout.uiConfig.navigationConfig[currentView];
-  const order = getLayoutOrderFromTracks(state.formLayout.uiConfig.tracks);
-
-  return {
-    previous: getNextView(navConfig, order, currentView, true),
-    next: getNextView(navConfig, order, currentView),
-  };
 }

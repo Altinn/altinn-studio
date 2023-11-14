@@ -30,7 +30,7 @@ const render = ({ dispatch = jest.fn() }: Props = {}) => {
         layoutsets: null,
         layoutSetId: null,
         uiConfig: {
-          tracks: {
+          pageOrderConfig: {
             order: ['page1', 'page2', 'page3'],
             hiddenExpr: {},
             hidden: [],

@@ -3,17 +3,19 @@ import { select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
+import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
 import {
-  calculatePageOrderAndMoveToNextPageSaga,
   findAndMoveToNextVisibleLayout,
+  moveToNextPageSaga,
   selectAllLayouts,
   selectCurrentLayout,
 } from 'src/features/layout/update/updateFormLayoutSagas';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
-import type { ICalculatePageOrderAndMoveToNextPage } from 'src/features/layout/formLayoutTypes';
+import type { IMoveToNextPage } from 'src/features/layout/formLayoutTypes';
 import type { IRuntimeState } from 'src/types';
 
 describe('updateLayoutSagas', () => {
@@ -21,22 +23,28 @@ describe('updateLayoutSagas', () => {
     mockAxios.reset();
   });
 
-  describe('calculatePageOrderAndMoveToNextPageSaga', () => {
-    const state = getInitialStateMock();
-    const orderResponse = ['page-1', 'FormLayout', 'page-3'];
+  describe('moveToNextPageSaga', () => {
+    const state = getInitialStateMock({
+      formLayout: getFormLayoutStateMock({
+        uiConfig: getUiConfigStateMock({
+          currentView: 'FormLayout',
+          returnToView: undefined,
+          pageOrderConfig: {
+            order: ['page-1', 'FormLayout', 'page-3'],
+            hidden: [],
+            hiddenExpr: {},
+          },
+        }),
+      }),
+    });
 
     it('should fetch pageOrder and update state accordingly', () => {
-      const action: PayloadAction<ICalculatePageOrderAndMoveToNextPage> = {
+      const action: PayloadAction<IMoveToNextPage> = {
         type: 'test',
         payload: {},
       };
-      const exp = expectSaga(calculatePageOrderAndMoveToNextPageSaga, action)
+      return expectSaga(moveToNextPageSaga, action)
         .provide([[select(), state]])
-        .put(
-          FormLayoutActions.calculatePageOrderAndMoveToNextPageFulfilled({
-            order: orderResponse,
-          }),
-        )
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'page-3',
@@ -45,35 +53,10 @@ describe('updateLayoutSagas', () => {
           }),
         )
         .run();
-
-      mockAxios.mockResponse({ data: orderResponse });
-
-      return exp;
-    });
-
-    it('should not update current view if skipMoveToNext is true', () => {
-      const action: PayloadAction<ICalculatePageOrderAndMoveToNextPage> = {
-        type: 'test',
-        payload: {
-          skipMoveToNext: true,
-        },
-      };
-      const exp = expectSaga(calculatePageOrderAndMoveToNextPageSaga, action)
-        .provide([[select(), state]])
-        .put(
-          FormLayoutActions.calculatePageOrderAndMoveToNextPageFulfilled({
-            order: orderResponse,
-          }),
-        )
-        .run();
-
-      mockAxios.mockResponse({ data: orderResponse });
-
-      return exp;
     });
 
     it('stateless: should fetch pageOrder and update state accordingly', () => {
-      const action: PayloadAction<ICalculatePageOrderAndMoveToNextPage> = {
+      const action: PayloadAction<IMoveToNextPage> = {
         type: 'test',
         payload: {
           keepScrollPos: {
@@ -100,13 +83,8 @@ describe('updateLayoutSagas', () => {
           },
         },
       };
-      const exp = expectSaga(calculatePageOrderAndMoveToNextPageSaga, action)
+      return expectSaga(moveToNextPageSaga, action)
         .provide([[select(), stateWithStatelessApp]])
-        .put(
-          FormLayoutActions.calculatePageOrderAndMoveToNextPageFulfilled({
-            order: orderResponse,
-          }),
-        )
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'page-3',
@@ -118,14 +96,10 @@ describe('updateLayoutSagas', () => {
           }),
         )
         .run();
-
-      mockAxios.mockResponse({ data: orderResponse });
-
-      return exp;
     });
 
     it('should set new page to returnToView if set in state', () => {
-      const action: PayloadAction<ICalculatePageOrderAndMoveToNextPage> = {
+      const action: PayloadAction<IMoveToNextPage> = {
         type: 'test',
         payload: {},
       };
@@ -139,13 +113,8 @@ describe('updateLayoutSagas', () => {
           },
         },
       };
-      const exp = expectSaga(calculatePageOrderAndMoveToNextPageSaga, action)
+      return expectSaga(moveToNextPageSaga, action)
         .provide([[select(), stateWithReturnToView]])
-        .put(
-          FormLayoutActions.calculatePageOrderAndMoveToNextPageFulfilled({
-            order: orderResponse,
-          }),
-        )
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'return-here',
@@ -154,27 +123,6 @@ describe('updateLayoutSagas', () => {
           }),
         )
         .run();
-      mockAxios.mockResponse({ data: orderResponse });
-
-      return exp;
-    });
-
-    it('should call rejected action if fetching of order fails', () => {
-      const action = { type: 'test', payload: {} };
-      const error = new Error('mock');
-
-      const exp = expectSaga(calculatePageOrderAndMoveToNextPageSaga, action)
-        .provide([[select(), state]])
-        .put(
-          FormLayoutActions.calculatePageOrderAndMoveToNextPageRejected({
-            error,
-          }),
-        )
-        .run();
-
-      mockAxios.mockError(error);
-
-      return exp;
     });
   });
 

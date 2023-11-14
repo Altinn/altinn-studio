@@ -622,7 +622,7 @@ function injectExtraPageAndSetTriggers(trigger?: Triggers | undefined) {
   cy.get('#readyForPrint').then(() => {
     cy.reduxDispatch({
       // Injecting the new page into redux
-      type: 'formLayout/calculatePageOrderAndMoveToNextPageFulfilled',
+      type: 'formLayout/setPageOrder',
       payload: {
         order: ['form', 'summary', 'grid', 'lastPage'],
       },

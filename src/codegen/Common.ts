@@ -35,14 +35,11 @@ const common = {
               .setDescription('Expression that will hide the page/form layout if true')
               .optional({ default: false }),
           ),
-          new CG.prop('navigation', CG.common('ILayoutNavigation').optional()),
         ),
       ),
     )
       .setTitle('Altinn layout')
       .setDescription('Schema that describes the layout configuration for Altinn applications.'),
-  ILayoutNavigation: () =>
-    new CG.obj(new CG.prop('next', new CG.str().optional()), new CG.prop('previous', new CG.str().optional())),
 
   ILabelSettings: () =>
     new CG.obj(
@@ -109,7 +106,6 @@ const common = {
   Triggers: () =>
     new CG.enum(
       'validation',
-      'calculatePageOrder',
       'validatePage',
       'validateCurrentAndPreviousPages',
       'validateAllPages',

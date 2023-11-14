@@ -1,23 +1,19 @@
-import { all, call, put, select, take } from 'redux-saga/effects';
+import { call, put, select, take } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
 
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
-import { QueueActions } from 'src/features/queue/queueSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { Triggers } from 'src/layout/common.generated';
-import { getLayoutOrderFromTracks, selectLayoutOrder } from 'src/selectors/getLayoutOrder';
-import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, isStatelessApp } from 'src/utils/appMetadata';
-import { convertDataBindingToModel } from 'src/utils/databindings';
-import { getLayoutsetForDataElement } from 'src/utils/layout';
+import { getLayoutOrderFromPageOrderConfig, selectLayoutOrder } from 'src/selectors/getLayoutOrder';
+import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
-import { httpPost } from 'src/utils/network/networking';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { waitFor } from 'src/utils/sagas';
-import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
+import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
 import { mapValidationIssues } from 'src/utils/validation/backendValidation';
 import {
   containsErrors,
@@ -25,7 +21,7 @@ import {
   filterValidationObjectsByPage,
   validationContextFromState,
 } from 'src/utils/validation/validationHelpers';
-import type { ICalculatePageOrderAndMoveToNextPage, IUpdateCurrentView } from 'src/features/layout/formLayoutTypes';
+import type { IMoveToNextPage, IUpdateCurrentView } from 'src/features/layout/formLayoutTypes';
 import type { IRuntimeState, IUiConfig } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { BackendValidationIssue } from 'src/utils/validation/types';
@@ -34,7 +30,7 @@ export const selectFormLayoutState = (state: IRuntimeState) => state.formLayout;
 export const selectFormData = (state: IRuntimeState) => state.formData.formData;
 export const selectFormLayouts = (state: IRuntimeState) => state.formLayout.layouts;
 export const selectAttachmentState = (state: IRuntimeState) => state.attachments;
-export const selectAllLayouts = (state: IRuntimeState) => state.formLayout.uiConfig.tracks.order;
+export const selectAllLayouts = (state: IRuntimeState) => state.formLayout.uiConfig.pageOrderConfig.order;
 export const selectCurrentLayout = (state: IRuntimeState) => state.formLayout.uiConfig.currentView;
 const selectUiConfig = (state: IRuntimeState) => state.formLayout.uiConfig;
 
@@ -176,89 +172,25 @@ export function* updateCurrentViewSaga({
   }
 }
 
-export function* calculatePageOrderAndMoveToNextPageSaga({
-  payload: { runValidations, skipMoveToNext, keepScrollPos },
-}: PayloadAction<ICalculatePageOrderAndMoveToNextPage>): SagaIterator {
+export function* moveToNextPageSaga({
+  payload: { runValidations, keepScrollPos },
+}: PayloadAction<IMoveToNextPage>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    const layoutSets = state.formLayout.layoutsets;
     const currentView = state.formLayout.uiConfig.currentView;
-    const formData = convertDataBindingToModel(state.formData.formData);
 
     if (!state.applicationMetadata.applicationMetadata) {
-      yield put(
-        FormLayoutActions.calculatePageOrderAndMoveToNextPageRejected({
-          error: null,
-        }),
-      );
+      yield put(FormLayoutActions.moveToNextPageRejected({ error: null }));
       return;
     }
 
-    let layoutSetId: string | null = null;
-    const dataTypeId =
-      getCurrentDataTypeForApplication({
-        application: state.applicationMetadata.applicationMetadata,
-        instance: state.instanceData.instance,
-        layoutSets: state.formLayout.layoutsets,
-      }) || null;
-
-    const appIsStateless = isStatelessApp(state.applicationMetadata.applicationMetadata);
-    if (appIsStateless) {
-      layoutSetId = state.applicationMetadata.applicationMetadata.onEntry?.show || null;
-    } else {
-      const instance = state.instanceData.instance;
-      if (layoutSets != null) {
-        layoutSetId = getLayoutsetForDataElement(instance, dataTypeId || undefined, layoutSets) || null;
-      }
-    }
-    const layoutOrderResponse: AxiosResponse = yield call(
-      httpPost,
-      getCalculatePageOrderUrl(appIsStateless),
-      {
-        params: {
-          currentPage: currentView,
-          layoutSetId,
-          dataTypeId,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-      formData,
-    );
-    const layoutOrder = layoutOrderResponse.data ? layoutOrderResponse.data : null;
-    yield put(
-      FormLayoutActions.calculatePageOrderAndMoveToNextPageFulfilled({
-        order: layoutOrder,
-      }),
-    );
-    if (skipMoveToNext) {
-      return;
-    }
     const returnToView = state.formLayout.uiConfig.returnToView;
-    const newOrder =
-      getLayoutOrderFromTracks({
-        ...state.formLayout.uiConfig.tracks,
-        order: layoutOrder,
-      }) || [];
-    const newView = returnToView || newOrder[newOrder.indexOf(currentView) + 1];
-    yield put(
-      FormLayoutActions.updateCurrentView({
-        newView,
-        runValidations,
-        keepScrollPos,
-      }),
-    );
+    const layoutOrder = getLayoutOrderFromPageOrderConfig(state.formLayout.uiConfig.pageOrderConfig) || [];
+    const newView = returnToView || layoutOrder[layoutOrder.indexOf(currentView) + 1];
+
+    yield put(FormLayoutActions.updateCurrentView({ newView, runValidations, keepScrollPos }));
   } catch (error) {
-    if (error?.response?.status === 404) {
-      // We accept that the app does noe have defined a calculate page order as this is not default for older apps
-    } else {
-      yield put(
-        FormLayoutActions.calculatePageOrderAndMoveToNextPageRejected({
-          error,
-        }),
-      );
-    }
+    yield put(FormLayoutActions.moveToNextPageRejected({ error }));
   }
 }
 
@@ -293,36 +225,5 @@ export function* findAndMoveToNextVisibleLayout(): SagaIterator {
         newView: nextVisiblePage,
       }),
     );
-  }
-}
-
-export function* watchInitialCalculatePageOrderAndMoveToNextPageSaga(): SagaIterator {
-  while (true) {
-    yield all([
-      take(QueueActions.startInitialDataTaskQueue),
-      take(FormLayoutActions.fetchFulfilled),
-      take(FormLayoutActions.fetchSettingsFulfilled),
-    ]);
-    const state: IRuntimeState = yield select();
-    const layouts = state.formLayout.layouts || {};
-    const pageTriggers = state.formLayout.uiConfig.pageTriggers;
-    const appHasCalculateTrigger =
-      pageTriggers?.includes(Triggers.CalculatePageOrder) ||
-      Object.keys(layouts).some(
-        (layout) =>
-          layouts[layout]?.some(
-            (element) =>
-              element.type === 'NavigationButtons' && element.triggers?.includes(Triggers.CalculatePageOrder),
-          ),
-      );
-    if (appHasCalculateTrigger) {
-      yield put(
-        FormLayoutActions.calculatePageOrderAndMoveToNextPage({
-          skipMoveToNext: true,
-        }),
-      );
-    } else {
-      yield put(FormLayoutActions.calculatePageOrderAndMoveToNextPageRejected({ error: null }));
-    }
   }
 }

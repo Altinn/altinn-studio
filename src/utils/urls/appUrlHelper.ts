@@ -154,14 +154,6 @@ export const getRulehandlerUrl = (layoutset?: string) => {
   return `${appPath}/api/rulehandler/${layoutset}`;
 };
 
-export const getCalculatePageOrderUrl = (stateless: boolean) => {
-  if (stateless) {
-    return `${appPath}/v1/pages/order`;
-  } else {
-    return `${appPath}/instances/${window.instanceId}/pages/order`;
-  }
-};
-
 export const getPartyValidationUrl = (partyId: string) =>
   `${appPath}/api/v1/parties/validateInstantiation?partyId=${partyId}`;
 

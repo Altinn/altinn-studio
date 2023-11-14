@@ -1,9 +1,9 @@
-import { getLayoutOrderFromTracks } from 'src/selectors/getLayoutOrder';
+import { getLayoutOrderFromPageOrderConfig } from 'src/selectors/getLayoutOrder';
 
-describe('getLayoutOrderFromTracks', () => {
+describe('getLayoutOrderFromPageOrderConfig', () => {
   it('should hide a layout after expressions have been evaluated', () => {
     expect(
-      getLayoutOrderFromTracks({
+      getLayoutOrderFromPageOrderConfig({
         order: ['first', 'second', 'third'],
         hidden: ['second'],
         hiddenExpr: {},
@@ -13,7 +13,7 @@ describe('getLayoutOrderFromTracks', () => {
 
   it('should not affect the order sent from the server', () => {
     expect(
-      getLayoutOrderFromTracks({
+      getLayoutOrderFromPageOrderConfig({
         order: ['4', '3', '2', '1'],
         hidden: ['2', '3'],
         hiddenExpr: {},

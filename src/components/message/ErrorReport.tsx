@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { Grid } from '@material-ui/core';
+import { createSelector } from 'reselect';
 
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import classes from 'src/components/message/ErrorReport.module.css';
@@ -15,7 +16,9 @@ import { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { useExprContext } from 'src/utils/layout/ExprContext';
 import { getMappedErrors, getUnmappedErrors } from 'src/utils/validation/validation';
+import type { IRuntimeState } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { IValidations } from 'src/utils/validation/types';
 import type { FlatError } from 'src/utils/validation/validation';
 
 export interface IErrorReportProps {
@@ -27,13 +30,17 @@ const ArrowForwardSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 </svg>`;
 const listStyleImg = `url("data:image/svg+xml,${encodeURIComponent(ArrowForwardSvg)}")`;
 
+const selectValidations = (state: IRuntimeState) => state.formValidations.validations;
+const createMappedAndUnmappedErrors = (validations: IValidations): [FlatError[], string[]] => [
+  getMappedErrors(validations),
+  getUnmappedErrors(validations),
+];
+const selectMappedUnmappedErrors = createSelector(selectValidations, createMappedAndUnmappedErrors);
+
 export const ErrorReport = ({ nodes }: IErrorReportProps) => {
   const dispatch = useAppDispatch();
   const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
-  const [errorsMapped, errorsUnmapped] = useAppSelector((state) => [
-    getMappedErrors(state.formValidations.validations),
-    getUnmappedErrors(state.formValidations.validations),
-  ]);
+  const [errorsMapped, errorsUnmapped] = useAppSelector(selectMappedUnmappedErrors);
   const allNodes = useExprContext();
   const hasErrors = errorsUnmapped.length > 0 || errorsMapped.length > 0;
   const { lang } = useLanguage();

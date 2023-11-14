@@ -6,7 +6,6 @@ describe('layoutSlice', () => {
 
   describe('fetchLayoutFulfilled', () => {
     const layouts = {};
-    const navigationConfig = {};
     const hiddenLayoutsExpressions = {};
 
     it('should set layout state accordingly', () => {
@@ -14,15 +13,13 @@ describe('layoutSlice', () => {
         initialState,
         FormLayoutActions.fetchFulfilled({
           layouts,
-          navigationConfig,
           hiddenLayoutsExpressions,
           layoutSetId: null,
         }),
       );
 
       expect(nextState.layouts).toEqual(layouts);
-      expect(nextState.uiConfig.tracks.order).toEqual(Object.keys(layouts));
-      expect(nextState.uiConfig.navigationConfig).toEqual(navigationConfig);
+      expect(nextState.uiConfig.pageOrderConfig.order).toEqual(Object.keys(layouts));
     });
 
     it('should reset repeatingGroups if set', () => {
@@ -41,7 +38,6 @@ describe('layoutSlice', () => {
         stateWithRepGroups,
         FormLayoutActions.fetchFulfilled({
           layouts,
-          navigationConfig,
           hiddenLayoutsExpressions,
           layoutSetId: null,
         }),
@@ -59,7 +55,6 @@ describe('layoutSlice', () => {
         stateWithError,
         FormLayoutActions.fetchFulfilled({
           layouts,
-          navigationConfig,
           hiddenLayoutsExpressions,
           layoutSetId: null,
         }),

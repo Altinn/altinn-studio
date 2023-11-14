@@ -130,8 +130,7 @@ const createLayout = (
     },
     currentView: 'FormLayout',
     focus: null,
-    navigationConfig: {},
-    tracks: {
+    pageOrderConfig: {
       order: null,
       hidden: [],
       hiddenExpr: {},

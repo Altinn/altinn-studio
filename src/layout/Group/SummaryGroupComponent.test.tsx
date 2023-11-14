@@ -78,8 +78,7 @@ describe('SummaryGroupComponent', () => {
           },
         },
         currentView: 'page1',
-        navigationConfig: {},
-        tracks: {
+        pageOrderConfig: {
           order: ['page1'],
           hidden: [],
           hiddenExpr: {},

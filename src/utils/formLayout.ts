@@ -1,5 +1,4 @@
 import { groupIsRepeatingExt, groupIsRepeatingLikertExt } from 'src/layout/Group/tools';
-import type { ILayoutNavigation } from 'src/layout/common.generated';
 import type { CompGroupExternal, IGroupEditPropertiesLikert } from 'src/layout/Group/config.generated';
 import type { CompExternal, ILayout } from 'src/layout/layout';
 import type { ILayoutSets, IRepeatingGroups } from 'src/types';
@@ -184,32 +183,6 @@ function getIndexForNestedRepeatingGroup(
     return getMaxIndexInKeys(groupFormData, true);
   }
   return -1;
-}
-
-export function getNextView(
-  navOptions: ILayoutNavigation | undefined,
-  layoutOrder: string[] | null,
-  currentView: string,
-  goBack?: boolean,
-) {
-  let result;
-  if (navOptions) {
-    if (goBack && navOptions.previous) {
-      return navOptions.previous;
-    }
-
-    if (!goBack && navOptions.next) {
-      return navOptions.next;
-    }
-  }
-
-  if (layoutOrder) {
-    const currentViewIndex = layoutOrder.indexOf(currentView);
-    const newViewIndex = goBack ? currentViewIndex - 1 : currentViewIndex + 1;
-    result = layoutOrder[newViewIndex];
-  }
-
-  return result;
 }
 
 export function removeRepeatingGroupFromUIConfig(

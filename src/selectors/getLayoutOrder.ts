@@ -1,20 +1,44 @@
 import { createSelector } from 'reselect';
 
 import type { RootState } from 'src/redux/store';
-import type { ITracks } from 'src/types';
+import type { IPageOrderConfig } from 'src/types';
 
 /**
- * Given the ITracks state, this returns the final order for layouts
+ * Given the IPageOrderConfig state, this returns the final order for layouts
  */
-export function getLayoutOrderFromTracks(tracks: ITracks): string[] | null {
-  if (tracks.order === null) {
+export function getLayoutOrderFromPageOrderConfig(pageOrderConfig: IPageOrderConfig): string[] | null {
+  if (pageOrderConfig.order === null) {
     return null;
   }
 
-  const hiddenSet = new Set(tracks.hidden);
-  return [...tracks.order].filter((layout) => !hiddenSet.has(layout));
+  const hiddenSet = new Set(pageOrderConfig.hidden);
+  return [...pageOrderConfig.order].filter((layout) => !hiddenSet.has(layout));
 }
 
-const selectTracks = (state: RootState) => state.formLayout.uiConfig.tracks;
+/**
+ * Given the current view and the layout order, this returns the next and previous page
+ */
+function getNextAndPreviousPageFromState(
+  currentView: string,
+  layoutOrder: string[],
+): { next?: string; previous?: string } {
+  const currentViewIndex = layoutOrder?.indexOf(currentView);
+  const nextView = currentViewIndex !== -1 ? currentViewIndex + 1 : 0;
+  const previousView = currentViewIndex !== -1 ? currentViewIndex - 1 : 0;
 
-export const selectLayoutOrder = createSelector(selectTracks, (tracks) => getLayoutOrderFromTracks(tracks));
+  return {
+    next: layoutOrder?.[nextView],
+    previous: layoutOrder?.[previousView],
+  };
+}
+
+export const selectPageOrderConfig = (state: RootState) => state.formLayout.uiConfig.pageOrderConfig;
+const selectCurrentView = (state: RootState) => state.formLayout.uiConfig.currentView;
+
+export const selectLayoutOrder = createSelector(selectPageOrderConfig, getLayoutOrderFromPageOrderConfig);
+
+export const selectPreviousAndNextPage = createSelector(
+  selectCurrentView,
+  selectLayoutOrder,
+  getNextAndPreviousPageFromState,
+);

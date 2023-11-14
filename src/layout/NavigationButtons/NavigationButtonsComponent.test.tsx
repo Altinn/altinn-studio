@@ -53,21 +53,13 @@ describe('NavigationButton', () => {
       focus: null,
       hiddenFields: [],
       repeatingGroups: {},
-      tracks: {
+      pageOrderConfig: {
         order: ['layout1', 'layout2'],
         hidden: [],
         hiddenExpr: {},
       },
       excludePageFromPdf: [],
       excludeComponentFromPdf: [],
-      navigationConfig: {
-        layout1: {
-          next: 'layout2',
-        },
-        layout2: {
-          previous: 'layout1',
-        },
-      },
     },
   });
 

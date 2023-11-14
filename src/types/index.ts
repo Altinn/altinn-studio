@@ -2,7 +2,7 @@ import { Triggers } from 'src/layout/common.generated';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
-import type { ILayoutNavigation, IMapping } from 'src/layout/common.generated';
+import type { IMapping } from 'src/layout/common.generated';
 import type { RootState } from 'src/redux/store';
 
 export interface ILayoutSets {
@@ -36,10 +36,6 @@ export interface IPagesSettings {
 
 export interface IComponentsSettings {
   excludeFromPdf?: string[];
-}
-
-export interface INavigationConfig {
-  [id: string]: ILayoutNavigation | undefined;
 }
 
 export interface IRepeatingGroup {
@@ -88,8 +84,7 @@ export interface IUiConfig {
   focus: string | null | undefined;
   hiddenFields: string[];
   repeatingGroups: IRepeatingGroups | null;
-  navigationConfig?: INavigationConfig;
-  tracks: ITracks;
+  pageOrderConfig: IPageOrderConfig;
   excludePageFromPdf: string[] | null;
   excludeComponentFromPdf: string[] | null;
   pdfLayoutName?: string;
@@ -104,15 +99,14 @@ export interface IUiConfig {
 
 /**
  * This state includes everything needed to calculate which layouts should be shown, and their order.
- * @see https://docs.altinn.studio/app/development/ux/pages/tracks/
  */
-export interface ITracks {
+export interface IPageOrderConfig {
   /**
    * The main 'order' is the list of layouts available, or which layouts the server tells us to display. If a layout
    * is not in this list, it should be considered hidden. It will be null until layouts have been fetched.
    *
    * Do NOT use this directly, as it will not respect layouts hidden using expressions!
-   * @see getLayoutOrderFromTracks
+   * @see getLayoutOrderFromPageOrderConfig
    * @see selectLayoutOrder
    */
   order: string[] | null;

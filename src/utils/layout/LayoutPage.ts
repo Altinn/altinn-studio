@@ -159,9 +159,9 @@ export class LayoutPage implements LayoutObject {
       return false;
     }
 
-    const { order } = uiConfig.tracks || {};
+    const { order } = uiConfig.pageOrderConfig || {};
     if (!order) {
-      // If no tracks are provided, then we can't determine if this is hidden or not
+      // If no pageOrderConfig is provided, then we can't determine if this is hidden or not
       return false;
     }
 
