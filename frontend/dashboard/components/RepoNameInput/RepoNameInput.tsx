@@ -14,6 +14,7 @@ export const RepoNameInput = ({ repoName, errorMessage, name }: RepoNameInputPro
     <div>
       <Textfield
         name={name}
+        id='service-saved-name'
         label={t('general.service_name')}
         defaultValue={repoName}
         error={errorMessage}

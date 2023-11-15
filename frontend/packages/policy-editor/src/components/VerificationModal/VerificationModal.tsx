@@ -2,34 +2,14 @@ import React from 'react';
 import classes from './VerificationModal.module.css';
 import { Button, Heading, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { Modal } from 'app-shared/components/Modal';
+import { StudioModal } from '@altinn/studio-components';
 
 export type VerificationModalProps = {
-  /**
-   * Boolean for if the modal is open or not
-   */
   isOpen: boolean;
-  /**
-   * Function to be executed when closing the modal
-   * @returns void
-   */
   onClose: () => void;
-  /**
-   * The text to display in the modal
-   */
   text: string;
-  /**
-   * The text to display on the close button
-   */
   closeButtonText: string;
-  /**
-   * The text to display on the action button
-   */
   actionButtonText: string;
-  /**
-   * Function to be executed when the action button is clicked
-   * @returns void
-   */
   onPerformAction: () => void;
 };
 
@@ -58,7 +38,7 @@ export const VerificationModal = ({
   const { t } = useTranslation();
 
   return (
-    <Modal
+    <StudioModal
       isOpen={isOpen}
       onClose={onClose}
       title={
@@ -77,11 +57,11 @@ export const VerificationModal = ({
               {closeButtonText}
             </Button>
           </div>
-          <Button onClick={onPerformAction} color='first' size='small'>
+          <Button onClick={onPerformAction} color='danger' size='small'>
             {actionButtonText}
           </Button>
         </div>
       </div>
-    </Modal>
+    </StudioModal>
   );
 };

@@ -9,9 +9,6 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import { useImportResourceFromAltinn2Mutation } from 'resourceadm/hooks/mutations';
-import { UseMutationResult } from '@tanstack/react-query';
-import { Resource } from 'app-shared/types/ResourceAdm';
 
 const mockAltinn2LinkService: Altinn2LinkService = {
   externalServiceCode: 'code1',
@@ -22,25 +19,10 @@ const mockAltinn2LinkServices: Altinn2LinkService[] = [mockAltinn2LinkService];
 const mockOption: string = `${mockAltinn2LinkService.externalServiceCode}-${mockAltinn2LinkService.externalServiceEditionCode}-${mockAltinn2LinkService.serviceName}`;
 
 const mockOnClose = jest.fn();
-const getAltinn2LinkServices = jest.fn().mockImplementation(() => Promise.resolve({}));
-
-jest.mock('../../hooks/mutations/useImportResourceFromAltinn2Mutation');
 const importResourceFromAltinn2 = jest.fn();
-const mockImportResourceFromAltinn2 = useImportResourceFromAltinn2Mutation as jest.MockedFunction<
-  typeof useImportResourceFromAltinn2Mutation
->;
-mockImportResourceFromAltinn2.mockReturnValue({
-  mutate: importResourceFromAltinn2,
-} as unknown as UseMutationResult<
-  Resource,
-  unknown,
-  {
-    environment: string;
-    serviceCode: string;
-    serviceEdition: string;
-  },
-  unknown
->);
+const getAltinn2LinkServices = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve(mockAltinn2LinkServices));
 
 const defaultProps: ImportResourceModalProps = {
   isOpen: true,
@@ -107,7 +89,7 @@ describe('ImportResourceModal', () => {
     );
     await act(() => user.click(environmentSelect));
     await act(() => user.click(screen.getByRole('option', { name: 'AT21' })));
-    await waitForElementToBeRemoved(() =>
+    await waitForElementToBeRemoved(
       screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
     );
     const [, serviceSelect] = screen.getAllByLabelText(
@@ -126,11 +108,10 @@ describe('ImportResourceModal', () => {
 });
 
 const render = (props: Partial<ImportResourceModalProps> = {}) => {
-  getAltinn2LinkServices.mockImplementation(() => Promise.resolve(mockAltinn2LinkServices));
-
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getAltinn2LinkServices,
+    importResourceFromAltinn2,
   };
 
   return rtlRender(

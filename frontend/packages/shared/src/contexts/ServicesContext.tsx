@@ -37,7 +37,7 @@ const handleError = (
   t: (key: string) => string,
   i18n: i18n,
   meta: QueryMeta | MutationMeta,
-  logout: () => Promise<void>
+  logout: () => Promise<void>,
 ): void => {
   // TODO : log axios errors
 
@@ -86,7 +86,7 @@ export const ServicesContextProvider = ({
           onError: (error: AxiosError<ApiError>, variables, context, mutation) =>
             handleError(error, t, i18n, mutation.options?.meta, queries.logout),
         }),
-      })
+      }),
   );
 
   return (

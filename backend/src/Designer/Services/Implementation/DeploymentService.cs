@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -138,6 +139,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 _logger.LogInformation("The requested build number {buildNumber} does not exist, updating it as failed in the database", buildNumber);
                 deploymentEntity.Build.Status = BuildStatus.Completed;
                 deploymentEntity.Build.Result = BuildResult.Failed;
+                deploymentEntity.Build.Finished = DateTime.UtcNow;
                 await _deploymentRepository.Update(deploymentEntity);
             }
         }

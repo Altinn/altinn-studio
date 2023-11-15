@@ -2,7 +2,7 @@ import React from 'react';
 import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Switch, LegacyFieldSet, Heading } from '@digdir/design-system-react';
+import { Switch, Fieldset, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -70,7 +70,7 @@ export const EditFormComponent = ({
   };
 
   return (
-    <LegacyFieldSet className={classes.root}>
+    <Fieldset className={classes.root}>
       <FormField
         id={component.id}
         value={showComponentConfigBeta || false}
@@ -111,6 +111,6 @@ export const EditFormComponent = ({
           />
         </>
       )}
-    </LegacyFieldSet>
+    </Fieldset>
   );
 };

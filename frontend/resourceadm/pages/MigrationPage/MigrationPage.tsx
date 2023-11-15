@@ -40,7 +40,7 @@ export const MigrationPage = ({
 }: MigrationPageProps): React.ReactNode => {
   // TODO - translation. Issue: #10715
 
-  const { selectedContext, resourceId } = useParams();
+  const { org: selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
@@ -69,7 +69,7 @@ export const MigrationPage = ({
     if (validatePolicyLoading || validateResourceLoading) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn migreringsstatus' />
+          <Spinner size='xlarge' variant='interaction' title='Laster inn migreringsstatus' />
         </div>
       );
     }

@@ -8,7 +8,7 @@ import {
   Operator,
   getExpressionPropertiesBasedOnComponentType,
 } from '../types/Expressions';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'; // TODO: Refactor so that we don't need this. https://github.com/Altinn/altinn-studio/issues/11523
 import { deepCopy } from 'app-shared/pure';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { IFormLayouts, LayoutItemType } from '../types/global';
@@ -21,40 +21,47 @@ export const convertInternalExpressionToExternal = (expression: Expression): any
   if (complexExpressionIsSet(expression.complexExpression)) {
     return expression.complexExpression;
   }
-  const subExpressions: any[] = [];
   if (!expression.subExpressions || expression.subExpressions.length === 0) {
-    return subExpressions;
+    return [];
   }
-  expression.subExpressions.map((subEXp) => {
-    const expressionObject = [];
-    expressionObject[0] = subEXp.function;
-    if (
-      subEXp.dataSource === DataSource.ApplicationSettings ||
-      subEXp.dataSource === DataSource.Component ||
-      subEXp.dataSource === DataSource.DataModel ||
-      subEXp.dataSource === DataSource.InstanceContext
-    ) {
-      expressionObject[1] = [subEXp.dataSource, subEXp.value];
-    } else if (!subEXp.dataSource) {
-      expressionObject[1] = null;
-    } else {
-      expressionObject[1] = subEXp.value;
-    }
-    if (
-      subEXp.comparableDataSource === DataSource.ApplicationSettings ||
-      subEXp.comparableDataSource === DataSource.Component ||
-      subEXp.comparableDataSource === DataSource.DataModel ||
-      subEXp.comparableDataSource === DataSource.InstanceContext
-    ) {
-      expressionObject[2] = [subEXp.comparableDataSource, subEXp.comparableValue];
-    } else if (!subEXp.comparableDataSource) {
-      expressionObject[2] = null;
-    } else {
-      expressionObject[2] = subEXp.comparableValue;
-    }
-    subExpressions.push(expressionObject);
+  if (expression.subExpressions.length === 1) {
+    return convertInternalSubExpressionToExternal(expression.subExpressions[0]);
+  }
+  const multiExpression: any = [expression.operator];
+  expression.subExpressions.map((subExp) => {
+    const convertedSubExpression = convertInternalSubExpressionToExternal(subExp);
+    multiExpression.push(convertedSubExpression);
   });
-  return expression.operator ? [expression.operator].concat(subExpressions) : subExpressions[0];
+  return multiExpression;
+};
+
+export const convertInternalSubExpressionToExternal = (subExp: SubExpression): any => {
+  const expressionObject: any = [subExp.function];
+  if (
+    subExp.dataSource === DataSource.ApplicationSettings ||
+    subExp.dataSource === DataSource.Component ||
+    subExp.dataSource === DataSource.DataModel ||
+    subExp.dataSource === DataSource.InstanceContext
+  ) {
+    expressionObject[1] = [subExp.dataSource, subExp.value];
+  } else if (!subExp.dataSource) {
+    expressionObject[1] = null;
+  } else {
+    expressionObject[1] = subExp.value;
+  }
+  if (
+    subExp.comparableDataSource === DataSource.ApplicationSettings ||
+    subExp.comparableDataSource === DataSource.Component ||
+    subExp.comparableDataSource === DataSource.DataModel ||
+    subExp.comparableDataSource === DataSource.InstanceContext
+  ) {
+    expressionObject[2] = [subExp.comparableDataSource, subExp.comparableValue];
+  } else if (!subExp.comparableDataSource) {
+    expressionObject[2] = null;
+  } else {
+    expressionObject[2] = subExp.comparableValue;
+  }
+  return expressionObject;
 };
 
 export const isStudioFriendlyExpression = (expression: any): boolean => {
@@ -110,7 +117,7 @@ export const convertExternalExpressionToInternal = (
     );
     return convertedExpression;
   } else {
-    convertedExpression.operator = expression[0];
+    convertedExpression.operator = expression[0] as Operator;
     expression.slice(1).map((expEl) => {
       const exp: SubExpression = {
         id: uuidv4(),
@@ -126,32 +133,32 @@ export const convertExternalExpressionToInternal = (
 };
 
 export function convertSubExpression(
-  internalExpEl: SubExpression,
+  internalSubExp: SubExpression,
   externalExpEl: any,
   isComparable: boolean,
 ): SubExpression {
-  const newInternalExpEl = deepCopy(internalExpEl);
+  const newInternalSubExp = deepCopy(internalSubExp);
   if (Array.isArray(externalExpEl)) {
     isComparable
-      ? (newInternalExpEl.comparableDataSource = externalExpEl[0] as DataSource)
-      : (newInternalExpEl.dataSource = externalExpEl[0] as DataSource);
+      ? (newInternalSubExp.comparableDataSource = externalExpEl[0] as DataSource)
+      : (newInternalSubExp.dataSource = externalExpEl[0] as DataSource);
     isComparable
-      ? (newInternalExpEl.comparableValue = externalExpEl[1])
-      : (newInternalExpEl.value = externalExpEl[1]);
+      ? (newInternalSubExp.comparableValue = externalExpEl[1])
+      : (newInternalSubExp.value = externalExpEl[1]);
   } else if (externalExpEl === null) {
     isComparable
-      ? (newInternalExpEl.comparableDataSource = DataSource.Null)
-      : (newInternalExpEl.dataSource = DataSource.Null);
-    isComparable ? (newInternalExpEl.comparableValue = null) : (newInternalExpEl.value = null);
+      ? (newInternalSubExp.comparableDataSource = DataSource.Null)
+      : (newInternalSubExp.dataSource = DataSource.Null);
+    isComparable ? (newInternalSubExp.comparableValue = null) : (newInternalSubExp.value = null);
   } else {
     isComparable
-      ? (newInternalExpEl.comparableDataSource = typeof externalExpEl as DataSource)
-      : (newInternalExpEl.dataSource = typeof externalExpEl as DataSource); // to string. Can be string, number, boolean
+      ? (newInternalSubExp.comparableDataSource = typeof externalExpEl as DataSource)
+      : (newInternalSubExp.dataSource = typeof externalExpEl as DataSource); // to string. Can be string, number, boolean
     isComparable
-      ? (newInternalExpEl.comparableValue = externalExpEl)
-      : (newInternalExpEl.value = externalExpEl);
+      ? (newInternalSubExp.comparableValue = externalExpEl)
+      : (newInternalSubExp.value = externalExpEl);
   }
-  return newInternalExpEl;
+  return newInternalSubExp;
 }
 
 export const convertAndAddExpressionToComponent = (
@@ -260,9 +267,9 @@ export const updateExpression = (
   oldExpression: Expression,
   index: number,
   subExpression: SubExpression,
-) => {
+): Expression => {
   const newExpression = deepCopy(oldExpression);
-  newExpression.subExpressions[index] = { id: uuidv4(), ...subExpression };
+  newExpression.subExpressions[index] = subExpression;
   return newExpression;
 };
 
@@ -295,7 +302,11 @@ export const removeSubExpressionAndAdaptParentProps = (
   return newExpression;
 };
 
-export const addDataSource = (expEl: SubExpression, dataSource: string, isComparable: boolean) => {
+export const addDataSource = (
+  expEl: SubExpression,
+  dataSource: string,
+  isComparable: boolean,
+): SubExpression => {
   const newExpEl = deepCopy(expEl);
   if (dataSource === 'default') {
     isComparable ? delete newExpEl.comparableDataSource : delete newExpEl.dataSource;
@@ -322,7 +333,7 @@ export const addDataSourceValue = (
   expEl: SubExpression,
   dataSourceValue: string,
   isComparable: boolean,
-) => {
+): SubExpression => {
   const newExpEl = deepCopy(expEl);
   // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved. Issue #10856
   if (dataSourceValue === 'default' || dataSourceValue === 'NotImplementedYet') {
@@ -363,18 +374,21 @@ export const stringifyValueForDisplay = (
   return dataSourceValue.toString();
 };
 
-export const tryParseExpression = (oldExpression: Expression, complexExpression: string) => {
+export const tryParseExpression = (
+  oldExpression: Expression,
+  complexExpression: any,
+): Expression => {
   // TODO: Try format expression for better readability
   const newExpression = deepCopy(oldExpression);
   try {
-    newExpression.complexExpression = JSON.parse(complexExpression);
+    newExpression.complexExpression = JSON.parse(complexExpression as string);
   } catch (error) {
     newExpression.complexExpression = complexExpression;
   }
   return newExpression;
 };
 
-export const complexExpressionIsSet = (complexExpression: string) => {
+export const complexExpressionIsSet = (complexExpression: string): boolean => {
   // ComplexExpression can be empty string
   return complexExpression !== undefined && complexExpression !== null;
 };
@@ -390,11 +404,11 @@ export const getAllComponentPropertiesThatCanHaveExpressions = (
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(
     form.itemType as LayoutItemType,
   );
-  let editPropertiesForGroup = [];
+  let editPropertiesForGroup: ExpressionPropertyForGroup[] = [];
   if (form['edit']) {
-    editPropertiesForGroup = Object.keys(form['edit']).map(
-      (property) => ('edit.' + property) as ExpressionPropertyForGroup,
-    );
+    editPropertiesForGroup = Object.keys(form['edit'])
+      .map((property) => 'edit.' + property)
+      .filter(canGroupPropertyHaveExpressions);
   }
   const generalFormPropertiesThatCouldHaveExpressions = Object.keys(form)
     .filter((property) => expressionProperties?.includes(property as ExpressionPropertyBase))
@@ -405,24 +419,27 @@ export const getAllComponentPropertiesThatCanHaveExpressions = (
   };
 };
 
-export const getAllConvertedExpressions = (form: FormComponent | FormContainer) => {
+const canGroupPropertyHaveExpressions = (
+  property: string,
+): property is ExpressionPropertyForGroup =>
+  Object.values(ExpressionPropertyForGroup).includes(property as ExpressionPropertyForGroup);
+
+export const getAllConvertedExpressions = (form: FormComponent | FormContainer): Expression[] => {
   const { generalProperties, propertiesForGroup } =
     getAllComponentPropertiesThatCanHaveExpressions(form);
-  const potentialConvertedExternalExpressionsForGroupProperties = propertiesForGroup.map(
-    (property) => {
-      const editPropertyForGroup = property.split('edit.')[1];
-      const value = form['edit'][editPropertyForGroup];
-      if (typeof value !== 'boolean') {
-        return convertExternalExpressionToInternal(property, value);
-      }
-    },
-  );
-  const potentialConvertedExternalExpressionsForGeneralProperties: Expression[] = generalProperties
+  const convertedExternalExpressionsForGroupProperties = propertiesForGroup.map((property) => {
+    const editPropertyForGroup = property.split('edit.')[1];
+    const value = form['edit'][editPropertyForGroup];
+    if (typeof value !== 'boolean') {
+      return convertExternalExpressionToInternal(property, value);
+    }
+  });
+  const convertedExternalExpressionsForGeneralProperties: Expression[] = generalProperties
     ?.filter((property) => typeof form[property] !== 'boolean')
     ?.map((property) => convertExternalExpressionToInternal(property, form[property]));
 
-  return potentialConvertedExternalExpressionsForGroupProperties.concat(
-    potentialConvertedExternalExpressionsForGeneralProperties,
+  return convertedExternalExpressionsForGroupProperties.concat(
+    convertedExternalExpressionsForGeneralProperties,
   );
 };
 

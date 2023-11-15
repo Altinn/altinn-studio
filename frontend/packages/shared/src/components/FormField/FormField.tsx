@@ -117,7 +117,6 @@ export const FormField = <T extends unknown, TT extends unknown>({
             : {};
 
         if (errorCode) {
-          props.isValid = false;
           props['aria-errormessage'] = errorMessageId;
           props['aria-invalid'] = true;
         }

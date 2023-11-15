@@ -23,6 +23,6 @@
   text-decoration: none;
 }
 
-.menuItem.active {
+.menuItem .active {
   border-bottom: 2px solid #fff;
 }

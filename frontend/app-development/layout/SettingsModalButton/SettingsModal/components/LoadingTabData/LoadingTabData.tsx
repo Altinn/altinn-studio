@@ -7,7 +7,7 @@ export const LoadingTabData = (): ReactNode => {
   const { t } = useTranslation();
   return (
     <Center>
-      <Spinner size='2xLarge' variant='interaction' title={t('settings_modal.loading_content')} />
+      <Spinner size='xlarge' variant='interaction' title={t('settings_modal.loading_content')} />
     </Center>
   );
 };

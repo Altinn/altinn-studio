@@ -51,7 +51,7 @@ export const DeployResourcePage = ({
 }: DeployResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { selectedContext, resourceId } = useParams();
+  const { org: selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
@@ -242,7 +242,7 @@ export const DeployResourcePage = ({
       case 'loading': {
         return (
           <div className={classes.spinnerWrapper}>
-            <Spinner size='3xLarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
+            <Spinner size='xlarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
           </div>
         );
       }

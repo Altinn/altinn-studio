@@ -40,7 +40,7 @@ export const ResourcePage = (): React.ReactNode => {
 
   const navigate = useNavigate();
 
-  const { pageType, resourceId, selectedContext } = useParams();
+  const { pageType, resourceId, org: selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
@@ -252,7 +252,7 @@ export const ResourcePage = (): React.ReactNode => {
       {resourceLoading ? (
         <div className={classes.spinnerWrapper}>
           <Spinner
-            size='3xLarge'
+            size='xlarge'
             variant='interaction'
             title={t('resourceadm.about_resource_spinner')}
           />

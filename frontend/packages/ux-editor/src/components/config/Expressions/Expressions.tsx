@@ -40,9 +40,9 @@ export const Expressions = () => {
 
   useEffect(() => {
     if (form) {
-      const potentialConvertedExternalExpressions: Expression[] = getAllConvertedExpressions(form);
-      if (potentialConvertedExternalExpressions.length) {
-        setExpressions(potentialConvertedExternalExpressions);
+      const convertedExpressions: Expression[] = getAllConvertedExpressions(form);
+      if (convertedExpressions.length) {
+        setExpressions(convertedExpressions);
       } else {
         const defaultExpression: Expression = { id: uuidv4() };
         setExpressionInEditModeId(defaultExpression.id);

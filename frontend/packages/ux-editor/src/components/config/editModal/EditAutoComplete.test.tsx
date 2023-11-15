@@ -17,13 +17,19 @@ const componentMock: FormComponent = {
 };
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-export const render = async (handleComponentChangeMock: any = jest.fn(), component: FormComponent = componentMock) => {
+export const render = async (
+  handleComponentChangeMock: any = jest.fn(),
+  component: FormComponent = componentMock,
+) => {
   await waitForData();
-  return renderWithMockStore()(<EditAutoComplete handleComponentChange={handleComponentChangeMock} component={component} />);
+  return renderWithMockStore()(
+    <EditAutoComplete handleComponentChange={handleComponentChangeMock} component={component} />,
+  );
 };
 
 test('should render first 6 suggestions on search field focused', async () => {
