@@ -9,7 +9,7 @@ import { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { AltinnSpinner } from 'app-shared/components';
-import { Heading } from '@digdir/design-system-react';
+import { Heading, Link } from '@digdir/design-system-react';
 
 type ResourcesRepoListProps = {
   organizations: Organization[];
@@ -45,9 +45,9 @@ export const ResourcesRepoList = ({ organizations }: ResourcesRepoListProps): Re
         <AltinnSpinner spinnerText={t('general.loading')} />
       ) : (
         <div>
-          <a href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
+          <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
             {t('dashboard.go_to_resources')}
-          </a>
+          </Link>
           <ResourceTable
             list={resourceListData || []}
             onClickEditResource={(id: string) => {
