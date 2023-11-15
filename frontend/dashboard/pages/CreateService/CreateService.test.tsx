@@ -4,9 +4,41 @@ import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { CreateService } from './CreateService';
 import { User } from 'app-shared/types/User';
-import { IGiteaOrganisation } from 'app-shared/types/global';
+import { IGiteaOrganisation, IRepository } from 'app-shared/types/global';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+
+const org: IGiteaOrganisation = {
+  avatar_url: '',
+  id: 1,
+  username: 'unit-test',
+  full_name: 'unit-test',
+};
+
+const repositoryMock: IRepository = {
+  clone_url: '',
+  description: '',
+  full_name: 'test',
+  html_url: '',
+  id: 0,
+  is_cloned_to_local: false,
+  user_has_starred: false,
+  name: 'test',
+  owner: {
+    avatar_url: '',
+    full_name: '',
+    login: '',
+  },
+  updated_at: '',
+};
+
+const userMock: User = {
+  id: 1,
+  avatar_url: '',
+  email: 'tester@tester.test',
+  full_name: 'Tester Testersen',
+  login: 'tester',
+};
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -36,7 +68,23 @@ const renderWithMockServices = (
   );
 };
 
+const originalWindowLocation = window.location;
+
 describe('CreateService', () => {
+  const windowLocationAssignMock = jest.fn();
+  beforeEach(() => {
+    delete window.location;
+    window.location = {
+      ...originalWindowLocation,
+      assign: windowLocationAssignMock,
+    };
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    window.location = originalWindowLocation;
+  });
+
   test('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
     renderWithMockServices();
@@ -100,13 +148,6 @@ describe('CreateService', () => {
 
   test('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
-    const org: IGiteaOrganisation = {
-      avatar_url: '',
-      id: 1,
-      username: 'unit-test',
-      full_name: 'unit-test',
-    };
-
     const addRepoMock = jest
       .fn()
       .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
@@ -156,6 +197,28 @@ describe('CreateService', () => {
 
     const emptyFieldErrors = await screen.findAllByText(textMock('general.error_message'));
     expect(emptyFieldErrors.length).toBe(1);
+  });
+
+  it.only('should navigate to app-development if creating the app was successful', async () => {
+    const user = userEvent.setup();
+
+    renderWithMockServices(
+      {
+        addRepo: () => Promise.resolve(repositoryMock),
+      },
+      [org],
+      userMock,
+    );
+
+    const createBtn: HTMLElement = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+
+    const appNameInput = screen.getByLabelText(textMock('general.service_name'));
+    await act(() => user.type(appNameInput, 'appname'));
+    await act(() => user.click(createBtn));
+
+    expect(windowLocationAssignMock).toHaveBeenCalled();
   });
 
   it('navigate back button should be a link with "/" as path', async () => {
