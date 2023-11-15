@@ -1,12 +1,12 @@
 import React from 'react';
 import { Paragraph } from '@digdir/design-system-react';
-import classes from './EmptyItem.module.css';
+import classes from './EmptyList.module.css';
 
-interface EmptyItemProps {
+export interface EmptyListProps {
   children: string;
 }
 
-export const EmptyList = ({ children }: EmptyItemProps) => (
+export const EmptyList = ({ children }: EmptyListProps) => (
   <Paragraph className={classes.root} size='small'>
     {children}
   </Paragraph>

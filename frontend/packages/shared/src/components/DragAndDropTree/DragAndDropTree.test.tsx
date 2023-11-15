@@ -86,4 +86,36 @@ describe('DragAndDropTree', () => {
     );
     expect(screen.getByText(emptyMessage)).toBeInTheDocument();
   });
+
+  it('Removes empty message when items are added', () => {
+    const { rerender } = renderRtl(
+      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
+        <DragAndDropTree.Root emptyMessage={emptyMessage} />
+      </DragAndDropTree.Provider>,
+    );
+    rerender(
+      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
+        <DragAndDropTree.Root emptyMessage={emptyMessage}>
+          <DragAndDropTree.Item label={rootNodeLabel1} nodeId={rootNodeId1} />
+        </DragAndDropTree.Root>
+      </DragAndDropTree.Provider>,
+    );
+    expect(screen.queryByText(emptyMessage)).not.toBeInTheDocument();
+  });
+
+  it('Adds empty message when items are removed', () => {
+    const { rerender } = renderRtl(
+      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
+        <DragAndDropTree.Root emptyMessage={emptyMessage}>
+          <DragAndDropTree.Item label={rootNodeLabel1} nodeId={rootNodeId1} />
+        </DragAndDropTree.Root>
+      </DragAndDropTree.Provider>,
+    );
+    rerender(
+      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
+        <DragAndDropTree.Root emptyMessage={emptyMessage} />
+      </DragAndDropTree.Provider>,
+    );
+    expect(screen.getByText(emptyMessage)).toBeInTheDocument();
+  });
 });

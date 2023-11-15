@@ -71,10 +71,10 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByRole('heading', {
         name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }),
         level: 2,
-      })
+      }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByLabelText(textMock('resourceadm.dashboard_searchbox'))
+      screen.queryByLabelText(textMock('resourceadm.dashboard_searchbox')),
     ).not.toBeInTheDocument();
   });
 
@@ -82,14 +82,14 @@ describe('ResourceDashBoardPage', () => {
     getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner'))
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
     expect(screen.queryByRole(textMock('resourceadm.dashboard_spinner'))).not.toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }),
         level: 2,
-      })
+      }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(textMock('resourceadm.dashboard_searchbox'))).toBeInTheDocument();
   });
@@ -99,7 +99,7 @@ describe('ResourceDashBoardPage', () => {
     getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner'))
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
     const modalTitle = screen.queryByRole('heading', {
@@ -117,7 +117,7 @@ describe('ResourceDashBoardPage', () => {
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_import_modal_title'),
         level: 1,
-      })
+      }),
     ).toBeInTheDocument();
   });
 
@@ -126,7 +126,7 @@ describe('ResourceDashBoardPage', () => {
     getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner'))
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
     const modalTitle = screen.queryByRole('heading', {
@@ -144,7 +144,7 @@ describe('ResourceDashBoardPage', () => {
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_create_modal_title'),
         level: 1,
-      })
+      }),
     ).toBeInTheDocument();
   });
 
@@ -153,7 +153,7 @@ describe('ResourceDashBoardPage', () => {
     getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner'))
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
     const resourceRowsBeforeFilter = screen.getAllByRole('row'); // Also selects the <th />
@@ -170,11 +170,11 @@ describe('ResourceDashBoardPage', () => {
     getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner'))
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
     expect(
-      screen.queryByText(textMock('resourceadm.dashboard_empty_list'))
+      screen.queryByText(textMock('resourceadm.dashboard_no_resources_result')),
     ).not.toBeInTheDocument();
   });
 
@@ -183,7 +183,7 @@ describe('ResourceDashBoardPage', () => {
     getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.dashboard_spinner'))
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
     const resourceRowsBeforeFilter = screen.getAllByRole('row'); // Also selects the <th />
@@ -195,13 +195,15 @@ describe('ResourceDashBoardPage', () => {
     const resourceRowsAfterFilter = screen.getAllByRole('row'); // Also selects the <th />
     expect(resourceRowsAfterFilter.length).toBe(1); // Only the <th />
 
-    expect(screen.getByText(textMock('resourceadm.dashboard_empty_list'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('resourceadm.dashboard_no_resources_result')),
+    ).toBeInTheDocument();
   });
 });
 
 const render = (
   queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock()
+  queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -213,6 +215,6 @@ const render = (
       <ServicesContextProvider {...allQueries} client={queryClient}>
         <ResourceDashboardPage />
       </ServicesContextProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };

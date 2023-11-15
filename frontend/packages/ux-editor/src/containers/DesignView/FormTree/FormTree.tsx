@@ -1,7 +1,7 @@
 import React from 'react';
 import { IInternalLayout } from '../../../types/global';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
-import { FormItemList } from './FormItemList';
+import { renderItemList } from './renderItemList';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useFormContext } from '../../FormContext';
 import { getItem } from '../../../utils/formLayoutUtils';
@@ -19,7 +19,7 @@ export const FormTree = ({ layout }: FormTreeProps) => {
 
   return (
     <DragAndDropTree.Root onSelect={handleSelect} emptyMessage={t('ux_editor.container_empty')}>
-      <FormItemList layout={layout} parentId={BASE_CONTAINER_ID} />
+      {renderItemList(layout, BASE_CONTAINER_ID)}
     </DragAndDropTree.Root>
   );
 };
