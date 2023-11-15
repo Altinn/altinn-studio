@@ -12,7 +12,6 @@ export type RightTranslationBarProps = {
   value: SupportedLanguageKey<string>;
   onLanguageChange: (value: SupportedLanguage) => void;
   showErrors: boolean;
-  onLeaveLastField: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onBlur: () => void;
 };
 
@@ -32,7 +31,6 @@ export type RightTranslationBarProps = {
  * @property {SupportedLanguageKey<string>}[value] - The value to display in the input field
  * @property {(value: LanguageString) => void}[onLanguageChange] - Function that updates the value when changes are made in the input field.
  * @property {boolean}[showErrors] - Flag to handle when to show the errors
- * @property {function}[onLeaveLastField] - Function to be executed when leaving the last field in the translation bar
  * @property {function}[onBlur] - Function to be executed on blur
  *
  * @returns {React.ReactNode} - The rendered component
@@ -41,28 +39,18 @@ export const RightTranslationBar = forwardRef<
   HTMLTextAreaElement | HTMLInputElement,
   RightTranslationBarProps
 >(
-  (
-    { title, usesTextArea = false, value, onLanguageChange, showErrors, onLeaveLastField, onBlur },
-    ref,
-  ): React.ReactNode => {
+  ({
+    title,
+    usesTextArea = false,
+    value,
+    onLanguageChange,
+    showErrors,
+    onBlur,
+  }): React.ReactNode => {
     const { t } = useTranslation();
 
     const handleChange = (lang: 'nn' | 'en', val: string) => {
       onLanguageChange({ ...value, [lang]: val });
-    };
-
-    const handleTabOutOfTranslationBar = (
-      e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
-      if (e.key === 'Tab') {
-        if (e.shiftKey) {
-          // TODO - Handle Tab backwards as well. Issue: #10989
-        } else {
-          e.preventDefault();
-          // Tab was pressed without Shift, perform custom behavior (onLeaveLastField)
-          onLeaveLastField(e);
-        }
-      }
     };
 
     const displayNField = (lang: 'nn' | 'en', isLast: boolean) => {
@@ -76,8 +64,6 @@ export const RightTranslationBar = forwardRef<
             rows={5}
             label={label}
             error={showErrors && value[lang] === ''}
-            ref={!isLast ? (ref as React.Ref<HTMLTextAreaElement>) : undefined}
-            onKeyDown={(e) => (isLast ? handleTabOutOfTranslationBar(e) : undefined)}
             onBlur={onBlur}
             size='small'
           />
@@ -89,8 +75,6 @@ export const RightTranslationBar = forwardRef<
           onChange={(e) => handleChange(lang, e.target.value)}
           label={label}
           error={showErrors && value[lang] === ''}
-          ref={!isLast ? (ref as React.Ref<HTMLInputElement>) : undefined}
-          onKeyDown={(e) => (isLast ? handleTabOutOfTranslationBar(e) : undefined)}
           onBlur={onBlur}
           size='small'
         />
