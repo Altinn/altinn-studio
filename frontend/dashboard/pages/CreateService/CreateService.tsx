@@ -39,14 +39,14 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     repoName: '',
   });
 
-  const { mutateAsync: addRepo, isLoading: isCreatingRepo } = useAddRepoMutation({
+  const { mutate: addRepo, isLoading: isCreatingRepo } = useAddRepoMutation({
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
 
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self ? user.login : selectedContext;
   const createAppRepo = async (createAppForm: CreateAppForm) => {
-    await addRepo(
+    addRepo(
       {
         org: createAppForm.org,
         repository: createAppForm.repoName,
@@ -56,7 +56,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         onSuccess: (): void => {
           navigateToAppDevelopment(createAppForm.org, createAppForm.repoName);
         },
-        onError: (error: AxiosError): void => {
+        onError: (error: any): void => {
           const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
           if (appNameAlreadyExists) {
             setFormError(

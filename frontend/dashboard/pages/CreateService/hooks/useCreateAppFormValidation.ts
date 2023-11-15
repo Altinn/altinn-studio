@@ -33,17 +33,17 @@ export const useCreateAppFormValidation = (): UseCreateAppFormValidation => {
       };
     }
 
-    if (!isRepoNameValid(repoName)) {
-      return {
-        errorMessage: t('dashboard.service_name_has_illegal_characters'),
-        isValid: false,
-      };
-    }
-
     const MAX_ALLOWED_NAME_LENGTH: number = 30;
     if (repoName.length > MAX_ALLOWED_NAME_LENGTH) {
       return {
         errorMessage: t('dashboard.service_name_is_too_long'),
+        isValid: false,
+      };
+    }
+
+    if (!isRepoNameValid(repoName)) {
+      return {
+        errorMessage: t('dashboard.service_name_has_illegal_characters'),
         isValid: false,
       };
     }

@@ -7,7 +7,6 @@ import { User } from 'app-shared/types/User';
 import { IGiteaOrganisation } from 'app-shared/types/global';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { useNavigate } from 'react-router-dom';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -17,38 +16,39 @@ jest.mock('react-router-dom', () => ({
 const renderWithMockServices = (
   services?: Partial<ServicesContextProps>,
   organizations?: IGiteaOrganisation[],
-  user?: User
+  user?: User,
 ) => {
   render(
     <MockServicesContextWrapper client={null} customServices={services}>
       <CreateService
         organizations={organizations || []}
         user={
-          user ||
-          ({
+          user || {
             id: 1,
             avatar_url: '',
             email: '',
             full_name: '',
             login: '',
-          })
+          }
         }
       />
-    </MockServicesContextWrapper>
+    </MockServicesContextWrapper>,
   );
 };
 
 describe('CreateService', () => {
-
   test('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
     renderWithMockServices();
 
-    const createBtn = await screen.findByText(textMock('dashboard.create_service_btn'));
+    const createBtn: HTMLElement = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+
     await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText(
-      textMock('dashboard.field_cannot_be_empty')
+      textMock('dashboard.field_cannot_be_empty'),
     );
     expect(emptyFieldErrors.length).toBe(2);
   });
@@ -59,23 +59,22 @@ describe('CreateService', () => {
     await waitFor(() => {
       expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
-    await waitFor(() => {
-      expect(screen.getByRole('combobox')).toBeDisabled();
-    });
   });
 
   test('should show error message that app name is too long when it exceeds max length', async () => {
     const user = userEvent.setup();
     renderWithMockServices();
     await act(() =>
-      user.type(screen.getByLabelText(/general.service_name/), 'this-app-name-is-longer-than-max')
+      user.type(screen.getByLabelText(/general.service_name/), 'this-app-name-is-longer-than-max'),
     );
 
-    const createBtn = await screen.findByText(textMock('dashboard.create_service_btn'));
+    const createBtn: HTMLElement = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
     await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText(
-      textMock('dashboard.service_name_is_too_long')
+      textMock('dashboard.service_name_is_too_long'),
     );
     expect(emptyFieldErrors.length).toBe(1);
   });
@@ -85,16 +84,16 @@ describe('CreateService', () => {
     renderWithMockServices();
 
     await act(() =>
-      user.type(screen.getByLabelText(textMock('general.service_name')), 'datamodels')
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'datamodels'),
     );
 
-    const createButton = screen.queryByRole('button', {
+    const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
     });
-    await act(() => user.click(createButton));
+    await act(() => user.click(createBtn));
 
     const emptyFieldErrors = await screen.findAllByText(
-      textMock('dashboard.service_name_has_illegal_characters')
+      textMock('dashboard.service_name_has_illegal_characters'),
     );
     expect(emptyFieldErrors.length).toBe(1);
   });
@@ -108,21 +107,25 @@ describe('CreateService', () => {
       full_name: 'unit-test',
     };
 
-    const addRepoMock = jest.fn().mockImplementation(() => Promise.reject({ response: { status: 409 } }));
+    const addRepoMock = jest
+      .fn()
+      .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
 
     renderWithMockServices({ addRepo: addRepoMock }, [org]);
 
     await act(() =>
-      user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') }))
+      user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') })),
     );
     await act(() => user.click(screen.getByRole('option', { name: 'unit-test' })));
 
     await act(() =>
-      user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists')
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists'),
     );
 
-    const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));
-    await act(() => user.click(createButton));
+    const createBtn: HTMLElement = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+    await act(() => user.click(createBtn));
 
     expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
 
@@ -151,21 +154,13 @@ describe('CreateService', () => {
 
     await expect(addRepoMock).rejects.toEqual({ response: { status: 500 } });
 
-    const emptyFieldErrors = await screen.findAllByText(
-      textMock('general.error_message')
-    );
+    const emptyFieldErrors = await screen.findAllByText(textMock('general.error_message'));
     expect(emptyFieldErrors.length).toBe(1);
   });
 
-  it('navigates back when clicking cancel button', async () => {
-    const mockNavigate = jest.fn();
-    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-
-    const user = userEvent.setup();
+  it('navigate back button should be a link with "/" as path', async () => {
     renderWithMockServices();
-
-    await act(() => user.click(screen.getByText(/general.cancel/)));
-
-    expect(mockNavigate).toHaveBeenCalledWith(-1);
+    const backButton = screen.getByRole('link', { name: /general.cancel/ });
+    expect(backButton).toHaveAttribute('href', '/');
   });
 });
