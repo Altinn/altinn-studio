@@ -22,7 +22,7 @@ export const ResourcesRepoList = ({ organizations }: ResourcesRepoListProps): Re
 
   const isOrganization =
     selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
-  const { data: resourceListData, isLoading } = useGetResourceListQuery(
+  const { data: resourceListData, isLoading: isLoadingResourceList } = useGetResourceListQuery(
     selectedContext,
     !isOrganization,
   );
@@ -41,7 +41,7 @@ export const ResourcesRepoList = ({ organizations }: ResourcesRepoListProps): Re
           isResourcesRepo: true,
         })}
       </Heading>
-      {isLoading ? (
+      {isLoadingResourceList ? (
         <AltinnSpinner spinnerText={t('general.loading')} />
       ) : (
         <div>
