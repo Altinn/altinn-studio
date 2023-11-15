@@ -20,14 +20,14 @@ export const ResourcesRepoList = ({ organizations }: ResourcesRepoListProps): Re
   const selectedContext = useSelectedContext();
   const repo = `${selectedContext}-resources`;
 
-  const isOrganisation =
+  const isOrganization =
     selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
   const { data: resourceListData, isLoading } = useGetResourceListQuery(
     selectedContext,
-    !isOrganisation,
+    !isOrganization,
   );
 
-  if (!isOrganisation) {
+  if (!isOrganization) {
     return null;
   }
 
