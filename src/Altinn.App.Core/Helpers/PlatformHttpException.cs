@@ -5,7 +5,6 @@ namespace Altinn.App.Core.Helpers
     /// <summary>
     /// Exception class to hold exceptions when talking to the platform REST services
     /// </summary>
-    [Serializable]
     public class PlatformHttpException : Exception
     {
         /// <summary>
@@ -35,13 +34,6 @@ namespace Altinn.App.Core.Helpers
         public PlatformHttpException(HttpResponseMessage response, string message) : base(message)
         {
             this.Response = response;
-        }
-
-        /// <summary>
-        /// Add serialization info.
-        /// </summary>
-        protected PlatformHttpException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
         }
     }
 }

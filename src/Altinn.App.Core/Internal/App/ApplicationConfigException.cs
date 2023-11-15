@@ -5,7 +5,6 @@ namespace Altinn.App.Core.Internal.App
     /// <summary>
     /// Configuration is not valid for application
     /// </summary>
-    [Serializable]
     public class ApplicationConfigException: Exception
     {
 
@@ -13,15 +12,6 @@ namespace Altinn.App.Core.Internal.App
         /// Create ApplicationConfigException
         /// </summary>
         public ApplicationConfigException()
-        {
-        }
-
-        /// <summary>
-        /// Create ApplicationConfigException
-        /// </summary>
-        /// <param name="info">Exception information</param>
-        /// <param name="context">Exception context</param>
-        protected ApplicationConfigException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
 
