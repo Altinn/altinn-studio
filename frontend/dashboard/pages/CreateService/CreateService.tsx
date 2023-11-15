@@ -56,7 +56,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         onSuccess: (): void => {
           navigateToAppDevelopment(createAppForm.org, createAppForm.repoName);
         },
-        onError: (error: any): void => {
+        onError: (error: AxiosError): void => {
           const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
           if (appNameAlreadyExists) {
             setFormError(
