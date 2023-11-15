@@ -8,7 +8,7 @@ import { IGiteaOrganisation, IRepository } from 'app-shared/types/global';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
-const org: IGiteaOrganisation = {
+const orgMock: IGiteaOrganisation = {
   avatar_url: '',
   id: 1,
   username: 'unit-test',
@@ -152,7 +152,7 @@ describe('CreateService', () => {
       .fn()
       .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
 
-    renderWithMockServices({ addRepo: addRepoMock }, [org]);
+    renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
     await act(() =>
       user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') })),
@@ -176,15 +176,8 @@ describe('CreateService', () => {
 
   test('should show generic error message when trying to create an app and something unknown went wrong', async () => {
     const user = userEvent.setup();
-    const org: IGiteaOrganisation = {
-      avatar_url: '',
-      id: 1,
-      username: 'unit-test',
-      full_name: 'unit-test',
-    };
-
     const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 500 } }));
-    renderWithMockServices({ addRepo: addRepoMock }, [org]);
+    renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
     await act(() => user.click(screen.getByRole('combobox')));
     await act(() => user.click(screen.getByRole('option', { name: 'unit-test' })));
@@ -199,14 +192,14 @@ describe('CreateService', () => {
     expect(emptyFieldErrors.length).toBe(1);
   });
 
-  it.only('should navigate to app-development if creating the app was successful', async () => {
+  it('should navigate to app-development if creating the app was successful', async () => {
     const user = userEvent.setup();
 
     renderWithMockServices(
       {
         addRepo: () => Promise.resolve(repositoryMock),
       },
-      [org],
+      [orgMock],
       userMock,
     );
 
