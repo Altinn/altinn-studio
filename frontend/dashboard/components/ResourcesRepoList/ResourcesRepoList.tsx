@@ -9,6 +9,7 @@ import { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { AltinnSpinner } from 'app-shared/components';
+import { Heading } from '@digdir/design-system-react';
 
 type ResourcesRepoListProps = {
   organizations: Organization[];
@@ -32,14 +33,14 @@ export const ResourcesRepoList = ({ organizations }: ResourcesRepoListProps): Re
 
   return (
     <div data-testid='resource-table-wrapper'>
-      <h2>
+      <Heading level={2} size='small' spacing>
         {getReposLabel({
           selectedContext,
           orgs: organizations,
           t,
           isResourcesRepo: true,
         })}
-      </h2>
+      </Heading>
       {isLoading ? (
         <AltinnSpinner spinnerText={t('general.loading')} />
       ) : (

@@ -10,6 +10,7 @@ import { IRepository } from 'app-shared/types/global';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { DATAGRID_ROWS_PER_PAGE_OPTIONS } from '../../constants';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import { Heading } from '@digdir/design-system-react';
 
 type OrgReposListProps = {
   user: User;
@@ -38,7 +39,9 @@ export const OrgReposList = ({ user, organizations, starredRepos }: OrgReposList
 
   return (
     <div>
-      <h2>{getReposLabel({ selectedContext, orgs: organizations, t })}</h2>
+      <Heading level={2} size='small' spacing>
+        {getReposLabel({ selectedContext, orgs: organizations, t })}
+      </Heading>
       <RepoList
         repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
         isLoading={isLoadingSearchResults}

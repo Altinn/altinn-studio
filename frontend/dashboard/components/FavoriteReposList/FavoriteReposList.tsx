@@ -2,6 +2,7 @@ import React from 'react';
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useStarredReposQuery } from '../../hooks/queries';
+import { Heading } from '@digdir/design-system-react';
 
 export const FavoriteReposList = () => {
   const { t } = useTranslation();
@@ -9,7 +10,9 @@ export const FavoriteReposList = () => {
 
   return (
     <div>
-      <h2>{t('dashboard.favourites')}</h2>
+      <Heading level={2} size='small' spacing>
+        {t('dashboard.favourites')}
+      </Heading>
       <RepoList
         repos={userStarredRepos}
         isLoading={isLoadingUserStarredRepos}
