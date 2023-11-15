@@ -15,6 +15,7 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     [Route("{org}/{app}/v1/pages")]
     [AllowAnonymous]
+    [Obsolete("IPageOrder does not work with frontend version 4")]
     public class StatelessPagesController : ControllerBase
     {
         private readonly IAppModel _appModel;

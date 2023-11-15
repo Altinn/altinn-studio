@@ -15,6 +15,7 @@ namespace Altinn.App.Api.Controllers
     [Authorize]
     [ApiController]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pages")]
+    [Obsolete("IPageOrder does not work with frontend version 4")]
     public class PagesController : ControllerBase
     {
         private readonly IAppModel _appModel;

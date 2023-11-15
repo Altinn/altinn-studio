@@ -139,7 +139,9 @@ namespace Altinn.App.Core.Extensions
             services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
             services.TryAddTransient<IAppEvents, DefaultAppEvents>();
             services.TryAddTransient<ITaskEvents, DefaultTaskEvents>();
+#pragma warning disable CS0618, CS0612 // Type or member is obsolete
             services.TryAddTransient<IPageOrder, DefaultPageOrder>();
+#pragma warning restore CS0618, CS0612 // Type or member is obsolete
             services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
             services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
             services.TryAddTransient<IInstanceValidator, NullInstanceValidator>();
