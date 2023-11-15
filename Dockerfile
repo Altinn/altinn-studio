@@ -32,7 +32,7 @@ COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/
 COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/designer/frontend/dashboard
 COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/designer/frontend/resourceadm
 COPY --from=generate-studio-frontend /build/frontend/dist/language ./wwwroot/designer/frontend/lang
-COPY --from=generate-studio-frontend /build/frontend/dist/contact ./wwwroot/designer/frontend/contact
+COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/designer/frontend/studio-root
 
 ## Copying app template
 COPY --from=generate-studio-backend /app_template ./Templates/AspNet

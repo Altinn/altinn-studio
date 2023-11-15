@@ -7153,23 +7153,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"contact@workspace:frontend/contact":
-  version: 0.0.0-use.local
-  resolution: "contact@workspace:frontend/contact"
-  dependencies:
-    "@mui/x-data-grid": 5.17.26
-    cross-env: 7.0.3
-    jest: 29.7.0
-    react: 18.2.0
-    react-dom: 18.2.0
-    react-router-dom: 6.18.0
-    react-use: 17.4.0
-    typescript: 5.2.2
-    webpack: 5.89.0
-    webpack-dev-server: 4.15.1
-  languageName: unknown
-  linkType: soft
-
 "content-disposition@npm:0.5.4":
   version: 0.5.4
   resolution: "content-disposition@npm:0.5.4"
@@ -16159,6 +16142,23 @@ __metadata:
   checksum: 492f73e27268f9b1c122733f28ecb0e7e8d8a531a6662efbd08e22cccb3f9475e90a1b82cab06a392f6afae6d2de636f977e231296400d0ec5304ba70f166443
   languageName: node
   linkType: hard
+
+"studio-root@workspace:frontend/studio-root":
+  version: 0.0.0-use.local
+  resolution: "studio-root@workspace:frontend/studio-root"
+  dependencies:
+    "@mui/x-data-grid": 5.17.26
+    cross-env: 7.0.3
+    jest: 29.7.0
+    react: 18.2.0
+    react-dom: 18.2.0
+    react-router-dom: 6.18.0
+    react-use: 17.4.0
+    typescript: 5.2.2
+    webpack: 5.89.0
+    webpack-dev-server: 4.15.1
+  languageName: unknown
+  linkType: soft
 
 "style-loader@npm:3.3.3":
   version: 3.3.3

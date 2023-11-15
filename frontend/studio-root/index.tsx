@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { CONTACT_BASENAME } from 'app-shared/constants';
+import { STUDIO_ROOT_BASENAME } from 'app-shared/constants';
 import { App } from './app/App';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -36,7 +36,7 @@ const queryClientConfig: QueryClientConfig = {
 };
 
 root.render(
-  <BrowserRouter basename={CONTACT_BASENAME}>
+  <BrowserRouter basename={STUDIO_ROOT_BASENAME}>
     <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
       <App />
     </ServicesContextProvider>

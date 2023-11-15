@@ -5,14 +5,13 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// MVC Controller responsible for presenting HTML that
     /// </summary>
-    public class ContactController : Controller
+    public class StudioRootController : Controller
     {
-        public ContactController()
+        public StudioRootController()
         {
         }
 
-
-        [Route("/contact")]
+        [Route("/{*AllValues}")]
         public IActionResult Index()
         {
             return View();
