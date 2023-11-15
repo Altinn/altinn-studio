@@ -20,7 +20,7 @@ export const ServiceOwnerSelector = ({
   name,
 }: ServiceOwnerSelectorProps) => {
   const { t } = useTranslation();
-  const serviceOwnerId: stirng = useId();
+  const serviceOwnerId: string = useId();
   const serviceOwnerErrorId: string = `error-message-${serviceOwnerId}`;
 
   const selectableUser: SelectableItem = mapUserToSelectableItem(user);

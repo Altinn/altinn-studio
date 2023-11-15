@@ -15,7 +15,7 @@ import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AltinnSpinner } from 'app-shared/components';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
-import { navigateToAppDevelopment } from "./utils/navigationUtils";
+import { navigateToAppDevelopment } from './utils/navigationUtils';
 
 const DASHBOARD_ROOT_ROUTE: string = '/';
 
@@ -53,8 +53,8 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         datamodellingPreference: dataModellingPreference,
       },
       {
-        onSuccess: (repository): void => {
-          navigateToAppDevelopment(repository.org, repository.app);
+        onSuccess: (): void => {
+          navigateToAppDevelopment(createAppForm.org, createAppForm.repoName);
         },
         onError: (error: AxiosError): void => {
           const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
@@ -118,7 +118,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       <div className={classes.actionContainer}>
         <Button type='submit' color='first' size='small' disabled={isCreatingRepo}>
           {isCreatingRepo ? (
-            <AltinnSpinner size='xSmall' aria-label={t('dashboard.creating_your_service')} />
+            <AltinnSpinner size='xxsmall' aria-label={t('dashboard.creating_your_service')} />
           ) : (
             <span>{t('dashboard.create_service_btn')}</span>
           )}
