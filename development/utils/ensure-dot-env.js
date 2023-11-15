@@ -14,7 +14,7 @@ const defaultEnvVars = {
   DEVELOP_BACKEND: 0,
   DEVELOP_DASHBOARD: 0,
   DEVELOP_PREVIEW: 0,
-  DEVELOP_CONTACT: 0,
+  DEVELOP_STUDIO_ROOT: 0,
   GITEA_ADMIN_PASS: randomPass(),
   GITEA_ADMIN_USER: 'localgiteaadmin',
   GITEA_CYPRESS_USER: 'cypress_testuser',

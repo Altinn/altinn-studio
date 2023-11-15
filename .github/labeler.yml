@@ -44,8 +44,8 @@ area/text-editor:
 area/ui-editor:
   - 'frontend/packages/ux-editor/**/*'
 
-area/contact:
-  - 'frontend/contact/**/*'
+area/studio-root:
+  - 'frontend/studio-root/**/*'
 
 ## Other labels
 kind/dependencies:
