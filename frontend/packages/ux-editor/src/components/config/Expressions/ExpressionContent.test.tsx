@@ -3,6 +3,7 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   componentId,
+  internalExpressionWithMultipleSubExpressions,
   internalParsableComplexExpression,
   internalUnParsableComplexExpression,
   simpleInternalExpression,
@@ -16,7 +17,8 @@ import { ExpressionContent, ExpressionContentProps } from './ExpressionContent';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ExpressionPropertyBase } from '../../../types/Expressions';
+import { ExpressionFunction, ExpressionPropertyBase, Operator } from '../../../types/Expressions';
+import { deepCopy } from 'app-shared/pure';
 
 const org = 'org';
 const app = 'app';
@@ -251,6 +253,100 @@ describe('ExpressionContent', () => {
     expect(mockOnEditExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnEditExpression).toHaveBeenCalledTimes(1);
   });
+  it('calls onUpdateExpression when property is clicked from dropdown', async () => {
+    const user = userEvent.setup();
+    const mockOnUpdateExpression = jest.fn();
+    render({
+      props: {
+        expressionState: {
+          editMode: true,
+          expression: simpleInternalExpression,
+        },
+        onUpdateExpression: mockOnUpdateExpression,
+      },
+    });
+    const propertyDropDown = screen.getByRole('combobox', {
+      name: textMock('right_menu.expressions_property'),
+    });
+    await act(() => user.click(propertyDropDown));
+    const propertyOption = screen.getByRole('option', {
+      name: textMock('right_menu.expressions_property_read_only'),
+    });
+    await act(() => user.click(propertyOption));
+    const simpleInternalExpressionCopy = deepCopy(simpleInternalExpression);
+    simpleInternalExpressionCopy.property = ExpressionPropertyBase.ReadOnly;
+    expect(mockOnUpdateExpression).toHaveBeenCalledWith(simpleInternalExpressionCopy);
+    expect(mockOnUpdateExpression).toHaveBeenCalledTimes(1);
+  });
+  it('calls onUpdateExpression when subexpression is updated with new function', async () => {
+    const user = userEvent.setup();
+    const mockOnUpdateExpression = jest.fn();
+    render({
+      props: {
+        expressionState: {
+          editMode: true,
+          expression: simpleInternalExpression,
+        },
+        onUpdateExpression: mockOnUpdateExpression,
+      },
+    });
+    const functionDropDown = screen.getByRole('combobox', {
+      name: textMock('right_menu.expressions_function'),
+    });
+    await act(() => user.click(functionDropDown));
+    const functionOption = screen.getByRole('option', {
+      name: textMock('right_menu.expressions_function_less_than'),
+    });
+    await act(() => user.click(functionOption));
+    const simpleInternalExpressionCopy = deepCopy(simpleInternalExpression);
+    simpleInternalExpressionCopy.subExpressions[0].function = ExpressionFunction.LessThan;
+    expect(mockOnUpdateExpression).toHaveBeenCalledWith(simpleInternalExpressionCopy);
+    expect(mockOnUpdateExpression).toHaveBeenCalledTimes(1);
+  });
+  it('calls onUpdateExpression when subexpression is added', async () => {
+    const user = userEvent.setup();
+    const mockOnUpdateExpression = jest.fn();
+    render({
+      props: {
+        expressionState: {
+          editMode: true,
+          expression: simpleInternalExpression,
+        },
+        onUpdateExpression: mockOnUpdateExpression,
+      },
+    });
+    const addSubExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_add_sub_expression'),
+    });
+    await act(() => user.click(addSubExpressionButton));
+    const simpleInternalExpressionCopy = deepCopy(simpleInternalExpression);
+    simpleInternalExpressionCopy.subExpressions.push({});
+    simpleInternalExpressionCopy.operator = Operator.And;
+    expect(mockOnUpdateExpression).toHaveBeenCalledWith(simpleInternalExpressionCopy);
+    expect(mockOnUpdateExpression).toHaveBeenCalledTimes(1);
+  });
+  it('calls onUpdateExpression when operator is changed', async () => {
+    const user = userEvent.setup();
+    const mockOnUpdateExpression = jest.fn();
+    render({
+      props: {
+        expressionState: {
+          editMode: true,
+          expression: internalExpressionWithMultipleSubExpressions,
+        },
+        onUpdateExpression: mockOnUpdateExpression,
+      },
+    });
+    const orOperatorToggleButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_operator_and'),
+    });
+    await act(() => user.click(orOperatorToggleButton));
+    internalExpressionWithMultipleSubExpressions.operator = Operator.And;
+    expect(mockOnUpdateExpression).toHaveBeenCalledWith(
+      internalExpressionWithMultipleSubExpressions,
+    );
+    expect(mockOnUpdateExpression).toHaveBeenCalledTimes(1);
+  });
   it('displays disabled free-style-editing-switch if complex expression can not be interpreted by Studio', () => {
     render({
       props: {
@@ -277,14 +373,31 @@ describe('ExpressionContent', () => {
     const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
       name: textMock('right_menu.expression_enable_free_style_editing'),
     });
-    expect(enableFreeStyleEditingSwitch).toHaveAttribute('checked');
+    expect(enableFreeStyleEditingSwitch).toBeChecked();
   });
   it('displays toggled off free-style-editing-switch if expression is not complex', () => {
     render({});
     const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
       name: textMock('right_menu.expression_enable_free_style_editing'),
     });
-    expect(enableFreeStyleEditingSwitch).not.toHaveAttribute('checked');
+    expect(enableFreeStyleEditingSwitch).not.toBeChecked();
+  });
+  it('toggles off free-style-editing-switch when clicked if complex expression can be interpreted by Studio', async () => {
+    const user = userEvent.setup();
+    render({
+      props: {
+        expressionState: {
+          editMode: true,
+          expression: internalParsableComplexExpression,
+        },
+      },
+    });
+    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
+      name: textMock('right_menu.expression_enable_free_style_editing'),
+    });
+    expect(enableFreeStyleEditingSwitch).toBeChecked();
+    await act(() => user.click(enableFreeStyleEditingSwitch));
+    expect(enableFreeStyleEditingSwitch).not.toBeChecked();
   });
 });
 
