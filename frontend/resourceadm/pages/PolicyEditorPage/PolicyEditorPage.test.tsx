@@ -109,9 +109,7 @@ describe('PolicyEditorPage', () => {
       screen.queryByTitle(textMock('resourceadm.policy_editor_spinner')),
     );
 
-    expect(
-      screen.getByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('policy_editor.rules'))).toBeInTheDocument();
   });
 });
 
