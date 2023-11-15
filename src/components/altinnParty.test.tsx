@@ -7,7 +7,7 @@ import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { partyMock } from 'src/__mocks__/partyMock';
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { AltinnParty } from 'src/components/altinnParty';
-import { renderWithProviders } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IAltinnPartyProps } from 'src/components/altinnParty';
 
 const user = userEvent.setup();
@@ -31,7 +31,7 @@ const partyWithChildParties = {
 describe('altinnParty', () => {
   it('should call onSelectParty callback with the clicked party', async () => {
     const handleSelectParty = jest.fn();
-    render({ onSelectParty: handleSelectParty });
+    await render({ onSelectParty: handleSelectParty });
 
     const party = screen.getByText(/personnr\. 01017512345/i);
 
@@ -41,8 +41,8 @@ describe('altinnParty', () => {
   });
 
   describe('showSubUnits', () => {
-    it('should render childParties when party has childParties and showSubUnits is true', () => {
-      render({
+    it('should render childParties when party has childParties and showSubUnits is true', async () => {
+      await render({
         showSubUnits: true,
         party: partyWithChildParties,
       });
@@ -53,8 +53,8 @@ describe('altinnParty', () => {
       expect(screen.getByText(/child party 2/i)).toBeInTheDocument();
     });
 
-    it('should not render childParties when party has childParties and showSubUnits is false', () => {
-      render({
+    it('should not render childParties when party has childParties and showSubUnits is false', async () => {
+      await render({
         showSubUnits: false,
         party: partyWithChildParties,
       });
@@ -65,8 +65,8 @@ describe('altinnParty', () => {
       expect(screen.queryByText(/child party 2/i)).not.toBeInTheDocument();
     });
 
-    it('should not render childParties when party doesnt have childParties and showSubUnits is true', () => {
-      render({
+    it('should not render childParties when party doesnt have childParties and showSubUnits is true', async () => {
+      await render({
         showSubUnits: true,
         party: partyMock,
       });
@@ -79,13 +79,13 @@ describe('altinnParty', () => {
   });
 
   describe('should render with correct icon based on what kind of party it is', () => {
-    it('should render with person icon if party is a person', () => {
-      render();
+    it('should render with person icon if party is a person', async () => {
+      await render();
       expect(screen.getByTestId('person-icon')).toBeVisible();
     });
 
-    it('should render with building icon if party is a organisation', () => {
-      render({
+    it('should render with building icon if party is a organisation', async () => {
+      await render({
         party: {
           ...partyMock,
           orgNumber: 1000000,
@@ -96,15 +96,16 @@ describe('altinnParty', () => {
   });
 });
 
-const render = (props: Partial<IAltinnPartyProps> = {}) => {
+const render = async (props: Partial<IAltinnPartyProps> = {}) => {
   const allProps = {
     party: partyMock,
     onSelectParty: jest.fn(),
     showSubUnits: false,
     ...props,
   };
-  return renderWithProviders(<AltinnParty {...allProps} />, {
-    preloadedState: {
+  return await renderWithInstanceAndLayout({
+    renderer: () => <AltinnParty {...allProps} />,
+    reduxState: {
       ...getInitialStateMock(),
       profile: getProfileStateMock({ selectedAppLanguage: 'nb' }),
     },

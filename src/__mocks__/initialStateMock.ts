@@ -1,22 +1,18 @@
-import { applicationMetadataMock } from 'src/__mocks__/applicationMetadataMock';
-import { applicationSettingsMock } from 'src/__mocks__/applicationSettingsMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/applicationMetadataMock';
+import { getApplicationSettingsMock } from 'src/__mocks__/applicationSettingsMock';
 import { getFormDataStateMock } from 'src/__mocks__/formDataStateMock';
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
-import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
+import { getInstanceDataMock, getProcessDataMock } from 'src/__mocks__/instanceDataStateMock';
 import { partyMock } from 'src/__mocks__/partyMock';
-import { getProcessStateMock } from 'src/__mocks__/processMock';
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import type { IRuntimeState } from 'src/types';
 
-export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRuntimeState {
+export function getInitialStateMock(custom?: Partial<IRuntimeState> | ((state: IRuntimeState) => void)): IRuntimeState {
   const initialState: IRuntimeState = {
     applicationMetadata: {
-      applicationMetadata: applicationMetadataMock,
+      applicationMetadata: getApplicationMetadataMock(),
       error: null,
-    },
-    attachments: {
-      attachments: {},
     },
     customValidation: {
       customValidation: null,
@@ -65,16 +61,6 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       footerLayout: null,
       error: null,
     },
-    instanceData: getInstanceDataStateMock(),
-    instantiation: {
-      error: null,
-      instanceId: null,
-      instantiating: false,
-    },
-    isLoading: {
-      dataTask: false,
-      stateless: null,
-    },
     organisationMetaData: {
       allOrgs: {
         mockOrg: {
@@ -96,15 +82,7 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       parties: [partyMock],
       selectedParty: partyMock,
     },
-    process: getProcessStateMock(),
     profile: getProfileStateMock(),
-    queue: {
-      appTask: { error: null },
-      dataTask: { error: null },
-      infoTask: { error: null },
-      stateless: { error: null },
-      userTask: { error: null },
-    },
     textResources: {
       resourceMap: {
         'option.from.rep.group.label': {
@@ -166,14 +144,22 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       error: null,
     },
     applicationSettings: {
-      applicationSettings: applicationSettingsMock,
+      applicationSettings: getApplicationSettingsMock(),
       error: null,
     },
-    appApi: {} as IRuntimeState['appApi'],
+    deprecated: {
+      lastKnownProcess: getProcessDataMock(),
+      lastKnownInstance: getInstanceDataMock(),
+    },
   };
+
+  if (custom && typeof custom === 'function') {
+    custom(initialState);
+    return initialState;
+  }
 
   return {
     ...initialState,
-    ...customStates,
+    ...custom,
   };
 }

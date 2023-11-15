@@ -1,17 +1,60 @@
-export interface IAttachmentState {
-  attachments: IAttachments;
-  error?: Error;
+import type { AxiosError } from 'axios';
+
+import type { IData } from 'src/types/shared';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+
+export type FileUploaderNode = LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
+
+export interface AttachmentActionUpload {
+  action: 'upload';
+  file: File;
+  node: FileUploaderNode;
 }
 
-export interface IAttachment {
-  uploaded: boolean;
+export interface AttachmentActionUpdate {
+  action: 'update';
+  tags: string[];
+  node: FileUploaderNode;
+  attachment: UploadedAttachment;
+}
+
+export interface AttachmentActionRemove {
+  action: 'remove';
+  node: FileUploaderNode;
+  attachment: UploadedAttachment;
+}
+
+export type RawAttachmentAction<T extends AttachmentActionUpload | AttachmentActionUpdate | AttachmentActionRemove> =
+  Omit<T, 'action'>;
+
+export interface IAttachmentsCtx {
+  attachments: IAttachments;
+  upload(action: RawAttachmentAction<AttachmentActionUpload>): Promise<string | undefined>;
+  update(action: RawAttachmentAction<AttachmentActionUpdate>): Promise<void>;
+  remove(action: RawAttachmentAction<AttachmentActionRemove>): Promise<boolean>;
+  awaitUpload(attachment: TemporaryAttachment): Promise<IData | false>;
+}
+
+interface IAttachmentTemporary {
+  temporaryId: string;
+  filename: string;
+  size: number;
+}
+
+interface Metadata {
   updating: boolean;
   deleting: boolean;
-  name?: string;
-  size: number;
-  tags?: string[];
-  id: string;
+  error?: AxiosError;
 }
-export interface IAttachments {
-  [attachmentComponentId: string]: IAttachment[];
+
+export type UploadedAttachment = { uploaded: true; data: IData } & Metadata;
+export type TemporaryAttachment = { uploaded: false; data: IAttachmentTemporary } & Metadata;
+export type IAttachment = UploadedAttachment | TemporaryAttachment;
+
+export interface IAttachments<T extends IAttachment = IAttachment> {
+  [attachmentComponentId: string]: T[] | undefined;
+}
+
+export function isAttachmentUploaded(attachment: IAttachment): attachment is UploadedAttachment {
+  return attachment.uploaded;
 }

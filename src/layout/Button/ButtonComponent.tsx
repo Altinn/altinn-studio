@@ -1,10 +1,7 @@
 import React from 'react';
 
-import { FormDataActions } from 'src/features/formData/formDataSlice';
-import { ProcessActions } from 'src/features/process/processSlice';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useCanSubmitForm } from 'src/hooks/useCanSubmitForm';
+import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
@@ -18,14 +15,13 @@ export type IButtonProvidedProps =
   | (PropsFromGenericComponent<'InstantiationButton'> & CompInternal<'InstantiationButton'>);
 
 export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProps) => {
-  const { id, mode } = node.item;
-  const { lang } = useLanguage();
+  const { mode } = node.item;
+  const { lang, langAsString } = useLanguage();
   const props: IButtonProvidedProps = { ...componentProps, ...node.item, node };
 
-  const dispatch = useAppDispatch();
-  const currentTaskType = useAppSelector((state) => state.instanceData.instance?.process?.currentTask?.altinnTaskType);
-  const { actions, write } = useAppSelector((state) => state.process);
-  const { canSubmit, busyWithId, message } = useCanSubmitForm();
+  const currentTaskType = useLaxProcessData()?.currentTask?.altinnTaskType;
+  const { actions, write } = useLaxProcessData()?.currentTask || {};
+  const { next, canSubmit, busyWithId, attachmentsPending } = useProcessNavigation() || {};
 
   const disabled =
     !canSubmit || (currentTaskType === 'data' && !write) || (currentTaskType === 'confirmation' && !actions?.confirm);
@@ -45,29 +41,23 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     );
   }
 
-  const submitTask = ({ componentId }: { componentId: string }) => {
-    if (!disabled) {
-      const { org, app, instanceId } = window;
+  const submitTask = () => {
+    if (!disabled && next) {
       if (currentTaskType === 'data') {
-        dispatch(
-          FormDataActions.submit({
-            url: `${window.location.origin}/${org}/${app}/api/${instanceId}`,
-            componentId,
-          }),
-        );
+        next({ nodeId: node.item.id });
       } else if (currentTaskType === 'confirmation') {
-        dispatch(ProcessActions.complete({ componentId, action: 'confirm' }));
+        next({ nodeId: node.item.id, action: 'confirm' });
       }
     }
   };
   return (
     <div style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}>
       <SubmitButton
-        onClick={() => submitTask({ componentId: id })}
-        id={id}
+        nodeId={node.item.id}
+        onClick={() => submitTask()}
         busyWithId={busyWithId}
         disabled={disabled}
-        message={message}
+        message={attachmentsPending ? langAsString('general.wait_for_attachments') : undefined}
       >
         {lang(node.item.textResourceBindings?.title)}
       </SubmitButton>

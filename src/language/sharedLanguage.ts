@@ -9,7 +9,7 @@ import type { DOMNode, Element, HTMLReactParserOptions } from 'html-react-parser
 
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
-import type { IAltinnOrgs, IApplication } from 'src/types/shared';
+import type { IAltinnOrgs } from 'src/types/shared';
 
 marked.use(mangle());
 
@@ -144,7 +144,7 @@ export function getAppReceiver(
 const appNameKey = 'appName';
 const oldAppNameKey = 'ServiceName';
 
-export function getAppName(applicationMetadata: IApplication | null, langTools: IUseLanguage) {
+export function getAppName(applicationMetadata: IApplicationMetadata | null, langTools: IUseLanguage) {
   let appName = langTools.langAsString(appNameKey);
   if (appName === appNameKey) {
     appName = langTools.langAsString(oldAppNameKey);

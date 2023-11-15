@@ -6,8 +6,8 @@ import { MapComponent } from 'src/layout/Map/MapComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Map'>> = {}) =>
-  renderGenericComponentTest({
+const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Map'>> = {}) =>
+  await renderGenericComponentTest({
     type: 'Map',
     renderer: (props) => <MapComponent {...props} />,
     component: {
@@ -26,15 +26,15 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
   });
 
 describe('MapComponent', () => {
-  it('should show correct footer text when no location is selected', () => {
-    render();
+  it('should show correct footer text when no location is selected', async () => {
+    await render();
 
     expect(screen.getByText('Ingen lokasjon valgt')).toBeInTheDocument();
     expect(screen.queryByText('Valgt lokasjon')).not.toBeInTheDocument();
   });
 
-  it('should show correct footer text when location is set', () => {
-    render({
+  it('should show correct footer text when location is set', async () => {
+    await render({
       genericProps: {
         formData: {
           simpleBinding: '59.2641592,10.4036248',
@@ -46,8 +46,8 @@ describe('MapComponent', () => {
     expect(screen.getByText('Valgt lokasjon: 59.2641592° nord, 10.4036248° øst')).toBeInTheDocument();
   });
 
-  it('should mark map component with validation error when validation fails', () => {
-    const { container } = render({
+  it('should mark map component with validation error when validation fails', async () => {
+    const { container } = await render({
       genericProps: {
         isValid: false,
       },
@@ -58,8 +58,8 @@ describe('MapComponent', () => {
     expect(mapComponent).toHaveClass('validation-error');
   });
 
-  it('should not mark map component with validation error when validation succeeds', () => {
-    const { container } = render({
+  it('should not mark map component with validation error when validation succeeds', async () => {
+    const { container } = await render({
       genericProps: {
         isValid: true,
       },

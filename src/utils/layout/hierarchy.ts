@@ -3,12 +3,13 @@ import { useMemo } from 'react';
 import { createSelector } from 'reselect';
 
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions';
-import { allOptions } from 'src/features/options/useAllOptions';
+import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { staticUseLanguageFromState, useLanguage } from 'src/hooks/useLanguage';
 import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
-import { buildInstanceContext } from 'src/utils/instanceContext';
+import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { CompInternal, HierarchyDataSources, ILayouts } from 'src/layout/layout';
 import type { IRepeatingGroups, IRuntimeState } from 'src/types';
@@ -94,13 +95,13 @@ function resolvedNodesInLayouts(
 export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources {
   return {
     formData: state.formData.formData,
-    attachments: state.attachments.attachments,
+    attachments: state.deprecated.lastKnownAttachments || {},
     uiConfig: state.formLayout.uiConfig,
-    options: allOptions,
+    options: state.deprecated.allOptions || {},
     applicationSettings: state.applicationSettings.applicationSettings,
-    instanceContext: buildInstanceContext(state.instanceData?.instance),
+    instanceDataSources: buildInstanceDataSources(state.deprecated.lastKnownInstance),
     hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
-    authContext: buildAuthContext(state.process),
+    authContext: buildAuthContext(state.deprecated.lastKnownProcess?.currentTask),
     validations: state.formValidations.validations,
     devTools: state.devTools,
     langTools: staticUseLanguageFromState(state),
@@ -136,12 +137,12 @@ export function resolvedLayoutsFromState(state: IRuntimeState) {
  * and trades verbosity and code duplication for performance and caching.
  */
 function useResolvedExpressions() {
-  const instance = useAppSelector((state) => state.instanceData?.instance);
+  const instance = useLaxInstanceData();
   const formData = useAppSelector((state) => state.formData.formData);
-  const attachments = useAppSelector((state) => state.attachments.attachments);
   const uiConfig = useAppSelector((state) => state.formLayout.uiConfig);
-  const options = allOptions;
-  const process = useAppSelector((state) => state.process);
+  const attachments = useAppSelector((state) => state.deprecated.lastKnownAttachments);
+  const options = useAppSelector((state) => state.deprecated.allOptions);
+  const process = useLaxProcessData();
   const applicationSettings = useAppSelector((state) => state.applicationSettings.applicationSettings);
   const hiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
   const validations = useAppSelector((state) => state.formValidations.validations);
@@ -154,12 +155,12 @@ function useResolvedExpressions() {
   const dataSources: HierarchyDataSources = useMemo(
     () => ({
       formData,
-      attachments,
+      attachments: attachments || {},
       uiConfig,
-      options,
+      options: options || {},
       applicationSettings,
-      instanceContext: buildInstanceContext(instance),
-      authContext: buildAuthContext(process),
+      instanceDataSources: buildInstanceDataSources(instance),
+      authContext: buildAuthContext(process?.currentTask),
       hiddenFields: new Set(hiddenFields),
       validations,
       devTools,
@@ -172,7 +173,7 @@ function useResolvedExpressions() {
       options,
       applicationSettings,
       instance,
-      process,
+      process?.currentTask,
       hiddenFields,
       validations,
       devTools,

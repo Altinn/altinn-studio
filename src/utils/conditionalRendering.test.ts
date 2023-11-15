@@ -1,5 +1,5 @@
 import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
-import type { IConditionalRenderingRules } from 'src/features/dynamics';
+import type { IConditionalRenderingRules } from 'src/features/form/dynamics';
 
 describe('conditionalRendering', () => {
   let mockRuleHandlerHelper;

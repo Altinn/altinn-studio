@@ -9,7 +9,12 @@ const render = (props = {}) => {
     ...props,
   };
 
-  rtlRender(<AltinnContentLoader {...allProps} />);
+  rtlRender(
+    <AltinnContentLoader
+      reason={'testing'}
+      {...allProps}
+    />,
+  );
 };
 
 describe('AltinnContentLoader', () => {

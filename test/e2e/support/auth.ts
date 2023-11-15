@@ -1,4 +1,6 @@
-import type { IProcessPermissions } from 'src/features/process';
+import type { RouteHandler } from 'cypress/types/net-stubbing';
+
+import type { IProcess, ITask } from 'src/types/shared';
 
 export type user = 'default' | 'manager' | 'accountant' | 'auditor';
 
@@ -99,8 +101,9 @@ Cypress.Commands.add('switchUser', (user: user) => {
   cy.reloadAndWait();
 });
 
-function getPermissions(format: string): IProcessPermissions {
-  const permissions: IProcessPermissions = {
+type MinimalTask = Pick<ITask, 'read' | 'write' | 'actions'>;
+function getPermissions(format: string): MinimalTask {
+  const permissions: MinimalTask = {
     read: false,
     write: false,
     actions: {},
@@ -135,14 +138,15 @@ Cypress.Commands.add('setPermissions', (permissionFormat: string) => {
 });
 
 Cypress.Commands.add('interceptPermissions', () => {
-  const interceptor = (req) => {
+  const interceptor: RouteHandler = (req) => {
     const permissionFormat = Cypress.env('authPermissions') ?? '';
     const permissions = getPermissions(permissionFormat);
     req.on('response', (res) => {
-      if (res.body.currentTask) {
-        res.body.currentTask.read = permissions.read;
-        res.body.currentTask.write = permissions.write;
-        res.body.currentTask.actions = permissions.actions;
+      const body = res.body as IProcess;
+      if (body.currentTask) {
+        body.currentTask.read = permissions.read;
+        body.currentTask.write = permissions.write;
+        body.currentTask.actions = permissions.actions;
       }
     });
   };

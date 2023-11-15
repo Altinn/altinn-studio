@@ -7,7 +7,7 @@ import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import { AltinnCollapsibleAttachments } from 'src/components/molecules/AltinnCollapsibleAttachments';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
-import type { IAttachment, IAttachmentGrouping } from 'src/types/shared';
+import type { IAttachmentGrouping, IDisplayAttachment } from 'src/types/shared';
 
 export interface IReceiptComponentProps {
   attachmentGroupings?: IAttachmentGrouping;
@@ -15,7 +15,7 @@ export interface IReceiptComponentProps {
   collapsibleTitle: React.ReactNode;
   hideCollapsibleCount?: boolean;
   instanceMetaDataObject: SummaryDataObject;
-  pdf?: IAttachment[];
+  pdf: IDisplayAttachment[];
   subtitle?: string | JSX.Element | JSX.Element[] | null;
   subtitleurl?: string;
   title: React.ReactNode;
@@ -42,7 +42,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 interface ICollapsibleAttacments {
-  attachments: IAttachment[];
+  attachments: IDisplayAttachment[];
   title: React.ReactNode;
   hideCollapsibleCount?: boolean;
 }

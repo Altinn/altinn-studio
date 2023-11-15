@@ -1,6 +1,6 @@
-import type { IRuleConnections } from 'src/features/dynamics';
+import type { IRuleConnections } from 'src/features/form/dynamics';
+import type { IRuleModelFieldElement } from 'src/features/form/rules';
 import type { IFormData } from 'src/features/formData';
-import type { IRuleModelFieldElement } from 'src/features/formRules';
 import type { ILayouts } from 'src/layout/layout';
 
 export function checkIfRuleShouldRun(

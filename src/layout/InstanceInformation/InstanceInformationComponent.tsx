@@ -6,6 +6,7 @@ import Moment from 'moment';
 import type { PropsFromGenericComponent } from '..';
 
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
+import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { selectAppReceiver } from 'src/selectors/language';
@@ -13,7 +14,7 @@ import { getDateFormat } from 'src/utils/dateHelpers';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IRuntimeState } from 'src/types';
-import type { IInstance, IParty } from 'src/types/shared';
+import type { IParty } from 'src/types/shared';
 
 export const returnInstanceMetaDataObject = (
   langTools: IUseLanguage,
@@ -60,7 +61,7 @@ export function InstanceInformationComponent({ node }: PropsFromGenericComponent
   const langTools = useLanguage();
   const { selectedLanguage } = langTools;
 
-  const instance: IInstance | null = useAppSelector((state: IRuntimeState) => state.instanceData.instance);
+  const instance = useLaxInstanceData();
   const parties: IParty[] | null = useAppSelector((state: IRuntimeState) => state.party.parties);
   const appReceiver = useAppSelector(selectAppReceiver);
 

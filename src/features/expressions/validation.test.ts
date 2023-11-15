@@ -69,6 +69,17 @@ function evalAllExpressions(layouts: Layouts) {
 }
 
 describe('Expression validation', () => {
+  let originalLogError: typeof window.logError;
+
+  beforeEach(() => {
+    originalLogError = window.logError;
+    window.logError = jest.fn();
+  });
+
+  afterEach(() => {
+    window.logError = originalLogError;
+  });
+
   describe('Shared tests for invalid expressions', () => {
     const invalidSharedTests = getSharedTests('invalid');
     it.each(invalidSharedTests.content)('$name', (invalid) => {

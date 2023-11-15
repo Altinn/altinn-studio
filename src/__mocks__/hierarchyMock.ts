@@ -9,7 +9,7 @@ export function getHierarchyDataSourcesMock(): HierarchyDataSources {
     uiConfig: {} as any,
     options: {},
     applicationSettings: {} as any,
-    instanceContext: {} as any,
+    instanceDataSources: {} as any,
     hiddenFields: new Set(),
     authContext: null,
     validations: {},

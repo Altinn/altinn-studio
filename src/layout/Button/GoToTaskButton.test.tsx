@@ -7,9 +7,8 @@ import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Button'>> = {}) => {
-  let spy;
-  renderGenericComponentTest({
+const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Button'>> = {}) => {
+  const { store } = await renderGenericComponentTest({
     type: 'Button',
     renderer: (props) => <ButtonComponent {...props} />,
     component: {
@@ -19,24 +18,19 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
       },
       ...component,
     },
-    genericProps: {
-      ...genericProps,
-    },
-    manipulateState: (state) => {
-      state.process.availableNextTasks = ['a', 'b'];
-    },
-    manipulateStore: (store) => {
-      spy = jest.spyOn(store, 'dispatch').mockImplementation(() => undefined);
+    genericProps,
+    queries: {
+      fetchProcessNextSteps: () => Promise.resolve(['a', 'b']),
     },
   });
 
-  return spy;
+  return store.dispatch as jest.Mock;
 };
 
 describe('GoToTaskButton', () => {
   it('should show button and it should be possible to click', async () => {
     // eslint-disable-next-line testing-library/render-result-naming-convention
-    const dispatch = render({
+    const dispatch = await render({
       component: {
         taskId: 'a',
       },
@@ -47,7 +41,7 @@ describe('GoToTaskButton', () => {
   });
   it('should show button and it should not be possible to click', async () => {
     // eslint-disable-next-line testing-library/render-result-naming-convention
-    const dispatch = render({
+    const dispatch = await render({
       component: {
         taskId: 'c',
       },

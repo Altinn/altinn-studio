@@ -1,12 +1,11 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
 
 import { Button } from '@digdir/design-system-react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { ProcessActions } from 'src/features/process/processSlice';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -21,33 +20,27 @@ export const buttonStyles: { [style in ActionButtonStyle]: { color: ButtonColor;
 export type IActionButton = PropsFromGenericComponent<'ActionButton'>;
 
 export function ActionButtonComponent({ node }: IActionButton) {
-  const dispatch = useDispatch();
-  const busyWithId = useAppSelector((state) => state.process.completingId);
-  const actionPermissions = useAppSelector((state) => state.process.actions);
+  const { busyWithId, busy, next } = useProcessNavigation() || {};
+  const actionPermissions = useLaxProcessData()?.currentTask?.actions;
   const { lang } = useLanguage();
 
   const { action, buttonStyle, id, textResourceBindings } = node.item;
   const disabled = !actionPermissions?.[action];
+  const isLoadingHere = busyWithId === id;
 
   function handleClick() {
-    if (!disabled && !busyWithId) {
-      dispatch(
-        ProcessActions.complete({
-          componentId: id,
-          action,
-        }),
-      );
+    if (!disabled && !busy) {
+      next && next({ action, nodeId: id });
     }
   }
 
-  const isLoading = busyWithId === id;
   const parentIsPage = node.parent instanceof LayoutPage;
   const buttonText = lang(textResourceBindings?.title ?? `actions.${action}`);
   const { color, variant } = buttonStyles[buttonStyle];
 
   return (
     <ButtonLoader
-      isLoading={isLoading}
+      isLoading={isLoadingHere}
       style={{
         marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined,
       }}
@@ -57,7 +50,7 @@ export function ActionButtonComponent({ node }: IActionButton) {
         id={`action-button-${id}`}
         variant={variant}
         color={color}
-        disabled={disabled || isLoading}
+        disabled={disabled || isLoadingHere || busy}
         onClick={handleClick}
       >
         {buttonText}

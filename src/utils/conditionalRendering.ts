@@ -3,7 +3,7 @@ import type {
   IConditionalRenderingRules,
   IParameters,
   ISelectedFields,
-} from 'src/features/dynamics';
+} from 'src/features/form/dynamics';
 import type { IFormData } from 'src/features/formData';
 import type { IRepeatingGroups } from 'src/types';
 

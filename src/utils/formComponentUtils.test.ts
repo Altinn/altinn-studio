@@ -1,7 +1,6 @@
 import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import {
-  atleastOneTagExists,
   getColumnStyles,
   getColumnStylesRepeatingGroups,
   getFieldName,
@@ -14,71 +13,11 @@ import {
 } from 'src/utils/formComponentUtils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { IAttachment, IAttachments } from 'src/features/attachments';
 import type { IGridStyling, ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
 import type { CompExternal, CompInternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 describe('formComponentUtils', () => {
-  const mockAttachments: IAttachments = {
-    upload: [
-      {
-        uploaded: true,
-        updating: false,
-        deleting: false,
-        name: 'mockNameAttachment1',
-        size: 12345,
-        tags: ['mockTag'],
-        id: '12345',
-      },
-      {
-        uploaded: true,
-        updating: false,
-        deleting: false,
-        name: 'mockNameAttachment2',
-        size: 12345,
-        tags: [],
-        id: '123456',
-      },
-      {
-        uploaded: true,
-        updating: false,
-        deleting: false,
-        name: 'mockNameAttachment3',
-        size: 12345,
-        id: '123457',
-      },
-    ],
-  };
-  const mockAttachmentsWithoutTag: IAttachment[] = [
-    {
-      uploaded: true,
-      updating: false,
-      deleting: false,
-      name: 'mockName',
-      size: 12345,
-      tags: [],
-      id: '12345',
-    },
-    {
-      uploaded: true,
-      updating: false,
-      deleting: false,
-      name: 'mockName',
-      size: 12345,
-      tags: [],
-      id: '123456',
-    },
-    {
-      uploaded: true,
-      updating: false,
-      deleting: false,
-      name: 'mockName',
-      size: 12345,
-      id: '123457',
-    },
-  ];
-
   describe('isAttachmentError', () => {
     it('should return true when error has attachmentId', () => {
       const error = {
@@ -115,18 +54,6 @@ describe('formComponentUtils', () => {
         message: 'mockMessage',
       };
       const result = isNotAttachmentError(error);
-      expect(result).toEqual(false);
-    });
-  });
-
-  describe('atleastOneTagExists', () => {
-    it('should return true if one or more attachments has a tag', () => {
-      const result = atleastOneTagExists(mockAttachments['upload']);
-      expect(result).toEqual(true);
-    });
-
-    it('should return false if none of the attachments has a tag', () => {
-      const result = atleastOneTagExists(mockAttachmentsWithoutTag);
       expect(result).toEqual(false);
     });
   });

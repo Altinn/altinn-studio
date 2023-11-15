@@ -1,38 +1,38 @@
 import { createSelector } from 'reselect';
 
-import { DataTypeReference, filterInstanceAttachments, filterInstancePdfAttachments } from 'src/utils/attachmentsUtils';
+import { DataTypeReference, filterDisplayAttachments, filterDisplayPdfAttachments } from 'src/utils/attachmentsUtils';
 import type { IRuntimeState } from 'src/types';
-import type { IData } from 'src/types/shared';
+import type { IData, IInstance, IProcess } from 'src/types/shared';
 
 const selectDataTypes = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata?.dataTypes;
-const selectInstanceData = (state: IRuntimeState) => state.instanceData.instance?.data;
-const selectCurrentTaskId = (state: IRuntimeState) => state.instanceData.instance?.process?.currentTask?.elementId;
 
-export const selectDataTypesByIds = (dataTypeIds: string[] | undefined) =>
-  createSelector(
-    selectDataTypes,
-    selectCurrentTaskId,
-    selectInstanceData,
-    (dataTypes = [], currentTask, instanceData) => {
-      const relevantDataTypes = dataTypes.filter((type) => type.taskId === currentTask);
-      const useSpecificDataTypeIds = dataTypeIds && !dataTypeIds?.includes(DataTypeReference.IncludeAll);
+export const selectDataTypesByIds = (
+  dataTypeIds: string[] | undefined,
+  instance: IInstance | undefined,
+  process: IProcess | undefined,
+) =>
+  createSelector(selectDataTypes, (dataTypes = []) => {
+    const currentTaskId = process?.currentTask?.elementId;
+    const relevantDataTypes = dataTypes.filter((type) => !type.taskId || type.taskId === currentTaskId);
+    const useSpecificDataTypeIds = dataTypeIds && !dataTypeIds?.includes(DataTypeReference.IncludeAll);
+    const dataElements = instance?.data || [];
 
-      return instanceData?.filter((dataElement) =>
-        useSpecificDataTypeIds
-          ? dataTypeIds.includes(dataElement.dataType)
-          : relevantDataTypes.some((type) => type.id === dataElement.dataType),
-      );
-    },
-  );
+    return dataElements.filter((dataElement) =>
+      useSpecificDataTypeIds
+        ? dataTypeIds.includes(dataElement.dataType)
+        : relevantDataTypes.some((type) => type.id === dataElement.dataType),
+    );
+  });
 
-export const selectAttachments = (dataForTask: IData[] | undefined, includePdf: boolean | undefined) =>
-  createSelector(selectDataTypes, selectCurrentTaskId, (dataTypes, currentTaskId) => {
+export const selectAttachments = (dataForTask: IData[], includePdf: boolean, process: IProcess | undefined) =>
+  createSelector(selectDataTypes, (dataTypes) => {
+    const currentTaskId = process?.currentTask?.elementId;
     const defaultElementIds =
       dataTypes?.filter((dataType) => dataType.appLogic && dataType.taskId === currentTaskId).map((type) => type.id) ||
       [];
 
-    const pdfAttachments = (includePdf && filterInstancePdfAttachments(dataForTask)) || undefined;
-    const otherAttachments = filterInstanceAttachments(dataForTask, defaultElementIds);
+    const pdfAttachments = includePdf ? filterDisplayPdfAttachments(dataForTask) : [];
+    const otherAttachments = filterDisplayAttachments(dataForTask, defaultElementIds);
 
-    return [...(pdfAttachments || []), ...(otherAttachments || [])];
+    return [...pdfAttachments, ...otherAttachments];
   });

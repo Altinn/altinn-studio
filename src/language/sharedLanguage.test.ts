@@ -1,7 +1,8 @@
 import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import { getAppName, getAppOwner, getParsedLanguageFromText } from 'src/language/sharedLanguage';
+import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { TextResourceMap } from 'src/features/textResources';
-import type { IAltinnOrg, IAltinnOrgs, IApplication } from 'src/types/shared';
+import type { IAltinnOrg, IAltinnOrgs } from 'src/types/shared';
 
 describe('language.ts', () => {
   describe('getParsedLanguageFromText', () => {
@@ -24,7 +25,7 @@ describe('language.ts', () => {
         },
       };
 
-      const result = getAppName({} as IApplication, staticUseLanguageForTests({ textResources }));
+      const result = getAppName({} as IApplicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'SomeAppName';
       expect(result).toEqual(expectedResult);
     });
@@ -36,7 +37,7 @@ describe('language.ts', () => {
         },
       };
 
-      const result = getAppName({} as IApplication, staticUseLanguageForTests({ textResources }));
+      const result = getAppName({} as IApplicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'SomeAppName';
       expect(result).toEqual(expectedResult);
     });
@@ -47,7 +48,7 @@ describe('language.ts', () => {
         title: {
           nb: 'SomeAppName',
         },
-      } as unknown as IApplication;
+      } as unknown as IApplicationMetadata;
 
       const result = getAppName(applicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'SomeAppName';
@@ -64,7 +65,7 @@ describe('language.ts', () => {
         title: {
           nb: 'AppNameFromMetadata',
         },
-      } as unknown as IApplication;
+      } as unknown as IApplicationMetadata;
 
       const result = getAppName(applicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'AppNameFromTextResource';
@@ -81,7 +82,7 @@ describe('language.ts', () => {
         title: {
           nb: 'AppNameFromMetadata',
         },
-      } as unknown as IApplication;
+      } as unknown as IApplicationMetadata;
 
       const result = getAppName(applicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'AppNameFromTextResource';
@@ -94,7 +95,7 @@ describe('language.ts', () => {
         title: {
           nb: 'NorwegianName',
         },
-      } as unknown as IApplication;
+      } as unknown as IApplicationMetadata;
 
       const result = getAppName(applicationMetadata, staticUseLanguageForTests({ textResources }));
       const expectedResult = 'NorwegianName';

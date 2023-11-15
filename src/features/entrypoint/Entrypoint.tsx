@@ -3,34 +3,31 @@ import { Navigate } from 'react-router-dom';
 
 import type { AxiosError } from 'axios';
 
-import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIconFormData';
 import { Form } from 'src/components/form/Form';
-import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { PresentationComponent } from 'src/components/wrappers/Presentation';
-import { StatelessReadyState, useStatelessReadyState } from 'src/features/entrypoint/useStatelessReadyState';
+import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceSelection } from 'src/features/instantiate/containers/InstanceSelection';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
+import { Loader } from 'src/features/loading/Loader';
 import { PartyActions } from 'src/features/party/partySlice';
-import { QueueActions } from 'src/features/queue/queueSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { usePartyValidationMutation } from 'src/hooks/mutations/usePartyValidationMutation';
 import { useActiveInstancesQuery } from 'src/hooks/queries/useActiveInstancesQuery';
 import { useAlwaysPromptForParty } from 'src/hooks/useAlwaysPromptForParty';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import { PresentationType, ProcessTaskType } from 'src/types';
+import { useIsStatelessApp } from 'src/utils/appMetadata';
 import { checkIfAxiosError, HttpStatusCodes } from 'src/utils/network/networking';
 import type { ShowTypes } from 'src/features/applicationMetadata';
 
 export function Entrypoint() {
   const [action, setAction] = React.useState<ShowTypes | null>(null);
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
-  const { lang } = useLanguage();
 
   const {
     data: partyValidation,
@@ -55,9 +52,7 @@ export function Entrypoint() {
   const appOwner = useAppSelector(selectAppOwner);
   const alwaysPromptForParty = useAlwaysPromptForParty();
   const dispatch = useAppDispatch();
-  const statelessReady = useStatelessReadyState(() => {
-    dispatch(QueueActions.startInitialStatelessQueue());
-  });
+  const isStateless = useIsStatelessApp();
 
   const componentHasErrors = hasPartyValidationError || hasActiveInstancesError;
 
@@ -141,31 +136,23 @@ export function Entrypoint() {
   }
 
   // Stateless view
-  if (statelessReady === StatelessReadyState.Ready) {
+  if (isStateless) {
     return (
-      <PresentationComponent
-        header={appName || ''}
-        appOwner={appOwner}
-        type={PresentationType.Stateless}
-      >
-        <div>
+      <FormProvider>
+        <PresentationComponent
+          header={appName || ''}
+          appOwner={appOwner}
+          type={PresentationType.Stateless}
+        >
           <Form />
-        </div>
-      </PresentationComponent>
+        </PresentationComponent>
+      </FormProvider>
     );
   }
 
   return (
-    <PresentationComponent
-      header={lang('instantiate.starting')}
-      type={ProcessTaskType.Unknown}
-    >
-      <AltinnContentLoader
-        width='100%'
-        height='400'
-      >
-        <AltinnContentIconFormData />
-      </AltinnContentLoader>
-    </PresentationComponent>
+    <FormProvider>
+      <Loader reason='entrypoint' />
+    </FormProvider>
   );
 }

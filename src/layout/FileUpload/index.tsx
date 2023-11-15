@@ -4,13 +4,12 @@ import type { JSX } from 'react';
 import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
-import { getUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { attachmentsValid } from 'src/utils/validation/validation';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { IFormData } from 'src/features/formData';
-import type { ComponentValidation, PropsFromGenericComponent } from 'src/layout';
+import type { ComponentValidation, DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
@@ -24,10 +23,8 @@ export class FileUpload extends FileUploadDef implements ComponentValidation {
     return false;
   }
 
-  getDisplayData(node: LayoutNode<'FileUpload'>, { formData, attachments }): string {
-    return getUploaderSummaryData(node, formData, attachments)
-      .map((a) => a.name)
-      .join(', ');
+  getDisplayData(node: LayoutNode<'FileUpload'>, { attachments }: DisplayDataProps): string {
+    return (attachments[node.item.id] || []).map((a) => a.data.filename).join(', ');
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'FileUpload'>): JSX.Element | null {

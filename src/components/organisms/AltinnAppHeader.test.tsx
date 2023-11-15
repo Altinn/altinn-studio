@@ -6,7 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 import { appMetadataMock } from 'src/__mocks__/applicationMetadataMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { AltinnAppHeader } from 'src/components/organisms/AltinnAppHeader';
-import { renderWithProviders } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IParty } from 'src/types/shared';
 
@@ -41,23 +41,23 @@ describe('organisms/AltinnAppHeader', () => {
     user?: IParty;
     logo?: IApplicationMetadata['logo'];
   }
-  const renderComponent = ({ party, user = partyPerson, logo }: IRenderComponentProps) =>
-    renderWithProviders(
-      <AltinnAppHeader
-        party={party}
-        userParty={user}
-        logoColor={logoColor}
-        headerBackgroundColor={headerBackgroundColor}
-      />,
-      {
-        preloadedState: getInitialStateMock({
-          applicationMetadata: appMetadataMock({ logo }),
-        }),
-      },
-    );
+  const render = async ({ party, user = partyPerson, logo }: IRenderComponentProps) =>
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <AltinnAppHeader
+          party={party}
+          userParty={user}
+          logoColor={logoColor}
+          headerBackgroundColor={headerBackgroundColor}
+        />
+      ),
+      reduxState: getInitialStateMock({
+        applicationMetadata: appMetadataMock({ logo }),
+      }),
+    });
 
-  it('should render private icon when party is person', () => {
-    renderComponent({ party: partyPerson });
+  it('should render private icon when party is person', async () => {
+    await render({ party: partyPerson });
     const profileButton = screen.getByRole('button', {
       name: /Profil ikon knapp/i,
     });
@@ -65,8 +65,8 @@ describe('organisms/AltinnAppHeader', () => {
     expect(profileButton.firstChild?.firstChild).toHaveClass('fa-private-circle-big');
   });
 
-  it('should render private icon for user without ssn or org number', () => {
-    renderComponent({ party: selfIdentifiedUser });
+  it('should render private icon for user without ssn or org number', async () => {
+    await render({ party: selfIdentifiedUser });
     const profileButton = screen.getByRole('button', {
       name: /Profil ikon knapp/i,
     });
@@ -74,8 +74,8 @@ describe('organisms/AltinnAppHeader', () => {
     expect(profileButton.firstChild?.firstChild).toHaveClass('fa-private-circle-big');
   });
 
-  it('should render org icon when party is org', () => {
-    renderComponent({ party: partyOrg });
+  it('should render org icon when party is org', async () => {
+    await render({ party: partyOrg });
     const profileButton = screen.getByRole('button', {
       name: /Profil ikon knapp/i,
     });
@@ -84,7 +84,7 @@ describe('organisms/AltinnAppHeader', () => {
   });
 
   it('should render menu with logout option when clicking profile icon', async () => {
-    renderComponent({ party: partyOrg });
+    await render({ party: partyOrg });
     expect(
       screen.queryByRole('link', {
         name: /logg ut/i,
@@ -107,13 +107,13 @@ describe('organisms/AltinnAppHeader', () => {
     ).toBeInTheDocument();
   });
 
-  it('Should render Altinn logo if logo options are not set', () => {
-    renderComponent({ party: partyPerson });
+  it('Should render Altinn logo if logo options are not set', async () => {
+    await render({ party: partyPerson });
     expect(screen.getByRole('img')).toHaveAttribute('src', 'https://altinncdn.no/img/Altinn-logo-black.svg');
   });
 
-  it('Should render Organisation logo if logo options are set', () => {
-    renderComponent({
+  it('Should render Organisation logo if logo options are set', async () => {
+    await render({
       party: partyPerson,
       logo: { source: 'org', displayAppOwnerNameInHeader: false },
     });

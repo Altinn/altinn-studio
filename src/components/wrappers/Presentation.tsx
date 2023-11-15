@@ -8,7 +8,8 @@ import { Header } from 'src/components/presentation/Header';
 import { NavBar } from 'src/components/presentation/NavBar';
 import classes from 'src/components/wrappers/Presentation.module.css';
 import { Footer } from 'src/features/footer/Footer';
-import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -30,7 +31,7 @@ export const PresentationComponent = (props: IPresentationProvidedProps) => {
   const dispatch = useAppDispatch();
   const { langAsString } = useLanguage();
   const party = useAppSelector((state) => state.party?.selectedParty);
-  const instance = useAppSelector((state) => state.instanceData?.instance);
+  const instance = useLaxInstanceData();
   const userParty = useAppSelector((state) => state.profile.profile?.party);
   const { expandedWidth } = useAppSelector((state) => state.formLayout.uiConfig);
   const { previous } = useAppSelector(selectPreviousAndNextPage);

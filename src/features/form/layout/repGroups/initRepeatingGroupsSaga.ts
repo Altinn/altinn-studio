@@ -1,0 +1,106 @@
+import { put, select } from 'redux-saga/effects';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { selectFormLayouts } from 'src/features/form/layout/update/updateFormLayoutSagas';
+import { ValidationActions } from 'src/features/validation/validationSlice';
+import { groupIsRepeatingExt } from 'src/layout/Group/tools';
+import { getRepeatingGroups } from 'src/utils/formLayout';
+import { selectNotNull } from 'src/utils/sagas';
+import { removeGroupValidationsByIndex } from 'src/utils/validation/validation';
+import type { IInitRepeatingGroups } from 'src/features/form/layout/formLayoutTypes';
+import type { IFormData } from 'src/features/formData';
+import type { CompGroupExternal } from 'src/layout/Group/config.generated';
+import type { IRepeatingGroups, IRuntimeState } from 'src/types';
+
+export function* initRepeatingGroupsSaga({
+  payload: { changedFields },
+}: Pick<PayloadAction<IInitRepeatingGroups>, 'payload'>): SagaIterator {
+  const layouts = yield selectNotNull(selectFormLayouts);
+  const formData: IFormData = yield select((state: IRuntimeState) => state.formData.formData);
+  const state: IRuntimeState = yield select();
+  const currentGroups = state.formLayout.uiConfig.repeatingGroups || {};
+  let newGroups: IRepeatingGroups = {};
+  Object.keys(layouts).forEach((layoutKey: string) => {
+    newGroups = {
+      ...newGroups,
+      ...getRepeatingGroups(layouts[layoutKey], formData),
+    };
+  });
+  // if any groups have been removed as part of calculation we delete the associated validations
+  const currentGroupKeys = Object.keys(currentGroups);
+  const groupsToRemoveValidations = currentGroupKeys.filter(
+    (key) => currentGroups[key].index > -1 && (!newGroups[key] || newGroups[key].index === -1),
+  );
+  if (groupsToRemoveValidations.length > 0) {
+    let validations = state.formValidations.validations;
+    for (const group of groupsToRemoveValidations) {
+      for (let i = 0; i <= currentGroups[group].index; i++) {
+        validations = removeGroupValidationsByIndex(
+          group,
+          i,
+          state.formLayout.uiConfig.currentView,
+          layouts,
+          currentGroups,
+          validations,
+          false,
+        );
+      }
+    }
+    yield put(ValidationActions.updateValidations({ validationResult: { validations }, merge: false }));
+  }
+
+  // Open by default
+  const newGroupKeys = Object.keys(newGroups || {});
+  const groupContainers = Object.values(state.formLayout.layouts || {})
+    .flatMap((e) => e)
+    .filter((e) => e && e.type === 'Group') as CompGroupExternal[];
+
+  newGroupKeys.forEach((key) => {
+    const group = newGroups[key];
+    const container = groupContainers.find((element) => element.id === key);
+    if (container && group.index >= 0 && groupIsRepeatingExt(container)) {
+      if (container.edit?.openByDefault === 'first') {
+        group.editIndex = 0;
+      } else if (container.edit?.openByDefault === 'last') {
+        group.editIndex = group.index;
+      }
+    }
+  });
+
+  // preserve current edit and multipage index if still valid
+  currentGroupKeys
+    .filter((key) => newGroups[key] !== undefined)
+    .forEach((key) => {
+      const currentGroup = currentGroups[key];
+      const newGroup = newGroups[key];
+
+      // We add +1 to the index because it's entirely valid (and common) to be editing the last row in a group (bacause
+      // that's what happens when you click the 'add' button). If we didn't add +1 here, the user could be editing the
+      // last row in a group, and a server-sent change could cause the editing mode to disappear.
+      if (
+        currentGroup.editIndex !== undefined &&
+        currentGroup.editIndex != -1 &&
+        newGroup.index + 1 >= currentGroup.editIndex
+      ) {
+        newGroup.editIndex = currentGroup.editIndex;
+      }
+
+      if (currentGroup.multiPageIndex !== undefined) {
+        newGroup.multiPageIndex = currentGroup.multiPageIndex;
+      }
+
+      const dmBinding = newGroup.dataModelBinding;
+      const changesInThisGroup = dmBinding && Object.keys(changedFields || {}).some((key) => key.startsWith(dmBinding));
+
+      if (currentGroup.index > newGroup.index && !changesInThisGroup) {
+        // A user might have clicked the 'add' button multiple times without having started to fill out every new row
+        // yet. We need to preserve the index of the last row that was added so that the user can continue to fill out
+        // the form from where they left off. If, however, the server changed something in our group, they might
+        // also have deleted rows. In that case we need to reset the index to the last row.
+        newGroup.index = currentGroup.index;
+      }
+    });
+  yield put(FormLayoutActions.initRepeatingGroupsFulfilled({ updated: newGroups }));
+}

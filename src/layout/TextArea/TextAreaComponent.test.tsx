@@ -10,8 +10,8 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 describe('TextAreaComponent.tsx', () => {
   const user = userEvent.setup();
 
-  it('should render with initial text value', () => {
-    render({
+  it('should render with initial text value', async () => {
+    await render({
       genericProps: {
         formData: {
           simpleBinding: 'initial text content',
@@ -29,7 +29,7 @@ describe('TextAreaComponent.tsx', () => {
     const addedText = ' + added content';
 
     const handleDataChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         formData: {
           simpleBinding: initialText,
@@ -52,7 +52,7 @@ describe('TextAreaComponent.tsx', () => {
     const addedText = ' + added content';
 
     const handleDataChange = jest.fn();
-    render({
+    await render({
       component: {
         readOnly: true,
       },
@@ -73,8 +73,8 @@ describe('TextAreaComponent.tsx', () => {
     expect(handleDataChange).not.toHaveBeenCalled();
   });
 
-  it('should have aria-describedby attribute if textResourceBindings is present', () => {
-    render({
+  it('should have aria-describedby attribute if textResourceBindings is present', async () => {
+    await render({
       component: {
         id: 'id',
         textResourceBindings: {},
@@ -85,16 +85,16 @@ describe('TextAreaComponent.tsx', () => {
     expect(textarea).toHaveAttribute('aria-describedby', 'description-id');
   });
 
-  it('should not have aria-describedby attribute if textResourceBindings is not present', () => {
-    render();
+  it('should not have aria-describedby attribute if textResourceBindings is not present', async () => {
+    await render();
 
     const textarea = screen.getByRole('textbox');
     expect(textarea).not.toHaveAttribute('aria-describedby');
   });
 });
 
-const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'TextArea'>> = {}) => {
-  renderGenericComponentTest({
+const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'TextArea'>> = {}) => {
+  await renderGenericComponentTest({
     type: 'TextArea',
     renderer: (props) => <TextAreaComponent {...props} />,
     component,

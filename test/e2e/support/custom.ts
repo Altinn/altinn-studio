@@ -36,6 +36,7 @@ Cypress.Commands.add('dsUncheck', { prevSubject: true }, (subject: JQueryWithSel
 
 Cypress.Commands.add('dsSelect', { prevSubject: true }, (subject: JQueryWithSelector | undefined, name) => {
   cy.log(`Selecting ${name}`);
+  cy.wrap(subject).should('not.be.disabled');
   cy.wrap(subject).click();
   cy.findByRole('option', { name }).click();
   cy.get('body').click();
@@ -166,6 +167,7 @@ const knownWcagViolations: KnownViolation[] = [
 
 Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   cy.get('#readyForPrint').should('exist');
+  cy.findByRole('progressbar').should('not.exist');
 
   // Find focused element and blur it, to ensure that we don't get any focus outlines or styles in the snapshot.
   cy.window().then((win) => {
@@ -332,6 +334,7 @@ Cypress.Commands.add('testWcag', () => {
 Cypress.Commands.add('reloadAndWait', () => {
   cy.reload();
   cy.get('#readyForPrint').should('exist');
+  cy.findByRole('progressbar').should('not.exist');
   cy.injectAxe();
 });
 

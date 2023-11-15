@@ -4,16 +4,15 @@ import { screen } from '@testing-library/react';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PanelReferenceGroupContainer } from 'src/layout/Panel/PanelReferenceGroupContainer';
-import { renderWithProviders } from 'src/test/renderWithProviders';
-import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
+import { renderWithNode } from 'src/test/renderWithProviders';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type {
   CompGroupNonRepeatingPanelExternal,
   CompGroupNonRepeatingPanelInternal,
 } from 'src/layout/Group/config.generated';
 import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import type { ILayout } from 'src/layout/layout';
-import type { RootState } from 'src/redux/store';
+import type { IRuntimeState } from 'src/types';
 
 describe('PanelGroupContainer', () => {
   const initialState = getInitialStateMock();
@@ -72,7 +71,7 @@ describe('PanelGroupContainer', () => {
   };
 
   it('should display panel with group children', async () => {
-    render({
+    await render({
       container,
       components: groupComponents,
       customState: {
@@ -91,11 +90,11 @@ describe('PanelGroupContainer', () => {
   });
 
   it('should display title and body', async () => {
-    render({
+    await render({
       container,
       components: groupComponents,
       customState: {
-        formLayout: state,
+        formLayout: JSON.parse(JSON.stringify(state)),
       },
     });
 
@@ -110,27 +109,21 @@ describe('PanelGroupContainer', () => {
 interface TestProps {
   container: CompGroupNonRepeatingPanelExternal;
   components?: ILayout | undefined;
-  customState?: Partial<RootState>;
+  customState?: Partial<IRuntimeState>;
 }
 
-const render = ({ container, components, customState }: TestProps) => {
-  let preloadedState = getInitialStateMock() as RootState;
-  preloadedState = {
-    ...preloadedState,
+const render = async ({ container, components, customState }: TestProps) => {
+  const reduxState = {
+    ...getInitialStateMock(),
     ...customState,
   };
-  const formLayout = preloadedState.formLayout.layouts && preloadedState.formLayout.layouts['FormLayout'];
+  const formLayout = reduxState.formLayout.layouts && reduxState.formLayout.layouts['FormLayout'];
   container && formLayout?.push(container);
   formLayout?.push(...(components || []));
 
-  renderWithProviders(<WrappedComponent id={'group'} />, { preloadedState });
-};
-
-const WrappedComponent = ({ id }: { id: string }) => {
-  const node = useResolvedNode(id);
-  if (!node) {
-    throw new Error(`Could not find node with id ${id}`);
-  }
-
-  return <PanelReferenceGroupContainer node={node as LayoutNodeForGroup<CompGroupNonRepeatingPanelInternal>} />;
+  await renderWithNode<LayoutNodeForGroup<CompGroupNonRepeatingPanelInternal>>({
+    nodeId: 'group',
+    renderer: ({ node }) => <PanelReferenceGroupContainer node={node} />,
+    reduxState,
+  });
 };

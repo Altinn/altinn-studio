@@ -123,6 +123,7 @@ describe('Expression validation', () => {
       cy.get(appFrontend.expressionValidationTest.uploaders)
         .last()
         .selectFile('test/e2e/fixtures/test.pdf', { force: true });
+      cy.get(appFrontend.expressionValidationTest.groupTag).should('not.be.disabled');
       cy.get(appFrontend.expressionValidationTest.groupTag).dsSelect('Sertifisering');
       cy.findByRole('button', { name: /^lagre$/i }).click();
 
@@ -214,6 +215,7 @@ describe('Expression validation', () => {
       cy.get(appFrontend.expressionValidationTest.uploaders)
         .last()
         .selectFile('test/e2e/fixtures/test.pdf', { force: true });
+      cy.get(appFrontend.expressionValidationTest.groupTag).should('not.be.disabled');
       cy.get(appFrontend.expressionValidationTest.groupTag).dsSelect('Sertifisering');
       cy.findByRole('button', { name: /^lagre$/i }).click();
 

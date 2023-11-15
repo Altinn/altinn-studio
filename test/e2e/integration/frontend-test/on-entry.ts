@@ -58,8 +58,8 @@ describe('On Entry', () => {
     cy.url().should('contain', instanceIdExamples[0]);
 
     // The instance does not actually exist, we pretended it did by mocking
-    // the response, so trying to fetch it will fail
-    cy.get(appFrontend.instanceErrorCode).should('have.text', 'Ukjent feil');
+    // the response, so trying to fetch it will fail with a 403
+    cy.get(appFrontend.instanceErrorCode).should('have.text', '403 - Forbidden');
   });
 
   const createIntercept = (defaultSelectedOption: number) => ({

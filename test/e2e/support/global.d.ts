@@ -2,8 +2,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 import type { user } from 'test/e2e/support/auth';
 
-import type { ILayoutFileExternal } from 'src/layout/common.generated';
-import type { CompOrGroupExternal, ILayouts } from 'src/layout/layout';
+import type { CompOrGroupExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { ILayoutSets, IRuntimeState } from 'src/types';
 
 export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist' | 'confirm';
@@ -119,7 +118,7 @@ declare global {
       interceptLayout(
         taskName: FrontendTestTask | string,
         mutator?: (component: CompOrGroupExternal) => void,
-        wholeLayoutMutator?: (layoutSet: { [pageName: string]: ILayoutFileExternal }) => void,
+        wholeLayoutMutator?: (layoutSet: ILayoutCollection) => void,
       ): Chainable<null>;
 
       /**

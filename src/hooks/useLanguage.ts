@@ -1,19 +1,19 @@
 import { useContext, useMemo } from 'react';
 import type { JSX } from 'react';
 
+import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromCode } from 'src/language/languages';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { FormComponentContext } from 'src/layout';
-import { selectInstanceContext } from 'src/selectors/instanceContext';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
-import { buildInstanceContext } from 'src/utils/instanceContext';
+import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import type { IFormData } from 'src/features/formData';
 import type { TextResourceMap } from 'src/features/textResources';
 import type { FixedLanguageList } from 'src/language/languages';
 import type { IRuntimeState } from 'src/types';
-import type { IApplicationSettings, IInstanceContext, ILanguage, IVariable } from 'src/types/shared';
+import type { IApplicationSettings, IInstanceDataSources, ILanguage, IVariable } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type ValidParam = string | number | undefined;
@@ -34,7 +34,7 @@ interface TextResourceVariablesDataSources {
   node: LayoutNode | undefined;
   formData: IFormData;
   applicationSettings: IApplicationSettings | null;
-  instanceContext: IInstanceContext | null;
+  instanceDataSources: IInstanceDataSources | null;
   dataModelPath?: string;
 }
 
@@ -73,16 +73,17 @@ export function useLanguage(node?: LayoutNode) {
   const nearestNode = node || componentCtx?.node;
   const formData = useAppSelector((state) => state.formData.formData);
   const applicationSettings = useAppSelector((state) => state.applicationSettings.applicationSettings);
-  const instanceContext = useAppSelector(selectInstanceContext);
+  const instance = useLaxInstanceData();
+  const instanceDataSources = useMemo(() => buildInstanceDataSources(instance), [instance]);
 
   const dataSources: TextResourceVariablesDataSources = useMemo(
     () => ({
       node: nearestNode,
       formData,
       applicationSettings,
-      instanceContext,
+      instanceDataSources,
     }),
-    [nearestNode, formData, applicationSettings, instanceContext],
+    [nearestNode, formData, applicationSettings, instanceDataSources],
   );
 
   return useMemo(
@@ -100,12 +101,12 @@ export function staticUseLanguageFromState(state: IRuntimeState, node?: LayoutNo
   const selectedAppLanguage = state.profile.selectedAppLanguage;
   const formData = state.formData.formData;
   const applicationSettings = state.applicationSettings.applicationSettings;
-  const instanceContext = buildInstanceContext(state.instanceData?.instance);
+  const instanceDataSources = buildInstanceDataSources(state.deprecated.lastKnownInstance);
   const dataSources: TextResourceVariablesDataSources = {
     node,
     formData,
     applicationSettings,
-    instanceContext,
+    instanceDataSources,
   };
 
   return staticUseLanguage(textResources, null, selectedAppLanguage, profileLanguage, dataSources);
@@ -130,7 +131,7 @@ export function staticUseLanguageForTests({
   profileLanguage = 'nb',
   selectedAppLanguage = undefined,
   dataSources = {
-    instanceContext: {
+    instanceDataSources: {
       instanceId: 'instanceId',
       appId: 'org/app',
       instanceOwnerPartyId: '12345',
@@ -249,7 +250,7 @@ function getTextResourceByKey(
 }
 
 function replaceVariables(text: string, variables: IVariable[], dataSources: TextResourceVariablesDataSources) {
-  const { node, formData, instanceContext, applicationSettings, dataModelPath } = dataSources;
+  const { node, formData, instanceDataSources, applicationSettings, dataModelPath } = dataSources;
   let out = text;
   for (const idx in variables) {
     const variable = variables[idx];
@@ -264,7 +265,7 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
         value = formData[transposedPath];
       }
     } else if (variable.dataSource === 'instanceContext') {
-      value = instanceContext && variable.key in instanceContext ? instanceContext[variable.key] : value;
+      value = instanceDataSources && variable.key in instanceDataSources ? instanceDataSources[variable.key] : value;
     } else if (variable.dataSource === 'applicationSettings') {
       value = applicationSettings && variable.key in applicationSettings ? applicationSettings[variable.key] : value;
     }

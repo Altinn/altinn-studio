@@ -17,7 +17,9 @@ export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecook
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const currentPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
+export const instantiateUrl = `${appPath}/instances/create`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
+export const applicationLanguagesUrl = `${appPath}/api/v1/applicationlanguages`;
 
 export const updateCookieUrl = (partyId: string) => `${appPath}/api/v1/parties/${partyId}`;
 
@@ -26,11 +28,17 @@ export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/a
 export const fileUploadUrl = (attachmentType: string) =>
   `${appPath}/instances/${window.instanceId}/data?dataType=${attachmentType}`;
 
-export const fileTagUrl = (dataGuid: string) => `${appPath}/instances/${window.instanceId}/data/${dataGuid}/tags`;
+export const fileTagUrl = (dataGuid: string, tag: string | undefined) => {
+  if (tag) {
+    return `${appPath}/instances/${window.instanceId}/data/${dataGuid}/tags/${tag}`;
+  }
+
+  return `${appPath}/instances/${window.instanceId}/data/${dataGuid}/tags`;
+};
 
 export const dataElementUrl = (dataGuid: string) => `${appPath}/instances/${window.instanceId}/data/${dataGuid}`;
 
-export const getProcessStateUrl = () => `${appPath}/instances/${window.instanceId}/process`;
+export const getProcessStateUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process`;
 
 export const getCreateInstancesUrl = (partyId: string) => `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
 
@@ -42,7 +50,7 @@ export const getDataValidationUrl = (instanceId: string, dataGuid: string) =>
 export const getPdfFormatUrl = (instanceId: string, dataGuid: string) =>
   `${appPath}/instances/${instanceId}/data/${dataGuid}/pdf/format`;
 
-export const getProcessNextUrl = (taskId?: string | null, language?: string | null) => {
+export const getProcessNextUrl = (taskId?: string, language?: string) => {
   const queryString = getQueryStringFromObject({
     elementId: taskId,
     lang: language,
@@ -113,11 +121,11 @@ export const getDataModelMetaDataUrl = () => `${appPath}/api/metadata/`;
 
 export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
 
-export const getLayoutSettingsUrl = (layoutset: string | null | undefined) => {
-  if (layoutset === null || layoutset === undefined) {
+export const getLayoutSettingsUrl = (layoutSetId: string | undefined) => {
+  if (layoutSetId === undefined) {
     return `${appPath}/api/layoutsettings`;
   }
-  return `${appPath}/api/layoutsettings/${layoutset}`;
+  return `${appPath}/api/layoutsettings/${layoutSetId}`;
 };
 
 export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
@@ -140,11 +148,11 @@ export const getFetchFormDynamicsUrl = (layoutSetId?: string) => {
   return `${appPath}/api/resource/RuleConfiguration.json`;
 };
 
-export const getLayoutsUrl = (layoutset: string | null) => {
-  if (layoutset === null) {
+export const getLayoutsUrl = (layoutSetId: string | undefined) => {
+  if (layoutSetId === undefined) {
     return `${appPath}/api/resource/FormLayout.json`;
   }
-  return `${appPath}/api/layouts/${layoutset}`;
+  return `${appPath}/api/layouts/${layoutSetId}`;
 };
 
 export const getRulehandlerUrl = (layoutset?: string) => {

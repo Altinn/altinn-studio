@@ -1,5 +1,5 @@
 import type { IPartyTypesAllowed } from 'src/features/applicationMetadata';
-import type { IInstanceOwner } from 'src/types/shared';
+import type { IDataType, IInstanceOwner, IParty, IPerson, IProfile } from 'src/types/shared';
 
 export const partyTypesAllowed: IPartyTypesAllowed = {
   bankruptcyEstate: false,
@@ -12,7 +12,7 @@ export const instanceOwner: IInstanceOwner = {
   personNumber: '01017512345',
   organisationNumber: null,
 };
-export const dataTypes = [
+export const dataTypes: IDataType[] = [
   {
     id: 'default',
     description: null,
@@ -55,7 +55,7 @@ export const dataTypes = [
   },
 ];
 
-const person = {
+const person: IPerson = {
   ssn: '01017512345',
   name: 'Ola Nordmann',
   firstName: 'Ola',
@@ -74,14 +74,16 @@ const person = {
   addressPostalCode: 8450,
   addressCity: 'Stokarknes',
 };
-export const partyMember = {
+export const partyMember: IParty = {
   partyId: '512345',
   orgNumber: null,
   ssn: '01017512345',
   name: 'Ola Nordmann',
+  isDeleted: false,
+  onlyHierarchyElementWithNoAccess: false,
   person,
 };
-export const userProfile = {
+export const userProfile: IProfile = {
   userId: 12345,
   userName: 'OlaNordmann',
   phoneNumber: '12345678',

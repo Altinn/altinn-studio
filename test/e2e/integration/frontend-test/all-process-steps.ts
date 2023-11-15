@@ -104,7 +104,7 @@ function interceptAndAddCustomReceipt() {
   }).as('FormLayout');
 }
 
-function testCustomReceiptPage() {
+export function testCustomReceiptPage() {
   cy.get(appFrontend.receipt.container).should('not.exist');
   cy.get('[data-testId=custom-receipt]').should('exist').and('be.visible');
   cy.get('#form-content-r-instance').should('exist').and('be.visible');

@@ -198,12 +198,12 @@ export const errorMessageKeys = {
  * @see ISchemaValidationError
  */
 export function getSchemaValidationErrors(
-  { formData, langTools, application, instance, layoutSets, schemas }: IValidationContext,
+  { formData, langTools, application, process, layoutSets, schemas }: IValidationContext,
   overrideFormData?: IFormData,
 ): ISchemaValidationError[] {
   const currentDataTaskDataTypeId = getCurrentDataTypeForApplication({
     application,
-    instance,
+    process,
     layoutSets,
   });
   const dataType = application?.dataTypes.find((d) => d.id === currentDataTaskDataTypeId);

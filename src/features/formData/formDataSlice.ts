@@ -1,18 +1,17 @@
-import type { AnyAction } from 'redux';
+import dot from 'dot-object';
 
+import { checkIfRuleShouldRunSaga } from 'src/features/form/rules/checkRulesSagas';
 import { autoSaveSaga, saveFormDataSaga, submitFormSaga } from 'src/features/formData/submit/submitFormDataSagas';
-import { deleteAttachmentReferenceSaga, updateFormDataSaga } from 'src/features/formData/update/updateFormDataSagas';
-import { checkIfRuleShouldRunSaga } from 'src/features/formRules/checkRulesSagas';
-import { ProcessActions } from 'src/features/process/processSlice';
+import { updateFormDataSaga } from 'src/features/formData/update/updateFormDataSagas';
 import { createSagaSlice } from 'src/redux/sagaSlice';
+import { convertDataBindingToModel } from 'src/utils/databindings';
 import type {
-  IDeleteAttachmentReference,
-  IFetchFormData,
   IFetchFormDataFulfilled,
   IFormDataRejected,
   ISaveAction,
-  ISubmitDataAction,
-  IUpdateFormData,
+  IUpdateFormDataAddToList,
+  IUpdateFormDataRemoveFromList,
+  IUpdateFormDataSimple,
 } from 'src/features/formData/formDataTypes';
 import type { IFormData, IFormDataState } from 'src/features/formData/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
@@ -22,13 +21,10 @@ export const initialState: IFormDataState = {
   lastSavedFormData: {},
   unsavedChanges: false,
   saving: false,
-  submittingId: '',
+  submittingState: 'inactive',
   error: null,
   reFetch: false,
 };
-
-const isProcessAction = (action: AnyAction) =>
-  action.type === ProcessActions.completeFulfilled.type || action.type === ProcessActions.completeRejected.type;
 
 export let FormDataActions: ActionsFromSlice<typeof formDataSlice>;
 export const formDataSlice = () => {
@@ -36,7 +32,7 @@ export const formDataSlice = () => {
     name: 'formData',
     initialState,
     actions: {
-      fetch: mkAction<IFetchFormData>({
+      fetch: mkAction<void>({
         reducer: (state) => {
           state.reFetch = true;
         },
@@ -62,11 +58,10 @@ export const formDataSlice = () => {
           state.formData = formData;
         },
       }),
-      submit: mkAction<ISubmitDataAction>({
+      submit: mkAction<void>({
         takeEvery: submitFormSaga,
-        reducer: (state, action) => {
-          const { componentId } = action.payload;
-          state.submittingId = componentId;
+        reducer: (state) => {
+          state.submittingState = 'validating';
         },
       }),
       submitFulfilled: mkAction<void>({
@@ -78,7 +73,17 @@ export const formDataSlice = () => {
         reducer: (state, action) => {
           const { error } = action.payload;
           state.error = error;
-          state.submittingId = '';
+          state.submittingState = 'inactive';
+        },
+      }),
+      submitReady: mkAction<{ state: 'validationSuccessful' | 'working' }>({
+        reducer: (state, action) => {
+          state.submittingState = action.payload.state;
+        },
+      }),
+      submitClear: mkAction<void>({
+        reducer: (state) => {
+          state.submittingState = 'inactive';
         },
       }),
       savingStarted: mkAction<void>({
@@ -92,10 +97,10 @@ export const formDataSlice = () => {
           state.lastSavedFormData = action.payload.model;
         },
       }),
-      update: mkAction<IUpdateFormData>({
+      update: mkAction<IUpdateFormDataSimple>({
         takeEvery: updateFormDataSaga,
       }),
-      updateFulfilled: mkAction<IUpdateFormData>({
+      updateFulfilled: mkAction<IUpdateFormDataSimple>({
         takeEvery: [checkIfRuleShouldRunSaga, autoSaveSaga],
         reducer: (state, action) => {
           const { field, data, skipAutoSave } = action.payload;
@@ -107,6 +112,44 @@ export const formDataSlice = () => {
           }
           if (!skipAutoSave) {
             state.unsavedChanges = true;
+          }
+        },
+      }),
+      updateAddToList: mkAction<IUpdateFormDataAddToList>({
+        takeEvery: [checkIfRuleShouldRunSaga, autoSaveSaga],
+        reducer: (state, action) => {
+          const { field, itemToAdd } = action.payload;
+          const fullFormData = convertDataBindingToModel(state.formData);
+          const existingList = dot.pick(field, fullFormData) || [];
+          const newList = [...existingList, itemToAdd];
+
+          for (const key of Object.keys(state.formData)) {
+            if (key.startsWith(`${field}[`)) {
+              delete state.formData[key];
+            }
+          }
+          for (let i = 0; i < newList.length; i++) {
+            state.formData[`${field}[${i}]`] = newList[i];
+          }
+
+          state.unsavedChanges = true;
+        },
+      }),
+      updateRemoveFromList: mkAction<IUpdateFormDataRemoveFromList>({
+        takeEvery: [checkIfRuleShouldRunSaga, autoSaveSaga],
+        reducer: (state, action) => {
+          const { field, itemToRemove } = action.payload;
+          const fullFormData = convertDataBindingToModel(state.formData);
+          const existingList = dot.pick(field, fullFormData) || [];
+          const newList = existingList.filter((item: string) => item !== itemToRemove);
+
+          for (const key of Object.keys(state.formData)) {
+            if (key.startsWith(`${field}[`)) {
+              delete state.formData[key];
+            }
+          }
+          for (let i = 0; i < newList.length; i++) {
+            state.formData[`${field}[${i}]`] = newList[i];
           }
         },
       }),
@@ -122,16 +165,6 @@ export const formDataSlice = () => {
       saveLatest: mkAction<ISaveAction>({
         takeLatest: saveFormDataSaga,
       }),
-      deleteAttachmentReference: mkAction<IDeleteAttachmentReference>({
-        takeEvery: deleteAttachmentReferenceSaga,
-      }),
-    },
-    extraReducers: (builder) => {
-      builder
-        .addMatcher(isProcessAction, (state) => {
-          state.submittingId = '';
-        })
-        .addDefaultCase((state) => state);
     },
   }));
 

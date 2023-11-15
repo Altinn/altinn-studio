@@ -1,21 +1,41 @@
-import type { IAttachment } from 'src/features/attachments';
+import { v4 as uuidv4 } from 'uuid';
+
+import type { UploadedAttachment } from 'src/features/attachments';
 
 const getRandomFileSize = () => Math.floor(Math.random() * (2500 - 250 + 1)) + 250;
 
-interface IGetAttachments {
+export interface IGetAttachments {
   count?: number;
   fileSize?: number;
 }
 
-export const getAttachments = ({ count = 3, fileSize }: IGetAttachments = {}) =>
-  Array(count)
-    .fill({})
-    .map((_, idx) => ({
-      name: `attachment-name-${idx}`,
-      id: `attachment-id-${idx}`,
-      size: fileSize || getRandomFileSize(),
+export const getAttachments = ({ count = 3, fileSize }: IGetAttachments = {}) => {
+  const out: UploadedAttachment[] = [];
+
+  for (let i = 0; i < count; i++) {
+    out.push({
+      error: undefined,
       uploaded: true,
       deleting: false,
       updating: false,
-      tags: [`attachment-tag-${idx}`],
-    })) as IAttachment[];
+      data: {
+        id: uuidv4(),
+        dataType: 'file',
+        size: fileSize || getRandomFileSize(),
+        filename: `attachment-name-${i}`,
+        tags: [`attachment-tag-${i}`],
+        created: new Date().toISOString(),
+        createdBy: 'test',
+        lastChanged: new Date().toISOString(),
+        lastChangedBy: 'test',
+        blobStoragePath: 'test',
+        contentType: 'test',
+        locked: false,
+        instanceGuid: 'test',
+        refs: [],
+      },
+    });
+  }
+
+  return out;
+};

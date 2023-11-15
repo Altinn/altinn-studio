@@ -25,9 +25,8 @@ function runGetSchemaValidationErrors(formData: IFormData, schema: object) {
       } as IDataType,
     ],
   } as IApplicationMetadata;
-  const instance: IInstance = {
-    process: { currentTask: { elementId: taskId } as ITask } as IProcess,
-  } as IInstance;
+  const instance: IInstance = {} as IInstance;
+  const process = { currentTask: { elementId: taskId } as ITask } as IProcess;
   const layoutSets: ILayoutSets = {
     sets: [
       {
@@ -45,6 +44,7 @@ function runGetSchemaValidationErrors(formData: IFormData, schema: object) {
     formData,
     application,
     instance,
+    process,
     layoutSets,
     schemas,
     customValidation: null,

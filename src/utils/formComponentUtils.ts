@@ -1,5 +1,6 @@
 import type React from 'react';
 
+import { isAttachmentUploaded } from 'src/features/attachments';
 import printStyles from 'src/styles/print.module.css';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import type { IAttachment } from 'src/features/attachments';
@@ -10,13 +11,18 @@ import type {
   ITableColumnFormatting,
   ITableColumnProperties,
 } from 'src/layout/common.generated';
-import type { ITextResourceBindings } from 'src/layout/layout';
+import type { CompInternal, CompTypes, IDataModelBindings, ITextResourceBindings } from 'src/layout/layout';
+import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IComponentValidations } from 'src/utils/validation/types';
 
-export interface IComponentFormData {
-  [binding: string]: string | undefined;
-}
+export type BindingToValues<B extends IDataModelBindings | undefined> = B extends undefined
+  ? { [key: string]: undefined }
+  : B extends IDataModelBindingsForList
+  ? { list: string[] | undefined }
+  : { [key in keyof B]: string | undefined };
+
+export type IComponentFormData<T extends CompTypes> = BindingToValues<CompInternal<T>['dataModelBindings']>;
 
 export function getFileUploadComponentValidations(
   validationError: 'upload' | 'update' | 'delete' | null,
@@ -101,12 +107,15 @@ export const isAttachmentError = (error: { id: string | null; message: string })
 
 export const isNotAttachmentError = (error: { id: string | null; message: string }): boolean => !error.id;
 
-export const atleastOneTagExists = (attachments: IAttachment[]): boolean => {
-  const totalTagCount: number = attachments
-    .map((attachment: IAttachment) => (attachment.tags?.length ? attachment.tags.length : 0))
-    .reduce((total, current) => total + current, 0);
+export const atLeastOneTagExists = (attachments: IAttachment[]): boolean => {
+  let totalTagCount = 0;
+  for (const attachment of attachments) {
+    if (isAttachmentUploaded(attachment)) {
+      totalTagCount += attachment.data.tags?.length || 0;
+    }
+  }
 
-  return totalTagCount !== undefined && totalTagCount >= 1;
+  return totalTagCount >= 1;
 };
 
 export function getFieldName(

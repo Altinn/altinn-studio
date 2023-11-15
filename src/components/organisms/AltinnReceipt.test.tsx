@@ -3,19 +3,22 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
-import { renderWithProviders } from 'src/test/renderWithProviders';
+import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 
-const render = (props = {}) => {
+const render = async (props = {}) => {
   const allProps = {
     body: 'body',
     collapsibleTitle: 'collapsibleTitle',
     instanceMetaDataObject: {},
     title: 'title',
     titleSubmitted: 'titleSubmitted',
+    pdf: [],
     ...props,
   };
 
-  renderWithProviders(<ReceiptComponent {...allProps} />);
+  await renderWithoutInstanceAndLayout({
+    renderer: () => <ReceiptComponent {...allProps} />,
+  });
 };
 
 const attachment1 = {
@@ -32,8 +35,8 @@ const attachment2 = {
 };
 
 describe('AltinnReceipt', () => {
-  it('should not show titleSubmitted when there are no pdfs', () => {
-    render();
+  it('should not show titleSubmitted when there are no pdfs', async () => {
+    await render();
 
     expect(
       screen.queryByRole('heading', {
@@ -44,8 +47,8 @@ describe('AltinnReceipt', () => {
     expect(screen.queryByTestId('attachment-list')).not.toBeInTheDocument();
   });
 
-  it('should show titleSubmitted when there are pdfs', () => {
-    render({ pdf: [{}] });
+  it('should show titleSubmitted when there are pdfs', async () => {
+    await render({ pdf: [{}] });
 
     expect(
       screen.getByRole('heading', {
@@ -56,8 +59,8 @@ describe('AltinnReceipt', () => {
     expect(screen.getByTestId('attachment-list')).toBeInTheDocument();
   });
 
-  it('should not show titleSubmitted when not set', () => {
-    render({ titleSubmitted: undefined });
+  it('should not show titleSubmitted when not set', async () => {
+    await render({ titleSubmitted: undefined });
 
     expect(
       screen.queryByRole('heading', {
@@ -66,32 +69,32 @@ describe('AltinnReceipt', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should show subtitle when set', () => {
-    render({ subtitle: 'subtitle' });
+  it('should show subtitle when set', async () => {
+    await render({ subtitle: 'subtitle' });
 
     expect(screen.getByText(/subtitle/i)).toBeInTheDocument();
   });
 
-  it('should not show subtitle when not set', () => {
-    render();
+  it('should not show subtitle when not set', async () => {
+    await render();
 
     expect(screen.queryByText(/subtitle/i)).not.toBeInTheDocument();
   });
 
-  it('should show body when set', () => {
-    render({ body: 'body-text' });
+  it('should show body when set', async () => {
+    await render({ body: 'body-text' });
 
     expect(screen.getByText(/body-text/i)).toBeInTheDocument();
   });
 
-  it('should not show body when not set', () => {
-    render();
+  it('should not show body when not set', async () => {
+    await render();
 
     expect(screen.queryByText(/body-text/i)).not.toBeInTheDocument();
   });
 
-  it('should show 2 attachments in default group when group name is not set', () => {
-    render({
+  it('should show 2 attachments in default group when group name is not set', async () => {
+    await render({
       attachmentGroupings: {
         null: [attachment1, attachment2],
       },
@@ -104,8 +107,8 @@ describe('AltinnReceipt', () => {
     expect(screen.getByText(/attachment2name/i)).toBeInTheDocument();
   });
 
-  it('should not show collapsible count when hideCollapsibleCount is true', () => {
-    render({
+  it('should not show collapsible count when hideCollapsibleCount is true', async () => {
+    await render({
       attachmentGroupings: {
         null: [attachment1, attachment2],
       },
@@ -117,8 +120,8 @@ describe('AltinnReceipt', () => {
     expect(screen.queryByText(/collapsibletitle \(2\)/i)).not.toBeInTheDocument();
   });
 
-  it('should show attachments in defined groups', () => {
-    render({
+  it('should show attachments in defined groups', async () => {
+    await render({
       attachmentGroupings: {
         group1: [attachment1],
         group2: [attachment2],

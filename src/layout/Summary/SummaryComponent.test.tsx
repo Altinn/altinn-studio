@@ -4,11 +4,10 @@ import { fireEvent, screen } from '@testing-library/react';
 
 import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import { renderWithProviders } from 'src/test/renderWithProviders';
-import { useResolvedNode } from 'src/utils/layout/ExprContext';
-import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
+import { renderWithNode } from 'src/test/renderWithProviders';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
 import type { CompExternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -34,28 +33,28 @@ describe('SummaryComponent', () => {
         ],
       },
     });
-  test('should render Group', () => {
-    renderHelper({ componentRef: 'Group' });
+  test('should render Group', async () => {
+    await render({ componentRef: 'Group' });
     expect(screen.getByTestId('summary-group-component')).toBeInTheDocument();
   });
-  test('should render file upload', () => {
-    renderHelper({ componentRef: 'FileUpload' });
+  test('should render file upload', async () => {
+    await render({ componentRef: 'FileUpload' });
     expect(screen.getByTestId('attachment-summary-component')).toBeInTheDocument();
   });
-  test('should render file upload with tag', () => {
-    renderHelper({ componentRef: 'FileUploadWithTag' });
+  test('should render file upload with tag', async () => {
+    await render({ componentRef: 'FileUploadWithTag' });
     expect(screen.getByTestId('attachment-with-tag-summary')).toBeInTheDocument();
   });
-  test('should render checkboxes', () => {
-    renderHelper({ componentRef: 'Checkboxes' });
+  test('should render checkboxes', async () => {
+    await render({ componentRef: 'Checkboxes' });
     expect(screen.getByTestId('multiple-choice-summary')).toBeInTheDocument();
   });
-  test('should render default', () => {
-    renderHelper({ componentRef: 'Input' });
+  test('should render default', async () => {
+    await render({ componentRef: 'Input' });
     expect(screen.getByTestId('summary-item-simple')).toBeInTheDocument();
   });
-  test('should render with validation message', () => {
-    renderHelper(
+  test('should render with validation message', async () => {
+    await render(
       { componentRef: 'Input' },
       {
         [pageId]: {
@@ -70,7 +69,7 @@ describe('SummaryComponent', () => {
     );
     expect(screen.getByText('Error message')).toBeInTheDocument();
   });
-  test('should not render if hidden', () => {
+  test('should not render if hidden', async () => {
     const otherLayout = {
       ...layoutMock(),
     };
@@ -80,14 +79,14 @@ describe('SummaryComponent', () => {
         component.hidden = true;
       }
     }
-    const { container } = renderHelper({ componentRef: 'Input' }, {}, otherLayout);
+    const { container } = await render({ componentRef: 'Input' }, {}, otherLayout);
     // eslint-disable-next-line testing-library/no-node-access
     expect(container.firstChild).toBeNull();
     // eslint-disable-next-line testing-library/no-node-access
     expect(container.childElementCount).toBe(0);
   });
 
-  test('should get title text from resource or default', () => {
+  test('should get title text from resource or default', async () => {
     const otherLayout = {
       ...layoutMock(),
     };
@@ -100,15 +99,15 @@ describe('SummaryComponent', () => {
       };
     }
 
-    renderHelper({ componentRef: 'Input' }, {}, otherLayout);
+    await render({ componentRef: 'Input' }, {}, otherLayout);
     expect(screen.getByText('default title')).toBeInTheDocument();
   });
 
-  test('should respond to on change click', () => {
+  test('should respond to on change click', async () => {
     const otherLayout = { ...layoutMock() };
     otherLayout.uiConfig.currentView = 'otherPage';
 
-    renderHelper({ componentRef: 'Input' }, {}, otherLayout);
+    await render({ componentRef: 'Input' }, {}, otherLayout);
 
     const spy = jest.spyOn(FormLayoutActions, 'updateCurrentView');
     const button = screen.getByRole('button');
@@ -123,13 +122,7 @@ describe('SummaryComponent', () => {
     });
   });
 
-  const renderHelper = (props: { componentRef: string }, validations: IValidations = {}, mockLayout = layoutMock()) => {
-    function Wrapper() {
-      const node = useResolvedNode('mySummary') as LayoutNode<'Summary'>;
-
-      return <SummaryComponent summaryNode={node} />;
-    }
-
+  const render = async (props: { componentRef: string }, validations: IValidations = {}, mockLayout = layoutMock()) => {
     const layoutPage = mockLayout.layouts && mockLayout.layouts[pageId];
     layoutPage?.push({
       type: 'Summary',
@@ -137,8 +130,10 @@ describe('SummaryComponent', () => {
       componentRef: props.componentRef,
     });
 
-    return renderWithProviders(<Wrapper />, {
-      preloadedState: {
+    return await renderWithNode<LayoutNode<'Summary'>>({
+      nodeId: 'mySummary',
+      renderer: ({ node }) => <SummaryComponent summaryNode={node} />,
+      reduxState: {
         ...getInitialStateMock(),
         formLayout: mockLayout,
         formValidations: {

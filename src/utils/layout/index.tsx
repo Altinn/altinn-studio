@@ -1,14 +1,14 @@
 import { LayoutStyle } from 'src/layout/common.generated';
 import type { ILayoutSet, ILayoutSets } from 'src/types';
-import type { IInstance } from 'src/types/shared';
+import type { IProcess } from 'src/types/shared';
 
-export function getLayoutsetForDataElement(
-  instance: IInstance | undefined | null,
+export function getLayoutSetForDataElement(
+  process: IProcess | undefined | null,
   datatype: string | undefined,
-  layoutsets: ILayoutSets,
+  layoutSets: ILayoutSets,
 ) {
-  const currentTaskId = instance?.process?.currentTask?.elementId;
-  const foundLayout = layoutsets.sets.find((layoutSet: ILayoutSet) => {
+  const currentTaskId = process?.currentTask?.elementId;
+  const foundLayout = layoutSets.sets.find((layoutSet: ILayoutSet) => {
     if (layoutSet.dataType !== datatype) {
       return false;
     }

@@ -1,4 +1,7 @@
+import dot from 'dot-object';
+
 import { getLayoutComponentObject } from 'src/layout';
+import { convertDataBindingToModel } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { runValidationOnNodes } from 'src/utils/validation/validation';
@@ -352,22 +355,20 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
   /**
    * Gets the current form data for this component
    */
-  public getFormData(): IComponentFormData {
+  public getFormData(): IComponentFormData<Type> {
     if (!('dataModelBindings' in this.item) || !this.item.dataModelBindings) {
-      return {};
+      return {} as IComponentFormData<Type>;
     }
 
-    const formDataObj: IComponentFormData = {};
+    const fullFormData = convertDataBindingToModel(this.dataSources.formData);
+    const formDataObj: { [key: string]: any } = {};
     for (const key of Object.keys(this.item.dataModelBindings)) {
       const binding = this.item.dataModelBindings[key];
-      if (this.dataSources.formData[binding]) {
-        formDataObj[key] = this.dataSources.formData[binding];
-      } else {
-        formDataObj[key] = '';
-      }
+      const data = dot.pick(binding, fullFormData);
+      formDataObj[key] = data ?? '';
     }
 
-    return formDataObj;
+    return formDataObj as IComponentFormData<Type>;
   }
 
   public getRowIndices(): number[] {

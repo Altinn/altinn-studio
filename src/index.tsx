@@ -12,31 +12,19 @@ import 'src/features/logging';
 import 'src/features/styleInjection';
 
 import { AppWrapper } from '@altinn/altinn-design-system';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { App } from 'src/App';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ThemeWrapper } from 'src/components/ThemeWrapper';
-import { AppQueriesContextProvider } from 'src/contexts/appQueriesContext';
+import { AppQueriesProvider } from 'src/contexts/appQueriesContext';
 import { DevTools } from 'src/features/devtools/DevTools';
-import { LayoutValidationProvider } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { AllOptionsProvider } from 'src/features/options/useAllOptions';
+import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
 import * as queries from 'src/queries/queries';
 import { initSagas } from 'src/redux/sagas';
 import { setupStore } from 'src/redux/store';
 import { ExprContextWrapper } from 'src/utils/layout/ExprContext';
 
 import 'src/index.css';
-
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      staleTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 document.addEventListener('DOMContentLoaded', () => {
   const { store, sagaMiddleware } = setupStore();
@@ -46,27 +34,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const root = container && createRoot(container);
   root?.render(
     <Provider store={store}>
-      <HashRouter>
-        <AppWrapper>
-          <ThemeWrapper>
-            <ErrorBoundary>
-              <QueryClientProvider client={queryClient}>
-                <AppQueriesContextProvider {...queries}>
+      <ErrorBoundary>
+        <HashRouter>
+          <AppWrapper>
+            <AppQueriesProvider {...queries}>
+              <ThemeWrapper>
+                <InstantiationProvider>
                   <ExprContextWrapper>
-                    <LayoutValidationProvider>
-                      <AllOptionsProvider>
-                        <DevTools>
-                          <App />
-                        </DevTools>
-                      </AllOptionsProvider>
-                    </LayoutValidationProvider>
+                    <DevTools>
+                      <App />
+                    </DevTools>
                   </ExprContextWrapper>
-                </AppQueriesContextProvider>
-              </QueryClientProvider>
-            </ErrorBoundary>
-          </ThemeWrapper>
-        </AppWrapper>
-      </HashRouter>
+                </InstantiationProvider>
+              </ThemeWrapper>
+            </AppQueriesProvider>
+          </AppWrapper>
+        </HashRouter>
+      </ErrorBoundary>
     </Provider>,
   );
 });

@@ -53,7 +53,6 @@ Valid environments are:
   trashAssetsBeforeRuns: true,
   video: env.parsed?.CYPRESS_RECORD_VIDEO === 'true',
   videosFolder: 'test/videos',
-  videoUploadOnPasses: false,
   videoCompression: JSON.parse(env.parsed?.CYPRESS_VIDEO_COMPRESSION || '32'),
   viewportHeight: 768,
   viewportWidth: 1536,

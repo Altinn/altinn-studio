@@ -4,35 +4,35 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
+import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
-import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import { promiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { AppQueries } from 'src/contexts/appQueriesContext';
 import type { IOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const countries = {
-  id: 'countries',
-  options: [
-    {
-      label: 'Norway',
-      value: 'norway',
-    },
-    {
-      label: 'Sweden',
-      value: 'sweden',
-    },
-    {
-      label: 'Denmark',
-      value: 'denmark',
-    },
-  ] as IOption[],
-};
+const countries: IOption[] = [
+  {
+    label: 'Norway',
+    value: 'norway',
+  },
+  {
+    label: 'Sweden',
+    value: 'sweden',
+  },
+  {
+    label: 'Denmark',
+    value: 'denmark',
+  },
+];
 
-interface Props extends Partial<RenderGenericComponentTestProps<'Dropdown'>> {
+interface Props extends Partial<Omit<RenderGenericComponentTestProps<'Dropdown'>, 'renderer' | 'type' | 'queries'>> {
   options?: IOption[];
 }
 
-const render = ({ component, genericProps, options }: Props = {}) => {
-  renderGenericComponentTest({
+const render = async ({ component, genericProps, options, ...rest }: Props = {}) => {
+  const fetchOptions = promiseMock<AppQueries['fetchOptions']>();
+  const utils = await renderGenericComponentTest({
     type: 'Dropdown',
     renderer: (props) => <DropdownComponent {...props} />,
     component: {
@@ -45,26 +45,30 @@ const render = ({ component, genericProps, options }: Props = {}) => {
       isValid: true,
       ...genericProps,
     },
-    mockedQueries: {
-      fetchOptions: () =>
-        options
-          ? Promise.resolve({ data: options, headers: {} } as AxiosResponse<IOption[], any>)
-          : Promise.reject(new Error('No options provided to render()')),
+    queries: {
+      fetchOptions: (...args) =>
+        options === undefined
+          ? fetchOptions.mock(...args)
+          : Promise.resolve({
+              data: options,
+              headers: {},
+            } as AxiosResponse<IOption[], any>),
     },
+    ...rest,
   });
+
+  return { ...utils, fetchOptions };
 };
 
 describe('DropdownComponent', () => {
   it('should trigger handleDataChange when option is selected', async () => {
     const handleDataChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         handleDataChange,
       },
-      options: countries.options,
+      options: countries,
     });
-
-    await waitFor(() => expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument());
 
     expect(handleDataChange).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('combobox'));
@@ -73,11 +77,11 @@ describe('DropdownComponent', () => {
   });
 
   it('should show as disabled when readOnly is true', async () => {
-    render({
+    await render({
       component: {
         readOnly: true,
       },
-      options: countries.options,
+      options: countries,
     });
 
     const select = await screen.findByRole('combobox');
@@ -85,11 +89,11 @@ describe('DropdownComponent', () => {
   });
 
   it('should not show as disabled when readOnly is false', async () => {
-    render({
+    await render({
       component: {
         readOnly: false,
       },
-      options: countries.options,
+      options: countries,
     });
 
     const select = await screen.findByRole('combobox');
@@ -98,14 +102,14 @@ describe('DropdownComponent', () => {
 
   it('should trigger handleDataChange when preselectedOptionIndex is set', async () => {
     const handleDataChange = jest.fn();
-    render({
+    await render({
       component: {
         preselectedOptionIndex: 2,
       },
       genericProps: {
         handleDataChange,
       },
-      options: countries.options,
+      options: countries,
     });
 
     await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true }));
@@ -114,14 +118,14 @@ describe('DropdownComponent', () => {
 
   it('should trigger handleDataChange instantly on blur', async () => {
     const handleDataChange = jest.fn();
-    render({
+    await render({
       component: {
         preselectedOptionIndex: 2,
       },
       genericProps: {
         handleDataChange,
       },
-      options: countries.options,
+      options: countries,
     });
 
     await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true }));
@@ -132,23 +136,62 @@ describe('DropdownComponent', () => {
 
     await userEvent.tab();
     await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true }));
-    expect(handleDataChange).toHaveBeenCalledTimes(2);
+    expect(handleDataChange).toHaveBeenCalledTimes(1);
   });
 
   it('should show spinner', async () => {
-    render({
+    const { fetchOptions, originalDispatch } = await render({
       component: {
         optionsId: 'countries',
+        mapping: {
+          'Some.Path': 'queryArg',
+        },
       },
-      options: countries.options,
+      waitUntilLoaded: false,
     });
+
+    await waitFor(() => expect(fetchOptions.mock).toHaveBeenCalledTimes(1));
+
+    fetchOptions.resolve({
+      data: countries,
+      headers: {},
+    } as AxiosResponse<IOption[], any>);
+
+    await screen.findByText('Denmark');
+
+    // The component always finishes loading the first time, but if we have mapping that affects the options
+    // the component renders a spinner for a while when fetching the options again.
+    originalDispatch(
+      FormDataActions.updateFulfilled({
+        componentId: 'someId',
+        field: 'Some.Path',
+        data: 'newValue',
+        skipAutoSave: true,
+        skipValidation: true,
+      }),
+    );
+
+    await waitFor(() => expect(fetchOptions.mock).toHaveBeenCalledTimes(2));
     expect(screen.getByTestId('altinn-spinner')).toBeInTheDocument();
+
+    fetchOptions.resolve({
+      data: [
+        ...countries,
+        {
+          label: 'Finland',
+          value: 'finland',
+        },
+      ],
+      headers: {},
+    } as AxiosResponse<IOption[], any>);
+
     await waitFor(() => expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument());
+    expect(screen.getByText('Finland')).toBeInTheDocument();
   });
 
   it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
     const handleDataChange = jest.fn();
-    render({
+    await render({
       component: {
         optionsId: undefined,
         source: {
@@ -160,7 +203,6 @@ describe('DropdownComponent', () => {
       genericProps: {
         handleDataChange,
       },
-      options: undefined,
     });
 
     expect(handleDataChange).not.toHaveBeenCalled();
@@ -177,11 +219,11 @@ describe('DropdownComponent', () => {
   });
 
   it('should present the options list in the order it is provided when sortOrder is not specified', async () => {
-    render({
+    await render({
       component: {
         optionsId: 'countries',
       },
-      options: countries.options,
+      options: countries,
     });
 
     await userEvent.click(await screen.findByRole('combobox'));
@@ -193,12 +235,12 @@ describe('DropdownComponent', () => {
   });
 
   it('should present the provided options list sorted alphabetically in ascending order when providing sortOrder "asc"', async () => {
-    render({
+    await render({
       component: {
         optionsId: 'countries',
         sortOrder: 'asc',
       },
-      options: countries.options,
+      options: countries,
     });
 
     await userEvent.click(await screen.findByRole('combobox'));
@@ -210,12 +252,12 @@ describe('DropdownComponent', () => {
   });
 
   it('should present the provided options list sorted alphabetically in descending order when providing sortOrder "desc"', async () => {
-    render({
+    await render({
       component: {
         optionsId: 'countries',
         sortOrder: 'desc',
       },
-      options: countries.options,
+      options: countries,
     });
 
     await userEvent.click(await screen.findByRole('combobox'));

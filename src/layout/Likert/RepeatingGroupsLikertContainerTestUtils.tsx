@@ -8,13 +8,12 @@ import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { resourcesAsMap } from 'src/features/textResources/resourcesAsMap';
 import { RepeatingGroupsLikertContainer } from 'src/layout/Likert/RepeatingGroupsLikertContainer';
-import { setupStore } from 'src/redux/store';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
-import { renderWithProviders } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useResolvedNode } from 'src/utils/layout/ExprContext';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IFormDataState } from 'src/features/formData';
-import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
-import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
+import type { IUpdateFormDataSimple } from 'src/features/formData/formDataTypes';
 import type { IRawTextResource, ITextResourcesState } from 'src/features/textResources';
 import type { IValidationState } from 'src/features/validation/validationSlice';
 import type { IOption } from 'src/layout/common.generated';
@@ -99,7 +98,10 @@ const createRadioButton = (props: Partial<CompLikertExternal> | undefined): Comp
   ...props,
 });
 
-export const createFormDataUpdateAction = (index: number, optionValue: string): PayloadAction<IUpdateFormData> => ({
+export const createFormDataUpdateAction = (
+  index: number,
+  optionValue: string,
+): PayloadAction<IUpdateFormDataSimple> => ({
   payload: {
     componentId: `field1-${index}`,
     data: optionValue,
@@ -195,7 +197,7 @@ interface IRenderProps {
   validations: ILayoutValidations;
 }
 
-export const render = ({
+export const render = async ({
   mobileView = false,
   mockQuestions = defaultMockQuestions,
   mockOptions = defaultMockOptions,
@@ -211,31 +213,28 @@ export const render = ({
     formData: generateMockFormData(mockQuestions),
     lastSavedFormData: {},
     error: null,
-    submittingId: '',
+    submittingState: 'inactive',
     unsavedChanges: false,
     saving: false,
   };
 
-  const preloadedState = getInitialStateMock({
+  const reduxState = getInitialStateMock({
     formLayout: createLayout(mockLikertContainer, components, mockQuestions.length - 1),
     formData: mockData,
     formValidations: createFormValidationsForCurrentView(validations),
     textResources: createTextResource(mockQuestions, extraTextResources),
   });
 
-  const mockStore = setupStore(preloadedState).store;
-  const mockStoreDispatch = jest.fn();
-  mockStore.dispatch = mockStoreDispatch;
   setScreenWidth(mobileView ? 600 : 1200);
-  renderWithProviders(
-    <ContainerTester id={mockLikertContainer.id} />,
-    {
-      store: mockStore,
+  const { store } = await renderWithInstanceAndLayout({
+    renderer: () => <ContainerTester id={mockLikertContainer.id} />,
+    reduxState,
+    queries: {
+      fetchOptions: () => Promise.resolve({ data: mockOptions, headers: {} } as AxiosResponse<IOption[], any>),
     },
-    { fetchOptions: () => Promise.resolve({ data: mockOptions, headers: {} } as AxiosResponse<IOption[], any>) },
-  );
+  });
 
-  return { mockStoreDispatch };
+  return { mockStoreDispatch: store.dispatch };
 };
 
 export function ContainerTester(props: { id: string }) {

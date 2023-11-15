@@ -18,15 +18,12 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
 
   const error =
     state.party.error ||
-    state.process.error ||
     state.profile.error ||
     state.formLayout.error ||
     state.footerLayout.error ||
-    state.instanceData.error ||
     state.applicationMetadata.error ||
     state.formDataModel.error ||
     state.optionState.error ||
-    state.attachments.error ||
     state.dataListState.error ||
     state.applicationSettings.error ||
     state.textResources.error ||

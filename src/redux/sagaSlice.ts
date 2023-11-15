@@ -1,6 +1,6 @@
 import { createAction, createSlice } from '@reduxjs/toolkit';
 import { takeEvery, takeLatest } from 'redux-saga/effects';
-import type { CaseReducer, CaseReducerActions, CreateSliceOptions, PayloadAction, Slice } from '@reduxjs/toolkit';
+import type { CaseReducer, CaseReducerActions, PayloadAction, Slice } from '@reduxjs/toolkit';
 import type { WritableDraft } from 'immer/dist/types/types-external';
 import type { SagaIterator } from 'redux-saga';
 
@@ -49,7 +49,6 @@ export type SagaSliceProps<
   initialState: State | (() => State);
   actions: Actions;
   extraSagas?: Saga[];
-  extraReducers?: CreateSliceOptions<State, TransformActions<State, Actions>, Name>['extraReducers'];
 };
 
 export type MkActionType<State> = <Payload = void, Out extends SagaAction<Payload, State> = SagaAction<Payload, State>>(
@@ -142,7 +141,6 @@ export function createSagaSlice<
     name: props.name,
     initialState: props.initialState,
     reducers,
-    extraReducers: props.extraReducers,
   });
 
   slice.actions = {

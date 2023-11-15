@@ -1,20 +1,9 @@
-import type { IDataModelBindings } from 'src/layout/layout';
-
-export interface IFetchFormData {
-  url: string;
-}
-
 export interface IFetchFormDataFulfilled {
   formData: any;
 }
 
 export interface IFormDataRejected {
   error: Error | null;
-}
-
-export interface ISubmitDataAction {
-  url?: string;
-  componentId: string;
 }
 
 export interface ISingleFieldValidation {
@@ -32,13 +21,18 @@ export interface IUpdateFormData {
   skipValidation?: boolean;
   skipAutoSave?: boolean;
   singleFieldValidation?: ISingleFieldValidation;
-  componentId?: string;
+  componentId: string;
   field: string;
-  data: any;
 }
 
-export interface IDeleteAttachmentReference {
-  attachmentId: string;
-  componentId: string;
-  dataModelBindings: IDataModelBindings<'FileUpload' | 'FileUploadWithTag'>;
+export interface IUpdateFormDataSimple extends IUpdateFormData {
+  data: string | undefined | null;
+}
+
+export interface IUpdateFormDataAddToList extends IUpdateFormData {
+  itemToAdd: string;
+}
+
+export interface IUpdateFormDataRemoveFromList extends IUpdateFormData {
+  itemToRemove: string;
 }

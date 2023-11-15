@@ -28,20 +28,36 @@
       }
     }
   },
-  "attachments": {
-    "documents": [
-      {
-        "id": "1234-1234",
-        "name": "document1.pdf",
+  "instanceDataElements": [
+    {
+        "id": "bb2b2222-2b22-2b22-222b-222222222222",
+        "instanceGuid": "aa1a1111-1a11-1a11-111a-111111111111",
+        "dataType": "documents",
+        "filename": "document1.pdf",
+        "contentType": "application/pdf",
+        "blobStoragePath": "",
         "size": 100,
-        "uploaded": true
-      },
-      {
-        "id": "4567-4567",
-        "name": "document2.pdf",
+        "locked": false,
+        "refs": [],
+        "created": "2021-01-01T00:00:00.000Z",
+        "createdBy": "testUser",
+        "lastChanged": "2021-01-01T00:00:00.000Z",
+        "lastChangedBy": "testUser"
+    },
+    {
+        "id": "cc3c3333-3c33-3c33-333c-333333333333",
+        "instanceGuid": "aa1a1111-1a11-1a11-111a-111111111111",
+        "dataType": "documents",
+        "filename": "document2.pdf",
+        "contentType": "application/pdf",
+        "blobStoragePath": "",
         "size": 200,
-        "uploaded": true
-      }
-    ]
-  }
+        "locked": false,
+        "refs": [],
+        "created": "2021-01-01T00:00:00.000Z",
+        "createdBy": "testUser",
+        "lastChanged": "2021-01-01T00:00:00.000Z",
+        "lastChangedBy": "testUser"
+    }
+  ]
 }

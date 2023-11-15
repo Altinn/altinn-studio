@@ -31,7 +31,7 @@ describe('Expressions', () => {
         formData: {},
         applicationSettings: {},
         hiddenFields: new Set<string>(),
-        instanceContext: {},
+        instanceDataSources: {},
       } as ContextDataSources,
       node: new NodeNotFoundWithoutContext('test'),
     };
@@ -83,7 +83,7 @@ describe('Expressions', () => {
         formData: {},
         applicationSettings: {},
         hiddenFields: new Set<string>(),
-        instanceContext: {},
+        instanceDataSources: {},
         langTools: {
           selectedLanguage: 'nb',
         },
@@ -99,7 +99,7 @@ describe('Expressions', () => {
         formData: {},
         applicationSettings: {},
         hiddenFields: new Set<string>(),
-        instanceContext: {},
+        instanceDataSources: {},
         langTools: {
           selectedLanguage: 'en',
         },
@@ -115,7 +115,7 @@ describe('Expressions', () => {
         formData: {},
         applicationSettings: {},
         hiddenFields: new Set<string>(),
-        instanceContext: {},
+        instanceDataSources: {},
         langTools: {},
       } as ContextDataSources;
       const node = new NodeNotFoundWithoutContext('test');

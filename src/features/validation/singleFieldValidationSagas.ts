@@ -13,12 +13,12 @@ import { mapValidationIssues } from 'src/utils/validation/backendValidation';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IRunSingleFieldValidation } from 'src/features/validation/validationSlice';
 import type { ILayoutSets, IRuntimeState } from 'src/types';
-import type { IInstance } from 'src/types/shared';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { BackendValidationIssue } from 'src/utils/validation/types';
 
+export const selectInstance = (state: IRuntimeState) => state.deprecated.lastKnownInstance;
+export const selectProcess = (state: IRuntimeState) => state.deprecated.lastKnownProcess;
 export const selectApplicationMetadataState = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
-export const selectInstanceState = (state: IRuntimeState) => state.instanceData.instance;
 export const selectLayoutSetsState = (state: IRuntimeState) => state.formLayout.layoutsets;
 export const selectHiddenFieldsState = (state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields;
 
@@ -35,13 +35,13 @@ export function* runSingleFieldValidationSaga({
   const resolvedNodes: LayoutPages = yield select(ResolvedNodesSelector);
   const node = resolvedNodes.findById(componentId);
 
-  const applicationMetadata: IApplicationMetadata = yield select(selectApplicationMetadataState);
-  const instance: IInstance = yield select(selectInstanceState);
+  const application: IApplicationMetadata | null = yield select(selectApplicationMetadataState);
+  const instance = yield select(selectInstance);
+  const process = yield select(selectProcess);
   const layoutSets: ILayoutSets = yield select(selectLayoutSetsState);
 
-  const currentTaskDataId: string | undefined =
-    applicationMetadata && getCurrentTaskDataElementId(applicationMetadata, instance, layoutSets);
-  const url: string | undefined = instance && currentTaskDataId && getDataValidationUrl(instance.id, currentTaskDataId);
+  const currentTaskDataId = application && getCurrentTaskDataElementId({ application, instance, process, layoutSets });
+  const url = instance && currentTaskDataId && getDataValidationUrl(instance.id, currentTaskDataId);
 
   if (node && url && dataModelBinding) {
     const options: AxiosRequestConfig = {

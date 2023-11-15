@@ -5,17 +5,17 @@ import { screen } from '@testing-library/react';
 import { organisationMock } from 'src/__mocks__/organisationMock';
 import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { AltinnAppHeader } from 'src/components/altinnAppHeader';
-import { renderWithProviders } from 'src/test/renderWithProviders';
+import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IHeaderProps } from 'src/components/altinnAppHeader';
 
 describe('AltinnAppHeader', () => {
-  it('should show organisation name when profile has party, and party has organisation with name, and "type" is not set', () => {
+  it('should show organisation name when profile has party, and party has organisation with name, and "type" is not set', async () => {
     const profile = getProfileStateMock();
     if (profile.profile.party) {
       profile.profile.party.organization = organisationMock;
     }
 
-    render({
+    await render({
       profile: profile.profile,
       type: undefined,
     });
@@ -23,13 +23,13 @@ describe('AltinnAppHeader', () => {
     expect(screen.getByText(`for ${organisationMock.name.toUpperCase()}`)).toBeInTheDocument();
   });
 
-  it('should not show organisation name when profile has party, and party has organisation with name, and "type" is set', () => {
+  it('should not show organisation name when profile has party, and party has organisation with name, and "type" is set', async () => {
     const profile = getProfileStateMock();
     if (profile.profile.party) {
       profile.profile.party.organization = organisationMock;
     }
 
-    render({
+    await render({
       profile: profile.profile,
       type: 'partyChoice',
     });
@@ -37,9 +37,9 @@ describe('AltinnAppHeader', () => {
     expect(screen.queryByText(`for ${organisationMock.name.toUpperCase()}`)).not.toBeInTheDocument();
   });
 
-  it('should render links to inbox, schemas and profile when "type" is set and profile has "party" property', () => {
+  it('should render links to inbox, schemas and profile when "type" is set and profile has "party" property', async () => {
     const profile = getProfileStateMock();
-    render({
+    await render({
       profile: profile.profile,
       type: 'partyChoice',
     });
@@ -49,18 +49,18 @@ describe('AltinnAppHeader', () => {
     expect(screen.getByRole('link', { name: /profil/i })).toBeInTheDocument();
   });
 
-  it('should not render links to inbox, schemas and profile when "type" is not set', () => {
-    render({ type: undefined });
+  it('should not render links to inbox, schemas and profile when "type" is not set', async () => {
+    await render({ type: undefined });
 
     expect(screen.queryByRole('link', { name: /innboks/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /alle skjema/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /profil/i })).not.toBeInTheDocument();
   });
 
-  it('should not render links to inbox, schemas and profile when "type" is set but profile does not have "party" property', () => {
+  it('should not render links to inbox, schemas and profile when "type" is set but profile does not have "party" property', async () => {
     const profile = getProfileStateMock();
     delete profile.profile.party;
-    render({
+    await render({
       profile: profile.profile,
       type: 'partyChoice',
     });
@@ -71,7 +71,7 @@ describe('AltinnAppHeader', () => {
   });
 });
 
-const render = (props: Partial<IHeaderProps> = {}) => {
+const render = async (props: Partial<IHeaderProps> = {}) => {
   const profile = getProfileStateMock();
 
   const allProps = {
@@ -79,5 +79,7 @@ const render = (props: Partial<IHeaderProps> = {}) => {
     ...props,
   };
 
-  renderWithProviders(<AltinnAppHeader {...allProps} />);
+  await renderWithoutInstanceAndLayout({
+    renderer: () => <AltinnAppHeader {...allProps} />,
+  });
 };

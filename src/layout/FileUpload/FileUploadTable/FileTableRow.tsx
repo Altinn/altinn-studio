@@ -3,11 +3,12 @@ import React from 'react';
 import { CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
+import { isAttachmentUploaded } from 'src/features/attachments';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
-import { useFileTableRowContext } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
+import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { IAttachment } from 'src/features/attachments';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -25,13 +26,16 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel }: IFileUp
   const { langAsString } = useLanguage();
   const hasTag = node.item.type === 'FileUploadWithTag';
 
-  const readableSize = `${(attachment.size / bytesInOneMB).toFixed(2)} ${langAsString('form_filler.file_uploader_mb')}`;
+  const readableSize = `${(attachment.data.size / bytesInOneMB).toFixed(2)} ${langAsString(
+    'form_filler.file_uploader_mb',
+  )}`;
+  const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;
 
   return (
     <tr
-      key={attachment.id}
+      key={uniqueId}
       className={classes.blueUnderlineDotted}
-      id={`altinn-file-list-row-${attachment.id}`}
+      id={`altinn-file-list-row-${uniqueId}`}
       tabIndex={0}
     >
       <NameCell
@@ -64,11 +68,12 @@ const NameCell = ({
   hasTag,
 }: {
   mobileView: boolean;
-  attachment: Pick<IAttachment, 'name' | 'size' | 'id' | 'uploaded'>;
+  attachment: IAttachment;
   readableSize: string;
   hasTag: boolean;
 }) => {
   const { langAsString } = useLanguage();
+  const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;
   return (
     <>
       <td>
@@ -96,7 +101,7 @@ const NameCell = ({
                 </div>
               ) : (
                 <AltinnLoader
-                  id={`attachment-loader-upload-${attachment.id}`}
+                  id={`attachment-loader-upload-${uniqueId}`}
                   className={classes.altinnLoader}
                   srContent={langAsString('general.loading')}
                 />
@@ -112,7 +117,7 @@ const NameCell = ({
 
 const FileTypeCell = ({ tagLabel }: { tagLabel: string | undefined }) => {
   const { langAsString } = useLanguage();
-  const { index } = useFileTableRowContext();
+  const { index } = useFileTableRow();
   return <td key={`attachment-tag-${index}`}>{tagLabel && langAsString(tagLabel)}</td>;
 };
 
@@ -155,22 +160,27 @@ interface IButtonCellContentProps {
 
 const ButtonCellContent = ({ deleting, node, mobileView, attachment }: IButtonCellContentProps) => {
   const { langAsString } = useLanguage();
-  return (
-    <td>
-      {deleting ? (
+
+  if (deleting) {
+    return (
+      <td>
         <AltinnLoader
           id='loader-delete'
           className={classes.deleteLoader}
           srContent={langAsString('general.loading')}
         />
-      ) : (
-        <FileTableButtons
-          node={node}
-          mobileView={mobileView}
-          attachment={attachment}
-          editWindowIsOpen={false}
-        />
-      )}
+      </td>
+    );
+  }
+
+  return (
+    <td>
+      <FileTableButtons
+        node={node}
+        mobileView={mobileView}
+        attachment={attachment}
+        editWindowIsOpen={false}
+      />
     </td>
   );
 };

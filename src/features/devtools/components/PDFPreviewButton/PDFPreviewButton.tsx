@@ -5,12 +5,12 @@ import { Button, Fieldset } from '@digdir/design-system-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
 import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { ProcessTaskType } from 'src/types';
 
 export const PDFPreviewButton = () => {
   const dispatch = useDispatch();
-  const { taskType } = useAppSelector((state) => state.process);
+  const taskType = useTaskTypeFromBackend();
 
   function handler() {
     dispatch(DevToolsActions.previewPdf());

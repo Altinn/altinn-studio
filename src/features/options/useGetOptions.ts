@@ -91,7 +91,7 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
 
   return {
     options: sortOrder
-      ? optionsWithoutDuplicates.toSorted(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage))
+      ? [...optionsWithoutDuplicates].sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage))
       : optionsWithoutDuplicates,
     isFetching: isFetching || !calculatedOptions,
   };

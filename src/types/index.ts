@@ -1,8 +1,6 @@
 import { Triggers } from 'src/layout/common.generated';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { IFormData } from 'src/features/formData';
-import type { IKeepComponentScrollPos } from 'src/features/layout/formLayoutTypes';
-import type { IMapping } from 'src/layout/common.generated';
+import type { IKeepComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
 import type { RootState } from 'src/redux/store';
 
 export interface ILayoutSets {
@@ -156,16 +154,6 @@ export function reducePageValidations(triggers?: Triggers[]): TriggersPageValida
 
 export enum DateFlags {
   Today = 'today',
-}
-
-export interface IFetchSpecificOptionSaga {
-  optionsId: string;
-  formData?: IFormData;
-  language?: string;
-  dataMapping?: IMapping;
-  fixedQueryParameters?: Record<string, string>;
-  secure?: boolean;
-  instanceId?: string;
 }
 
 /**

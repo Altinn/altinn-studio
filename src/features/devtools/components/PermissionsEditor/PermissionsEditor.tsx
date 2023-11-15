@@ -4,28 +4,32 @@ import { useDispatch } from 'react-redux';
 import { Checkbox } from '@digdir/design-system-react';
 
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
-import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
-import { ProcessActions } from 'src/features/process/processSlice';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import type { IGetProcessStateFulfilled, IProcessPermissions } from 'src/features/process';
-import type { ProcessTaskType } from 'src/types';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { useLaxProcessData, useSetProcessData } from 'src/features/instance/ProcessContext';
+import type { ITask } from 'src/types/shared';
 
 export const PermissionsEditor = () => {
-  const { read, write, actions, taskType, taskId } = useAppSelector((state) => state.process);
+  // TODO: Fix this editor, as the process data is in a context _inside_ the DevTools context, so we cannot reach it
+
+  const { write, actions } = useLaxProcessData()?.currentTask || {};
   const dispatch = useDispatch();
+  const setProcessData = useSetProcessData();
 
-  function handleChange(mutator: (obj: IProcessPermissions) => void) {
-    const processState: IGetProcessStateFulfilled = {
-      taskId,
-      taskType: taskType as ProcessTaskType,
-      read,
-      write,
-      actions: actions ?? {},
-    };
+  function handleChange(mutator: (obj: ITask) => ITask) {
+    setProcessData &&
+      setProcessData((processData) => {
+        const currentTask = processData?.currentTask;
+        if (currentTask) {
+          return {
+            ...processData,
+            currentTask: {
+              ...processData.currentTask,
+              ...mutator(currentTask),
+            },
+          };
+        }
+      });
 
-    mutator(processState);
-
-    dispatch(ProcessActions.getFulfilled(processState));
     dispatch(FormLayoutActions.updateLayouts({}));
   }
 
@@ -36,32 +40,56 @@ export const PermissionsEditor = () => {
     >
       <Checkbox
         size='small'
+        disabled={!setProcessData}
         checked={Boolean(write)}
-        onChange={(e) => handleChange((obj) => (obj.write = e.target.checked))}
+        onChange={(e) =>
+          handleChange((obj) => {
+            obj.write = e.target.checked;
+            return obj;
+          })
+        }
         value='nothing'
       >
         Write
       </Checkbox>
       <Checkbox
         size='small'
+        disabled={!setProcessData}
         checked={Boolean(actions?.confirm)}
-        onChange={(e) => handleChange((obj) => (obj.actions = { ...obj.actions, confirm: e.target.checked }))}
+        onChange={(e) =>
+          handleChange((obj) => {
+            obj.actions = { ...obj.actions, confirm: e.target.checked };
+            return obj;
+          })
+        }
         value='nothing'
       >
         Confirm
       </Checkbox>
       <Checkbox
         size='small'
+        disabled={!setProcessData}
         checked={Boolean(actions?.sign)}
-        onChange={(e) => handleChange((obj) => (obj.actions = { ...obj.actions, sign: e.target.checked }))}
+        onChange={(e) =>
+          handleChange((obj) => {
+            obj.actions = { ...obj.actions, sign: e.target.checked };
+            return obj;
+          })
+        }
         value='nothing'
       >
         Sign
       </Checkbox>
       <Checkbox
         size='small'
+        disabled={!setProcessData}
         checked={Boolean(actions?.reject)}
-        onChange={(e) => handleChange((obj) => (obj.actions = { ...obj.actions, reject: e.target.checked }))}
+        onChange={(e) =>
+          handleChange((obj) => {
+            obj.actions = { ...obj.actions, reject: e.target.checked };
+            return obj;
+          })
+        }
         value='nothing'
       >
         Reject

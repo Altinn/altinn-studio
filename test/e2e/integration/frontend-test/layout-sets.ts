@@ -6,8 +6,25 @@ it('should be possible to render the app even if layout-sets are not configured'
   cy.intercept('GET', '**/api/resource/FormLayout.json', {
     statusCode: 302,
     headers: { location: '/ttd/frontend-test/api/layouts/message' },
-  });
+  }).as('getLayout');
+  cy.intercept('GET', '**/api/layoutsettings', {
+    statusCode: 302,
+    headers: { location: '/ttd/frontend-test/api/layoutsettings/message' },
+  }).as('getLayoutSettings');
+  cy.intercept('GET', '**/resource/RuleConfiguration.json', {
+    statusCode: 302,
+    headers: { location: '/ttd/frontend-test/api/ruleconfiguration/message' },
+  }).as('getDynamics');
 
   cy.goto('message');
+
+  // Wait for network to be idle
+  cy.waitForNetworkIdle('*', '*', 500);
+
   cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
+
+  // Assert that requests are fired once
+  cy.get('@getLayout.all').should('have.length', 1);
+  cy.get('@getLayoutSettings.all').should('have.length', 1);
+  cy.get('@getDynamics.all').should('have.length', 1);
 });

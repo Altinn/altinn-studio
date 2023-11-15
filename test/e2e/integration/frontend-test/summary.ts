@@ -66,6 +66,7 @@ describe('Summary', () => {
       cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {
         force: true,
       });
+      cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('not.be.disabled');
       cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).dsSelect('Adresse');
       cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
 

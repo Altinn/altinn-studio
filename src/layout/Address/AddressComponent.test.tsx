@@ -8,8 +8,11 @@ import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'AddressComponent'>> = {}) => {
-  renderGenericComponentTest({
+const render = async ({
+  component,
+  genericProps,
+}: Partial<RenderGenericComponentTestProps<'AddressComponent'>> = {}) => {
+  await renderGenericComponentTest({
     type: 'AddressComponent',
     renderer: (props) => <AddressComponent {...props} />,
     component: {
@@ -101,8 +104,8 @@ describe('AddressComponent', () => {
     },
   });
 
-  it('should return simplified version when simplified is true', () => {
-    render({
+  it('should return simplified version when simplified is true', async () => {
+    await render({
       component: {
         simplified: true,
       },
@@ -116,8 +119,8 @@ describe('AddressComponent', () => {
     expect(getHouseNumberField({ useQuery: true })).not.toBeInTheDocument();
   });
 
-  it('should return complex version when simplified is false', () => {
-    render({
+  it('should return complex version when simplified is false', async () => {
+    await render({
       component: {
         simplified: false,
       },
@@ -133,7 +136,7 @@ describe('AddressComponent', () => {
   it('should fire change event when user types into field, and field is blurred', async () => {
     const handleDataChange = jest.fn();
 
-    render({
+    await render({
       component: {
         simplified: false,
       },
@@ -160,7 +163,7 @@ describe('AddressComponent', () => {
   it('should not fire change event when readonly', async () => {
     const handleDataChange = jest.fn();
 
-    render({
+    await render({
       genericProps: {
         formData: {
           address: 'initial address',
@@ -186,7 +189,7 @@ describe('AddressComponent', () => {
 
   it('should show error message on blur if zipcode is invalid, and not call handleDataChange', async () => {
     const handleDataChange = jest.fn();
-    render({
+    await render({
       component: {
         required: true,
         simplified: false,
@@ -215,7 +218,7 @@ describe('AddressComponent', () => {
 
   it('should update postplace on mount', async () => {
     const handleDataChange = jest.fn();
-    render({
+    await render({
       component: {
         required: true,
         simplified: false,
@@ -247,7 +250,7 @@ describe('AddressComponent', () => {
   it('should call change event when zipcode is valid', async () => {
     const handleDataChange = jest.fn();
 
-    render({
+    await render({
       genericProps: {
         formData: {
           address: 'a',
@@ -275,7 +278,7 @@ describe('AddressComponent', () => {
 
   it('should call handleDataChange for post place when zip code is cleared', async () => {
     const handleDataChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         formData: {
           address: 'a',
@@ -301,10 +304,10 @@ describe('AddressComponent', () => {
     expect(handleDataChange).toHaveBeenCalledWith('', { key: 'postPlace' });
   });
 
-  it('should display error message coming from props', () => {
+  it('should display error message coming from props', async () => {
     const errorMessage = 'cannot be empty;';
     const handleDataChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         formData: {
           address: '',
@@ -325,8 +328,8 @@ describe('AddressComponent', () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
-  it('should display no extra markings when required is false, and labelSettings.optionalIndicator is not true', () => {
-    render({
+  it('should display no extra markings when required is false, and labelSettings.optionalIndicator is not true', async () => {
+    await render({
       component: {
         required: false,
         simplified: false,
@@ -339,8 +342,8 @@ describe('AddressComponent', () => {
     expect(getHouseNumberField()).toBeInTheDocument();
   });
 
-  it('should display required labels when required is true', () => {
-    render({
+  it('should display required labels when required is true', async () => {
+    await render({
       component: {
         required: true,
         simplified: false,
@@ -359,8 +362,8 @@ describe('AddressComponent', () => {
     expect(getHouseNumberField({ useQuery: true, optional: true })).not.toBeInTheDocument();
   });
 
-  it('should display optional labels when optionalIndicator is true', () => {
-    render({
+  it('should display optional labels when optionalIndicator is true', async () => {
+    await render({
       component: {
         simplified: false,
         labelSettings: {
@@ -381,8 +384,8 @@ describe('AddressComponent', () => {
     expect(getHouseNumberField({ optional: true })).toBeInTheDocument();
   });
 
-  it('should not display optional labels by default', () => {
-    render({
+  it('should not display optional labels by default', async () => {
+    await render({
       component: {
         simplified: false,
       },
@@ -400,8 +403,8 @@ describe('AddressComponent', () => {
     expect(getHouseNumberField()).toBeInTheDocument();
   });
 
-  it('should not display optional labels when readonly is true', () => {
-    render({
+  it('should not display optional labels when readonly is true', async () => {
+    await render({
       component: {
         readOnly: true,
         simplified: false,
@@ -420,8 +423,8 @@ describe('AddressComponent', () => {
     expect(getHouseNumberField({ useQuery: true, optional: true })).not.toBeInTheDocument();
   });
 
-  it('should not display optional labels when readonly is true, even when optionalIndicator is true', () => {
-    render({
+  it('should not display optional labels when readonly is true, even when optionalIndicator is true', async () => {
+    await render({
       component: {
         readOnly: true,
         simplified: false,
@@ -443,8 +446,8 @@ describe('AddressComponent', () => {
     expect(getHouseNumberField({ useQuery: true, optional: true })).not.toBeInTheDocument();
   });
 
-  it('should not display optional labels when required is true, even when optionalIndicator is true', () => {
-    render({
+  it('should not display optional labels when required is true, even when optionalIndicator is true', async () => {
+    await render({
       component: {
         required: true,
         simplified: false,

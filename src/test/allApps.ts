@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { cleanLayout } from 'src/features/layout/fetch/fetchFormLayoutSagas';
+import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { ILayoutFileExternal } from 'src/layout/common.generated';
 import type { ILayouts } from 'src/layout/layout';

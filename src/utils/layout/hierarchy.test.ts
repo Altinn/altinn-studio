@@ -125,7 +125,7 @@ describe('Hierarchical layout tools', () => {
 
   const dataSources: HierarchyDataSources = {
     ...getHierarchyDataSourcesMock(),
-    instanceContext: {
+    instanceDataSources: {
       instanceId: 'abc-123',
       appId: 'org/app',
       instanceOwnerPartyId: 'test',
@@ -398,7 +398,7 @@ describe('Hierarchical layout tools', () => {
         'Model.ShouldBeTrue': 'true',
         'Model.ShouldBeFalse': 'false',
       },
-      instanceContext: {
+      instanceDataSources: {
         instanceId: 'test',
         instanceOwnerPartyId: 'test',
         appId: 'test',

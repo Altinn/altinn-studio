@@ -22,12 +22,14 @@ export function InputComponent({ node, isValid, formData, handleDataChange, over
     formatting,
     variant,
     textResourceBindings,
+    dataModelBindings,
     saveWhileTyping,
     autocomplete,
     maxLength,
   } = node.item;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,
+    dataModelBindings?.simpleBinding,
     formData?.simpleBinding ?? '',
     saveWhileTyping,
   );

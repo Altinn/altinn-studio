@@ -5,13 +5,13 @@ import { Grid } from '@material-ui/core';
 import { CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
-import { AttachmentActions } from 'src/features/attachments/attachmentSlice';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { isAttachmentUploaded } from 'src/features/attachments';
+import { useAttachmentsUpdater } from 'src/features/attachments/AttachmentsContext';
 import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
 import { useLanguage } from 'src/hooks/useLanguage';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
-import { useFileTableRowContext } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
+import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
 import { renderValidationMessages } from 'src/utils/render';
 import type { IAttachment } from 'src/features/attachments';
@@ -43,15 +43,16 @@ export function EditWindowComponent({
   validationsWithTag,
   setValidationsWithTag,
 }: EditWindowProps): React.JSX.Element {
-  const { id, baseComponentId, textResourceBindings, readOnly } = node.item;
+  const { textResourceBindings, readOnly } = node.item;
   const { lang, langAsString } = useLanguage();
-  const { setEditIndex } = useFileTableRowContext();
-  const dispatch = useAppDispatch();
-  const rawSelectedTag = attachment.tags ? attachment.tags[0] : undefined;
+  const { setEditIndex } = useFileTableRow();
+  const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
+  const rawSelectedTag = uploadedAttachment?.data.tags ? uploadedAttachment.data.tags[0] : undefined;
   const [chosenOption, setChosenOption] = useState<IOption | undefined>(
     rawSelectedTag ? options?.find((o) => o.value === rawSelectedTag) : undefined,
   );
   const formattedOptions = useFormattedOptions(options);
+  const updateAttachment = useAttachmentsUpdater();
 
   const onDropdownDataChange = (value: string) => {
     if (value !== undefined) {
@@ -64,17 +65,24 @@ export function EditWindowComponent({
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!uploadedAttachment) {
+      return;
+    }
+
+    const { id, tags: _tags } = uploadedAttachment.data;
+    const existingTags = _tags || [];
+
     if (chosenOption) {
-      setEditIndex(-1);
-      if (attachment.tags === undefined || chosenOption.value !== attachment.tags[0]) {
-        setAttachmentTag(chosenOption);
+      if (chosenOption.value !== existingTags[0]) {
+        await setAttachmentTag(chosenOption);
       }
-      setValidationsWithTag(validationsWithTag.filter((obj) => obj.id !== attachment.id)); // Remove old validation if exists
+      setEditIndex(-1);
+      setValidationsWithTag(validationsWithTag.filter((obj) => obj.id !== id)); // Remove old validation if exists
     } else {
       const tmpValidations: { id: string; message: string }[] = [];
       tmpValidations.push({
-        id: attachment.id,
+        id,
         message: `${langAsString('form_filler.file_uploader_validation_error_no_chosen_tag')} ${(
           langAsString(textResourceBindings?.tagTitle || '') || ''
         )
@@ -85,22 +93,24 @@ export function EditWindowComponent({
     }
   };
 
-  const setAttachmentTag = (option: IOption) => {
-    dispatch(
-      AttachmentActions.updateAttachment({
-        attachment,
-        componentId: id,
-        baseComponentId: baseComponentId || id,
-        tag: option.value,
-      }),
-    );
+  const setAttachmentTag = async (option: IOption) => {
+    if (!isAttachmentUploaded(attachment)) {
+      return;
+    }
+
+    await updateAttachment({
+      attachment,
+      node,
+      tags: [option.value],
+    });
   };
 
-  const saveIsDisabled = attachment.updating === true || attachment.uploaded === false || readOnly;
+  const saveIsDisabled = attachment.updating || !attachment.uploaded || readOnly;
+  const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;
 
   return (
     <div
-      id={`attachment-edit-window-${attachment.id}`}
+      id={`attachment-edit-window-${uniqueId}`}
       className={classes.editContainer}
     >
       <Grid
@@ -138,7 +148,7 @@ export function EditWindowComponent({
             )}
             {!attachment.uploaded && (
               <AltinnLoader
-                id={`attachment-loader-upload-${attachment.id}`}
+                id={`attachment-loader-upload-${uniqueId}`}
                 style={{
                   width: '80px',
                 }}
@@ -164,7 +174,7 @@ export function EditWindowComponent({
         {textResourceBindings?.tagTitle && (
           <label
             className={classes.label}
-            htmlFor={`attachment-tag-dropdown-${attachment.id}`}
+            htmlFor={`attachment-tag-dropdown-${uniqueId}`}
           >
             {lang(textResourceBindings?.tagTitle)}
           </label>
@@ -181,11 +191,11 @@ export function EditWindowComponent({
             xs
           >
             <Select
-              inputId={`attachment-tag-dropdown-${attachment.id}`}
+              inputId={`attachment-tag-dropdown-${uniqueId}`}
               onChange={onDropdownDataChange}
               options={formattedOptions}
               disabled={saveIsDisabled}
-              error={attachmentValidations.filter((i) => i.id === attachment.id).length > 0}
+              error={attachmentValidations.filter((i) => i.id === uniqueId).length > 0}
               label={langAsString('general.choose')}
               hideLabel={true}
               value={chosenOption?.value}
@@ -197,7 +207,7 @@ export function EditWindowComponent({
           >
             {attachment.updating ? (
               <AltinnLoader
-                id={`attachment-loader-update-${attachment.id}`}
+                id={`attachment-loader-update-${uniqueId}`}
                 srContent={langAsString('general.loading')}
                 style={{
                   height: '30px',
@@ -208,7 +218,7 @@ export function EditWindowComponent({
               <Button
                 size='small'
                 onClick={() => handleSave()}
-                id={`attachment-save-tag-button-${attachment.id}`}
+                id={`attachment-save-tag-button-${uniqueId}`}
                 disabled={saveIsDisabled}
               >
                 {lang('general.save')}
@@ -217,15 +227,15 @@ export function EditWindowComponent({
           </Grid>
         </Grid>
       </Grid>
-      {attachmentValidations.filter((i) => i.id === attachment.id).length > 0 ? (
+      {attachmentValidations.filter((i) => i.id === uniqueId).length > 0 ? (
         <div
           style={{
             whiteSpace: 'pre-wrap',
           }}
         >
           {renderValidationMessages(
-            attachmentValidations.filter((i) => i.id === attachment.id).map((e) => e.message),
-            `attachment-error-${attachment.id}`,
+            attachmentValidations.filter((i) => i.id === uniqueId).map((e) => e.message),
+            `attachment-error-${uniqueId}`,
             'error',
           )}
         </div>

@@ -13,10 +13,11 @@ export type ITextAreaProps = PropsFromGenericComponent<'TextArea'>;
 
 export function TextAreaComponent({ node, formData, isValid, handleDataChange, overrideDisplay }: ITextAreaProps) {
   const { lang, langAsString } = useLanguage();
-  const { id, readOnly, textResourceBindings, saveWhileTyping, autocomplete, maxLength } = node.item;
+  const { id, readOnly, textResourceBindings, dataModelBindings, saveWhileTyping, autocomplete, maxLength } = node.item;
   const suppliedValue = formData?.simpleBinding;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,
+    dataModelBindings?.simpleBinding,
     suppliedValue ?? '',
     saveWhileTyping,
   );

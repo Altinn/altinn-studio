@@ -9,14 +9,21 @@ export interface DelayedSavedStateRetVal {
   onPaste: () => void;
 }
 
+interface PathMap {
+  [path: string]: boolean;
+}
+
+export const pathsChangedFromServer: { current: PathMap } = { current: {} };
+
 export function useDelayedSavedState(
-  handleDataChange: IComponentProps['handleDataChange'],
+  handleDataChange: IComponentProps<any>['handleDataChange'],
+  dataModelBinding: string | undefined,
   formValue?: string,
   saveAfter?: number | boolean,
 ): DelayedSavedStateRetVal {
   const [immediateState, _setImmediateState] = useState(formValue);
-  const immediateStatePrevRef = useRef<[string | undefined, number] | undefined>(undefined);
   const immediateStateRef = useRef(formValue);
+  const immediateStateChangedRef = useRef(false);
   const [saveNextChangeImmediately, setSaveNextChangeImmediately] = useState(false);
   const [skipNextValidation, setSkipNextValidation] = useState(false);
 
@@ -24,9 +31,12 @@ export function useDelayedSavedState(
   const saveAfterMs = typeof overridden === 'number' ? overridden : typeof saveAfter === 'number' ? saveAfter : 400;
 
   const setImmediateState = useCallback(
-    (value: string | undefined) => {
-      immediateStatePrevRef.current = [immediateStateRef.current, performance.now()];
+    (value: string | undefined, changeFromFormValue: boolean) => {
+      if (immediateStateRef.current === value) {
+        return;
+      }
       immediateStateRef.current = value;
+      immediateStateChangedRef.current = changeFromFormValue;
       _setImmediateState(value);
     },
     [_setImmediateState],
@@ -40,7 +50,6 @@ export function useDelayedSavedState(
 
       const shouldValidate = !skipNextValidation && !skipValidation;
       handleDataChange(value, { validate: shouldValidate });
-      immediateStatePrevRef.current = undefined;
 
       if (skipNextValidation) {
         setSkipNextValidation(false);
@@ -68,26 +77,28 @@ export function useDelayedSavedState(
     // 2. When we called handleDataChange(), redux updated its state, the React tree re-rendered, and our
     //    component finally got their result back. In cases where the user made changes to the value before
     //    React did all its work, we'll want to ignore the change.
-    if (formValue === immediateStateRef.current) {
+    const now = immediateStateRef.current;
+    if (formValue === now) {
       return;
     }
-    const prev = immediateStatePrevRef.current;
-    if (prev && formValue === prev[0]) {
-      const change = typeof prev[1] === 'number' ? prev[1] : performance.now();
-      const timeSinceChange = performance.now() - change;
-      if (timeSinceChange < saveAfterMs) {
-        return;
-      }
+    if (dataModelBinding !== undefined && pathsChangedFromServer.current[dataModelBinding]) {
+      // We know the change came from the server, so we'll want to override it and ignore any changes here
+      setImmediateState(formValue, false);
+    } else if (!immediateStateChangedRef.current) {
+      // No local changes, accept change from server/calculation
+      setImmediateState(formValue, false);
+    } else {
+      // Local changes, ignore change from server/calculation and keep the value the user entered
     }
-    setImmediateState(formValue);
-  }, [formValue, setImmediateState, saveAfterMs]);
+  }, [formValue, setImmediateState, saveAfterMs, dataModelBinding]);
 
   useEffect(() => {
-    if (saveAfter === false) {
+    if (saveAfter === false || !immediateStateChangedRef.current) {
       return;
     }
 
     const timeoutId = setTimeout(() => {
+      immediateStateChangedRef.current = false;
       updateFormData(immediateState);
     }, saveAfterMs);
 
@@ -97,10 +108,11 @@ export function useDelayedSavedState(
   return {
     value: immediateState,
     setValue: (newValue, saveImmediately = false, skipValidation = false): void => {
-      setImmediateState(newValue);
+      setImmediateState(newValue, true);
       setSkipNextValidation(skipValidation && !saveImmediately && !saveNextChangeImmediately);
       if (saveImmediately || saveNextChangeImmediately) {
         updateFormData(newValue, skipValidation);
+        immediateStateChangedRef.current = false;
       }
     },
     saveValue: (): void => {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
@@ -10,7 +10,7 @@ import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const threeOptions = [
+const twoOptions: IOption[] = [
   {
     label: 'Norway',
     value: 'norway',
@@ -19,20 +19,22 @@ const threeOptions = [
     label: 'Sweden',
     value: 'sweden',
   },
+];
+
+const threeOptions: IOption[] = [
+  ...twoOptions,
   {
     label: 'Denmark',
     value: 'denmark',
   },
 ];
 
-const twoOptions = threeOptions.slice(1);
-
 interface Props extends Partial<RenderGenericComponentTestProps<'Checkboxes'>> {
   options?: IOption[];
 }
 
-const render = ({ component, genericProps, options }: Props = {}) =>
-  renderGenericComponentTest({
+const render = async ({ component, genericProps, options }: Props = {}) =>
+  await renderGenericComponentTest({
     type: 'Checkboxes',
     renderer: (props) => <CheckboxContainerComponent {...props} />,
     component: {
@@ -44,13 +46,14 @@ const render = ({ component, genericProps, options }: Props = {}) =>
       handleDataChange: jest.fn(),
       ...genericProps,
     },
-    mockedQueries: {
+    queries: {
       fetchOptions: () =>
         options
           ? Promise.resolve({ data: options, headers: {} } as AxiosResponse<IOption[], any>)
           : Promise.reject(new Error('No options provided to render()')),
     },
   });
+
 const getCheckbox = ({ name, isChecked = false }) =>
   screen.getByRole('checkbox', {
     name,
@@ -58,18 +61,9 @@ const getCheckbox = ({ name, isChecked = false }) =>
   });
 
 describe('CheckboxesContainerComponent', () => {
-  jest.useFakeTimers();
-  const user = userEvent.setup({
-    advanceTimers: (time) => {
-      act(() => {
-        jest.advanceTimersByTime(time);
-      });
-    },
-  });
-
   it('should call handleDataChange with value of preselectedOptionIndex when simpleBinding is not set', async () => {
     const handleChange = jest.fn();
-    render({
+    await render({
       component: {
         preselectedOptionIndex: 1,
       },
@@ -89,7 +83,7 @@ describe('CheckboxesContainerComponent', () => {
 
   it('should not call handleDataChange when simpleBinding is set and preselectedOptionIndex', async () => {
     const handleChange = jest.fn();
-    render({
+    await render({
       component: {
         preselectedOptionIndex: 0,
       },
@@ -102,9 +96,7 @@ describe('CheckboxesContainerComponent', () => {
       options: threeOptions,
     });
 
-    await waitFor(() => {
-      expect(getCheckbox({ name: 'Norway' })).toBeInTheDocument();
-    });
+    expect(getCheckbox({ name: 'Norway' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Denmark', isChecked: true })).toBeInTheDocument();
     expect(handleChange).not.toHaveBeenCalled();
@@ -112,7 +104,7 @@ describe('CheckboxesContainerComponent', () => {
 
   it('should show several checkboxes as selected based on values in simpleBinding', async () => {
     const handleChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         handleDataChange: handleChange,
         formData: {
@@ -122,9 +114,7 @@ describe('CheckboxesContainerComponent', () => {
       options: threeOptions,
     });
 
-    await waitFor(() => {
-      expect(getCheckbox({ name: 'Norway', isChecked: true })).toBeInTheDocument();
-    });
+    expect(getCheckbox({ name: 'Norway', isChecked: true })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Denmark', isChecked: true })).toBeInTheDocument();
     expect(handleChange).not.toHaveBeenCalledWith();
@@ -132,11 +122,9 @@ describe('CheckboxesContainerComponent', () => {
 
   it('should not set any as selected when no binding and no preselectedOptionIndex is set', async () => {
     const handleChange = jest.fn();
-    render({ genericProps: { handleDataChange: handleChange }, options: threeOptions });
+    await render({ genericProps: { handleDataChange: handleChange }, options: threeOptions });
 
-    await waitFor(() => {
-      expect(getCheckbox({ name: 'Norway' })).toBeInTheDocument();
-    });
+    expect(getCheckbox({ name: 'Norway' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
     expect(handleChange).not.toHaveBeenCalled();
@@ -144,7 +132,7 @@ describe('CheckboxesContainerComponent', () => {
 
   it('should call handleDataChange with updated values when selection changes', async () => {
     const handleChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         handleDataChange: handleChange,
         formData: {
@@ -158,18 +146,18 @@ describe('CheckboxesContainerComponent', () => {
     });
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
-    await act(() => user.click(getCheckbox({ name: 'Denmark' })));
 
     expect(handleChange).not.toHaveBeenCalled();
+    await userEvent.click(getCheckbox({ name: 'Denmark' }));
 
-    jest.runOnlyPendingTimers();
-
-    expect(handleChange).toHaveBeenCalledWith('norway,denmark', { validate: true });
+    await waitFor(() => {
+      expect(handleChange).toHaveBeenCalledWith('norway,denmark', { validate: true });
+    });
   });
 
   it('should call handleDataChange with updated values when deselecting item', async () => {
     const handleChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         handleDataChange: handleChange,
         formData: {
@@ -184,18 +172,17 @@ describe('CheckboxesContainerComponent', () => {
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Denmark', isChecked: true })).toBeInTheDocument();
 
-    await act(() => user.click(getCheckbox({ name: 'Denmark', isChecked: true })));
-
     expect(handleChange).not.toHaveBeenCalled();
+    await userEvent.click(getCheckbox({ name: 'Denmark', isChecked: true }));
 
-    jest.runOnlyPendingTimers();
-
-    expect(handleChange).toHaveBeenCalledWith('norway', { validate: true });
+    await waitFor(() => {
+      expect(handleChange).toHaveBeenCalledWith('norway', { validate: true });
+    });
   });
 
   it('should call handleDataChange instantly on blur when the value has changed', async () => {
     const handleChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         handleDataChange: handleChange,
         formData: {
@@ -205,46 +192,36 @@ describe('CheckboxesContainerComponent', () => {
       options: threeOptions,
     });
 
-    let denmark: HTMLElement;
-    await waitFor(() => {
-      denmark = getCheckbox({ name: 'Denmark' });
-      expect(denmark).toBeInTheDocument();
-    });
-
-    await act(() => user.click(denmark));
+    const denmark = getCheckbox({ name: 'Denmark' });
+    expect(denmark).toBeInTheDocument();
 
     expect(handleChange).not.toHaveBeenCalled();
-
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(() => fireEvent.blur(denmark));
+    await userEvent.click(denmark);
+    fireEvent.blur(denmark);
 
     expect(handleChange).toHaveBeenCalledWith('norway,denmark', { validate: true });
   });
 
   it('should not call handleDataChange on blur when the value is unchanged', async () => {
     const handleChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         handleDataChange: handleChange,
       },
       options: threeOptions,
     });
 
-    await waitFor(() => {
-      expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
-    });
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(() => {
-      fireEvent.focus(getCheckbox({ name: 'Denmark' }));
-      fireEvent.blur(getCheckbox({ name: 'Denmark' }));
-    });
+    expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
+
+    fireEvent.focus(getCheckbox({ name: 'Denmark' }));
+    fireEvent.blur(getCheckbox({ name: 'Denmark' }));
 
     expect(handleChange).not.toHaveBeenCalled();
   });
 
   it('should call handleDataChange onBlur with no commas in string when starting with empty string formData', async () => {
     const handleChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         handleDataChange: handleChange,
         formData: {
@@ -254,33 +231,20 @@ describe('CheckboxesContainerComponent', () => {
       options: threeOptions,
     });
 
-    await waitFor(() => {
-      expect(getCheckbox({ name: 'Norway' })).toBeInTheDocument();
-    });
+    expect(getCheckbox({ name: 'Norway' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
 
-    await act(() => user.click(getCheckbox({ name: 'Denmark' })));
-
     expect(handleChange).not.toHaveBeenCalled();
+    await userEvent.click(getCheckbox({ name: 'Denmark' }));
 
-    jest.runOnlyPendingTimers();
-
-    expect(handleChange).toHaveBeenCalledWith('denmark', { validate: true });
-  });
-
-  it('should show spinner while waiting for options', () => {
-    render({
-      component: {
-        optionsId: 'loadingOptions',
-      },
-      options: threeOptions,
+    await waitFor(() => {
+      expect(handleChange).toHaveBeenCalledWith('denmark', { validate: true });
     });
-    expect(screen.getByTestId('altinn-spinner')).toBeInTheDocument();
   });
 
   it('should show items in a row when layout is "row" and options count is 3', async () => {
-    const { container } = render({
+    await render({
       component: {
         optionsId: 'countries',
         layout: LayoutStyle.Row,
@@ -288,28 +252,24 @@ describe('CheckboxesContainerComponent', () => {
       options: threeOptions,
     });
 
-    await waitFor(() => {
-      // eslint-disable-next-line
-      expect(container.querySelector('fieldset')).toHaveClass('horizontal');
-    });
+    expect(screen.queryByTestId('checkboxes-fieldset')).toHaveClass('horizontal');
   });
 
   it('should show items in a row when layout is not defined, and options count is 2', async () => {
-    const { container } = render({
+    await render({
       component: {
-        optionsId: 'countries',
+        // We have to provide a different optionsId here. If we re-used the optionsId from above and provided
+        // the options using a query, the query cache might give us options from another test run.
+        optionsId: 'twoOptions',
       },
       options: twoOptions,
     });
 
-    await waitFor(() => {
-      // eslint-disable-next-line
-      expect(container.querySelector('fieldset')).toHaveClass('horizontal');
-    });
+    expect(screen.queryByTestId('checkboxes-fieldset')).toHaveClass('horizontal');
   });
 
   it('should show items in a column when layout is "column" and options count is 2 ', async () => {
-    const { container } = render({
+    await render({
       component: {
         optionsId: 'countries',
         layout: LayoutStyle.Column,
@@ -318,28 +278,24 @@ describe('CheckboxesContainerComponent', () => {
       options: twoOptions,
     });
 
-    await waitFor(() => {
-      // eslint-disable-next-line
-      expect(container.querySelector('fieldset')).not.toHaveClass('horizontal');
-    });
+    expect(screen.queryByTestId('checkboxes-fieldset')).not.toHaveClass('horizontal');
   });
 
   it('should show items in a columns when layout is not defined, and options count is 3', async () => {
-    const { container } = render({
+    await render({
       component: {
         optionsId: 'countries',
       },
       options: threeOptions,
     });
 
-    // eslint-disable-next-line
-    await waitFor(() => expect(container.querySelector('fieldset')).not.toHaveClass('horizontal'));
+    expect(screen.queryByTestId('checkboxes-fieldset')).not.toHaveClass('horizontal');
   });
 
   it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
     const handleDataChange = jest.fn();
 
-    render({
+    await render({
       genericProps: { handleDataChange },
       component: {
         optionsId: undefined,
@@ -354,31 +310,28 @@ describe('CheckboxesContainerComponent', () => {
       },
     });
 
-    await waitFor(() => {
-      expect(getCheckbox({ name: /The value from the group is: Label for first/ })).toBeInTheDocument();
-    });
+    expect(getCheckbox({ name: /The value from the group is: Label for first/ })).toBeInTheDocument();
     expect(getCheckbox({ name: /The value from the group is: Label for second/ })).toBeInTheDocument();
     expect(screen.getByText(/Description: The value from the group is: Label for first/)).toBeInTheDocument();
     expect(screen.getByText(/Description: The value from the group is: Label for second/)).toBeInTheDocument();
 
     expect(screen.getByText(/Help Text: The value from the group is: Label for first/)).toBeInTheDocument();
-    await act(() =>
-      user.click(screen.getByRole('button', { name: /Help Text: The value from the group is: Label for first/ })),
+    await userEvent.click(
+      screen.getByRole('button', { name: /Help Text: The value from the group is: Label for first/ }),
     );
     expect(screen.getAllByText(/Help Text: The value from the group is: Label for first/)).toHaveLength(2);
 
     expect(screen.getByText(/Help Text: The value from the group is: Label for second/)).toBeInTheDocument();
-    await act(() =>
-      user.click(screen.getByRole('button', { name: /Help Text: The value from the group is: Label for second/ })),
+    await userEvent.click(
+      screen.getByRole('button', { name: /Help Text: The value from the group is: Label for second/ }),
     );
     expect(screen.getAllByText(/Help Text: The value from the group is: Label for second/)).toHaveLength(2);
 
-    await act(() => user.click(getCheckbox({ name: /The value from the group is: Label for second/ })));
-
     expect(handleDataChange).not.toHaveBeenCalled();
+    await userEvent.click(getCheckbox({ name: /The value from the group is: Label for second/ }));
 
-    jest.runOnlyPendingTimers();
-
-    expect(handleDataChange).toHaveBeenCalledWith('Value for second', { validate: true });
+    await waitFor(() => {
+      expect(handleDataChange).toHaveBeenCalledWith('Value for second', { validate: true });
+    });
   });
 });

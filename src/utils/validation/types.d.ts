@@ -5,7 +5,7 @@ import type { Expression } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
 import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { ILayoutSets } from 'src/types';
-import type { IInstance } from 'src/types/shared';
+import type { IInstance, IProcess } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { BackendValidationSeverity } from 'src/utils/validation/backendValidationSeverity';
 
@@ -18,6 +18,7 @@ export type IValidationContext = {
   attachments: IAttachments;
   application: IApplicationMetadata | null;
   instance: IInstance | null;
+  process: IProcess | null;
   layoutSets: ILayoutSets | null;
   schemas: IJsonSchemas;
   customValidation: IExpressionValidations | null;

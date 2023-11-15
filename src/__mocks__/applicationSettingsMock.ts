@@ -5,4 +5,4 @@ const applicationSettingsJSON = `{
     "nb": "Test App"
   }}`;
 
-export const applicationSettingsMock = JSON.parse(applicationSettingsJSON);
+export const getApplicationSettingsMock = () => JSON.parse(applicationSettingsJSON);

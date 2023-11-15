@@ -4,6 +4,7 @@ import { CircularProgress, createStyles, createTheme, makeStyles, Typography } f
 import classNames from 'classnames';
 import type { ArgumentArray } from 'classnames';
 
+import { useLanguage } from 'src/hooks/useLanguage';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
 export interface IAltinnSpinnerComponentProvidedProps {
@@ -35,6 +36,7 @@ const useStyles = makeStyles(() =>
 export const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
   const { id, spinnerText, styleObj } = props;
   const classes = useStyles(props);
+  const { langAsString } = useLanguage();
 
   return (
     <div
@@ -44,14 +46,14 @@ export const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
       <CircularProgress
         role='progressbar'
         className={classNames(classes.spinner)}
+        aria-label={spinnerText || langAsString('general.loading')}
         id={id}
       />
-
       <Typography
         className={classNames(classes.spinnerText)}
         role='alert'
         aria-busy={true}
-        aria-label={spinnerText || 'Laster innhold'}
+        aria-label={spinnerText || langAsString('general.loading')}
       >
         {spinnerText || ''}
       </Typography>

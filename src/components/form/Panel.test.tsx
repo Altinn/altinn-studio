@@ -5,19 +5,19 @@ import { screen } from '@testing-library/react';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getVariant, Panel, PanelVariant } from 'src/components/form/Panel';
 import { FormComponentContext } from 'src/layout';
-import { renderWithProviders } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IPanelProps } from 'src/components/form/Panel';
 import type { IFormComponentContext } from 'src/layout';
 import type { IRuntimeState } from 'src/types';
 
 describe('Panel', () => {
-  it('should show icon when showIcon is true', () => {
-    render({ showIcon: true });
+  it('should show icon when showIcon is true', async () => {
+    await render({ showIcon: true });
     expect(screen.getByTestId('panel-icon-info')).toBeInTheDocument();
   });
 
-  it('should not show icon when showIcon is false', () => {
-    render({ showIcon: false });
+  it('should not show icon when showIcon is false', async () => {
+    await render({ showIcon: false });
     expect(screen.queryByTestId('panel-icon-info')).not.toBeInTheDocument();
   });
 
@@ -38,27 +38,27 @@ describe('Panel', () => {
   });
 
   describe('FullWidthWrapper', () => {
-    it('should render FullWidthWrapper if no grid or baseComponentId is supplied', () => {
-      render({ variant: 'info' }, {}, { grid: undefined });
+    it('should render FullWidthWrapper if no grid or baseComponentId is supplied', async () => {
+      await render({ variant: 'info' }, {}, { grid: undefined });
       const fullWidthWrapper = screen.queryByTestId('fullWidthWrapper');
       expect(fullWidthWrapper).toBeInTheDocument();
     });
 
-    it('should not render FullWidthWrapper if grid is supplied in context', () => {
-      render({ variant: 'info' }, {}, { grid: { md: 5 } });
+    it('should not render FullWidthWrapper if grid is supplied in context', async () => {
+      await render({ variant: 'info' }, {}, { grid: { md: 5 } });
       const fullWidthWrapper = screen.queryByTestId('fullWidthWrapper');
       expect(fullWidthWrapper).not.toBeInTheDocument();
     });
 
-    it('should not render FullWidthWrapper if baseComponentId is supplied in context', () => {
-      render({ variant: 'info' }, {}, { baseComponentId: 'some-id' });
+    it('should not render FullWidthWrapper if baseComponentId is supplied in context', async () => {
+      await render({ variant: 'info' }, {}, { baseComponentId: 'some-id' });
       const fullWidthWrapper = screen.queryByTestId('fullWidthWrapper');
       expect(fullWidthWrapper).not.toBeInTheDocument();
     });
   });
 });
 
-const render = (
+const render = async (
   props: Partial<IPanelProps> = {},
   suppliedState: Partial<IRuntimeState> = {},
   suppliedContext: Partial<IFormComponentContext> = {},
@@ -72,15 +72,15 @@ const render = (
     ...props,
   };
 
-  renderWithProviders(
-    <FormComponentContext.Provider value={suppliedContext}>
-      <Panel {...allProps} />
-    </FormComponentContext.Provider>,
-    {
-      preloadedState: {
-        ...getInitialStateMock(),
-        ...suppliedState,
-      },
+  await renderWithInstanceAndLayout({
+    renderer: () => (
+      <FormComponentContext.Provider value={suppliedContext}>
+        <Panel {...allProps} />
+      </FormComponentContext.Provider>
+    ),
+    reduxState: {
+      ...getInitialStateMock(),
+      ...suppliedState,
     },
-  );
+  });
 };

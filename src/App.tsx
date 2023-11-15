@@ -2,24 +2,19 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
-import { useCurrentDataModelSchemaQuery } from 'src/features/datamodel/useCurrentDataModelSchemaQuery';
 import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
+import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
-import { useAllOptionsInitiallyLoaded } from 'src/features/options/useAllOptions';
 import { useApplicationMetadataQuery } from 'src/hooks/queries/useApplicationMetadataQuery';
 import { useApplicationSettingsQuery } from 'src/hooks/queries/useApplicationSettingsQuery';
-import { useCustomValidationConfig } from 'src/hooks/queries/useCustomValidationConfig';
-import { useDynamicsQuery } from 'src/hooks/queries/useDynamicsQuery';
 import { useFooterLayoutQuery } from 'src/hooks/queries/useFooterLayoutQuery';
-import { useFormDataQuery } from 'src/hooks/queries/useFormDataQuery';
 import { useCurrentPartyQuery } from 'src/hooks/queries/useGetCurrentPartyQuery';
 import { usePartiesQuery } from 'src/hooks/queries/useGetPartiesQuery';
 import { useGetTextResourcesQuery } from 'src/hooks/queries/useGetTextResourcesQuery';
 import { useLayoutSetsQuery } from 'src/hooks/queries/useLayoutSetsQuery';
 import { useOrgsQuery } from 'src/hooks/queries/useOrgsQuery';
 import { useProfileQuery } from 'src/hooks/queries/useProfileQuery';
-import { useRulesQuery } from 'src/hooks/queries/useRulesQuery';
 import { useAlwaysPromptForParty } from 'src/hooks/useAlwaysPromptForParty';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useKeepAlive } from 'src/hooks/useKeepAlive';
@@ -35,7 +30,6 @@ export const App = () => {
   const { isError: hasLayoutSetError } = useLayoutSetsQuery();
   const { isError: hasOrgsError } = useOrgsQuery();
   useFooterLayoutQuery();
-  useCurrentDataModelSchemaQuery();
 
   const componentIsReady = applicationSettings && applicationMetadata;
   const componentHasError =
@@ -57,7 +51,6 @@ type AppInternalProps = {
 };
 
 const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | null => {
-  useCustomValidationConfig();
   const allowAnonymousSelector = makeGetAllowAnonymousSelector();
   const allowAnonymous = useAppSelector(allowAnonymousSelector);
 
@@ -82,20 +75,9 @@ const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | n
   const appOwner = useAppSelector(selectAppOwner);
 
   useKeepAlive(applicationSettings.appOidcProvider, allowAnonymous);
-  const { isFetching: isFormDataFetching, isSuccess: isFormDataSuccess } = useFormDataQuery();
-  const { isFetching: IsDynamicsFetching } = useDynamicsQuery(isFormDataSuccess);
-  const { isFetching: IsRulesFetching } = useRulesQuery(isFormDataSuccess);
-  const optionsInitiallyLoaded = useAllOptionsInitiallyLoaded();
 
   const hasComponentError = hasProfileError || hasCurrentPartyError || hasPartiesError || hasTextResourceError;
-  const isFetching =
-    isProfileFetching ||
-    isPartiesFetching ||
-    isFormDataFetching ||
-    IsDynamicsFetching ||
-    IsRulesFetching ||
-    isTextResourceFetching ||
-    !optionsInitiallyLoaded;
+  const isFetching = isProfileFetching || isPartiesFetching || isTextResourceFetching;
 
   // Set the title of the app
   React.useEffect(() => {
@@ -122,7 +104,11 @@ const AppInternal = ({ applicationSettings }: AppInternalProps): JSX.Element | n
         />
         <Route
           path='/instance/:partyId/:instanceGuid'
-          element={<ProcessWrapper isFetching={isFetching} />}
+          element={
+            <InstanceProvider>
+              <ProcessWrapper isFetching={isFetching} />
+            </InstanceProvider>
+          }
         />
       </Routes>
     );

@@ -1,27 +1,28 @@
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-import { act, screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import mockAxios from 'jest-mock-axios';
 
+import { getInstanceDataMock } from 'src/__mocks__/instanceDataStateMock';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
-const render = () => {
-  renderGenericComponentTest({
+const render = async () =>
+  await renderGenericComponentTest({
     type: 'InstantiationButton',
     component: {
       textResourceBindings: {
         title: 'Instantiate',
       },
     },
-    renderer: (props) => (
+    inInstance: false,
+    router: ({ children }) => (
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route
             path={'/'}
-            element={<InstantiationButtonComponent {...props} />}
+            element={children}
           />
           <Route
             path='/instance/abc123'
@@ -30,30 +31,29 @@ const render = () => {
         </Routes>
       </MemoryRouter>
     ),
+    renderer: (props) => <InstantiationButtonComponent {...props} />,
   });
-};
 
 describe('InstantiationButton', () => {
   it('should show button and it should be possible to click and start loading', async () => {
-    mockAxios.reset();
-    render();
+    const { mutations } = await render();
+
     expect(screen.getByText('Instantiate')).toBeInTheDocument();
+    expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
 
-    expect(mockAxios).toHaveBeenCalledTimes(0);
-
-    expect(screen.queryByText('Laster innhold')).toBeNull();
-
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(() => userEvent.click(screen.getByRole('button')));
-
-    expect(mockAxios).toHaveBeenCalledTimes(1);
+    await userEvent.click(screen.getByRole('button'));
 
     expect(screen.getByText('Laster innhold')).toBeInTheDocument();
 
-    await act(() => {
-      mockAxios.mockResponse({ data: { id: 'abc123' } });
+    expect(mutations.doInstantiateWithPrefill.mock).toHaveBeenCalledTimes(1);
+
+    mutations.doInstantiateWithPrefill.resolve({
+      ...getInstanceDataMock(),
+      id: 'abc123',
     });
 
-    expect(screen.getByText('You are now looking at the instance')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('You are now looking at the instance')).toBeInTheDocument();
+    });
   });
 });

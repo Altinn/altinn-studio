@@ -1,35 +1,25 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
 
-import { act, screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { applicationMetadataMock } from 'src/__mocks__/applicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/applicationMetadataMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
+import { getInstanceDataMock } from 'src/__mocks__/instanceDataStateMock';
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/confirm/containers/ConfirmPage';
-import { renderWithProviders } from 'src/test/renderWithProviders';
-import type { IInstance } from 'src/types/shared';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('ConfirmPage', () => {
-  const state = getInstanceDataStateMock();
   const props: IConfirmPageProps = {
     appName: 'Irrelevant',
-    instance: state.instance as IInstance,
+    instance: getInstanceDataMock(),
     parties: [],
-    applicationMetadata: applicationMetadataMock,
+    applicationMetadata: getApplicationMetadataMock(),
   };
-  it('should present confirm information when necessary data is present', () => {
-    renderWithProviders(
-      <MemoryRouter>
-        <ConfirmPage {...props} />
-      </MemoryRouter>,
-      {
-        preloadedState: getInitialStateMock({
-          attachments: { attachments: {} },
-        }),
-      },
-    );
+  it('should present confirm information when necessary data is present', async () => {
+    await renderWithInstanceAndLayout({
+      renderer: () => <ConfirmPage {...props} />,
+    });
     const title = screen.getByText('Se over svarene dine før du sender inn');
     expect(title).toBeInTheDocument();
 
@@ -37,17 +27,10 @@ describe('ConfirmPage', () => {
     expect(contentLoader).not.toBeInTheDocument();
   });
 
-  it('should present pdf as part of previously submitted data', () => {
-    renderWithProviders(
-      <MemoryRouter>
-        <ConfirmPage {...props} />
-      </MemoryRouter>,
-      {
-        preloadedState: getInitialStateMock({
-          attachments: { attachments: {} },
-        }),
-      },
-    );
+  it('should present pdf as part of previously submitted data', async () => {
+    await renderWithInstanceAndLayout({
+      renderer: () => <ConfirmPage {...props} />,
+    });
     const pdf = screen.getByText('mockApp.pdf');
     expect(pdf).toBeInTheDocument();
 
@@ -56,32 +39,33 @@ describe('ConfirmPage', () => {
   });
 
   it('should show loading when clicking submit', async () => {
-    const user = userEvent.setup();
-    window.instanceId = state.instance?.id;
-    const { store } = renderWithProviders(
-      <MemoryRouter>
-        <ConfirmPage {...props} />
-      </MemoryRouter>,
-      {
-        preloadedState: getInitialStateMock({
-          attachments: { attachments: {} },
-        }),
-      },
-    );
-    const dispatch = jest.spyOn(store, 'dispatch');
+    window.instanceId = getInstanceDataMock()?.id;
+    const { mutations } = await renderWithInstanceAndLayout({
+      renderer: () => <ConfirmPage {...props} />,
+      reduxState: getInitialStateMock((state) => {
+        state.deprecated.lastKnownProcess!.currentTask!.actions = {
+          confirm: true,
+        };
+      }),
+      reduxGateKeeper: (action) =>
+        !!('type' in action && (action.type.startsWith('deprecated/') || action.type === 'formData/submitReady')),
+    });
 
     const submitBtnText = /send inn/i;
     const loadingText = /laster innhold/i;
 
-    const submitBtn = screen.getByText(submitBtnText);
+    const submitBtn = screen.getByRole('button', { name: submitBtnText });
 
-    expect(dispatch).toHaveBeenCalledTimes(0);
+    expect(mutations.doProcessNext.mock).toHaveBeenCalledTimes(0);
     expect(screen.queryByText(loadingText)).not.toBeInTheDocument();
     expect(submitBtn).toBeInTheDocument();
-    await act(() => user.click(submitBtn));
+    await userEvent.click(submitBtn);
 
-    expect(screen.getByText(submitBtnText)).toBeInTheDocument();
-    expect(screen.getByText(loadingText)).toBeInTheDocument();
-    expect(dispatch).toHaveBeenCalledTimes(0);
+    expect(mutations.doProcessNext.mock).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: submitBtnText })).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(loadingText)).toBeInTheDocument();
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { filterInstanceAttachments, filterInstancePdfAttachments } from 'src/utils/attachmentsUtils';
+import { filterDisplayAttachments, filterDisplayPdfAttachments } from 'src/utils/attachmentsUtils';
 import type { IData } from 'src/types/shared';
 
 test('filterInstanceAttachments() returns correct attachment array', () => {
@@ -186,7 +186,7 @@ test('filterInstanceAttachments() returns correct attachment array', () => {
   ];
 
   expect(
-    filterInstanceAttachments(instance.data as unknown as IData[], ['585b2f4e-5ecb-417b-9d01-82b6e889e1d1']),
+    filterDisplayAttachments(instance.data as unknown as IData[], ['585b2f4e-5ecb-417b-9d01-82b6e889e1d1']),
   ).toEqual(attachmentsTestData);
 });
 
@@ -235,5 +235,5 @@ test('filterInstancePdfAttachments() returns correct attachement', () => {
     },
   ];
 
-  expect(filterInstancePdfAttachments(data as unknown as IData[])).toEqual(expectedResult);
+  expect(filterDisplayPdfAttachments(data as unknown as IData[])).toEqual(expectedResult);
 });

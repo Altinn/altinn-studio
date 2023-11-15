@@ -37,6 +37,8 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
   const { id, required, readOnly, labelSettings, simplified, saveWhileTyping } = node.item;
   const { lang, langAsString } = useLanguage();
 
+  const bindings = 'dataModelBindings' in node.item ? node.item.dataModelBindings || {} : {};
+
   const handleDataChangeOverride =
     (key: AddressKeys): IAddressComponentProps['handleDataChange'] =>
     (value) =>
@@ -46,14 +48,25 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
     value: address,
     setValue: setAddress,
     onPaste: onAddressPaste,
-  } = useDelayedSavedState(handleDataChangeOverride(AddressKeys.address), formData.address || '', saveWhileTyping);
+  } = useDelayedSavedState(
+    handleDataChangeOverride(AddressKeys.address),
+    bindings.address,
+    formData.address || '',
+    saveWhileTyping,
+  );
   const {
     value: zipCode,
     setValue: setZipCode,
     onPaste: onZipCodePaste,
-  } = useDelayedSavedState(handleDataChangeOverride(AddressKeys.zipCode), formData.zipCode || '', saveWhileTyping);
+  } = useDelayedSavedState(
+    handleDataChangeOverride(AddressKeys.zipCode),
+    bindings.zipCode,
+    formData.zipCode || '',
+    saveWhileTyping,
+  );
   const { value: postPlace, setValue: setPostPlace } = useDelayedSavedState(
     handleDataChangeOverride(AddressKeys.postPlace),
+    bindings.postPlace,
     formData.postPlace || '',
     saveWhileTyping,
   );
@@ -61,13 +74,19 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
     value: careOf,
     setValue: setCareOf,
     onPaste: onCareOfPaste,
-  } = useDelayedSavedState(handleDataChangeOverride(AddressKeys.careOf), formData.careOf || '', saveWhileTyping);
+  } = useDelayedSavedState(
+    handleDataChangeOverride(AddressKeys.careOf),
+    bindings.careOf,
+    formData.careOf || '',
+    saveWhileTyping,
+  );
   const {
     value: houseNumber,
     setValue: setHouseNumber,
     onPaste: onHouseNumberPaste,
   } = useDelayedSavedState(
     handleDataChangeOverride(AddressKeys.houseNumber),
+    bindings.houseNumber,
     formData.houseNumber || '',
     saveWhileTyping,
   );

@@ -17,16 +17,16 @@ describe('InputComponent', () => {
     },
   });
 
-  it('should correct value with no form data provided', () => {
-    render();
+  it('should correct value with no form data provided', async () => {
+    await render();
     const inputComponent = screen.getByRole('textbox');
 
     expect(inputComponent).toHaveValue('');
   });
 
-  it('should have correct value with specified form data', () => {
+  it('should have correct value with specified form data', async () => {
     const simpleBindingValue = 'it123';
-    render({
+    await render({
       genericProps: {
         formData: {
           simpleBinding: simpleBindingValue,
@@ -40,7 +40,7 @@ describe('InputComponent', () => {
 
   it('should have correct form data after user types in field', async () => {
     const typedValue = 'banana';
-    render();
+    await render();
     const inputComponent = screen.getByRole('textbox');
 
     await act(() => user.type(inputComponent, typedValue));
@@ -51,7 +51,7 @@ describe('InputComponent', () => {
   it('should call supplied dataChanged function after data change', async () => {
     const handleDataChange = jest.fn();
     const typedValue = 'test input';
-    render({ genericProps: { handleDataChange } });
+    await render({ genericProps: { handleDataChange } });
     const inputComponent = screen.getByRole('textbox');
 
     await act(() => user.type(inputComponent, typedValue));
@@ -65,7 +65,7 @@ describe('InputComponent', () => {
   it('should call supplied dataChanged function immediately after onBlur', async () => {
     const handleDataChange = jest.fn();
     const typedValue = 'test input';
-    render({ genericProps: { handleDataChange } });
+    await render({ genericProps: { handleDataChange } });
     const inputComponent = screen.getByRole('textbox');
 
     await act(async () => {
@@ -84,7 +84,7 @@ describe('InputComponent', () => {
     const typedValue = '789';
     const finalValuePlainText = `${inputValuePlainText}${typedValue}`;
     const finalValueFormatted = '$123,456,789';
-    render({
+    await render({
       genericProps: {
         handleDataChange,
         formData: {
@@ -113,8 +113,8 @@ describe('InputComponent', () => {
     expect(handleDataChange).toHaveBeenCalledWith(finalValuePlainText, { validate: true });
   });
 
-  it('should show aria-describedby if textResourceBindings.description is present', () => {
-    render({
+  it('should show aria-describedby if textResourceBindings.description is present', async () => {
+    await render({
       component: {
         textResourceBindings: {
           description: 'description',
@@ -126,15 +126,15 @@ describe('InputComponent', () => {
     expect(inputComponent).toHaveAttribute('aria-describedby', 'description-mock-id');
   });
 
-  it('should not show aria-describedby if textResourceBindings.description is not present', () => {
-    render();
+  it('should not show aria-describedby if textResourceBindings.description is not present', async () => {
+    await render();
     const inputComponent = screen.getByRole('textbox');
 
     expect(inputComponent).not.toHaveAttribute('aria-describedby');
   });
 
-  const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) => {
-    renderGenericComponentTest({
+  const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) => {
+    await renderGenericComponentTest({
       type: 'Input',
       renderer: (props) => <InputComponent {...props} />,
       component: {

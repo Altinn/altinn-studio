@@ -1,12 +1,11 @@
 import fs from 'node:fs';
 
-import type { IAttachments } from 'src/features/attachments';
+import type { IAttachments, UploadedAttachment } from 'src/features/attachments';
 import type { Expression } from 'src/features/expressions/types';
-import type { IProcessPermissions } from 'src/features/process';
 import type { IProfileState } from 'src/features/profile';
 import type { IRawTextResource } from 'src/features/textResources';
 import type { ILayout, ILayouts } from 'src/layout/layout';
-import type { IApplicationSettings, IInstance } from 'src/types/shared';
+import type { IApplicationSettings, IData, IInstance, ITask } from 'src/types/shared';
 
 export interface Layouts {
   [key: string]: {
@@ -23,9 +22,9 @@ export interface SharedTest {
   disabledFrontend?: boolean;
   layouts?: Layouts;
   dataModel?: any;
-  attachments?: IAttachments;
   instance?: IInstance;
-  permissions?: IProcessPermissions;
+  instanceDataElements?: IData[];
+  permissions?: ITask;
   frontendSettings?: IApplicationSettings;
   textResources?: IRawTextResource[];
   profileSettings?: Pick<IProfileState['profile']['profileSettingPreference'], 'language'>;
@@ -106,4 +105,23 @@ export function convertLayouts(input: Layouts | undefined): ILayouts {
   }
 
   return _layouts;
+}
+
+export function convertInstanceDataToAttachments(instanceData: IData[] | undefined): IAttachments<UploadedAttachment> {
+  const out: IAttachments<UploadedAttachment> = {};
+  if (instanceData) {
+    for (const data of instanceData) {
+      const component = out[data.dataType] || [];
+      component.push({
+        updating: false,
+        deleting: false,
+        uploaded: true,
+        data,
+      });
+
+      out[data.dataType] = component;
+    }
+  }
+
+  return out;
 }

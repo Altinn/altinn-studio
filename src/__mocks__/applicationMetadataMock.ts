@@ -15,7 +15,7 @@ const applicationMetadataDefaults: IApplicationMetadata = {
         autoCreate: true,
         classRef: 'Altinn.App.Models.Skjema',
       },
-      taskId: 'mockElementId',
+      taskId: 'Task_1',
       maxCount: 1,
       minCount: 1,
     },
@@ -50,15 +50,12 @@ const applicationMetadataDefaults: IApplicationMetadata = {
   lastChangedBy: 'test testesen',
 };
 
-export const applicationMetadataMock = applicationMetadataMockFn();
-export function applicationMetadataMockFn(overrides: Partial<IApplicationMetadata> = {}) {
-  return {
-    ...applicationMetadataDefaults,
-    ...overrides,
-  };
-}
+export const getApplicationMetadataMock = (overrides: Partial<IApplicationMetadata> = {}) => ({
+  ...applicationMetadataDefaults,
+  ...overrides,
+});
 
 export const appMetadataMock = (overrides: Partial<IApplicationMetadata> = {}) => ({
   error: null,
-  applicationMetadata: applicationMetadataMockFn(overrides),
+  applicationMetadata: getApplicationMetadataMock(overrides),
 });

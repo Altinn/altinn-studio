@@ -1,19 +1,4 @@
-import type { IOnEntry } from 'src/features/applicationMetadata';
-import type { IProcessPermissions } from 'src/features/process';
 import type { FixedLanguageList } from 'src/language/languages';
-
-export interface IApplication {
-  createdBy: string;
-  created: string;
-  dataTypes: IDataType[];
-  id: string;
-  lastChangedBy: string;
-  lastChanged: string;
-  org: string;
-  partyTypesAllowed: IPartyTypesAllowed;
-  title: ITitle;
-  onEntry?: IOnEntry;
-}
 
 export interface IAltinnOrg {
   name: ITitle;
@@ -28,13 +13,13 @@ export interface IAltinnOrgs {
 }
 
 export interface IApplicationLogic {
-  allowAnonymousOnStateless?: boolean;
-  autoCreate?: boolean;
-  classRef?: string;
-  schemaRef?: string;
+  allowAnonymousOnStateless?: boolean | null;
+  autoCreate?: boolean | null;
+  classRef?: string | null;
+  schemaRef?: string | null;
 }
 
-export interface IAttachment {
+export interface IDisplayAttachment {
   name?: string;
   iconClass: string;
   url?: string;
@@ -63,15 +48,15 @@ export interface IData {
 
 export interface IDataType {
   id: string;
-  description?: string;
-  allowedContentTypes: string[];
-  allowedContributers?: string[];
-  appLogic?: IApplicationLogic;
-  taskId?: string;
-  maxSize?: number;
+  description?: string | null;
+  allowedContentTypes: string[] | null;
+  allowedContributers?: string[] | null;
+  appLogic?: IApplicationLogic | null;
+  taskId?: string | null;
+  maxSize?: number | null;
   maxCount: number;
   minCount: number;
-  grouping?: string;
+  grouping?: string | null;
 }
 
 export interface IInstance {
@@ -84,7 +69,6 @@ export interface IInstance {
   instanceState?: IInstanceState;
   lastChanged?: string;
   org: string;
-  process?: IProcess;
   selfLinks?: ISelfLinks | null;
   status?: IInstanceStatus | null;
   title?: ITitle | null;
@@ -146,7 +130,7 @@ export interface IParty {
   partyTypeName?: number | null;
   orgNumber?: number | string | null;
   ssn: string;
-  unitType?: string;
+  unitType?: string | null;
   name: string;
   isDeleted: boolean;
   onlyHierarchyElementWithNoAccess: boolean;
@@ -177,7 +161,7 @@ export interface IPerson {
   addressMunicipalName: string;
   addressStreetName: string;
   addressHouseNumber: number;
-  addressHouseLetter: string;
+  addressHouseLetter: string | null;
   addressPostalCode: number;
   addressCity: string;
 }
@@ -220,7 +204,15 @@ export type ITask = {
   altinnTaskType: string;
   ended?: string | null;
   validated?: IValidated | null;
-} & Partial<IProcessPermissions>;
+
+  read?: boolean | null;
+  write?: boolean | null;
+  actions?: IProcessActions | null;
+};
+
+export type IProcessActions = {
+  [k in IActionType]?: boolean;
+};
 
 export interface ITitle {
   [key: string]: string;
@@ -243,7 +235,7 @@ export interface IVariable {
 }
 
 export interface IAttachmentGrouping {
-  [title: string]: IAttachment[];
+  [title: string]: IDisplayAttachment[];
 }
 
 export interface IDataSource {
@@ -257,7 +249,7 @@ export interface IApplicationSettings {
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';
 
 /** Describes an object with key values from current instance to be used in texts. */
-export interface IInstanceContext {
+export interface IInstanceDataSources {
   instanceId: string;
   appId: string;
   instanceOwnerPartyId: string;

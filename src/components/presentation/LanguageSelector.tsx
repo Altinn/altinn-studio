@@ -4,9 +4,9 @@ import { Select } from '@digdir/design-system-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { ProfileActions } from 'src/features/profile/profileSlice';
+import { useGetAppLanguageQuery } from 'src/hooks/queries/useGetAppLanguagesQuery';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useLanguage } from 'src/hooks/useLanguage';
-import { useGetAppLanguageQuery } from 'src/services/LanguageApi';
 
 export const LanguageSelector = ({ hideLabel }: { hideLabel?: boolean }) => {
   const { langAsString, selectedLanguage } = useLanguage();

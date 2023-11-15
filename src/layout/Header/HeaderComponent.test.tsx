@@ -9,8 +9,8 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 
 (global as any).ResizeObserver = ResizeObserverModule;
 
-const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Header'>> = {}) => {
-  renderGenericComponentTest({
+const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Header'>> = {}) => {
+  await renderGenericComponentTest({
     type: 'Header',
     renderer: (props) => <HeaderComponent {...props} />,
     component: {
@@ -21,57 +21,57 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
   });
 };
 describe('HeaderComponent', () => {
-  it('should render <h2> when size is "L"', () => {
-    render({ component: { size: 'L' } });
+  it('should render <h2> when size is "L"', async () => {
+    await render({ component: { size: 'L' } });
 
     const header = screen.getByRole('heading', { level: 2 });
     expect(header).toBeInTheDocument();
   });
 
-  it('should render <h2> when size is "h2"', () => {
-    render({ component: { size: 'h2' } });
+  it('should render <h2> when size is "h2"', async () => {
+    await render({ component: { size: 'h2' } });
 
     const header = screen.getByRole('heading', { level: 2 });
     expect(header).toBeInTheDocument();
   });
 
-  it('should render <h3> when size is "M"', () => {
-    render({ component: { size: 'M' } });
+  it('should render <h3> when size is "M"', async () => {
+    await render({ component: { size: 'M' } });
 
     const header = screen.getByRole('heading', { level: 3 });
     expect(header).toBeInTheDocument();
   });
 
-  it('should render <h3> when size is "h3"', () => {
-    render({ component: { size: 'h3' } });
+  it('should render <h3> when size is "h3"', async () => {
+    await render({ component: { size: 'h3' } });
 
     const header = screen.getByRole('heading', { level: 3 });
     expect(header).toBeInTheDocument();
   });
 
-  it('should render <h4> when size is "S"', () => {
-    render({ component: { size: 'S' } });
+  it('should render <h4> when size is "S"', async () => {
+    await render({ component: { size: 'S' } });
 
     const header = screen.getByRole('heading', { level: 4 });
     expect(header).toBeInTheDocument();
   });
 
-  it('should render <h4> when size is "h4"', () => {
-    render({ component: { size: 'h4' } });
+  it('should render <h4> when size is "h4"', async () => {
+    await render({ component: { size: 'h4' } });
 
     const header = screen.getByRole('heading', { level: 4 });
     expect(header).toBeInTheDocument();
   });
 
-  it('should render <h4> when size is not defined', () => {
-    render();
+  it('should render <h4> when size is not defined', async () => {
+    await render();
 
     const header = screen.getByRole('heading', { level: 4 });
     expect(header).toBeInTheDocument();
   });
 
-  it('should not render help button when help text is not defined', () => {
-    render();
+  it('should not render help button when help text is not defined', async () => {
+    await render();
 
     const helpButton = screen.queryByRole('button', {
       name: /helptext\.button_title/i,
@@ -80,8 +80,8 @@ describe('HeaderComponent', () => {
     expect(helpButton).not.toBeInTheDocument();
   });
 
-  it('should render help button when help text is defined', () => {
-    render({
+  it('should render help button when help text is defined', async () => {
+    await render({
       component: {
         textResourceBindings: {
           help: 'this is the help text',
@@ -95,7 +95,7 @@ describe('HeaderComponent', () => {
 
   it('should show and hide help text when clicking help button', async () => {
     const helpText = 'this is the help text';
-    render({
+    await render({
       component: {
         textResourceBindings: {
           help: helpText,

@@ -3,14 +3,14 @@ import dot from 'dot-object';
 import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
 import { evalExpr } from 'src/features/expressions';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
-import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
+import { convertInstanceDataToAttachments, convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression } from 'src/features/expressions/validation';
 import { resourcesAsMap } from 'src/features/textResources/resourcesAsMap';
 import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
 import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
 import { getRepeatingGroups, splitDashedKey } from 'src/utils/formLayout';
-import { buildInstanceContext } from 'src/utils/instanceContext';
+import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { _private } from 'src/utils/layout/hierarchy';
 import { generateEntireHierarchy, generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
@@ -62,7 +62,7 @@ describe('Expressions shared function tests', () => {
         context,
         layouts,
         dataModel,
-        attachments,
+        instanceDataElements,
         instance,
         permissions,
         frontendSettings,
@@ -78,8 +78,8 @@ describe('Expressions shared function tests', () => {
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
           formData: dataModel ? dot.dot(dataModel) : {},
-          attachments: attachments ?? {},
-          instanceContext: buildInstanceContext(instance),
+          attachments: convertInstanceDataToAttachments(instanceDataElements),
+          instanceDataSources: buildInstanceDataSources(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
           authContext: buildAuthContext(permissions),
           langTools: staticUseLanguageForTests({
@@ -180,12 +180,12 @@ describe('Expressions shared context tests', () => {
   describe.each(sharedTests.content)('$folderName', (folder) => {
     it.each(folder.content)(
       '$name',
-      ({ layouts, dataModel, attachments, instance, frontendSettings, permissions, expectedContexts }) => {
+      ({ layouts, dataModel, instanceDataElements, instance, frontendSettings, permissions, expectedContexts }) => {
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
           formData: dataModel ? dot.dot(dataModel) : {},
-          attachments: attachments ?? {},
-          instanceContext: buildInstanceContext(instance),
+          attachments: convertInstanceDataToAttachments(instanceDataElements),
+          instanceDataSources: buildInstanceDataSources(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
           authContext: buildAuthContext(permissions),
         };

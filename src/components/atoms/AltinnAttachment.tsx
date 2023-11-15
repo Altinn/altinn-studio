@@ -7,7 +7,7 @@ import { useLanguage } from 'src/hooks/useLanguage';
 import { FileExtensionIcon } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { getFileEnding } from 'src/utils/attachment';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
-import type { IAttachment } from 'src/types/shared';
+import type { IDisplayAttachment } from 'src/types/shared';
 
 const useStyles = makeStyles(() => ({
   a: {
@@ -54,7 +54,7 @@ const useStyles = makeStyles(() => ({
 
 interface IAltinnAttachmentProps {
   /** Attachments array with objects. See code example. */
-  attachments?: IAttachment[];
+  attachments?: IDisplayAttachment[];
   /** Disables vertical padding (does not currently work in Styleguidist) */
   listDisableVerticalPadding?: boolean;
   /** Adds 1.25rem paddingLeft */

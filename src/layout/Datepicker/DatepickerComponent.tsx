@@ -108,7 +108,17 @@ export function DatepickerComponent({ node, formData, handleDataChange, isValid,
   const profile = useAppSelector((state) => state.profile);
   const { langAsString } = useLanguage();
   const languageLocale = profile.selectedAppLanguage || profile.profile.profileSettingPreference.language;
-  const { minDate, maxDate, format, timeStamp = true, readOnly, required, id, textResourceBindings } = node.item;
+  const {
+    minDate,
+    maxDate,
+    format,
+    timeStamp = true,
+    readOnly,
+    required,
+    id,
+    textResourceBindings,
+    dataModelBindings,
+  } = node.item;
 
   const calculatedMinDate = getDateConstraint(minDate, 'min');
   const calculatedMaxDate = getDateConstraint(maxDate, 'max');
@@ -116,7 +126,11 @@ export function DatepickerComponent({ node, formData, handleDataChange, isValid,
   const calculatedFormat = getDateFormat(format, languageLocale);
   const isMobile = useIsMobile();
 
-  const { value, setValue, saveValue, onPaste } = useDelayedSavedState(handleDataChange, formData?.simpleBinding ?? '');
+  const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
+    handleDataChange,
+    dataModelBindings?.simpleBinding,
+    formData?.simpleBinding ?? '',
+  );
 
   const dateValue = moment(value, moment.ISO_8601);
   const [date, input] = dateValue.isValid() ? [dateValue, undefined] : [null, value ?? ''];

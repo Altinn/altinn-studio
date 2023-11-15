@@ -26,12 +26,32 @@ describe('UI Components', () => {
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
   });
 
+  it('while file upload is in progress, the animation should be visible', () => {
+    cy.intercept({ url: '**/instances/**/data?dataType=fileUpload-changename' }, (req) => {
+      req.reply((res) => {
+        res.setDelay(500);
+      });
+    }).as('uploadWithDelay');
+
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.uploadDropZone).should('be.visible');
+    cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
+    cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
+    cy.get(appFrontend.changeOfName.uploadedTable)
+      .find(appFrontend.changeOfName.uploadingAnimation)
+      .should('be.visible');
+    cy.wait('@uploadWithDelay');
+    cy.get(appFrontend.changeOfName.uploadSuccess).should('exist');
+    cy.get(appFrontend.changeOfName.uploadedTable)
+      .find(appFrontend.changeOfName.uploadingAnimation)
+      .should('not.exist');
+  });
+
   it('is possible to upload and delete attachments', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.uploadDropZone).should('be.visible');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
-    cy.get(appFrontend.changeOfName.uploadingAnimation).should('be.visible');
     cy.get(appFrontend.changeOfName.uploadSuccess).should('exist');
     cy.snapshot('components:attachment');
     cy.get(appFrontend.changeOfName.deleteAttachment).click();
@@ -44,7 +64,6 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
 
     cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
-    cy.get(appFrontend.changeOfName.uploadingAnimation).should('be.visible');
     cy.get(appFrontend.changeOfName.uploadSuccess).should('exist');
 
     cy.window().then((win) => {
@@ -67,6 +86,7 @@ describe('UI Components', () => {
       force: true,
     });
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
+    cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('not.be.disabled');
     cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).dsSelect('Adresse');
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
     cy.wait('@saveTags');
@@ -89,6 +109,7 @@ describe('UI Components', () => {
       force: true,
     });
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
+    cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('not.be.disabled');
     cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).dsSelect('Adresse');
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
     cy.wait('@saveTags');

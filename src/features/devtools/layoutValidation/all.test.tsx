@@ -11,9 +11,8 @@ import {
 } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { ensureAppsDirIsSet, getAllLayoutSets } from 'src/test/allApps';
-import { renderWithProviders } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { isStatelessApp } from 'src/utils/appMetadata';
-import type { IRuntimeState } from 'src/types';
 
 describe('All known apps should work with layout validation', () => {
   const dir = ensureAppsDirIsSet();
@@ -26,19 +25,19 @@ describe('All known apps should work with layout validation', () => {
   const allLayoutSets = getAllLayoutSets(dir);
   it.each(allLayoutSets)('$appName/$setName', async ({ layouts, setName }) => {
     const firstKey = Object.keys(layouts)[0];
-    const preloadedState: IRuntimeState = getInitialStateMock();
-    preloadedState.formLayout.layouts = layouts;
-    preloadedState.formLayout.uiConfig.currentView = firstKey;
-    preloadedState.devTools.isOpen = true;
-    preloadedState.applicationMetadata.applicationMetadata!.onEntry = {
+    const reduxState = getInitialStateMock();
+    reduxState.formLayout.layouts = layouts;
+    reduxState.formLayout.uiConfig.currentView = firstKey;
+    reduxState.devTools.isOpen = true;
+    reduxState.applicationMetadata.applicationMetadata!.onEntry = {
       show: setName,
     };
 
-    renderWithProviders(
-      <DummyValidateApp />,
-      { preloadedState },
-      { fetchLayoutSchema: () => Promise.resolve(layoutSchema) },
-    );
+    await renderWithInstanceAndLayout({
+      renderer: () => <DummyValidateApp />,
+      reduxState,
+      queries: { fetchLayoutSchema: () => Promise.resolve(layoutSchema) },
+    });
 
     await waitFor(async () => expect(await screen.findByTestId('loading')).not.toBeInTheDocument());
 

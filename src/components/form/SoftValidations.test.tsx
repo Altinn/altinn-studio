@@ -5,12 +5,12 @@ import { screen } from '@testing-library/react';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { SoftValidations } from 'src/components/form/SoftValidations';
 import { FormComponentContext } from 'src/layout';
-import { renderWithProviders } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ISoftValidationProps, SoftValidationVariant } from 'src/components/form/SoftValidations';
 import type { IFormComponentContext } from 'src/layout';
 import type { IRuntimeState } from 'src/types';
 
-const render = (
+const render = async (
   props: Partial<ISoftValidationProps> = {},
   suppliedState: Partial<IRuntimeState> = {},
   suppliedContext: Partial<IFormComponentContext> = {},
@@ -21,24 +21,24 @@ const render = (
     ...props,
   };
 
-  renderWithProviders(
-    <FormComponentContext.Provider value={suppliedContext}>
-      <SoftValidations {...allProps} />
-    </FormComponentContext.Provider>,
-    {
-      preloadedState: {
-        ...getInitialStateMock(),
-        ...suppliedState,
-      },
+  await renderWithInstanceAndLayout({
+    renderer: () => (
+      <FormComponentContext.Provider value={suppliedContext}>
+        <SoftValidations {...allProps} />
+      </FormComponentContext.Provider>
+    ),
+    reduxState: {
+      ...getInitialStateMock(),
+      ...suppliedState,
     },
-  );
+  });
 };
 
 describe('SoftValidations', () => {
   it.each(['info', 'warning', 'success'])(
     'for variant %p it should render the message',
-    (variant: SoftValidationVariant) => {
-      render({ variant });
+    async (variant: SoftValidationVariant) => {
+      await render({ variant });
 
       const message = screen.getByText('Some message');
       expect(message).toBeInTheDocument();

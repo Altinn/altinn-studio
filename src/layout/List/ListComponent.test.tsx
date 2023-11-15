@@ -46,13 +46,13 @@ const countries = [
   },
 ];
 
-const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'List'>> = {}) => {
+const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'List'>> = {}) => {
   const fetchDataList = () =>
     Promise.resolve({
       listItems: [...countries],
       _metaData: paginationData,
     } as unknown as IDataList);
-  renderGenericComponentTest({
+  await renderGenericComponentTest({
     type: 'List',
     renderer: (props) => <ListComponent {...props} />,
     component: {
@@ -72,7 +72,7 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
       legend: () => <span>legend</span>,
       ...genericProps,
     },
-    mockedQueries: {
+    queries: {
       fetchDataList,
     },
   });
@@ -82,7 +82,7 @@ describe('ListComponent', () => {
   jest.useFakeTimers();
 
   it('should render rows that is sent in but not rows that is not sent in', async () => {
-    render();
+    await render();
 
     expect(await screen.findByText('Norway')).toBeInTheDocument();
     expect(screen.getByText('Sweden')).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('ListComponent', () => {
   });
 
   it('should render columns as markup', async () => {
-    render();
+    await render();
 
     expect(await screen.findByRole('link', { name: /Norwegian flag/ })).toBeInTheDocument();
   });

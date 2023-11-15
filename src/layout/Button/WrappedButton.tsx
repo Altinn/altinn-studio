@@ -5,16 +5,14 @@ import { Button } from '@digdir/design-system-react';
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
 
 export interface BaseButtonProps {
-  onClick: (...args) => void;
+  nodeId: string;
+  onClick: () => void;
   busyWithId?: string | null;
   disabled?: boolean;
   message?: string;
 }
 
-export interface ButtonProps extends BaseButtonProps {
-  id: string;
-  children: React.ReactNode;
-}
+export type ButtonProps = React.PropsWithChildren<BaseButtonProps>;
 
 export type ButtonVariant = Parameters<typeof Button>[0]['variant'];
 export type ButtonColor = Parameters<typeof Button>[0]['color'];
@@ -25,22 +23,23 @@ interface Props extends ButtonProps {
 }
 
 export const WrappedButton = ({
+  nodeId,
   variant = 'secondary',
   color = 'first',
   onClick,
-  id,
   children,
   busyWithId,
   disabled,
   message,
 }: Props) => {
   const somethingIsLoading = !!busyWithId;
-  const thisIsLoading = busyWithId === id;
-  const handleClick = async (...args) => {
+  const thisIsLoading = busyWithId === nodeId;
+  const handleClick = async () => {
     if (!somethingIsLoading) {
-      onClick(args);
+      onClick();
     }
   };
+
   return (
     <>
       <ButtonLoader isLoading={thisIsLoading}>
@@ -50,7 +49,7 @@ export const WrappedButton = ({
           variant={variant}
           color={color}
           onClick={handleClick}
-          id={id}
+          id={nodeId}
           disabled={disabled || thisIsLoading}
         >
           {children}

@@ -1,4 +1,4 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
@@ -18,5 +18,4 @@ export const Config = new CG.component({
       description: 'The title/text to display on the button',
     }),
   )
-  .addProperty(new CG.prop('mapping', CG.common('IMapping').optional()))
-  .addProperty(new CG.prop('busyWithId', new CG.str().optional()).onlyIn(Variant.Internal));
+  .addProperty(new CG.prop('mapping', CG.common('IMapping').optional()));

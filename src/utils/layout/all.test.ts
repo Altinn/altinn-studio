@@ -1,5 +1,5 @@
 import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
-import { generateSimpleRepeatingGroups } from 'src/features/layout/repGroups/generateSimpleRepeatingGroups';
+import { generateSimpleRepeatingGroups } from 'src/features/form/layout/repGroups/generateSimpleRepeatingGroups';
 import { getLayoutComponentObject } from 'src/layout';
 import { ensureAppsDirIsSet, getAllLayoutSets } from 'src/test/allApps';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';

@@ -3,14 +3,14 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
 
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
-import { FormLayoutActions } from 'src/features/layout/formLayoutSlice';
-import { ProcessActions } from 'src/features/process/processSlice';
 import { ValidationActions } from 'src/features/validation/validationSlice';
+import { pathsChangedFromServer } from 'src/hooks/useDelayedSavedState';
 import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, isStatelessApp } from 'src/utils/appMetadata';
-import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from 'src/utils/databindings';
+import { convertDataBindingToModel, filterOutInvalidData, flattenObject } from 'src/utils/databindings';
 import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import { httpPost } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
@@ -23,9 +23,9 @@ import {
   validationContextFromState,
 } from 'src/utils/validation/validationHelpers';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IFormData } from 'src/features/formData';
 import type { IUpdateFormData } from 'src/features/formData/formDataTypes';
-import type { ILayoutState } from 'src/features/layout/formLayoutSlice';
 import type { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { BackendValidationIssue } from 'src/utils/validation/types';
@@ -58,9 +58,9 @@ export function* submitFormSaga(): SagaIterator {
   }
 }
 
-function* submitComplete(state: IRuntimeState, resolvedNodes: LayoutPages) {
+function* submitComplete(state: IRuntimeState, resolvedNodes: LayoutPages): SagaIterator {
   // run validations against the datamodel
-  const instanceId = state.instanceData.instance?.id;
+  const instanceId = state.deprecated.lastKnownInstance?.id;
   const serverValidations: BackendValidationIssue[] | undefined = instanceId
     ? yield call(httpGet, getValidationUrl(instanceId))
     : undefined;
@@ -89,8 +89,8 @@ function* submitComplete(state: IRuntimeState, resolvedNodes: LayoutPages) {
     yield put(FormLayoutActions.setCurrentViewCacheKey({ key: undefined }));
   }
 
-  // data has no validation errors, we complete the current step
-  return yield put(ProcessActions.complete());
+  // Data has no validation errors, we complete the current step
+  return yield put(FormDataActions.submitReady({ state: 'validationSuccessful' }));
 }
 
 function createFormDataRequest(
@@ -155,12 +155,13 @@ function* waitForSaving() {
  * @see postStatelessData
  */
 export function* putFormData({ field, componentId }: SaveDataParams) {
-  const defaultDataElementGuid: string | undefined = yield select((state) =>
-    getCurrentTaskDataElementId(
-      state.applicationMetadata.applicationMetadata,
-      state.instanceData.instance,
-      state.formLayout.layoutsets,
-    ),
+  const defaultDataElementGuid: string | undefined = yield select((state: IRuntimeState) =>
+    getCurrentTaskDataElementId({
+      application: state.applicationMetadata.applicationMetadata,
+      instance: state.deprecated.lastKnownInstance,
+      process: state.deprecated.lastKnownProcess,
+      layoutSets: state.formLayout.layoutsets,
+    }),
   );
   if (!defaultDataElementGuid) {
     return;
@@ -187,7 +188,7 @@ export function* putFormData({ field, componentId }: SaveDataParams) {
         lastSavedModel = yield call(handleChangedFields, error.response.data?.changedFields, formDataCopy);
       } else {
         // No changedFields property returned, try to fetch
-        yield put(FormDataActions.fetch({ url }));
+        yield put(FormDataActions.fetch());
       }
     } else {
       throw error;
@@ -212,6 +213,7 @@ function* handleChangedFields(changedFields: IFormData | undefined, lastSavedFor
     return lastSavedFormData;
   }
 
+  pathsChangedFromServer.current = {};
   yield all(
     Object.keys(changedFields).map((field) => {
       // Simulating the update on lastSavedFormData as well, because we need to pretend these changes were here all
@@ -224,6 +226,7 @@ function* handleChangedFields(changedFields: IFormData | undefined, lastSavedFor
       } else {
         lastSavedFormData[field] = data;
       }
+      pathsChangedFromServer.current[field] = true;
 
       return put(
         FormDataActions.update({
@@ -231,6 +234,7 @@ function* handleChangedFields(changedFields: IFormData | undefined, lastSavedFor
           field,
           skipValidation: true,
           skipAutoSave: true,
+          componentId: '',
         }),
       );
     }),
@@ -318,7 +322,7 @@ export function* postStatelessData({ field, componentId }: SaveDataParams) {
 
   const currentDataType = getCurrentDataTypeForApplication({
     application: state.applicationMetadata.applicationMetadata,
-    instance: state.instanceData.instance,
+    process: state.deprecated.lastKnownProcess,
     layoutSets: state.formLayout.layoutsets,
   });
   if (currentDataType) {
@@ -333,7 +337,7 @@ export function* postStatelessData({ field, componentId }: SaveDataParams) {
         },
         model,
       );
-      const formData = convertModelToDataBinding(response?.data);
+      const formData = flattenObject(response?.data);
       yield put(FormDataActions.fetchFulfilled({ formData }));
     } finally {
       if (yield cancelled()) {

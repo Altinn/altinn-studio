@@ -286,7 +286,10 @@ export function preProcessItem<T>(
 
   if (typeof input === 'object' && !Array.isArray(input) && input !== null) {
     for (const property of Object.keys(input)) {
-      input[property] = preProcessItem(input[property], config, [...componentPath, property], componentId);
+      const newValue = preProcessItem(input[property], config, [...componentPath, property], componentId);
+      if (newValue !== input[property]) {
+        input[property] = newValue;
+      }
     }
   }
 

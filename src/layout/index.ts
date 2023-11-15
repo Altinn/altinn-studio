@@ -1,10 +1,9 @@
 import { createContext, useMemo } from 'react';
 
-import { createSelector } from 'reselect';
-
+import { useAttachments } from 'src/features/attachments/AttachmentsContext';
 import { useAllOptions } from 'src/features/options/useAllOptions';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { type IUseLanguage, staticUseLanguageFromState } from 'src/hooks/useLanguage';
+import { type IUseLanguage, useLanguage } from 'src/hooks/useLanguage';
 import { ComponentConfigs } from 'src/layout/components.generated';
 import type { IAttachments } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
@@ -13,7 +12,6 @@ import type { IGrid } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompInternal, CompRendersLabel, CompTypes } from 'src/layout/layout';
 import type { AnyComponent, LayoutComponent } from 'src/layout/LayoutComponent';
-import type { IRuntimeState } from 'src/types';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
@@ -45,7 +43,7 @@ const _componentsTypeCheck: {
   ...ComponentConfigs,
 };
 
-export interface IComponentProps {
+export interface IComponentProps<T extends CompTypes> {
   handleDataChange: (
     value: string | undefined,
     options?: {
@@ -56,12 +54,12 @@ export interface IComponentProps {
   shouldFocus: boolean;
   label: () => JSX.Element | null;
   legend: () => JSX.Element | null;
-  formData: IComponentFormData;
+  formData: IComponentFormData<T>;
   isValid?: boolean;
   componentValidations?: IComponentValidations;
 }
 
-export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps {
+export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps<T> {
   node: LayoutNode<T>;
   overrideItemProps?: Partial<Omit<CompInternal<T>, 'id'>>;
   overrideDisplay?: IGenericComponentProps<T>['overrideDisplay'];
@@ -172,18 +170,11 @@ export function implementsDisplayData<Type extends CompTypes>(
   return 'getDisplayData' in component && 'useDisplayData' in component;
 }
 
-function getDisplayDataPropsFromState(state: IRuntimeState): Omit<DisplayDataProps, 'options'> {
-  return {
-    formData: state.formData.formData,
-    attachments: state.attachments.attachments,
-    langTools: staticUseLanguageFromState(state),
-  };
-}
-export const selectDisplayDataProps = createSelector(getDisplayDataPropsFromState, (props) => props);
-
 export function useDisplayDataProps(): DisplayDataProps {
+  const formData = useAppSelector((state) => state.formData.formData);
+  const langTools = useLanguage();
   const options = useAllOptions();
-  const props = useAppSelector(selectDisplayDataProps);
+  const attachments = useAttachments();
 
-  return useMemo(() => ({ options, ...props }), [options, props]);
+  return useMemo(() => ({ options, attachments, langTools, formData }), [attachments, langTools, options, formData]);
 }

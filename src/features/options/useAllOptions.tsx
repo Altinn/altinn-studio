@@ -3,11 +3,14 @@ import type { PropsWithChildren } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
+import { useLaxProcessData, useRealTaskType } from 'src/features/instance/ProcessContext';
+import { Loader } from 'src/features/loading/Loader';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useRealTaskType } from 'src/hooks/useProcess';
+import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import { ProcessTaskType } from 'src/types';
-import { createStrictContext } from 'src/utils/createStrictContext';
+import { createStrictContext } from 'src/utils/createContext';
 import { useExprContext } from 'src/utils/layout/ExprContext';
 import type { IOption } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -19,9 +22,8 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
  * function, and show summaries/PDF even if the source component has not been rendered yet.
  */
 export type AllOptionsMap = { [nodeId: string]: IOption[] | undefined };
-export const allOptions: AllOptionsMap = {};
 
-const [Provider, useCtx] = createStrictContext<State>();
+const { Provider, useCtx } = createStrictContext<State>({ name: 'AllOptionsContext' });
 
 export const useAllOptions = () => useCtx().nodes;
 export const useAllOptionsInitiallyLoaded = () => useCtx().allInitiallyLoaded;
@@ -105,24 +107,26 @@ function isNodeOptionBased(node: LayoutNode) {
 export function AllOptionsProvider({ children }: PropsWithChildren) {
   const nodes = useExprContext();
   const currentTaskType = useRealTaskType();
-  const currentTaskId = useAppSelector((state) => state.process.taskId) ?? undefined;
+  const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
   const initialState: State = {
     allInitiallyLoaded: false,
     nodes: {},
     currentTaskId,
   };
   const [state, dispatch] = useReducer(reducer, initialState);
+  const reduxDispatch = useAppDispatch();
 
   useEffect(() => {
     dispatch({ type: 'setCurrentTask', currentTaskId });
   }, [currentTaskId]);
 
+  const finishedResult = useMemoDeepEqual(() => (state.allInitiallyLoaded ? state.nodes : undefined), [state]);
   useEffect(() => {
-    // Update the global as well, so that we can use it in expressions
-    for (const nodeId of Object.keys(state.nodes)) {
-      allOptions[nodeId] = state.nodes[nodeId];
+    if (finishedResult) {
+      // Update the global as well, so that we can use it in expressions
+      reduxDispatch(DeprecatedActions.setAllOptions(finishedResult));
     }
-  }, [state]);
+  }, [reduxDispatch, finishedResult]);
 
   useEffect(() => {
     const nodesFound: string[] = [];
@@ -144,24 +148,35 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
     }
   }, [nodes, currentTaskType]);
 
+  const dummies = nodes
+    ?.allNodes()
+    .filter((n) => isNodeOptionBased(n))
+    .map((node) => (
+      <DummyOptionsSaver
+        key={node.item.id}
+        node={node}
+        loadingDone={(options) => {
+          dispatch({
+            type: 'nodeFetched',
+            nodeId: node.item.id,
+            options,
+          });
+        }}
+      />
+    ));
+
+  if (!state.allInitiallyLoaded) {
+    return (
+      <>
+        {dummies}
+        <Loader reason='all-options' />
+      </>
+    );
+  }
+
   return (
     <>
-      {nodes
-        ?.allNodes()
-        .filter((n) => isNodeOptionBased(n))
-        .map((node) => (
-          <DummyOptionsSaver
-            key={node.item.id}
-            node={node}
-            loadingDone={(options) => {
-              dispatch({
-                type: 'nodeFetched',
-                nodeId: node.item.id,
-                options,
-              });
-            }}
-          />
-        ))}
+      {dummies}
       <Provider value={state}>{children}</Provider>
     </>
   );

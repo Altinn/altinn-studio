@@ -8,8 +8,8 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 
 const dummyLabel = 'dummyLabel';
 
-const render = ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'MultipleSelect'>> = {}) => {
-  renderGenericComponentTest({
+const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'MultipleSelect'>> = {}) => {
+  await renderGenericComponentTest({
     type: 'MultipleSelect',
     renderer: (props) => (
       <>
@@ -40,8 +40,8 @@ const render = ({ component, genericProps }: Partial<RenderGenericComponentTestP
 
 describe('MultipleSelect', () => {
   jest.useFakeTimers();
-  it('should display correct options as selected when supplied with a comma separated form data', () => {
-    render({
+  it('should display correct options as selected when supplied with a comma separated form data', async () => {
+    await render({
       genericProps: {
         formData: { simpleBinding: 'value1,value3' },
       },
@@ -54,7 +54,7 @@ describe('MultipleSelect', () => {
 
   it('should remove item from comma separated form data on delete', async () => {
     const handleDataChange = jest.fn();
-    render({
+    await render({
       genericProps: {
         handleDataChange,
         formData: { simpleBinding: 'value1,value2,value3' },

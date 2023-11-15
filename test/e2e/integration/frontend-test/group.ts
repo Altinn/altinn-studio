@@ -419,7 +419,7 @@ describe('Group', () => {
           .find(appFrontend.group.saveMainGroup)
           .should('exist')
           .and('be.visible');
-      } else if (openByDefault === true || openByDefault === false) {
+      } else if (openByDefault || !openByDefault) {
         cy.get(appFrontend.group.mainGroupTableBody).children().should('have.length', 3);
         cy.get(appFrontend.group.mainGroupTableBody).find(appFrontend.group.saveMainGroup).should('not.exist');
       }
