@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
 import { Textfield, Alert, Paragraph, Heading, Textarea } from '@digdir/design-system-react';
@@ -35,74 +35,69 @@ export type RightTranslationBarProps = {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const RightTranslationBar = forwardRef<
-  HTMLTextAreaElement | HTMLInputElement,
-  RightTranslationBarProps
->(
-  ({
-    title,
-    usesTextArea = false,
-    value,
-    onLanguageChange,
-    showErrors,
-    onBlur,
-  }): React.ReactNode => {
-    const { t } = useTranslation();
+export const RightTranslationBar = ({
+  title,
+  usesTextArea = false,
+  value,
+  onLanguageChange,
+  showErrors,
+  onBlur,
+}: RightTranslationBarProps): React.ReactNode => {
+  const { t } = useTranslation();
 
-    const handleChange = (lang: 'nn' | 'en', val: string) => {
-      onLanguageChange({ ...value, [lang]: val });
-    };
+  const handleChange = (lang: 'nn' | 'en', val: string) => {
+    onLanguageChange({ ...value, [lang]: val });
+  };
 
-    const displayNField = (lang: 'nn' | 'en', isLast: boolean) => {
-      const label = `${title} (${lang === 'en' ? t('language.en') : t('language.nn')})`;
+  const displayNField = (lang: 'nn' | 'en') => {
+    const label = `${title} (${lang === 'en' ? t('language.en') : t('language.nn')})`;
 
-      if (usesTextArea) {
-        return (
-          <Textarea
-            value={value[lang]}
-            onChange={(e) => handleChange(lang, e.currentTarget.value)}
-            rows={5}
-            label={label}
-            error={showErrors && value[lang] === ''}
-            onBlur={onBlur}
-            size='small'
-          />
-        );
-      }
+    if (usesTextArea) {
       return (
-        <Textfield
+        <Textarea
           value={value[lang]}
-          onChange={(e) => handleChange(lang, e.target.value)}
+          onChange={(e) => handleChange(lang, e.currentTarget.value)}
+          rows={5}
           label={label}
           error={showErrors && value[lang] === ''}
           onBlur={onBlur}
           size='small'
         />
       );
-    };
-
+    }
     return (
-      <div className={classes.wrapper}>
-        <div className={classes.topWrapper}>
-          <GlobeIcon
-            title={t('resourceadm.right_translation_bar_translation')}
-            fontSize='1.5rem'
-            className={classes.icon}
-          />
-          <Heading size='xsmall' level={2} className={classes.topText}>
-            {t('resourceadm.right_translation_bar_title')}
-          </Heading>
-        </div>
-        <div className={classes.bodyWrapper}>
-          <Alert severity='info'>
-            <Paragraph size='small'>{t('resourceadm.right_translation_bar_alert')}</Paragraph>
-          </Alert>
-          <div className={classes.inputWrapper}>{displayNField('nn', false)}</div>
-          <div className={classes.inputWrapper}>{displayNField('en', true)}</div>
-        </div>
-      </div>
+      <Textfield
+        value={value[lang]}
+        onChange={(e) => handleChange(lang, e.target.value)}
+        label={label}
+        error={showErrors && value[lang] === ''}
+        onBlur={onBlur}
+        size='small'
+      />
     );
-  },
-);
+  };
+
+  return (
+    <div className={classes.wrapper}>
+      <div className={classes.topWrapper}>
+        <GlobeIcon
+          title={t('resourceadm.right_translation_bar_translation')}
+          fontSize='1.5rem'
+          className={classes.icon}
+        />
+        <Heading size='xsmall' level={2} className={classes.topText}>
+          {t('resourceadm.right_translation_bar_title')}
+        </Heading>
+      </div>
+      <div className={classes.bodyWrapper}>
+        <Alert severity='info'>
+          <Paragraph size='small'>{t('resourceadm.right_translation_bar_alert')}</Paragraph>
+        </Alert>
+        <div className={classes.inputWrapper}>{displayNField('nn')}</div>
+        <div className={classes.inputWrapper}>{displayNField('en')}</div>
+      </div>
+    </div>
+  );
+};
 
 RightTranslationBar.displayName = 'RightTranslationBar';
