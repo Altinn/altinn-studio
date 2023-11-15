@@ -25,7 +25,7 @@ context('datamodel', () => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
-  it('add a new data model, then add an object to the data model and rename it, after that add two string(text1 and text2) and one integer(number1) to the newly added object (test). ', () => {
+  it('Add a new data model, include an object in the data model, and rename it. After that, add two strings (text1 and text2) and one integer (number1) to the object (test). Finally, check if generating the model is okay.', () => {
     datamodel.getCreateNewButton().click();
     cy.findByRole('textbox').type('datamodel');
     cy.findByRole('button', { name: texts['schema_editor.create_model_confirm_button'] }).click();
@@ -90,6 +90,12 @@ context('datamodel', () => {
         cy.get('body').click();
         datamodel.getProperty('number1').should('exist');
       });
+
+    // Generate model
+    cy.findByRole('button', { name: texts['schema_editor.generate_model_files'] }).click();
+    cy.findByRole('alert', { name: texts['schema_editor.model_generation_success'] }).should(
+      'be.visible',
+    );
   });
 
   it('edit a data model', () => {
