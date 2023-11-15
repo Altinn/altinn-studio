@@ -2,7 +2,7 @@
 import type { UiSchemaNode, UiSchemaNodes } from '../../types';
 import { ObjectKind } from '../../types';
 import { getParentNodeByPointer, getReferredNodes, hasNodePointer } from '../selectors';
-import { splitPointerInBaseAndName } from '../utils';
+import { isFieldOrCombination, splitPointerInBaseAndName } from '../utils';
 
 export const removeNodeByPointer = (
   uiNodeMap: UiSchemaNodes,
@@ -47,7 +47,9 @@ export const removeNodeByPointer = (
       if (oldPointerBase !== newPointerBase && !isNaN(Number(name))) {
         mutatedUiNodeMap.forEach((uiNode) => {
           uiNode.pointer = uiNode.pointer.replace(oldPointerBase, newPointerBase);
-          uiNode.children = uiNode.children.map((p) => p.replace(oldPointerBase, newPointerBase));
+          if (isFieldOrCombination(uiNode)) {
+            uiNode.children = uiNode.children.map((p) => p.replace(oldPointerBase, newPointerBase));
+          }
         });
       }
     });

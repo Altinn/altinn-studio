@@ -5,20 +5,15 @@ import classes from './ModelsPanel.module.css';
 import { IconImage } from '../common/Icon';
 import { SchemaTreeView } from '../TreeView/SchemaTreeView';
 import { setSelectedAndFocusedNode } from '../../features/editor/schemaEditorSlice';
-import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import type { UiSchemaNodes } from '@altinn/schema-model';
 import {
-  CombinationKind,
   FieldType,
-  Keyword,
-  makePointer,
   ObjectKind,
-  addRootItem,
 } from '@altinn/schema-model';
 import { useDispatch, useSelector } from 'react-redux';
 import type { SchemaState } from '../../types';
 import { useTranslation } from 'react-i18next';
-import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { SchemaTree } from '@altinn/schema-editor/components/SchemaTree';
+import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 
 export type ModelsPanelProps = {
   expandedPropNodes: string[];
@@ -33,25 +28,14 @@ export const ModelsPanel = ({
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
-  const { data, save } = useSchemaEditorAppContext();
   const selectedPropertyNodeId = useSelector((state: SchemaState) => state.selectedPropertyNodeId);
+  const addProperty = useAddProperty();
+
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
-    const newNode: Partial<UiSchemaNode> = { objectKind };
-    if (objectKind === ObjectKind.Field) {
-      newNode.fieldType = fieldType ?? FieldType.Object;
+    const newPointer = addProperty(objectKind, fieldType);
+    if (newPointer) {
+      dispatch(setSelectedAndFocusedNode(newPointer));
     }
-    if (objectKind === ObjectKind.Combination) {
-      newNode.fieldType = CombinationKind.AllOf;
-    }
-    newNode.reference = objectKind === ObjectKind.Reference ? '' : undefined;
-    save(
-      addRootItem(data, {
-        name: 'name',
-        location: makePointer(Keyword.Properties),
-        props: newNode,
-        callback: (newPointer) => dispatch(setSelectedAndFocusedNode(newPointer)),
-      }),
-    );
   };
 
   const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
@@ -106,7 +90,6 @@ export const ModelsPanel = ({
         selectedPointer={selectedPropertyNodeId}
         isPropertiesView={true}
       />
-      <SchemaTree schema={data} rootPointer='#' />
     </>
   );
 };

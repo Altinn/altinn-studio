@@ -13,8 +13,9 @@ import { findJsonFieldType } from './mappers/field-type';
 import { getRootNode } from './selectors';
 import { sortNodesByChildren } from './mutations/sort-nodes';
 import { ROOT_POINTER } from './constants';
-import { makePointer } from './utils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import { makePointerFromArray } from './pointerUtils';
+import { isFieldOrCombination, isReference } from './utils';
 
 export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   const out: JsonSchema = {};
@@ -23,7 +24,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   JSONPointer.set(
     out,
     `/${Keyword.Type}`,
-    !rootNode.implicitType ? rootNode.fieldType : undefined
+    rootNode.implicitType ? undefined : rootNode.fieldType
   );
   JSONPointer.set(out, `/${Keyword.Required}`, findRequiredProps(nodes, rootNode.pointer));
   JSONPointer.set(out, `/${Keyword.Description}`, rootNode.description);
@@ -33,9 +34,9 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   sortedUiSchemaNodes
     .filter((node) => node.pointer !== ROOT_POINTER)
     .forEach((node: UiSchemaNode) => {
-      // Arrays need to be dealed with
+      // Arrays need to be dealt with
       const nodePointer = node.pointer.replace(ROOT_POINTER, '');
-      const itemsPointer = makePointer(node.pointer, Keyword.Items).replace(ROOT_POINTER, '');
+      const itemsPointer = makePointerFromArray([node.pointer, Keyword.Items]).replace(ROOT_POINTER, '');
       const jsonPointer = node.isArray ? itemsPointer : nodePointer;
       const customFields = { ...node.custom };
 
@@ -61,17 +62,19 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
 
       // Adding combination root array to start
       if (node.objectKind === ObjectKind.Combination) {
-        startValue[node.fieldType] = [];
+        startValue[node.combinationType] = [];
       }
 
       JSONPointer.set(out, jsonPointer, startValue);
 
       // Setting reference if existing.
-      JSONPointer.set(
-        out,
-        [jsonPointer, Keyword.Reference].join('/'),
-        typeof node.reference === 'string' ? node.reference : undefined
-      );
+      if (isReference(node)) {
+        JSONPointer.set(
+          out,
+          [jsonPointer, Keyword.Reference].join('/'),
+          node.reference
+        );
+      }
 
       // Setting Type for fields
       JSONPointer.set(out, [jsonPointer, Keyword.Type].join('/'), findJsonFieldType(node));
@@ -102,7 +105,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
         );
 
       // We are dealing with an object prep the properties and required keywords.
-      if (node.children.length && node.objectKind === ObjectKind.Field) {
+      if (node.objectKind === ObjectKind.Field && node.children.length) {
         JSONPointer.set(out, [jsonPointer, Keyword.Properties].join('/'), {});
         JSONPointer.set(
           out,
@@ -115,7 +118,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
         node.isArray &&
         typeof currentJsonNode === 'object' &&
         Object.keys(currentJsonNode).length === 0 &&
-        node.children.length === 0
+        (!isFieldOrCombination(node) || node.children.length === 0)
       ) {
         JSONPointer.set(out, jsonPointer, undefined);
       }

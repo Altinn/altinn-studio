@@ -153,7 +153,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
             }),
           )}
         </div>
-        <div className={classes.helpTextContainer}>
+        <div>
           {helpText && (
             <HelpText className={classes.helpText} title={helpText}>
               {helpText}

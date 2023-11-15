@@ -12,18 +12,12 @@ import { SchemaInspector } from '@altinn/schema-editor/components/SchemaInspecto
 import {
   UiSchemaNodes,
   getNameFromPointer,
-  isEmpty,
-  pointerIsDefinition,
 } from '@altinn/schema-model';
 import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
 import {
   selectedDefinitionParentSelector,
   selectedPropertyParentSelector,
 } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
-import {
-  rootChildrenSelector,
-  rootNodesSelector,
-} from '@altinn/schema-editor/selectors/schemaSelectors';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
@@ -47,16 +41,6 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
 
-  const rootNodeMap = rootNodesSelector(data);
-  const rootChildren = rootChildrenSelector(data);
-  const properties: UiSchemaNodes = [];
-  const definitions: UiSchemaNodes = [];
-  rootChildren?.forEach((childPointer) =>
-    pointerIsDefinition(childPointer)
-      ? definitions.push(rootNodeMap.get(childPointer))
-      : properties.push(rootNodeMap.get(childPointer)),
-  );
-
   const selectedPropertyParent = useSchemaAndReduxSelector(selectedPropertyParentSelector);
 
   useEffect(() => {
@@ -72,18 +56,21 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
     }
   }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
-  if (isEmpty(data)) return null;
+  if (data.isEmpty()) return null;
 
   const handleResetSelectedType = () => {
     setSelectedTypePointer(null);
     dispatch(setSelectedId({ pointer: '' }));
   };
 
+  const definitions: UiSchemaNodes = data.getDefinitions();
   const selectedType = definitions.find((item) => item.pointer === selectedTypePointer);
+
+  const properties: UiSchemaNodes = data.getRootProperties();
 
   return (
     <>
-      <DragAndDropTree.Provider onAdd={console.log} onMove={console.log} rootId='#'>
+      <DragAndDropTree.Provider onAdd={() => {}} onMove={() => {}} rootId='#'>
         <aside className={classes.inspector}>
           <TypesInspector schemaItems={definitions} />
         </aside>

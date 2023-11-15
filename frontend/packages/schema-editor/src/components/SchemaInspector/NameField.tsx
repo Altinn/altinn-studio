@@ -2,18 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
 import type { TextfieldProps } from '@digdir/design-system-react';
 import { AltinnTextField } from 'app-shared/components/AltinnTextField';
-import {
-  getNameFromPointer,
-  hasNodePointer,
-  replaceLastPointerSegment,
-} from '@altinn/schema-model';
+import { getNameFromPointer, replaceLastPointerSegment } from '@altinn/schema-model';
 import { isValidName } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export type NameFieldProps = TextfieldProps & {
-  id: string;
+  id?: string;
   pointer: string;
   handleSave: (newNodeName: string, errorCode: string) => void;
   label?: string;
@@ -31,7 +27,7 @@ export function NameField({ id, pointer, handleSave, label, ...props }: NameFiel
   const validateName = (nodeNameToValidate: string): NameError => {
     if (nodeNameToValidate === nodeName) return;
     if (!isValidName(nodeNameToValidate)) return NameError.InvalidCharacter;
-    if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeNameToValidate)))
+    if (data.hasNode(replaceLastPointerSegment(pointer, nodeNameToValidate)))
       return NameError.AlreadyInUse;
   };
 

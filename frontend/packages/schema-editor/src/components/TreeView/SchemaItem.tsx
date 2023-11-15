@@ -4,10 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedId } from '../../features/editor/schemaEditorSlice';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getIconStr } from './tree-view-helpers';
-import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
 import {
-  getChildNodesByPointer,
-  getReferredNodes,
   ObjectKind,
   changeChildrenOrder,
   splitPointerInBaseAndName,
@@ -16,9 +14,9 @@ import classes from './SchemaItem.module.css';
 import classNames from 'classnames';
 import { DndItem } from './DnDWrapper';
 import type { DragItem } from './dnd-helpers';
-import { getRefNodeSelector } from '@altinn/schema-editor/selectors/schemaSelectors';
 import { selectedIdSelector } from '@altinn/schema-editor/selectors/reduxSelectors';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { isReference } from '../../../../schema-model';
 
 export type SchemaItemProps = {
   selectedNode: UiSchemaNode;
@@ -37,15 +35,8 @@ export function SchemaItem({ selectedNode, isPropertiesView, index }: SchemaItem
 
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const refNode = getRefNodeSelector(selectedNode)(data);
-  const childNodes = getChildNodesByPointer(data, (refNode || selectedNode).pointer);
-  const referredNodes = getReferredNodes(data, selectedNode.pointer);
-  const focusedNode = refNode ?? selectedNode;
-  const childNodesSorted: UiSchemaNodes = [];
-  focusedNode.children.forEach((childPointer) => {
-    const node = childNodes.find((childNode) => childNode.pointer === childPointer);
-    node && childNodesSorted.push(node);
-  });
+  const refNode = isReference(selectedNode) ? data.getReferredNode(selectedNode) : undefined
+  const childNodes = data.getChildNodes((refNode || selectedNode).pointer);
   const selectedPointer = useSelector(selectedIdSelector);
   const onLabelClick = (e: any, schemaItem: UiSchemaNode) => {
     e.preventDefault();
@@ -71,12 +62,12 @@ export function SchemaItem({ selectedNode, isPropertiesView, index }: SchemaItem
             key={`${selectedNode.pointer}-label`}
             selectedNode={selectedNode}
             refNode={refNode}
-            hasReferredNodes={isPropertiesView ? false : referredNodes.length > 0}
+            hasReferredNodes={isPropertiesView ? false : isReference(selectedNode)}
           />
         </DndItem>
       }
     >
-      {childNodesSorted.map((childNode: UiSchemaNode, childNodeIndex: number) => (
+      {childNodes.map((childNode: UiSchemaNode, childNodeIndex: number) => (
         <SchemaItem
           index={childNodeIndex}
           isPropertiesView={isPropertiesView}

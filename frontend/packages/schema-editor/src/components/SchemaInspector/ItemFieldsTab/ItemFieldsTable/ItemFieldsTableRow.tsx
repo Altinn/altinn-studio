@@ -1,7 +1,7 @@
 import React, { ReactNode, KeyboardEvent, ChangeEventHandler, useState } from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
-import { FieldType, UiSchemaNode, deleteNode, setType } from '@altinn/schema-model';
+import { FieldType, UiSchemaNode, deleteNode, setType, isField } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { Button, NativeSelect, Switch } from '@digdir/design-system-react';
@@ -13,11 +13,10 @@ import { removeSelection } from '../../../../features/editor/schemaEditorSlice';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { Center } from 'app-shared/components/Center';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
+import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 
 export type ItemFieldsTableRowProps = {
-  fieldNode: UiSchemaNode & {
-    domId: string;
-  };
+  fieldNode: UiSchemaNode;
   readonly: boolean;
   onEnterKeyPress: () => void;
 };
@@ -25,12 +24,6 @@ export type ItemFieldsTableRowProps = {
 /**
  * @component
  *    Displays a row in the Item Fields Table
- *
- * @property {UiSchemaNode & { domId: string }}[fieldNoe] - The field node
- * @property {boolean}[readonly] - If the field is readonly or not
- * @property {function}[onEnterKeyPress] - Function to be executed on enter keypress
- *
- * @returns {ReactNode} - the rendered component
  */
 export const ItemFieldsTableRow = ({
   fieldNode,
@@ -77,7 +70,7 @@ export const ItemFieldsTableRow = ({
     <tr>
       <td className={cn(classes.tableColumnName, classes.tableCell)}>
         <NameField
-          id={fieldNode.domId}
+          className={nameFieldClass}
           disabled={readonly}
           handleSave={handleChangeNodeName}
           onKeyDown={onKeyDown}
@@ -87,11 +80,12 @@ export const ItemFieldsTableRow = ({
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
-        <TypeSelect
-          id={`${fieldNode.domId}-typeselect`}
-          onChange={(fieldType) => onTypeChange(fullPath, fieldType)}
-          value={fieldNode.fieldType as FieldType}
-        />
+        {isField(fieldNode) && (
+          <TypeSelect
+            onChange={(fieldType) => onTypeChange(fullPath, fieldType)}
+            value={fieldNode.fieldType as FieldType}
+          />
+        )}
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
         <Center>
@@ -133,18 +127,16 @@ export const ItemFieldsTableRow = ({
 };
 
 interface TypeSelectProps {
-  id: string;
   onChange: (type: FieldType) => void;
   value: FieldType;
 }
 
-const TypeSelect = ({ id, onChange, value }: TypeSelectProps) => {
+const TypeSelect = ({ onChange, value }: TypeSelectProps) => {
   const typeOptions = useTypeOptions();
   const { t } = useTranslation();
   return (
     <NativeSelect
       hideLabel
-      id={id}
       label={t('schema_editor.type')}
       onChange={(event) => onChange(event.target.value as FieldType)}
       value={value}

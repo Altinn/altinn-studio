@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { useSchemaEditorAppContext } from './hooks/useSchemaEditorAppContext';
 import { uiSchemaNodesMock } from '../test/mocks/uiSchemaMock';
 import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
-import { buildJsonSchema, buildUiSchema } from '@altinn/schema-model';
+import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
 
 jest.useFakeTimers({ advanceTimers: true });
 
@@ -42,8 +42,8 @@ describe('SchemaEditorApp', () => {
       const { data, save } = useSchemaEditorAppContext();
       return (
         <>
-          <div data-testid='data'>{JSON.stringify(data)}</div>
-          <button data-testid='button' onClick={() => save(uiSchemaNodesMock)} />
+          <div data-testid='data'>{JSON.stringify(data.asArray())}</div>
+          <button data-testid='button' onClick={() => save(SchemaModel.fromArray(uiSchemaNodesMock))} />
         </>
       );
     });

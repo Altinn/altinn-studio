@@ -1,18 +1,17 @@
 import React from 'react';
-import { UiSchemaNodes } from '@altinn/schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
-import { SchemaPropertyList } from '@altinn/schema-editor/components/SchemaTree/SchemaPropertyList';
+import { renderSchemaPropertyList } from './renderSchemaPropertyList';
 
 export interface SchemaTreeProps {
-  schema: UiSchemaNodes;
-  rootPointer: string;
+  schema: SchemaModel;
+  pointer?: string;
 }
 
-export const SchemaTree = ({ schema, rootPointer }: SchemaTreeProps) => {
-  console.log(schema);
+export const SchemaTree = ({ schema, pointer }: SchemaTreeProps) => {
   return (
-    <DragAndDropTree.Root>
-      <SchemaPropertyList schema={schema} parentPointer={rootPointer} />
+    <DragAndDropTree.Root emptyMessage={'asdasdasd'}>
+      {renderSchemaPropertyList(schema, pointer)}
     </DragAndDropTree.Root>
   );
 };

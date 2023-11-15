@@ -14,7 +14,6 @@ import {
   findParentId,
   findPreviousVisibleNodeId,
   hasChildNodes,
-  hasItems,
   makeDomGroupId,
   makeDomTreeItemId,
 } from './domUtils';
@@ -202,25 +201,6 @@ describe('domUtils', () => {
     it('Returns an empty array if the node is a root item', () => {
       renderDom();
       expect(findAllParentIds(rootId, rootItemId)).toEqual([]);
-    });
-  });
-
-  describe('hasItems', () => {
-    it('Returns true if there are tree items', () => {
-      const rootId = 'rootId';
-      const rootItemId = 'rootItemId';
-      render(
-        <ul role='tree' id={rootId}>
-          {renderListItem(rootId, rootItemId, 'rootItem', 1, true)}
-        </ul>,
-      );
-      expect(hasItems(rootId)).toBe(true);
-    });
-
-    it('Returns false if there are no tree items', () => {
-      const rootId = 'rootId';
-      render(<ul role='tree' id={rootId} />);
-      expect(hasItems(rootId)).toBe(false);
     });
   });
 

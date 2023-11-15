@@ -12,5 +12,5 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 export const useSchemaAndReduxSelector = <R, S>(selector: SchemaAndReduxSelector<R, S>): S => {
   const { data } = useSchemaEditorAppContext();
   const reduxSelectorResult = useSelector(selector.reduxSelector);
-  return data ? selector.schemaSelector(reduxSelectorResult, data) : null;
+  return data ? selector.schemaSelector(reduxSelectorResult, data.asArray()) : null;
 }

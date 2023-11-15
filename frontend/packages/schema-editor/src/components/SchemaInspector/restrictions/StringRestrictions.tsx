@@ -8,7 +8,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
 import { Label } from 'app-shared/components/Label';
-import { getDomFriendlyID } from '../../../utils/ui-schema-utils';
+import { makeDomFriendlyID } from '../../../utils/ui-schema-utils';
 import type { StringRestrictionsReducerAction } from './StringRestrictionsReducer';
 import {
   stringRestrictionsReducer,
@@ -28,7 +28,7 @@ export function StringRestrictions({
   const pattern = restrictions[StrRestrictionKey.pattern] || '';
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
-  const fieldId = getDomFriendlyID('regextestfield');
+  const fieldId = makeDomFriendlyID('regextestfield');
   const handleValueChange = (event: ChangeEvent) => {
     const value = (event.target as HTMLInputElement)?.value || '';
     if (regexTestValue !== value) {

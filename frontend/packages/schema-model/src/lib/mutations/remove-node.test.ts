@@ -7,7 +7,7 @@ import {
 } from '../../../test/testUtils';
 import { buildJsonSchema } from '../build-json-schema';
 import { CombinationKind, FieldType, Keyword } from '../../types';
-import { makePointer } from '../utils';
+import { makePointerFromArray } from '../pointerUtils';
 
 const testComplexSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
 
@@ -17,7 +17,7 @@ describe('removeNodeByPointer', () => {
     expect(uiSchemaNodes).toEqual(buildUiSchema(simpleTestJsonSchema));
     const changedNodeMap = removeNodeByPointer(
       uiSchemaNodes,
-      makePointer(Keyword.Properties, 'world')
+      makePointerFromArray([Keyword.Properties, 'world'])
     );
     const jsonSchema = buildJsonSchema(changedNodeMap);
     expect(validateSchema(jsonSchema)).toBeTruthy();
@@ -40,7 +40,7 @@ describe('removeNodeByPointer', () => {
     });
     const nodesAfterMutation = removeNodeByPointer(
       uiSchemaNodes,
-      makePointer(CombinationKind.OneOf, 1)
+      makePointerFromArray([CombinationKind.OneOf, '1'])
     );
     const jsonSchema = buildJsonSchema(nodesAfterMutation);
     expect(jsonSchema).toEqual({
@@ -69,7 +69,7 @@ describe('removeNodeByPointer', () => {
     });
     const mutatedSchema = removeNodeByPointer(
       uiSchemaNodes,
-      makePointer(Keyword.Properties, 'name')
+      makePointerFromArray([Keyword.Properties, 'name'])
     );
     const jsonSchema = buildJsonSchema(mutatedSchema);
     expect(jsonSchema).toStrictEqual({ properties: { name0: { type: 'string' } } });

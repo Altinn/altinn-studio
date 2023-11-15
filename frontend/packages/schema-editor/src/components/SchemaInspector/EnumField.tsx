@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { IconButton } from '../common/IconButton';
 import { LegacyTextField } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
-import { getDomFriendlyID } from '../../utils/ui-schema-utils';
+import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { IconImage } from '../common/Icon';
 import { useTranslation } from 'react-i18next';
 
@@ -37,7 +37,7 @@ export const EnumField = (props: IEnumFieldProps) => {
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
 
-  const baseId = getDomFriendlyID(props.path);
+  const baseId = makeDomFriendlyID(props.path);
   return (
     <div className={classes.root}>
       <LegacyTextField

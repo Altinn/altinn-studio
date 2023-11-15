@@ -5,16 +5,12 @@ import classes from './SchemaItemLabel.module.css';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   Capabilites,
-  CombinationKind,
-  FieldType,
   Keyword,
   ObjectKind,
-  addCombinationItem,
-  addProperty,
   getCapabilities,
   getNameFromPointer,
   pointerIsDefinition,
-  promoteProperty,
+  promoteProperty, FieldType,
 } from '@altinn/schema-model';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { Button } from '@digdir/design-system-react';
@@ -38,6 +34,8 @@ import {
   ArrowDownIcon,
 } from '@navikt/aksel-icons';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { isCombination, isReference } from '../../../../schema-model/src/lib/utils';
+import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -64,6 +62,7 @@ export const SchemaItemLabel = ({
   const [contextAnchor, setContextAnchor] = useState<any>(null);
   const { data, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
+  const addProperty = useAddProperty();
 
   // Simple wrapper to avoid repeating ourselves...
   const wrapper = (callback: (arg: any) => void) => {
@@ -75,7 +74,9 @@ export const SchemaItemLabel = ({
   };
 
   const handleGoToType = wrapper(() => {
-    dispatch(navigateToType({ pointer: selectedNode.reference }));
+    if (isReference(selectedNode)) {
+      dispatch(navigateToType({ pointer: selectedNode.reference }));
+    }
   });
   const handleConvertToReference = wrapper(() => {
     save(promoteProperty(data, selectedNode.pointer));
@@ -90,33 +91,16 @@ export const SchemaItemLabel = ({
     setContextAnchor(e.currentTarget);
   };
 
-  const handleAddNode = wrapper((objectKind: ObjectKind) => {
-    const props = {
-      objectKind,
-      fieldType: {
-        [ObjectKind.Field]: FieldType.String,
-        [ObjectKind.Combination]: CombinationKind.AllOf,
-        [ObjectKind.Reference]: undefined,
-      }[objectKind],
-      reference: objectKind === ObjectKind.Reference ? '' : undefined,
-    };
-    const { pointer } = selectedNode;
-    selectedNode.objectKind === ObjectKind.Combination
-      ? save(
-          addCombinationItem(data, {
-            pointer,
-            props,
-            callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
-          }),
-        )
-      : save(
-          addProperty(data, {
-            pointer,
-            props,
-            callback: (newPointer: string) => dispatch(setSelectedAndFocusedNode(newPointer)),
-          }),
-        );
-  });
+  const handleAddNode = (objectKind: ObjectKind, fieldType?: FieldType) => {
+    const newPointer = addProperty(objectKind, fieldType, selectedNode.pointer);
+    if (newPointer) {
+      dispatch(
+        isCombination(selectedNode)
+          ? setSelectedNode(newPointer)
+          : setSelectedAndFocusedNode(newPointer)
+      );
+    }
+  };
 
   const handleDeleteClick = () => {
     save(deleteNode(data, selectedNode.pointer));
@@ -181,7 +165,7 @@ export const SchemaItemLabel = ({
             testId={SchemaItemLabelTestIds.contextMenuAddReference}
             id='add-reference-to-node-button'
             key='add_reference'
-            onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
+            onClick={() => handleAddNode(ObjectKind.Reference)}
             text={t('schema_editor.add_reference')}
             icon={LinkIcon}
           />
@@ -191,7 +175,7 @@ export const SchemaItemLabel = ({
             testId={SchemaItemLabelTestIds.contextMenuAddField}
             id='add-field-to-node-button'
             key='add_field'
-            onClick={(event) => handleAddNode(event, ObjectKind.Field)}
+            onClick={() => handleAddNode(ObjectKind.Field)}
             text={t('schema_editor.add_field')}
             icon={BulletListIcon}
           />
@@ -201,7 +185,7 @@ export const SchemaItemLabel = ({
             testId={SchemaItemLabelTestIds.contextMenuAddCombination}
             id='add-combination-to-node-button'
             key='add_combination'
-            onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
+            onClick={() => handleAddNode(ObjectKind.Combination)}
             text={t('schema_editor.add_combination')}
             icon={TabsIcon}
           />

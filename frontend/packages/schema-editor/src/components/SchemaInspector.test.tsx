@@ -5,18 +5,18 @@ import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import type { FieldNode, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   buildUiSchema,
-  createChildNode,
-  createNodeBase,
   FieldType,
   getNodeByPointer,
-  Keyword,
+  SchemaModel,
+  validateTestUiSchema,
 } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { getSavedModel } from '../../test/test-utils';
+import { nodeMockBase, rootNodeMock } from '../../test/mocks/uiSchemaMock';
 
 const user = userEvent.setup();
 
@@ -47,6 +47,7 @@ const saveDatamodel = jest.fn();
 const setSelectedTypePointer = jest.fn();
 
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
+  const model = SchemaModel.fromArray(uiSchemaMap);
   const store = configureStore()({
     selectedDefinitionNodeId: selectedItem?.pointer,
     selectedEditorTab: 'definitions',
@@ -58,7 +59,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
       selectedEditorTab: 'definitions',
     },
     appContextProps: {
-      data: uiSchemaMap,
+      data: model,
       save: saveDatamodel,
       setSelectedTypePointer,
     },
@@ -115,7 +116,7 @@ describe('SchemaInspector', () => {
 
     expect(saveDatamodel).toHaveBeenCalled();
     let updatedModel = getSavedModel(saveDatamodel, 3);
-    let updatedNode = getNodeByPointer(updatedModel, pointer);
+    let updatedNode = updatedModel.getNode(pointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
     const maxLengthTextField = await screen.findByLabelText(texts['schema_editor.maxLength']);
@@ -124,19 +125,30 @@ describe('SchemaInspector', () => {
     await act(() => user.tab());
 
     updatedModel = getSavedModel(saveDatamodel, 7);
-    updatedNode = getNodeByPointer(updatedModel, pointer);
+    updatedNode = updatedModel.getNode(pointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
   });
 
   test('Adds new object field when pressing the enter key', async () => {
-    const testUiSchema = buildUiSchema({});
-    const parentNode = createNodeBase(Keyword.Properties, 'test');
-    parentNode.fieldType = FieldType.Object;
-    // eslint-disable-next-line testing-library/no-node-access
-    parentNode.children = ['#/properties/test/properties/abc'];
-    testUiSchema.push(parentNode);
-    const childNode = createChildNode(parentNode, 'abc', false);
-    testUiSchema.push(childNode);
+    const parentNodePointer = '#/properties/test';
+    const childNodePointer = '#/properties/test/properties/abc';
+    const rootNode: FieldNode = {
+      ...rootNodeMock,
+      children: [parentNodePointer],
+    }
+    const parentNode: FieldNode = {
+      ...nodeMockBase,
+      pointer: parentNodePointer,
+      fieldType: FieldType.Object,
+      children: [childNodePointer],
+    };
+    const childNode: FieldNode = {
+      ...nodeMockBase,
+      pointer: childNodePointer,
+      fieldType: FieldType.String,
+    };
+    const testUiSchema: UiSchemaNodes = [rootNode, parentNode, childNode];
+    validateTestUiSchema(testUiSchema);
     renderSchemaInspector(testUiSchema, parentNode);
     await act(() => user.click(screen.queryAllByRole('tab')[1]));
     await act(() => user.click(screen.getByDisplayValue('abc')));
@@ -145,14 +157,23 @@ describe('SchemaInspector', () => {
   });
 
   test('Adds new valid value field when pressing the enter key', async () => {
-    const testUiSchema = buildUiSchema({});
-    const item = createNodeBase(Keyword.Properties, 'test');
-    item.fieldType = FieldType.String;
-    item.enum = ['valid value'];
-    testUiSchema.push(item);
+    const itemPointer = '#/properties/test';
+    const enumValue = 'valid value';
+    const rootNode: FieldNode = {
+      ...rootNodeMock,
+      children: [itemPointer],
+    };
+    const item: FieldNode = {
+      ...nodeMockBase,
+      pointer: itemPointer,
+      fieldType: FieldType.String,
+      enum: [enumValue],
+    };
+    const testUiSchema: UiSchemaNodes = [rootNode, item];
+    validateTestUiSchema(testUiSchema);
     renderSchemaInspector(testUiSchema, item);
     await act(() => user.click(screen.queryAllByRole('tab')[1]));
-    await act(() => user.click(screen.getByDisplayValue('valid value')));
+    await act(() => user.click(screen.getByDisplayValue(enumValue)));
     await act(() => user.keyboard('{Enter}'));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
   });

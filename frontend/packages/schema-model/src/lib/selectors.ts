@@ -1,20 +1,12 @@
 import type { UiSchemaNode, UiSchemaNodes } from '../types';
-import { Keyword } from '../types';
-import { isProperty, makePointer } from './utils';
+import { isFieldOrCombination, isReference } from './utils';
 import { ROOT_POINTER } from './constants';
+import { SchemaModel } from './SchemaModel';
+import { CombinationNode } from '../types/CombinationNode';
+import { FieldNode } from '../types/FieldNode';
 
-export const getRootNodes = (uiSchemaNodes: UiSchemaNodes, defs: boolean): UiSchemaNodes => {
-  const rootNodes: UiSchemaNodes = [];
-  if (hasNodePointer(uiSchemaNodes, ROOT_POINTER)) {
-    getNodeByPointer(uiSchemaNodes, ROOT_POINTER)
-      .children.filter((p) => p.startsWith(makePointer(Keyword.Definitions)) === defs)
-      .forEach((childPointer) => rootNodes.push(getNodeByPointer(uiSchemaNodes, childPointer)));
-  }
-  return rootNodes;
-};
-
-export const getRootNode = (uiSchemaNodes: UiSchemaNodes): UiSchemaNode =>
-  getNodeByPointer(uiSchemaNodes, ROOT_POINTER);
+export const getRootNode = (uiSchemaNodes: UiSchemaNodes): FieldNode =>
+  getNodeByPointer(uiSchemaNodes, ROOT_POINTER) as FieldNode;
 
 /**
  * This little trick is what is making it possible to work with very large models. It's a needed complexity to beeing able
@@ -45,7 +37,13 @@ export const hasNodePointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): b
 export const getNodeByPointer = (
   uiSchemaNodes: UiSchemaNodes,
   pointer: string,
-): UiSchemaNode | undefined => getNodePointerCache(uiSchemaNodes).get(pointer);
+): UiSchemaNode | undefined => {
+  try {
+    return SchemaModel.fromArray(uiSchemaNodes).getNode(pointer);
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * Returns the index or undefined.
@@ -61,31 +59,25 @@ export const getNodeIndexByPointer = (
   return index > -1 ? index : undefined;
 };
 
-export const getChildPropertiesByPointer = (
-  uiSchemaNodes: UiSchemaNodes,
-  pointer: string,
-): UiSchemaNode[] => getChildNodesByPointer(uiSchemaNodes, pointer).filter(isProperty);
-
-export const getChildNodesByPointer = (
+export const getChildNodesByFieldPointer = (
   uiSchemaNodes: UiSchemaNodes,
   pointer: string,
 ): UiSchemaNode[] => {
-  const parentNode = getNodeByPointer(uiSchemaNodes, pointer);
-  if (!parentNode) return [];
-
-  return parentNode.children.map((childPointer) => getNodeByPointer(uiSchemaNodes, childPointer));
+  const node = getNodeByPointer(uiSchemaNodes, pointer);
+  if (!isFieldOrCombination(node)) return [];
+  return node.children.map((childPointer) => getNodeByPointer(uiSchemaNodes, childPointer));
 };
 
 export const getParentNodeByPointer = (
   uiSchemaNodes: UiSchemaNodes,
   pointer: string,
-): UiSchemaNode | undefined => {
+): CombinationNode | FieldNode | undefined => {
   const pointerParts = pointer.split('/');
   while (pointerParts.length) {
     pointerParts.pop();
     const pointerCandidate = pointerParts.join('/');
     if (hasNodePointer(uiSchemaNodes, pointerCandidate)) {
-      return getNodeByPointer(uiSchemaNodes, pointerCandidate);
+      return getNodeByPointer(uiSchemaNodes, pointerCandidate) as CombinationNode | FieldNode;
     }
   }
   return undefined;
@@ -99,12 +91,12 @@ const referredNodes: { uiSchemaNodes: UiSchemaNodes; cache: Map<string, UiSchema
   cache: new Map(),
 };
 
-export const getReferredNodes = (uiSchemaNodes: UiSchemaNodes, ref: string) => {
+export const getReferredNodes = (uiSchemaNodes: UiSchemaNodes, ref: string): UiSchemaNodes => {
   if (referredNodes.uiSchemaNodes !== uiSchemaNodes || referredNodes.cache.size === 0) {
     referredNodes.uiSchemaNodes = uiSchemaNodes;
     referredNodes.cache = new Map();
     uiSchemaNodes
-      .filter((node) => typeof node.reference === 'string')
+      .filter(isReference)
       .forEach((node) =>
         referredNodes.cache.set(node.reference ?? '_', [
           ...(referredNodes.cache.get(ref) ?? []),
