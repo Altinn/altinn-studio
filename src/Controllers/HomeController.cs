@@ -180,6 +180,7 @@ namespace LocalTest.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
+        [HttpGet("{userId}")]
         public async Task<ActionResult> GetTestUserToken(int userId)
         {
             UserProfile profile = await _userProfileService.GetUser(userId);
@@ -199,6 +200,7 @@ namespace LocalTest.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [HttpGet("{id}")]
         public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = null)
         {
             // Create a test token with long duration
