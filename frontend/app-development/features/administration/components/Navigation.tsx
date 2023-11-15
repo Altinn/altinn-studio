@@ -20,7 +20,12 @@ export const Navigation = () => {
       <div className={classes.links}>
         {menuItems.map((menuItem) => {
           return (
-            <Link key={menuItem.key} to={menuItem.link} className={classes.link}>
+            <Link
+              key={menuItem.key}
+              to={`../${menuItem.link}`}
+              className={classes.link}
+              title={t(menuItem.key)}
+            >
               <menuItem.icon className={classes.icon} />
               <span>{t(menuItem.key)}</span>
             </Link>
