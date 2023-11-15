@@ -232,7 +232,7 @@ export const addPropertyToExpression = (
 
 export const addSubExpressionToExpression = (
   oldExpression: Expression,
-  operator?: Operator,
+  operator: Operator,
 ): Expression => {
   const newExpression = deepCopy(oldExpression);
   const newSubExpression: SubExpression = {};

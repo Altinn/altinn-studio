@@ -337,10 +337,10 @@ describe('ExpressionContent', () => {
         onUpdateExpression: mockOnUpdateExpression,
       },
     });
-    const orOperatorToggleButton = screen.getByRole('button', {
+    const andOperatorToggleButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_operator_and'),
     });
-    await act(() => user.click(orOperatorToggleButton));
+    await act(() => user.click(andOperatorToggleButton));
     internalExpressionWithMultipleSubExpressions.operator = Operator.And;
     expect(mockOnUpdateExpression).toHaveBeenCalledWith(
       internalExpressionWithMultipleSubExpressions,

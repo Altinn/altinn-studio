@@ -1,5 +1,6 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { formDesignerMock } from '../../../testing/stateMocks';
@@ -15,6 +16,7 @@ import { FormComponent } from '../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { parsableExternalExpression } from '../../../testing/expressionMocks';
 import { FormContainer } from '../../../types/FormContainer';
+import { ExpressionPropertyBase } from '../../../types/Expressions';
 
 const org = 'org';
 const app = 'app';
@@ -88,6 +90,72 @@ describe('Expressions', () => {
       textMock('right_menu.expressions_expressions_limit_reached_alert'),
     );
     expect(expressionLimitAlert).toBeInTheDocument();
+  });
+
+  it('adds new expression on read only property when read only option is selected after add expression button is clicked', async () => {
+    const user = userEvent.setup();
+    render({});
+
+    const addExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_add'),
+    });
+    await act(() => user.click(addExpressionButton));
+    const propertyDropDown = screen.getByRole('combobox', {
+      name: textMock('right_menu.expressions_property'),
+    });
+    await act(() => user.click(propertyDropDown));
+    const propertyOption = screen.getByRole('option', {
+      name: textMock('right_menu.expressions_property_read_only'),
+    });
+    await act(() => user.click(propertyOption));
+
+    const newExpression = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_property'),
+    });
+    expect(newExpression).toBeInTheDocument();
+    expect(newExpression).toHaveValue(ExpressionPropertyBase.ReadOnly);
+  });
+
+  it('updates existing expression when property is changed', async () => {
+    const user = userEvent.setup();
+    render({});
+
+    const editExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_edit'),
+    });
+    await act(() => user.click(editExpressionButton));
+    const propertyDropDown = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_property'),
+    });
+    expect(propertyDropDown).toHaveValue(ExpressionPropertyBase.Hidden);
+
+    await act(() => user.click(propertyDropDown));
+    const readOnlyPropertyOption = screen.getByRole('option', {
+      name: textMock('right_menu.expressions_property_read_only'),
+    });
+    await act(() => user.click(readOnlyPropertyOption));
+
+    const updatedPropertyDropDown = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_property'),
+    });
+    expect(updatedPropertyDropDown).toHaveValue(ExpressionPropertyBase.ReadOnly);
+  });
+
+  it('expression is no longer in previewMode when edit expression is clicked', async () => {
+    const user = userEvent.setup();
+    render({});
+
+    const expressionInPreview = screen.getByText(
+      textMock('[mockedText(right_menu.expressions_property_preview_hidden)]'),
+    );
+    expect(expressionInPreview).toBeInTheDocument();
+
+    const editExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_edit'),
+    });
+    await act(() => user.click(editExpressionButton));
+
+    expect(expressionInPreview).not.toBeInTheDocument();
   });
 
   it('Renders successfully when the component is a multipage group', () => {
