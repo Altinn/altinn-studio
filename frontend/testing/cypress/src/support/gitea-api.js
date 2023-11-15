@@ -48,7 +48,11 @@ Cypress.Commands.add('deleteAllApps', (ownerName, accessToken, isOrg) => {
 Cypress.Commands.add(
   'deleteApp',
   (ownerName, appName, accessToken) =>
-    cy.request('DELETE', `${giteaBaseUrl}/repos/${ownerName}/${appName}?token=${accessToken}`)
+    cy.request({
+      method: 'DELETE',
+      url: `${giteaBaseUrl}/repos/${ownerName}/${appName}?token=${accessToken}`,
+      failOnStatusCode: false,
+    })
 );
 
 /**
