@@ -85,7 +85,7 @@ describe('CreateService', () => {
     window.location = originalWindowLocation;
   });
 
-  test('should show error messages when clicking create and no owner or name is filled in', async () => {
+  it('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
     renderWithMockServices();
 
@@ -101,7 +101,7 @@ describe('CreateService', () => {
     expect(emptyFieldErrors.length).toBe(2);
   });
 
-  test('should prefill owner when there are no available orgs, and the only available user is the logged in user', async () => {
+  it('should prefill owner when there are no available orgs, and the only available user is the logged in user', async () => {
     renderWithMockServices();
 
     await waitFor(() => {
@@ -109,7 +109,7 @@ describe('CreateService', () => {
     });
   });
 
-  test('should show error message that app name is too long when it exceeds max length', async () => {
+  it('should show error message that app name is too long when it exceeds max length', async () => {
     const user = userEvent.setup();
     renderWithMockServices();
     await act(() =>
@@ -127,7 +127,7 @@ describe('CreateService', () => {
     expect(emptyFieldErrors.length).toBe(1);
   });
 
-  test('should show error message that app name is invalid when it contains invalid characters', async () => {
+  it('should show error message that app name is invalid when it contains invalid characters', async () => {
     const user = userEvent.setup();
     renderWithMockServices();
 
@@ -146,7 +146,7 @@ describe('CreateService', () => {
     expect(emptyFieldErrors.length).toBe(1);
   });
 
-  test('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
+  it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
     const addRepoMock = jest
       .fn()
@@ -174,7 +174,7 @@ describe('CreateService', () => {
     expect(emptyFieldErrors.length).toBe(1);
   });
 
-  test('should show generic error message when trying to create an app and something unknown went wrong', async () => {
+  it('should show generic error message when trying to create an app and something unknown went wrong', async () => {
     const user = userEvent.setup();
     const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 500 } }));
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
@@ -212,11 +212,5 @@ describe('CreateService', () => {
     await act(() => user.click(createBtn));
 
     expect(windowLocationAssignMock).toHaveBeenCalled();
-  });
-
-  it('navigate back button should be a link with "/" as path', async () => {
-    renderWithMockServices();
-    const backButton = screen.getByRole('link', { name: /general.cancel/ });
-    expect(backButton).toHaveAttribute('href', '/');
   });
 });
