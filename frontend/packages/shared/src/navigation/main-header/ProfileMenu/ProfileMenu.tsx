@@ -7,7 +7,7 @@ import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../../ap
 import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/User';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Button, Paragraph } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import * as testids from '../../../../../../testing/testids';
 
 export interface IProfileMenuComponentProps {
