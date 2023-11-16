@@ -80,7 +80,7 @@ namespace Altinn.Studio.Designer.Controllers
             return LocalRedirect("/dashboard");
         }
 
-        [Route("/{*AllValues}")]
+        [Route("/{*AllValues:regex(^(?!designer).*$)}")]
         public IActionResult Index()
         {
             return View();

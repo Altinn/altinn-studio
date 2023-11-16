@@ -13,7 +13,6 @@ import * as testids from '../../../../../testing/testids';
 export type HeaderMenuProps = {
   org: string;
   repo?: string;
-  user?: any;
 };
 
 export function HeaderMenu({ org, repo }: HeaderMenuProps) {
