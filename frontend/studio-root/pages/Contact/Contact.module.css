@@ -15,18 +15,6 @@
   max-width: 1230px;
 }
 
-.breadcrumb {
-  font: var(--fds-typography-paragraph-large);
-  margin: var(--fds-spacing-8);
-  margin-bottom: unset;
-  padding: unset;
-}
-
-.breadcrumbItem {
-  display: inline-flex;
-  align-items: center;
-}
-
 .content {
   display: flex;
   flex-direction: column;

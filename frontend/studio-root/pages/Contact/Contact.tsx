@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './Contact.module.css';
 import { Heading, Link, Paragraph } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
-import { EnvelopeClosedIcon, ChevronRightIcon } from '@navikt/aksel-icons';
+import { EnvelopeClosedIcon } from '@navikt/aksel-icons';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import Slack from 'app-shared/icons/Slack.svg';
 
@@ -12,17 +12,6 @@ export const Contact = () => {
   return (
     <PageContainer>
       <div className={classes.container}>
-        <nav aria-label='Breadcrumb'>
-          <ol className={classes.breadcrumb}>
-            <li className={classes.breadcrumbItem}>
-              <Link href='/dashboard'>{t('general.dashboard')}</Link>
-              <ChevronRightIcon />
-            </li>
-            <li className={classes.breadcrumbItem}>
-              <span aria-current='page'>{t('general.contact')}</span>
-            </li>
-          </ol>
-        </nav>
         <div className={classes.content}>
           <div>
             <Heading size='medium' spacing>
