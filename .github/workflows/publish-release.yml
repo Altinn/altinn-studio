@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
-            6.0.x
+            8.0.x
       - name: Install deps
         run: |
           dotnet restore
@@ -48,7 +48,7 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
-            6.0.x
+            8.0.x
       - name: Build bundles
         run: |
           make bundles

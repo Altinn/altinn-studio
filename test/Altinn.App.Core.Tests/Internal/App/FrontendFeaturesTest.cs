@@ -36,7 +36,7 @@ namespace Altinn.App.Core.Tests.Internal.App
                 { "jsonObjectInDataResponse", true },
             };
             var featureManagerMock = new Mock<IFeatureManager>();
-            featureManagerMock.Setup(f => f.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse, default)).ReturnsAsync(true);
+            featureManagerMock.Setup(f => f.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse)).ReturnsAsync(true);
             IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
             var actual = await frontendFeatures.GetFrontendFeatures();
             actual.Should().BeEquivalentTo(expected);

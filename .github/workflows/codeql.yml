@@ -26,6 +26,16 @@ jobs:
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
     steps:
+    # The following step is required in order to use .NET 8 pre-release.
+    # We can remove if using an officially supported .NET version.
+    # See https://github.com/github/codeql-action/issues/757#issuecomment-977546999
+    - name: Setup .NET
+       uses: actions/setup-dotnet@v3
+       with:
+         dotnet-version: |
+           8.0.x
+         include-prerelease: true
+
     - name: Checkout repository
       uses: actions/checkout@v4
 

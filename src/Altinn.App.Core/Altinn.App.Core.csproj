@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -18,7 +18,7 @@
     <PackageReference Include="JWTCookieAuthentication" Version="3.0.1" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
-    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.0.0-preview" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Scrutor" Version="4.2.2" />
     <PackageReference Include="prometheus-net" Version="8.0.0" />
