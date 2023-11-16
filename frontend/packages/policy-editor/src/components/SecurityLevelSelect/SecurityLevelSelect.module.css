@@ -15,4 +15,9 @@
 
 .link {
   display: inline;
+  font: var(--fds-typography-paragraph-small);
+}
+
+.securityLevelContainer {
+  max-width: 650px;
 }
