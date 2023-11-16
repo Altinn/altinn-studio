@@ -87,7 +87,7 @@ export const ProfileMenu = ({
       aria-haspopup
       ref={menuRef}
     >
-      <div className={classes.userOrgNames}>{userNameAndOrg}</div>
+      <span className={classes.userOrgNames}>{userNameAndOrg}</span>
       <img
         alt={t('general.profile_icon')}
         title={t('shared.header_profile_icon_text')}
