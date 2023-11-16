@@ -5,7 +5,7 @@ import { Button, Spinner, Heading } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
+import { useGetResourceListQuery, useOrganizationsQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
@@ -13,6 +13,7 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from 'resourceadm/utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getReposLabel } from 'dashboard/utils/repoUtils';
 
 /**
  * @component
@@ -21,8 +22,9 @@ import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceDashboardPage = (): React.ReactNode => {
-  const { org: selectedContext } = useParams();
+  const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
+  const { data: organizations } = useOrganizationsQuery();
 
   const { t } = useTranslation();
 
@@ -88,7 +90,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
         <Heading size='large' level={1}>
-          {t('resourceadm.dashboard_header', { org: selectedContext })}
+          {getReposLabel({ selectedContext, orgs: organizations, t, isResourcesRepo: true })}
         </Heading>
         <div className={classes.topRightWrapper}>
           <Button

@@ -51,7 +51,7 @@ export const DeployResourcePage = ({
 }: DeployResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { org: selectedContext, resourceId } = useParams();
+  const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);

@@ -29,7 +29,7 @@ export type PolicyEditorPageProps = {
 export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { resourceId, org: selectedContext } = useParams();
+  const { resourceId, selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   // Get the data

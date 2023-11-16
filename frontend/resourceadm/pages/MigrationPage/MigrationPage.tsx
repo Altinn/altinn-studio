@@ -40,7 +40,7 @@ export const MigrationPage = ({
 }: MigrationPageProps): React.ReactNode => {
   // TODO - translation. Issue: #10715
 
-  const { org: selectedContext, resourceId } = useParams();
+  const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
