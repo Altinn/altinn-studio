@@ -8,10 +8,17 @@
   flex-direction: row;
   gap: var(--fds-spacing-2);
 }
+
 .horizontal div div {
   display: block;
 }
-.checkBoxLabelContainer {
+
+.checkboxGroup div label {
+  display: inline-flex;
+  padding-left: 3px;
+}
+
+.checkboxLabelContainer {
   display: flex;
   gap: var(--fds-spacing-1);
   align-items: center;

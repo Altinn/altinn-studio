@@ -107,7 +107,7 @@ export const CheckboxContainerComponent = ({
       onBlur={handleBlur}
     >
       <Checkbox.Group
-        className={cn({ [classes.horizontal]: horizontal })}
+        className={cn({ [classes.horizontal]: horizontal }, classes.checkboxGroup)}
         legend={labelTextGroup}
         description={lang(textResourceBindings?.description)}
         disabled={readOnly}
@@ -144,7 +144,7 @@ export const CheckboxContainerComponent = ({
               size='small'
             >
               {
-                <span className={cn({ 'sr-only': hideLabel }, classes.checkBoxLabelContainer)}>
+                <span className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}>
                   {langAsString(option.label)}
                   {option.helpText && (
                     <HelpText title={getPlainTextFromNode(option.helpText)}>{lang(option.helpText)}</HelpText>
