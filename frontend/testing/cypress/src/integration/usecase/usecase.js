@@ -21,11 +21,12 @@ context(
     before(() => {
       cy.studioLogin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
       const deployAppId = `${Cypress.env('orgUserName')}/${Cypress.env('deployAppName')}`;
-      cy.getRepoByAppId(deployAppId, Cypress.env('accessToken')).then((response) => {
-        if (response.status === 404) {
-          cy.createApp(Cypress.env('orgFullName'), Cypress.env('deployAppName'));
-        }
-      });
+      cy.deleteApp(
+        Cypress.env('orgUserName'),
+        Cypress.env('deployAppName'),
+        Cypress.env('accessToken'),
+      );
+      cy.createApp(Cypress.env('orgFullName'), Cypress.env('deployAppName'));
     });
     beforeEach(() => {
       cy.studioLogin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));

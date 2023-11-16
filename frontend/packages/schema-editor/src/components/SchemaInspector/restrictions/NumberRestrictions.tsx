@@ -143,7 +143,7 @@ export function NumberRestrictions({
             id='schema_editor.multipleOf'
             formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
             onChange={(e) =>
-              dispatchAction(NumberRestrictionsReducerActionType.setRestriction, e.target.value)
+              dispatchAction(NumberRestrictionsReducerActionType.setMultipleOf, e.target.value)
             }
             value={formatState.restrictions[IntRestrictionKey.multipleOf.toString()]}
           />

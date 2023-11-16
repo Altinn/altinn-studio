@@ -161,7 +161,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:frontend/packages/text-editor"
   dependencies:
-    iso-639-1: 2.1.15
+    iso-639-1: 3.1.0
     jest: 29.7.0
   peerDependencies:
     react: 18.2.0
@@ -1776,6 +1776,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@digdir/design-system-react@npm:0.36.0":
+  version: 0.36.0
+  resolution: "@digdir/design-system-react@npm:0.36.0"
+  dependencies:
+    "@altinn/figma-design-tokens": ^6.0.1
+    "@digdir/design-system-tokens": ^0.9.0
+    "@floating-ui/react": 0.25.2
+    "@navikt/aksel-icons": ^3.2.4
+    react-number-format: 5.2.2
+  peerDependencies:
+    react: ">=18.2.0"
+    react-dom: ">=18.2.0"
+  checksum: 8e1c4421495a1415e829ed30bd7f21bcb9a318ced0df645fedddd54cab95323df755aeb5fbb590dc30293da9c667203c9213f7c7fe5e7548ccf0c65ef50bfda3
+  languageName: node
+  linkType: hard
+
 "@digdir/design-system-tokens@npm:0.8.1, @digdir/design-system-tokens@npm:^0.8.1":
   version: 0.8.1
   resolution: "@digdir/design-system-tokens@npm:0.8.1"
@@ -1787,6 +1803,13 @@ __metadata:
   version: 0.1.7
   resolution: "@digdir/design-system-tokens@npm:0.1.7"
   checksum: dabe357c8d262cd6f6430a722f30dc3aa70243bd12cdc39886b655b1ee9a22c471e5131906944a6164c166ef54b86e69526fec5fa8750ad8c9f4444a4aeedf0d
+  languageName: node
+  linkType: hard
+
+"@digdir/design-system-tokens@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "@digdir/design-system-tokens@npm:0.9.0"
+  checksum: 89b2fa83803510111e5e3bfd746034a118f87bc957abf548f0e4e763a5128561e68ec638ae22724cfc778c075d3e0636ef3af3d6c04c5b1785eb838eff9df64f
   languageName: node
   linkType: hard
 
@@ -5546,7 +5569,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": 0.29.1
     "@altinn/figma-design-tokens": 6.0.1
-    "@digdir/design-system-react": 0.35.0
+    "@digdir/design-system-react": 0.36.0
     "@digdir/design-system-tokens": 0.8.1
     "@emotion/react": 11.11.1
     "@emotion/styled": 11.11.0
@@ -10836,10 +10859,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iso-639-1@npm:2.1.15":
-  version: 2.1.15
-  resolution: "iso-639-1@npm:2.1.15"
-  checksum: a201530819d33e9ce077b02c786d67b35be5d823be27b5aacc18d880e580e559e39ec5055f8e2abcdc210f46618a643bf3c74e6fe6e8255fe62059682750e595
+"iso-639-1@npm:3.1.0":
+  version: 3.1.0
+  resolution: "iso-639-1@npm:3.1.0"
+  checksum: f0971cb59f527661a0e292074a02126cf9d107442155636e7fcf7dec15b467c0881ae26c23eb5afee12b62defa9e497deb7f0bf4bf714a7d406cd1562c386a58
   languageName: node
   linkType: hard
 
