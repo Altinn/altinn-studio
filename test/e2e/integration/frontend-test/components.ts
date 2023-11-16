@@ -423,4 +423,19 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Sophie Salt');
     cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Dole');
   });
+
+  it('should be possible to change language back and forth and reflect the change in the UI', () => {
+    cy.goto('changename');
+
+    const changeLang = (lang: string, elName: string) => {
+      cy.findByRole('combobox', { name: elName }).click();
+      cy.findByRole('option', { name: lang }).click();
+    };
+
+    cy.get('[data-testid="label-newFirstName"]').should('contain.text', 'Nytt fornavn');
+    changeLang('Engelsk', 'Språk');
+    cy.get('[data-testid="label-newFirstName"]').should('contain.text', 'New first name');
+    changeLang('Norwegian bokmål', 'Language');
+    cy.get('[data-testid="label-newFirstName"]').should('contain.text', 'Nytt fornavn');
+  });
 });
