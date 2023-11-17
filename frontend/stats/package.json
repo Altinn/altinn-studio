@@ -18,7 +18,7 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "5.2.2"
   },
-  "packageManager": "yarn@3.6.4",
+  "packageManager": "yarn@4.0.2",
   "private": true,
   "scripts": {
     "generate-config-coverage-stats": "node -r ts-node/register/transpile-only -r tsconfig-paths/register configurationStats/run.ts",
