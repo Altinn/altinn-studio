@@ -75,12 +75,15 @@ export const RemoveChangesModal = ({
       </Paragraph>
       <div className={classes.textFieldWrapper}>
         <Textfield
-          label='Skriv inn navn på repoet for å bekrefte'
+          label={t('resourceadm.reset_repo_confirm_repo_name')}
           value={deleteRepoName}
           onChange={(e) => setDeleteRepoName(e.target.value)}
           aria-labelledby='delete-changes'
         />
-        <ScreenReaderSpan id='delete-changes' label='Skriv inn navn på repoet for å bekrefte' />
+        <ScreenReaderSpan
+          id='delete-changes'
+          label={t('resourceadm.reset_repo_confirm_repo_name')}
+        />
       </div>
       <div className={classes.buttonWrapper}>
         <Button
