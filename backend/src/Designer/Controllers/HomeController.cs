@@ -83,6 +83,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/{*AllValues:regex(^(?!designer).*$)}")]
         public IActionResult Index()
         {
+            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
             return View();
         }
 
