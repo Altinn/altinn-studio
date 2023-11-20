@@ -5,6 +5,7 @@ on:
     paths:
       - 'frontend/**'
       - '!frontend/testing/cypress/**'
+      - '!frontend/stats/**'
       - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
