@@ -47,6 +47,7 @@ export const RadioButton = ({
   const radioButton = (
     <Radio
       {...rest}
+      className={classes.radioButton}
       onChange={handleChange}
       ref={showAsCard ? inputRef : undefined}
     >

@@ -1,0 +1,95 @@
+.appBarWrapper {
+  flex-grow: 1;
+}
+
+.appBarWrapper header {
+  box-shadow: none;
+}
+
+.blueDark {
+  color: var(--fds-semantic-surface-action-default);
+}
+
+.blueDarker {
+  color: var(--fds-semantic-surface-action-active);
+}
+
+.default {
+  background-color: transparent;
+}
+
+.headerLink {
+  color: var(--fds-semantic-surface-action-default);
+  font-size: 1.25rem;
+  line-height: 1.5;
+  margin-left: 2.25rem;
+  padding-bottom: 3px;
+
+  @media screen and (max-width: 1024.95px) {
+    font-size: 1.125rem;
+  }
+
+  &:hover {
+    padding: 0;
+  }
+
+  & a {
+    color: var(--fds-semantic-surface-action-default);
+    border-bottom: 0;
+  }
+
+  & a:hover {
+    color: var(--fds-semantic-surface-action-default);
+    border-bottom: 3px solid var(--fds-semantic-surface-action-default);
+  }
+}
+
+.headerLinkList {
+  flex-grow: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  float: left;
+}
+
+.headerLinkList li {
+  display: inline;
+}
+
+.headerProfile {
+  float: right;
+}
+
+.languageDropdown {
+  font-size: 0.875rem;
+}
+
+.logo {
+  margin-right: 0.75rem;
+}
+
+.partyIcon {
+  font-size: 1.9375rem !important;
+  margin-left: 5px;
+}
+
+.toolbarContainer {
+  padding-top: 1.875rem;
+  margin-bottom: 2.25rem;
+  padding-left: 0;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+.toolbarContainer .a-personSwitcher {
+  margin-top: 0;
+  margin-left: 1.5rem;
+}
+
+.gridStyle {
+  flex-grow: 1;
+}
+
+.spanStyle {
+  margin-bottom: 10px;
+}

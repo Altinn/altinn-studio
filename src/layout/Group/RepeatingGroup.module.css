@@ -137,6 +137,7 @@
   width: 100%;
   display: inline-block;
   padding: var(--modal-padding-y) var(--modal-padding-x);
+  box-sizing: border-box;
 }
 
 .nestedEditContainer {
@@ -144,6 +145,7 @@
   width: 100%;
   display: inline-block;
   padding: 12px 24px;
+  box-sizing: border-box;
 }
 
 .hideTable {
@@ -160,4 +162,8 @@
 .mobileTableCell {
   padding-top: var(--table-input-margin);
   padding-bottom: var(--table-input-margin);
+}
+
+.tableCell {
+  box-sizing: border-box;
 }

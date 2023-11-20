@@ -4,6 +4,10 @@
   align-items: center;
 }
 
+.radioButton {
+  box-sizing: border-box;
+}
+
 .card {
   border-radius: 6px;
   background-color: var(--fds-semantic-background-subtle);

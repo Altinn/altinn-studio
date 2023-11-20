@@ -19,6 +19,7 @@
   max-width: var(--page-max-width);
   margin: 0 auto;
   padding: 12px var(--page-padding-x);
+  box-sizing: border-box;
 }
 
 @media only screen and (min-width: 576px) {

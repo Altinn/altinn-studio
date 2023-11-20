@@ -33,6 +33,7 @@
   width: 100%;
   margin-top: 12px;
   margin-bottom: 12px;
+  box-sizing: border-box;
 }
 
 .select {

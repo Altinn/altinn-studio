@@ -7,11 +7,6 @@
  * Copyright 2011-2021 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
 
 article,
 aside,
@@ -9574,10 +9569,6 @@ fieldset[disabled] .datepicker table tr td span.active:hover:hover {
 /*------------------------------------*\
     $RESET
 \*------------------------------------*/
-/* Border-Box http:/paulirish.com/2012/box-sizing-border-box-ftw/ */
-* {
-  box-sizing: border-box;
-}
 
 header,
 footer,

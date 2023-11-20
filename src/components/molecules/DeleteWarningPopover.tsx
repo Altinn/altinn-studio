@@ -1,17 +1,9 @@
 import React from 'react';
 
 import { Button, LegacyPopover } from '@digdir/design-system-react';
-import { makeStyles } from '@material-ui/core';
 
+import classes from 'src/components/molecules/DeleteWarningPopover.module.css';
 import { useLanguage } from 'src/hooks/useLanguage';
-
-const useStyles = makeStyles({
-  popoverButtonContainer: {
-    display: 'flex',
-    marginTop: '0.625rem',
-    gap: '0.625rem',
-  },
-});
 
 export interface IDeleteWarningPopover {
   children: React.ReactNode;
@@ -34,7 +26,6 @@ export function DeleteWarningPopover({
   open,
   setOpen,
 }: IDeleteWarningPopover) {
-  const classes = useStyles();
   const { lang } = useLanguage();
   return (
     <LegacyPopover
@@ -42,6 +33,7 @@ export function DeleteWarningPopover({
       placement={placement}
       trigger={children}
       open={open}
+      className={classes.popover}
       onOpenChange={() => setOpen(!open)}
     >
       <div>{messageText}</div>

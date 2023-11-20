@@ -1,8 +1,9 @@
 import React from 'react';
 
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import cn from 'classnames';
 
+import classes from 'src/components/AltinnAppHeader.module.css';
 import { AltinnLogo } from 'src/components/AltinnLogo';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
 import { useLanguage } from 'src/hooks/useLanguage';
@@ -16,89 +17,8 @@ export interface IHeaderProps {
   type?: string;
 }
 
-const useStyles = makeStyles((theme) => ({
-  appBarWrapper: {
-    flexGrow: 1,
-    '& header': {
-      boxShadow: 'none',
-    },
-  },
-  blueDark: {
-    color: theme.altinnPalette.primary.blueDark,
-  },
-  blueDarker: {
-    color: theme.altinnPalette.primary.blueDarker,
-  },
-  default: {
-    backgroundColor: 'transparent',
-  },
-  headerLink: {
-    color: theme.altinnPalette.primary.blueDark,
-    fontSize: '1.25rem',
-    lineHeight: '1.5',
-    marginLeft: '2.25rem',
-    paddingBottom: '3px',
-    [theme.breakpoints.down('sm')]: {
-      fontSize: '1.125rem',
-    },
-    '&:hover': {
-      padding: 0,
-    },
-    '& a': {
-      color: theme.altinnPalette.primary.blueDark,
-      borderBottom: 0,
-    },
-    '& a:hover': {
-      color: theme.altinnPalette.primary.blueDark,
-      borderBottom: `3px solid ${theme.altinnPalette.primary.blueDark}`,
-    },
-  },
-  headerLinkList: {
-    flexGrow: 1,
-    listStyle: 'none',
-    margin: 0,
-    padding: 0,
-    float: 'left',
-    '& li': {
-      display: 'inline',
-    },
-  },
-  headerProfile: {
-    float: 'right',
-  },
-  languageDropdown: {
-    fontSize: '0.875rem',
-  },
-  logo: {
-    marginRight: '0.75rem',
-  },
-  partyIcon: {
-    fontSize: '1.9375rem !important',
-    marginLeft: '5px',
-  },
-  toolbarContainer: {
-    paddingTop: '1.875rem',
-    marginBottom: '2.25rem',
-    '& .a-personSwitcher': {
-      marginTop: '0',
-      marginLeft: '1.5rem',
-    },
-    paddingLeft: '0',
-    paddingRight: '0',
-  },
-}));
-
-const spanStyle = {
-  marginBottom: '10px',
-};
-
-const gridStyle = { flexGrow: 1 };
-
-const emptyObj = {};
-
 export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
   const party = profile?.party;
-  const classes = useStyles();
   const { langAsString } = useLanguage();
   const blueClass = type ? classes.blueDark : classes.blueDarker;
 
@@ -122,8 +42,7 @@ export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
         <Toolbar className={classes.toolbarContainer}>
           <Grid
             item={true}
-            className={classes.logo}
-            style={!type ? gridStyle : emptyObj}
+            className={cn(classes.logo, !type && classes.gridStyle)}
           >
             <AltinnLogo
               color={
@@ -153,14 +72,8 @@ export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
             </ul>
           )}
           {party && (
-            <div
-              className='a-personSwitcher'
-              title={renderParty(profile) || ''}
-            >
-              <span
-                className='a-personSwitcher-name'
-                style={spanStyle}
-              >
+            <div title={renderParty(profile) || ''}>
+              <span className={cn('a-personSwitcher-name', classes.spanStyle)}>
                 {!type && (
                   <>
                     <span className={`d-block ${blueClass}`}>{renderParty(profile)}</span>

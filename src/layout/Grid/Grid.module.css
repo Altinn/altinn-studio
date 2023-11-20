@@ -28,6 +28,7 @@ tr > .fullWidthCellLast {
 .tableCellFormatting {
   --cell-width: auto;
   width: var(--cell-width);
+  box-sizing: border-box;
 }
 
 /* The width here should be: calc(var(--cell-width) + var(--modal-padding-x) - var(--table-input-margin));

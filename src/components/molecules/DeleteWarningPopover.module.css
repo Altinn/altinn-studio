@@ -1,0 +1,10 @@
+.popoverButtonContainer {
+  display: flex;
+  flex-direction: row;
+  margin-top: 0.625rem;
+  gap: 0.625rem;
+}
+
+.popover {
+  box-sizing: border-box;
+}
