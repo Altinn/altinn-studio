@@ -25,7 +25,7 @@ context('datamodel', () => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
-  it('Add a new data model, include an object in the data model, and rename it. After that, add two strings (text1 and text2) and one integer (number1) to the object (test). Finally, check if generating the model is okay.', () => {
+  it('Allows to add a datamodel, include an object with custom name and fields in it, and generate a C# model from it', () => {
     datamodel.getCreateNewButton().click();
     cy.findByRole('textbox').type('datamodel');
     cy.findByRole('button', { name: texts['schema_editor.create_model_confirm_button'] }).click();
@@ -56,11 +56,14 @@ context('datamodel', () => {
       });
 
     // Add text2
-    cy.findAllByRole('button', { name: texts['schema_editor.open_action_menu'] })
-      .should('exist')
-      .then((button) => {
-        button[3].click();
-      });
+    datamodel
+      .getProperty(/^test /)
+      .within(() =>
+        cy
+          .findAllByRole('button', { name: texts['schema_editor.open_action_menu'] })
+          .first()
+          .click(),
+      );
     cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
       .should('exist')
       .click()
@@ -73,11 +76,14 @@ context('datamodel', () => {
       });
 
     //Add number1
-    cy.findAllByRole('button', { name: texts['schema_editor.open_action_menu'] })
-      .should('exist')
-      .then((button) => {
-        button[3].click();
-      });
+    datamodel
+      .getProperty(/^test /)
+      .within(() =>
+        cy
+          .findAllByRole('button', { name: texts['schema_editor.open_action_menu'] })
+          .first()
+          .click(),
+      );
     cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
       .should('exist')
       .click()
