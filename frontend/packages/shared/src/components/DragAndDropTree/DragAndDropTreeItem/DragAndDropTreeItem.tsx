@@ -5,9 +5,12 @@ import { DragAndDropTreeRootContext } from '../DragAndDropTreeRoot';
 import { DragAndDropTreeItemContext } from './DragAndDropTreeItemContext';
 import classes from './DragAndDropTreeItem.module.css';
 import cn from 'classnames';
+import { EmptyList } from 'app-shared/components/DragAndDropTree/EmptyList/EmptyList';
 
 export interface DragAndDropTreeItemProps {
   children?: ReactNode;
+  emptyMessage?: string;
+  expandable?: boolean;
   icon?: ReactNode;
   label: string;
   labelWrapper?: (children: ReactNode) => ReactNode;
@@ -16,6 +19,8 @@ export interface DragAndDropTreeItemProps {
 
 export const DragAndDropTreeItem = ({
   children,
+  emptyMessage,
+  expandable,
   icon,
   label,
   labelWrapper,
@@ -24,7 +29,7 @@ export const DragAndDropTreeItem = ({
   const { hoveredNodeParent, setHoveredNodeParent } = useContext(DragAndDropTreeRootContext);
   const { nodeId: parentId } = useContext(DragAndDropTreeItemContext);
 
-  const subList = children ? <DragAndDrop.List>{children}</DragAndDrop.List> : null;
+  const isExpandable = expandable || Boolean(children);
   const renderLabel = labelWrapper ?? ((node) => node);
   const handleDragOver = () => setHoveredNodeParent(parentId);
   const hasHoveredItemClass = hoveredNodeParent === nodeId ? classes.hasHoveredItem : null;
@@ -49,10 +54,15 @@ export const DragAndDropTreeItem = ({
               </div>
             )}
           >
-            {subList}
+            {isExpandable && renderChildren(children, emptyMessage)}
           </TreeView.Item>
         </DragAndDropTreeItemContext.Provider>
       )}
     />
   );
+};
+
+const renderChildren = (children: ReactNode, emptyMessage?: string) => {
+  const content = children || <EmptyList>{emptyMessage}</EmptyList>;
+  return <DragAndDrop.List>{content}</DragAndDrop.List>;
 };

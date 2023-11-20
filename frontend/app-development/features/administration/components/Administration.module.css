@@ -61,6 +61,13 @@
   padding-top: var(--fds-spacing-8);
 }
 
+@media (min-width: 768px) {
+  .pageContainer::before {
+    background-position: center 0;
+    background-size: 100% auto;
+  }
+}
+
 @media (min-width: 960px) {
   .content {
     flex-direction: row;
