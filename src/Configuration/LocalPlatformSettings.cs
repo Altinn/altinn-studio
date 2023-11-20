@@ -10,7 +10,7 @@ namespace LocalTest.Configuration
         string _localTestDataPath = null;
 
         /// <summary>
-        /// The endpoint for the bridge
+        /// The path to the local storage folder
         /// </summary>
         public string LocalTestingStorageBasePath { get; set; }
 
@@ -21,12 +21,16 @@ namespace LocalTest.Configuration
 
         public string BlobStorageFolder { get; set; } = "blobs/";
 
+        public string NotificationsStorageFolder { get; set; } = "notifications/";
+
         /// <summary>
         /// Folder where static test data like profile, authorization, and register data is available for local testing.
         /// </summary>
-        public string LocalTestingStaticTestDataPath {
+        public string LocalTestingStaticTestDataPath
+        {
             get => _localTestDataPath;
-            set {
+            set
+            {
                 if (!value.EndsWith(Path.DirectorySeparatorChar) &&
                     !value.EndsWith(Path.AltDirectorySeparatorChar))
                 {
@@ -47,7 +51,7 @@ namespace LocalTest.Configuration
         /// <summary>
         public string LocalAppMode { get; set; }
 
-        public string DocumentDbFolder { get; set;  } = "documentdb/";
+        public string DocumentDbFolder { get; set; } = "documentdb/";
 
         public string InstanceCollectionFolder { get; set; } = "instances/";
 

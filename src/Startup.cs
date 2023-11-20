@@ -28,6 +28,7 @@ using AltinnCore.Authentication.JwtCookie;
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Helpers;
+using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authorization.Implementation;
@@ -43,14 +44,7 @@ using LocalTest.Services.Storage.Implementation;
 using LocalTest.Services.TestData;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.StaticFiles.Infrastructure;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -127,6 +121,11 @@ namespace LocalTest
             services.AddTransient<IAuthorizationHandler, StorageAccessHandler>();
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
+            // Notifications services
+            
+            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+            services.AddNotificationServices(generalSettings.BaseUrl);
+            
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
