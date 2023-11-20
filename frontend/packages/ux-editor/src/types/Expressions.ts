@@ -3,7 +3,7 @@ import { LayoutItemType } from './global';
 
 export interface Expression {
   operator?: Operator;
-  property?: ExpressionProperty;
+  property: ExpressionProperty;
   subExpressions?: SubExpression[];
   complexExpression?: any;
 }

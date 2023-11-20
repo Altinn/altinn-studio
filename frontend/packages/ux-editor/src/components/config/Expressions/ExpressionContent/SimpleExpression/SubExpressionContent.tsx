@@ -6,12 +6,12 @@ import {
   ExpressionFunction,
   SubExpression,
   expressionFunctionTexts,
-} from '../../../types/Expressions';
+} from '../../../../../types/Expressions';
 import { TrashIcon } from '@navikt/aksel-icons';
 import classes from './SubExpressionContent.module.css';
 import { DataSourceValue } from './DataSourceValue';
-import { addDataSource, addDataSourceValue } from '../../../utils/expressionsUtils';
-import { useText } from '../../../hooks';
+import { addDataSource, addDataSourceValue } from '../../../../../utils/expressionsUtils';
+import { useText } from '../../../../../hooks';
 
 export interface SubExpressionContentProps {
   subExpression: SubExpression;

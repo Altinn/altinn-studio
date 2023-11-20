@@ -5,7 +5,7 @@ import {
   expressionInPreviewPropertyTexts,
   expressionPropertyTexts,
   Operator,
-} from '../../../types/Expressions';
+} from '../../../../types/Expressions';
 import { Button, Select, Switch } from '@digdir/design-system-react';
 import { CheckmarkIcon, PencilIcon, PlusCircleIcon, TrashIcon } from '@navikt/aksel-icons';
 import { Trans } from 'react-i18next';
@@ -21,50 +21,44 @@ import {
   updateComplexExpressionOnExpression,
   updateSubExpressionOnExpression,
   updateOperatorOnExpression,
-} from '../../../utils/expressionsUtils';
-import { useText } from '../../../hooks';
+} from '../../../../utils/expressionsUtils';
+import { useText } from '../../../../hooks';
 import { ComplexExpression } from './ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
-import { stringifyData } from '../../../utils/jsonUtils';
-import { ExpressionState } from './Expressions';
+import { stringifyData } from '../../../../utils/jsonUtils';
 
 export interface ExpressionContentProps {
   componentName: string;
-  expressionState: ExpressionState;
+  expression: Expression;
   onGetProperties: () => string[];
   onSaveExpression: (expression: Expression) => void;
   successfullyAddedExpression: boolean;
   onUpdateExpression: (newExpression: Expression) => void;
   onRemoveExpression: (expression: Expression) => void;
   onRemoveSubExpression: (subExpression: SubExpression) => void;
-  onEditExpression: (expression: Expression) => void;
 }
 
 export const ExpressionContent = ({
   componentName,
-  expressionState,
+  expression,
   onGetProperties,
   onSaveExpression,
   successfullyAddedExpression,
   onUpdateExpression,
   onRemoveExpression,
   onRemoveSubExpression,
-  onEditExpression,
 }: ExpressionContentProps) => {
-  const expression = expressionState.expression;
-  const expressionInEditMode = expressionState.editMode;
   const [freeStyleEditing, setFreeStyleEditing] = useState<boolean>(!!expression.complexExpression);
   const t = useText();
+  const [editMode, setEditMode] = useState<boolean>(false);
 
   const allowToSaveExpression =
     (expression.subExpressions?.filter((subExp) => !subExp.function)?.length === 0 &&
       expression.subExpressions.length !== 0 &&
-      expressionInEditMode &&
+      editMode &&
       !!expression.property) ||
-    (complexExpressionIsSet(expression.complexExpression) &&
-      expressionInEditMode &&
-      !!expression.property);
+    (complexExpressionIsSet(expression.complexExpression) && editMode && !!expression.property);
   const availableProperties = onGetProperties();
   const externalExpression = convertInternalExpressionToExternal(expression);
   const isStudioFriendly = isStudioFriendlyExpression(
@@ -115,7 +109,7 @@ export const ExpressionContent = ({
 
   return (
     <>
-      {expressionInEditMode ? (
+      {editMode ? (
         <div className={classes.expressionContainer}>
           <Switch
             name={'Expression_enable_free_style_editing'}
@@ -234,7 +228,7 @@ export const ExpressionContent = ({
             <Button
               title={t('right_menu.expression_edit')}
               icon={<PencilIcon />}
-              onClick={() => onEditExpression(expression)}
+              onClick={() => setEditMode(true)}
               variant='tertiary'
               size='small'
             />

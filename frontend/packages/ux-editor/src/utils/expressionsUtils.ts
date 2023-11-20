@@ -16,7 +16,6 @@ import { FormComponent } from '../types/FormComponent';
 import { SingleSelectOption } from '@digdir/design-system-react';
 import { FormContainer } from '../types/FormContainer';
 import { UseText } from '../hooks';
-import { ExpressionState } from '../components/config/Expressions/Expressions';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
@@ -197,26 +196,19 @@ export const deleteExpressionFromComponent = (
 };
 
 export const addExpressionIfLimitNotReached = (
-  oldExpressionsState: ExpressionState[],
+  oldExpressions: Expression[],
   property: ExpressionProperty,
-  isExpressionLimitReached: boolean,
-): ExpressionState[] => {
-  const newExpressionsState = deepCopy(oldExpressionsState);
-  const newExpression: Expression = addPropertyToExpression({}, property);
-  const newExpressionState: ExpressionState = { expression: newExpression, editMode: true };
-  return isExpressionLimitReached
-    ? newExpressionsState
-    : newExpressionsState.concat(newExpressionState);
+  doesAllPropertiesHaveExpression: boolean,
+): Expression[] => {
+  const newExpression: Expression = { property };
+  return doesAllPropertiesHaveExpression ? oldExpressions : [...oldExpressions, newExpression];
 };
 
 export const deleteExpression = (
   expressionToDelete: Expression,
-  expressionsState: ExpressionState[],
-): ExpressionState[] => {
-  return expressionsState.filter(
-    (prevExpression) => prevExpression.expression.property !== expressionToDelete.property,
-  );
-};
+  expressions: Expression[],
+): Expression[] =>
+  expressions.filter((expression) => expression.property !== expressionToDelete.property);
 
 export const addPropertyToExpression = (
   oldExpression: Expression,

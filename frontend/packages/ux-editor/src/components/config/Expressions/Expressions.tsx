@@ -28,14 +28,9 @@ import { Trans } from 'react-i18next';
 import { deepCopy } from 'app-shared/pure';
 import { NewExpressionButton } from './NewExpressionButton';
 
-export interface ExpressionState {
-  expression: Expression;
-  editMode: boolean;
-}
-
 export const Expressions = () => {
   const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
-  const [expressionsState, setExpressionsState] = React.useState<ExpressionState[]>([]);
+  const [expressions, setExpressions] = React.useState<Expression[]>([]);
   const [successfullyAddedExpressionProperty, setSuccessfullyAddedExpressionProperty] =
     React.useState<ExpressionProperty | undefined>(undefined);
   const t = useText();
@@ -43,14 +38,7 @@ export const Expressions = () => {
   useEffect(() => {
     if (form) {
       const convertedExpressions: Expression[] = getAllConvertedExpressions(form);
-      if (convertedExpressions.length) {
-        const nonEditModeExpressions: ExpressionState[] = convertedExpressions.map((exp) => {
-          return { expression: exp, editMode: false };
-        });
-        setExpressionsState(nonEditModeExpressions);
-      } else {
-        setExpressionsState([]);
-      }
+      setExpressions(convertedExpressions.length ? convertedExpressions : []);
     }
   }, [form]);
 
@@ -64,10 +52,8 @@ export const Expressions = () => {
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(
     form.itemType as LayoutItemType,
   );
-  const alreadyUsedProperties = expressionsState.map(
-    (expressionState) => expressionState.expression.property,
-  );
-  const isExpressionLimitReached = expressionsState?.length >= expressionProperties?.length;
+  const alreadyUsedProperties = expressions.map((expression) => expression.property);
+  const isExpressionLimitReached = expressions?.length >= expressionProperties?.length;
 
   const availableProperties = [
     {
@@ -87,40 +73,28 @@ export const Expressions = () => {
     const updatedComponent = convertAndAddExpressionToComponent(form, expression);
     await updateAndSaveLayout(updatedComponent);
     setSuccessfullyAddedExpressionProperty(expression.property);
-    const newExpressions: ExpressionState[] = expressionsState.map((expressionState) =>
-      expressionState.expression === expression
-        ? { ...expressionState, editMode: false }
-        : expressionState,
-    );
-    setExpressionsState(newExpressions);
   };
 
   const addNewExpression = async (property: ExpressionProperty) => {
     const newExpressions = addExpressionIfLimitNotReached(
-      expressionsState,
+      expressions,
       property,
       isExpressionLimitReached,
     );
-    setExpressionsState(newExpressions);
+    setExpressions(newExpressions);
   };
 
   const updateExpression = (index: number, newExpression: Expression) => {
-    const newExpressionsState = deepCopy(expressionsState);
-    newExpressionsState[index].expression = newExpression;
-    setExpressionsState(newExpressionsState);
-  };
-
-  const editExpression = (index: number) => {
-    const newExpressionsState = deepCopy(expressionsState);
-    newExpressionsState[index].editMode = true;
-    setExpressionsState(newExpressionsState);
+    const newExpressions: Expression[] = deepCopy(expressions);
+    newExpression[index] = newExpression;
+    setExpressions(newExpressions);
   };
 
   const removeExpression = async (expression: Expression) => {
-    const newExpressionsState = deleteExpression(expression, expressionsState);
+    const newExpressions: Expression[] = deleteExpression(expression, expressions);
     const updatedComponent = deleteExpressionFromComponent(form, expression);
     await updateAndSaveLayout(updatedComponent);
-    setExpressionsState(newExpressionsState);
+    setExpressions(newExpressions);
   };
 
   const deleteSubExpression = async (
@@ -128,7 +102,7 @@ export const Expressions = () => {
     subExpression: SubExpression,
     expression: Expression,
   ) => {
-    const newExpression = removeSubExpression(expression, subExpression);
+    const newExpression: Expression = removeSubExpression(expression, subExpression);
     const updatedComponent = convertAndAddExpressionToComponent(form, newExpression);
     await updateAndSaveLayout(updatedComponent);
     updateExpression(index, newExpression);
@@ -138,7 +112,6 @@ export const Expressions = () => {
     return getNonOverlappingElementsFromTwoLists(expressionProperties, alreadyUsedProperties);
   };
 
-  console.log('expressions: ', expressionsState); // TODO: Remove when fully tested
   return (
     <div className={classes.root}>
       <Trans i18nKey={'right_menu.read_more_about_expressions'}>
@@ -148,26 +121,20 @@ export const Expressions = () => {
           rel='noopener noreferrer'
         />
       </Trans>
-      {Object.values(expressionsState).map((expressionState: ExpressionState, index: number) => (
-        <React.Fragment key={expressionState.expression.property}>
-          <ExpressionContent
-            componentName={form.id}
-            expressionState={expressionState}
-            onGetProperties={getProperties}
-            onSaveExpression={() =>
-              saveExpressionAndSetCheckMark(index, expressionState.expression)
-            }
-            successfullyAddedExpression={
-              expressionState.expression.property === successfullyAddedExpressionProperty
-            }
-            onUpdateExpression={(newExpression) => updateExpression(index, newExpression)}
-            onRemoveExpression={() => removeExpression(expressionState.expression)}
-            onRemoveSubExpression={(subExpression) =>
-              deleteSubExpression(index, subExpression, expressionState.expression)
-            }
-            onEditExpression={() => editExpression(index)}
-          />
-        </React.Fragment>
+      {Object.values(expressions).map((expression: Expression, index: number) => (
+        <ExpressionContent
+          key={expression.property}
+          componentName={form.id}
+          expression={expression}
+          onGetProperties={getProperties}
+          onSaveExpression={() => saveExpressionAndSetCheckMark(index, expression)}
+          successfullyAddedExpression={expression.property === successfullyAddedExpressionProperty}
+          onUpdateExpression={(newExpression) => updateExpression(index, newExpression)}
+          onRemoveExpression={() => removeExpression(expression)}
+          onRemoveSubExpression={(subExpression) =>
+            deleteSubExpression(index, subExpression, expression)
+          }
+        />
       ))}
       {isExpressionLimitReached ? (
         <Alert className={classes.expressionsAlert}>
@@ -175,7 +142,7 @@ export const Expressions = () => {
         </Alert>
       ) : (
         <>
-          {expressionsState.length === 0 && (
+          {expressions.length === 0 && (
             <p>
               <Trans
                 i18nKey={'right_menu.expressions_property_on_component'}

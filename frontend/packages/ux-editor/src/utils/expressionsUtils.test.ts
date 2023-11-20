@@ -406,29 +406,25 @@ describe('expressionsUtils', () => {
       expect(newExpressionsState).toHaveLength(1);
     });
     it('should not add a new expression if the limit is reached', () => {
-      const oldExpressionsState = [
-        { expression: internalExpressionWithMultipleSubExpressions, editMode: false },
-      ];
+      const oldExpressions: Expression[] = [internalExpressionWithMultipleSubExpressions];
       const newExpressionsState = addExpressionIfLimitNotReached(
-        oldExpressionsState,
+        oldExpressions,
         ExpressionPropertyBase.Hidden,
         true,
       );
 
-      expect(newExpressionsState).toEqual(oldExpressionsState);
+      expect(newExpressionsState).toEqual(oldExpressions);
     });
   });
   describe('deleteExpression', () => {
-    it('should delete the expression from the expressionsState', () => {
-      const oldExpressionsState = [
-        { expression: internalExpressionWithMultipleSubExpressions, editMode: false },
-      ];
-      const updatedExpressionsState = deleteExpression(
+    it('should delete the expression from the expressions', () => {
+      const oldExpressions: Expression[] = [internalExpressionWithMultipleSubExpressions];
+      const updatedExpressions = deleteExpression(
         internalExpressionWithMultipleSubExpressions,
-        oldExpressionsState,
+        oldExpressions,
       );
 
-      expect(updatedExpressionsState).toHaveLength(0);
+      expect(updatedExpressions).toHaveLength(0);
     });
   });
   describe('removeSubExpression', () => {

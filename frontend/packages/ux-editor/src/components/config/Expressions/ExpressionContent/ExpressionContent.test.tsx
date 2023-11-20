@@ -7,17 +7,21 @@ import {
   internalParsableComplexExpression,
   internalUnParsableComplexExpression,
   simpleInternalExpression,
-} from '../../../testing/expressionMocks';
+} from '../../../../testing/expressionMocks';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { renderWithMockStore } from '../../../testing/mocks';
-import { formDesignerMock } from '../../../testing/stateMocks';
-import { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
+import { renderWithMockStore } from '../../../../testing/mocks';
+import { formDesignerMock } from '../../../../testing/stateMocks';
+import { IFormLayouts } from '../../../../types/global';
+import { layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
 import { ExpressionContent, ExpressionContentProps } from './ExpressionContent';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ExpressionFunction, ExpressionPropertyBase, Operator } from '../../../types/Expressions';
+import {
+  ExpressionFunction,
+  ExpressionPropertyBase,
+  Operator,
+} from '../../../../types/Expressions';
 import { deepCopy } from 'app-shared/pure';
 
 const org = 'org';

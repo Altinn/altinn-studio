@@ -1,8 +1,8 @@
 import React from 'react';
-import { Expression, Operator, SubExpression } from '../../../types/Expressions';
+import { Expression, Operator, SubExpression } from '../../../../../types/Expressions';
 import { SubExpressionContent } from './SubExpressionContent';
 import { LegacyToggleButtonGroup } from '@digdir/design-system-react';
-import { useText } from '../../../hooks';
+import { useText } from '../../../../../hooks';
 import { Divider } from 'app-shared/primitives';
 
 export type SimpleExpressionProps = {
