@@ -23,6 +23,14 @@ context('Designer', () => {
     cy.visit('/dashboard');
   });
 
+  after(() => {
+    cy.deleteApp(
+      Cypress.env('orgUserName'),
+      Cypress.env('designerAppName'),
+      Cypress.env('accessToken'),
+    );
+  });
+
   it('loads the overview page when navigating to app for user with no environments', () => {
     // Ensure feature flag is toggled
     // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11495)
