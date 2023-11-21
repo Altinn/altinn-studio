@@ -5,12 +5,9 @@ import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
+import { ExpressionPropertyBase } from '../../../types/Expressions';
 
 const user = userEvent.setup();
-const optionsMock = [
-  { label: 'some label', value: 'some-value' },
-  { label: 'default label', value: 'default' },
-];
 
 describe('NewExpressionButton', () => {
   afterEach(jest.clearAllMocks);
@@ -44,13 +41,17 @@ describe('NewExpressionButton', () => {
 
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
     await act(() => user.click(addButton));
-    const dropdownOption = screen.getByRole('menuitem', { name: optionsMock[0].label });
+    const dropdownOption = screen.getByRole('menuitem', {
+      name: textMock('right_menu.expressions_property_read_only'),
+    });
     await act(() => user.click(dropdownOption));
 
-    expect(onAddExpressionMock).toHaveBeenCalledWith(optionsMock[0].value);
+    expect(onAddExpressionMock).toHaveBeenCalledWith(optionsMock[1]);
     expect(onAddExpressionMock).toHaveBeenCalledTimes(1);
   });
 });
+
+const optionsMock = [ExpressionPropertyBase.Required, ExpressionPropertyBase.ReadOnly];
 
 const render = ({
   props = {},

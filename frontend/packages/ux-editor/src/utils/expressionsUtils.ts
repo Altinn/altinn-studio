@@ -182,26 +182,21 @@ export const convertAndAddExpressionToComponent = (
   return newForm;
 };
 
-export const deleteExpressionFromComponent = (
+export const deleteExpressionFromPropertyOnComponent = (
   form,
-  expression: Expression,
+  property: ExpressionProperty,
 ): FormComponent | FormContainer => {
   const newForm = deepCopy(form);
-  const expressionToDelete = deepCopy(expression);
-  if (expressionToDelete.property) {
-    // TODO: What if the property was set to true or false before? Issue #10860
-    delete newForm[expressionToDelete.property];
-  }
+  // TODO: What if the property was set to true or false before? Issue #10860
+  delete newForm[property];
   return newForm;
 };
 
-export const addExpressionIfLimitNotReached = (
-  oldExpressions: Expression[],
+export const addPropertyForExpression = (
+  oldProperties: ExpressionProperty[],
   property: ExpressionProperty,
-  doesAllPropertiesHaveExpression: boolean,
-): Expression[] => {
-  const newExpression: Expression = { property };
-  return doesAllPropertiesHaveExpression ? oldExpressions : [...oldExpressions, newExpression];
+): ExpressionProperty[] => {
+  return [...oldProperties, property];
 };
 
 export const deleteExpression = (
@@ -218,7 +213,7 @@ export const addPropertyToExpression = (
   if (property === 'default') {
     return newExpression;
   }
-  newExpression.property = property as ExpressionPropertyBase;
+  newExpression.property = property as ExpressionProperty;
   return newExpression;
 };
 
@@ -374,52 +369,46 @@ export const complexExpressionIsSet = (complexExpression: string): boolean => {
 
 export const getAllComponentPropertiesThatCanHaveExpressions = (
   form: FormComponent | FormContainer,
-):
-  | {
-      generalProperties: ExpressionPropertyBase[];
-      propertiesForGroup: ExpressionPropertyForGroup[];
-    }
-  | undefined => {
+): ExpressionProperty[] => {
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(
     form.itemType as LayoutItemType,
   );
-  let editPropertiesForGroup: ExpressionPropertyForGroup[] = [];
+  let editPropertiesForGroup: ExpressionProperty[] = [];
   if (form['edit']) {
     editPropertiesForGroup = Object.keys(form['edit'])
       .map((property) => 'edit.' + property)
       .filter(canGroupPropertyHaveExpressions);
   }
-  const generalFormPropertiesThatCouldHaveExpressions = Object.keys(form)
-    .filter((property) => expressionProperties?.includes(property as ExpressionPropertyBase))
-    .map((property) => property as ExpressionPropertyBase);
-  return {
-    generalProperties: generalFormPropertiesThatCouldHaveExpressions,
-    propertiesForGroup: editPropertiesForGroup,
-  };
+  const generalComponentPropertiesThatCanHaveExpressions: ExpressionProperty[] = Object.keys(
+    form,
+  ).filter(
+    (property) => expressionProperties?.includes(property as ExpressionProperty),
+  ) as ExpressionProperty[];
+  return generalComponentPropertiesThatCanHaveExpressions.concat(editPropertiesForGroup);
 };
 
-const canGroupPropertyHaveExpressions = (
-  property: string,
-): property is ExpressionPropertyForGroup =>
+const canGroupPropertyHaveExpressions = (property: string): property is ExpressionProperty =>
   Object.values(ExpressionPropertyForGroup).includes(property as ExpressionPropertyForGroup);
 
-export const getAllConvertedExpressions = (form: FormComponent | FormContainer): Expression[] => {
-  const { generalProperties, propertiesForGroup } =
-    getAllComponentPropertiesThatCanHaveExpressions(form);
-  const convertedExternalExpressionsForGroupProperties = propertiesForGroup.map((property) => {
-    const editPropertyForGroup = property.split('edit.')[1];
-    const value = form['edit'][editPropertyForGroup];
-    if (typeof value !== 'boolean') {
-      return convertExternalExpressionToInternal(property, value);
-    }
-  });
-  const convertedExternalExpressionsForGeneralProperties: Expression[] = generalProperties
-    ?.filter((property) => typeof form[property] !== 'boolean')
-    ?.map((property) => convertExternalExpressionToInternal(property, form[property]));
-
-  return convertedExternalExpressionsForGroupProperties.concat(
-    convertedExternalExpressionsForGeneralProperties,
+export const getPropertiesWithExistingExpression = (
+  form: FormComponent | FormContainer,
+  availableProperties: ExpressionProperty[],
+): ExpressionProperty[] => {
+  return availableProperties.filter(
+    (property) => getExternalExpressionOnComponentProperty(form, property) !== undefined,
   );
+};
+
+export const getExternalExpressionOnComponentProperty = (
+  form: FormComponent | FormContainer,
+  property: ExpressionProperty,
+): any => {
+  let value = form[property];
+  if (form.itemType === 'CONTAINER' && property.includes('edit')) {
+    const editPropertyForGroup = property.split('edit.')[1];
+    value = form['edit'][editPropertyForGroup];
+  }
+  return typeof value !== 'boolean' ? value : undefined;
 };
 
 export const getNonOverlappingElementsFromTwoLists = (list1: any[], list2: any[]): any[] => {

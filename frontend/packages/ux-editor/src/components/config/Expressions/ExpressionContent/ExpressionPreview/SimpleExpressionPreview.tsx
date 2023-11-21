@@ -6,10 +6,10 @@ import {
   expressionFunctionTexts,
   Operator,
   SubExpression,
-} from '../../../../types/Expressions';
+} from '../../../../../types/Expressions';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
-import { useText } from '../../../../hooks';
-import { stringifyValueForDisplay } from '../../../../utils/expressionsUtils';
+import { useText } from '../../../../../hooks';
+import { stringifyValueForDisplay } from '../../../../../utils/expressionsUtils';
 
 export type SimpleExpressionPreviewProps = {
   expression: Expression;

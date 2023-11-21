@@ -1,245 +1,83 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
+import { Expression, SubExpression, ExpressionProperty } from '../../../../types/Expressions';
 import {
-  Expression,
-  SubExpression,
-  expressionInPreviewPropertyTexts,
-  expressionPropertyTexts,
-  Operator,
-} from '../../../../types/Expressions';
-import { Button, Select, Switch } from '@digdir/design-system-react';
-import { CheckmarkIcon, PencilIcon, PlusCircleIcon, TrashIcon } from '@navikt/aksel-icons';
-import { Trans } from 'react-i18next';
-import classes from './ExpressionContent.module.css';
-import cn from 'classnames';
-import {
-  addPropertyToExpression,
-  addSubExpressionToExpression,
-  complexExpressionIsSet,
-  convertInternalExpressionToExternal,
-  isStudioFriendlyExpression,
-  tryParseExpression,
-  updateComplexExpressionOnExpression,
-  updateSubExpressionOnExpression,
-  updateOperatorOnExpression,
+  convertExternalExpressionToInternal,
+  convertAndAddExpressionToComponent,
+  removeSubExpression,
+  deleteExpressionFromPropertyOnComponent,
+  getExternalExpressionOnComponentProperty,
 } from '../../../../utils/expressionsUtils';
-import { useText } from '../../../../hooks';
-import { ComplexExpression } from './ComplexExpression';
-import { SimpleExpression } from './SimpleExpression';
-import { SimpleExpressionPreview } from './SimpleExpressionPreview';
-import { stringifyData } from '../../../../utils/jsonUtils';
+import { FormComponent } from '../../../../types/FormComponent';
+import { FormContainer } from '../../../../types/FormContainer';
+import { FormContext } from '../../../../containers/FormContext';
+import { ExpressionPreview } from './ExpressionPreview';
+import { ExpressionEditMode } from './ExpressionEditMode';
 
 export interface ExpressionContentProps {
-  componentName: string;
-  expression: Expression;
+  property: ExpressionProperty;
   defaultEditMode: boolean;
-  onGetProperties: () => string[];
-  onSaveExpression: (expression: Expression) => void;
-  successfullyAddedExpression: boolean;
-  onUpdateExpression: (newExpression: Expression) => void;
-  onRemoveExpression: (expression: Expression) => void;
-  onRemoveSubExpression: (subExpression: SubExpression) => void;
+  onDeleteExpression: (property: ExpressionProperty) => void;
 }
 
 export const ExpressionContent = ({
-  componentName,
-  expression,
+  property,
   defaultEditMode,
-  onGetProperties,
-  onSaveExpression,
-  successfullyAddedExpression,
-  onUpdateExpression,
-  onRemoveExpression,
-  onRemoveSubExpression,
+  onDeleteExpression,
 }: ExpressionContentProps) => {
-  const [freeStyleEditing, setFreeStyleEditing] = useState<boolean>(!!expression.complexExpression);
-  debugger;
-  const t = useText();
+  const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
+  const externalExpression = getExternalExpressionOnComponentProperty(form, property);
+  const defaultExpression = externalExpression
+    ? convertExternalExpressionToInternal(property, externalExpression)
+    : { property };
+  const [expression, setExpression] = useState<Expression>(defaultExpression);
   const [editMode, setEditMode] = useState<boolean>(defaultEditMode);
+  const [successfullyAddedExpression, setSuccessfullyAddedExpression] =
+    React.useState<boolean>(false);
 
-  const allowToSaveExpression =
-    (expression.subExpressions?.filter((subExp) => !subExp.function)?.length === 0 &&
-      expression.subExpressions.length !== 0 &&
-      editMode &&
-      !!expression.property) ||
-    (complexExpressionIsSet(expression.complexExpression) && editMode && !!expression.property);
-  const availableProperties = onGetProperties();
-  const externalExpression = convertInternalExpressionToExternal(expression);
-  const isStudioFriendly = isStudioFriendlyExpression(
-    tryParseExpression(expression, externalExpression).complexExpression,
-  );
-
-  const addProperty = (property: string) => {
-    const newExpression: Expression = addPropertyToExpression(expression, property);
-    onUpdateExpression(newExpression);
+  const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
+    handleUpdate(updatedComponent);
+    await handleSave(formId, updatedComponent);
   };
 
-  const addSubExpression = (expressionOperator: Operator) => {
-    const newExpression: Expression = addSubExpressionToExpression(expression, expressionOperator);
-    onUpdateExpression(newExpression);
+  const saveExpressionAndSetCheckMark = async (exp: Expression) => {
+    const updatedComponent = convertAndAddExpressionToComponent(form, exp);
+    await updateAndSaveLayout(updatedComponent);
+    setSuccessfullyAddedExpression(true);
   };
 
-  const updateOperator = (expressionOperator: Operator) => {
-    const newExpression: Expression = updateOperatorOnExpression(expression, expressionOperator);
-    onUpdateExpression(newExpression);
+  const deleteExpression = async (exp: Expression) => {
+    const updatedComponent = deleteExpressionFromPropertyOnComponent(form, exp.property);
+    await updateAndSaveLayout(updatedComponent);
+    onDeleteExpression(exp.property);
   };
 
-  const updateSubExpression = (index: number, subExpression: SubExpression) => {
-    const newExpression: Expression = updateSubExpressionOnExpression(
-      expression,
-      index,
-      subExpression,
-    );
-    onUpdateExpression(newExpression);
-  };
-
-  const updateComplexExpression = (newComplexExpression: any) => {
-    const newExpression: Expression = updateComplexExpressionOnExpression(
-      expression,
-      newComplexExpression,
-    );
-    onUpdateExpression(newExpression);
-  };
-
-  const handleToggleFreeStyleEditing = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFreeStyleEditing(event.target.checked);
-    if (event.target.checked) {
-      const stringRepresentationOfExpression = stringifyData(externalExpression);
-      updateComplexExpression(stringRepresentationOfExpression);
-    } else {
-      updateComplexExpression(undefined);
-    }
+  const deleteSubExpression = async (subExpression: SubExpression) => {
+    const newExpression: Expression = removeSubExpression(expression, subExpression);
+    const updatedComponent = convertAndAddExpressionToComponent(form, newExpression);
+    await updateAndSaveLayout(updatedComponent);
+    setExpression(newExpression);
   };
 
   return (
     <>
       {editMode ? (
-        <div className={classes.expressionContainer}>
-          <Switch
-            name={'Expression_enable_free_style_editing'}
-            onChange={handleToggleFreeStyleEditing}
-            checked={freeStyleEditing}
-            size={'small'}
-            readOnly={!isStudioFriendly}
-          >
-            {t('right_menu.expression_enable_free_style_editing')}
-          </Switch>
-          <div className={classes.topBar}>
-            <p>
-              <Trans
-                i18nKey={'right_menu.expressions_property_on_component'}
-                values={{ componentName: componentName }}
-                components={{ bold: <strong /> }}
-              />
-            </p>
-            <Button
-              aria-label={t('right_menu.expression_delete')}
-              color='danger'
-              icon={<TrashIcon />}
-              onClick={() => onRemoveExpression(expression)}
-              variant='tertiary'
-              size='small'
-            />
-          </div>
-          <Select
-            label={t('right_menu.expressions_property')}
-            hideLabel={true}
-            onChange={addProperty}
-            options={[
-              { label: t('right_menu.expressions_property_select'), value: 'default' },
-              {
-                label: expressionPropertyTexts(t)[expression.property],
-                value: expression.property,
-              },
-            ].concat(
-              availableProperties.map((property: string) => ({
-                label: expressionPropertyTexts(t)[property],
-                value: property,
-              })),
-            )}
-            value={expression.property || 'default'}
-          />
-          {complexExpressionIsSet(expression.complexExpression) ? (
-            <ComplexExpression
-              expression={expression}
-              onChange={updateComplexExpression}
-              isStudioFriendly={isStudioFriendly}
-            />
-          ) : (
-            <div className={classes.subExpression}>
-              <SimpleExpression
-                expression={expression}
-                onUpdateSubExpression={(index: number, subExpression: SubExpression) =>
-                  updateSubExpression(index, subExpression)
-                }
-                onUpdateExpressionOperator={(expressionOp: Operator) =>
-                  updateOperator(expressionOp)
-                }
-                onRemoveSubExpression={(subExp: SubExpression) => onRemoveSubExpression(subExp)}
-              />
-              <Button
-                variant='tertiary'
-                size='small'
-                onClick={() => addSubExpression(expression.operator || Operator.And)}
-                icon={<PlusCircleIcon />}
-              >
-                {t('right_menu.expressions_add_sub_expression')}
-              </Button>
-            </div>
-          )}
-          <Button
-            color='success'
-            icon={<CheckmarkIcon />}
-            onClick={() => {
-              setEditMode(false);
-              onSaveExpression(expression);
-            }}
-            variant='primary'
-            size='small'
-            disabled={!allowToSaveExpression}
-          >
-            {t('general.save')}
-          </Button>
-        </div>
+        <ExpressionEditMode
+          expression={expression}
+          componentName={formId}
+          onSetEditMode={setEditMode}
+          onDeleteExpression={deleteExpression}
+          onDeleteSubExpression={deleteSubExpression}
+          onSaveExpressionAndSetCheckMark={saveExpressionAndSetCheckMark}
+          onSetExpression={setExpression}
+        />
       ) : (
-        <div className={cn(classes.previewMode, classes.expressionContainer)}>
-          <div className={classes.expressionDetails}>
-            <span>
-              <Trans
-                i18nKey={expressionInPreviewPropertyTexts(t)[expression.property]}
-                values={{ componentName: componentName }}
-                components={{ bold: <strong /> }}
-              />
-            </span>
-            {complexExpressionIsSet(expression.complexExpression) ? (
-              <ComplexExpression expression={expression} disabled />
-            ) : (
-              <SimpleExpressionPreview expression={expression} />
-            )}
-            {successfullyAddedExpression && (
-              <div className={classes.checkMark}>
-                <CheckmarkIcon fontSize='1.5rem' />
-                {t('right_menu.expression_successfully_added_text')}
-              </div>
-            )}
-          </div>
-          <div>
-            <Button
-              title={t('right_menu.expression_delete')}
-              color='danger'
-              icon={<TrashIcon />}
-              onClick={() => onRemoveExpression(expression)}
-              variant='tertiary'
-              size='small'
-            />
-            <Button
-              title={t('right_menu.expression_edit')}
-              icon={<PencilIcon />}
-              onClick={() => setEditMode(true)}
-              variant='tertiary'
-              size='small'
-            />
-          </div>
-        </div>
+        <ExpressionPreview
+          expression={expression}
+          componentName={formId}
+          successfullyAddedCheckMark={successfullyAddedExpression}
+          onSetEditMode={setEditMode}
+          onDeleteExpression={deleteExpression}
+        />
       )}
     </>
   );

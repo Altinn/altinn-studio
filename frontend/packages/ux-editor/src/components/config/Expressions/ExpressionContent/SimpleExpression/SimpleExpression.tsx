@@ -23,7 +23,7 @@ export const SimpleExpression = ({
     <>
       {expression.subExpressions?.map((subExp: SubExpression, index: number) => (
         <React.Fragment key={index}>
-          <Divider />
+          <Divider marginless />
           <SubExpressionContent
             subExpression={subExp}
             onUpdateSubExpression={(subExpression: SubExpression) =>

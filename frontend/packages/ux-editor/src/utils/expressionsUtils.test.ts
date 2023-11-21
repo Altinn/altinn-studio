@@ -9,7 +9,7 @@ import {
 import {
   addDataSource,
   addDataSourceValue,
-  addExpressionIfLimitNotReached,
+  addPropertyForExpression,
   addPropertyToExpression,
   convertAndAddExpressionToComponent,
   convertExternalExpressionToInternal,
@@ -17,7 +17,7 @@ import {
   convertInternalSubExpressionToExternal,
   convertSubExpression,
   deleteExpression,
-  deleteExpressionFromComponent,
+  deleteExpressionFromPropertyOnComponent,
   removeSubExpression,
   stringifyValueForDisplay,
   tryParseExpression,
@@ -384,36 +384,25 @@ describe('expressionsUtils', () => {
       expect(typeof updatedComponent.hidden).toBe('string');
     });
   });
-  describe('deleteExpressionFromComponent', () => {
+  describe('deleteExpressionFromPropertyOnComponent', () => {
     it('should delete the property on the form component connected to the expression', () => {
-      const newExpressions = deleteExpressionFromComponent(
+      const newFormComponent = deleteExpressionFromPropertyOnComponent(
         component1Mock,
-        internalExpressionWithMultipleSubExpressions,
+        ExpressionPropertyBase.Hidden,
       );
 
-      expect(newExpressions.hidden).toBeUndefined();
+      expect(newFormComponent.hidden).toBeUndefined();
     });
   });
-  describe('addExpressionIfLimitNotReached', () => {
-    it('should add a new expression if the limit is not reached', () => {
-      const oldExpressionsState = [];
-      const newExpressionsState = addExpressionIfLimitNotReached(
-        oldExpressionsState,
+  describe('addPropertyForExpression', () => {
+    it('should add a new property for expression', () => {
+      const oldProperties = [];
+      const newProperties = addPropertyForExpression(
+        oldProperties,
         ExpressionPropertyBase.ReadOnly,
-        false,
       );
 
-      expect(newExpressionsState).toHaveLength(1);
-    });
-    it('should not add a new expression if the limit is reached', () => {
-      const oldExpressions: Expression[] = [internalExpressionWithMultipleSubExpressions];
-      const newExpressionsState = addExpressionIfLimitNotReached(
-        oldExpressions,
-        ExpressionPropertyBase.Hidden,
-        true,
-      );
-
-      expect(newExpressionsState).toEqual(oldExpressions);
+      expect(newProperties).toHaveLength(1);
     });
   });
   describe('deleteExpression', () => {

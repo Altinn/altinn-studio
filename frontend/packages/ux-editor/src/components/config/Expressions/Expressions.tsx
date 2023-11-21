@@ -1,117 +1,59 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { Alert } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { useText } from '../../../hooks';
 import {
-  Expression,
-  SubExpression,
   getExpressionPropertiesBasedOnComponentType,
   ExpressionProperty,
-  expressionPropertyTexts,
 } from '../../../types/Expressions';
 import {
-  addExpressionIfLimitNotReached,
-  convertAndAddExpressionToComponent,
-  deleteExpression,
-  deleteExpressionFromComponent,
-  getAllConvertedExpressions,
+  addPropertyForExpression,
+  getAllComponentPropertiesThatCanHaveExpressions,
   getNonOverlappingElementsFromTwoLists,
-  removeSubExpression,
+  getPropertiesWithExistingExpression,
 } from '../../../utils/expressionsUtils';
 import classes from './Expressions.module.css';
 import { LayoutItemType } from '../../../types/global';
-import { FormComponent } from '../../../types/FormComponent';
-import { FormContainer } from '../../../types/FormContainer';
 import { FormContext } from '../../../containers/FormContext';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { Trans } from 'react-i18next';
-import { deepCopy } from 'app-shared/pure';
 import { NewExpressionButton } from './NewExpressionButton';
 
 export const Expressions = () => {
-  const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
-  const [expressions, setExpressions] = React.useState<Expression[]>([]);
-  const [newlyAddedExpression, setNewlyAddedExpression] = React.useState<Expression>(undefined);
-  const [successfullyAddedExpressionProperty, setSuccessfullyAddedExpressionProperty] =
-    React.useState<ExpressionProperty | undefined>(undefined);
+  const { form } = useContext(FormContext);
+  const availableProperties = getAllComponentPropertiesThatCanHaveExpressions(form);
+  const propertiesFromComponentWithExpressions = getPropertiesWithExistingExpression(
+    form,
+    availableProperties,
+  );
+  const [propertiesWithExpressions, setPropertiesWithExpressions] = React.useState<
+    ExpressionProperty[]
+  >(propertiesFromComponentWithExpressions.length ? propertiesFromComponentWithExpressions : []);
+  const [newlyAddedProperty, setNewlyAddedProperty] = React.useState<ExpressionProperty>(undefined);
   const t = useText();
-
-  useEffect(() => {
-    if (form) {
-      const convertedExpressions: Expression[] = getAllConvertedExpressions(form);
-      setExpressions(convertedExpressions.length ? convertedExpressions : []);
-    }
-  }, [form]);
-
-  if (!formId || !form) return t('right_menu.content_empty');
-
-  const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
-    handleUpdate(updatedComponent);
-    await handleSave(formId, updatedComponent);
-  };
-
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(
     form.itemType as LayoutItemType,
   );
-  const alreadyUsedProperties = expressions.map((expression) => expression.property);
-  const isExpressionLimitReached = expressions?.length >= expressionProperties?.length;
+  const isExpressionLimitReached =
+    propertiesWithExpressions?.length >= expressionProperties?.length;
 
-  const availableProperties = getNonOverlappingElementsFromTwoLists(
-    expressionProperties,
-    alreadyUsedProperties,
-  ).map((property: ExpressionProperty) => ({
-    label: expressionPropertyTexts(t)[property],
-    value: property,
-  }));
-
-  const saveExpressionAndSetCheckMark = async (index: number, expression: Expression) => {
-    const updatedComponent = convertAndAddExpressionToComponent(form, expression);
-    await updateAndSaveLayout(updatedComponent);
-    setSuccessfullyAddedExpressionProperty(expression.property);
+  const addNewExpression = (property: ExpressionProperty) => {
+    const newProperties = addPropertyForExpression(propertiesWithExpressions, property);
+    setPropertiesWithExpressions(newProperties);
+    setNewlyAddedProperty(newProperties.at(newProperties.length - 1));
   };
 
-  const addNewExpression = async (property: ExpressionProperty) => {
-    debugger;
-    const newExpressions = addExpressionIfLimitNotReached(
-      expressions,
-      property,
-      isExpressionLimitReached,
+  const handleDeleteExpression = (propertyToDelete: ExpressionProperty) => {
+    const updatedProperties = propertiesWithExpressions.filter(
+      (property) => property !== propertyToDelete,
     );
-    setExpressions(newExpressions);
-    setNewlyAddedExpression(newExpressions.at(newExpressions.length - 1));
-    debugger;
+    setPropertiesWithExpressions(updatedProperties);
   };
 
-  const updateExpression = (index: number, newExpression: Expression) => {
-    const newExpressions: Expression[] = deepCopy(expressions);
-    newExpressions[index] = newExpression;
-    setNewlyAddedExpression(newExpression);
-    setExpressions(newExpressions);
+  const getAvailableProperties = (): ExpressionProperty[] => {
+    return getNonOverlappingElementsFromTwoLists(expressionProperties, propertiesWithExpressions);
   };
 
-  const removeExpression = async (expression: Expression) => {
-    const newExpressions: Expression[] = deleteExpression(expression, expressions);
-    const updatedComponent = deleteExpressionFromComponent(form, expression);
-    await updateAndSaveLayout(updatedComponent);
-    setExpressions(newExpressions);
-  };
-
-  const deleteSubExpression = async (
-    index: number,
-    subExpression: SubExpression,
-    expression: Expression,
-  ) => {
-    const newExpression: Expression = removeSubExpression(expression, subExpression);
-    const updatedComponent = convertAndAddExpressionToComponent(form, newExpression);
-    await updateAndSaveLayout(updatedComponent);
-    updateExpression(index, newExpression);
-  };
-
-  const getProperties = (): string[] => {
-    return getNonOverlappingElementsFromTwoLists(expressionProperties, alreadyUsedProperties);
-  };
-
-  debugger;
   return (
     <div className={classes.root}>
       <Trans i18nKey={'right_menu.read_more_about_expressions'}>
@@ -121,20 +63,12 @@ export const Expressions = () => {
           rel='noopener noreferrer'
         />
       </Trans>
-      {Object.values(expressions).map((expression: Expression, index: number) => (
+      {Object.values(propertiesWithExpressions).map((property: ExpressionProperty) => (
         <ExpressionContent
-          key={expression.property}
-          componentName={form.id}
-          expression={expression}
-          defaultEditMode={expression === newlyAddedExpression}
-          onGetProperties={getProperties}
-          onSaveExpression={() => saveExpressionAndSetCheckMark(index, expression)}
-          successfullyAddedExpression={expression.property === successfullyAddedExpressionProperty}
-          onUpdateExpression={(newExpression) => updateExpression(index, newExpression)}
-          onRemoveExpression={() => removeExpression(expression)}
-          onRemoveSubExpression={(subExpression) =>
-            deleteSubExpression(index, subExpression, expression)
-          }
+          key={property}
+          property={property}
+          defaultEditMode={property === newlyAddedProperty}
+          onDeleteExpression={handleDeleteExpression}
         />
       ))}
       {isExpressionLimitReached ? (
@@ -143,7 +77,7 @@ export const Expressions = () => {
         </Alert>
       ) : (
         <>
-          {expressions.length === 0 && (
+          {propertiesWithExpressions.length === 0 && (
             <p>
               <Trans
                 i18nKey={'right_menu.expressions_property_on_component'}
@@ -153,7 +87,7 @@ export const Expressions = () => {
             </p>
           )}
           <NewExpressionButton
-            options={availableProperties}
+            options={getAvailableProperties()}
             onAddExpression={(property: ExpressionProperty) => addNewExpression(property)}
           />
         </>

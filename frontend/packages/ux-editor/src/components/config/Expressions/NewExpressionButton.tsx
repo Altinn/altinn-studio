@@ -2,15 +2,14 @@ import React, { useRef } from 'react';
 import { Button, DropdownMenu } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
-import { ExpressionProperty } from '../../../types/Expressions';
+import { ExpressionProperty, expressionPropertyTexts } from '../../../types/Expressions';
 
 export interface NewExpressionButtonProps {
-  options: { label: string; value: string }[];
+  options: ExpressionProperty[];
   onAddExpression: (property: ExpressionProperty) => void;
 }
 
-// TODO: Replace with new dropDown component from DesignSystem
-export const NewExpressionButton = (props: NewExpressionButtonProps) => {
+export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionButtonProps) => {
   const [showDropDown, setShowDropDown] = React.useState<boolean>(false);
   const t = useText();
   const anchorEl = useRef(null);
@@ -28,7 +27,7 @@ export const NewExpressionButton = (props: NewExpressionButtonProps) => {
         ref={anchorEl}
         aria-haspopup='menu'
         aria-expanded={showDropDown}
-        onClick={() => setShowDropDown(true)}
+        onClick={() => setShowDropDown(!showDropDown)}
       >
         {t('right_menu.expressions_add')}
       </Button>
@@ -39,15 +38,15 @@ export const NewExpressionButton = (props: NewExpressionButtonProps) => {
         open={showDropDown}
       >
         <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
-          {props.options.map((o) => (
+          {options.map((o) => (
             <DropdownMenu.Item
-              key={o.label}
+              key={o}
               onClick={() => {
                 setShowDropDown(false);
-                props.onAddExpression(o.value as ExpressionProperty);
+                onAddExpression(o);
               }}
             >
-              {o.label}
+              {expressionPropertyTexts(t)[o]}
             </DropdownMenu.Item>
           ))}
         </DropdownMenu.Group>
