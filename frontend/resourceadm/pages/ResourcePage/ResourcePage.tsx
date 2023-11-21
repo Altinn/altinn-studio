@@ -25,9 +25,11 @@ import {
   InformationSquareIcon,
   MigrationIcon,
   UploadIcon,
+  KeyVerticalIcon,
 } from '@navikt/aksel-icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
+import { OrganizationAccessPage } from '../OrganizationAccessPage';
 
 /**
  * @component
@@ -182,6 +184,7 @@ export const ResourcePage = (): React.ReactNode => {
   const policyPageId = 'policy';
   const deployPageId = 'deploy';
   const migrationPageId = 'migration';
+  const organizationAccessId = 'organization_access';
 
   const leftNavigationTabs: LeftNavigationTab[] = [
     createNavigationTab(
@@ -204,6 +207,13 @@ export const ResourcePage = (): React.ReactNode => {
       () => navigateToPage(deployPageId),
       currentPage,
       getResourcePageURL(selectedContext, repo, resourceId, 'deploy'),
+    ),
+    createNavigationTab(
+      <KeyVerticalIcon className={classes.icon} />,
+      organizationAccessId,
+      () => navigateToPage(organizationAccessId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'organization_access'),
     ),
   ];
 
@@ -289,6 +299,7 @@ export const ResourcePage = (): React.ReactNode => {
               id='page-content-migration'
             />
           )}
+          {currentPage === 'organization_access' && <OrganizationAccessPage />}
         </div>
       )}
       {hasMergeConflict && (

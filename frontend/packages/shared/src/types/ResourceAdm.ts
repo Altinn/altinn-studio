@@ -86,3 +86,19 @@ export interface ResourceReference {
     | 'ServiceCode'
     | 'ServiceEditionCode';
 }
+
+export interface BrregOrganizationResult {
+  _embedded?: {
+    enheter: BrregOrganization[];
+  };
+}
+
+export interface BrregUnderOrganizationResult {
+  _embedded?: {
+    underenheter: BrregOrganization[];
+  };
+}
+export interface BrregOrganization {
+  organisasjonsnummer: string;
+  navn: string;
+}

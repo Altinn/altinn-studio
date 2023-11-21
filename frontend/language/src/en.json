@@ -707,6 +707,7 @@
   "resourceadm.left_nav_bar_back": "Back to dashboard",
   "resourceadm.left_nav_bar_deploy": "Deploy",
   "resourceadm.left_nav_bar_migration": "Migrate",
+  "resourceadm.left_nav_bar_organization_access": "Organization access",
   "resourceadm.left_nav_bar_policy": "Policy rules",
   "resourceadm.policy_editor_spinner": "Loading policy rules",
   "resourceadm.policy_editor_title": "Policy rules",

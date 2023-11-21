@@ -1,4 +1,4 @@
-export type NavigationBarPage = 'about' | 'policy' | 'deploy' | 'migration';
+export type NavigationBarPage = 'about' | 'policy' | 'deploy' | 'migration' | 'organization_access';
 
 export interface SupportedLanguage {
   nb?: string;
