@@ -102,12 +102,12 @@ export const FormField = <T extends unknown, TT extends unknown>({
     if (!errCode && onChange) onChange(newValue, event, errorCode);
   };
 
-  const renderChildren = (items: React.ReactNode, renderItem) => {
+  const renderChildren = (items: React.ReactNode, renderItems: (props: any) => React.ReactNode) => {
     return React.Children.map(items, (child) => {
       if (!React.isValidElement(child)) return child;
       const {
         type: ChildrenComponent,
-        props: { children: nestedChildren },
+        props: { children: nestedChildren, ...childProps },
       } = child;
       const props =
         typeof ChildrenComponent !== 'string'
@@ -116,19 +116,15 @@ export const FormField = <T extends unknown, TT extends unknown>({
               required: isRequired,
               label,
               onChange: handleOnChange,
-              ...child.props,
+              ...childProps,
             }
           : {};
-
-      if (nestedChildren) {
-        props.children = renderChildren(nestedChildren, renderItem);
-      }
+      if (nestedChildren) props.children = renderChildren(nestedChildren, renderItems);
       if (errorCode) {
         props['aria-errormessage'] = errorMessageId;
         props['aria-invalid'] = true;
       }
-
-      return renderItem(ChildrenComponent, props);
+      return renderItems({ component: ChildrenComponent, ...props });
     });
   };
 
@@ -157,8 +153,8 @@ export const FormField = <T extends unknown, TT extends unknown>({
               onChange: handleOnChange,
               customRequired: isRequired,
             }),
-            (ChildComponent, props) => (
-              <ChildComponent {...props} />
+            ({ component: ChildrenComponent, ...props }) => (
+              <ChildrenComponent {...props} />
             ),
           )}
         </div>
