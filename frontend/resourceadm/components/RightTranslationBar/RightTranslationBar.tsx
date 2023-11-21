@@ -99,5 +99,3 @@ export const RightTranslationBar = ({
     </div>
   );
 };
-
-RightTranslationBar.displayName = 'RightTranslationBar';
