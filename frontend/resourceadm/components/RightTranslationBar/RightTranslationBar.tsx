@@ -82,7 +82,6 @@ export const RightTranslationBar = ({
       <div className={classes.topWrapper}>
         <GlobeIcon
           title={t('resourceadm.right_translation_bar_translation')}
-          fontSize='1.5rem'
           className={classes.icon}
         />
         <Heading size='xsmall' level={2} className={classes.topText}>
