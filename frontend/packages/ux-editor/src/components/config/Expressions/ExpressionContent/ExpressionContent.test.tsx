@@ -67,14 +67,7 @@ describe('ExpressionContent', () => {
     expect(saveExpressionButton).toBeInTheDocument();
   });
   it('does not show save button when expression is in previewMode', () => {
-    render({
-      props: {
-        expressionState: {
-          editMode: false,
-          expression: simpleInternalExpression,
-        },
-      },
-    });
+    render({});
 
     const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
     expect(saveExpressionButton).not.toBeInTheDocument();
@@ -82,10 +75,8 @@ describe('ExpressionContent', () => {
   it('renders the complex expression in edit mode with save button when complex expression is set and the expressions id is in editMode', () => {
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: internalUnParsableComplexExpression,
-        },
+        expression: internalUnParsableComplexExpression,
+        defaultEditMode: true,
       },
     });
 
@@ -99,10 +90,7 @@ describe('ExpressionContent', () => {
   it('renders the complex expression in preview mode when complex expression is set and the expressions id is not in editMode', () => {
     render({
       props: {
-        expressionState: {
-          editMode: false,
-          expression: internalUnParsableComplexExpression,
-        },
+        expression: internalUnParsableComplexExpression,
       },
     });
 
@@ -116,16 +104,14 @@ describe('ExpressionContent', () => {
   it('SaveExpression button is disabled when there are no function set', () => {
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: {
-            property: ExpressionPropertyBase.Hidden,
-            subExpressions: [
-              {
-                function: undefined,
-              },
-            ],
-          },
+        defaultEditMode: true,
+        expression: {
+          property: ExpressionPropertyBase.Hidden,
+          subExpressions: [
+            {
+              function: undefined,
+            },
+          ],
         },
       },
     });
@@ -135,11 +121,9 @@ describe('ExpressionContent', () => {
   it('saveExpression button is disabled when there are no subExpressions', () => {
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: {
-            property: ExpressionPropertyBase.Hidden,
-          },
+        defaultEditMode: true,
+        expression: {
+          property: ExpressionPropertyBase.Hidden,
         },
       },
     });
@@ -149,10 +133,6 @@ describe('ExpressionContent', () => {
   it('shows successfullyAdded check mark when conditions imply for a simple expression', () => {
     render({
       props: {
-        expressionState: {
-          editMode: false,
-          expression: simpleInternalExpression,
-        },
         successfullyAddedExpression: true,
       },
     });
@@ -164,10 +144,6 @@ describe('ExpressionContent', () => {
   it('does not show successfullyAdded check mark when successfullyAddedExpressionId is not the id of expression', () => {
     render({
       props: {
-        expressionState: {
-          editMode: false,
-          expression: simpleInternalExpression,
-        },
         successfullyAddedExpression: false,
       },
     });
@@ -179,10 +155,7 @@ describe('ExpressionContent', () => {
   it('shows successfullyAdded check mark when conditions imply for a complex expression', () => {
     render({
       props: {
-        expressionState: {
-          editMode: false,
-          expression: internalUnParsableComplexExpression,
-        },
+        expression: internalUnParsableComplexExpression,
         successfullyAddedExpression: true,
       },
     });
@@ -224,10 +197,6 @@ describe('ExpressionContent', () => {
     const mockOnRemoveExpression = jest.fn();
     render({
       props: {
-        expressionState: {
-          editMode: false,
-          expression: simpleInternalExpression,
-        },
         onRemoveExpression: mockOnRemoveExpression,
       },
     });
@@ -238,34 +207,12 @@ describe('ExpressionContent', () => {
     expect(mockOnRemoveExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnRemoveExpression).toHaveBeenCalledTimes(1);
   });
-  it('calls onEditExpression when editExpression button is clicked in previewMode', async () => {
-    const user = userEvent.setup();
-    const mockOnEditExpression = jest.fn();
-    render({
-      props: {
-        expressionState: {
-          editMode: false,
-          expression: simpleInternalExpression,
-        },
-        onEditExpression: mockOnEditExpression,
-      },
-    });
-    const editExpressionButton = screen.getByRole('button', {
-      name: textMock('right_menu.expression_edit'),
-    });
-    await act(() => user.click(editExpressionButton));
-    expect(mockOnEditExpression).toHaveBeenCalledWith(simpleInternalExpression);
-    expect(mockOnEditExpression).toHaveBeenCalledTimes(1);
-  });
   it('calls onUpdateExpression when property is clicked from dropdown', async () => {
     const user = userEvent.setup();
     const mockOnUpdateExpression = jest.fn();
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: simpleInternalExpression,
-        },
+        defaultEditMode: true,
         onUpdateExpression: mockOnUpdateExpression,
       },
     });
@@ -287,10 +234,7 @@ describe('ExpressionContent', () => {
     const mockOnUpdateExpression = jest.fn();
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: simpleInternalExpression,
-        },
+        defaultEditMode: true,
         onUpdateExpression: mockOnUpdateExpression,
       },
     });
@@ -312,10 +256,7 @@ describe('ExpressionContent', () => {
     const mockOnUpdateExpression = jest.fn();
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: simpleInternalExpression,
-        },
+        defaultEditMode: true,
         onUpdateExpression: mockOnUpdateExpression,
       },
     });
@@ -334,10 +275,8 @@ describe('ExpressionContent', () => {
     const mockOnUpdateExpression = jest.fn();
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: internalExpressionWithMultipleSubExpressions,
-        },
+        expression: internalExpressionWithMultipleSubExpressions,
+        defaultEditMode: true,
         onUpdateExpression: mockOnUpdateExpression,
       },
     });
@@ -354,10 +293,8 @@ describe('ExpressionContent', () => {
   it('displays disabled free-style-editing-switch if complex expression can not be interpreted by Studio', () => {
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: internalUnParsableComplexExpression,
-        },
+        expression: internalUnParsableComplexExpression,
+        defaultEditMode: true,
       },
     });
     const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
@@ -368,10 +305,8 @@ describe('ExpressionContent', () => {
   it('displays toggled on free-style-editing-switch which is not readOnly if complex expression can be interpreted by Studio', () => {
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: internalParsableComplexExpression,
-        },
+        expression: internalParsableComplexExpression,
+        defaultEditMode: true,
       },
     });
     const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
@@ -390,10 +325,8 @@ describe('ExpressionContent', () => {
     const user = userEvent.setup();
     render({
       props: {
-        expressionState: {
-          editMode: true,
-          expression: internalParsableComplexExpression,
-        },
+        expression: internalParsableComplexExpression,
+        defaultEditMode: true,
       },
     });
     const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
@@ -414,14 +347,14 @@ const render = ({
 }) => {
   const defaultProps: ExpressionContentProps = {
     componentName: componentId,
-    expressionState: { expression: simpleInternalExpression, editMode: true },
+    expression: simpleInternalExpression,
+    defaultEditMode: false,
     onGetProperties: jest.fn(() => ['readOnly', 'required']),
     onSaveExpression: jest.fn(),
     successfullyAddedExpression: false,
     onUpdateExpression: jest.fn(),
     onRemoveExpression: jest.fn(),
     onRemoveSubExpression: jest.fn(),
-    onEditExpression: jest.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

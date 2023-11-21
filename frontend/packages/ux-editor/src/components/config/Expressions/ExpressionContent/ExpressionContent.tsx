@@ -31,6 +31,7 @@ import { stringifyData } from '../../../../utils/jsonUtils';
 export interface ExpressionContentProps {
   componentName: string;
   expression: Expression;
+  defaultEditMode: boolean;
   onGetProperties: () => string[];
   onSaveExpression: (expression: Expression) => void;
   successfullyAddedExpression: boolean;
@@ -42,6 +43,7 @@ export interface ExpressionContentProps {
 export const ExpressionContent = ({
   componentName,
   expression,
+  defaultEditMode,
   onGetProperties,
   onSaveExpression,
   successfullyAddedExpression,
@@ -50,8 +52,9 @@ export const ExpressionContent = ({
   onRemoveSubExpression,
 }: ExpressionContentProps) => {
   const [freeStyleEditing, setFreeStyleEditing] = useState<boolean>(!!expression.complexExpression);
+  debugger;
   const t = useText();
-  const [editMode, setEditMode] = useState<boolean>(false);
+  const [editMode, setEditMode] = useState<boolean>(defaultEditMode);
 
   const allowToSaveExpression =
     (expression.subExpressions?.filter((subExp) => !subExp.function)?.length === 0 &&
@@ -186,7 +189,10 @@ export const ExpressionContent = ({
           <Button
             color='success'
             icon={<CheckmarkIcon />}
-            onClick={() => onSaveExpression(expression)}
+            onClick={() => {
+              setEditMode(false);
+              onSaveExpression(expression);
+            }}
             variant='primary'
             size='small'
             disabled={!allowToSaveExpression}

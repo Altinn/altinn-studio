@@ -28,7 +28,7 @@ describe('NewExpressionButton', () => {
 
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
     await act(() => user.click(addButton));
-    const dropdown = screen.getByRole('combobox', {
+    const dropdown = screen.getByRole('heading', {
       name: textMock('right_menu.expressions_property'),
     });
     expect(dropdown).toBeInTheDocument();
@@ -44,11 +44,7 @@ describe('NewExpressionButton', () => {
 
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
     await act(() => user.click(addButton));
-    const dropdown = screen.getByRole('combobox', {
-      name: textMock('right_menu.expressions_property'),
-    });
-    await act(() => user.click(dropdown));
-    const dropdownOption = screen.getByRole('option', { name: optionsMock[0].label });
+    const dropdownOption = screen.getByRole('menuitem', { name: optionsMock[0].label });
     await act(() => user.click(dropdownOption));
 
     expect(onAddExpressionMock).toHaveBeenCalledWith(optionsMock[0].value);

@@ -31,6 +31,7 @@ import { NewExpressionButton } from './NewExpressionButton';
 export const Expressions = () => {
   const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
   const [expressions, setExpressions] = React.useState<Expression[]>([]);
+  const [newlyAddedExpression, setNewlyAddedExpression] = React.useState<Expression>(undefined);
   const [successfullyAddedExpressionProperty, setSuccessfullyAddedExpressionProperty] =
     React.useState<ExpressionProperty | undefined>(undefined);
   const t = useText();
@@ -55,19 +56,13 @@ export const Expressions = () => {
   const alreadyUsedProperties = expressions.map((expression) => expression.property);
   const isExpressionLimitReached = expressions?.length >= expressionProperties?.length;
 
-  const availableProperties = [
-    {
-      label: t('right_menu.expressions_property_select'),
-      value: 'default',
-    },
-  ].concat(
-    getNonOverlappingElementsFromTwoLists(expressionProperties, alreadyUsedProperties).map(
-      (property: ExpressionProperty) => ({
-        label: expressionPropertyTexts(t)[property],
-        value: property,
-      }),
-    ),
-  );
+  const availableProperties = getNonOverlappingElementsFromTwoLists(
+    expressionProperties,
+    alreadyUsedProperties,
+  ).map((property: ExpressionProperty) => ({
+    label: expressionPropertyTexts(t)[property],
+    value: property,
+  }));
 
   const saveExpressionAndSetCheckMark = async (index: number, expression: Expression) => {
     const updatedComponent = convertAndAddExpressionToComponent(form, expression);
@@ -76,17 +71,21 @@ export const Expressions = () => {
   };
 
   const addNewExpression = async (property: ExpressionProperty) => {
+    debugger;
     const newExpressions = addExpressionIfLimitNotReached(
       expressions,
       property,
       isExpressionLimitReached,
     );
     setExpressions(newExpressions);
+    setNewlyAddedExpression(newExpressions.at(newExpressions.length - 1));
+    debugger;
   };
 
   const updateExpression = (index: number, newExpression: Expression) => {
     const newExpressions: Expression[] = deepCopy(expressions);
-    newExpression[index] = newExpression;
+    newExpressions[index] = newExpression;
+    setNewlyAddedExpression(newExpression);
     setExpressions(newExpressions);
   };
 
@@ -112,6 +111,7 @@ export const Expressions = () => {
     return getNonOverlappingElementsFromTwoLists(expressionProperties, alreadyUsedProperties);
   };
 
+  debugger;
   return (
     <div className={classes.root}>
       <Trans i18nKey={'right_menu.read_more_about_expressions'}>
@@ -126,6 +126,7 @@ export const Expressions = () => {
           key={expression.property}
           componentName={form.id}
           expression={expression}
+          defaultEditMode={expression === newlyAddedExpression}
           onGetProperties={getProperties}
           onSaveExpression={() => saveExpressionAndSetCheckMark(index, expression)}
           successfullyAddedExpression={expression.property === successfullyAddedExpressionProperty}

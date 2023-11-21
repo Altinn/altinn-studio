@@ -1,5 +1,5 @@
-import React from 'react';
-import { Button, Select } from '@digdir/design-system-react';
+import React, { useRef } from 'react';
+import { Button, DropdownMenu } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
 import { ExpressionProperty } from '../../../types/Expressions';
@@ -13,36 +13,45 @@ export interface NewExpressionButtonProps {
 export const NewExpressionButton = (props: NewExpressionButtonProps) => {
   const [showDropDown, setShowDropDown] = React.useState<boolean>(false);
   const t = useText();
-
-  const handleOnChange = (property: ExpressionProperty) => {
-    props.onAddExpression(property);
-    setShowDropDown(false);
-  };
+  const anchorEl = useRef(null);
 
   return (
     <>
-      {showDropDown ? (
-        <Select
-          label={t('right_menu.expressions_property')}
-          hideLabel={true}
-          onChange={(property) => handleOnChange(property)}
-          options={props.options}
-          value={'default'}
-        />
-      ) : (
-        <Button
-          title={t('right_menu.expressions_add')}
-          color='first'
-          fullWidth
-          icon={<PlusIcon />}
-          id='right_menu.dynamics_add'
-          onClick={() => setShowDropDown(true)}
-          size='small'
-          variant='secondary'
-        >
-          {t('right_menu.expressions_add')}
-        </Button>
-      )}
+      <Button
+        title={t('right_menu.expressions_add')}
+        color='first'
+        fullWidth
+        icon={<PlusIcon />}
+        id='right_menu.dynamics_add'
+        size='small'
+        variant='secondary'
+        ref={anchorEl}
+        aria-haspopup='menu'
+        aria-expanded={showDropDown}
+        onClick={() => setShowDropDown(true)}
+      >
+        {t('right_menu.expressions_add')}
+      </Button>
+      <DropdownMenu
+        anchorEl={anchorEl.current}
+        placement='bottom'
+        size='medium'
+        open={showDropDown}
+      >
+        <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
+          {props.options.map((o) => (
+            <DropdownMenu.Item
+              key={o.label}
+              onClick={() => {
+                setShowDropDown(false);
+                props.onAddExpression(o.value as ExpressionProperty);
+              }}
+            >
+              {o.label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Group>
+      </DropdownMenu>
     </>
   );
 };
