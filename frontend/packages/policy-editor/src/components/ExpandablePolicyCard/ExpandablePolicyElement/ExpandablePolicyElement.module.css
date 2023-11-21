@@ -1,10 +1,10 @@
 .wrapper {
   width: 100%;
-  border: solid 1px var(--fds-semantic-border-neutral-divider);
+  border: solid 1px var(--fds-semantic-border-divider-default);
 }
 
 .wrapper.buttonHovered {
-  box-shadow: 0 0 0 2px var(--fds-semantic-border-neutral-divider);
+  box-shadow: 0 0 0 2px var(--fds-semantic-border-divider-default);
 }
 
 .buttonFocused:focus-visible,

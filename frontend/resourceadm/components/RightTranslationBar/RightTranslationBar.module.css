@@ -3,7 +3,7 @@
   min-height: 100vh;
   height: 100%;
   right: 0;
-  border: 1px solid var(--fds-semantic-border-neutral-divider);
+  border: 1px solid var(--fds-semantic-border-divider-default);
   border-top: none;
 }
 

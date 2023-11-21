@@ -38,7 +38,7 @@
 }
 
 .headingWrapper {
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
   height: var(--heading-height);
   position: sticky;
   top: 0;
