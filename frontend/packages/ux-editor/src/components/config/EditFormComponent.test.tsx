@@ -99,12 +99,9 @@ describe('EditFormComponent', () => {
       await userEvent.click(linkIcon);
     });
 
-    await waitFor(async () => {
-      Object.keys(labels).map(async (label) =>
-        expect(await screen.findByRole(labels[label], { name: label })),
-      );
-    });
-
+    Object.keys(labels).map(async (label) =>
+      expect(await screen.findByRole(labels[label], { name: label })),
+    );
     expect(screen.getByRole('combobox'));
     expect(screen.getByLabelText('Autocomplete (WCAG)'));
   });
