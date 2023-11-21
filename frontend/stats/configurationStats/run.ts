@@ -26,6 +26,7 @@ const generateLayoutFilesStats = async () => {
     'Layout files',
     'component',
   );
+  const componentCount = layout.items.length;
 
   const layoutSettingsSchemaResult = await axios.get(
     'https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json',
@@ -36,8 +37,13 @@ const generateLayoutFilesStats = async () => {
     'LayoutSettings',
   );
 
+  const settingsCount = layoutSettings.items.length;
+
   // Only the 'sets' property exists in the layout-sets schema, and it is not supported
   const meanSupportedLayoutSetsSuport = 0;
+  const layoutSetsItemCount = 1;
+
+  const totalItemCount = componentCount + settingsCount + layoutSetsItemCount;
 
   console.log('');
   console.log('**********************************************************');
@@ -55,10 +61,10 @@ const generateLayoutFilesStats = async () => {
   console.log(
     'Mean support layout files total: ',
     Math.round(
-      (meanSupportedComponentPropertyPercentage +
-        meanSupportedLayoutSettingsSupport +
-        meanSupportedLayoutSetsSuport) /
-        3,
+      (meanSupportedComponentPropertyPercentage * componentCount +
+        meanSupportedLayoutSettingsSupport * settingsCount +
+        meanSupportedLayoutSetsSuport * layoutSetsItemCount) /
+        totalItemCount,
     ),
     '%',
   );
