@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
-import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react';
+import { Button, Spinner, Heading } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
@@ -21,7 +21,7 @@ import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceDashboardPage = (): React.ReactNode => {
-  const { selectedContext } = useParams();
+  const { org: selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const { t } = useTranslation();
@@ -79,11 +79,6 @@ export const ResourceDashboardPage = (): React.ReactNode => {
             list={filteredResourceList}
             onClickEditResource={handleNavigateToResource}
           />
-          {filteredResourceList.length === 0 && (
-            <Paragraph size='small' className={classes.noResultText}>
-              {t('resourceadm.dashboard_empty_list')}
-            </Paragraph>
-          )}
         </>
       );
     }

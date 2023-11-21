@@ -45,6 +45,16 @@ Cypress.Commands.add('deleteAllApps', (ownerName, accessToken, isOrg) => {
   });
 });
 
+Cypress.Commands.add(
+  'deleteApp',
+  (ownerName, appName, accessToken) =>
+    cy.request({
+      method: 'DELETE',
+      url: `${giteaBaseUrl}/repos/${ownerName}/${appName}?token=${accessToken}`,
+      failOnStatusCode: false,
+    })
+);
+
 /**
  * make an user as the owner of an org's repo, authenticated using access token
  */

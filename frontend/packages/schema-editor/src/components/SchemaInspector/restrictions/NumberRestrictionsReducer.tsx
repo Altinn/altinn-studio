@@ -9,6 +9,7 @@ export enum NumberRestrictionsReducerActionType {
   setMax = 'setMax',
   setMaxIncl = 'setMaxIncl',
   setMinIncl = 'setMinIncl',
+  setMultipleOf = 'setMultipleOf',
   setRestriction = 'setRestriction',
 }
 
@@ -26,6 +27,12 @@ interface SetMinMaxAction {
   changeCallback: ChangeCallback;
 }
 
+interface SetMultipleOf {
+  type: NumberRestrictionsReducerActionType.setMultipleOf;
+  value: number;
+  changeCallback: ChangeCallback;
+}
+
 interface SetRestrictionAction {
   type: NumberRestrictionsReducerActionType.setRestriction;
   restriction: IntRestrictionKey;
@@ -36,6 +43,7 @@ interface SetRestrictionAction {
 export type NumberRestrictionsReducerAction =
   | SetMinMaxInclusiveAction
   | SetMinMaxAction
+  | SetMultipleOf
   | SetRestrictionAction;
 
 export type NumberRestrictionsReducerState = {
@@ -49,7 +57,7 @@ export type NumberRestrictionsReducerState = {
 };
 
 export const validateMinMax = (
-  formatState: NumberRestrictionsReducerState
+  formatState: NumberRestrictionsReducerState,
 ): NumberRestrictionsError => {
   const areBothInclusive = formatState.isMinInclusive && formatState.isMaxInclusive;
   if (areBothInclusive && formatState.min > formatState.max) {
@@ -106,9 +114,7 @@ const setMaxIncl = (state: NumberRestrictionsReducerState, action: SetMinMaxIncl
 
 const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) => {
   const { value } = action;
-  const key = state.isMinInclusive
-    ? IntRestrictionKey.minimum
-    : IntRestrictionKey.exclusiveMinimum;
+  const key = state.isMinInclusive ? IntRestrictionKey.minimum : IntRestrictionKey.exclusiveMinimum;
   state.min = value;
   state.restrictions[key] = value;
   state.numberRestrictionsError = validateMinMax(state);
@@ -116,12 +122,14 @@ const setMin = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) 
 
 const setMax = (state: NumberRestrictionsReducerState, action: SetMinMaxAction) => {
   const { value } = action;
-  const key = state.isMaxInclusive
-    ? IntRestrictionKey.maximum
-    : IntRestrictionKey.exclusiveMaximum;
+  const key = state.isMaxInclusive ? IntRestrictionKey.maximum : IntRestrictionKey.exclusiveMaximum;
   state.max = value;
   state.restrictions[key] = value;
   state.numberRestrictionsError = validateMinMax(state);
+};
+
+const setMultipleOf = (state: NumberRestrictionsReducerState, action: SetMultipleOf) => {
+  state.restrictions[IntRestrictionKey.multipleOf] = action.value;
 };
 
 const setRestriction = (state: NumberRestrictionsReducerState, action: SetRestrictionAction) =>
@@ -129,7 +137,7 @@ const setRestriction = (state: NumberRestrictionsReducerState, action: SetRestri
 
 export const numberRestrictionsReducer = (
   state: NumberRestrictionsReducerState,
-  action: NumberRestrictionsReducerAction
+  action: NumberRestrictionsReducerAction,
 ) => {
   switch (action.type) {
     case NumberRestrictionsReducerActionType.setMinIncl:
@@ -143,6 +151,9 @@ export const numberRestrictionsReducer = (
       break;
     case NumberRestrictionsReducerActionType.setMax:
       setMax(state, action);
+      break;
+    case NumberRestrictionsReducerActionType.setMultipleOf:
+      setMultipleOf(state, action);
       break;
     case NumberRestrictionsReducerActionType.setRestriction:
       setRestriction(state, action);

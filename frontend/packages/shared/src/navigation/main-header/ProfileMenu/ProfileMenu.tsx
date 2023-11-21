@@ -7,7 +7,7 @@ import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../../ap
 import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/User';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Button, Paragraph } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import * as testids from '../../../../../../testing/testids';
 
 export interface IProfileMenuComponentProps {
@@ -87,9 +87,7 @@ export const ProfileMenu = ({
       aria-haspopup
       ref={menuRef}
     >
-      <Paragraph as='span' size='small' className={classes.userOrgNames}>
-        {userNameAndOrg}
-      </Paragraph>
+      <span className={classes.userOrgNames}>{userNameAndOrg}</span>
       <img
         alt={t('general.profile_icon')}
         title={t('shared.header_profile_icon_text')}

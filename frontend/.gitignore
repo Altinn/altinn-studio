@@ -2,6 +2,7 @@
 
 /.pnp.*
 /.yarn/*
+stats/.yarn/*
 language/old/*
 !/.yarn/patches
 !/.yarn/plugins

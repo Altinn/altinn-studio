@@ -24,9 +24,8 @@ const layouts: IFormLayouts = {
 };
 
 describe('Expressions', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  beforeEach(jest.clearAllMocks);
+
   it('renders existing expressions and addExpressionButton when hidden field on the component has an expression', () => {
     render({});
 
@@ -39,6 +38,7 @@ describe('Expressions', () => {
     const expressionLimitAlert = screen.queryByText(textMock('right_menu.expressions_expressions_limit_reached_alert'));
     expect(expressionLimitAlert).not.toBeInTheDocument();
   });
+
   it('renders alert component when there are as many existing expressions as available properties to set expressions on for a regular component', () => {
     const componentWithMultipleExpressions: FormComponent = {
       id: 'some-id',
@@ -55,6 +55,7 @@ describe('Expressions', () => {
     const expressionLimitAlert = screen.queryByText(textMock('right_menu.expressions_expressions_limit_reached_alert'));
     expect(expressionLimitAlert).toBeInTheDocument();
   });
+
   it('renders alert component when there are as many existing expressions as available properties to set expressions on for a group component', () => {
     const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer = {
       id: 'some-id',
@@ -76,6 +77,21 @@ describe('Expressions', () => {
     const expressionLimitAlert = screen.queryByText(textMock('right_menu.expressions_expressions_limit_reached_alert'));
     expect(expressionLimitAlert).toBeInTheDocument();
   });
+
+  it('Renders successfully when the component is a multipage group', () => {
+    const component: FormContainer = {
+      id: 'some-id',
+      itemType: 'CONTAINER',
+      edit: {
+        multiPage: true,
+      },
+    };
+    render({ component });
+    expect(
+      screen.getByText(textMock('right_menu.read_more_about_expressions')),
+    ).toBeInTheDocument();
+  });
+
   it('renders no existing expressions when component fields are boolean', () => {
     const componentWithoutExpressions: FormComponent = {
       id: 'some-id',
@@ -93,6 +109,7 @@ describe('Expressions', () => {
     expect(defaultExpressionSelectProperty).toBeInTheDocument();
     expect(defaultExpressionSelectProperty).toHaveValue(textMock('right_menu.expressions_property_select'));
   });
+
   it('renders link to docs', () => {
     render({});
 
@@ -126,5 +143,5 @@ const render = ({ props = {}, queries = {}, component = componentWithExpression 
     >
       <Expressions/>
     </FormContext.Provider>
-    );
+  );
 };

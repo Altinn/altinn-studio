@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
-import type { LegacyTextFieldProps as TextFieldProps } from '@digdir/design-system-react';
+import type { TextfieldProps } from '@digdir/design-system-react';
 import { AltinnTextField } from 'app-shared/components/AltinnTextField';
 import {
   getNameFromPointer,
@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
-export type NameFieldProps = TextFieldProps & {
+export type NameFieldProps = TextfieldProps & {
   id: string;
   pointer: string;
   handleSave: (newNodeName: string, errorCode: string) => void;
