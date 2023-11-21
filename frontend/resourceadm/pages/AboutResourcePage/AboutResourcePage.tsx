@@ -230,7 +230,6 @@ export const AboutResourcePage = ({
           id='aboutResourceType'
           errorText={t('resourceadm.about_resource_resource_type_error')}
         />
-
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_title_label')}
           description={t('resourceadm.about_resource_resource_title_text')}
@@ -247,7 +246,6 @@ export const AboutResourcePage = ({
           )}
         />
         {translationType === 'title' && displayRightTranslationBar()}
-
         <ResourceLanguageTextArea
           label={t('resourceadm.about_resource_resource_description_label')}
           description={t('resourceadm.about_resource_resource_description_text')}
