@@ -16,38 +16,52 @@ export type MergeReposProps = {
   starredRepos: IRepository[];
 };
 
+type TranslationMapKey = SelectedContextType | 'named_org' | 'org';
+type TranslationMap = Record<TranslationMapKey, string>;
+const appsTranslationMap: TranslationMap = {
+  all: 'dashboard.all_apps',
+  self: 'dashboard.my_apps',
+  org: 'dashboard.apps',
+  named_org: 'dashboard.org_apps',
+};
+const datamodelsTranslationMap: TranslationMap = {
+  all: 'dashboard.all_datamodels',
+  self: 'dashboard.my_datamodels',
+  org: 'dashboard.datamodels',
+  named_org: 'dashboard.org_datamodels',
+};
+const resourcesTranslationMap: TranslationMap = {
+  all: 'dashboard.all_resources',
+  self: 'dashboard.my_resources',
+  org: 'dashboard.resources',
+  named_org: 'dashboard.org_resources',
+};
+
 export const getReposLabel = ({
   selectedContext,
   orgs,
   t,
   isDatamodelsRepo = false,
   isResourcesRepo = false,
-}: GetReposLabel) => {
+}: GetReposLabel): string => {
   const orgName =
     orgs.length > 0 && orgs.find((org) => org.username === selectedContext)?.full_name;
-  const stringsConfig = {
-    all: t('dashboard.all_apps'),
-    mine: t('dashboard.my_apps'),
-    org: orgName ? t('dashboard.org_apps', { orgName }) : t('dashboard.apps'),
-    ...(isDatamodelsRepo && {
-      all: t('dashboard.all_datamodels'),
-      mine: t('dashboard.my_datamodels'),
-      org: orgName ? t('dashboard.org_datamodels', { orgName }) : t('dashboard.datamodels'),
-    }),
-    ...(isResourcesRepo && {
-      all: t('dashboard.all_resources'),
-      mine: t('dashboard.my_resources'),
-      org: orgName ? t('dashboard.org_resources', { orgName }) : t('dashboard.resources'),
-    }),
+
+  const concatenatedTranslationMap: TranslationMap = {
+    ...appsTranslationMap,
+    ...(isDatamodelsRepo && datamodelsTranslationMap),
+    ...(isResourcesRepo && resourcesTranslationMap),
   };
 
   if (selectedContext === SelectedContextType.All) {
-    return stringsConfig.all;
+    return t(concatenatedTranslationMap.all);
   }
   if (selectedContext === SelectedContextType.Self) {
-    return stringsConfig.mine;
+    return t(concatenatedTranslationMap.self);
   }
-  return stringsConfig.org;
+  return orgName
+    ? t(concatenatedTranslationMap.named_org, { orgName })
+    : t(concatenatedTranslationMap.org);
 };
 
 export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
