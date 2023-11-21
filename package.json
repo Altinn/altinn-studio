@@ -16,6 +16,8 @@
     "test": "yarn gen && jest",
     "test:watch": "yarn gen && jest --watch",
     "test:watchall": "yarn gen && jest --watchAll",
+    "test:preview": "jest-preview",
+    "test:clear-cache": "jest --clearCache",
     "tsc": "yarn gen && tsc && tsc --project test/tsconfig.json",
     "tsc:watch": "yarn gen && tsc --watch",
     "tsc:watch:cypress": "yarn gen && tsc --watch --project test/tsconfig.json",
@@ -108,11 +110,13 @@
     "jest-environment-jsdom": "29.7.0",
     "jest-junit": "16.0.0",
     "jest-mock-axios": "4.7.3",
+    "jest-preview": "^0.3.1",
     "js-levenshtein": "^1.1.6",
     "jsdom": "22.1.0",
     "lint-staged": "15.0.2",
     "mime": "3.0.0",
     "mini-css-extract-plugin": "2.7.6",
+    "postcss-modules": "^6.0.0",
     "prettier": "3.0.3",
     "react-refresh": "0.14.0",
     "redux-mock-store": "1.5.4",
@@ -178,49 +182,6 @@
     ],
     "*.{json}": "eslint --cache --fix",
     "*.{css,md}": "prettier --write"
-  },
-  "jest": {
-    "transform": {
-      "\\.(js|ts|tsx)$": [
-        "ts-jest",
-        {
-          "isolatedModules": true
-        }
-      ]
-    },
-    "reporters": [
-      "default",
-      "jest-junit"
-    ],
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/src/__mocks__/fileMock.ts",
-      "\\.(css|less|scss)$": "identity-obj-proxy",
-      "\\./applicationMetadataMock.json": "<rootDir>/src/__mocks__/applicationMetadataMock.json",
-      "^src/(.*)$": "<rootDir>/src/$1",
-      "^schemas/(.*)$": "<rootDir>/schemas/$1",
-      "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js"
-    },
-    "testRegex": "\\.test\\.(ts|tsx|js|jsx)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "json"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/src/setupTests.ts"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.{ts,tsx}"
-    ],
-    "testEnvironmentOptions": {
-      "url": "https://local.altinn.cloud/ttd/test"
-    },
-    "testEnvironment": "jsdom",
-    "transformIgnorePatterns": [
-      "node_modules/(?!react-leaflet)/"
-    ],
-    "globalSetup": "./src/globalSetup.ts"
   },
   "browserslist": {
     "production": [
