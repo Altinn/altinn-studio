@@ -11,7 +11,7 @@ const getOrgAppsHeader = (org) =>
 const getUserAppsList = () => getUserAppsListHeader().next();
 const getSearchResults = () => getSearchResultsHeader().next();
 const getLinksCellForApp = (table, name) =>
-  table.findAllByRole('cell', { name }).siblings("div[data-field='links']");
+  table.findByRole('cell', { name }).siblings("div[data-field='links']");
 
 export const dashboard = {
   getAllAppsHeader,
