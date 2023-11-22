@@ -78,16 +78,12 @@ export const EditFormComponent = ({
         propertyPath={component.propertyPath}
         componentType={component.type}
         helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
-      >
-        {({ value }) => {
-          return (
-            <Switch checked={value} size='small'>
-              {t('ux_editor.edit_component.show_beta_func')}
-            </Switch>
-          );
-        }}
-      </FormField>
-
+        renderField={(props) => (
+          <Switch {...props} size='small'>
+            {t('ux_editor.edit_component.show_beta_func')}
+          </Switch>
+        )}
+      />
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>

@@ -10,6 +10,7 @@ export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponent) => void;
   component: FormComponent;
   helpText?: string;
+  onChange?: (value: string, event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 export const EditComponentId = ({
   component,
@@ -48,13 +49,13 @@ export const EditComponentId = ({
           return t('ux_editor.modal_properties_component_id_not_valid');
         }
       }}
-    >
-      {({ onChange }) => (
+      renderField={(props) => (
         <Textfield
-          name={`component-id-input${component.id}`}
-          onChange={(e) => onChange(e.target.value, e)}
+          {...props}
+          id={`component-id-input${component.id}`}
+          onChange={(e) => props.onChange(e.target.value, e)}
         />
       )}
-    </FormField>
+    />
   );
 };

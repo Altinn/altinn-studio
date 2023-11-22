@@ -42,14 +42,14 @@ export const MapComponent = ({
             customValidationMessages={(errorCode: string) => {
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
-          >
-            {({ onChange }) => (
+            renderField={(props) => (
               <LegacyTextField
                 formatting={{ number: {} }}
-                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+                onChange={(e) => props.onChange(parseInt(e.target.value, 10), e)}
               />
             )}
-          </FormField>
+          />
+
           <FormField
             id={component.id}
             label={t('ux_editor.longitude_label')}
@@ -59,16 +59,16 @@ export const MapComponent = ({
             customValidationMessages={(errorCode: string) => {
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
-          >
-            {({ onChange }) => (
+            renderField={(props) => (
               <LegacyTextField
                 formatting={{ number: {} }}
-                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+                onChange={(e) => props.onChange(parseInt(e.target.value, 10), e)}
               />
             )}
-          </FormField>
+          />
         </div>
       </div>
+
       <div>
         <FormField
           id={component.id}
@@ -79,14 +79,13 @@ export const MapComponent = ({
           customValidationMessages={(errorCode: string) => {
             if (errorCode === 'type') return t('validation_errors.numbers_only');
           }}
-        >
-          {({ onChange }) => (
+          renderField={(props) => (
             <LegacyTextField
               formatting={{ number: {} }}
-              onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+              onChange={(e) => props.onChange(parseInt(e.target.value, 10), e)}
             />
           )}
-        </FormField>
+        />
       </div>
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
@@ -168,6 +167,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 size='small'
               />
             </div>
+
             <FormField
               id={component.id}
               label={t('ux_editor.url_label')}
@@ -177,11 +177,11 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
               customValidationMessages={(errorCode: string) => {
                 if (errorCode === 'format') return t('validation_errors.value_as_url');
               }}
-            >
-              {({ onChange }) => (
-                <LegacyTextField name='url' onChange={(e) => onChange(e.target.value, e)} />
+              renderField={(props) => (
+                <LegacyTextField name='url' onChange={(e) => props.onChange(e.target.value, e)} />
               )}
-            </FormField>
+            />
+
             <div className={classes.formGroup}>
               <FormField
                 id={component.id}
@@ -189,30 +189,29 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 value={layer.attribution || ''}
                 onChange={(value, event) => handleOnLayerChange(index, event)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
-              >
-                {({ onChange }) => (
+                renderField={(props) => (
                   <LegacyTextField
                     name='attribution'
-                    onChange={(e) => onChange(e.target.value, e)}
+                    onChange={(e) => props.onChange(e.target.value, e)}
                   />
                 )}
-              </FormField>
+              />
+
               <FormField
                 id={component.id}
                 label={t('ux_editor.subdomains_label')}
                 value={layer?.subdomains || []}
                 onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
-              >
-                {({ value, onChange }) => (
+                renderField={(props) => (
                   <LegacyTextField
                     name='subdomains'
                     placeholder={t('ux_editor.subdomains_placeholder')}
-                    onChange={(e) => onChange(stringToArray(e.target.value), e)}
-                    value={arrayToString(value) || ''}
+                    onChange={(e) => props.onChange(stringToArray(e.target.value), e)}
+                    value={arrayToString(props.value) || ''}
                   />
                 )}
-              </FormField>
+              />
             </div>
           </LegacyFieldSet>
         ),

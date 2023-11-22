@@ -119,18 +119,18 @@ export function EditOptions({
       {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
+
       {selectedOptionsType === SelectedOptionsType.Manual && (
         <FormField
           id={component.id}
           value={component.options}
           propertyPath={`${component.propertyPath}/properties/options`}
-        >
-          {() => (
+          renderField={(props) => (
             <div>
               {component.options?.map((option, index) => {
                 const updateValue = (e: any) => handleUpdateOptionValue(index, e);
                 const removeItem = () => handleRemoveOption(index);
-                const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
+                const key = `${option.label}-${index}`;
                 const optionTitle = `${
                   component.type === 'RadioButtons'
                     ? t('ux_editor.modal_radio_button_increment')
@@ -175,8 +175,9 @@ export function EditOptions({
               })}
             </div>
           )}
-        </FormField>
+        />
       )}
+
       {selectedOptionsType === SelectedOptionsType.Manual && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <Button

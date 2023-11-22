@@ -31,29 +31,32 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
         value={component?.showIcon || false}
         onChange={handleShowIconClick}
         propertyPath={`${component.propertyPath}/properties/showIcon`}
-      >
-        {({ value, onChange }) => (
-          <Switch checked={value} onChange={(e) => onChange(e.target.checked, e)} size='small'>
-            {t('ux_editor.show_icon')}
-          </Switch>
+        renderField={(props) => (
+          <Switch
+            {...props}
+            size='small'
+            onChange={(e) => props.onChange(e.target.checked, e)}
+            checked={props.value}
+          />
         )}
-      </FormField>
+      />
+
       <FormField
         id={component.id}
         label={t('ux_editor.choose_variant')}
         value={component.variant || 'info'}
         onChange={handleVariantClick}
         propertyPath={`${component.propertyPath}/properties/variant`}
-      >
-        {() => (
+        renderField={(props) => (
           <Select
+            {...props}
             options={Object.values(FormPanelVariant).map((value: FormPanelVariant) => ({
               label: t(`ux_editor.${value}`),
               value,
             }))}
           />
         )}
-      </FormField>
+      />
     </>
   );
 };

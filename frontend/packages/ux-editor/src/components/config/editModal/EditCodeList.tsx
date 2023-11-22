@@ -44,6 +44,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}
             </Button>
           </p>
+
           {!useCustomCodeList && (
             <FormField
               id={component.id}
@@ -51,16 +52,16 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               onChange={handleOptionsIdChange}
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
-            >
-              {() => (
+              renderField={(props) => (
                 <Select
+                  {...props}
                   options={optionListIds.map((option) => ({
                     label: option,
                     value: option,
                   }))}
                 />
               )}
-            </FormField>
+            />
           )}
         </>
       )}

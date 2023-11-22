@@ -39,7 +39,7 @@ export const SelectDataModelComponent = ({
       .filter(
         (element) =>
           element.dataBindingName &&
-          ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1))
+          ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1)),
       )
       .map((element) => ({
         value: element.dataBindingName,
@@ -61,10 +61,13 @@ export const SelectDataModelComponent = ({
       componentType={componentType}
       helpText={helpText}
       label={label}
-    >
-      {({ onChange }) => (
-        <Select onChange={(e: any) => onChange(e)} options={dataModelElementNames} />
+      renderField={(props) => (
+        <Select
+          {...props}
+          options={dataModelElementNames}
+          onChange={(e: any) => onChangeSelectedBinding(e)}
+        />
       )}
-    </FormField>
+    />
   );
 };

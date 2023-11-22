@@ -221,9 +221,8 @@ export const TextResource = ({
       id={textResourceId}
       value={{ [textResourceId]: textResource?.value }}
       propertyPath='definitions/component/properties/textResourceBindings'
-    >
-      {() => renderTextResource()}
-    </FormField>
+      renderField={() => renderTextResource()}
+    />
   );
 };
 

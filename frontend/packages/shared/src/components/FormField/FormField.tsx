@@ -10,11 +10,12 @@ import { TranslationKey } from 'language/type';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export type FormFieldChildProps<TT> = {
-  errorCode: string;
   value: any;
   label: string;
   onChange: (value: TT, event?: React.ChangeEvent<HTMLInputElement>) => void;
-  customRequired: boolean;
+  required: boolean;
+  'aria-errormessage'?: string;
+  'aria-invalid'?: boolean;
 };
 
 export interface FormFieldProps<T, TT> {
@@ -24,13 +25,13 @@ export interface FormFieldProps<T, TT> {
   label?: string;
   value: T;
   helpText?: string;
-  children: (props: FormFieldChildProps<TT>) => React.ReactNode;
   onChange?: (value: TT, event: React.ChangeEvent<HTMLInputElement>, errorCode: string) => void;
   propertyPath?: string;
   componentType?: string;
   customRequired?: boolean;
   customValidationRules?: (value: T | TT) => string;
   customValidationMessages?: (errorCode: string) => string;
+  renderField: (props: FormFieldChildProps<TT>) => React.ReactNode;
 }
 
 export const FormField = <T extends unknown, TT extends unknown>({
@@ -39,13 +40,13 @@ export const FormField = <T extends unknown, TT extends unknown>({
   className,
   label,
   value,
-  children,
   onChange,
   propertyPath,
   helpText,
   customRequired = false,
   customValidationRules,
   customValidationMessages,
+  renderField,
 }: FormFieldProps<T, TT>): JSX.Element => {
   const t = useText();
 
@@ -102,30 +103,18 @@ export const FormField = <T extends unknown, TT extends unknown>({
     if (!errCode && onChange) onChange(newValue, event, errorCode);
   };
 
-  const renderChildren = (items: React.ReactNode, renderItems: (props: any) => React.ReactNode) => {
-    return React.Children.map(items, (child) => {
-      if (!React.isValidElement(child)) return child;
-      const {
-        type: ChildrenComponent,
-        props: { children: nestedChildren, ...childProps },
-      } = child;
-      const props =
-        typeof ChildrenComponent !== 'string'
-          ? {
-              value: tmpValue,
-              required: isRequired,
-              label,
-              onChange: handleOnChange,
-              ...childProps,
-            }
-          : {};
-      if (nestedChildren) props.children = renderChildren(nestedChildren, renderItems);
-      if (errorCode) {
-        props['aria-errormessage'] = errorMessageId;
-        props['aria-invalid'] = true;
-      }
-      return renderItems({ component: ChildrenComponent, ...props });
-    });
+  const generateProps = () => {
+    const props: FormFieldChildProps<TT> = {
+      value: tmpValue,
+      required: isRequired,
+      label,
+      onChange: handleOnChange,
+    };
+    if (errorCode) {
+      props['aria-errormessage'] = errorMessageId;
+      props['aria-invalid'] = true;
+    }
+    return props;
   };
 
   const showErrorMessages = () => {
@@ -144,20 +133,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
   return (
     <div className={className}>
       <div className={classes.container}>
-        <div className={classes.formField}>
-          {renderChildren(
-            children({
-              errorCode,
-              value: tmpValue,
-              label,
-              onChange: handleOnChange,
-              customRequired: isRequired,
-            }),
-            ({ component: ChildrenComponent, ...props }) => (
-              <ChildrenComponent {...props} />
-            ),
-          )}
-        </div>
+        <div className={classes.formField}>{renderField(generateProps())}</div>
         <div className={classes.helpTextContainer}>
           {helpText && (
             <HelpText className={classes.helpText} title={helpText}>

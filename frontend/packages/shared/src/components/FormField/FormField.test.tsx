@@ -34,7 +34,7 @@ const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
     value: '',
     ...props,
   };
-  return rtlRender(<FormField {...allProps}>{() => <LegacyTextField />}</FormField>);
+  return rtlRender(<FormField {...allProps} renderField={() => <LegacyTextField />} />);
 };
 
 describe('FormField', () => {

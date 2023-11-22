@@ -105,8 +105,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
         value={autocompleteText}
         onChange={handleWordClick}
         propertyPath={`${component.propertyPath}/properties/autocomplete`}
-      >
-        {({ onChange }) => (
+        renderField={(props) => (
           <LegacyTextField
             onFocus={(): void => setSearchFieldFocused(true)}
             onBlur={(): void => {
@@ -115,11 +114,11 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
             onChange={(event) => {
               const { value } = event.target;
               handleChange(value);
-              onChange(value);
+              props.onChange(value);
             }}
           />
         )}
-      </FormField>
+      />
       <LegacyPopover
         variant='default'
         open={searchFieldFocused && autoCompleteOptions.length > 0}
