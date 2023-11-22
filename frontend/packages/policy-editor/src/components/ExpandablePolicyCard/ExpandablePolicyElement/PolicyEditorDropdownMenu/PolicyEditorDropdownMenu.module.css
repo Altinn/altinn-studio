@@ -1,0 +1,7 @@
+.errorButton:hover {
+  border: 1px solid var(--fds-semantic-border-danger-hover);
+}
+
+.icon {
+  font-size: 1.3rem;
+}
