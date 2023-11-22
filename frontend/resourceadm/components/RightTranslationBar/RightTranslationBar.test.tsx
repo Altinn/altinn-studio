@@ -17,6 +17,22 @@ describe('RightTranslationBar', () => {
     onBlur: mockOnBlur,
   };
 
+  it('calls onLanguageChange function when textarea value changes', async () => {
+    const user = userEvent.setup();
+    render(<RightTranslationBar {...defaultProps} usesTextArea />);
+
+    const nnText: string = 'Nynorsk tekst';
+
+    const nnInput = screen.getByLabelText(`${defaultProps.title} (${textMock('language.nn')})`);
+    await act(() => user.type(nnInput, nnText));
+
+    expect(mockOnLanguageChange).toHaveBeenLastCalledWith({
+      nb: '',
+      nn: nnText[nnText.length - 1],
+      en: '',
+    });
+  });
+
   it('calls onLanguageChange function when input value changes', async () => {
     const user = userEvent.setup();
     render(<RightTranslationBar {...defaultProps} />);
