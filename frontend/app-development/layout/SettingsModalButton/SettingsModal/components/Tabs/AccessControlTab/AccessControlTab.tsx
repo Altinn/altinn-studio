@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode } from 'react';
 import classes from './AccessControlTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
@@ -34,34 +34,20 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
 
   const {
     status: appMetadataStatus,
-    isLoading: appMetadataLoading,
     data: appMetadata,
     error: appMetadataError,
   } = useAppMetadataQuery(org, app);
 
-  console.log('appmetadata', appMetadata);
-
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
-  const [partyTypesAllowed, setPartyTypesAllowed] = useState<PartyTypesAllowed>(
-    appMetadata?.partyTypesAllowed ?? initialPartyTypes,
-  );
+  const handleChange = (newPartyTypes: string[], currentPartyTypesAllowed: PartyTypesAllowed) => {
+    const newPartyTypesAllowed = { ...currentPartyTypesAllowed };
 
-  useEffect(() => {
-    if (!appMetadataLoading) {
-      setPartyTypesAllowed(appMetadata?.partyTypesAllowed ?? initialPartyTypes);
-    }
-  }, [appMetadataLoading, appMetadata]);
-
-  const handleChange = (partyTypes: string[]) => {
-    const newPartyTypesAllowed = { ...partyTypesAllowed };
-
-    Object.keys(partyTypesAllowed).forEach((key) => {
-      newPartyTypesAllowed[key] = partyTypes.includes(key);
+    Object.keys(currentPartyTypesAllowed).forEach((key) => {
+      newPartyTypesAllowed[key] = newPartyTypes.includes(key);
     });
+    console.log('newPartyTypesAllowed', newPartyTypesAllowed);
     updateAppMetadataMutation({ ...appMetadata, partyTypesAllowed: newPartyTypesAllowed });
-
-    setPartyTypesAllowed(newPartyTypesAllowed);
   };
 
   const displayCheckboxes = () => {
@@ -85,12 +71,13 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
         );
       }
       case 'success': {
+        const currentPartyTypesAllowed = appMetadata?.partyTypesAllowed ?? initialPartyTypes;
         return (
           <Checkbox.Group
             legend={t('settings_modal.access_control_tab_checkbox_legend')}
             size='small'
-            onChange={handleChange}
-            value={Object.keys(partyTypesAllowedMap).filter((key) => partyTypesAllowed[key])}
+            onChange={(newValues: string[]) => handleChange(newValues, currentPartyTypesAllowed)}
+            value={Object.keys(partyTypesAllowedMap).filter((key) => currentPartyTypesAllowed[key])}
           >
             <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
               {t('settings_modal.access_control_tab_checkbox_description')}
