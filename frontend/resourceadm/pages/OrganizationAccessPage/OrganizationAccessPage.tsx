@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Heading, Spinner, Textfield } from '@digdir/design-system-react';
+import classes from './OrganizationAccessPage.module.css';
+import { Alert, Button, Heading, Spinner, Textfield } from '@digdir/design-system-react';
 import {
   useEnhetsregisterOrganizationQuery,
   useEnhetsregisterUnderOrganizationQuery,
@@ -11,20 +12,23 @@ import {
   useEnhetsregisterUnderenhetOrgnrQuery,
 } from 'resourceadm/hooks/queries/useEnhetsregisterOrgnrQuery';
 
+const TEST_DATA = ['991825827', '997532422', '891611862', '111611111'];
+
 interface OrganizationAccessPageProps {}
 
+// TODO: filtrer/disable  enheter som allerede finnes
 const enhetsListe = (enheter: BrregOrganization[], erUnderenhet: boolean): React.ReactNode => {
   if (enheter.length === 0) {
     return <div>{erUnderenhet ? 'Fant ingen underenheter' : 'Fant ingen enheter'}</div>;
   }
   return (
     <>
-      <h3>{erUnderenhet ? 'Underenheter' : 'Enheter'}</h3>
+      <option disabled={true}>{erUnderenhet ? 'Underenheter' : 'Enheter'}</option>
       {enheter.map((org) => {
         return (
-          <div key={org.organisasjonsnummer}>
-            {org.organisasjonsnummer} - {org.navn}
-          </div>
+          <option key={org.organisasjonsnummer} value={org.organisasjonsnummer}>
+            {org.navn}
+          </option>
         );
       })}
     </>
@@ -33,13 +37,22 @@ const enhetsListe = (enheter: BrregOrganization[], erUnderenhet: boolean): React
 
 const tabellRad = (enhet: BrregOrganization, typeString: string): React.ReactNode => {
   return (
-    <tr key={enhet.organisasjonsnummer}>
+    <tr key={enhet.organisasjonsnummer} className={classes.tabellRad}>
       <td>{enhet.organisasjonsnummer}</td>
       <td>{enhet.navn}</td>
       <td>{typeString}</td>
       <td>{new Date().toLocaleString()}</td>
       <td>
-        <button>Fjern tilgang</button>
+        <Button
+          color='danger'
+          onClick={() => {
+            /** */
+          }}
+          variant='secondary'
+          size='small'
+        >
+          Fjern tilgang
+        </Button>
       </td>
     </tr>
   );
@@ -50,22 +63,23 @@ export const OrganizationAccessPage = ({}: OrganizationAccessPageProps): React.R
   const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   useDebounce(() => setDebouncedSearchText(searchText), 500, [searchText]);
 
-  const TEST_DATA = ['991825827', '997532422', '891611862', '111611111'];
+  const reg_enheter = TEST_DATA;
 
-  const { data: enheterData } = useEnhetsregisterEnhetOrgnrQuery(TEST_DATA);
-  const { data: underenheterData } = useEnhetsregisterUnderenhetOrgnrQuery(TEST_DATA);
+  const { data: enheterData } = useEnhetsregisterEnhetOrgnrQuery(reg_enheter);
+  const { data: underenheterData } = useEnhetsregisterUnderenhetOrgnrQuery(reg_enheter);
 
   const { data: enheterSearchData, isLoading: isLoadingEnheterSearch } =
     useEnhetsregisterOrganizationQuery(debouncedSearchText);
   const { data: underenheterSearchData, isLoading: isLoadingUnderenheterSearch } =
     useEnhetsregisterUnderOrganizationQuery(debouncedSearchText);
+
   return (
-    <div style={{ margin: '1rem' }}>
+    <div className={classes.pageWrapper}>
       <Heading level={1} size='large' spacing>
         Organisasjonstilganger
       </Heading>
-      <div>Følgende enheter har tilgang til ressursen:</div>
-      <table style={{ margin: '2rem 0', borderSpacing: '16px 4px' }}>
+      <Alert severity='info'>Følgende enheter har tilgang til ressursen</Alert>
+      <table className={classes.tabell}>
         <thead>
           <tr>
             <th>Orgnr</th>
@@ -90,29 +104,34 @@ export const OrganizationAccessPage = ({}: OrganizationAccessPageProps): React.R
             }
             return tabellRad({ organisasjonsnummer: orgnr, navn: '<navn ikke funnet>' }, '');
           })}
+          <tr>
+            <td colSpan={100}>
+              <div>
+                <label>Legg til tilgang for enheter og underenheter:</label>
+                <Textfield
+                  list='orgsearch'
+                  value={searchText}
+                  placeholder='søk etter enhet'
+                  onChange={(event) => {
+                    setSearchText(event.target.value);
+                  }}
+                />
+                {(isLoadingEnheterSearch || isLoadingUnderenheterSearch) && (
+                  <Spinner size='xlarge' variant='interaction' title='Laster..' />
+                )}
+                {debouncedSearchText.length > 0 &&
+                  !isLoadingEnheterSearch &&
+                  !isLoadingUnderenheterSearch && (
+                    <datalist id='orgsearch'>
+                      {enhetsListe(enheterSearchData?._embedded?.enheter || [], false)}
+                      {enhetsListe(underenheterSearchData?._embedded?.underenheter || [], true)}
+                    </datalist>
+                  )}
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
-      <div>
-        <label>Legg til tilgang for enheter og underenheter:</label>
-        <Textfield
-          value={searchText}
-          placeholder='søk etter enhet'
-          onChange={(event) => {
-            setSearchText(event.target.value);
-          }}
-        />
-        {(isLoadingEnheterSearch || isLoadingUnderenheterSearch) && (
-          <Spinner size='xlarge' variant='interaction' title='Laster..' />
-        )}
-        {debouncedSearchText.length > 0 &&
-          !isLoadingEnheterSearch &&
-          !isLoadingUnderenheterSearch && (
-            <>
-              {enhetsListe(enheterSearchData?._embedded?.enheter || [], false)}
-              {enhetsListe(underenheterSearchData?._embedded?.underenheter || [], true)}
-            </>
-          )}
-      </div>
     </div>
   );
 };
