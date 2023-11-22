@@ -1,0 +1,35 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "Input-buzfc8",
+        "type": "Input",
+        "dataModelBindings": {},
+        "required": true
+      },
+      {
+        "id": "Input-NwC7va",
+        "type": "Input",
+        "dataModelBindings": {},
+        "required": true
+      },
+      {
+        "id": "Checkboxes-ym5w91",
+        "type": "Checkboxes",
+        "dataModelBindings": {},
+        "required": true
+      },
+      {
+        "id": "Summary-zB3GoF",
+        "type": "Summary"
+      },
+      {
+        "id": "NavigationButtons-BNE6er",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

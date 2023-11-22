@@ -34,6 +34,12 @@
           "simpleBinding": "PrefillValues"
         },
         "required": true
+      },
+      {
+        "id": "NavigationButtons-rIyMRH",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
       }
     ]
   }

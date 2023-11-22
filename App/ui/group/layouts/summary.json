@@ -48,6 +48,12 @@
           "title": "Send inn"
         },
         "dataModelBindings": {}
+      },
+      {
+        "id": "NavigationButtons-Blzo3O",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
       }
     ]
   }
