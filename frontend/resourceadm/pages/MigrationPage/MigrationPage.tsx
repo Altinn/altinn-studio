@@ -14,6 +14,7 @@ import {
   Link,
 } from '@digdir/design-system-react';
 import type { NavigationBarPage } from 'resourceadm/types/global';
+import { useTranslation } from 'react-i18next';
 
 const envOptions = [
   { value: 'Testmiljø TT-02', label: 'Testmiljø TT-02' },
@@ -38,7 +39,7 @@ export const MigrationPage = ({
   navigateToPageWithError,
   id,
 }: MigrationPageProps): React.ReactNode => {
-  // TODO - translation. Issue: #10715
+  const { t } = useTranslation();
 
   const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
@@ -76,52 +77,53 @@ export const MigrationPage = ({
     return (
       <>
         <Heading size='large' spacing level={1}>
-          Migrering av Altinn 2 tjeneste
+          {t('resourceadm.migration_header')}
         </Heading>
         <div className={classes.contentWrapper}>
           <div className={classes.introWrapper}>
-            <Paragraph size='small'>
-              Denne ressursen er basert på en Altinn 2 lenketjeneste. På denne siden får du oversikt
-              over status på migrering av denne lenketjenesten fra Altinn 2.{' '}
-            </Paragraph>
+            <Paragraph size='small'>{t('resourceadm.migration_ingress')} </Paragraph>
             <Link
               href='https://docs.altinn.studio/authorization/modules/resourceregistry/'
               rel='noopener noreferrer'
               target='_blank'
             >
-              Les mer i vår dokumentasjon om ressursregisteret og migrering av ressurser.
+              {t('resourceadm.migration_help_link')}
             </Link>
           </div>
           <MigrationStep
-            title='Steg 1 - Om Ressursen'
+            title={t('resourceadm.migration_step_about_resource_header')}
             text={
               validateResourceData.status === 200
-                ? 'Ressursinformasjonen er klar for å fullføre migrering'
-                : `Det er ${validateResourceData.errors.length} mangler på siden "Om Ressursen" som må fikses før du kan fullføre migrering.`
+                ? t('resourceadm.migration_ready_for_migration')
+                : t('resourceadm.migration_step_about_resource_errors', {
+                    validationErrors: validateResourceData.errors.length,
+                  })
             }
             isSuccess={validateResourceData.status === 200}
             onNavigateToPageWithError={navigateToPageWithError}
             page='about'
           />
           <MigrationStep
-            title='Steg 2 - Tilgangsregler'
+            title={t('resourceadm.migration_step_access_rules_header')}
             text={
               validatePolicyData === undefined
-                ? 'Det finnes ingen tilgangsregler på siden "Tilgangsregler". Du må ha minst en regel for å fullføre migreringen.'
+                ? t('resourceadm.migration_no_access_rules')
                 : validatePolicyData.status === 200
-                ? 'Tilgangsreglene er klar for å fullføre migrering'
-                : `Det er ${validatePolicyData.errors.length} mangler på siden "Tilgangsregler" som må fikses før du kan fullføre migrering.`
+                ? t('resourceadm.migration_access_rules_ready_for_migration')
+                : t('resourceadm.migration_step_access_rules_errors', {
+                    validationErrors: validatePolicyData.errors.length,
+                  })
             }
             isSuccess={validatePolicyData?.status === 200 ?? false}
             onNavigateToPageWithError={navigateToPageWithError}
             page='policy'
           />
           <MigrationStep
-            title='Steg 3 - Publisering'
+            title={t('resourceadm.migration_step_publish_header')}
             text={
               deployOK
-                ? 'Publisering er gjennomført'
-                : 'Du må publisere ressursen på siden "Publiser" før du kan fullføre migrering.'
+                ? t('resourceadm.migration_publish_success')
+                : t('resourceadm.migration_publish_warning')
             }
             isSuccess={deployOK}
             onNavigateToPageWithError={navigateToPageWithError}
@@ -129,15 +131,12 @@ export const MigrationPage = ({
           />
           <div className={classes.contentDivider} />
           <Label size='medium' spacing htmlFor='selectEnvDropdown'>
-            Velg miljø du vil migrere til
+            {t('resourceadm.migration_select_environment_header')}
           </Label>
-          <Paragraph size='small'>
-            Velg et miljø fra listen under du vil migrere til. Vi anbefaler å teste en migrering til
-            test-miljøet før du gjennomfører en full migrering til produksjonsmiljøet.
-          </Paragraph>
+          <Paragraph size='small'>{t('resourceadm.migration_select_environment_body')}</Paragraph>
           <div className={classes.selectEnv}>
             <Select
-              label='Velg miljø å migrere til'
+              label={t('resourceadm.migration_select_environment_label')}
               hideLabel
               options={envOptions}
               value={selectedEnv}
@@ -148,12 +147,10 @@ export const MigrationPage = ({
           {selectedEnv !== '' && (
             <>
               <Label as='p' size='medium' spacing>
-                Velg tidspunkt for å flytte delegeringer og fullføre migreringen
+                {t('resourceadm.migration_select_migration_time_header')}
               </Label>
               <Paragraph size='small'>
-                Velg dato og tid der tjenesten skal flytte delegeringene, og fullføre migreringen
-                fra Altinn 2 til Altinn 3. Vi anbefaler at dette gjøres på et tidspunkt der
-                tjenesten har lite eller ingen trafikk. For eksempel midt på natten.
+                {t('resourceadm.migration_select_migration_time_body')}
               </Paragraph>
               <div className={classes.datePickers}>
                 <div className={classes.datePickerWrapper}>
@@ -161,7 +158,7 @@ export const MigrationPage = ({
                     type='date'
                     value={migrationDate}
                     onChange={(e) => setMigrationDate(e.target.value)}
-                    label='Migreringsdato'
+                    label={t('resourceadm.migration_migration_date')}
                     size='small'
                   />
                 </div>
@@ -170,14 +167,14 @@ export const MigrationPage = ({
                     type='time'
                     value={migrationTime}
                     onChange={(e) => setMigrationTime(e.target.value)}
-                    label='Klokkeslett'
+                    label={t('resourceadm.migration_migration_time')}
                     size='small'
                   />
                 </div>
               </div>
               <div className={classes.numDelegations}>
                 <Label as='p' size='medium' spacing>
-                  Antall delegeringer i Altinn 2 og Altinn 3
+                  {t('resourceadm.migration_number_of_delegations')}
                 </Label>
                 <Button
                   onClick={() => {
@@ -188,27 +185,25 @@ export const MigrationPage = ({
                   className={classes.button}
                   size='small'
                 >
-                  Hent antall delegeringer
+                  {t('resourceadm.migration_get_number_of_delegations')}
                 </Button>
                 {numDelegationsA2 && numDelegationsA3 && (
                   <div className={classes.delegations}>
                     <Paragraph size='small'>
-                      Altinn 2: <strong>{numDelegationsA2}</strong> delegeringer
+                      {t('resourceadm.resourceadm.migration_altinn_2')}:{' '}
+                      <strong>{numDelegationsA2}</strong> {t('resourceadm.migration_delegations')}
                     </Paragraph>
                     <Paragraph size='small'>
-                      Altinn 3: <strong>{numDelegationsA3}</strong> delegeringer
+                      {t('resourceadm.resourceadm.migration_altinn_3')}:{' '}
+                      <strong>{numDelegationsA3}</strong> {t('resourceadm.migration_delegations')}
                     </Paragraph>
                   </div>
                 )}
               </div>
               <Label as='p' size='medium' spacing>
-                Fullfør migrering
+                {t('resourceadm.migration_finish_migration')}
               </Label>
-              <Paragraph size='small'>
-                For at brukere med eksisterende tilganger til tjenesten i Altinn 2 skal videreføre
-                sine tilganger for ny tjeneste migrert til Altinn 2 må delegeringene migreres til
-                Altinn 3. Les detaljer om prosessen i vår dokumentasjon.
-              </Paragraph>
+              <Paragraph size='small'>{t('"resourceadm.migration_delegation_info"')}</Paragraph>
               <div className={classes.buttonWrapper}>
                 <Button
                   aria-disabled={
@@ -228,7 +223,7 @@ export const MigrationPage = ({
                   className={classes.button}
                   size='small'
                 >
-                  Migrer delegeringer
+                  {t('resourceadm.migration_migrate_delegations')}
                 </Button>
                 <Button
                   aria-disabled // Remember to do same check for aria-disabled as fot button below
@@ -236,7 +231,7 @@ export const MigrationPage = ({
                   className={classes.button}
                   size='small'
                 >
-                  Skru av tjenesten i Altinn 2
+                  {t('resourceadm.migration_turn_off_altinn_2_service')}
                 </Button>
               </div>
             </>

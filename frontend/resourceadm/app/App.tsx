@@ -13,38 +13,32 @@ import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
 import { SearchField } from '@altinn/altinn-design-system';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+import { useTranslation } from 'react-i18next';
 
 export const App = (): JSX.Element => {
   const { data: user, isError: isUserError } = useUserQuery();
   const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 
+  const { t } = useTranslation();
   const componentIsReady = user && organizations;
-  const componentHasError = isUserError || isOrganizationsError;
 
-  const getErrorMessage = (): { title: string; message: string } => {
-    const defaultTitle = 'Feil oppstod ved innlasting av';
-    const defaultMessage = 'Vi beklager men en feil oppstod ved henting av';
-    if (isUserError) {
-      return {
-        title: `${defaultTitle} brukerdata`,
-        message: `${defaultMessage} dine brukerdata.`,
-      };
-    }
-    if (isOrganizationsError) {
-      return {
-        title: `${defaultTitle} organisasjoner`,
-        message: `${defaultMessage} organisasjoner som kreves for å kjøre applikasjonen.`,
-      };
-    }
-    return {
-      title: 'Ukjent feil oppstod',
-      message: 'Vi beklager men en ukjent feil, vennligst prøv igjen senere.',
-    };
-  };
-
-  if (componentHasError) {
-    const error = getErrorMessage();
-    return <ErrorMessage title={error.title} message={error.message} />;
+  if (isUserError || isOrganizationsError) {
+    return (
+      <div>
+        {isUserError && (
+          <ErrorMessage
+            title={t('resourceadm.dashboard_userdata_error_header')}
+            message={t('resourceadm.dashboard_userdata_error_body')}
+          />
+        )}
+        {isOrganizationsError && (
+          <ErrorMessage
+            title={t('resourceadm.dashboard_organizationdata_error_header')}
+            message={t('resourceadm.dashboard_organizationdata_error_body')}
+          />
+        )}
+      </div>
+    );
   }
 
   // PageLayout banner uses organization, named as selectedContext
