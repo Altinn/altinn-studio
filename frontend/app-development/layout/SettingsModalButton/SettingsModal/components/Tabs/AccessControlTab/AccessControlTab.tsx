@@ -39,6 +39,8 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     error: appMetadataError,
   } = useAppMetadataQuery(org, app);
 
+  console.log('appmetadata', appMetadata);
+
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
   const [partyTypesAllowed, setPartyTypesAllowed] = useState<PartyTypesAllowed>(
@@ -51,24 +53,15 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     }
   }, [appMetadataLoading, appMetadata]);
 
-  /**
-   * Update the selected party types when clicking an option
-   */
   const handleChange = (partyTypes: string[]) => {
     const newPartyTypesAllowed = { ...partyTypesAllowed };
 
     Object.keys(partyTypesAllowed).forEach((key) => {
       newPartyTypesAllowed[key] = partyTypes.includes(key);
     });
+    updateAppMetadataMutation({ ...appMetadata, partyTypesAllowed: newPartyTypesAllowed });
 
     setPartyTypesAllowed(newPartyTypesAllowed);
-  };
-
-  /**
-   * Save the metadata with the new party types
-   */
-  const handleSavePartyTypes = () => {
-    updateAppMetadataMutation({ ...appMetadata, partyTypesAllowed });
   };
 
   const displayCheckboxes = () => {
@@ -97,7 +90,6 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
             legend={t('settings_modal.access_control_tab_checkbox_legend')}
             size='small'
             onChange={handleChange}
-            onBlur={handleSavePartyTypes}
             value={Object.keys(partyTypesAllowedMap).filter((key) => partyTypesAllowed[key])}
           >
             <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
