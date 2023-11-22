@@ -8,7 +8,6 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
@@ -50,7 +49,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             DeleteDirectoryIfExists(CreatedFolderPath);
         }
 
-        private static void DeleteDirectoryIfExists(string directoryPath)
+        protected static void DeleteDirectoryIfExists(string directoryPath)
         {
             if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
             {

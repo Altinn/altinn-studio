@@ -14,6 +14,7 @@ using LibGit2Sharp;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Commit = LibGit2Sharp.Commit;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -201,24 +202,40 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="commitInfo">Information about the commit</param>
         public void Commit(CommitInfo commitInfo)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
+            CommitAndAddStudioNote(commitInfo.Org, commitInfo.Repository, commitInfo.Message);
+        }
+
+        private void CommitAndAddStudioNote(string org, string repository, string message)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
+            string remoteUrl = FindRemoteRepoLocation(org, repository);
+            Remote remote = repo.Network.Remotes["origin"];
+
+            if (!remote.PushUrl.Equals(remoteUrl))
             {
-                string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
-                Remote remote = repo.Network.Remotes["origin"];
-
-                if (!remote.PushUrl.Equals(remoteUrl))
-                {
-                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files.
-                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                }
-
-                Commands.Stage(repo, "*");
-
-                LibGit2Sharp.Signature signature = GetDeveloperSignature();
-                repo.Commit(commitInfo.Message, signature, signature);
+                // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                // Requires adminstrator access to update files.
+                repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
             }
+
+            Commands.Stage(repo, "*");
+
+            LibGit2Sharp.Signature signature = GetDeveloperSignature();
+            var commit = repo.Commit(message, signature, signature);
+
+            var notes = repo.Notes;
+            Note note = notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
+            try
+            {
+                repo.Refs.UpdateTarget("refs/notes/commits", note.TargetObjectId.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
         }
 
         /// <summary>
