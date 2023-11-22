@@ -16,6 +16,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     /// <summary>
     /// A client forretrieving text resources from Altinn Platform.
     /// </summary>
+    [Obsolete("Use IAppResources.GetTexts() instead")]
     public class TextClient : IText
     {
         private readonly ILogger _logger;

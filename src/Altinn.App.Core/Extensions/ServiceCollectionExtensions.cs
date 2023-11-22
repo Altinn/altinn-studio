@@ -87,7 +87,9 @@ namespace Altinn.App.Core.Extensions
             services.AddHttpClient<IProfileClient, ProfileClient>();
             services.Decorate<IProfileClient, ProfileClientCachingDecorator>();
             services.AddHttpClient<IAltinnPartyClient, AltinnPartyClient>();
+#pragma warning disable CS0618 // Type or member is obsolete
             services.AddHttpClient<IText, TextClient>();
+#pragma warning restore CS0618 // Type or member is obsolete
             services.AddHttpClient<IProcessClient, ProcessClient>();
             services.AddHttpClient<IPersonClient, PersonClient>();
 

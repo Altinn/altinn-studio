@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Internal.Texts
     /// <summary>
     /// Describes the public methods of a text resources service
     /// </summary>
+    [Obsolete("Use IAppResources.GetTexts() instead")]
     public interface IText
     {
         /// <summary>
