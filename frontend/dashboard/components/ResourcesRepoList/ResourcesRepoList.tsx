@@ -7,27 +7,44 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { AltinnSpinner } from 'app-shared/components';
 import { Heading, Link } from '@digdir/design-system-react';
+import { useSearchReposQuery } from 'dashboard/hooks/queries';
+import { User } from 'app-shared/types/User';
+import { getUidFilter } from 'dashboard/utils/filterUtils';
 
 type ResourcesRepoListProps = {
+  user: User;
   organizations: Organization[];
 };
 
-export const ResourcesRepoList = ({ organizations }: ResourcesRepoListProps): React.ReactNode => {
+export const ResourcesRepoList = ({
+  user,
+  organizations,
+}: ResourcesRepoListProps): React.ReactNode => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const repo = `${selectedContext}-resources`;
 
-  const isOrganization =
-    selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
+  const uid = getUidFilter({
+    selectedContext,
+    userId: user.id,
+    organizations,
+  });
+
+  // check if the -resources repo exists before attempting to load resources and render <ResourceTable>
+  const { data: resourcesRepos } = useSearchReposQuery({
+    uid: uid as number,
+    keyword: '-resources',
+    page: 0,
+  });
+
   const { data: resourceListData, isLoading: isLoadingResourceList } = useGetResourceListQuery(
     selectedContext,
-    !isOrganization,
+    !resourcesRepos?.data.length,
   );
 
-  if (!isOrganization) {
+  if (!resourcesRepos?.data.length) {
     return null;
   }
 
