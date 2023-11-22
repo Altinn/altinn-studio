@@ -124,6 +124,7 @@ export function en() {
       create: 'Create',
       customer_service_phone_number: '+47 75 00 60 00',
       delete: 'Delete',
+      download: 'Download {0}',
       disabled: 'Disabled',
       done: 'Done',
       edit_alt_error: 'Fix error here',

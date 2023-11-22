@@ -16,25 +16,29 @@ describe('AttachmentListComponent', () => {
     jest.clearAllMocks();
   });
 
-  it('should render with only specific attachments and without pdf', async () => {
-    await render(['not-ref-data-as-pdf']);
-    expect(screen.getByText('2mb.txt')).toBeInTheDocument();
-    expect(screen.queryByText('testData1.pdf')).not.toBeInTheDocument();
+  it('should render specific attachments without pdf', async () => {
+    await render(['not-ref-data-as-pdf', 'different-process-task']);
+    expect(screen.getByText('2mb')).toBeInTheDocument();
+    expect(screen.getByText('differentTask')).toBeInTheDocument();
+    expect(screen.queryByText('testData1')).not.toBeInTheDocument();
   });
-  it('should render with only pdf attachments', async () => {
+  it('should render only pdf attachments', async () => {
     await render(['ref-data-as-pdf']);
-    expect(screen.getByText('testData1.pdf')).toBeInTheDocument();
-    expect(screen.queryByText('2mb.txt')).not.toBeInTheDocument();
+    expect(screen.getByText('testData1')).toBeInTheDocument();
+    expect(screen.queryByText('2mb')).not.toBeInTheDocument();
+    expect(screen.queryByText('differentTask')).not.toBeInTheDocument();
   });
-  it('should render with all attachments', async () => {
+  it('should render all attachments', async () => {
     await render(['include-all']);
-    expect(screen.getByText('2mb.txt')).toBeInTheDocument();
-    expect(screen.getByText('testData1.pdf')).toBeInTheDocument();
+    expect(screen.getByText('2mb')).toBeInTheDocument();
+    expect(screen.getByText('differentTask')).toBeInTheDocument();
+    expect(screen.getByText('testData1')).toBeInTheDocument();
   });
-  it('should render with all attachments and without pdf', async () => {
+  it('should render all attachments without pdf and log error', async () => {
     await render();
-    expect(screen.getByText('2mb.txt')).toBeInTheDocument();
-    expect(screen.queryByText('testData1.pdf')).not.toBeInTheDocument();
+    expect(screen.getByText('2mb')).toBeInTheDocument();
+    expect(screen.getByText('differentTask')).toBeInTheDocument();
+    expect(screen.queryByText('testData1')).not.toBeInTheDocument();
 
     // We know this happens, because we don't have any uploader components available for this data type
     expect(window.logErrorOnce).toHaveBeenCalledWith(
@@ -42,6 +46,12 @@ describe('AttachmentListComponent', () => {
         '(there may be a problem with the mapping of attachments to form data in a repeating group). ' +
         'Traversed 0 nodes with id not-ref-data-as-pdf',
     );
+  });
+  it('should render attachments from current task without pdf', async () => {
+    await render(['from-task']);
+    expect(screen.getByText('2mb')).toBeInTheDocument();
+    expect(screen.queryByText('differentTask')).not.toBeInTheDocument();
+    expect(screen.queryByText('testData1')).not.toBeInTheDocument();
   });
 });
 
@@ -69,12 +79,18 @@ const render = async (ids?: string[]) =>
           filename: '2mb.txt',
           contentType: 'text/plain',
         });
-        state.deprecated.lastKnownInstance.data.push(dataElement1);
-        state.deprecated.lastKnownInstance.data.push(dataElement2);
+        const dataElement3 = generateDataElement({
+          id: 'test-data-type-3',
+          dataType: 'different-process-task',
+          filename: 'differentTask.pdf',
+          contentType: 'text/plain',
+        });
+        state.deprecated.lastKnownInstance.data.push(...[dataElement1, dataElement2, dataElement3]);
       }
       if (state.applicationMetadata.applicationMetadata) {
-        const dataType = generateDataType({ id: 'not-ref-data-as-pdf', dataType: 'text/plain' });
-        state.applicationMetadata.applicationMetadata.dataTypes.push(dataType);
+        const dataType1 = generateDataType({ id: 'not-ref-data-as-pdf', dataType: 'text/plain', taskId: 'Task_1' });
+        const dataType2 = generateDataType({ id: 'different-process-task', dataType: 'text/plain', taskId: 'Task_2' });
+        state.applicationMetadata.applicationMetadata.dataTypes.push(...[dataType1, dataType2]);
       }
     }),
   });
@@ -105,11 +121,12 @@ const generateDataElement = ({ id, dataType, filename, contentType }: GenerateDa
 interface GenerateDataTypeProps {
   id: string;
   dataType: string;
+  taskId: string;
 }
 
-const generateDataType = ({ id, dataType }: GenerateDataTypeProps) => ({
+const generateDataType = ({ id, dataType, taskId }: GenerateDataTypeProps) => ({
   id,
-  taskId: 'Task_1',
+  taskId,
   allowedContentTypes: [dataType],
   maxSize: 5,
   maxCount: 3,

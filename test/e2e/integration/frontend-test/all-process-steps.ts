@@ -114,12 +114,19 @@ export function testCustomReceiptPage() {
     'Takk for din innsending, dette er en veldig fin custom kvittering.',
   );
 
-  cy.get('#form-content-r-header-pdfs').should('contain.text', 'Følgende er sendt inn:');
-  cy.get('#form-content-r-pdfs').find('[data-testId=attachment-list]').children().should('have.length', 5);
-  cy.get('#form-content-r-pdfs').should('contain.text', 'frontend-test.pdf');
-  cy.get('#form-content-r-header-attachments').should('contain.text', 'Vedlegg');
-  cy.get('#form-content-r-attachments').find('[data-testId=attachment-list]').children().should('have.length', 1);
-  cy.get('#form-content-r-attachments').should('contain.text', 'test.pdf');
+  const checkAttachmentSection = (sectionId: string, title: string, attachmentCount: number) => {
+    cy.get(`#form-content-${sectionId}-header`).should('contain.text', title);
+    cy.get(`#form-content-${sectionId}`)
+      .find('[data-testId=attachment-list]')
+      .children()
+      .should('have.length', attachmentCount);
+  };
+
+  checkAttachmentSection('r-attachments-one', 'Vedlegg fra første side', 1);
+  checkAttachmentSection('r-attachments-other', 'Andre vedlegg', 5);
+  checkAttachmentSection('r-attachments-pdf', 'Bare PDF-er', 5);
+  checkAttachmentSection('r-attachments-all', 'Alle vedlegg inkludert PDF', 10);
+
   cy.snapshot('custom-receipt');
 
   /*

@@ -88,11 +88,7 @@ export function AltinnCollapsibleAttachments({
             timeout='auto'
             unmountOnExit={true}
           >
-            <AltinnAttachment
-              attachments={attachments}
-              nested={true}
-              listDisableVerticalPadding={true}
-            />
+            <AltinnAttachment attachments={attachments} />
           </Collapse>
         </List>
       ) : (
@@ -102,8 +98,6 @@ export function AltinnCollapsibleAttachments({
           </Typography>
           <AltinnAttachment
             attachments={attachments}
-            nested={false}
-            listDisableVerticalPadding={false}
             id='attachment-list'
           />
         </>

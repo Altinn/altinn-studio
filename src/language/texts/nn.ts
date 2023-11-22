@@ -126,6 +126,7 @@ export function nn(): FixedLanguageList {
       create: 'Opprett',
       customer_service_phone_number: '+47 75 00 60 00',
       delete: 'Slett',
+      download: 'Nedlasting {0}',
       disabled: 'Deaktivert',
       done: 'Ferdig',
       edit_alt_error: 'Rett feil her',

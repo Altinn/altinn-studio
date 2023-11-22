@@ -1,4 +1,3 @@
-import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
@@ -27,10 +26,9 @@ describe('Message', () => {
     cy.reload();
     cy.findByRole('heading', { name: /Vedlegg/i })
       .siblings('ul')
-      .children('a')
+      .children('li')
       .then((attachments) => {
         cy.wrap(attachments).should('have.length', 1);
-        cy.wrap(attachments).first().should('contain.text', texts.downloadAttachment);
       });
     cy.url().then((url) => {
       const instantiateUrl =

@@ -5,6 +5,7 @@ import type { IAttachmentGrouping, IData, IDataType, IDisplayAttachment } from '
 export enum DataTypeReference {
   IncludeAll = 'include-all',
   RefDataAsPdf = 'ref-data-as-pdf',
+  FromTask = 'from-task',
 }
 
 export const filterDisplayAttachments = (

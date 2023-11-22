@@ -31,7 +31,7 @@ describe('ConfirmPage', () => {
     await renderWithInstanceAndLayout({
       renderer: () => <ConfirmPage {...props} />,
     });
-    const pdf = screen.getByText('mockApp.pdf');
+    const pdf = screen.getByText('mockApp');
     expect(pdf).toBeInTheDocument();
 
     const contentLoader = screen.queryByText('Loading...');
