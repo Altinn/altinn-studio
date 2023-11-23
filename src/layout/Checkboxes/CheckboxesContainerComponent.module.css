@@ -9,7 +9,7 @@
   gap: var(--fds-spacing-2);
 }
 
-.horizontal div div {
+.horizontal > div > div {
   display: block;
 }
 

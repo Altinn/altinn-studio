@@ -16,7 +16,7 @@ export interface IRadioButtonProps extends Omit<RadioProps, 'children'> {
   hideLabel?: boolean;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   alertOnChange?: boolean;
-  alertText?: string;
+  alertText?: React.ReactNode;
   confirmChangeText?: string;
 }
 
@@ -80,7 +80,7 @@ export const RadioButton = ({
           onPopoverDeleteClick={confirmChange}
           onCancelClick={cancelChange}
           deleteButtonText={confirmChangeText as string}
-          messageText={alertText as string}
+          messageText={alertText}
           open={alertOpen}
           setOpen={setAlertOpen}
         >

@@ -289,44 +289,54 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.reasons).findByRole('dialog').should('contain.text', 'Dette er en hjelpetekst.');
   });
 
-  it("alert on change if radioButton or checkBox has 'alertOnChange' set to true", () => {
+  // Function to intercept layout and set alertOnChange to true for a component
+  const setupComponentWithAlert = (componentId: string) => {
     cy.interceptLayout('changename', (component) => {
-      if (
-        (component.type === 'RadioButtons' && component.id === 'reason') ||
-        (component.type === 'Checkboxes' && component.id === 'confirmChangeName')
-      ) {
+      if (component.id === componentId && (component.type === 'Checkboxes' || component.type === 'RadioButtons')) {
         component.alertOnChange = true;
       }
     });
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
-    cy.get(appFrontend.changeOfName.newFirstName).blur();
+    if (componentId === 'reason' || componentId === 'confirmChangeName') {
+      cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+      cy.get(appFrontend.changeOfName.newFirstName).blur();
+    }
+  };
 
-    //CheckBoxes: try to uncheck the checkbox to see if we get an alert
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
-
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
-    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
-    cy.get(appFrontend.changeOfName.reasons).should('not.exist');
-
-    //RadioButtons: try to change the radiobutton to see if we get an alert
+  it('should display alert on changing radio button', () => {
+    setupComponentWithAlert('reason');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
 
     cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
     cy.findByRole('radio', { name: /Gårdsbruk/ }).click();
+    //makes sure that textresources from active radiobutton are displayed in the alert dialog
+    cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil endre fra Slektskap?');
     cy.get(appFrontend.changeOfName.popOverCancelButton).click();
     cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
     cy.findByRole('radio', { name: /Gårdsbruk/ }).click();
     cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
     cy.findByRole('radio', { name: /Gårdsbruk/ }).should('be.checked');
+  });
+
+  it('should display alert when unchecking checkbox', () => {
+    setupComponentWithAlert('confirmChangeName');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').dblclick();
+    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.get(appFrontend.changeOfName.reasons).should('not.exist');
+  });
+
+  it('should display alert unchecking checkbox in checkbox group', () => {
+    setupComponentWithAlert('innhentet-studie');
+    cy.navPage('grid').click();
+    // dialog pops up when unchecking a checkbox
+    cy.get('[data-testid="checkboxes-fieldset"]').find('label').contains('Ja').dblclick();
+    //Make sure that the alert popover for only one checkbox is displayed, if several dialogs are displayed, the test will fail
+    cy.findByRole('dialog');
   });
 
   it('should render components as summary', () => {

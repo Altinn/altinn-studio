@@ -4,17 +4,14 @@ import { Checkbox, HelpText } from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.css';
+import { WrappedCheckbox } from 'src/layout/Checkboxes/WrappedCheckbox';
 import { shouldUseRowLayout } from 'src/utils/layout';
-import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
@@ -55,20 +52,6 @@ export const CheckboxContainerComponent = ({
       },
     },
   });
-
-  const onChange = (checkedItems: string[]) => {
-    const checkedItemsString = checkedItems.join(',');
-    if (checkedItemsString !== value) {
-      setValue(checkedItems.join(','));
-    }
-  };
-
-  const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange } = useAlertOnChange(
-    Boolean(alertOnChange),
-    onChange,
-    // Only alert when unchecking
-    (checkedItems) => checkedItems.length < selected.length,
-  );
 
   const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     // Only set value instantly if moving focus outside of the checkbox group
@@ -111,7 +94,6 @@ export const CheckboxContainerComponent = ({
         legend={labelTextGroup}
         description={lang(textResourceBindings?.description)}
         disabled={readOnly}
-        onChange={handleChange}
         hideLegend={overrideDisplay?.renderLegend === false}
         error={!isValid}
         aria-label={ariaLabel}
@@ -119,40 +101,16 @@ export const CheckboxContainerComponent = ({
         data-testid='checkboxes-fieldset'
       >
         {calculatedOptions.map((option) => (
-          <ConditionalWrapper
+          <WrappedCheckbox
             key={option.value}
-            condition={Boolean(alertOnChange)}
-            wrapper={(children) => (
-              <DeleteWarningPopover
-                deleteButtonText={lang('form_filler.alert_confirm') as string}
-                messageText={lang('form_filler.checkbox_alert') as string}
-                onCancelClick={cancelChange}
-                onPopoverDeleteClick={confirmChange}
-                open={alertOpen}
-                setOpen={setAlertOpen}
-              >
-                {children}
-              </DeleteWarningPopover>
-            )}
-          >
-            <Checkbox
-              id={`${id}-${option.label.replace(/\s/g, '-')}`}
-              name={option.value}
-              description={lang(option.description)}
-              value={option.value}
-              checked={selected.includes(option.value)}
-              size='small'
-            >
-              {
-                <span className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}>
-                  {langAsString(option.label)}
-                  {option.helpText && (
-                    <HelpText title={getPlainTextFromNode(option.helpText)}>{lang(option.helpText)}</HelpText>
-                  )}
-                </span>
-              }
-            </Checkbox>
-          </ConditionalWrapper>
+            id={id}
+            option={option}
+            hideLabel={hideLabel}
+            alertOnChange={alertOnChange}
+            selected={selected}
+            value={value}
+            setValue={setValue}
+          />
         ))}
       </Checkbox.Group>
     </div>

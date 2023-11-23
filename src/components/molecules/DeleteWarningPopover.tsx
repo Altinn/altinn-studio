@@ -10,7 +10,7 @@ export interface IDeleteWarningPopover {
   onPopoverDeleteClick: () => void;
   onCancelClick: () => void;
   deleteButtonText: string;
-  messageText: string;
+  messageText: React.ReactNode;
   open: boolean;
   setOpen: (open: boolean) => void;
   placement?: 'bottom' | 'left' | 'right' | 'top';
