@@ -1,4 +1,5 @@
 import React from 'react';
+import classes from './ProcessEditor.module.css';
 import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { PageLoading } from './components/PageLoading';
@@ -8,9 +9,15 @@ import { BpmnContextProvider } from './contexts/BpmnContext';
 type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
   onSave: (bpmnXml: string) => void;
+  appLibVersion: any;
 };
-export const ProcessEditor = ({ bpmnXml, onSave }: ProcessEditorProps): JSX.Element => {
+export const ProcessEditor = ({
+  bpmnXml,
+  onSave,
+  appLibVersion,
+}: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
+
   if (bpmnXml === undefined) {
     return <PageLoading title={t('process_editor.loading')} />;
   }
@@ -21,6 +28,9 @@ export const ProcessEditor = ({ bpmnXml, onSave }: ProcessEditorProps): JSX.Elem
 
   return (
     <BpmnContextProvider bpmnXml={bpmnXml}>
+      <div className={classes.alertWrapper}>
+        <Alert>{appLibVersion}</Alert>
+      </div>
       <Canvas onSave={onSave} />
     </BpmnContextProvider>
   );

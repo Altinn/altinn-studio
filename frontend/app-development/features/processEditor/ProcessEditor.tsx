@@ -4,10 +4,18 @@ import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
 import React from 'react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { toast } from 'react-toastify';
+import { useAppLibQuery } from 'app-development/hooks/queries';
+import { Spinner } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 export const ProcessEditor = () => {
+  const { t } = useTranslation();
+
   const { org, app } = useStudioUrlParams();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
+
+  const { data: appLibData, isLoading: appLibDataLoading } = useAppLibQuery(org, app);
+  console.log('app lib version', appLibData);
 
   const bpmnMutation = useBpmnMutation(org, app);
 
@@ -18,10 +26,20 @@ export const ProcessEditor = () => {
         onSuccess: () => {
           toast.success('Bpmn saved successfully');
         },
-      }
+      },
     );
   };
 
+  if (appLibDataLoading) {
+    return <Spinner title={t('process_editor.loading')} />;
+  }
+
   // TODO: Handle error will be handled better after issue #10735 is resolved
-  return <ProcessEditorImpl bpmnXml={hasBpmnQueryError ? null : bpmnXml} onSave={saveBpmnXml} />;
+  return (
+    <ProcessEditorImpl
+      bpmnXml={hasBpmnQueryError ? null : bpmnXml}
+      onSave={saveBpmnXml}
+      appLibVersion={appLibData.version}
+    />
+  );
 };
