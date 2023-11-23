@@ -34,12 +34,16 @@ describe('List component', () => {
     cy.get(dataListPage.tableBody)
       .contains('Caroline')
       .closest('tr')
-      .should('not.have.class', dataListPage.selectedRowClass);
+      .within(() => {
+        cy.get(dataListPage.radioButton).should('not.be.checked');
+      });
     cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
     cy.get(dataListPage.tableBody)
       .contains('Caroline')
       .closest('tr')
-      .should('have.class', dataListPage.selectedRowClass);
+      .within(() => {
+        cy.get(dataListPage.radioButton).should('be.checked');
+      });
     cy.get(dataListPage.tableBody).contains('Kåre').closest('tr').click();
     cy.get(dataListPage.tableBody)
       .contains('Kåre')
@@ -47,7 +51,9 @@ describe('List component', () => {
       .get(dataListPage.tableBody)
       .contains('Caroline')
       .closest('tr')
-      .should('not.have.class', dataListPage.selectedRowClass);
+      .within(() => {
+        cy.get(dataListPage.radioButton).should('not.be.checked');
+      });
 
     cy.log('Should be possible to change the number of rows to show');
     cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).should('have.value', '5');
@@ -74,7 +80,12 @@ describe('List component', () => {
     cy.log('Expand to 10 rows and take a snapshot');
     cy.get(dataListPage.listComponent).get(dataListPage.selectComponent).select('10');
     cy.get(dataListPage.listComponent).get(dataListPage.tableBody).find('tr').its('length').should('eq', 10);
-    cy.get(dataListPage.tableBody).contains('Kåre').closest('tr').should('have.class', dataListPage.selectedRowClass);
+    cy.get(dataListPage.tableBody)
+      .contains('Kåre')
+      .closest('tr')
+      .within(() => {
+        cy.get(dataListPage.radioButton).should('be.checked');
+      });
     cy.snapshot('list-component');
 
     cy.log('Search should work as expected');

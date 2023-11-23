@@ -39,7 +39,7 @@ export class AppFrontend {
   public printButton = 'button:contains("Print / Lagre PDF")';
 
   public helpText = {
-    button: 'button[class^="HelpText"]',
+    button: 'button[class^="fds-helptext"]',
     alert: 'div[role="dialog"]',
   };
 
