@@ -29,6 +29,7 @@ export const ProcessEditor = ({
   return (
     <BpmnContextProvider bpmnXml={bpmnXml}>
       <div className={classes.alertWrapper}>
+        {/* TODO - Add logic check for edit button*/}
         <Alert>{appLibVersion}</Alert>
       </div>
       <Canvas onSave={onSave} />
