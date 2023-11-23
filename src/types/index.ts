@@ -146,10 +146,10 @@ export function reducePageValidations(triggers?: Triggers[]): TriggersPageValida
   return triggers?.includes(Triggers.ValidateAllPages)
     ? Triggers.ValidateAllPages
     : triggers?.includes(Triggers.ValidateCurrentAndPreviousPages)
-    ? Triggers.ValidateCurrentAndPreviousPages
-    : triggers?.includes(Triggers.ValidatePage)
-    ? Triggers.ValidatePage
-    : undefined;
+      ? Triggers.ValidateCurrentAndPreviousPages
+      : triggers?.includes(Triggers.ValidatePage)
+        ? Triggers.ValidatePage
+        : undefined;
 }
 
 export enum DateFlags {

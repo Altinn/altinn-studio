@@ -167,8 +167,8 @@ function removeCommonLayoutErrors(obj: ErrorMap, target: any) {
       const componentValue = componentPath
         ? JsonPointer.get(target, componentPath[0])
         : isComponent
-        ? value
-        : undefined;
+          ? value
+          : undefined;
       const componentType: CompTypes = componentValue ? componentValue.type : undefined;
 
       if (componentType) {

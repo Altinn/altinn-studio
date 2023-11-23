@@ -48,8 +48,8 @@ type ObjectToDotNotation<T extends Record<string, any>, Prefix extends string = 
     ? T[K] extends string | number | boolean | null | undefined
       ? `${Prefix}${K}`
       : K extends string
-      ? ObjectToDotNotation<T[K], `${Prefix}${K}.`>
-      : never
+        ? ObjectToDotNotation<T[K], `${Prefix}${K}.`>
+        : never
     : never;
 }[keyof T];
 

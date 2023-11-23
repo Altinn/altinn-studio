@@ -21,12 +21,12 @@ export enum ExprVal {
 export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.String
   ? string
   : T extends ExprVal.Number
-  ? number
-  : T extends ExprVal.Boolean
-  ? boolean
-  : T extends ExprVal.Any
-  ? string | number | boolean | null
-  : unknown;
+    ? number
+    : T extends ExprVal.Boolean
+      ? boolean
+      : T extends ExprVal.Any
+        ? string | number | boolean | null
+        : unknown;
 
 /**
  * This type replaces ExprVal with the actual value type, or expression that returns that type.
@@ -110,12 +110,12 @@ export type NonRecursiveExpression<F extends ExprFunction = ExprFunction> = [F, 
 export type ExprResolved<T> = T extends ExprVal
   ? ExprValToActual<T>
   : T extends any
-  ? T extends object
-    ? {
-        [P in keyof T]: ExprResolved<T[P]>;
-      }
-    : T
-  : T;
+    ? T extends object
+      ? {
+          [P in keyof T]: ExprResolved<T[P]>;
+        }
+      : T
+    : T;
 
 /**
  * This type can be self-references in order to limit recursion depth for advanced types
@@ -157,10 +157,10 @@ type DistributiveExprConfig<T, Iterations extends Prev[number]> = [T] extends [
 ]
   ? never
   : T extends ExprVal
-  ? ExprConfig<T>
-  : [T] extends [object]
-  ? OmitEmptyObjects<ExprObjConfig<T, Prev[Iterations]>>
-  : never;
+    ? ExprConfig<T>
+    : [T] extends [object]
+      ? OmitEmptyObjects<ExprObjConfig<T, Prev[Iterations]>>
+      : never;
 
 /**
  * This type looks through an object recursively, finds any expressions, and requires you to provide a default

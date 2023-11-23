@@ -114,12 +114,12 @@ export type TypesFromCategory<Type extends CompCategory> = $Keys<PickByValue<Com
 export type DefFromCategory<C extends CompCategory> = C extends 'presentation'
   ? PresentationComponent<any>
   : C extends 'form'
-  ? FormComponent<any>
-  : C extends 'action'
-  ? ActionComponent<any>
-  : C extends 'container'
-  ? ContainerComponent<any>
-  : never;
+    ? FormComponent<any>
+    : C extends 'action'
+      ? ActionComponent<any>
+      : C extends 'container'
+        ? ContainerComponent<any>
+        : never;
 
 export type LayoutNodeFromCategory<Type> = Type extends CompCategory
   ? LayoutNode<TypesFromCategory<Type>> & DefFromCategory<Type>

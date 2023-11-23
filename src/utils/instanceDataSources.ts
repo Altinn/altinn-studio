@@ -7,10 +7,10 @@ export function buildInstanceDataSources(instance?: IInstance | null | undefined
   const instanceOwnerPartyType = instance.instanceOwner.organisationNumber
     ? 'org'
     : instance.instanceOwner.personNumber
-    ? 'person'
-    : instance.instanceOwner.username
-    ? 'selfIdentified'
-    : 'unknown';
+      ? 'person'
+      : instance.instanceOwner.username
+        ? 'selfIdentified'
+        : 'unknown';
 
   return {
     appId: instance.appId,

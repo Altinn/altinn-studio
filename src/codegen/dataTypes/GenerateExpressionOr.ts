@@ -25,18 +25,18 @@ const toSchemaMap: { [key in ExprVal]: JSONSchema7 } = {
 type TypeMap<Val extends ExprVal> = Val extends ExprVal.Boolean
   ? boolean
   : Val extends ExprVal.Number
-  ? number
-  : Val extends ExprVal.String
-  ? string
-  : never;
+    ? number
+    : Val extends ExprVal.String
+      ? string
+      : never;
 
 type GeneratorMap<Val extends ExprVal> = Val extends ExprVal.Boolean
   ? GenerateBoolean
   : Val extends ExprVal.Number
-  ? GenerateNumber
-  : Val extends ExprVal.String
-  ? GenerateString
-  : never;
+    ? GenerateNumber
+    : Val extends ExprVal.String
+      ? GenerateString
+      : never;
 
 /**
  * Generates a type that can be either a pure boolean, number, or string, or an expression that evaluates to

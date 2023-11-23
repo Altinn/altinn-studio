@@ -85,18 +85,18 @@ export function getSourceOptions({ source, node, dataSources }: IGetSourceOption
           label: !Array.isArray(label)
             ? langTools.langAsStringUsingPathInDataModel(label, path)
             : Array.isArray(labelExpression)
-            ? evalExpr(labelExpression, node, modifiedDataSources)
-            : null,
+              ? evalExpr(labelExpression, node, modifiedDataSources)
+              : null,
           description: !Array.isArray(description)
             ? langTools.langAsStringUsingPathInDataModel(description, path)
             : Array.isArray(descriptionExpression)
-            ? evalExpr(descriptionExpression, node, modifiedDataSources)
-            : null,
+              ? evalExpr(descriptionExpression, node, modifiedDataSources)
+              : null,
           helpText: !Array.isArray(helpText)
             ? langTools.langAsStringUsingPathInDataModel(helpText, path)
             : Array.isArray(helpTextExpression)
-            ? evalExpr(helpTextExpression, node, modifiedDataSources)
-            : null,
+              ? evalExpr(helpTextExpression, node, modifiedDataSources)
+              : null,
         });
       }
     }

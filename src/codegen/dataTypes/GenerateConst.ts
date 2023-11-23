@@ -15,10 +15,10 @@ export class GenerateConst<Val extends string | boolean | number | null> extends
       typeof this.value === 'string'
         ? JSON.stringify(this.value)
         : typeof this.value === 'number'
-        ? `${this.value}`
-        : this.value === null
-        ? `null`
-        : `${this.value ? 'true' : 'false'}`;
+          ? `${this.value}`
+          : this.value === null
+            ? `null`
+            : `${this.value ? 'true' : 'false'}`;
 
     return symbol ? `type ${symbol} = ${out};` : out;
   }

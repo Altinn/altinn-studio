@@ -38,8 +38,8 @@ export const FormDataProvider = ({ children }) => {
   const { error, isLoading } = isDataTask
     ? queryFormData
     : isInfoTask
-    ? queryInfoFormData
-    : { error: undefined, isLoading: false };
+      ? queryInfoFormData
+      : { error: undefined, isLoading: false };
 
   if (error) {
     return <UnknownError />;
@@ -87,8 +87,8 @@ function useFormDataQuery(enabled: boolean): UseQueryResult<IFormData> {
     isStateless && statelessDataType
       ? getStatelessFormDataUrl(statelessDataType, allowAnonymous)
       : instance && currentTaskDataId
-      ? getFetchFormDataUrl(instance.id, currentTaskDataId)
-      : undefined;
+        ? getFetchFormDataUrl(instance.id, currentTaskDataId)
+        : undefined;
 
   const options: AxiosRequestConfig = {};
   if (isStateless && !allowAnonymous && currentPartyId) {

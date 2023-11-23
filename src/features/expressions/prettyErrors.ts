@@ -222,8 +222,8 @@ function postProcessOuterObject(input: In, out: Out, level: number): string[] {
   const lines = out.inline
     ? [...inline(out), ...appendErrors(input, out)]
     : out.start
-    ? [out.start, out.lines, trimTrailingComma(out.end), ...appendErrors(input, out)]
-    : [...out.lines, ...appendErrors(input, out)];
+      ? [out.start, out.lines, trimTrailingComma(out.end), ...appendErrors(input, out)]
+      : [...out.lines, ...appendErrors(input, out)];
 
   return indent(lines, level);
 }

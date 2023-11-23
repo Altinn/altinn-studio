@@ -122,18 +122,18 @@ export const ReceiptContainer = () => {
   const requirementMissing = !attachments
     ? 'attachments'
     : !applicationMetadata
-    ? 'applicationMetadata'
-    : !instanceMetaObject
-    ? 'instanceMetaObject'
-    : !lastChangedDateTime
-    ? 'lastChangedDateTime'
-    : !allOrgs
-    ? 'allOrgs'
-    : !instance
-    ? 'instance'
-    : !parties
-    ? 'parties'
-    : undefined;
+      ? 'applicationMetadata'
+      : !instanceMetaObject
+        ? 'instanceMetaObject'
+        : !lastChangedDateTime
+          ? 'lastChangedDateTime'
+          : !allOrgs
+            ? 'allOrgs'
+            : !instance
+              ? 'instance'
+              : !parties
+                ? 'parties'
+                : undefined;
 
   return (
     <div id='ReceiptContainer'>
