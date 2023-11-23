@@ -47,14 +47,14 @@ namespace Designer.Tests.Fixtures
 
             using var giteaGetLoginResponse = await giteaClient.GetAsync(giteaLoginUrl, cancellationToken);
             string htmlContent = await giteaGetLoginResponse.Content.ReadAsStringAsync(cancellationToken);
-            List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>
+            List<KeyValuePair<string, string>> formValues = new ()
             {
                 new KeyValuePair<string, string>("user_name", GiteaConstants.TestUser),
                 new KeyValuePair<string, string>("password", GiteaConstants.TestUserPassword),
                 new KeyValuePair<string, string>("_csrf", GetStringFromHtmlContent(htmlContent, "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
             };
 
-            using FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
+            using FormUrlEncodedContent content = new (formValues);
 
             using var giteaPostLoginMessage = new HttpRequestMessage(HttpMethod.Post, giteaLoginUrl)
             {

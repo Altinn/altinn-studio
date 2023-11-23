@@ -23,6 +23,7 @@ namespace Altinn.Studio.Designer.Helpers
 
             if (context.User != null)
             {
+                Console.WriteLine("user: " + context.User);
                 foreach (Claim claim in context.User.Claims)
                 {
                     if (claim.Type.Equals(AltinnCoreClaimTypes.Developer))
@@ -106,7 +107,7 @@ namespace Altinn.Studio.Designer.Helpers
         }
 
         /// <summary>
-        /// Returns the designer cookie 
+        /// Returns the designer cookie
         /// </summary>
         /// <param name="context">Httpcontext with request</param>
         /// <param name="cookieHost">The cookie host</param>
@@ -124,7 +125,7 @@ namespace Altinn.Studio.Designer.Helpers
         /// <returns>A header value string</returns>
         public static string GetDeveloperTokenHeaderValue(HttpContext context)
         {
-            return "token " + AuthenticationHelper.GetDeveloperAppToken(context);
+            return "token " + GetDeveloperAppToken(context);
         }
 
         /// <summary>
