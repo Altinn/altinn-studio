@@ -49,7 +49,7 @@ export const ResourcesRepoList = ({
   }
 
   return (
-    <div data-testid='resource-table-wrapper'>
+    <div>
       <Heading level={2} size='small' spacing>
         {getReposLabel({
           selectedContext,
@@ -61,7 +61,7 @@ export const ResourcesRepoList = ({
       {isLoadingResourceList ? (
         <AltinnSpinner spinnerText={t('general.loading')} />
       ) : (
-        <div>
+        <div data-testid='resource-table-wrapper'>
           <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
             {t('dashboard.go_to_resources')}
           </Link>

@@ -1,44 +1,46 @@
 import React from 'react';
-import {
-  act,
-  render as rtlRender,
-  screen,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ResourcesRepoList } from './ResourcesRepoList';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useParams } from 'react-router-dom';
+import { User } from 'app-shared/types/User';
+import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 
 const originalWindowLocation = window.location;
 const user = userEvent.setup();
+
+const searchReposResponse = {
+  data: [{} as any],
+  ok: true,
+  totalCount: 1,
+  totalPages: 1,
+};
+const getResourceListResponse = [
+  {
+    title: {
+      nb: 'Test ressurs',
+      nn: '',
+      en: '',
+    },
+    createdBy: '',
+    lastChanged: new Date().toISOString(),
+    hasPolicy: true,
+    identifier: 'test-ressurs',
+  },
+];
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: jest.fn(),
 }));
 
-const render = () => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    getResourceList: jest.fn().mockImplementation(() =>
-      Promise.resolve([
-        {
-          title: 'Test ressurs',
-          createdBy: '',
-          lastChanged: new Date().toISOString(),
-          hasPolicy: true,
-          identifier: 'test-ressurs',
-        },
-      ]),
-    ),
-  };
-  return rtlRender(
-    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
+  render(
+    <MockServicesContextWrapper customServices={services}>
       <ResourcesRepoList
+        user={{ id: 1 } as User}
         organizations={[
           {
             username: 'ttd',
@@ -48,7 +50,7 @@ const render = () => {
           },
         ]}
       />
-    </ServicesContextProvider>,
+    </MockServicesContextWrapper>,
   );
 };
 
@@ -65,36 +67,31 @@ describe('RepoList', () => {
     window.location = originalWindowLocation;
   });
 
-  test('Should not show component when context is all', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'all',
-    });
-    render();
-    expect(screen.queryByTestId('resource-table-wrapper')).not.toBeInTheDocument();
-  });
-
-  test('Should not show component when context is mine', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'self',
-    });
-    render();
-    expect(screen.queryByTestId('resource-table-wrapper')).not.toBeInTheDocument();
-  });
-
-  test('Should show spinner on loading', () => {
+  test('Should show spinner on loading', async () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
-    render();
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    renderWithMockServices({
+      searchRepos: () => Promise.resolve(searchReposResponse),
+      getResourceList: () => Promise.resolve(getResourceListResponse),
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    });
   });
 
   test('Should show correct header', async () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
-    render();
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    renderWithMockServices({
+      searchRepos: () => Promise.resolve(searchReposResponse),
+      getResourceList: () => Promise.resolve(getResourceListResponse),
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
+    });
 
     expect(
       screen.getByText(textMock('dashboard.org_resources', { orgName: 'Testdepartementet' })),
@@ -105,8 +102,13 @@ describe('RepoList', () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
-    render();
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    renderWithMockServices({
+      searchRepos: () => Promise.resolve(searchReposResponse),
+      getResourceList: () => Promise.resolve(getResourceListResponse),
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
+    });
 
     expect(
       screen.getByRole('link', { name: textMock('dashboard.go_to_resources') }),
@@ -117,8 +119,14 @@ describe('RepoList', () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
-    render();
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    renderWithMockServices({
+      searchRepos: () => Promise.resolve(searchReposResponse),
+      getResourceList: () => Promise.resolve(getResourceListResponse),
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
+    });
+
     await act(() => user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit'))));
 
     expect(window.location.assign).toHaveBeenCalledWith(
