@@ -46,7 +46,6 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     Object.keys(currentPartyTypesAllowed).forEach((key) => {
       newPartyTypesAllowed[key] = newPartyTypes.includes(key);
     });
-    console.log('newPartyTypesAllowed', newPartyTypesAllowed);
     updateAppMetadataMutation({ ...appMetadata, partyTypesAllowed: newPartyTypesAllowed });
   };
 
