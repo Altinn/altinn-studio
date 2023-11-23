@@ -1,16 +1,18 @@
 import React from 'react';
 import classes from './ProcessEditor.module.css';
-import { useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Trans, useTranslation } from 'react-i18next';
+import { Alert, Heading, Link, Paragraph } from '@digdir/design-system-react';
 import { PageLoading } from './components/PageLoading';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider } from './contexts/BpmnContext';
+import { getIfVersionIs8OrNewer } from './utils/processEditorUtils';
 
-type ProcessEditorProps = {
+export type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
   onSave: (bpmnXml: string) => void;
-  appLibVersion: any;
+  appLibVersion: string;
 };
+
 export const ProcessEditor = ({
   bpmnXml,
   onSave,
@@ -26,13 +28,38 @@ export const ProcessEditor = ({
     return <NoBpmnFoundAlert />;
   }
 
+  const isEditAllowed: boolean = getIfVersionIs8OrNewer(appLibVersion);
+
   return (
     <BpmnContextProvider bpmnXml={bpmnXml}>
-      <div className={classes.alertWrapper}>
-        {/* TODO - Add logic check for edit button*/}
-        <Alert>{appLibVersion}</Alert>
-      </div>
-      <Canvas onSave={onSave} />
+      {!isEditAllowed && (
+        <div className={classes.alertWrapper}>
+          {/* TODO - Add logic check for edit button*/}
+          <Alert severity='warning' className={classes.alert}>
+            <Heading level={1} size='xsmall' spacing>
+              {t('process_editor.too_old_version_title')}
+            </Heading>
+            <Paragraph className={classes.alertText} size='small'>
+              <Trans i18nKey={t('process_editor.too_old_version_text')}>
+                Applikasjonen din har versjon <strong>{appLibVersion}</strong> av app-lib-pakken.
+                <br />
+                Versjonen er for gammel for å kunne redigere denne modellen. <br />
+                <br />
+                Du kan se på prosessen, men vi anbefaler at du oppgraderer til versjon 8 eller
+                nyere.
+                <br />
+                <br />
+                Trenger du hjelp til å oppgradere, kan du kontakte{' '}
+                <Link href='servicedesk@altinn.no' target='_new' rel='noopener noreferrer'>
+                  servicedesken
+                </Link>{' '}
+                vår.
+              </Trans>
+            </Paragraph>
+          </Alert>
+        </div>
+      )}
+      <Canvas onSave={onSave} isEditAllowed={isEditAllowed} />
     </BpmnContextProvider>
   );
 };

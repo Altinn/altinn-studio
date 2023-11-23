@@ -1,5 +1,13 @@
 .alertWrapper {
-  padding-top: 2rem;
-  padding-bottom: 1rem;
-  padding-inline: 20%;
+  display: flex;
+  justify-content: center;
+  margin-block: 1rem;
+}
+
+.alert {
+  width: fit-content;
+}
+
+.alertText {
+  white-space: pre-line;
 }

@@ -15,9 +15,10 @@ import { Heading, Paragraph } from '@digdir/design-system-react';
 
 export type CanvasProps = {
   onSave: (bpmnXml: string) => void;
+  isEditAllowed: boolean;
 };
 
-export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
+export const Canvas = ({ onSave, isEditAllowed }: CanvasProps): JSX.Element => {
   const { getUpdatedXml } = useBpmnContext();
   const [isEditorView, setIsEditorView] = useState(false);
 
@@ -31,11 +32,13 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
 
   return (
     <>
-      <CanvasActionMenu
-        onSave={handleOnSave}
-        toggleViewModus={toggleViewModus}
-        isEditorView={isEditorView}
-      />
+      {isEditAllowed && (
+        <CanvasActionMenu
+          onSave={handleOnSave}
+          toggleViewModus={toggleViewModus}
+          isEditorView={isEditorView}
+        />
+      )}
       {isEditorView ? <Editor /> : <Viewer />}
     </>
   );
