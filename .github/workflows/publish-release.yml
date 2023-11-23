@@ -14,7 +14,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install dotnet6
+      - name: Install dotnet8
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Install dotnet6
+      - name: Install dotnet8
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |

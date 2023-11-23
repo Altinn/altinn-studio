@@ -15,6 +15,6 @@ namespace Altinn.App.Core.Internal.Texts
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="language">Language for the text resource</param>
         /// <returns>The text resource</returns>
-        Task<TextResource> GetText(string org, string app, string language);
+        Task<TextResource?> GetText(string org, string app, string language);
     }
 }

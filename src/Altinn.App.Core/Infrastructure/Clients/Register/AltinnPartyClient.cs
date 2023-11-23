@@ -60,7 +60,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         }
 
         /// <inheritdoc/>
-        public async Task<Party> GetParty(int partyId)
+        public async Task<Party?> GetParty(int partyId)
         {
             Party? party = null;
 

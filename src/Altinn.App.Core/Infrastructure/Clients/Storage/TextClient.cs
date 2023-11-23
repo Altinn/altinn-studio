@@ -59,9 +59,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<TextResource> GetText(string org, string app, string language)
+        public async Task<TextResource?> GetText(string org, string app, string language)
         {
-            TextResource textResource = null;
+            TextResource? textResource = null;
             string cacheKey = $"{org}-{app}-{language.ToLower()}";
 
             if (!_memoryCache.TryGetValue(cacheKey, out textResource))

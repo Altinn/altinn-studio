@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Internal.Registers
         /// </summary>
         /// <param name="partyId">The partyId</param>
         /// <returns>The party for the given partyId</returns>
-        Task<Party> GetParty(int partyId);
+        Task<Party?> GetParty(int partyId);
 
         /// <summary>
         /// Looks up a party by person or organisation number.

@@ -235,7 +235,7 @@ namespace Altinn.App.Api.Controllers
             Party party;
             try
             {
-                party = await LookupParty(instanceTemplate.InstanceOwner);
+                party = await LookupParty(instanceTemplate.InstanceOwner) ?? throw new Exception("Unknown party");
                 instanceTemplate.InstanceOwner = InstantiationHelper.PartyToInstanceOwner(party);
             }
             catch (Exception partyLookupException)
@@ -378,7 +378,7 @@ namespace Altinn.App.Api.Controllers
             Party party;
             try
             {
-                party = await LookupParty(instansiationInstance.InstanceOwner);
+                party = await LookupParty(instansiationInstance.InstanceOwner) ?? throw new Exception("Unknown party");
                 instansiationInstance.InstanceOwner = InstantiationHelper.PartyToInstanceOwner(party);
             }
             catch (Exception partyLookupException)
@@ -901,7 +901,7 @@ namespace Altinn.App.Api.Controllers
             return enforcementResult;
         }
 
-        private async Task<Party> LookupParty(InstanceOwner instanceOwner)
+        private async Task<Party?> LookupParty(InstanceOwner instanceOwner)
         {
             if (instanceOwner.PartyId != null)
             {
