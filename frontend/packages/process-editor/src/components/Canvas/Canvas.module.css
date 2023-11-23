@@ -1,3 +1,7 @@
+:root {
+  --mask-icon-size: 0 0 /46px 46px;
+}
+
 .container {
   padding: 18px;
   box-sizing: border-box;
@@ -25,29 +29,29 @@
 }
 
 div[class*='bpmn-icon-task-generic'] {
-  background-color: black;
+  background-color: var(--palette-entry-color);
 }
 
 div[class*='bpmn-icon-task-generic']:hover {
-  background-color: #0086e6;
+  background-color: var(--palette-entry-hover-color);
 }
 
 div[class*='bpmn-icon-data-task'] {
-  -webkit-mask: url('../../../img/DataTask.svg') 0 0 /46px 46px;
-  mask: url('../../../img/DataTask.svg') 0 0 /46px 46px;
+  -webkit-mask: url('../../../img/DataTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/DataTask.svg') var(--mask-icon-size);
 }
 
 div[class*='bpmn-icon-confirmation-task'] {
-  -webkit-mask: url('../../../img/ConfirmationTask.svg') 0 0/46px 46px;
-  mask: url('../../../img/ConfirmationTask.svg') 0 0/46px 46px;
+  -webkit-mask: url('../../../img/ConfirmationTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/ConfirmationTask.svg') var(--mask-icon-size);
 }
 
 div[class*='bpmn-icon-feedback-task'] {
-  -webkit-mask: url('../../../img/FeedbackTask.svg') 0 0/46px 46px;
-  mask: url('../../../img/FeedbackTask.svg') 0 0/46px 46px;
+  -webkit-mask: url('../../../img/FeedbackTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/FeedbackTask.svg') var(--mask-icon-size);
 }
 
 div[class*='bpmn-icon-signing-task'] {
-  -webkit-mask: url('../../../img/SignTask.svg') 0 0/46px 46px;
-  mask: url('../../../img/SignTask.svg') 0 0/46px 46px;
+  -webkit-mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
 }
