@@ -1,5 +1,4 @@
 {
-  "$schema": "http://localhost:8081/schemas/json/text-resources/text-resources.schema.v1.json",
   "language": "en",
   "resources": [
     {
@@ -102,7 +101,7 @@
     },
     {
       "id": "Fodselsnummer",
-      "value": "Fødselsnummer"
+      "value": "personal id"
     },
     {
       "id": "HintEtternavn",
@@ -140,7 +139,7 @@
     },
     {
       "id": "PersonNyttMellomnavn",
-      "value": "Nytt mellomnavn"
+      "value": "New middlename"
     },
     {
       "id": "ServiceName",
