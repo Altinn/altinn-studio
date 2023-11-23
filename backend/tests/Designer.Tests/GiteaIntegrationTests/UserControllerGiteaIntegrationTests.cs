@@ -26,7 +26,7 @@ namespace Designer.Tests.GiteaIntegrationTests
         public async Task GetCurrentUser_ShouldReturnOk(string expectedUserName, string expectedEmail)
         {
             string requestUrl = "designer/api/user/current";
-            using HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, requestUrl);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUrl);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 

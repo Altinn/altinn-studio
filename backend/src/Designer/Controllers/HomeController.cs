@@ -153,7 +153,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             _logger.LogInformation("Updating app key for " + userName);
             KeyValuePair<string, string> accessKeyValuePair = await _giteaApi.GetSessionAppKey() ?? default(KeyValuePair<string, string>);
-            List<Claim> claims = new ();
+            List<Claim> claims = new();
             const string Issuer = "https://altinn.no";
             if (!accessKeyValuePair.Equals(default(KeyValuePair<string, string>)))
             {
@@ -165,10 +165,10 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, Issuer));
-            ClaimsIdentity identity = new ("TestUserLogin");
+            ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
 
-            ClaimsPrincipal principal = new (identity);
+            ClaimsPrincipal principal = new(identity);
 
             string timeoutString = DateTime.UtcNow.AddMinutes(_generalSettings.SessionDurationInMinutes - 5).ToString();
             HttpContext.Response.Cookies.Append(
@@ -227,7 +227,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The debug info you want</returns>
         public async Task<IActionResult> Debug()
         {
-            StringBuilder stringBuilder = new ();
+            StringBuilder stringBuilder = new();
             stringBuilder.AppendLine("Debug info");
             stringBuilder.AppendLine("App token is: " + _sourceControl.GetAppToken());
             stringBuilder.AppendLine("App token id is " + _sourceControl.GetAppTokenId());
