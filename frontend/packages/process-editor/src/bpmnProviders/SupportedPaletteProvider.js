@@ -1,9 +1,4 @@
-const supportedEntries = [
-  'create.exclusive-gateway',
-  'create.start-event',
-  'create.end-event',
-  'create.task',
-];
+const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
 class SupportedPaletteProvider {
   constructor(bpmnFactory, create, elementFactory, palette, translate, modeling) {
@@ -87,7 +82,7 @@ class SupportedPaletteProvider {
       const customEntries = {
         'create.altinn-data-task': {
           group: 'activity',
-          className: 'bpmn-icon-task',
+          className: 'bpmn-icon-task-generic bpmn-icon-data-task',
           title: translate('Create Altinn Data Task'),
           action: {
             dragstart: createCustomTask('data'),
@@ -96,7 +91,7 @@ class SupportedPaletteProvider {
         'create.altinn-confirmation-task': {
           group: 'activity',
           title: translate('Create Altinn Confirm Task'),
-          className: 'bpmn-icon-task',
+          className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
           action: {
             dragstart: createCustomTask('confirmation'),
           },
@@ -104,14 +99,14 @@ class SupportedPaletteProvider {
         'create.altinn-feedback-task': {
           group: 'activity',
           title: translate('Create Altinn Feedback Task'),
-          className: 'bpmn-icon-task',
+          className: 'bpmn-icon-task-generic bpmn-icon-feedback-task',
           action: {
             dragstart: createCustomTask('feedback'),
           },
         },
         'create.altinn-signing-task': {
           group: 'activity',
-          className: 'bpmn-icon-task',
+          className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
           title: translate('Create Altinn signing Task'),
           action: {
             dragstart: createCustomSigningTask(),
