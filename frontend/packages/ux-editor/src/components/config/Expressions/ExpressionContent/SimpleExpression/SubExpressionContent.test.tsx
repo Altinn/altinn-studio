@@ -138,7 +138,9 @@ describe('SubExpressionContent', () => {
         onRemoveSubExpression: onRemoveSubExpression,
       },
     });
-    const deleteSubExpressionButton = screen.getByTitle(textMock('general.delete'));
+    const deleteSubExpressionButton = screen.getByTitle(
+      textMock('right_menu.expression_sub_expression_delete'),
+    );
     await act(() => user.click(deleteSubExpressionButton));
     expect(onRemoveSubExpression).toHaveBeenCalledTimes(1);
   });

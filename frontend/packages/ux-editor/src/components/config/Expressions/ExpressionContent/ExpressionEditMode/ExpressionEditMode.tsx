@@ -158,7 +158,7 @@ export const ExpressionEditMode = ({
         size='small'
         disabled={!allowToSaveExpression}
       >
-        {t('general.save')}
+        {t('right_menu.expression_save')}
       </Button>
     </div>
   );

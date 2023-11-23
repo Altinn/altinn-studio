@@ -54,7 +54,7 @@ export const SubExpressionContent = ({
       <div className={classes.subExpressionTop}>
         <p>{t('right_menu.expressions_function_on_property')}</p>
         <Button
-          title={t('general.delete')}
+          title={t('right_menu.expression_sub_expression_delete')}
           color='danger'
           icon={<TrashIcon />}
           onClick={() => onRemoveSubExpression(subExpression)}

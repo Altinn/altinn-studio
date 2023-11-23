@@ -1,5 +1,6 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {
   internalExpressionWithMultipleSubExpressions,
   parsableExternalExpression,
@@ -85,8 +86,80 @@ describe('ExpressionContent', () => {
     expect(comparableDataSourceSelectComponent).toHaveLength(3);
     const comparableDataSourceValueSelectComponent = screen.queryAllByRole('textbox');
     expect(comparableDataSourceValueSelectComponent).toHaveLength(2);
-    const saveExpressionButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_save'),
+    });
     expect(saveExpressionButton).toBeInTheDocument();
+  });
+
+  it('renders calls onDeleteExpression when expression is deleted from preview mode', async () => {
+    const user = userEvent.setup();
+    const mockOnDeleteExpression = jest.fn();
+    render({
+      props: {
+        onDeleteExpression: mockOnDeleteExpression,
+      },
+    });
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_delete'),
+    });
+    await act(() => user.click(deleteButton));
+    expect(mockOnDeleteExpression).toHaveBeenCalledTimes(1);
+    expect(mockOnDeleteExpression).toHaveBeenCalledWith(ExpressionPropertyBase.Hidden);
+  });
+
+  it('renders calls onDeleteExpression when expression is deleted from edit mode', async () => {
+    const user = userEvent.setup();
+    const mockOnDeleteExpression = jest.fn();
+    render({
+      props: {
+        defaultEditMode: true,
+        onDeleteExpression: mockOnDeleteExpression,
+      },
+    });
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_delete'),
+    });
+    await act(() => user.click(deleteButton));
+    expect(mockOnDeleteExpression).toHaveBeenCalledTimes(1);
+    expect(mockOnDeleteExpression).toHaveBeenCalledWith(ExpressionPropertyBase.Hidden);
+  });
+
+  it('1 of 3 subExpressions is deleted when subExpression is deleted', async () => {
+    const user = userEvent.setup();
+    render({
+      props: {
+        defaultEditMode: true,
+      },
+    });
+
+    // Since there are three subexpressions in this expression there will also be three delete-buttons.
+    const deleteButtons = screen.getAllByRole('button', {
+      name: textMock('right_menu.expression_sub_expression_delete'),
+    });
+    await act(() => user.click(deleteButtons[0]));
+    const newDeleteButtons = screen.getAllByRole('button', {
+      name: textMock('right_menu.expression_sub_expression_delete'),
+    });
+    expect(newDeleteButtons).toHaveLength(2);
+  });
+
+  it('Expression in edit mode is saved and changed to preview mode when save button is clicked', async () => {
+    const user = userEvent.setup();
+    render({
+      props: {
+        defaultEditMode: true,
+      },
+    });
+
+    const saveButton = screen.getByRole('button', { name: textMock('right_menu.expression_save') });
+    await act(() => user.click(saveButton));
+    const savedCheckMark = screen.getByText(
+      textMock('right_menu.expression_successfully_added_text'),
+    );
+    expect(savedCheckMark).toBeInTheDocument();
   });
 });
 

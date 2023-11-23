@@ -64,7 +64,9 @@ describe('ExpressionEditMode', () => {
     expect(comparableDataSourceValueSelectComponent).toHaveValue(
       simpleInternalExpression.subExpressions[0].comparableValue as string,
     );
-    const saveExpressionButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_save'),
+    });
     expect(saveExpressionButton).toBeInTheDocument();
   });
   it('renders the complex expression in edit mode with save button when complex expression is set', () => {
@@ -78,7 +80,9 @@ describe('ExpressionEditMode', () => {
     expect(complexExpression).toBeInTheDocument();
     expect(complexExpression).toHaveValue(internalUnParsableComplexExpression.complexExpression);
     expect(complexExpression).not.toHaveAttribute('disabled');
-    const saveExpressionButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_save'),
+    });
     expect(saveExpressionButton).toBeInTheDocument();
   });
   it('SaveExpression button is disabled when there are no function set', () => {
@@ -94,7 +98,9 @@ describe('ExpressionEditMode', () => {
         },
       },
     });
-    const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
+    const saveExpressionButton = screen.queryByRole('button', {
+      name: textMock('right_menu.expression_save'),
+    });
     expect(saveExpressionButton).toHaveAttribute('disabled');
   });
   it('saveExpression button is disabled when there are no subExpressions', () => {
@@ -105,7 +111,9 @@ describe('ExpressionEditMode', () => {
         },
       },
     });
-    const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
+    const saveExpressionButton = screen.queryByRole('button', {
+      name: textMock('right_menu.expression_save'),
+    });
     expect(saveExpressionButton).toHaveAttribute('disabled');
   });
   it('calls saveExpression when saveExpression button is clicked', async () => {
@@ -116,7 +124,9 @@ describe('ExpressionEditMode', () => {
         onSaveExpressionAndSetCheckMark: mockOnSaveExpression,
       },
     });
-    const saveExpressionButton = screen.getByRole('button', { name: textMock('general.save') });
+    const saveExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_save'),
+    });
     await act(() => user.click(saveExpressionButton));
     expect(mockOnSaveExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnSaveExpression).toHaveBeenCalledTimes(1);
