@@ -7,6 +7,7 @@ import {
 } from '../../../../../types/Expressions';
 import {
   addSubExpressionToExpression,
+  canExpressionBeSaved,
   complexExpressionIsSet,
   convertInternalExpressionToExternal,
   isStudioFriendlyExpression,
@@ -83,11 +84,7 @@ export const ExpressionEditMode = ({
     }
   };
 
-  const allowToSaveExpression =
-    (expression.subExpressions?.filter((subExp) => !subExp.function)?.length === 0 &&
-      expression.subExpressions.length !== 0 &&
-      !!expression.property) ||
-    (complexExpressionIsSet(expression.complexExpression) && !!expression.property);
+  const allowToSaveExpression = canExpressionBeSaved(expression);
   const externalExpression = convertInternalExpressionToExternal(expression);
   const isStudioFriendly = isStudioFriendlyExpression(
     tryParseExpression(expression, externalExpression).complexExpression,

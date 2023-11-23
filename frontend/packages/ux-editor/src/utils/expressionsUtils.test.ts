@@ -11,6 +11,7 @@ import {
   addDataSourceValue,
   addPropertyForExpression,
   addPropertyToExpression,
+  canExpressionBeSaved,
   convertAndAddExpressionToComponent,
   convertExternalExpressionToInternal,
   convertInternalExpressionToExternal,
@@ -599,6 +600,64 @@ describe('expressionsUtils', () => {
       );
 
       expect(newExpression.complexExpression).toStrictEqual(unParsableComplexExpression);
+    });
+  });
+  describe('canExpressionBeSaved', () => {
+    it('should return true for a simple expression that have property and function set for all subexpressions', () => {
+      const canBeSaved: boolean = canExpressionBeSaved(
+        internalExpressionWithMultipleSubExpressions,
+      );
+      expect(canBeSaved).toBe(true);
+    });
+    it('should return true for a complex expression that have property and complex expression set', () => {
+      const canBeSaved: boolean = canExpressionBeSaved(internalParsableComplexExpression);
+      expect(canBeSaved).toBe(true);
+    });
+    it('should return false for a simple expression that does not have property but function set for all subexpressions', () => {
+      const expressionWithoutProperty: Expression = {
+        ...internalExpressionWithMultipleSubExpressions,
+        property: undefined,
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(expressionWithoutProperty);
+      expect(canBeSaved).toBe(false);
+    });
+    it('should return false for a simple expression that have property but not function set for all subexpressions', () => {
+      const expressionWithSubExpressionWithoutFunction: Expression = {
+        ...internalExpressionWithMultipleSubExpressions,
+        subExpressions: [
+          ...internalExpressionWithMultipleSubExpressions.subExpressions,
+          {
+            ...internalExpressionWithMultipleSubExpressions.subExpressions[0],
+            function: undefined,
+          },
+        ],
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(expressionWithSubExpressionWithoutFunction);
+      expect(canBeSaved).toBe(false);
+    });
+    it('should return false for a complex expression that does not have property but complex expression is set', () => {
+      const complexExpressionWithoutProperty: Expression = {
+        ...internalParsableComplexExpression,
+        property: undefined,
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(complexExpressionWithoutProperty);
+      expect(canBeSaved).toBe(false);
+    });
+    it('should return false for a complex expression that have property but complex expression is undefined', () => {
+      const expressionWithoutComplexExpression: Expression = {
+        ...internalParsableComplexExpression,
+        complexExpression: undefined,
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(expressionWithoutComplexExpression);
+      expect(canBeSaved).toBe(false);
+    });
+    it('should return false for a complex expression that have property but complex expression is null', () => {
+      const expressionWithoutComplexExpression: Expression = {
+        ...internalParsableComplexExpression,
+        complexExpression: null,
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(expressionWithoutComplexExpression);
+      expect(canBeSaved).toBe(false);
     });
   });
   describe('stringifyValueForDisplay', () => {

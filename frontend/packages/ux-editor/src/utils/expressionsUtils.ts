@@ -367,6 +367,15 @@ export const complexExpressionIsSet = (complexExpression: string): boolean => {
   return complexExpression !== undefined && complexExpression !== null;
 };
 
+export const canExpressionBeSaved = (expression: Expression): boolean => {
+  const allSubExpressionsHaveFunctions: boolean =
+    expression.subExpressions?.length > 0 &&
+    expression.subExpressions.every((subExp) => subExp.function);
+  const expressionHasProperty: boolean = !!expression.property;
+  const expressionIsComplex: boolean = complexExpressionIsSet(expression.complexExpression);
+  return expressionHasProperty && (allSubExpressionsHaveFunctions || expressionIsComplex);
+};
+
 export const getAllComponentPropertiesThatCanHaveExpressions = (
   form: FormComponent | FormContainer,
 ): ExpressionProperty[] => {

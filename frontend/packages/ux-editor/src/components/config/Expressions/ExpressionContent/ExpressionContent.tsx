@@ -58,27 +58,23 @@ export const ExpressionContent = ({
     setExpression(newExpression);
   };
 
-  return (
-    <>
-      {editMode ? (
-        <ExpressionEditMode
-          expression={expression}
-          componentName={formId}
-          onSetEditMode={setEditMode}
-          onDeleteExpression={deleteExpression}
-          onDeleteSubExpression={deleteSubExpression}
-          onSaveExpressionAndSetCheckMark={saveExpressionAndSetCheckMark}
-          onSetExpression={setExpression}
-        />
-      ) : (
-        <ExpressionPreview
-          expression={expression}
-          componentName={formId}
-          successfullyAddedCheckMark={successfullyAddedExpression}
-          onSetEditMode={setEditMode}
-          onDeleteExpression={deleteExpression}
-        />
-      )}
-    </>
+  return editMode ? (
+    <ExpressionEditMode
+      expression={expression}
+      componentName={formId}
+      onSetEditMode={setEditMode}
+      onDeleteExpression={deleteExpression}
+      onDeleteSubExpression={deleteSubExpression}
+      onSaveExpressionAndSetCheckMark={saveExpressionAndSetCheckMark}
+      onSetExpression={setExpression}
+    />
+  ) : (
+    <ExpressionPreview
+      expression={expression}
+      componentName={formId}
+      successfullyAddedCheckMark={successfullyAddedExpression}
+      onSetEditMode={setEditMode}
+      onDeleteExpression={deleteExpression}
+    />
   );
 };
