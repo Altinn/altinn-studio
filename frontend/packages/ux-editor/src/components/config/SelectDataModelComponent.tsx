@@ -61,12 +61,8 @@ export const SelectDataModelComponent = ({
       componentType={componentType}
       helpText={helpText}
       label={label}
-      renderField={(props) => (
-        <Select
-          {...props}
-          options={dataModelElementNames}
-          onChange={(e: any) => onChangeSelectedBinding(e)}
-        />
+      renderField={({ onChange, ...rest }) => (
+        <Select {...rest} onChange={(e: any) => onChange(e)} options={dataModelElementNames} />
       )}
     />
   );

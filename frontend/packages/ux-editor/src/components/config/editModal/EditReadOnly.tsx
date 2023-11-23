@@ -20,10 +20,11 @@ export const EditReadOnly = ({ component, handleComponentChange }: IGenericEditC
       value={component.readOnly || false}
       onChange={handleChange}
       propertyPath='definitions/component/properties/readOnly'
-      renderField={(props) => (
+      renderField={({ value, onChange, ...rest }) => (
         <Switch
-          checked={props.value}
-          onChange={(e) => props.onChange(e.target.checked, e)}
+          {...rest}
+          checked={value}
+          onChange={(e) => onChange(e.target.checked, e)}
           size='small'
         >
           {t('ux_editor.modal_configure_read_only')}

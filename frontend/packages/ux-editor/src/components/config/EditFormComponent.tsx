@@ -78,8 +78,8 @@ export const EditFormComponent = ({
         propertyPath={component.propertyPath}
         componentType={component.type}
         helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
-        renderField={(props) => (
-          <Switch {...props} size='small'>
+        renderField={({ value, ...rest }) => (
+          <Switch {...rest} checked={value} size='small'>
             {t('ux_editor.edit_component.show_beta_func')}
           </Switch>
         )}

@@ -19,7 +19,7 @@ export type NameFieldProps = TextfieldProps & {
   label?: string;
 };
 
-export function NameField({ id, pointer, handleSave, label, ...props }: NameFieldProps) {
+export function NameField({ id, pointer, handleSave, label }: NameFieldProps) {
   const { t } = useTranslation();
   const { data } = useSchemaEditorAppContext();
   const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
@@ -57,13 +57,13 @@ export function NameField({ id, pointer, handleSave, label, ...props }: NameFiel
             return '';
         }
       }}
-      renderField={() => (
+      renderField={({ errorCode, onChange, customRequired, ...rest }) => (
         <AltinnTextField
+          {...rest}
           id={id}
-          onChange={(e) => setNodeName(e.target.value)}
-          onBlur={(e) => onNameBlur(e.target.value, '')}
-          withAsterisk={true}
-          {...props}
+          onChange={(e) => onChange(e.target.value, e)}
+          onBlur={(e) => onNameBlur(e.target.value, errorCode)}
+          withAsterisk={customRequired}
         />
       )}
     />

@@ -42,10 +42,11 @@ export const MapComponent = ({
             customValidationMessages={(errorCode: string) => {
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
-            renderField={(props) => (
+            renderField={({ onChange, ...rest }) => (
               <LegacyTextField
+                {...rest}
                 formatting={{ number: {} }}
-                onChange={(e) => props.onChange(parseInt(e.target.value, 10), e)}
+                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
               />
             )}
           />
@@ -59,10 +60,11 @@ export const MapComponent = ({
             customValidationMessages={(errorCode: string) => {
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
-            renderField={(props) => (
+            renderField={({ onChange, ...rest }) => (
               <LegacyTextField
+                {...rest}
                 formatting={{ number: {} }}
-                onChange={(e) => props.onChange(parseInt(e.target.value, 10), e)}
+                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
               />
             )}
           />
@@ -79,10 +81,11 @@ export const MapComponent = ({
           customValidationMessages={(errorCode: string) => {
             if (errorCode === 'type') return t('validation_errors.numbers_only');
           }}
-          renderField={(props) => (
+          renderField={({ onChange, ...rest }) => (
             <LegacyTextField
+              {...rest}
               formatting={{ number: {} }}
-              onChange={(e) => props.onChange(parseInt(e.target.value, 10), e)}
+              onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
             />
           )}
         />
@@ -177,8 +180,12 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
               customValidationMessages={(errorCode: string) => {
                 if (errorCode === 'format') return t('validation_errors.value_as_url');
               }}
-              renderField={(props) => (
-                <LegacyTextField name='url' onChange={(e) => props.onChange(e.target.value, e)} />
+              renderField={({ onChange, ...rest }) => (
+                <LegacyTextField
+                  {...rest}
+                  onChange={(e) => onChange(e.target.value, e)}
+                  name='url'
+                />
               )}
             />
 
@@ -189,10 +196,11 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 value={layer.attribution || ''}
                 onChange={(value, event) => handleOnLayerChange(index, event)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
-                renderField={(props) => (
+                renderField={({ onChange, ...rest }) => (
                   <LegacyTextField
+                    {...rest}
                     name='attribution'
-                    onChange={(e) => props.onChange(e.target.value, e)}
+                    onChange={(e) => onChange(e.target.value, e)}
                   />
                 )}
               />
@@ -203,12 +211,13 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 value={layer?.subdomains || []}
                 onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
-                renderField={(props) => (
+                renderField={({ value, onChange, ...rest }) => (
                   <LegacyTextField
+                    {...rest}
                     name='subdomains'
                     placeholder={t('ux_editor.subdomains_placeholder')}
-                    onChange={(e) => props.onChange(stringToArray(e.target.value), e)}
-                    value={arrayToString(props.value) || ''}
+                    onChange={(e) => onChange(stringToArray(e.target.value), e)}
+                    value={arrayToString(value) || ''}
                   />
                 )}
               />

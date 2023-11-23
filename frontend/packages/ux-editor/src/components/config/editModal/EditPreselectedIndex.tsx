@@ -38,11 +38,12 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
       }
       onChange={handlePreselectedOptionChange}
       propertyPath={`${component.propertyPath}/properties/preselectedOptionIndex`}
-      renderField={(props) => (
+      renderField={({ onChange, ...rest }) => (
         <Textfield
+          {...rest}
           type='number'
           placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
-          onChange={(e) => props.onChange(parseInt(e.target.value), e)}
+          onChange={(e) => onChange(parseInt(e.target.value), e)}
         />
       )}
     />

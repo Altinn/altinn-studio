@@ -10,10 +10,11 @@ import { TranslationKey } from 'language/type';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export type FormFieldChildProps<TT> = {
+  errorCode: string;
   value: any;
   label: string;
   onChange: (value: TT, event?: React.ChangeEvent<HTMLInputElement>) => void;
-  required: boolean;
+  customRequired: boolean;
   'aria-errormessage'?: string;
   'aria-invalid'?: boolean;
 };
@@ -106,9 +107,10 @@ export const FormField = <T extends unknown, TT extends unknown>({
   const generateProps = () => {
     const props: FormFieldChildProps<TT> = {
       value: tmpValue,
-      required: isRequired,
+      customRequired: isRequired,
       label,
       onChange: handleOnChange,
+      errorCode,
     };
     if (errorCode) {
       props['aria-errormessage'] = errorMessageId;

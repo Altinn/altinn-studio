@@ -125,12 +125,12 @@ export function EditOptions({
           id={component.id}
           value={component.options}
           propertyPath={`${component.propertyPath}/properties/options`}
-          renderField={(props) => (
+          renderField={() => (
             <div>
               {component.options?.map((option, index) => {
                 const updateValue = (e: any) => handleUpdateOptionValue(index, e);
                 const removeItem = () => handleRemoveOption(index);
-                const key = `${option.label}-${index}`;
+                const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
                 const optionTitle = `${
                   component.type === 'RadioButtons'
                     ? t('ux_editor.modal_radio_button_increment')
