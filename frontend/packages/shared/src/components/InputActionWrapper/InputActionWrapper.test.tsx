@@ -92,4 +92,14 @@ describe('InputActionWrapper', () => {
     await act(() => user.hover(input));
     expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
   });
+
+  it('renders right actions when switching mode', async () => {
+    const { rerender } = await rtlRender(<InputActionWrapper {...mockProps} mode={'editMode'} />);
+    expect(screen.getByLabelText('general.save')).toBeInTheDocument();
+    expect(screen.getByLabelText('general.delete')).toBeInTheDocument();
+
+    rerender(<InputActionWrapper {...mockProps} mode={'hoverMode'} />);
+    expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
+    expect(screen.getByLabelText('general.delete')).toBeInTheDocument();
+  });
 });
