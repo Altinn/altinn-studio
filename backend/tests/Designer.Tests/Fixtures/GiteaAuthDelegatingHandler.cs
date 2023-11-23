@@ -82,14 +82,14 @@ namespace Designer.Tests.Fixtures
             if (loginResponse.Headers.Contains("Set-Cookie"))
             {
                 cookies = loginResponse.Headers.GetValues("Set-Cookie");
-                AuthenticationUtil.SetAltinnStudiCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
+                AuthenticationUtil.SetAltinnStudioCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
             }
 
             var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
 
             var xsrfcookies = xsrfResponse.Headers.GetValues("Set-Cookie");
             string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfcookies);
-            AuthenticationUtil.SetAltinnStudiCookieFromResponseHeader(request, cookies, xsrfToken);
+            AuthenticationUtil.SetAltinnStudioCookieFromResponseHeader(request, cookies, xsrfToken);
             SetCookies(request, GetGiteaAuthCookiesFromResponseMessage(xsrfResponse));
 
             return await base.SendAsync(request, cancellationToken);
