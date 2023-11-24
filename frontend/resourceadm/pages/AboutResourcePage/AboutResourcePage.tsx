@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { Heading } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
@@ -116,14 +116,6 @@ export const AboutResourcePage = ({
     resourceData.delegable ? getResourcePageTextfieldError(resourceData.rightDescription) : false,
   );
 
-  // useRefs to handle tabbing between the input elements and the right translation bar
-  const rightTranslationBarRef = useRef(null);
-  const titleFieldRef = useRef(null);
-  const descriptionFieldRef = useRef(null);
-  const homePageRef = useRef(null);
-  const rightDescriptionRef = useRef(null);
-  const keywordsRef = useRef(null);
-
   /**
    * Function that saves the resource to backend
    */
@@ -169,52 +161,6 @@ export const AboutResourcePage = ({
   };
 
   /**
-   * Function that handles the tabbing into the right translation bar
-   */
-  const handleTabKeyIntoRightBar = (e: any) => {
-    if (e.key === 'Tab') {
-      if (e.shiftKey) {
-        // TODO - Handle Tab backwards as well. Issue: #10989
-      } else {
-        e.preventDefault();
-        if (rightTranslationBarRef.current) {
-          rightTranslationBarRef.current.focus();
-        }
-      }
-    }
-  };
-
-  /**
-   * Function that handles the leaving of the right translation bar.
-   * It sets the ref to the next element on the page so that the
-   * navigation feels natural.
-   */
-  const handleLeaveLastFieldRightBar = (
-    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    if (e.key === 'Tab') {
-      if (translationType === 'title') {
-        if (descriptionFieldRef.current) {
-          e.preventDefault();
-          descriptionFieldRef.current.focus();
-        }
-      }
-      if (translationType === 'description') {
-        if (homePageRef.current) {
-          e.preventDefault();
-          homePageRef.current.focus();
-        }
-      }
-      if (translationType === 'rightDescription') {
-        if (keywordsRef.current) {
-          e.preventDefault();
-          keywordsRef.current.focus(null);
-        }
-      }
-    }
-  };
-
-  /**
    * Adds another contact point to the list
    *
    * @param contactPoints the list of contact points to add
@@ -254,8 +200,6 @@ export const AboutResourcePage = ({
               ? resourceData.delegable && showAllErrors
               : showAllErrors
           }
-          ref={rightTranslationBarRef}
-          onLeaveLastField={handleLeaveLastFieldRightBar}
           onBlur={handleSaveResource}
         />
       </div>
@@ -292,8 +236,6 @@ export const AboutResourcePage = ({
           value={title['nb']}
           onFocus={() => setTranslationType('title')}
           isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
-          ref={titleFieldRef}
-          onKeyDown={handleTabKeyIntoRightBar}
           onChangeValue={(value: string) => handleChangeTranslationValues({ ...title, nb: value })}
           onBlur={handleSaveResource}
           showErrorMessage={showAllErrors && hasTitleError}
@@ -303,6 +245,7 @@ export const AboutResourcePage = ({
             t,
           )}
         />
+        {translationType === 'title' && displayRightTranslationBar()}
         <ResourceLanguageTextArea
           label={t('resourceadm.about_resource_resource_description_label')}
           description={t('resourceadm.about_resource_resource_description_text')}
@@ -310,8 +253,6 @@ export const AboutResourcePage = ({
           onFocus={() => setTranslationType('description')}
           id='aboutNBDescription'
           isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
-          ref={descriptionFieldRef}
-          onKeyDown={handleTabKeyIntoRightBar}
           onChangeValue={(value: string) => {
             handleChangeTranslationValues({ ...description, nb: value });
           }}
@@ -323,12 +264,12 @@ export const AboutResourcePage = ({
             t,
           )}
         />
+        {translationType === 'description' && displayRightTranslationBar()}
         <ResourceTextField
           label={t('resourceadm.about_resource_homepage_label')}
           description={t('resourceadm.about_resource_homepage_text')}
           value={resourceData.homepage ?? ''}
           onFocus={() => setTranslationType('none')}
-          ref={homePageRef}
           id='aboutHomepage'
           onBlur={(val: string) => handleSave({ ...resourceData, homepage: val })}
         />
@@ -351,8 +292,6 @@ export const AboutResourcePage = ({
             !(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '') ||
             !resourceData.delegable
           }
-          ref={rightDescriptionRef}
-          onKeyDown={handleTabKeyIntoRightBar}
           onChangeValue={(value: string) =>
             handleChangeTranslationValues({ ...rightDescription, nb: value })
           }
@@ -364,13 +303,13 @@ export const AboutResourcePage = ({
             t,
           )}
         />
+        {translationType === 'rightDescription' && displayRightTranslationBar()}
         <ResourceTextField
           label={t('resourceadm.about_resource_keywords_label')}
           description={t('resourceadm.about_resource_keywords_text')}
           value={resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''}
           onFocus={() => setTranslationType('none')}
           id='aboutKeywords'
-          ref={keywordsRef}
           onBlur={(val: string) =>
             handleSave({ ...resourceData, keywords: mapKeywordStringToKeywordTypeArray(val) })
           }
@@ -448,7 +387,6 @@ export const AboutResourcePage = ({
   return (
     <div className={classes.wrapper} id={id} role='tabpanel'>
       <div className={classes.pageWrapper}>{displayContent()}</div>
-      {translationType !== 'none' && displayRightTranslationBar()}
     </div>
   );
 };

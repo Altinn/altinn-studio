@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@altinn/icons';
 import { useText } from '../../../../ux-editor/src/hooks/index';
 import { Button, ButtonProps } from '@digdir/design-system-react';
@@ -36,7 +36,12 @@ export const InputActionWrapper = ({
   ...rest
 }: InputActionWrapperProps): JSX.Element => {
   const t = useText();
-  const [actions, setActions] = useState<AvailableAction[]>(actionGroupMap[mode || 'standBy']);
+  const defaultActions = actionGroupMap[mode || 'standBy'];
+  const [actions, setActions] = useState<AvailableAction[]>(defaultActions);
+
+  useEffect(() => {
+    setActions(defaultActions);
+  }, [defaultActions]);
 
   const handleFocus = (): void => {
     setActions(actionGroupMap['editMode']);

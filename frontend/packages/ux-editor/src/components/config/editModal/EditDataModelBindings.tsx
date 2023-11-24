@@ -1,7 +1,7 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
@@ -49,9 +49,14 @@ export const EditDataModelBindings = ({
   const { uniqueKey, key, label } = renderOptions || {};
 
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string | undefined>(
-    component.dataModelBindings ? component.dataModelBindings[key || 'simpleBinding'] : undefined,
-  );
+
+  useEffect(() => {
+    setDataModelSelectVisible(false);
+  }, [component.id]);
+
+  const selectedOption = component.dataModelBindings
+    ? component.dataModelBindings[key || 'simpleBinding']
+    : undefined;
 
   return (
     <div key={uniqueKey || ''}>
@@ -69,7 +74,6 @@ export const EditDataModelBindings = ({
           onDeleteClick={() => {
             handleDataModelChange('', key);
             setDataModelSelectVisible(false);
-            setSelectedOption(undefined);
           }}
           onSaveClick={() => setDataModelSelectVisible(false)}
         >
@@ -95,7 +99,6 @@ export const EditDataModelBindings = ({
                 }
                 onDataModelChange={(dataModelField: string) => {
                   handleDataModelChange(dataModelField, key);
-                  setSelectedOption(dataModelField);
                 }}
                 noOptionsMessage={t('general.no_options')}
                 helpText={helpText}
