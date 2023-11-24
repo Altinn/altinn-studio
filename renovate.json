@@ -13,11 +13,9 @@
       "matchPackageNames": ["gitea/gitea"]
     }
   ],
-  "ignorePaths": [
-    "testdata/**",
-    "src/**"
-  ],
+  "ignorePaths": ["testdata/**", "src/**"],
   "ignoreDeps": [
+    "@mui/lab",
     "@mui/x-data-grid",
     "@microsoft/applicationinsights-web",
     "@microsoft/applicationinsights-react-js"
