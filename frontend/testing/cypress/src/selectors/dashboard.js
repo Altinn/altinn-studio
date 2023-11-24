@@ -15,7 +15,7 @@ const getLinksCellForApp = (table, name) =>
 
 export const dashboard = {
   getAllAppsHeader,
-  getAppOwnerField: () => cy.findByRole('combobox', { name: texts['general.service_owner'] }),
+  getAppOwnerField: () => cy.findByLabelText(texts['general.service_owner']),
   getCancelLink: () => cy.findByRole('link', { name: texts['general.cancel'] }),
   getCreateAppButton: () =>
     cy.findByRole('button', { name: texts['dashboard.create_service_btn'] }),
@@ -24,7 +24,6 @@ export const dashboard = {
   getLinksCellForSearchResultApp: (name) => getLinksCellForApp(getSearchResults(), name),
   getNewAppLink: () => cy.findByRole('link', { name: texts['dashboard.new_service'] }),
   getOrgAppsHeader,
-  getOrgOption: (org) => cy.findByRole('listbox').findByRole('option', { name: org }),
   getSavedNameField: () => cy.findByRole('textbox', { name: texts['general.service_name'] }),
   getSearchReposField: () => cy.findByTestId(testids.searchReposField),
   getSearchResults,

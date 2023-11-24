@@ -51,8 +51,7 @@ Cypress.Commands.add('switchSelectedContext', (context) => {
 Cypress.Commands.add('createApp', (orgName, appName) => {
   cy.visit('/dashboard');
   dashboard.getNewAppLink().should('be.visible').click();
-  dashboard.getAppOwnerField().should('be.visible').click();
-  dashboard.getOrgOption(orgName).click();
+  dashboard.getAppOwnerField().should('be.visible').select(orgName);
   dashboard.getSavedNameField().should('be.visible').type(appName);
   cy.intercept('POST', '**/designer/api/repos/**').as('postCreateApp');
   dashboard.getCreateAppButton().should('be.visible').click();

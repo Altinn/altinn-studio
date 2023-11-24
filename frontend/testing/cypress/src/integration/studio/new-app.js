@@ -22,8 +22,7 @@ context('New App', () => {
 
   it('is possible to start app creation and exit', () => {
     dashboard.getNewAppLink().should('be.visible').click();
-    dashboard.getAppOwnerField().should('be.visible').click();
-    dashboard.getOrgOption(Cypress.env('autoTestUser')).click();
+    dashboard.getAppOwnerField().should('be.visible').select('autoTestUser');
     dashboard.getSavedNameField().should('be.visible').type('dashboard');
     dashboard.getCancelLink().should('be.visible').click();
     dashboard.getSearchReposField().should('be.visible');
@@ -40,8 +39,7 @@ context('New App', () => {
 
     // Try to create app with the same name
     dashboard.getNewAppLink().should('be.visible').click();
-    dashboard.getAppOwnerField().should('be.visible').click();
-    dashboard.getOrgOption(Cypress.env('autoTestUser')).click();
+    dashboard.getAppOwnerField().should('be.visible').select('autoTestUser');
     dashboard.getSavedNameField().should('be.visible').type(appName);
     cy.intercept('POST', '**/designer/api/repos/create-app?**').as('postCreateApp');
     dashboard.getCreateAppButton().should('be.visible').click();
@@ -54,8 +52,7 @@ context('New App', () => {
     const appName = '123-app';
     // Try to create app with invalid name
     dashboard.getNewAppLink().should('be.visible').click();
-    dashboard.getAppOwnerField().should('be.visible').click();
-    dashboard.getOrgOption(Cypress.env('autoTestUser')).click();
+    dashboard.getAppOwnerField().should('be.visible').select('autoTestUser');
     dashboard.getSavedNameField().should('be.visible').type(appName);
     dashboard.getCreateAppButton().should('be.visible').click();
     cy.findByText(texts['dashboard.service_name_has_illegal_characters']).should('be.visible');
