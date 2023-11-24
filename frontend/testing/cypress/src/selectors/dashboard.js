@@ -16,13 +16,12 @@ const getLinksCellForApp = (table, name) =>
 export const dashboard = {
   getAllAppsHeader,
   getAppOwnerField: () => cy.findByRole('combobox', { name: texts['general.service_owner'] }),
-  getCancelButton: () => cy.findByRole('button', { name: texts['general.cancel'] }),
+  getCancelLink: () => cy.findByRole('link', { name: texts['general.cancel'] }),
   getCreateAppButton: () =>
     cy.findByRole('button', { name: texts['dashboard.create_service_btn'] }),
   getFavourites: () => getFavouritesHeader().next(),
   getFavouritesHeader,
   getLinksCellForSearchResultApp: (name) => getLinksCellForApp(getSearchResults(), name),
-  getLinksCellForUserApp: (name) => getLinksCellForApp(getUserAppsList(), name),
   getNewAppLink: () => cy.findByRole('link', { name: texts['dashboard.new_service'] }),
   getOrgAppsHeader,
   getOrgOption: (org) => cy.findByRole('listbox').findByRole('option', { name: org }),
@@ -30,7 +29,6 @@ export const dashboard = {
   getSearchReposField: () => cy.findByTestId(testids.searchReposField),
   getSearchResults,
   getSearchResultsHeader,
-  getStarAppButton: () => cy.findByRole('button', { name: texts['dashboard.star'] }),
   getUserAppsList,
   getUserAppsListHeader,
 };

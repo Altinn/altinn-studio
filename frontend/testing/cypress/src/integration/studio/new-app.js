@@ -25,7 +25,7 @@ context('New App', () => {
     dashboard.getAppOwnerField().should('be.visible').click();
     dashboard.getOrgOption(Cypress.env('autoTestUser')).click();
     dashboard.getSavedNameField().should('be.visible').type('dashboard');
-    dashboard.getCancelButton().should('be.visible').click();
+    dashboard.getCancelLink().should('be.visible').click();
     dashboard.getSearchReposField().should('be.visible');
   });
 
