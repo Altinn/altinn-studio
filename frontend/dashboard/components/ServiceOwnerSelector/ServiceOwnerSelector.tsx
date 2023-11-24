@@ -1,5 +1,5 @@
 import React, { useId } from 'react';
-import { ErrorMessage, Label, Select } from '@digdir/design-system-react';
+import { Label, NativeSelect } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { Organization } from 'app-shared/types/Organization';
 import { User } from 'app-shared/types/User';
@@ -21,32 +21,23 @@ export const ServiceOwnerSelector = ({
 }: ServiceOwnerSelectorProps) => {
   const { t } = useTranslation();
   const serviceOwnerId: string = useId();
-  const serviceOwnerErrorId: string = `error-message-${serviceOwnerId}`;
 
   const selectableUser: SelectableItem = mapUserToSelectableItem(user);
   const selectableOrganizations: SelectableItem[] = mapOrganizationToSelectableItems(organizations);
   const selectableOptions: SelectableItem[] = [selectableUser, ...selectableOrganizations];
-
-  const defaultValue: string =
-    selectableOptions.length === 1 ? selectableOptions[0].value : selectedOrgOrUser;
-
-  const hasError: boolean = !!errorMessage;
 
   return (
     <div>
       <Label spacing htmlFor={serviceOwnerId}>
         {t('general.service_owner')}
       </Label>
-      <Select
-        hideLabel
-        error={hasError}
-        inputId={serviceOwnerId}
-        inputName={name}
-        options={selectableOptions}
-        value={defaultValue}
-        aria-describedby={hasError ? serviceOwnerErrorId : undefined}
-      />
-      <ErrorMessage id={serviceOwnerErrorId}>{errorMessage}</ErrorMessage>
+      <NativeSelect hideLabel error={errorMessage} id={serviceOwnerId} name={name}>
+        {selectableOptions.map(({ value, label }) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </NativeSelect>
     </div>
   );
 };
