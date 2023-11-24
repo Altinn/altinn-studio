@@ -169,7 +169,7 @@ describe('CreateService', () => {
 
     expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
 
-    await waitFor(() => screen.getByText(textMock('dashboard.app_already_exists')));
+    await screen.findByText(textMock('dashboard.app_already_exists'));
   });
 
   it('should show generic error message when trying to create an app and something unknown went wrong', async () => {
