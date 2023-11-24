@@ -12,13 +12,17 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { Heading, Paragraph } from '@digdir/design-system-react';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { VersionAlert } from './VersionAlert';
+import { getIfVersionIs8OrNewer } from '../../utils/processEditorUtils';
 
 export type CanvasProps = {
   onSave: (bpmnXml: string) => void;
-  isEditAllowed: boolean;
+  appLibVersion: string;
 };
 
-export const Canvas = ({ onSave, isEditAllowed }: CanvasProps): JSX.Element => {
+// TODO - Another PR WITH changes to new files
+export const Canvas = ({ onSave, appLibVersion }: CanvasProps): JSX.Element => {
   const { getUpdatedXml } = useBpmnContext();
   const [isEditorView, setIsEditorView] = useState(false);
 
@@ -30,16 +34,21 @@ export const Canvas = ({ onSave, isEditAllowed }: CanvasProps): JSX.Element => {
     onSave(await getUpdatedXml());
   };
 
+  const isEditAllowed: boolean = getIfVersionIs8OrNewer(appLibVersion);
+
   return (
     <>
-      {isEditAllowed && (
+      {(isEditAllowed || shouldDisplayFeature('shouldOverrideAppLibCheck')) && (
         <CanvasActionMenu
           onSave={handleOnSave}
           toggleViewModus={toggleViewModus}
           isEditorView={isEditorView}
         />
       )}
-      {isEditorView ? <Editor /> : <Viewer />}
+      <div className={classes.wrapper}>
+        <div className={classes.bpmnContainer}>{isEditorView ? <Editor /> : <Viewer />}</div>
+        {!isEditAllowed && <VersionAlert appLibVersion={appLibVersion} />}
+      </div>
     </>
   );
 };
