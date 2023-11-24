@@ -8,7 +8,6 @@ import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import {
   getPartyTypesAllowedOptions,
   initialPartyTypes,
-  partyTypesAllowedMap,
 } from '../../../utils/tabUtils/accessControlTabUtils';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
@@ -76,7 +75,9 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
             legend={t('settings_modal.access_control_tab_checkbox_legend')}
             size='small'
             onChange={(newValues: string[]) => handleChange(newValues, currentPartyTypesAllowed)}
-            value={Object.keys(partyTypesAllowedMap).filter((key) => currentPartyTypesAllowed[key])}
+            value={Object.keys(currentPartyTypesAllowed).filter(
+              (key) => currentPartyTypesAllowed[key],
+            )}
           >
             <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
               {t('settings_modal.access_control_tab_checkbox_description')}
