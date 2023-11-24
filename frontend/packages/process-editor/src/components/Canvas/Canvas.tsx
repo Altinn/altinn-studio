@@ -90,7 +90,7 @@ export const Viewer = (): JSX.Element => {
 
 const Editor = (): JSX.Element => {
   const { canvasRef } = useBpmnEditor();
-  return <div ref={canvasRef}></div>;
+  return <div className={classes.canvasContainer} ref={canvasRef}></div>;
 };
 
 type CanvasActionsProps = {
