@@ -3,6 +3,7 @@ import classes from './AltinnHeaderMenu.module.css';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { Tag } from '@digdir/design-system-react';
 
 export interface IAltinnHeaderMenuProps {
   menuItems: TopBarMenuItem[];
@@ -20,6 +21,11 @@ export const AltinnHeaderMenu = ({ menuItems }: IAltinnHeaderMenuProps) => {
           <NavLink to={item.link} className={({ isActive }) => (isActive ? classes.active : '')}>
             {t(item.key)}
           </NavLink>
+          {item.isBeta && (
+            <Tag color='info' size='xsmall' variant='primary'>
+              {t('general.beta')}
+            </Tag>
+          )}
         </li>
       ))}
     </ul>
