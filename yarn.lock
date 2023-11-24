@@ -16143,6 +16143,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"studio-root@workspace:frontend/studio-root":
+  version: 0.0.0-use.local
+  resolution: "studio-root@workspace:frontend/studio-root"
+  languageName: unknown
+  linkType: soft
+
 "style-loader@npm:3.3.3":
   version: 3.3.3
   resolution: "style-loader@npm:3.3.3"
