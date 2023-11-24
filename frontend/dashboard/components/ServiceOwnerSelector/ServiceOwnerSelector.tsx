@@ -36,7 +36,7 @@ export const ServiceOwnerSelector = ({
       </Label>
       <NativeSelect hideLabel error={errorMessage} id={serviceOwnerId} name={name}>
         {selectableOptions.map(({ value, label }) => (
-          <option key={value} value={value} selected={defaultValue === value}>
+          <option key={value} value={value}>
             {label}
           </option>
         ))}

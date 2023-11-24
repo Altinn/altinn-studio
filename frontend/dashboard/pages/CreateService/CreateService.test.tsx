@@ -155,9 +155,8 @@ describe('CreateService', () => {
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
     await act(() =>
-      user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') })),
+      user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test'),
     );
-    await act(() => user.click(screen.getByRole('option', { name: 'unit-test' })));
 
     await act(() =>
       user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists'),
@@ -170,8 +169,7 @@ describe('CreateService', () => {
 
     expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
 
-    const emptyFieldErrors = await screen.findAllByText(textMock('dashboard.app_already_exists'));
-    expect(emptyFieldErrors.length).toBe(1);
+    await waitFor(() => screen.getByText(textMock('dashboard.app_already_exists')));
   });
 
   it('should show generic error message when trying to create an app and something unknown went wrong', async () => {
@@ -179,8 +177,9 @@ describe('CreateService', () => {
     const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 500 } }));
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByRole('option', { name: 'unit-test' })));
+    await act(() =>
+      user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test'),
+    );
     await act(() => user.type(screen.getByLabelText(textMock('general.service_name')), 'new-app'));
 
     const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));
