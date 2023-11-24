@@ -75,22 +75,46 @@ function isElement(node: DOMNode): node is Element {
 
 function replaceElements(domNode: DOMNode, parserOptions: HTMLReactParserOptions) {
   if (isElement(domNode) && domNode.name === 'h1') {
-    return React.createElement(Heading, { level: 1, size: 'large' }, domToReact(domNode.children, parserOptions));
+    return React.createElement(
+      Heading,
+      { level: 1, size: 'large' },
+      domToReact(domNode.children as DOMNode[], parserOptions),
+    );
   }
   if (isElement(domNode) && domNode.name === 'h2') {
-    return React.createElement(Heading, { level: 2, size: 'medium' }, domToReact(domNode.children, parserOptions));
+    return React.createElement(
+      Heading,
+      { level: 2, size: 'medium' },
+      domToReact(domNode.children as DOMNode[], parserOptions),
+    );
   }
   if (isElement(domNode) && domNode.name === 'h3') {
-    return React.createElement(Heading, { level: 3, size: 'small' }, domToReact(domNode.children, parserOptions));
+    return React.createElement(
+      Heading,
+      { level: 3, size: 'small' },
+      domToReact(domNode.children as DOMNode[], parserOptions),
+    );
   }
   if (isElement(domNode) && domNode.name === 'h4') {
-    return React.createElement(Heading, { level: 4, size: 'xsmall' }, domToReact(domNode.children, parserOptions));
+    return React.createElement(
+      Heading,
+      { level: 4, size: 'xsmall' },
+      domToReact(domNode.children as DOMNode[], parserOptions),
+    );
   }
   if (isElement(domNode) && domNode.name === 'h5') {
-    return React.createElement(Heading, { level: 5, size: 'xsmall' }, domToReact(domNode.children, parserOptions));
+    return React.createElement(
+      Heading,
+      { level: 5, size: 'xsmall' },
+      domToReact(domNode.children as DOMNode[], parserOptions),
+    );
   }
   if (isElement(domNode) && domNode.name === 'h6') {
-    return React.createElement(Heading, { level: 6, size: 'xsmall' }, domToReact(domNode.children, parserOptions));
+    return React.createElement(
+      Heading,
+      { level: 6, size: 'xsmall' },
+      domToReact(domNode.children as DOMNode[], parserOptions),
+    );
   }
 }
 
