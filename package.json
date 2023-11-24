@@ -84,7 +84,7 @@
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
     "./frontend/language/src/*.json": "yarn run sort-texts"
   },
-  "packageManager": "yarn@3.6.4",
+  "packageManager": "yarn@4.0.2",
   "private": true,
   "scripts": {
     "build": "yarn workspaces foreach -p run build",
