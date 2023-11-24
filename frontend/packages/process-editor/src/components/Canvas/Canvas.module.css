@@ -4,37 +4,8 @@
 
 .wrapper {
   display: flex;
-  gap: 1rem;
-  height: 100vh;
-}
-
-.bpmnContainer {
-  width: 100%;
-}
-
-.container {
-  padding: 18px;
-  box-sizing: border-box;
-}
-
-.canvasContainer {
-}
-
-.canvasMenuContainer {
-  composes: container;
-  justify-content: space-between;
-  display: flex;
-  gap: 8px;
-}
-
-.unsavedChanges {
-  color: #ff0000;
-  font-weight: 500;
-}
-
-.alertContainer {
-  composes: container;
-  max-width: 780px;
+  flex: 1;
+  margin-top: 18px;
 }
 
 div[class*='bpmn-icon-task-generic'] {

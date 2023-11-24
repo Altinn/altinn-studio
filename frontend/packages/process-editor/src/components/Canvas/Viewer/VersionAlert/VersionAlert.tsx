@@ -7,6 +7,14 @@ export type VersionAlertProps = {
   appLibVersion: string;
 };
 
+/**
+ * @component
+ *  Displays the alert informing the user that their version is too old
+ *
+ * @property {string}[appLibVersion] - The app-lib version the user has
+ *
+ * @returns {ReactNode} - The rendered component
+ */
 export const VersionAlert = ({ appLibVersion }: VersionAlertProps): ReactNode => {
   const { t } = useTranslation();
 

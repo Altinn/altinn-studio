@@ -15,7 +15,6 @@ export const ProcessEditor = () => {
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
 
   const { data: appLibData, isLoading: appLibDataLoading } = useAppLibQuery(org, app);
-  console.log('app lib version', appLibData);
 
   const bpmnMutation = useBpmnMutation(org, app);
 
