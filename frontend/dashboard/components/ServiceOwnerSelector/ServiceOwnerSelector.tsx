@@ -26,9 +26,6 @@ export const ServiceOwnerSelector = ({
   const selectableOrganizations: SelectableItem[] = mapOrganizationToSelectableItems(organizations);
   const selectableOptions: SelectableItem[] = [selectableUser, ...selectableOrganizations];
 
-  const defaultValue: string =
-    selectableOptions.length === 1 ? selectableOptions[0].value : selectedOrgOrUser;
-
   return (
     <div>
       <Label spacing htmlFor={serviceOwnerId}>
