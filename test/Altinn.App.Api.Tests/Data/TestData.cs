@@ -73,6 +73,18 @@ public static class TestData
         return Path.Combine(testDataDirectory, "apps", org, app, "config", "authorization") + Path.DirectorySeparatorChar;
     }
 
+    public static string GetAltinnProfilePath()
+    {
+        string testDataDirectory = GetTestDataRootDirectory();
+        return Path.Combine(testDataDirectory, "Register", "Party");
+    }
+    
+    public static string GetRegisterProfilePath()
+    {
+        string testDataDirectory = GetTestDataRootDirectory();
+        return Path.Combine(testDataDirectory, "Profile", "User");
+    }
+
     public static void DeleteInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
     {
         string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
@@ -97,7 +109,7 @@ public static class TestData
         File.Copy(preInstancePath, instancePath, true);
 
         string dataPath = GetDataDirectory(org, app, instanceOwnerId, instanceGuid);
-
+        
         if (Directory.Exists(dataPath))
         {
             foreach (string filePath in Directory.GetFiles(dataPath, "*.*", SearchOption.AllDirectories))

@@ -1,0 +1,56 @@
+{
+	"title": {
+		"en": "Regression",
+		"nb": "Regression",
+		"nn": "Regression"
+	},
+	"sector": null,
+	"status": null,
+	"validTo": "9999-12-31T23:59:59.997",
+	"homepage": null,
+	"isPartOf": null,
+	"keywords": null,
+	"validFrom": "2021-02-15T19:57:42.953",
+	"identifier": "appid-182",
+	"isComplete": false,
+	"description": null,
+	"resourceType": "MaskinportenSchema",
+	"thematicArea": null,
+	"isPublicService": true,
+	"rightDescription": {
+		"en": "Allows you to test maskinporten changes",
+		"nb": "Gir anledning til å teste maskinporten",
+		"nn": "Gjer høve til å teste maskinporten"
+	},
+	"resourceReferences": [
+		{
+			"reference": "c6086d53-6d60-41b3-9f67-32a6347222e2",
+			"referenceType": "DelegationSchemeId",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "altinn:maskinporten/delegationschemes.read",
+			"referenceType": "MaskinportenScope",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "altinn:maskinporten/delegationschemes.write",
+			"referenceType": "MaskinportenScope",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "AppId:182",
+			"referenceType": "ServiceCode",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "1",
+			"referenceType": "ServiceEditionCode",
+			"referenceSource": "Altinn2"
+		}
+	],
+	"hasCompetentAuthority": {
+		"orgcode": "SKD",
+		"organization": "974761076"
+	}
+}
