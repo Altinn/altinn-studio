@@ -1,5 +1,5 @@
 .listItem {
-  --vertical-line-colour: var(--fds-semantic-border-neutral-divider);
+  --vertical-line-colour: var(--fds-semantic-border-divider-default);
   --vertical-line-width: 2px;
 
   list-style-type: none;

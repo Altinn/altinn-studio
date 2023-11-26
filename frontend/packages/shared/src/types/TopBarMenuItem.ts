@@ -8,4 +8,5 @@ export interface TopBarMenuItem {
   icon?: React.FC<React.SVGProps<SVGSVGElement>>;
   repositoryTypes: RepositoryType[];
   featureFlagName?: SupportedFeatureFlags;
+  isBeta?: boolean;
 }

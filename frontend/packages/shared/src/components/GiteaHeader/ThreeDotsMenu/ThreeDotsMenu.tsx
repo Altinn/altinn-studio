@@ -7,19 +7,21 @@ import { GiteaIcon } from 'app-shared/icons';
 import { LegacyPopover, Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
   hasCloneModal?: boolean;
+  org: string;
+  app: string;
 };
 
 export const ThreeDotsMenu = ({
   onlyShowRepository = false,
   hasCloneModal = false,
+  org,
+  app,
 }: ThreeDotsMenuProps) => {
   const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
-  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
   const closeCloneModal = () => setCloneModalAnchor(null);
   const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);

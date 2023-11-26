@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './errorMessage.module.css';
 import { Heading, Paragraph } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
 type ErrorMessageProps = {
   title: string;
@@ -9,15 +10,14 @@ type ErrorMessageProps = {
 };
 
 export const ErrorMessage = ({ title, message, children }: ErrorMessageProps): JSX.Element => {
+  const { t } = useTranslation();
   return (
     <div className={classes.errorMessage}>
       <Heading size='medium' level={1}>
         {title}
       </Heading>
       <Paragraph size='small'>{message}</Paragraph>
-      <Paragraph size='small'>
-        Om problemet vedvarer, ta kontakt med oss på brukerservice +47 75 00 60 00.
-      </Paragraph>
+      <Paragraph size='small'>{t('resourceadm.dashboard_error_message_info')}</Paragraph>
       {children}
     </div>
   );
