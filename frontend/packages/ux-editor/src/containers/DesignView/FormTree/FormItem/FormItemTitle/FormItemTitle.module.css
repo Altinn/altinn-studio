@@ -8,6 +8,7 @@
 
 .root:hover .label {
   background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
+  cursor: pointer;
 }
 
 .deleteButton {
