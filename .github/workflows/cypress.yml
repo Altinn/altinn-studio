@@ -46,8 +46,8 @@ jobs:
           YARN_NM_MODE: 'hardlinks-local'
           HUSKY: '0'
 
-      - name: Wait for deploy to environment
-        run: sleep 6m
+      - name: Attempt to wait for deploy to environment (10 minutes sleep)
+        run: sleep 10m
         shell: bash
 
       - name: Cypress run
