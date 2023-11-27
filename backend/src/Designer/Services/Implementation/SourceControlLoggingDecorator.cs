@@ -171,9 +171,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 _decoratedService.FetchRemoteChanges(org, repository);
             }
-            catch (LibGit2Sharp.LibGit2SharpException)
+            catch (LibGit2Sharp.LibGit2SharpException libGit2SharpException)
             {
-                throw new GiteaUnathorizedException("Gitea session is invalid.");
+                if (libGit2SharpException.Message.Contains("server requires authentication that we do not support"))
+                {
+                    throw new GiteaUnathorizedException("Gitea session is invalid.");
+                }
+
+                throw;
             }
             catch (Exception ex)
             {
