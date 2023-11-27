@@ -87,7 +87,7 @@
   "packageManager": "yarn@4.0.2",
   "private": true,
   "scripts": {
-    "build": "yarn workspaces foreach -p run build",
+    "build": "yarn workspaces foreach -A -p run build",
     "lint": "eslint \"frontend/**/*.ts*\"",
     "lint:fix": "npm run lint --fix",
     "setup": "husky install && node development/setup.js",
