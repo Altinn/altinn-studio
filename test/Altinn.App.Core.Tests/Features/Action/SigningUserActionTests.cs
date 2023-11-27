@@ -64,7 +64,7 @@ public class SigningUserActionTests
         // Assert
         SignatureContext expected = new SignatureContext(new InstanceIdentifier(instance), "signature", new Signee() { UserId = "1337", PersonNumber = "12345678901" }, new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada"));
         signClientMock.Verify(s => s.SignDataElements(It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))), Times.Once);
-        result.Should().BeTrue();
+        result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
         signClientMock.VerifyNoOtherCalls();
     }
     

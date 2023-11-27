@@ -14,6 +14,7 @@ public class AppProcessElementInfo: ProcessElementInfo
     public AppProcessElementInfo()
     {
         Actions = new Dictionary<string, bool>();
+        UserActions = new List<UserAction>();
     }
     
     /// <summary>
@@ -31,12 +32,19 @@ public class AppProcessElementInfo: ProcessElementInfo
         Validated = processElementInfo.Validated;
         FlowType = processElementInfo.FlowType;
         Actions = new Dictionary<string, bool>();
+        UserActions = new List<UserAction>();
     }
     /// <summary>
     /// Actions that can be performed and if the user is allowed to perform them.
     /// </summary>
     [JsonPropertyName(name:"actions")]
     public Dictionary<string, bool>? Actions { get; set; }
+    
+    /// <summary>
+    /// List of available actions for a task, both user and process tasks
+    /// </summary>
+    [JsonPropertyName(name:"userActions")]
+    public List<UserAction> UserActions { get; set; }
     
     /// <summary>
     /// Indicates if the user has read access to the task.

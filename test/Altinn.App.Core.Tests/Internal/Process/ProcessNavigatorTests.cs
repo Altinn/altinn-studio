@@ -60,14 +60,8 @@ public class ProcessNavigatorTests
                       TaskType = "confirm",
                       AltinnActions = new()
                       {
-                          new()
-                          {
-                              Value = "confirm"
-                          },
-                          new()
-                          {
-                              Value = "reject"
-                          }
+                          new("confirm"),
+                          new("reject")
                       }
                   }
                 },
@@ -103,10 +97,7 @@ public class ProcessNavigatorTests
                         TaskType = "data",
                         AltinnActions = new()
                         {
-                            new()
-                            {
-                                Value = "submit"
-                            }
+                            new("submit")
                         }
                     }
                 },

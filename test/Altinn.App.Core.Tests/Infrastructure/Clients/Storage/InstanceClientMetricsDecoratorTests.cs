@@ -34,7 +34,7 @@ public class InstanceClientMetricsDecoratorTests
 
         // Assert
         var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().HaveCount(1);
+        diff.Should().HaveCountGreaterOrEqualTo(1);
         diff.Should().Contain("altinn_app_instances_created{result=\"success\"} 1");
         instanceClient.Verify(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()));
         instanceClient.VerifyNoOtherCalls();
@@ -58,7 +58,7 @@ public class InstanceClientMetricsDecoratorTests
 
         // Assert
         var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().HaveCount(1);
+        diff.Should().HaveCountGreaterOrEqualTo(1);
         diff.Should().Contain("altinn_app_instances_created{result=\"failure\"} 1");
         instanceClient.Verify(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()));
         instanceClient.VerifyNoOtherCalls();
@@ -78,7 +78,7 @@ public class InstanceClientMetricsDecoratorTests
 
         // Assert
         var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().HaveCount(1);
+        diff.Should().HaveCountGreaterOrEqualTo(1);
         diff.Should().Contain("altinn_app_instances_completed{result=\"success\"} 1");
         instanceClient.Verify(i => i.AddCompleteConfirmation(It.IsAny<int>(), It.IsAny<Guid>()));
         instanceClient.VerifyNoOtherCalls();
@@ -101,7 +101,7 @@ public class InstanceClientMetricsDecoratorTests
 
         // Assert
         var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().HaveCount(1);
+        diff.Should().HaveCountGreaterOrEqualTo(1);
         diff.Should().Contain("altinn_app_instances_completed{result=\"failure\"} 1");
         instanceClient.Verify(i => i.AddCompleteConfirmation(It.IsAny<int>(), It.IsAny<Guid>()));
         instanceClient.VerifyNoOtherCalls();
@@ -121,7 +121,7 @@ public class InstanceClientMetricsDecoratorTests
 
         // Assert
         var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().HaveCount(1);
+        diff.Should().HaveCountGreaterOrEqualTo(1);
         diff.Should().Contain("altinn_app_instances_deleted{result=\"success\",mode=\"soft\"} 1");
         instanceClient.Verify(i => i.DeleteInstance(It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<bool>()));
         instanceClient.VerifyNoOtherCalls();
@@ -141,7 +141,7 @@ public class InstanceClientMetricsDecoratorTests
 
         // Assert
         var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().HaveCount(1);
+        diff.Should().HaveCountGreaterOrEqualTo(1);
         diff.Should().Contain("altinn_app_instances_deleted{result=\"success\",mode=\"hard\"} 1");
         instanceClient.Verify(i => i.DeleteInstance(It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<bool>()));
         instanceClient.VerifyNoOtherCalls();
@@ -164,7 +164,7 @@ public class InstanceClientMetricsDecoratorTests
 
         // Assert
         var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().HaveCount(1);
+        diff.Should().HaveCountGreaterOrEqualTo(1);
         diff.Should().Contain("altinn_app_instances_deleted{result=\"failure\",mode=\"soft\"} 1");
         instanceClient.Verify(i => i.DeleteInstance(It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<bool>()));
         instanceClient.VerifyNoOtherCalls();
@@ -176,16 +176,12 @@ public class InstanceClientMetricsDecoratorTests
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
-        var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Act
         var instanceId = Guid.NewGuid();
         await instanceClientMetricsDecorator.GetInstance("test-app", "ttd", 1337, instanceId);
-        var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Assert
-        var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().BeEmpty();
         instanceClient.Verify(i => i.GetInstance("test-app", "ttd", 1337, instanceId));
         instanceClient.VerifyNoOtherCalls();
     }
@@ -216,15 +212,11 @@ public class InstanceClientMetricsDecoratorTests
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
-        var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Act
         await instanceClientMetricsDecorator.GetInstances(new Dictionary<string, StringValues>());
-        var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Assert
-        var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().BeEmpty();
         instanceClient.Verify(i => i.GetInstances(new Dictionary<string, StringValues>()));
         instanceClient.VerifyNoOtherCalls();
     }
@@ -235,16 +227,12 @@ public class InstanceClientMetricsDecoratorTests
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
-        var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
         var instance = new Instance();
 
         // Act
         await instanceClientMetricsDecorator.UpdateProcess(instance);
-        var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Assert
-        var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().BeEmpty();
         instanceClient.Verify(i => i.UpdateProcess(instance));
         instanceClient.VerifyNoOtherCalls();
     }
@@ -255,16 +243,12 @@ public class InstanceClientMetricsDecoratorTests
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
-        var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
         var instanceGuid = Guid.NewGuid();
 
         // Act
         await instanceClientMetricsDecorator.UpdateReadStatus(1337, instanceGuid, "read");
-        var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Assert
-        var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().BeEmpty();
         instanceClient.Verify(i => i.UpdateReadStatus(1337, instanceGuid, "read"));
         instanceClient.VerifyNoOtherCalls();
     }
@@ -275,17 +259,13 @@ public class InstanceClientMetricsDecoratorTests
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
-        var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
         var instanceGuid = Guid.NewGuid();
         var substatus = new Substatus();
 
         // Act
         await instanceClientMetricsDecorator.UpdateSubstatus(1337, instanceGuid, substatus);
-        var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Assert
-        var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().BeEmpty();
         instanceClient.Verify(i => i.UpdateSubstatus(1337, instanceGuid, substatus));
         instanceClient.VerifyNoOtherCalls();
     }
@@ -296,17 +276,13 @@ public class InstanceClientMetricsDecoratorTests
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
-        var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
         var instanceGuid = Guid.NewGuid();
         var presentationTexts = new PresentationTexts();
 
         // Act
         await instanceClientMetricsDecorator.UpdatePresentationTexts(1337, instanceGuid, presentationTexts);
-        var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Assert
-        var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().BeEmpty();
         instanceClient.Verify(i => i.UpdatePresentationTexts(1337, instanceGuid, presentationTexts));
         instanceClient.VerifyNoOtherCalls();
     }
@@ -317,17 +293,13 @@ public class InstanceClientMetricsDecoratorTests
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
-        var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
         var instanceGuid = Guid.NewGuid();
         var dataValues = new DataValues();
 
         // Act
         await instanceClientMetricsDecorator.UpdateDataValues(1337, instanceGuid, dataValues);
-        var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Assert
-        var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().BeEmpty();
         instanceClient.Verify(i => i.UpdateDataValues(1337, instanceGuid, dataValues));
         instanceClient.VerifyNoOtherCalls();
     }

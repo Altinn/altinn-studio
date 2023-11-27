@@ -18,6 +18,7 @@
         <altinn:taskExtension>
           <altinn:actions>
             <altinn:action>submit</altinn:action>
+            <altinn:action type="userAction">lookup</altinn:action>
           </altinn:actions>
           <altinn:taskType>data</altinn:taskType>
           <altinn:signatureConfig>

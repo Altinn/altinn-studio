@@ -250,8 +250,7 @@ namespace Altinn.App.Core.Extensions
 
         private static void AddActionServices(IServiceCollection services)
         {
-            services.TryAddTransient<UserActionFactory>();
-            services.AddTransient<IUserAction, NullUserAction>();
+            services.TryAddTransient<UserActionService>();
             services.AddTransient<IUserAction, SigningUserAction>();
             services.AddHttpClient<ISignClient, SignClient>();
             services.AddTransientUserActionAuthorizerForActionInAllTasks<UniqueSignatureAuthorizer>("sign");

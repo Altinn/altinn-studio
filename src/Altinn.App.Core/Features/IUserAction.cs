@@ -17,5 +17,5 @@ public interface IUserAction
     /// </summary>
     /// <param name="context">The user action context</param>
     /// <returns>If the handling of the action was a success</returns>
-    Task<bool> HandleAction(UserActionContext context);
+    Task<UserActionResult> HandleAction(UserActionContext context);
 }

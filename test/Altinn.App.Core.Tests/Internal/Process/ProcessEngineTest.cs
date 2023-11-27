@@ -870,7 +870,7 @@ public class ProcessEngineTest : IDisposable
             _profileMock.Object,
             _processNavigatorMock.Object,
             _processEventDispatcherMock.Object,
-            new UserActionFactory(new List<IUserAction>()));
+            new UserActionService(new List<IUserAction>()));
     }
 
     public void Dispose()

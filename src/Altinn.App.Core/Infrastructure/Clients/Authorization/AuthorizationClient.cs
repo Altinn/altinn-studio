@@ -3,19 +3,18 @@ using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Register.Models;
-
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
 using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Authorization
@@ -119,5 +118,25 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
             bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, user);
             return authorized;
         }
+
+        /// <inheritdoc />
+        public async Task<Dictionary<string, bool>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<string> actions)
+        {
+            XacmlJsonRequestRoot request = MultiDecisionHelper.CreateMultiDecisionRequest(user, instance, actions);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            if (response?.Response == null)
+            {
+                _logger.LogWarning("Failed to get decision from pdp: {SerializeObject}", JsonConvert.SerializeObject(request));
+                return new Dictionary<string, bool>();
+            }
+            Dictionary<string, bool> actionsResult = new Dictionary<string, bool>();
+            foreach (var action in actions)
+            {
+                actionsResult.Add(action, false);
+            }
+            return MultiDecisionHelper.ValidatePdpMultiDecision(actionsResult, response.Response, user);
+        }
+
+        
     }
 }

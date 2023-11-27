@@ -313,10 +313,8 @@ public class ProcessReaderTests
                 {
                     AltinnActions = new List<AltinnAction>()
                     {
-                        new()
-                        {
-                            Value = "submit",
-                        }
+                        new("submit", ActionType.ProcessAction),
+                        new("lookup", ActionType.UserAction)
                     },
                     TaskType = "data",
                     SignatureConfiguration = new()

@@ -81,7 +81,7 @@ namespace Altinn.App.Api.Controllers
             try
             {
                 Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-                AppProcessState appProcessState = await ConvertAndAuthorizeActions(org, app, instanceOwnerPartyId, instanceGuid, instance.Process);
+                AppProcessState appProcessState = await ConvertAndAuthorizeActions(instance, instance.Process);
 
                 return Ok(appProcessState);
             }
@@ -136,7 +136,7 @@ namespace Altinn.App.Api.Controllers
                     return Conflict(result.ErrorMessage);
                 }
                 
-                AppProcessState appProcessState = await ConvertAndAuthorizeActions(org, app, instanceOwnerPartyId, instanceGuid, result.ProcessStateChange?.NewProcessState);
+                AppProcessState appProcessState = await ConvertAndAuthorizeActions(instance, result.ProcessStateChange?.NewProcessState);
                 return Ok(appProcessState);
             }
             catch (PlatformHttpException e)
@@ -302,7 +302,7 @@ namespace Altinn.App.Api.Controllers
                     }
                 }
 
-                AppProcessState appProcessState = await ConvertAndAuthorizeActions(org, app, instanceOwnerPartyId, instanceGuid, result.ProcessStateChange?.NewProcessState);
+                AppProcessState appProcessState = await ConvertAndAuthorizeActions(instance, result.ProcessStateChange?.NewProcessState);
 
                 return Ok(appProcessState);
             }
@@ -426,7 +426,7 @@ namespace Altinn.App.Api.Controllers
                 return StatusCode(500, $"More than {counter} iterations detected in process. Possible loop. Fix app process definition!");
             }
 
-            AppProcessState appProcessState = await ConvertAndAuthorizeActions(org, app, instanceOwnerPartyId, instanceGuid, instance.Process);
+            AppProcessState appProcessState = await ConvertAndAuthorizeActions(instance, instance.Process);
             return Ok(appProcessState);
         }
 
@@ -456,7 +456,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
         
-        private async Task<AppProcessState> ConvertAndAuthorizeActions(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, ProcessState? processState)
+        private async Task<AppProcessState> ConvertAndAuthorizeActions(Instance instance, ProcessState? processState)
         {
             AppProcessState appProcessState = new AppProcessState(processState);
             if (appProcessState.CurrentTask?.ElementId != null)
@@ -465,13 +465,13 @@ namespace Altinn.App.Api.Controllers
                 if (flowElement is ProcessTask processTask)
                 {
                     appProcessState.CurrentTask.Actions = new Dictionary<string, bool>();
-                    foreach (AltinnAction action in processTask.ExtensionElements?.TaskExtension?.AltinnActions ?? new List<AltinnAction>())
-                    {
-                        appProcessState.CurrentTask.Actions.Add(action.Value, await AuthorizeAction(action.Value, org, app, instanceOwnerPartyId, instanceGuid, flowElement.Id));
-                    }
-
-                    appProcessState.CurrentTask.HasWriteAccess = await AuthorizeAction("write", org, app, instanceOwnerPartyId, instanceGuid, flowElement.Id);
-                    appProcessState.CurrentTask.HasReadAccess = await AuthorizeAction("read", org, app, instanceOwnerPartyId, instanceGuid, flowElement.Id);
+                    List<AltinnAction> actions = new List<AltinnAction>() { new("read"), new("write") };
+                    actions.AddRange(processTask.ExtensionElements?.TaskExtension?.AltinnActions ?? new List<AltinnAction>());
+                    var authDecisions = await AuthorizeActions(actions, instance);
+                    appProcessState.CurrentTask.Actions = authDecisions.Where(a => a.ActionType == ActionType.ProcessAction).ToDictionary(a => a.Id, a => a.Authorized);
+                    appProcessState.CurrentTask.HasReadAccess = authDecisions.Single(a => a.Id == "read").Authorized;
+                    appProcessState.CurrentTask.HasWriteAccess = authDecisions.Single(a => a.Id == "write").Authorized;
+                    appProcessState.CurrentTask.UserActions = authDecisions;
                 }
             }
 
@@ -497,6 +497,11 @@ namespace Altinn.App.Api.Controllers
         private async Task<bool> AuthorizeAction(string action, string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string? taskId = null)
         {
             return await _authorization.AuthorizeAction(new AppIdentifier(org, app), new InstanceIdentifier(instanceOwnerPartyId, instanceGuid), HttpContext.User, action, taskId);
+        }
+
+        private async Task<List<UserAction>> AuthorizeActions(List<AltinnAction> actions, Instance instance)
+        {
+            return await _authorization.AuthorizeActions(instance, HttpContext.User, actions);
         }
 
         private static string EnsureActionNotTaskType(string actionOrTaskType)

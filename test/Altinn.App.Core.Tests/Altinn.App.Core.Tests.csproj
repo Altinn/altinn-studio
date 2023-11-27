@@ -71,7 +71,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Helpers\TestData\simple-gateway.bpmn">
+    <Content Include="Helpers\TestData\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Infrastructure\Clients\Authorization\TestData\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Internal\Pdf\TestData\**">

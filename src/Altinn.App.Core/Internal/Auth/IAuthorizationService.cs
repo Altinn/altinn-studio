@@ -1,6 +1,9 @@
 using System.Security.Claims;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Auth
 {
@@ -34,5 +37,14 @@ namespace Altinn.App.Core.Internal.Auth
         /// <param name="taskId"></param>
         /// <returns></returns>
         Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null);
+        
+        /// <summary>
+        /// Check if the user is authorized to perform the given actions on the given instance.
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <param name="user"></param>
+        /// <param name="actions"></param>
+        /// <returns>Dictionary with actions and the auth decision</returns>
+        Task<List<UserAction>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<AltinnAction> actions);
     }
 }
