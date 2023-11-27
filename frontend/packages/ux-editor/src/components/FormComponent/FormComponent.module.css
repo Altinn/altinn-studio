@@ -36,10 +36,16 @@
 }
 
 .editMode .dragHandle,
-.editMode .buttons,
+.editMode .buttons {
+  visibility: visible;
+}
+
 .wrapper:hover .dragHandle,
-.wrapper:hover .buttons,
-.buttons:is(button[aria-expanded='true']) {
+.wrapper:hover .buttons {
+  visibility: visible;
+}
+
+.buttons:has(button[aria-expanded='true']) {
   visibility: visible;
 }
 
