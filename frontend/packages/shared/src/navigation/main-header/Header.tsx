@@ -12,7 +12,7 @@ export enum SelectedContextType {
 }
 
 export interface IHeaderContext {
-  selectableOrgs: IGiteaOrganisation[];
+  selectableOrgs?: IGiteaOrganisation[];
   user: IUser;
 }
 
@@ -31,7 +31,11 @@ export const getOrgUsernameByUsername = (username: string, orgs: IGiteaOrganisat
   return org?.username;
 };
 
-export function Header() {
+export type HeaderProps = {
+  showMenu?: boolean;
+};
+
+export function Header({ showMenu = true }: HeaderProps) {
   const { selectableOrgs } = React.useContext(HeaderContext);
   const selectedContext = useSelectedContext();
 
@@ -55,9 +59,11 @@ export function Header() {
                 </Grid>
               )}
           </Grid>
-          <Grid item>
-            <HeaderMenu org={getOrgUsernameByUsername(selectedContext, selectableOrgs)} />
-          </Grid>
+          {showMenu && (
+            <Grid item>
+              <HeaderMenu org={getOrgUsernameByUsername(selectedContext, selectableOrgs)} />
+            </Grid>
+          )}
         </Grid>
       </Toolbar>
     </AppBar>

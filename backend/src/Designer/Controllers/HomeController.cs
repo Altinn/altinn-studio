@@ -80,6 +80,13 @@ namespace Altinn.Studio.Designer.Controllers
             return LocalRedirect("/dashboard");
         }
 
+        [Route("/{*AllValues:regex(^(?!designer).*$)}")]
+        public IActionResult Index()
+        {
+            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
+            return View();
+        }
+
         /// <summary>
         /// The default action presenting a list of available apps when the user is logged in
         /// </summary>
@@ -87,10 +94,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/[controller]/[action]")]
         [Authorize]
         [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
-        public ActionResult Index()
+        public ActionResult Dashboard()
         {
             ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
-            return View();
+            return View("Dashboard");
         }
 
         /// <summary>

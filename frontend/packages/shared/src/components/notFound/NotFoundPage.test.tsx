@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { NotFoundPage } from './NotFoundPage';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 describe('NotFoundPage', () => {
   it('renders correctly', () => {
