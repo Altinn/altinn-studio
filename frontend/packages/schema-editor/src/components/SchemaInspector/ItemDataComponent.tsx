@@ -163,7 +163,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           className={classes.switch}
           size='small'
           checked={isArray}
-          name='checkedMultipleAnswers'
           onChange={handleArrayPropertyToggle}
         >
           {t('schema_editor.multiple_answers')}
@@ -183,9 +182,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         <Switch
           className={classes.switch}
           size='small'
-          id='nullable-switch'
           checked={combinationIsNullable(getChildNodes())}
-          name='checkedNullable'
           onChange={onChangeNullable}
         >
           {t('schema_editor.nullable')}
