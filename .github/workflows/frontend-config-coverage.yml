@@ -5,6 +5,7 @@ on:
     paths:
       - 'frontend/app-development/**'
       - 'frontend/packages/ux-editor/**'
+      - 'frontend/stats/**'
       - '.github/workflows/frontend-config-coverage.yml'
 
 jobs:
