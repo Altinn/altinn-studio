@@ -88,7 +88,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 {
                     var handler = new HttpClientHandler { AllowAutoRedirect = true };
 
-                    return new Custom401Handler(sp.GetRequiredService<IHttpContextAccessor>(), handler);
+                    return new Custom401Handler(handler);
                 });
 
 

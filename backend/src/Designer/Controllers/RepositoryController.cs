@@ -185,7 +185,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The repository status</returns>
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
-        public RepoStatus RepoStatus(string org, string repository)
+        public async Task<RepoStatus> RepoStatus(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);

@@ -23,7 +23,6 @@ namespace Altinn.Studio.Designer.Helpers
 
             if (context.User != null)
             {
-                Console.WriteLine("user: " + context.User);
                 foreach (Claim claim in context.User.Claims)
                 {
                     if (claim.Type.Equals(AltinnCoreClaimTypes.Developer))

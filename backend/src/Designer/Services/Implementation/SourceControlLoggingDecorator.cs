@@ -6,6 +6,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -169,6 +170,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             try
             {
                 _decoratedService.FetchRemoteChanges(org, repository);
+            }
+            catch (LibGit2Sharp.LibGit2SharpException)
+            {
+                throw new GiteaUnathorizedException("Gitea session is invalid.");
             }
             catch (Exception ex)
             {
