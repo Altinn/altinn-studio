@@ -44,6 +44,9 @@ area/text-editor:
 area/ui-editor:
   - 'frontend/packages/ux-editor/**/*'
 
+area/studio-root:
+  - 'frontend/studio-root/**/*'
+
 ## Other labels
 kind/dependencies:
   - 'backend/packagegroups/NuGet.props'

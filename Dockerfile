@@ -23,7 +23,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-    DOTNET_RUNNING_IN_CONTAINER=true
+  DOTNET_RUNNING_IN_CONTAINER=true
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib
 
 COPY --from=generate-studio-backend /app_output .
@@ -32,6 +32,7 @@ COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/
 COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/designer/frontend/dashboard
 COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/designer/frontend/resourceadm
 COPY --from=generate-studio-frontend /build/frontend/dist/language ./wwwroot/designer/frontend/lang
+COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/designer/frontend/studio-root
 
 ## Copying app template
 COPY --from=generate-studio-backend /app_template ./Templates/AspNet
