@@ -55,7 +55,7 @@ export const DeletePopover = ({ onClose, onDelete }: DeletePopoverProps): ReactN
             <Button size='small' color='danger' onClick={onDelete}>
               {t('ux_editor.page_delete_confirm')}
             </Button>
-            <Button size='small' variant='tertiary'>
+            <Button size='small' variant='tertiary' onClick={handleClose}>
               {t('general.cancel')}
             </Button>
           </div>

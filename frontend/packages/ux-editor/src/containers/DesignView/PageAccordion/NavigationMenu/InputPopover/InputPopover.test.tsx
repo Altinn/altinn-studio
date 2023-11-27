@@ -17,20 +17,39 @@ const mockSaveNewName = jest.fn();
 const mockOnClose = jest.fn();
 
 const defaultProps: InputPopoverProps = {
+  disabled: false,
   oldName: mockOldName,
   layoutOrder: mockLayoutOrder,
   saveNewName: mockSaveNewName,
   onClose: mockOnClose,
-  open: true,
-  trigger: <button>My trigger</button>,
 };
 
 describe('InputPopover', () => {
-  const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
 
-  it('calls the "saveNewName" function when the confirm button is clicked', async () => {
+  it('does hides dropdown menu item by default when not open', () => {
     render(<InputPopover {...defaultProps} />);
+
+    const input = screen.queryByLabelText(textMock('ux_editor.input_popover_label'));
+    expect(input).not.toBeInTheDocument();
+  });
+
+  it('opens the popover when the dropdown menu item is clicked', async () => {
+    render(<InputPopover {...defaultProps} />);
+
+    const input = screen.queryByLabelText(textMock('ux_editor.input_popover_label'));
+    expect(input).not.toBeInTheDocument();
+
+    await openDropdownMenuItem();
+
+    const inputAfter = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
+    expect(inputAfter).toBeInTheDocument();
+  });
+
+  it('calls the "saveNewName" function when the confirm button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<InputPopover {...defaultProps} />);
+    await openDropdownMenuItem();
 
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
@@ -50,7 +69,9 @@ describe('InputPopover', () => {
   });
 
   it('does not call "saveNewName" when input is same as old value', async () => {
+    const user = userEvent.setup();
     render(<InputPopover {...defaultProps} />);
+    await openDropdownMenuItem();
 
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
@@ -59,22 +80,10 @@ describe('InputPopover', () => {
     expect(mockSaveNewName).toHaveBeenCalledTimes(0);
   });
 
-  it('saves the new name on Enter key press', async () => {
-    render(<InputPopover {...defaultProps} />);
-
-    const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
-    expect(input).toHaveValue(mockOldName);
-
-    await act(() => user.type(input, mockNewValue));
-    await act(() => user.keyboard('{Enter}'));
-
-    expect(mockSaveNewName).toHaveBeenCalledTimes(1);
-    expect(mockSaveNewName).toHaveBeenCalledWith(mockNewName);
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
-  });
-
   it('cancels the new name on Escape key press', async () => {
+    const user = userEvent.setup();
     render(<InputPopover {...defaultProps} />);
+    await openDropdownMenuItem();
 
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
@@ -87,7 +96,9 @@ describe('InputPopover', () => {
   });
 
   it('displays error message if new name is not unique', async () => {
+    const user = userEvent.setup();
     render(<InputPopover {...defaultProps} />);
+    await openDropdownMenuItem();
 
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
@@ -102,7 +113,9 @@ describe('InputPopover', () => {
   });
 
   it('displays error message if new name is empty', async () => {
+    const user = userEvent.setup();
     render(<InputPopover {...defaultProps} />);
+    await openDropdownMenuItem();
 
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
@@ -117,7 +130,9 @@ describe('InputPopover', () => {
   });
 
   it('displays error message if new name is too long', async () => {
+    const user = userEvent.setup();
     render(<InputPopover {...defaultProps} />);
+    await openDropdownMenuItem();
 
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
@@ -133,7 +148,9 @@ describe('InputPopover', () => {
   });
 
   it('displays error message if new name has illegal format', async () => {
+    const user = userEvent.setup();
     render(<InputPopover {...defaultProps} />);
+    await openDropdownMenuItem();
 
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
@@ -149,7 +166,9 @@ describe('InputPopover', () => {
   });
 
   it('closes the popover when cancel button is clicked', async () => {
+    const user = userEvent.setup();
     render(<InputPopover {...defaultProps} />);
+    await openDropdownMenuItem();
 
     const button = screen.getByRole('button', { name: textMock('general.cancel') });
     await act(() => user.click(button));
@@ -157,3 +176,11 @@ describe('InputPopover', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
+
+const openDropdownMenuItem = async () => {
+  const user = userEvent.setup();
+  const dropdownMenuItem = screen.getByRole('menuitem', {
+    name: textMock('ux_editor.page_menu_edit'),
+  });
+  await act(() => user.click(dropdownMenuItem));
+};

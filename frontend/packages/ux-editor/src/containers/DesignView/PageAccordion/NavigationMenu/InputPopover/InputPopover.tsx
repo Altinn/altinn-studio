@@ -58,21 +58,6 @@ export const InputPopover = ({
     setNewName(newNameCandidate);
   };
 
-  /**
-   * If there is no error and the name is changed, and enter is clicked, the new name is saved.
-   * When Escape is clicked, the popover closes.
-   */
-  const handleKeyPress = (event) => {
-    if (event.key === 'Enter' && !errorMessage && oldName !== newName) {
-      saveNewName(newName);
-      setIsEditDialogOpen(false);
-    } else if (event.key === 'Escape') {
-      setIsEditDialogOpen(false);
-      setNewName(oldName);
-      setErrorMessage(null);
-    }
-  };
-
   const handleClose = () => {
     onClose();
     setIsEditDialogOpen((v) => !v);
@@ -107,7 +92,6 @@ export const InputPopover = ({
               color='first'
               variant='primary'
               onClick={() => saveNewName(newName)}
-              onKeyDown={handleKeyPress}
               disabled={!shouldSavingBeEnabled}
               size='small'
             >

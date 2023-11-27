@@ -49,7 +49,9 @@ describe('NavigationMenu', () => {
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
     await act(() => user.click(menuButton));
 
-    const elementInMenuAfter = screen.getByText(textMock('ux_editor.page_menu_up'));
+    const elementInMenuAfter = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
+    });
     expect(elementInMenuAfter).toBeInTheDocument();
   });
 
@@ -60,7 +62,9 @@ describe('NavigationMenu', () => {
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
     await act(() => user.click(menuButton));
 
-    const deleteButton = screen.getByText(textMock('ux_editor.page_menu_delete'));
+    const deleteButton = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_delete'),
+    });
     await act(() => user.click(deleteButton));
 
     const confirmButton = screen.getByRole('button', {
@@ -74,8 +78,6 @@ describe('NavigationMenu', () => {
       mockPageName1,
       mockSelectedLayoutSet,
     );
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-
     expect(mockSetSearchParams).toHaveBeenCalledWith({ layout: mockPageName2 });
   });
 
@@ -84,7 +86,9 @@ describe('NavigationMenu', () => {
     await render();
 
     await act(() => user.click(screen.getByTitle(textMock('general.options'))));
-    await act(() => user.click(screen.getByText(textMock('ux_editor.page_menu_edit'))));
+    await act(() =>
+      user.click(screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_edit') })),
+    );
 
     const inputField = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(inputField).toHaveValue(mockPageName1);
@@ -114,8 +118,10 @@ describe('NavigationMenu', () => {
 
     await act(() => user.click(screen.getByTitle(textMock('general.options'))));
 
-    const upButton = screen.queryByText(textMock('ux_editor.page_menu_up'));
-    const downButton = screen.queryByText(textMock('ux_editor.page_menu_down'));
+    const upButton = screen.queryByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
+    const downButton = screen.queryByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_down'),
+    });
 
     expect(upButton).not.toBeInTheDocument();
     expect(downButton).not.toBeInTheDocument();
@@ -127,8 +133,10 @@ describe('NavigationMenu', () => {
 
     await act(() => user.click(screen.getByTitle(textMock('general.options'))));
 
-    const upButton = screen.getByText(textMock('ux_editor.page_menu_up'));
-    const downButton = screen.getByText(textMock('ux_editor.page_menu_down'));
+    const upButton = screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
+    const downButton = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_down'),
+    });
 
     expect(upButton).toBeInTheDocument();
     expect(downButton).toBeInTheDocument();
