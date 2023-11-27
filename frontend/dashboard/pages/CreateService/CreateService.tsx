@@ -105,7 +105,6 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     return isOrgValid && isRepoNameValid;
   };
 
-  console.log(isCreatingRepo);
   return (
     <form onSubmit={handleCreateAppFormSubmit} className={classes.createAppForm}>
       <ServiceOwnerSelector
