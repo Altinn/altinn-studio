@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
-import { Heading } from '@digdir/design-system-react';
+import { Heading, Tag } from '@digdir/design-system-react';
 
 import { getFilteredTopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
 import { Link } from 'react-router-dom';
@@ -26,6 +26,11 @@ export const Navigation = () => {
             <Link key={menuItem.key} to={`../${menuItem.link}`} className={classes.link}>
               <menuItem.icon className={classes.icon} />
               <span>{t(menuItem.key)}</span>
+              {menuItem.isBeta && (
+                <Tag color='info' size='xsmall' variant='primary'>
+                  {t('general.beta')}
+                </Tag>
+              )}
             </Link>
           );
         })}
