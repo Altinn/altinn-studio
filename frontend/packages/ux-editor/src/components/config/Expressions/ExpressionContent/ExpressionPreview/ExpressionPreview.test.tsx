@@ -47,36 +47,6 @@ describe('ExpressionPreview', () => {
     const saveExpressionButton = screen.queryByRole('button', { name: textMock('general.save') });
     expect(saveExpressionButton).not.toBeInTheDocument();
   });
-  it('shows successfullyAdded check mark when conditions imply for a simple expression', () => {
-    render({
-      props: {
-        successfullyAddedCheckMark: true,
-      },
-    });
-    const successfullyAddedExpressionButton = screen.getByText(
-      textMock('right_menu.expression_successfully_added_text'),
-    );
-    expect(successfullyAddedExpressionButton).toBeInTheDocument();
-  });
-  it('does not show successfullyAdded check mark when conditions does not imply', () => {
-    render({});
-    const successfullyAddedExpressionButton = screen.queryByText(
-      textMock('right_menu.expression_successfully_added_text'),
-    );
-    expect(successfullyAddedExpressionButton).not.toBeInTheDocument();
-  });
-  it('shows successfullyAdded check mark when conditions imply for a complex expression', () => {
-    render({
-      props: {
-        expression: internalUnParsableComplexExpression,
-        successfullyAddedCheckMark: true,
-      },
-    });
-    const successfullyAddedExpressionButton = screen.getByText(
-      textMock('right_menu.expression_successfully_added_text'),
-    );
-    expect(successfullyAddedExpressionButton).toBeInTheDocument();
-  });
   it('calls onDeleteExpression when deleteExpression button is clicked', async () => {
     const user = userEvent.setup();
     const mockOnDeleteExpression = jest.fn();
@@ -104,7 +74,6 @@ const render = ({
   const defaultProps: ExpressionPreviewProps = {
     expression: simpleInternalExpression,
     componentName: componentId,
-    successfullyAddedCheckMark: false,
     onSetEditMode: jest.fn(),
     onDeleteExpression: jest.fn(),
   };

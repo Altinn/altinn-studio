@@ -5,7 +5,7 @@ import { complexExpressionIsSet } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
 import { Button } from '@digdir/design-system-react';
-import { CheckmarkIcon, PencilIcon, TrashIcon } from '@navikt/aksel-icons';
+import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../../../hooks';
 import cn from 'classnames';
 import { Trans } from 'react-i18next';
@@ -13,7 +13,6 @@ import { Trans } from 'react-i18next';
 export interface ExpressionPreviewProps {
   expression: Expression;
   componentName: string;
-  successfullyAddedCheckMark: boolean;
   onSetEditMode: (editMode: boolean) => void;
   onDeleteExpression: (expression: Expression) => void;
 }
@@ -21,7 +20,6 @@ export interface ExpressionPreviewProps {
 export const ExpressionPreview = ({
   expression,
   componentName,
-  successfullyAddedCheckMark,
   onSetEditMode,
   onDeleteExpression,
 }: ExpressionPreviewProps) => {
@@ -41,12 +39,6 @@ export const ExpressionPreview = ({
           <ComplexExpression expression={expression} disabled />
         ) : (
           <SimpleExpressionPreview expression={expression} />
-        )}
-        {successfullyAddedCheckMark && (
-          <div className={classes.checkMark}>
-            <CheckmarkIcon fontSize='1.5rem' />
-            {t('right_menu.expression_successfully_added_text')}
-          </div>
         )}
       </div>
       <div>

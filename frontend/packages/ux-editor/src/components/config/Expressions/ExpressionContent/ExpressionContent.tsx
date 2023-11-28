@@ -31,8 +31,6 @@ export const ExpressionContent = ({
     : { property };
   const [expression, setExpression] = useState<Expression>(defaultExpression);
   const [editMode, setEditMode] = useState<boolean>(defaultEditMode);
-  const [successfullyAddedExpression, setSuccessfullyAddedExpression] =
-    React.useState<boolean>(false);
 
   const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
     handleUpdate(updatedComponent);
@@ -42,7 +40,6 @@ export const ExpressionContent = ({
   const saveExpressionAndSetCheckMark = async (exp: Expression) => {
     const updatedComponent = convertAndAddExpressionToComponent(form, exp);
     await updateAndSaveLayout(updatedComponent);
-    setSuccessfullyAddedExpression(true);
   };
 
   const deleteExpression = async (exp: Expression) => {
@@ -72,7 +69,6 @@ export const ExpressionContent = ({
     <ExpressionPreview
       expression={expression}
       componentName={formId}
-      successfullyAddedCheckMark={successfullyAddedExpression}
       onSetEditMode={setEditMode}
       onDeleteExpression={deleteExpression}
     />

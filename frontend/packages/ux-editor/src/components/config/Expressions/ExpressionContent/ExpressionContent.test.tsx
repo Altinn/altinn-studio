@@ -156,10 +156,7 @@ describe('ExpressionContent', () => {
 
     const saveButton = screen.getByRole('button', { name: textMock('right_menu.expression_save') });
     await act(() => user.click(saveButton));
-    const savedCheckMark = screen.getByText(
-      textMock('right_menu.expression_successfully_added_text'),
-    );
-    expect(savedCheckMark).toBeInTheDocument();
+    expect(saveButton).not.toBeInTheDocument();
   });
 });
 
