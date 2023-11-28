@@ -31,11 +31,11 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
         value={component?.showIcon || false}
         onChange={handleShowIconClick}
         propertyPath={`${component.propertyPath}/properties/showIcon`}
-        renderField={({ value, onChange, ...rest }) => (
+        renderField={({ fieldProps }) => (
           <Switch
-            {...rest}
-            checked={value}
-            onChange={(e) => onChange(e.target.checked, e)}
+            {...fieldProps}
+            checked={fieldProps.value}
+            onChange={(e) => fieldProps.onChange(e.target.checked, e)}
             size='small'
           >
             {t('ux_editor.show_icon')}

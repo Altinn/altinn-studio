@@ -37,8 +37,11 @@ const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
   return rtlRender(
     <FormField
       {...allProps}
-      renderField={({ onChange, ...rest }) => (
-        <LegacyTextField {...rest} onChange={(event) => onChange(event.target.value, event)} />
+      renderField={({ fieldProps }) => (
+        <LegacyTextField
+          {...fieldProps}
+          onChange={(event) => fieldProps.onChange(event.target.value, event)}
+        />
       )}
     />,
   );

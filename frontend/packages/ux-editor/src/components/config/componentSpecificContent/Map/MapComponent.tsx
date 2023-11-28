@@ -42,11 +42,11 @@ export const MapComponent = ({
             customValidationMessages={(errorCode: string) => {
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
-            renderField={({ onChange, ...rest }) => (
+            renderField={({ fieldProps }) => (
               <LegacyTextField
-                {...rest}
+                {...fieldProps}
                 formatting={{ number: {} }}
-                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+                onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
               />
             )}
           />
@@ -60,11 +60,11 @@ export const MapComponent = ({
             customValidationMessages={(errorCode: string) => {
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
-            renderField={({ onChange, ...rest }) => (
+            renderField={({ fieldProps }) => (
               <LegacyTextField
-                {...rest}
+                {...fieldProps}
                 formatting={{ number: {} }}
-                onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+                onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
               />
             )}
           />
@@ -81,11 +81,11 @@ export const MapComponent = ({
           customValidationMessages={(errorCode: string) => {
             if (errorCode === 'type') return t('validation_errors.numbers_only');
           }}
-          renderField={({ onChange, ...rest }) => (
+          renderField={({ fieldProps }) => (
             <LegacyTextField
-              {...rest}
+              {...fieldProps}
               formatting={{ number: {} }}
-              onChange={(e) => onChange(parseInt(e.target.value, 10), e)}
+              onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
             />
           )}
         />
@@ -180,10 +180,10 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
               customValidationMessages={(errorCode: string) => {
                 if (errorCode === 'format') return t('validation_errors.value_as_url');
               }}
-              renderField={({ onChange, ...rest }) => (
+              renderField={({ fieldProps }) => (
                 <LegacyTextField
-                  {...rest}
-                  onChange={(e) => onChange(e.target.value, e)}
+                  {...fieldProps}
+                  onChange={(e) => fieldProps.onChange(e.target.value, e)}
                   name='url'
                 />
               )}
@@ -196,11 +196,11 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 value={layer.attribution || ''}
                 onChange={(value, event) => handleOnLayerChange(index, event)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
-                renderField={({ onChange, ...rest }) => (
+                renderField={({ fieldProps }) => (
                   <LegacyTextField
-                    {...rest}
+                    {...fieldProps}
                     name='attribution'
-                    onChange={(e) => onChange(e.target.value, e)}
+                    onChange={(e) => fieldProps.onChange(e.target.value, e)}
                   />
                 )}
               />
@@ -211,13 +211,13 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 value={layer?.subdomains || []}
                 onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
-                renderField={({ value, onChange, ...rest }) => (
+                renderField={({ fieldProps }) => (
                   <LegacyTextField
-                    {...rest}
+                    {...fieldProps}
                     name='subdomains'
                     placeholder={t('ux_editor.subdomains_placeholder')}
-                    onChange={(e) => onChange(stringToArray(e.target.value), e)}
-                    value={arrayToString(value) || ''}
+                    onChange={(e) => fieldProps.onChange(stringToArray(e.target.value), e)}
+                    value={arrayToString(fieldProps.value) || ''}
                   />
                 )}
               />

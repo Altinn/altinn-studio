@@ -26,12 +26,12 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
         value={(component as FormAddressComponent).simplified || false}
         onChange={handleToggleAddressSimple}
         propertyPath={`${component.propertyPath}/properties/simplified`}
-        renderField={({ value, onChange, ...rest }) => (
+        renderField={({ fieldProps }) => (
           <Switch
-            {...rest}
+            {...fieldProps}
             size='small'
-            onChange={(e) => onChange(e.target.checked, e)}
-            checked={value}
+            onChange={(e) => fieldProps.onChange(e.target.checked, e)}
+            checked={fieldProps.value}
           >
             {t('ux_editor.modal_configure_address_component_simplified')}
           </Switch>

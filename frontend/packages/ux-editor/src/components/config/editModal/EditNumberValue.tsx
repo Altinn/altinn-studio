@@ -31,10 +31,10 @@ export const EditNumberValue = ({
       onChange={handleValueChange}
       propertyPath={component.propertyPath}
       helpText={helpText}
-      renderField={({ onChange, ...rest }) => (
+      renderField={({ fieldProps }) => (
         <StudioDecimalInput
-          {...rest}
-          onChange={onChange}
+          {...fieldProps}
+          onChange={fieldProps.onChange}
           description={getComponentPropertyLabel(propertyKey, t)}
         />
       )}

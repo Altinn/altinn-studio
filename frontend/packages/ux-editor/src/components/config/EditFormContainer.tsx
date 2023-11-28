@@ -151,11 +151,11 @@ export const EditFormContainer = ({
           }
         }}
         onChange={handleIdChange}
-        renderField={({ onChange, ...rest }) => (
+        renderField={({ fieldProps }) => (
           <LegacyTextField
-            {...rest}
+            {...fieldProps}
             name={`group-id${container.id}`}
-            onChange={(e) => onChange(e.target.value, e)}
+            onChange={(e) => fieldProps.onChange(e.target.value, e)}
           />
         )}
       />
@@ -163,12 +163,12 @@ export const EditFormContainer = ({
         id={container.id}
         value={container.maxCount > 1}
         onChange={handleChangeRepeatingGroup}
-        renderField={({ onChange, value, ...rest }) => (
+        renderField={({ fieldProps }) => (
           <Switch
-            {...rest}
-            checked={value}
+            {...fieldProps}
+            checked={fieldProps.value}
             size='small'
-            onChange={(e) => onChange(e.target.checked, e)}
+            onChange={(e) => fieldProps.onChange(e.target.checked, e)}
           >
             {t('ux_editor.modal_properties_group_repeating')}
           </Switch>
@@ -186,13 +186,13 @@ export const EditFormContainer = ({
             onChange={handleMaxOccurChange}
             value={container.maxCount}
             propertyPath={`${container.propertyPath}/properties/maxCount`}
-            renderField={({ onChange, ...rest }) => (
+            renderField={({ fieldProps }) => (
               <LegacyTextField
-                {...rest}
+                {...fieldProps}
                 id='modal-properties-maximum-files'
                 disabled={!!container.dataModelBindings?.group}
                 formatting={{ number: {} }}
-                onChange={(e) => onChange(parseInt(e.target.value), e)}
+                onChange={(e) => fieldProps.onChange(parseInt(e.target.value), e)}
               />
             )}
           />

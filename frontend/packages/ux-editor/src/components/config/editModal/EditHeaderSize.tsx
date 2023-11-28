@@ -39,7 +39,7 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
             ?.value
         }
         propertyPath={`${component.propertyPath}/properties/size`}
-        renderField={() => <Select options={sizes} />}
+        renderField={({ fieldProps }) => <Select {...fieldProps} options={sizes} />}
       />
     </div>
   );

@@ -41,15 +41,15 @@ export const EditBooleanValue = ({
           ? t('ux_editor.component_properties.config_is_expression_message')
           : helpText
       }
-      renderField={({ value, onChange, ...rest }) => {
+      renderField={({ fieldProps }) => {
         return (
           <Switch
-            {...rest}
-            checked={value}
-            onChange={(e) => onChange(e.target.checked, e)}
+            {...fieldProps}
+            checked={fieldProps.value}
+            onChange={(e) => fieldProps.onChange(e.target.checked, e)}
             size='small'
             id={`${propertyKey}-checkbox-${component.id}`}
-            disabled={isValueExpression(value)}
+            disabled={isValueExpression(fieldProps.value)}
           >
             {getComponentPropertyLabel(propertyKey, t)}
           </Switch>

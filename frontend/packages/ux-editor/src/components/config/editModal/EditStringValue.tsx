@@ -42,23 +42,23 @@ export const EditStringValue = ({
           return t('validation_errors.pattern');
         }
       }}
-      renderField={({ onChange, ...rest }) =>
+      renderField={({ fieldProps }) =>
         enumValues ? (
           <Select
-            {...rest}
+            {...fieldProps}
             options={enumValues.map((value) => ({
               label: value,
               value: value,
             }))}
-            onChange={(e: any) => onChange(e)}
+            onChange={(e: any) => fieldProps.onChange(e)}
             multiple={multiple}
             inputId={`component-${propertyKey}-select${component.id}`}
           />
         ) : (
           <Textfield
-            {...rest}
+            {...fieldProps}
             id={`component-id-input${component.id}`}
-            onChange={(e) => onChange(e.target.value, e)}
+            onChange={(e) => fieldProps.onChange(e.target.value, e)}
           />
         )
       }

@@ -72,12 +72,12 @@ export const ImageComponent = ({
         onChange={handleSourceChange}
         value={nbSrc && { nb: nbSrc }}
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
-        renderField={({ value, onChange, ...rest }) => (
+        renderField={({ fieldProps }) => (
           <Textfield
-            {...rest}
+            {...fieldProps}
             name={`image_src-input-${component.id}`}
-            onChange={(e) => onChange({ nb: e.target.value }, e)}
-            value={value?.nb || ''}
+            onChange={(e) => fieldProps.onChange({ nb: e.target.value }, e)}
+            value={fieldProps.value?.nb || ''}
           />
         )}
       />
@@ -101,11 +101,11 @@ export const ImageComponent = ({
           onChange={handleWidthChange}
           value={component.image?.width || ''}
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
-          renderField={({ onChange, ...rest }) => (
+          renderField={({ fieldProps }) => (
             <Textfield
-              {...rest}
+              {...fieldProps}
               name={`image_width-input-${component.id}`}
-              onChange={(e) => onChange(e.target.value, e)}
+              onChange={(e) => fieldProps.onChange(e.target.value, e)}
             />
           )}
         />
@@ -117,7 +117,9 @@ export const ImageComponent = ({
           onChange={handlePlacementChange}
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
-          renderField={() => <Select options={alignOptions} inputId={placementSelectId} />}
+          renderField={({ fieldProps }) => (
+            <Select {...fieldProps} options={alignOptions} inputId={placementSelectId} />
+          )}
         />
       </div>
       <div>

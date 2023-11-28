@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
@@ -43,7 +43,9 @@ const texts = {
   'schema_editor.minLength': 'Minimal lengde',
 };
 
-const saveDatamodel = jest.fn();
+const saveDatamodel = jest.fn(() => {
+  console.log('saveDatamodel called');
+});
 const setSelectedTypePointer = jest.fn();
 
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
@@ -65,7 +67,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
   })(
     <Provider store={store}>
       <SchemaInspector />
-    </Provider>
+    </Provider>,
   );
 };
 
@@ -141,7 +143,13 @@ describe('SchemaInspector', () => {
     await act(() => user.click(screen.queryAllByRole('tab')[1]));
     await act(() => user.click(screen.getByDisplayValue('abc')));
     await act(() => user.keyboard('{Enter}'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(async () => {
+      // eslint-disable-next-line testing-library/await-async-utils
+      waitFor(() => {
+        expect(saveDatamodel).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   test('Adds new valid value field when pressing the enter key', async () => {
