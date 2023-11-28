@@ -371,18 +371,23 @@ public class PDFGenerator {
     }
     addPart();
 
-    String titleKey = element.getTextResourceBindings().getTitle();
-    if (titleKey != null && !titleKey.isEmpty()) {
-      String title = TextUtils.getTextResourceByKey(titleKey, textResources);
-      renderText(title, fontBold, fontSize, StandardStructureTypes.H2);
+    TextResourceBindings bindings = element.getTextResourceBindings();
+    if (bindings != null) {
+      String titleKey = bindings.getTitle();
+      if (titleKey != null && !titleKey.isEmpty()) {
+        String title = TextUtils.getTextResourceByKey(titleKey, textResources);
+        renderText(title, fontBold, fontSize, StandardStructureTypes.H2);
+      }
+
+      String descriptionKey = bindings.getDescription();
+      if (descriptionKey != null && !descriptionKey.isEmpty()) {
+        String description = TextUtils.getTextResourceByKey(descriptionKey, textResources);
+        renderText(description, font, fontSize, StandardStructureTypes.P);
+      }
     }
 
     // Render description
-    String descriptionKey = element.getTextResourceBindings().getDescription();
-    if (descriptionKey != null && !descriptionKey.isEmpty()) {
-      String description = TextUtils.getTextResourceByKey(descriptionKey, textResources);
-      renderText(description, font, fontSize, StandardStructureTypes.P);
-    }
+
     String elementType = element.getType();
     // Render content
     if (elementType.equalsIgnoreCase("paragraph") || elementType.equalsIgnoreCase("header")) {
