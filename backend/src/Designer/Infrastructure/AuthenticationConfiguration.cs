@@ -1,4 +1,3 @@
-using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Authorization;
@@ -37,12 +36,12 @@ namespace Altinn.Studio.Designer.Infrastructure
                 {
                     options.AccessDeniedPath = "/Home/NotAuthorized/";
                     options.LogoutPath = "/Home/Logout/";
-                    options.Cookie.Name = Altinn.Studio.Designer.Constants.General.DesignerCookieName;
+                    options.Cookie.Name = Constants.General.DesignerCookieName;
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade
                         OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
-                        OnRedirectToLogin = async (context) =>
+                        OnRedirectToLogin = async context =>
                         {
                             if (context.Request.Path.Value.Contains("keepalive", System.StringComparison.OrdinalIgnoreCase))
                             {
