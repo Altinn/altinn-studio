@@ -33,7 +33,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 public class PDFGenerator {
@@ -372,21 +371,11 @@ public class PDFGenerator {
     addPart();
 
     TextResourceBindings bindings = element.getTextResourceBindings();
+    // render title and description
     if (bindings != null) {
-      String titleKey = bindings.getTitle();
-      if (titleKey != null && !titleKey.isEmpty()) {
-        String title = TextUtils.getTextResourceByKey(titleKey, textResources);
-        renderText(title, fontBold, fontSize, StandardStructureTypes.H2);
-      }
-
-      String descriptionKey = bindings.getDescription();
-      if (descriptionKey != null && !descriptionKey.isEmpty()) {
-        String description = TextUtils.getTextResourceByKey(descriptionKey, textResources);
-        renderText(description, font, fontSize, StandardStructureTypes.P);
-      }
+      renderTextIfKeyExists(bindings.getTitle(), fontBold, StandardStructureTypes.H2);
+      renderTextIfKeyExists(bindings.getDescription(), font, StandardStructureTypes.P);
     }
-
-    // Render description
 
     String elementType = element.getType();
     // Render content
@@ -413,6 +402,14 @@ public class PDFGenerator {
       renderLayoutElementContent(element);
     }
     yPoint -= componentMargin;
+  }
+
+  private void renderTextIfKeyExists(String key, PDType0Font font, String structureType)
+      throws IOException {
+    if (key != null && !key.isEmpty()) {
+      String text = TextUtils.getTextResourceByKey(key, textResources);
+      renderText(text, font, fontSize, structureType);
+    }
   }
 
   private void renderPanelComponent(FormLayoutElement element) throws IOException {
