@@ -39,7 +39,11 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     repoName: '',
   });
 
-  const { mutate: addRepoMutation, isLoading: isCreatingRepo } = useAddRepoMutation({
+  const {
+    mutate: addRepoMutation,
+    isLoading: isCreatingRepo,
+    isSuccess: isCreatingRepoSuccess,
+  } = useAddRepoMutation({
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
 
@@ -116,11 +120,11 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       />
       <RepoNameInput name='repoName' errorMessage={formError.repoName} />
       <div className={classes.actionContainer}>
-        {isCreatingRepo ? (
+        {isCreatingRepo || isCreatingRepoSuccess ? (
           <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
         ) : (
           <>
-            <Button type='submit' color='first' size='small' disabled={isCreatingRepo}>
+            <Button type='submit' color='first' size='small'>
               {t('dashboard.create_service_btn')}
             </Button>
             <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
