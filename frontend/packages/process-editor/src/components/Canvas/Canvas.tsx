@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-js.css';
@@ -9,6 +10,7 @@ import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BPMNViewer } from './BPMNViewer';
 import { BPMNEditor } from './BPMNEditor';
 import { CanvasActionMenu } from './CanvasActionMenu';
+import { useConfirmNavigation } from './useConfirmNavigation';
 
 export type CanvasProps = {
   onSave: (bpmnXml: string) => void;
@@ -24,8 +26,9 @@ export type CanvasProps = {
  * @returns {JSX.Element} - The rendered component
  */
 export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
-  const { getUpdatedXml, isEditAllowed } = useBpmnContext();
+  const { getUpdatedXml, isEditAllowed, numberOfUnsavedChanges } = useBpmnContext();
   const [isEditorView, setIsEditorView] = useState(false);
+  const { t } = useTranslation();
 
   const toggleViewModus = (): void => {
     setIsEditorView((prevIsEditorView) => !prevIsEditorView);
@@ -34,6 +37,8 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
   const handleOnSave = async (): Promise<void> => {
     onSave(await getUpdatedXml());
   };
+
+  useConfirmNavigation(!!numberOfUnsavedChanges, t('process_editor.unsaved_changes_warning'));
 
   return (
     <div className={classes.container}>
