@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import classes from './Editor.module.css';
+import classes from './BPMNEditor.module.css';
 import { useBpmnEditor } from '../../../hooks/useBpmnEditor';
 
 /**
@@ -8,7 +8,7 @@ import { useBpmnEditor } from '../../../hooks/useBpmnEditor';
  *
  * @returns {ReactNode} - The rendered component
  */
-export const Editor = (): ReactNode => {
+export const BPMNEditor = (): ReactNode => {
   const { canvasRef } = useBpmnEditor();
   return <div className={classes.editorContainer} ref={canvasRef}></div>;
 };

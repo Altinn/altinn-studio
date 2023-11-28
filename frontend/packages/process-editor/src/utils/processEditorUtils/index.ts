@@ -1,1 +1,1 @@
-export { getIfVersionIs8OrNewer } from './processEditorUtils';
+export { supportsProcessEditor } from './processEditorUtils';

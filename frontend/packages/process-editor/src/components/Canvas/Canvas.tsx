@@ -7,9 +7,9 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { getIfVersionIs8OrNewer } from '../../utils/processEditorUtils';
-import { Viewer } from './Viewer';
-import { Editor } from './Editor';
+import { supportsProcessEditor } from '../../utils/processEditorUtils';
+import { BPMNViewer } from './BPMNViewer';
+import { BPMNEditor } from './BPMNEditor';
 import { CanvasActionMenu } from './CanvasActionMenu';
 
 export type CanvasProps = {
@@ -38,7 +38,7 @@ export const Canvas = ({ onSave, appLibVersion }: CanvasProps): JSX.Element => {
     onSave(await getUpdatedXml());
   };
 
-  const isEditAllowed: boolean = getIfVersionIs8OrNewer(appLibVersion);
+  const isEditAllowed: boolean = supportsProcessEditor(appLibVersion);
 
   return (
     <>
@@ -50,7 +50,7 @@ export const Canvas = ({ onSave, appLibVersion }: CanvasProps): JSX.Element => {
         />
       )}
       <div className={classes.wrapper}>
-        {isEditorView ? <Editor /> : <Viewer appLibVersion={appLibVersion} />}
+        {isEditorView ? <BPMNEditor /> : <BPMNViewer appLibVersion={appLibVersion} />}
       </div>
     </>
   );

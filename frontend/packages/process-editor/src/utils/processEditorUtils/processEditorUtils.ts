@@ -5,7 +5,7 @@
  *
  * @returns boolean
  */
-export const getIfVersionIs8OrNewer = (version: string): boolean => {
+export const supportsProcessEditor = (version: string): boolean => {
   const firstNumber: number = Number(version[0]);
   return firstNumber > 7;
 };

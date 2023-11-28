@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import classes from './ViewerErrorAlert.module.css';
+import classes from './BPMNViewerErrorAlert.module.css';
 import type { BpmnViewerError } from '../../../../types/BpmnViewerError';
 import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
@@ -9,7 +9,7 @@ interface ErrorMessage {
   body: string;
 }
 
-type ViewerErrorAlertProps = {
+type BPMNViewerErrorAlertProps = {
   bpmnViewerError: BpmnViewerError;
 };
 
@@ -21,7 +21,7 @@ type ViewerErrorAlertProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const ViewerErrorAlert = ({ bpmnViewerError }: ViewerErrorAlertProps): ReactNode => {
+export const BPMNViewerErrorAlert = ({ bpmnViewerError }: BPMNViewerErrorAlertProps): ReactNode => {
   const { t } = useTranslation();
 
   const getErrorMessage = (): ErrorMessage | null => {

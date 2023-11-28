@@ -1,11 +1,11 @@
 import React, { ReactNode } from 'react';
-import classes from './Viewer.module.css';
+import classes from './BPMNViewer.module.css';
 import { useBpmnViewer } from '../../../hooks/useBpmnViewer';
 import { VersionAlert } from './VersionAlert';
-import { ViewerErrorAlert } from './ViewerErrorAlert';
-import { getIfVersionIs8OrNewer } from '../../../utils/processEditorUtils';
+import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
+import { supportsProcessEditor } from '../../../utils/processEditorUtils';
 
-export type ViewerProps = {
+export type BPMNViewerProps = {
   appLibVersion: string;
 };
 
@@ -17,14 +17,14 @@ export type ViewerProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const Viewer = ({ appLibVersion }: ViewerProps): ReactNode => {
+export const BPMNViewer = ({ appLibVersion }: BPMNViewerProps): ReactNode => {
   const { canvasRef, bpmnViewerError } = useBpmnViewer();
 
-  const isEditAllowed: boolean = getIfVersionIs8OrNewer(appLibVersion);
+  const isEditAllowed: boolean = supportsProcessEditor(appLibVersion);
 
   return (
     <>
-      {bpmnViewerError !== undefined && <ViewerErrorAlert bpmnViewerError={bpmnViewerError} />}
+      {bpmnViewerError !== undefined && <BPMNViewerErrorAlert bpmnViewerError={bpmnViewerError} />}
       <div className={classes.viewerWrapper}>
         <div className={classes.canvasContainer} ref={canvasRef}></div>
         {!isEditAllowed && <VersionAlert appLibVersion={appLibVersion} />}

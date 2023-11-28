@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ViewerErrorAlert } from './ViewerErrorAlert';
+import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 describe('Viewer', () => {
@@ -9,7 +9,7 @@ describe('Viewer', () => {
 
   it('displays correct error message when bpmnViewerError is "noDiagram"', async () => {
     const user = userEvent.setup();
-    render(<ViewerErrorAlert bpmnViewerError='noDiagram' />);
+    render(<BPMNViewerErrorAlert bpmnViewerError='noDiagram' />);
 
     // Fix to remove act error
     await act(() => user.tab());
@@ -25,7 +25,7 @@ describe('Viewer', () => {
 
   it('displays correct error message when bpmnViewerError is "noProcess"', async () => {
     const user = userEvent.setup();
-    render(<ViewerErrorAlert bpmnViewerError='noProcess' />);
+    render(<BPMNViewerErrorAlert bpmnViewerError='noProcess' />);
 
     // Fix to remove act error
     await act(() => user.tab());
@@ -41,7 +41,7 @@ describe('Viewer', () => {
 
   it('displays correct error message when bpmnViewerError is "unknown"', async () => {
     const user = userEvent.setup();
-    render(<ViewerErrorAlert bpmnViewerError='unknown' />);
+    render(<BPMNViewerErrorAlert bpmnViewerError='unknown' />);
 
     // Fix to remove act error
     await act(() => user.tab());
