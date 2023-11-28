@@ -3763,10 +3763,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@remix-run/router@npm:1.11.0":
-  version: 1.11.0
-  resolution: "@remix-run/router@npm:1.11.0"
-  checksum: 629ec578b9dfd3c5cb5de64a0798dd7846ec5ba0351aa66f42b1c65efb43da8f30366be59b825303648965b0df55b638c110949b24ef94fd62e98117fdfb0c0f
+"@remix-run/router@npm:1.13.0":
+  version: 1.13.0
+  resolution: "@remix-run/router@npm:1.13.0"
+  checksum: bb173a012d2036c5ee69babfe30c73975b970c2e5a0edaba138c302ae80d255e238e462e77365ab4efe819b6397e1a7f3a416d6200d17f9655f0ca1c51c4f45e
   languageName: node
   linkType: hard
 
@@ -5593,13 +5593,13 @@ __metadata:
     lint-staged: "npm:15.1.0"
     mini-css-extract-plugin: "npm:2.7.6"
     msw: "npm:1.3.2"
-    prettier: "npm:^3.0.3"
+    prettier: "npm:3.0.3"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
-    react-error-boundary: "npm:^4.0.11"
+    react-error-boundary: "npm:4.0.11"
     react-i18next: "npm:13.3.1"
-    react-router-dom: "npm:6.18.0"
-    react-toastify: "npm:^9.1.3"
+    react-router-dom: "npm:6.20.0"
+    react-toastify: "npm:9.1.3"
     redux-mock-store: "npm:1.5.4"
     redux-saga: "npm:1.2.3"
     redux-saga-test-plan: "npm:4.0.6"
@@ -5726,7 +5726,7 @@ __metadata:
     react-dom: "npm:18.2.0"
     react-i18next: "npm:13.3.1"
     react-redux: "npm:8.1.3"
-    react-router-dom: "npm:6.18.0"
+    react-router-dom: "npm:6.20.0"
     redux: "npm:4.2.1"
     redux-saga: "npm:1.2.3"
     reselect: "npm:4.1.8"
@@ -5748,7 +5748,7 @@ __metadata:
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
     react-redux: "npm:8.1.3"
-    react-router-dom: "npm:6.18.0"
+    react-router-dom: "npm:6.20.0"
     typescript: "npm:5.2.2"
     webpack: "npm:5.89.0"
     webpack-dev-server: "npm:4.15.1"
@@ -5772,7 +5772,7 @@ __metadata:
     react-dnd-html5-backend: "npm:16.0.1"
     react-dom: "npm:18.2.0"
     react-redux: "npm:8.1.3"
-    react-router-dom: "npm:6.18.0"
+    react-router-dom: "npm:6.20.0"
     react-select: "npm:5.7.7"
     redux-saga: "npm:1.2.3"
     typescript: "npm:5.2.2"
@@ -7616,7 +7616,7 @@ __metadata:
     jest: "npm:29.7.0"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
-    react-router-dom: "npm:6.18.0"
+    react-router-dom: "npm:6.20.0"
     react-use: "npm:17.4.0"
     typescript: "npm:5.2.2"
     webpack: "npm:5.89.0"
@@ -14040,7 +14040,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.0.3":
+"prettier@npm:3.0.3":
   version: 3.0.3
   resolution: "prettier@npm:3.0.3"
   bin:
@@ -14356,7 +14356,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-error-boundary@npm:^4.0.11":
+"react-error-boundary@npm:4.0.11":
   version: 4.0.11
   resolution: "react-error-boundary@npm:4.0.11"
   dependencies:
@@ -14520,27 +14520,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:6.18.0":
-  version: 6.18.0
-  resolution: "react-router-dom@npm:6.18.0"
+"react-router-dom@npm:6.20.0":
+  version: 6.20.0
+  resolution: "react-router-dom@npm:6.20.0"
   dependencies:
-    "@remix-run/router": "npm:1.11.0"
-    react-router: "npm:6.18.0"
+    "@remix-run/router": "npm:1.13.0"
+    react-router: "npm:6.20.0"
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: b0e72603d73172b6c6662afe2faed326753d5bbd9905aa560e3dade7996fc13d19e34e3ed668d2849efd685e2db2f711129c84b1439870e92c9cc91ddc343cf5
+  checksum: 4b6741c545cedf5a5c4f996deb953679dcc985425e0664e27b97fdb9ab1387cbe1a6a12bfc7f7c38ec40b15759b4bf6396930ec26540a4a81ae16d154fd35049
   languageName: node
   linkType: hard
 
-"react-router@npm:6.18.0":
-  version: 6.18.0
-  resolution: "react-router@npm:6.18.0"
+"react-router@npm:6.20.0":
+  version: 6.20.0
+  resolution: "react-router@npm:6.20.0"
   dependencies:
-    "@remix-run/router": "npm:1.11.0"
+    "@remix-run/router": "npm:1.13.0"
   peerDependencies:
     react: ">=16.8"
-  checksum: a00c8f347b7ffee575f4a7731782e688e3fca458ca5bd970fb41cef66a6851853caa24464155ab438d5879f367b1223a539642a405a865913ffe7e63e53b1245
+  checksum: 2cdac5ad8b7a7bc230173b26768bcf3f6a9abc0a19983fa7b76b9ffdbeb44bfbd88fcc2033e9062defafef144db207859eb3162a9c9742d70cfce4e7166ff1e5
   languageName: node
   linkType: hard
 
@@ -14581,7 +14581,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-toastify@npm:^9.1.3":
+"react-toastify@npm:9.1.3":
   version: 9.1.3
   resolution: "react-toastify@npm:9.1.3"
   dependencies:
@@ -15076,7 +15076,7 @@ __metadata:
     jest: "npm:29.7.0"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
-    react-router-dom: "npm:6.18.0"
+    react-router-dom: "npm:6.20.0"
     react-use: "npm:17.4.0"
     typescript: "npm:5.2.2"
     webpack: "npm:5.89.0"
