@@ -31,7 +31,6 @@ export const Administration = () => {
   } = useAppConfigQuery(org, app, { hideDefaultError: true });
   const { t } = useTranslation();
 
-  console.log({ isAppConfigError, isOrgsError, isPendingAppConfig, isPendingOrgs });
   if (isAppConfigError || isOrgsError) {
     toast.error(t('administration.fetch_title_error_message'));
   }

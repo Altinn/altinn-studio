@@ -56,9 +56,20 @@ const mockResourceList: ResourceListItem[] = [
 
 const getResourceList = jest.fn().mockImplementation(() => Promise.resolve({}));
 
-describe('ResourceDashBoardPage', () => {
-  afterEach(jest.clearAllMocks);
+// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
+const realConsole = console;
 
+describe('ResourceDashBoardPage', () => {
+  beforeEach(() => {
+    global.console = {
+      ...console,
+      error: jest.fn(),
+    };
+  });
+  afterEach(() => {
+    global.console = realConsole;
+    jest.clearAllMocks();
+  });
   it('fetches resource list on mount', () => {
     render();
     expect(getResourceList).toHaveBeenCalledTimes(1);

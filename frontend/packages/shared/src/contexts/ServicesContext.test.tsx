@@ -65,7 +65,6 @@ describe('ServicesContext', () => {
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const errorCode = 'GT_01';
     const { result } = renderHook(
       () =>
@@ -78,11 +77,9 @@ describe('ServicesContext', () => {
     );
     await waitFor(() => result.current.isError);
     expect(await screen.findByText(texts['api_errors.GT_01'])).toBeInTheDocument();
-    expect(mockConsoleError).toHaveBeenCalled();
   });
 
   it('displays a specific error message if API returns an error code and the error messages does exist', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const { result } = renderHook(
       () =>
         useQuery({
@@ -96,11 +93,9 @@ describe('ServicesContext', () => {
     await waitFor(() => result.current.isError);
 
     expect(await screen.findByText(texts['api_errors.DM_01'])).toBeInTheDocument();
-    expect(mockConsoleError).toHaveBeenCalled();
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const { result } = renderHook(
       () =>
         useQuery({
@@ -114,11 +109,9 @@ describe('ServicesContext', () => {
     await waitFor(() => result.current.isError);
 
     expect(await screen.findByText(texts['general.error_message'])).toBeInTheDocument();
-    expect(mockConsoleError).toHaveBeenCalled();
   });
 
   it('displays a default error message if an API call fails', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     const { result } = renderHook(
       () => useQuery({ queryKey: ['fetchData'], queryFn: () => Promise.reject(), retry: false }),
       { wrapper },
@@ -127,7 +120,6 @@ describe('ServicesContext', () => {
     await waitFor(() => result.current.isError);
 
     expect(await screen.findByText(texts['general.error_message'])).toBeInTheDocument();
-    expect(mockConsoleError).toHaveBeenCalled();
   });
 
   it('displays a default error message if a component throws an error while rendering', () => {

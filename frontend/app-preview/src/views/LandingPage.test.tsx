@@ -5,7 +5,20 @@ import { LandingPage } from './LandingPage';
 import { renderWithMockStore } from '../../../../frontend/packages/ux-editor/src/testing/mocks';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
+// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
+const realConsole = console;
+
 describe('LandingPage', () => {
+  beforeEach(() => {
+    global.console = {
+      ...console,
+      error: jest.fn(),
+    };
+  });
+  afterEach(() => {
+    global.console = realConsole;
+  });
+
   it('should render an iframe', () => {
     const { renderResult } = renderWithMockStore()(<LandingPage variant={'preview'} />);
 
