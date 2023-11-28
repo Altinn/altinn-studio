@@ -73,10 +73,10 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
     }
   };
 
-  const onDeleteEnumClick = (path: string, value: string) =>
-    save(deleteEnumValue(data, { path, value }));
+  const onDeleteEnumClick = (path: string, index: number) =>
+    save(deleteEnumValue(data, { path, index }));
 
-  const dispatchAddEnum = () => save(addEnumValue(data, { path: pointer, value: 'value' }));
+  const dispatchAddEnum = () => save(addEnumValue(data, { path: pointer, value: '' }));
 
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -120,17 +120,14 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
               <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
             )}
             {enumError !== null && (
-              <ErrorMessage>
-                <p>{t('schema_editor.enum_error_duplicate')}</p>
-              </ErrorMessage>
+              <ErrorMessage>{t('schema_editor.enum_error_duplicate')}</ErrorMessage>
             )}
             {enums?.map((value: string, index) => (
               <EnumField
                 key={`add-enum-field-${index}`}
                 onChange={onChangeEnumValue}
-                onDelete={onDeleteEnumClick}
+                onDelete={() => onDeleteEnumClick(pointer, index)}
                 onEnterKeyPress={dispatchAddEnum}
-                path={pointer}
                 value={value}
                 isValid={enumError !== value}
                 baseId={getDomFriendlyID(pointer)}

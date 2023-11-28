@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { EnumField, EnumFieldProps } from './EnumField';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
-const mockPath: string = 'mockPath';
 const mockValue: string = 'test';
 const mockBaseId: string = 'id123';
 const mockId: string = `${mockBaseId}-enum-${mockValue}`;
@@ -14,7 +13,6 @@ const mockOnDelete = jest.fn();
 const mockOnEnterKeyPress = jest.fn();
 
 const defaultProps: EnumFieldProps = {
-  path: mockPath,
   value: mockValue,
   readOnly: false,
   isValid: true,
@@ -72,7 +70,6 @@ describe('EnumField', () => {
     await act(() => user.click(deleteButton));
 
     expect(mockOnDelete).toHaveBeenCalledTimes(1);
-    expect(mockOnDelete).toHaveBeenCalledWith(mockPath, mockValue);
   });
 
   it('calls onEnterKeyPress when "Enter" key is pressed', async () => {

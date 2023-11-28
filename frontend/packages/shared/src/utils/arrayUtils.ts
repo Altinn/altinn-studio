@@ -41,6 +41,15 @@ export const removeItemByValue = <T>(array: T[], value: T): T[] =>
   array.filter((item) => item !== value);
 
 /**
+ * Removes item from array by index.
+ * @param array Array to delete item from.
+ * @param indexToRemove Index of element to remove.
+ * @returns Array without the element at the given index.
+ */
+export const removeItemByIndex = <T>(array: T[], indexToRemove: number): T[] =>
+  array.filter((_, index) => index !== indexToRemove);
+
+/**
  * Checks if all items in the given array are unique.
  * @param array The array of interest.
  * @returns True if all items in the array are unique and false otherwise.
@@ -72,7 +81,7 @@ export const swapArrayElements = <T>(array: T[], itemA: T, itemB: T): T[] => {
  */
 export const insertArrayElementAtPos = <T>(array: T[], item: T, targetPos: number): T[] => {
   const out = [...array];
-  if (targetPos >= array.length || targetPos < 0) out.push(item)
+  if (targetPos >= array.length || targetPos < 0) out.push(item);
   else out.splice(targetPos, 0, item);
   return out;
 };

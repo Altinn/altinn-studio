@@ -6,14 +6,13 @@ import {
   mapByKey,
   prepend,
   removeDuplicates,
+  removeItemByIndex,
   removeItemByValue,
   swapArrayElements,
 } from './arrayUtils';
 
 describe('arrayUtils', () => {
-
   describe('removeDuplicates', () => {
-
     it('Removes duplicates', () => {
       expect(removeDuplicates([1, 1, 2, 3, 3])).toEqual([1, 2, 3]);
       expect(removeDuplicates(['a', 'b', 'c', 'b'])).toEqual(['a', 'b', 'c']);
@@ -55,6 +54,15 @@ describe('arrayUtils', () => {
       expect(removeItemByValue(['a', 'b', 'c'], 'd')).toEqual(['a', 'b', 'c']);
       expect(removeItemByValue([], 'a')).toEqual([]);
       expect(removeItemByValue(['a', 'b', 'c', 'b', 'a'], 'b')).toEqual(['a', 'c', 'a']);
+    });
+  });
+
+  describe('removeItemByIndex', () => {
+    it('Deletes item from array by value', () => {
+      expect(removeItemByIndex([1, 2, 3], 1)).toEqual([1, 3]);
+      expect(removeItemByIndex(['a', 'b', 'c'], 1)).toEqual(['a', 'c']);
+      expect(removeItemByIndex(['a', 'b', 'c'], 3)).toEqual(['a', 'b', 'c']);
+      expect(removeItemByIndex([], 1)).toEqual([]);
     });
   });
 
@@ -119,7 +127,11 @@ describe('arrayUtils', () => {
 
   describe('mapByKey', () => {
     it('Returns an array of values mapped by the given key', () => {
-      const array = [{ a: 1, b: 2 }, { a: 2, b: 'c' }, { a: 3, b: true, c: 'abc' }];
+      const array = [
+        { a: 1, b: 2 },
+        { a: 2, b: 'c' },
+        { a: 3, b: true, c: 'abc' },
+      ];
       expect(mapByKey(array, 'a')).toEqual([1, 2, 3]);
     });
   });

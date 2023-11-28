@@ -7,18 +7,16 @@ import { IconImage } from '../common/Icon';
 import { useTranslation } from 'react-i18next';
 
 export type EnumFieldProps = {
-  path: string;
   value: string;
   readOnly?: boolean;
   isValid?: boolean;
   onChange: (value: string, oldValue?: string) => void;
-  onDelete?: (path: string, key: string) => void;
+  onDelete?: () => void;
   onEnterKeyPress?: () => void;
   baseId: string;
 };
 
 export const EnumField = ({
-  path,
   value,
   readOnly,
   isValid,
@@ -65,7 +63,7 @@ export const EnumField = ({
           className={classes.delete}
           icon={IconImage.Wastebucket}
           id={`${baseId}-delete-${value}`}
-          onClick={() => onDelete?.(path, value)}
+          onClick={() => onDelete?.()}
         />
       )}
     </div>
