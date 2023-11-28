@@ -231,25 +231,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
             using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
-
-        }
-
-
-        [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
-        [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task Copy_Repo_Should_Return_OK(string org)
-        {
-            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
-            await CreateAppUsingDesigner(org, targetRepo);
-
-            string copyRepo = TestDataHelper.GenerateTestRepoName("-gitea-copy");
-
-            // Copy app
-            using HttpResponseMessage commitResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/copy-app?sourceRepository={targetRepo}&targetRepository={copyRepo}", null);
-            commitResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-
-
         }
 
         private static string GetCommitInfoJson(string text, string org, string repository) =>

@@ -27,6 +27,10 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         private CookieContainer CookieContainer { get; } = new CookieContainer();
 
+        /// On some systems path too long error occurs if repo is nested deep in file system.
+        protected override string TestRepositoriesLocation =>
+            Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
+
         /// <summary>
         /// Used when performing chained calls to designer api
         /// </summary>

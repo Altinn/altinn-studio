@@ -191,6 +191,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
                 repo.Network.Push(remote, @"refs/heads/master", options);
+                repo.Network.Push(remote, "refs/notes/commits", options);
             }
 
             return await Task.FromResult(pushSuccess);
@@ -226,15 +227,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var notes = repo.Notes;
             Note note = notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
-            try
-            {
-                repo.Refs.UpdateTarget("refs/notes/commits", note.TargetObjectId.ToString());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
 
         }
 

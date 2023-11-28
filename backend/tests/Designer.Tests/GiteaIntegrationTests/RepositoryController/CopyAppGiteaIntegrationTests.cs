@@ -20,12 +20,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
 
-        /// On some systems path too long error occurs if repo is nested deep in file system.
-        protected override string TestRepositoriesLocation =>
-            Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
-
         private string CopyRepoName { get; set; }
-
 
         public CopyAppGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
         {
@@ -34,7 +29,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         [Theory]
         [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task Copy_Repo_Should_Return_OK(string org)
+        public async Task Copy_Repo_Should_Return_Created(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             await CreateAppUsingDesigner(org, targetRepo);
