@@ -2,10 +2,9 @@ import { MutableRefObject, useRef, useEffect, useState } from 'react';
 import BpmnJS from 'bpmn-js/dist/bpmn-navigated-viewer.development.js';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useTranslation } from 'react-i18next';
+import type { BpmnViewerError } from '../types/BpmnViewerError';
 
 // Wrapper around bpmn-js to Reactify it
-
-type BpmnViewerError = 'noDiagram' | 'noProcess' | 'unknown';
 
 const bpmnViewerErrorMap: Record<string, BpmnViewerError> = {
   'no diagram to display': 'noDiagram',

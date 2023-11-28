@@ -1,6 +1,7 @@
 import { get, put } from 'app-shared/utils/networking';
 import {
   altinn2LinkServicesPath,
+  appLibVersionPath,
   appMetadataPath,
   appPolicyPath,
   branchStatusPath,
@@ -128,3 +129,4 @@ export const updateBpmnXml = (org: string, app: string, bpmnXml: string) =>
       'Content-Type': 'application/xml',
     },
   });
+export const getAppLibVersion = (org: string, app: string) => get(appLibVersionPath(org, app));
