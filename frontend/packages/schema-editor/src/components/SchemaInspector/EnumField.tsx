@@ -47,7 +47,6 @@ export const EnumField = (props: IEnumFieldProps) => {
         onChange={onChange}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        autoFocus
         isValid={props.isValid}
       />
       {props.onDelete && (
