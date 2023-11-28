@@ -36,8 +36,6 @@ export const Administration = () => {
     toast.error(t('administration.fetch_title_error_message'));
   }
 
-  console.log('just to trigger Pr checks');
-
   if (isPendingAppConfig || isPendingOrgs) {
     return (
       <Center>
