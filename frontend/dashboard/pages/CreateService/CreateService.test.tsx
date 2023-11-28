@@ -191,6 +191,62 @@ describe('CreateService', () => {
     expect(emptyFieldErrors.length).toBe(1);
   });
 
+  it('should display loading while the form is processing', async () => {
+    const user = userEvent.setup();
+
+    renderWithMockServices(
+      {
+        // Use setTimeout as a workaround to trigger isLoading on mutation.
+        addRepo: () =>
+          new Promise((resolve) =>
+            setTimeout(() => {
+              resolve(repositoryMock);
+            }, 2),
+          ),
+      },
+      [orgMock],
+      userMock,
+    );
+
+    const createBtn: HTMLElement = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+
+    const appNameInput = screen.getByLabelText(textMock('general.service_name'));
+    await act(() => user.type(appNameInput, 'appname'));
+    await act(() => user.click(createBtn));
+
+    expect(await screen.findByText(textMock('dashboard.creating_your_service')));
+  });
+
+  it('should not display loading if process form fails, should display create and cancel button', async () => {
+    const user = userEvent.setup();
+    const addRepoMock = jest
+      .fn()
+      .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
+
+    renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
+
+    await act(() =>
+      user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test'),
+    );
+
+    await act(() =>
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists'),
+    );
+
+    const createBtn: HTMLElement = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+    await act(() => user.click(createBtn));
+
+    expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
+
+    expect(screen.queryByText(textMock('dashboard.creating_your_service'))).not.toBeInTheDocument();
+    expect(createBtn).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('general.cancel') }));
+  });
+
   it('should navigate to app-development if creating the app was successful', async () => {
     const user = userEvent.setup();
 
