@@ -1,61 +1,71 @@
 import type { KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { IconButton } from '../common/IconButton';
-import { LegacyTextField } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
-import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { IconImage } from '../common/Icon';
 import { useTranslation } from 'react-i18next';
 
-export interface IEnumFieldProps {
+export type EnumFieldProps = {
   path: string;
   value: string;
   readOnly?: boolean;
-  fullWidth?: boolean;
   isValid?: boolean;
   onChange: (value: string, oldValue?: string) => void;
   onDelete?: (path: string, key: string) => void;
   onEnterKeyPress?: () => void;
-}
+  baseId: string;
+};
 
-export const EnumField = (props: IEnumFieldProps) => {
-  const [val, setVal] = useState(props.value);
+export const EnumField = ({
+  path,
+  value,
+  readOnly,
+  isValid,
+  onChange,
+  onDelete,
+  onEnterKeyPress,
+  baseId,
+}: EnumFieldProps) => {
+  const [val, setVal] = useState(value);
   useEffect(() => {
-    setVal(props.value);
-  }, [props.value]);
+    setVal(value);
+  }, [value]);
   const { t } = useTranslation();
 
   const onBlur = () => {
-    props.onChange(val, props.value);
+    onChange(val, value);
   };
 
-  const onChange = (e: any) => {
+  const handleChange = (e: any) => {
     e.stopPropagation();
     setVal(e.target.value);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
-    e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
+    e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
-  const baseId = getDomFriendlyID(props.path);
+  const id = `${baseId}-enum-${value}`;
+
   return (
     <div className={classes.root}>
-      <LegacyTextField
-        id={`${baseId}-enum-${props.value}`}
-        disabled={props.readOnly}
+      <Textfield
+        label={t('schema_editor.textfield_label', { id })}
+        hideLabel
+        disabled={readOnly}
         value={val}
-        onChange={onChange}
+        onChange={handleChange}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        isValid={props.isValid}
+        error={!isValid}
       />
-      {props.onDelete && (
+      {onDelete && (
         <IconButton
           ariaLabel={t('schema_editor.delete_field')}
           className={classes.delete}
           icon={IconImage.Wastebucket}
-          id={`${baseId}-delete-${props.value}`}
-          onClick={() => props.onDelete?.(props.path, props.value)}
+          id={`${baseId}-delete-${value}`}
+          onClick={() => onDelete?.(path, value)}
         />
       )}
     </div>
