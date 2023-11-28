@@ -1,10 +1,9 @@
 import type { KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
-import { IconButton } from '../common/IconButton';
-import { Textfield } from '@digdir/design-system-react';
+import { Button, Textfield } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
-import { IconImage } from '../common/Icon';
 import { useTranslation } from 'react-i18next';
+import { TrashIcon } from '@altinn/icons';
 
 export type EnumFieldProps = {
   path: string;
@@ -60,12 +59,14 @@ export const EnumField = ({
         error={!isValid}
       />
       {onDelete && (
-        <IconButton
-          ariaLabel={t('schema_editor.delete_field')}
+        <Button
+          title={t('schema_editor.delete_field')}
           className={classes.delete}
-          icon={IconImage.Wastebucket}
+          icon={<TrashIcon />}
           id={`${baseId}-delete-${value}`}
           onClick={() => onDelete?.(path, value)}
+          color='danger'
+          variant='tertiary'
         />
       )}
     </div>
