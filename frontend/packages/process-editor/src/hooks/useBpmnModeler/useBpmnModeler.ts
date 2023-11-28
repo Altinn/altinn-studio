@@ -1,9 +1,9 @@
 ﻿import { useEffect } from 'react';
 import Modeler from 'bpmn-js/lib/Modeler';
 import BpmnModeler from 'bpmn-js/lib/Modeler';
-import SupportedPaletteProvider from '../bpmnProviders/SupportedPaletteProvider';
-import SupportedContextPadProvider from '../bpmnProviders/SupportedContextPadProvider';
-import { altinnCustomTasks } from '../extensions/altinnCustomTasks';
+import SupportedPaletteProvider from '../../bpmnProviders/SupportedPaletteProvider';
+import SupportedContextPadProvider from '../../bpmnProviders/SupportedContextPadProvider';
+import { altinnCustomTasks } from '../../extensions/altinnCustomTasks';
 
 // Save the instance outside React Ecosystem, ensures to not creating new instances between renders.
 let modelerInstance: Modeler | null = null;
