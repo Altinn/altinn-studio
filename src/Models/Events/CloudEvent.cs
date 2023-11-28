@@ -1,4 +1,3 @@
-using System;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Events.Models
@@ -50,5 +49,11 @@ namespace Altinn.Platform.Events.Models
         /// </summary>
         [JsonProperty(PropertyName = "alternativesubject")]
         public string Alternativesubject { get; set; }
+
+        /// <summary>
+        /// Gets or sets the resource of the event
+        /// </summary>
+        [JsonProperty(PropertyName = "resource")]
+        public string Resource { get; set; }
     }
 }
