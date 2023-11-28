@@ -104,7 +104,7 @@ export const EditDataModelBindings = ({
                 helpText={helpText}
               />
             ) : (
-              <>{selectedOption && <SelectedOption selectedOption={selectedOption} />}</>
+              selectedOption && <SelectedOption selectedOption={selectedOption} />
             )}
           </div>
         </InputActionWrapper>
