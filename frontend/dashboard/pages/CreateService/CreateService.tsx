@@ -1,61 +1,27 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
-import { validateRepoName } from '../../utils/repoUtils';
-import { applicationAboutPage } from '../../utils/urlUtils';
 import classes from './CreateService.module.css';
 import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import i18next from 'i18next';
 import { Organization } from 'app-shared/types/Organization';
 import { User } from 'app-shared/types/User';
 import { useAddRepoMutation } from 'dashboard/hooks/mutations/useAddRepoMutation';
 import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
+import { navigateToAppDevelopment } from './utils/navigationUtils';
 
-enum PageState {
-  Idle = 'Idle',
-  Creating = 'Creating',
-}
+const DASHBOARD_ROOT_ROUTE: string = '/';
 
-interface IValidateInputs {
-  selectedOrgOrUser: string;
-  setOrgErrorMessage: (value: string) => void;
-  setRepoErrorMessage: (value: string) => void;
-  repoName: string;
-  t: typeof i18next.t;
-}
-
-const validateInputs = ({
-  selectedOrgOrUser,
-  setOrgErrorMessage,
-  setRepoErrorMessage,
-  repoName,
-  t,
-}: IValidateInputs) => {
-  let isValid = true;
-  if (!selectedOrgOrUser) {
-    setOrgErrorMessage(t('dashboard.field_cannot_be_empty'));
-    isValid = false;
-  }
-  if (!repoName) {
-    setRepoErrorMessage(t('dashboard.field_cannot_be_empty'));
-    isValid = false;
-  }
-  if (repoName && !validateRepoName(repoName)) {
-    setRepoErrorMessage(t('dashboard.service_name_has_illegal_characters'));
-    isValid = false;
-  }
-  if (repoName.length > 30) {
-    setRepoErrorMessage(t('dashboard.service_name_is_too_long'));
-    isValid = false;
-  }
-  return isValid;
+type CreateAppForm = {
+  org?: string;
+  repoName?: string;
 };
 
 type CreateServiceProps = {
@@ -63,91 +29,103 @@ type CreateServiceProps = {
   organizations: Organization[];
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
-  const selectedFormat = DatamodelFormat.XSD;
+  const dataModellingPreference: DatamodelFormat.XSD = DatamodelFormat.XSD;
+
+  const { t } = useTranslation();
   const selectedContext = useSelectedContext();
-  const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(
-    selectedContext === SelectedContextType.Self ? user.login : selectedContext,
-  );
-  const [orgErrorMessage, setOrgErrorMessage] = useState(null);
-  const [repoErrorMessage, setRepoErrorMessage] = useState(null);
-  const [repoName, setRepoName] = useState('');
-  const [pageState, setPageState] = useState(PageState.Idle);
-  const { mutate: addRepo, isError: hasAddRepoError } = useAddRepoMutation({
+  const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
+
+  const [formError, setFormError] = useState<CreateAppForm>({
+    org: '',
+    repoName: '',
+  });
+
+  const { mutate: addRepo, isPending: isCreatingRepo } = useAddRepoMutation({
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
-  const { t } = useTranslation();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (hasAddRepoError) {
-      setRepoErrorMessage(t('dashboard.app_already_exists'));
-      setPageState(PageState.Idle);
-    }
-  }, [hasAddRepoError]);
-
-  const handleServiceOwnerChanged = useCallback((newValue: string) => {
-    setSelectedOrgOrUser(newValue);
-    setOrgErrorMessage(null);
-  }, []);
-
-  const handleRepoNameChanged = useCallback((newValue: string) => {
-    setRepoName(newValue);
-    setRepoErrorMessage(null);
-  }, []);
-
-  const handleCreateService = async () => {
-    const isValid = validateInputs({
-      selectedOrgOrUser,
-      repoName,
-      t,
-      setRepoErrorMessage,
-      setOrgErrorMessage,
-    });
-
-    if (isValid) {
-      setPageState(PageState.Creating);
-
-      addRepo(
-        { org: selectedOrgOrUser, repository: repoName, datamodellingPreference: selectedFormat },
-        {
-          onSuccess: (repository) => {
-            window.location.assign(
-              applicationAboutPage({
-                org: repository.owner.login,
-                repo: repository.name,
+  const defaultSelectedOrgOrUser: string =
+    selectedContext === SelectedContextType.Self ? user.login : selectedContext;
+  const createAppRepo = async (createAppForm: CreateAppForm) => {
+    addRepo(
+      {
+        org: createAppForm.org,
+        repository: createAppForm.repoName,
+        datamodellingPreference: dataModellingPreference,
+      },
+      {
+        onSuccess: (): void => {
+          navigateToAppDevelopment(createAppForm.org, createAppForm.repoName);
+        },
+        onError: (error: AxiosError): void => {
+          const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
+          if (appNameAlreadyExists) {
+            setFormError(
+              (prevErrors): CreateAppForm => ({
+                ...prevErrors,
+                repoName: t('dashboard.app_already_exists'),
               }),
             );
-          },
+          }
         },
-      );
+      },
+    );
+  };
+
+  const handleCreateAppFormSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
+    event.preventDefault();
+
+    const formData: FormData = new FormData(event.currentTarget);
+
+    const createAppForm: CreateAppForm = {
+      org: formData.get('org') as string,
+      repoName: formData.get('repoName') as string,
+    };
+
+    const isFormValid: boolean = validateCreateAppForm(createAppForm);
+    if (isFormValid) {
+      await createAppRepo(createAppForm);
     }
   };
+
+  const validateCreateAppForm = (createAppForm: CreateAppForm): boolean => {
+    const { errorMessage: orgErrorMessage, isValid: isOrgValid } = validateRepoOwnerName(
+      createAppForm.org,
+    );
+    const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
+      createAppForm.repoName,
+    );
+
+    setFormError({
+      org: isOrgValid ? '' : orgErrorMessage,
+      repoName: isRepoNameValid ? '' : repoNameErrorMessage,
+    });
+
+    return isOrgValid && isRepoNameValid;
+  };
+
   return (
-    <div className={classes.createServiceContainer}>
+    <form onSubmit={handleCreateAppFormSubmit} className={classes.createAppForm}>
       <ServiceOwnerSelector
+        name='org'
         user={user}
         organizations={organizations}
-        onServiceOwnerChanged={handleServiceOwnerChanged}
-        errorMessage={orgErrorMessage}
-        selectedOrgOrUser={selectedOrgOrUser}
+        errorMessage={formError.org}
+        selectedOrgOrUser={defaultSelectedOrgOrUser}
       />
-      <RepoNameInput
-        onRepoNameChanged={handleRepoNameChanged}
-        repoName={repoName}
-        errorMessage={repoErrorMessage}
-      />
-      {pageState === PageState.Creating ? (
-        <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
-      ) : (
-        <div className={classes.buttonContainer}>
-          <Button color='first' onClick={handleCreateService} size='small'>
-            {t('dashboard.create_service_btn')}
-          </Button>
-          <Button color='inverted' onClick={() => navigate(-1)} size='small'>
-            {t('general.cancel')}
-          </Button>
-        </div>
-      )}
-    </div>
+      <RepoNameInput name='repoName' errorMessage={formError.repoName} />
+      <div className={classes.actionContainer}>
+        <Button type='submit' color='first' size='small' disabled={isCreatingRepo}>
+          {isCreatingRepo ? (
+            <AltinnSpinner size='xxsmall' aria-label={t('dashboard.creating_your_service')} />
+          ) : (
+            <span>{t('dashboard.create_service_btn')}</span>
+          )}
+        </Button>
+        <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
+      </div>
+    </form>
   );
 };

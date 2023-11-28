@@ -3,7 +3,7 @@ import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { NotFoundPage } from 'app-development/features/notFound';
+import { NotFoundPage } from 'app-shared/components/notFound';
 import { PageSpinner } from 'app-shared/components';
 import { Center } from 'app-shared/components/Center';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';

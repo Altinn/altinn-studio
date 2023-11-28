@@ -15,7 +15,7 @@ import { ToastContainer, Slide, toast } from 'react-toastify';
 import { ErrorBoundary } from 'react-error-boundary';
 import { AxiosError } from 'axios';
 import type { i18n } from 'i18next';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { ErrorBoundaryFallback } from '../components/ErrorBoundaryFallback';
 import { ApiError } from 'app-shared/types/api/ApiError';
 
@@ -23,6 +23,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { Link } from '@digdir/design-system-react';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
@@ -63,7 +64,21 @@ const handleError = (
     }
   }
 
-  toast.error(() => t('general.error_message'), { toastId: 'default' });
+  toast.error(
+    () => (
+      <Trans
+        i18nKey={'general.error_message'}
+        components={{
+          a: (
+            <Link href='/contact' inverted={true}>
+              {' '}
+            </Link>
+          ),
+        }}
+      />
+    ),
+    { toastId: 'default' },
+  );
 };
 
 export const ServicesContextProvider = ({
