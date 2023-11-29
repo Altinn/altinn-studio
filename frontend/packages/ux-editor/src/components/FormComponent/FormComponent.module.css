@@ -36,10 +36,7 @@
 }
 
 .editMode .dragHandle,
-.editMode .buttons {
-  visibility: visible;
-}
-
+.editMode .buttons,
 .wrapper:hover .dragHandle,
 .wrapper:hover .buttons {
   visibility: visible;
@@ -56,7 +53,7 @@
   box-sizing: border-box;
 }
 
-.formComponentWithHandle:is(.dragHandle:hover) {
+.formComponentWithHandle:has(.dragHandle:hover) {
   box-shadow: 0 0 0.4rem rgba(0, 0, 0, 0.25);
 }
 
