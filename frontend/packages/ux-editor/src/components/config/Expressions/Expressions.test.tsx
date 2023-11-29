@@ -23,9 +23,27 @@ const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
+const componentWithExpression: FormComponent = {
+  id: 'some-id',
+  type: ComponentType.Input,
+  itemType: 'COMPONENT',
+  hidden: parsableExternalExpression,
+};
 
 describe('Expressions', () => {
   beforeEach(jest.clearAllMocks);
+
+  it('renders only add new expression button when there are no existing expressions on component', async () => {
+    render({ component: { ...componentWithExpression, hidden: true } });
+    const deleteExpressionButtons = screen.queryByRole('button', {
+      name: textMock('right_menu.expression_delete'),
+    });
+    expect(deleteExpressionButtons).not.toBeInTheDocument();
+    const addExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_add'),
+    });
+    expect(addExpressionButton).toBeInTheDocument();
+  });
 
   it('renders existing expressions and addExpressionButton when hidden field on the component has an expression', () => {
     render({});
@@ -127,6 +145,19 @@ describe('Expressions', () => {
     expect(expressionInPreview).not.toBeInTheDocument();
   });
 
+  it('expression is deleted when delete expression button is clicked', async () => {
+    const user = userEvent.setup();
+    render({});
+
+    const deleteExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_delete'),
+    });
+    expect(deleteExpressionButton).toBeInTheDocument();
+    await act(() => user.click(deleteExpressionButton));
+
+    expect(deleteExpressionButton).not.toBeInTheDocument();
+  });
+
   it('Renders successfully when the component is a multipage group', () => {
     const component: FormContainer = {
       id: 'some-id',
@@ -153,7 +184,7 @@ describe('Expressions', () => {
     render({
       component: componentWithoutExpressions,
     });
-    
+
     const createRuleForComponentIdText = screen.getByText(
       textMock('right_menu.expressions_property_on_component'),
     );
@@ -173,13 +204,6 @@ describe('Expressions', () => {
     expect(linkToExpressionDocs).toBeInTheDocument();
   });
 });
-
-const componentWithExpression: FormComponent = {
-  id: 'some-id',
-  type: ComponentType.Input,
-  itemType: 'COMPONENT',
-  hidden: parsableExternalExpression,
-};
 
 const render = ({
   props = {},
