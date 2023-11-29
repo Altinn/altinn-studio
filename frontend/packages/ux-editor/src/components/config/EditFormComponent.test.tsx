@@ -96,7 +96,7 @@ describe('EditFormComponent', () => {
 
     const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
     await waitFor(async () => {
-      await user.click(linkIcon);
+      await userEvent.click(linkIcon);
     });
 
     Object.keys(labels).map(async (label) =>

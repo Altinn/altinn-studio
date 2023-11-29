@@ -16,10 +16,6 @@ export type TreeViewRootProps = {
   selectedId?: string;
 } & Omit<HTMLAttributes<HTMLUListElement>, 'onSelect'>;
 
-export type TreeViewRootRef = {
-  hasItems: () => boolean;
-};
-
 export const TreeViewRoot = ({
   children,
   className,
