@@ -6,12 +6,16 @@ import {
   ExpressionFunction,
   SubExpression,
   expressionFunctionTexts,
-} from '../../../../../types/Expressions';
+} from '../../../../../../types/Expressions';
 import { TrashIcon } from '@navikt/aksel-icons';
 import classes from './SubExpressionContent.module.css';
 import { DataSourceValue } from './DataSourceValue';
-import { addDataSource, addDataSourceValue } from '../../../../../utils/expressionsUtils';
-import { useText } from '../../../../../hooks';
+import {
+  addDataSourceToSubExpression,
+  addDataSourceValueToSubExpression,
+  addFunctionToSubExpression,
+} from '../../../../../../utils/expressionsUtils';
+import { useText } from '../../../../../../hooks';
 
 export interface SubExpressionContentProps {
   subExpression: SubExpression;
@@ -30,22 +34,22 @@ export const SubExpressionContent = ({
     subExpression.function as ExpressionFunction,
   );
 
-  const addFunctionToSubExpression = (func: string) => {
-    if (func === 'default') {
-      delete subExpression.function;
-    } else {
-      subExpression.function = func as ExpressionFunction;
-    }
-    onUpdateSubExpression(subExpression);
-  };
-
-  const addDataSourceToExpression = (dataSource: string, isComparable: boolean) => {
-    const newSubExpression = addDataSource(subExpression, dataSource, isComparable);
+  const addFunction = (func: string) => {
+    const newSubExpression = addFunctionToSubExpression(subExpression, func);
     onUpdateSubExpression(newSubExpression);
   };
 
-  const addDataSourceValueToExpression = (dataSourceValue: string, isComparable: boolean) => {
-    const newSubExpression = addDataSourceValue(subExpression, dataSourceValue, isComparable);
+  const addDataSource = (dataSource: string, isComparable: boolean) => {
+    const newSubExpression = addDataSourceToSubExpression(subExpression, dataSource, isComparable);
+    onUpdateSubExpression(newSubExpression);
+  };
+
+  const addDataSourceValue = (dataSourceValue: string, isComparable: boolean) => {
+    const newSubExpression = addDataSourceValueToSubExpression(
+      subExpression,
+      dataSourceValue,
+      isComparable,
+    );
     onUpdateSubExpression(newSubExpression);
   };
 
@@ -65,7 +69,7 @@ export const SubExpressionContent = ({
       <Select // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         label={t('right_menu.expressions_function')}
         hideLabel={true}
-        onChange={(func: string) => addFunctionToSubExpression(func)}
+        onChange={(func: string) => addFunction(func)}
         options={[{ label: t('right_menu.expressions_function_select'), value: 'default' }].concat(
           Object.values(ExpressionFunction).map((func: string) => ({
             label: expressionFunctionTexts(t)[func],
@@ -79,7 +83,7 @@ export const SubExpressionContent = ({
           <Select
             label={t('right_menu.expressions_data_source')}
             hideLabel={true}
-            onChange={(dataSource: string) => addDataSourceToExpression(dataSource, false)}
+            onChange={(dataSource: string) => addDataSource(dataSource, false)}
             options={[
               { label: t('right_menu.expressions_data_source_select'), value: 'default' },
             ].concat(
@@ -95,7 +99,7 @@ export const SubExpressionContent = ({
               subExpression={subExpression}
               currentDataSource={subExpression.dataSource as DataSource}
               specifyDataSourceValue={(dataSourceValue) =>
-                addDataSourceValueToExpression(dataSourceValue, false)
+                addDataSourceValue(dataSourceValue, false)
               }
               isComparableValue={false}
             />
@@ -106,7 +110,7 @@ export const SubExpressionContent = ({
           <Select
             label={t('right_menu.expressions_comparable_data_source')}
             hideLabel={true}
-            onChange={(compDataSource: string) => addDataSourceToExpression(compDataSource, true)}
+            onChange={(compDataSource: string) => addDataSource(compDataSource, true)}
             options={[
               { label: t('right_menu.expressions_data_source_select'), value: 'default' },
             ].concat(
@@ -122,7 +126,7 @@ export const SubExpressionContent = ({
               subExpression={subExpression}
               currentDataSource={subExpression.comparableDataSource as DataSource}
               specifyDataSourceValue={(dataSourceValue) =>
-                addDataSourceValueToExpression(dataSourceValue, true)
+                addDataSourceValue(dataSourceValue, true)
               }
               isComparableValue={true}
             />

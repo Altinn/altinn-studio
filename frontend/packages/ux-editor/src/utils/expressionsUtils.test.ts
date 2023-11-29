@@ -7,8 +7,9 @@ import {
   SubExpression,
 } from '../types/Expressions';
 import {
-  addDataSource,
-  addDataSourceValue,
+  addDataSourceToSubExpression,
+  addDataSourceValueToSubExpression,
+  addFunctionToSubExpression,
   addPropertyForExpression,
   addPropertyToExpression,
   canExpressionBeSaved,
@@ -479,9 +480,32 @@ describe('expressionsUtils', () => {
       expect(newExpression.subExpressions[0]).toMatchObject({});
     });
   });
+  describe('addFunctionToSubExpression', () => {
+    it('should add a function to a base sub expression when function is not "default"', () => {
+      const newSubExpression = addFunctionToSubExpression({}, ExpressionFunction.Not);
+
+      expect(newSubExpression.function).toBe(ExpressionFunction.Not);
+    });
+    it('should delete function when function is "default"', () => {
+      const functionToAdd = 'default';
+      const newSubExpression = addFunctionToSubExpression(baseInternalSubExpression, functionToAdd);
+
+      expect(newSubExpression.function).not.toBeDefined();
+    });
+    it('should update function only when new function is selected', () => {
+      const newSubExpression = addFunctionToSubExpression(subExpression0, ExpressionFunction.Not);
+
+      expect(subExpression0.function).toBe(ExpressionFunction.Equals);
+      expect(newSubExpression.function).toBe(ExpressionFunction.Not);
+      expect(newSubExpression.dataSource).toBe(subExpression0.dataSource);
+      expect(newSubExpression.value).toBe(subExpression0.value);
+      expect(newSubExpression.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newSubExpression.comparableValue).toBe(subExpression0.comparableValue);
+    });
+  });
   describe('addDataSource', () => {
     it('should remove comparableValue and comparableDataSource when dataSource is "default" and isComparable is true', () => {
-      const newExpEl = addDataSource(subExpression0, 'default', true);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, 'default', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBeUndefined();
@@ -489,7 +513,7 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBeUndefined();
     });
     it('should remove value and dataSource when dataSource is "default" and isComparable is false', () => {
-      const newExpEl = addDataSource(subExpression0, 'default', false);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, 'default', false);
 
       expect(newExpEl.dataSource).toBeUndefined();
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -497,7 +521,11 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
     });
     it('should remove comparableValue when comparableDataSource has not changed and isComparable is true', () => {
-      const newExpEl = addDataSource(subExpression0, subExpression0.comparableDataSource, true);
+      const newExpEl = addDataSourceToSubExpression(
+        subExpression0,
+        subExpression0.comparableDataSource,
+        true,
+      );
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -505,7 +533,11 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBeUndefined();
     });
     it('should remove value when dataSource has not changed and isComparable is false', () => {
-      const newExpEl = addDataSource(subExpression0, subExpression0.dataSource, false);
+      const newExpEl = addDataSourceToSubExpression(
+        subExpression0,
+        subExpression0.dataSource,
+        false,
+      );
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -513,7 +545,7 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
     });
     it('should set comparableValue to true when dataSource is DataSource.Boolean and isComparable is true', () => {
-      const newExpEl = addDataSource(subExpression0, DataSource.Boolean, true);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, DataSource.Boolean, true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(DataSource.Boolean);
@@ -521,7 +553,7 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBe(true);
     });
     it('should set value to true when dataSource is DataSource.Boolean and isComparable is false', () => {
-      const newExpEl = addDataSource(subExpression0, DataSource.Boolean, false);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, DataSource.Boolean, false);
 
       expect(newExpEl.dataSource).toBe(DataSource.Boolean);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -529,7 +561,7 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
     });
     it('should remove value when dataSource is set to something else than it was, but not Boolean or DropDown', () => {
-      const newExpEl = addDataSource(subExpression0, DataSource.Number, false);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, DataSource.Number, false);
 
       expect(newExpEl.dataSource).toBe(DataSource.Number);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -539,7 +571,7 @@ describe('expressionsUtils', () => {
   });
   describe('addDataSourceValue', () => {
     it('should remove comparableValue when dataSourceValue is "default"', () => {
-      const newExpEl = addDataSourceValue(subExpression0, 'default', true);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, 'default', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -548,7 +580,7 @@ describe('expressionsUtils', () => {
     });
     it('should set comparableValue to boolean type true when dataSource is DataSource.Boolean and dataSourceValue is "true"', () => {
       subExpression0.comparableDataSource = DataSource.Boolean;
-      const newExpEl = addDataSourceValue(subExpression0, 'true', true);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, 'true', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -557,7 +589,7 @@ describe('expressionsUtils', () => {
     });
     it('should set comparableValue to boolean type false when dataSource is DataSource.Boolean and dataSourceValue is "false"', () => {
       subExpression0.comparableDataSource = DataSource.Boolean;
-      const newExpEl = addDataSourceValue(subExpression0, 'false', true);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, 'false', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(DataSource.Boolean);
@@ -566,7 +598,7 @@ describe('expressionsUtils', () => {
     });
     it('should set comparableValue to the parsed float when dataSource is DataSource.Number', () => {
       subExpression0.dataSource = DataSource.Number;
-      const newExpEl = addDataSourceValue(subExpression0, '123.45', false);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, '123.45', false);
 
       expect(newExpEl.dataSource).toBe(DataSource.Number);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -575,7 +607,7 @@ describe('expressionsUtils', () => {
     });
     it('should set comparableValue to the string value when dataSource is not DataSource.Boolean or DataSource.Number and dataSourceValue is not null', () => {
       subExpression0.comparableDataSource = DataSource.String;
-      const newExpEl = addDataSourceValue(subExpression0, 'NewValue', true);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, 'NewValue', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);

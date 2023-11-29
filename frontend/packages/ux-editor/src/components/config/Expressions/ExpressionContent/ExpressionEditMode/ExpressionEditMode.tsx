@@ -17,7 +17,7 @@ import {
   updateSubExpressionOnExpression,
 } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
-import { SimpleExpression } from '../SimpleExpression';
+import { SimpleExpression } from './SimpleExpression';
 import { Button, Switch } from '@digdir/design-system-react';
 import { CheckmarkIcon, PlusCircleIcon, TrashIcon } from '@navikt/aksel-icons';
 import { Trans } from 'react-i18next';

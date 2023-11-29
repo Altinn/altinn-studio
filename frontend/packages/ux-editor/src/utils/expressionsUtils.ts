@@ -217,6 +217,19 @@ export const addPropertyToExpression = (
   return newExpression;
 };
 
+export const addFunctionToSubExpression = (
+  oldSubExpression: SubExpression,
+  func: string,
+): SubExpression => {
+  const newSubExpression = deepCopy(oldSubExpression);
+  if (func === 'default') {
+    delete newSubExpression.function;
+    return newSubExpression;
+  }
+  newSubExpression.function = func as ExpressionFunction;
+  return newSubExpression;
+};
+
 export const addSubExpressionToExpression = (
   oldExpression: Expression,
   operator: Operator,
@@ -276,7 +289,7 @@ export const removeSubExpression = (
   return newExpression;
 };
 
-export const addDataSource = (
+export const addDataSourceToSubExpression = (
   expEl: SubExpression,
   dataSource: string,
   isComparable: boolean,
@@ -303,7 +316,7 @@ export const addDataSource = (
   return newExpEl;
 };
 
-export const addDataSourceValue = (
+export const addDataSourceValueToSubExpression = (
   expEl: SubExpression,
   dataSourceValue: string,
   isComparable: boolean,

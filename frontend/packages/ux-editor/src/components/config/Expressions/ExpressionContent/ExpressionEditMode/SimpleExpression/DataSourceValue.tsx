@@ -5,14 +5,17 @@ import {
   LegacyToggleButtonGroup,
   LegacyTextField,
 } from '@digdir/design-system-react';
-import { DataSource, SubExpression } from '../../../../../types/Expressions';
+import { DataSource, SubExpression } from '../../../../../../types/Expressions';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { useDatamodelMetadataQuery } from '../../../../../hooks/queries/useDatamodelMetadataQuery';
-import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
-import { getComponentIds, getDataModelElementNames } from '../../../../../utils/expressionsUtils';
-import { useText } from '../../../../../hooks';
+import { useDatamodelMetadataQuery } from '../../../../../../hooks/queries/useDatamodelMetadataQuery';
+import { useFormLayoutsQuery } from '../../../../../../hooks/queries/useFormLayoutsQuery';
+import {
+  getComponentIds,
+  getDataModelElementNames,
+} from '../../../../../../utils/expressionsUtils';
+import { useText } from '../../../../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../../../hooks/useAppContext';
+import { useAppContext } from '../../../../../../hooks/useAppContext';
 
 export interface DataSourceValueProps {
   subExpression: SubExpression;
@@ -82,6 +85,11 @@ export const DataSourceValue = ({
     case DataSource.String:
       return (
         <LegacyTextField
+          label={
+            isComparableValue
+              ? t('right_menu.expressions_data_source_comparable_value')
+              : t('right_menu.expressions_data_source_value')
+          }
           onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
           value={currentValue as string}
         />
@@ -89,6 +97,11 @@ export const DataSourceValue = ({
     case DataSource.Number:
       return (
         <LegacyTextField
+          label={
+            isComparableValue
+              ? t('right_menu.expressions_data_source_comparable_value')
+              : t('right_menu.expressions_data_source_value')
+          }
           formatting={{ number: {} }}
           inputMode='numeric'
           onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}

@@ -2,15 +2,21 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SubExpressionContent, SubExpressionContentProps } from './SubExpressionContent';
-import { subExpression0 } from '../../../../../testing/expressionMocks';
+import {
+  baseInternalSubExpression,
+  componentId,
+  stringValue,
+  subExpression0,
+} from '../../../../../../testing/expressionMocks';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { renderWithMockStore } from '../../../../../testing/mocks';
-import { formDesignerMock } from '../../../../../testing/stateMocks';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { renderWithMockStore } from '../../../../../../testing/mocks';
+import { formDesignerMock } from '../../../../../../testing/stateMocks';
+import { textMock } from '../../../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { layout1NameMock, layoutMock } from '../../../../../testing/layoutMock';
-import { IFormLayouts } from '../../../../../types/global';
+import { layout1NameMock, layoutMock } from '../../../../../../testing/layoutMock';
+import { IFormLayouts } from '../../../../../../types/global';
+import { DataSource } from '../../../../../../types/Expressions';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -28,14 +34,7 @@ describe('SubExpressionContent', () => {
   it('renders function select when subExpression does not have function set', () => {
     render({
       props: {
-        subExpression: {
-          ...subExpression0,
-          dataSource: undefined,
-          value: undefined,
-          comparableDataSource: undefined,
-          comparableValue: undefined,
-          function: undefined,
-        },
+        subExpression: {},
       },
     });
 
@@ -49,13 +48,7 @@ describe('SubExpressionContent', () => {
   it('displays "default" value in only two select components when subExpression only has property set', () => {
     render({
       props: {
-        subExpression: {
-          ...subExpression0,
-          dataSource: undefined,
-          value: undefined,
-          comparableDataSource: undefined,
-          comparableValue: undefined,
-        },
+        subExpression: baseInternalSubExpression,
       },
     });
 
@@ -80,9 +73,9 @@ describe('SubExpressionContent', () => {
       props: {
         onUpdateSubExpression: onUpdateSubExpression,
         subExpression: {
-          ...subExpression0,
-          comparableDataSource: undefined,
-          comparableValue: undefined,
+          ...baseInternalSubExpression,
+          dataSource: DataSource.Component,
+          value: componentId,
         },
       },
     });
@@ -108,6 +101,45 @@ describe('SubExpressionContent', () => {
       ),
     );
     expect(onUpdateSubExpression).toHaveBeenCalledTimes(1);
+    expect(onUpdateSubExpression).toHaveBeenCalledWith({
+      ...baseInternalSubExpression,
+      dataSource: DataSource.DataModel,
+      value: undefined,
+    });
+  });
+  it('calls onUpdateSubExpression when subExpression had existing value and dataSourceValue is changed to a new string', async () => {
+    const onUpdateSubExpression = jest.fn();
+    render({
+      props: {
+        onUpdateSubExpression: onUpdateSubExpression,
+        subExpression: {
+          ...baseInternalSubExpression,
+          comparableDataSource: DataSource.String,
+          comparableValue: stringValue,
+        },
+      },
+    });
+
+    // Find select components
+    const selectDataSourceComponent = screen.getByRole('combobox', {
+      name: textMock('right_menu.expressions_comparable_data_source'),
+    });
+    expect(selectDataSourceComponent).toHaveValue(
+      textMock('right_menu.expressions_data_source_string'),
+    );
+    const comparableValueInputField = screen.getByRole('textbox', {
+      name: textMock('right_menu.expressions_data_source_comparable_value'),
+    });
+    expect(comparableValueInputField).toHaveValue(subExpression0.comparableValue as string);
+    // Type new value to string comparable data source value
+    await act(() => user.clear(comparableValueInputField));
+
+    expect(onUpdateSubExpression).toHaveBeenCalledTimes(1);
+    expect(onUpdateSubExpression).toHaveBeenCalledWith({
+      ...baseInternalSubExpression,
+      comparableDataSource: DataSource.String,
+      comparableValue: '',
+    });
   });
   it('displays dataSource, value, comparableDataSource and comparableValue when all are set on subExpression', async () => {
     render({});
