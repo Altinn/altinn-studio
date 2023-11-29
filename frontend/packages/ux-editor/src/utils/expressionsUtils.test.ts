@@ -13,6 +13,7 @@ import {
   addFunctionToSubExpression,
   addPropertyForExpression,
   addPropertyToExpression,
+  addSubExpressionToExpression,
   canExpressionBeSaved,
   convertAndAddExpressionToComponent,
   convertExternalExpressionToInternal,
@@ -530,6 +531,25 @@ describe('expressionsUtils', () => {
       expect(newSubExpression.value).toBe(subExpression0.value);
       expect(newSubExpression.comparableDataSource).toBe(subExpression0.comparableDataSource);
       expect(newSubExpression.comparableValue).toBe(subExpression0.comparableValue);
+    });
+  });
+  describe('addSubExpressionToExpression', () => {
+    it('should add an empty sub expression and no operator when there is no subexpression from before', () => {
+      const newExpression = addSubExpressionToExpression(
+        { property: ExpressionPropertyBase.Hidden },
+        Operator.Or,
+      );
+
+      expect(newExpression.subExpressions).toHaveLength(1);
+      expect(newExpression.subExpressions[0]).toStrictEqual({});
+      expect(newExpression.operator).toBeUndefined();
+    });
+    it('should add sub expression and operator when there are subexpressions from before', () => {
+      const newExpression = addSubExpressionToExpression(simpleInternalExpression, Operator.And);
+
+      expect(newExpression.subExpressions).toHaveLength(2);
+      expect(newExpression.subExpressions[1]).toStrictEqual({});
+      expect(newExpression.operator).toBe(Operator.And);
     });
   });
   describe('addDataSource', () => {
