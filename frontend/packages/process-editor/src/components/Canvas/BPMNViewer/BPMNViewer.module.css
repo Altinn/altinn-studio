@@ -1,0 +1,14 @@
+.viewerWrapper {
+  width: 100%;
+  display: flex;
+  gap: 1rem;
+}
+
+.canvasContainer {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  border: 1px solid var(--fds-semantic-border-neutral-default);
+  margin-inline: 18px;
+  margin-bottom: 18px;
+}

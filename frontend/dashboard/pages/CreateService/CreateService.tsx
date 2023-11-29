@@ -47,7 +47,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self ? user.login : selectedContext;
   const createAppRepo = async (createAppForm: CreateAppForm) => {
-    addRepo(
+    addRepoMutation(
       {
         org: createAppForm.org,
         repository: createAppForm.repoName,
@@ -117,14 +117,16 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       />
       <RepoNameInput name='repoName' errorMessage={formError.repoName} />
       <div className={classes.actionContainer}>
-        <Button type='submit' color='first' size='small' disabled={isCreatingRepo}>
-          {isCreatingRepo ? (
-            <AltinnSpinner size='xxsmall' aria-label={t('dashboard.creating_your_service')} />
-          ) : (
-            <span>{t('dashboard.create_service_btn')}</span>
-          )}
-        </Button>
-        <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
+        {isCreatingRepo || isCreatingRepoSuccess ? (
+          <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
+        ) : (
+          <>
+            <Button type='submit' color='first' size='small'>
+              {t('dashboard.create_service_btn')}
+            </Button>
+            <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
+          </>
+        )}
       </div>
     </form>
   );
