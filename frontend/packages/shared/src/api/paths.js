@@ -141,3 +141,4 @@ export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdit
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;
+export const appLibVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-lib-version`;

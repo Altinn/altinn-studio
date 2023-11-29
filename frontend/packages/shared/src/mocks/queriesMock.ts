@@ -91,4 +91,5 @@ export const queriesMock: ServicesContextProps = {
   publishResource: jest.fn(),
   getAltinn2LinkServices: jest.fn(),
   importResourceFromAltinn2: jest.fn(),
+  getAppLibVersion: jest.fn(),
 };

@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
@@ -27,7 +26,7 @@ namespace Designer.Tests.GiteaIntegrationTests
         public async Task GetCurrentUser_ShouldReturnOk(string expectedUserName, string expectedEmail)
         {
             string requestUrl = "designer/api/user/current";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUrl);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
@@ -51,7 +50,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             string targetRepo = TestDataHelper.GenerateTestRepoName();
             await CreateAppUsingDesigner(org, targetRepo);
 
-            string requestUrl = $"designer/api/user/repos";
+            string requestUrl = "designer/api/user/repos";
             using var response = await HttpClient.GetAsync(requestUrl);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
