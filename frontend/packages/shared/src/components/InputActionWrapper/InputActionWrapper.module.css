@@ -13,7 +13,6 @@
   display: flex;
   gap: 2px;
   background-color: var(--fds-semantic-background-subtle);
-  padding: 1px;
 }
 
 .standByButtonWrapper {
