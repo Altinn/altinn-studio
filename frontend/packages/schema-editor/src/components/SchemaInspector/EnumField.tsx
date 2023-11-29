@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import { Button, Textfield } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
@@ -26,33 +26,33 @@ export const EnumField = ({
   onEnterKeyPress,
   baseId,
 }: EnumFieldProps) => {
-  const [val, setVal] = useState(value);
+  const [inputValue, setInputValue] = useState(value);
   useEffect(() => {
-    setVal(value);
+    setInputValue(value);
   }, [value]);
   const { t } = useTranslation();
 
   const onBlur = () => {
-    onChange(val, value);
+    onChange(inputValue, value);
   };
 
-  const handleChange = (e: any) => {
-    e.stopPropagation();
-    setVal(e.target.value);
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+    setInputValue(event.target.value);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
-  const id = `${baseId}-enum-${value}`;
+  const label = t('schema_editor.textfield_label', { id: `${baseId}-enum-${value}` });
 
   return (
     <div className={classes.root}>
       <Textfield
-        label={t('schema_editor.textfield_label', { id })}
+        label={label}
         hideLabel
         disabled={readOnly}
-        value={val}
+        value={inputValue}
         onChange={handleChange}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
