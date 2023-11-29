@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
 import { EditStringValue } from './EditStringValue';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
