@@ -20,6 +20,7 @@ export interface Resource {
   enterpriseUserEnabled?: boolean;
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
+  limitedByRRR?: boolean;
 }
 
 export interface ResourceContactPoint {

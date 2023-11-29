@@ -13,6 +13,10 @@ import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
 import { SearchField } from '@altinn/altinn-design-system';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+import { OrganizationAccessPage } from 'resourceadm/pages/OrganizationAccessPage';
+import { OrganizationListPage } from 'resourceadm/pages/OrganizationAccessPage/OrganizationListPage';
+import { ListAdmin } from 'resourceadm/pages/OrganizationAccessPage/ListAdmin';
+import { ListAdminEnv } from 'resourceadm/pages/OrganizationAccessPage/ListAdminEnv';
 
 export const App = (): JSX.Element => {
   const { data: user, isError: isUserError } = useUserQuery();
@@ -65,6 +69,7 @@ export const App = (): JSX.Element => {
         <Routes>
           <Route element={<PageLayout />}>
             <Route path={basePath} element={<ResourceDashboardPage />} />
+            <Route path={`${basePath}/listadmin/`} element={<ListAdmin />} />
             <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
             <Route path='/' element={<ErrorPage />} />
             <Route path='/:org' element={<RedirectPage />} />

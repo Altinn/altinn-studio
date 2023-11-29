@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { Heading } from '@digdir/design-system-react';
+import { Button, Heading } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
 import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
@@ -33,6 +33,7 @@ import {
   ResourceDropdown,
 } from 'resourceadm/components/ResourcePageInputs';
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
+import { OrganizationListPage } from '../OrganizationAccessPage/OrganizationListPage';
 
 /**
  * Initial value for languages with empty fields
@@ -115,6 +116,8 @@ export const AboutResourcePage = ({
   const [hasRightDescriptionError, setHasRightDescriptionError] = useState(
     resourceData.delegable ? getResourcePageTextfieldError(resourceData.rightDescription) : false,
   );
+
+  const [listEditEnv, setListEditEnv] = useState<string>('');
 
   // useRefs to handle tabbing between the input elements and the right translation bar
   const rightTranslationBarRef = useRef(null);
@@ -441,13 +444,47 @@ export const AboutResourcePage = ({
           descriptionId='isVisibleSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
+        <ResourceSwitchInput
+          label='Begrenset av RRR'
+          description='Velg om ressursen skal være begrenset av RRR-instillinger'
+          value={resourceData.limitedByRRR ?? false}
+          onFocus={() => setTranslationType('none')}
+          onBlur={(isChecked: boolean) => handleSave({ ...resourceData, limitedByRRR: isChecked })}
+          id='limitedByRRRSwitch'
+          descriptionId='limitedByRRRSwitchSwitchDescription'
+          toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
+        />
+        {resourceData.limitedByRRR && (
+          <div>
+            <Button variant='tertiary' onClick={() => setListEditEnv('tt02')}>
+              Administrer RRR i TT-02
+            </Button>
+            <Button variant='tertiary' onClick={() => setListEditEnv('prod')}>
+              Administrer RRR i Prod
+            </Button>
+            <Button variant='tertiary' onClick={() => setListEditEnv('at22')}>
+              Administrer RRR i AT22
+            </Button>
+            <Button variant='tertiary' onClick={() => setListEditEnv('at23')}>
+              Administrer RRR i AT23
+            </Button>
+          </div>
+        )}
       </>
     );
   };
 
   return (
     <div className={classes.wrapper} id={id} role='tabpanel'>
-      <div className={classes.pageWrapper}>{displayContent()}</div>
+      {listEditEnv ? (
+        <OrganizationListPage
+          env={listEditEnv}
+          resourceId={resourceId}
+          onBack={() => setListEditEnv('')}
+        />
+      ) : (
+        <div className={classes.pageWrapper}>{displayContent()}</div>
+      )}
       {translationType !== 'none' && displayRightTranslationBar()}
     </div>
   );

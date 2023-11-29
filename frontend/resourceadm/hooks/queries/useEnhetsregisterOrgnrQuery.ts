@@ -17,6 +17,7 @@ export const useEnhetsregisterEnhetOrgnrQuery = (
       get(
         `https://data.brreg.no/enhetsregisteret/api/enheter?organisasjonsnummer=${orgnummereJoined}&size=10000`,
       ),
+    { enabled: orgnummere.length > 0 },
   );
 };
 
@@ -30,5 +31,6 @@ export const useEnhetsregisterUnderenhetOrgnrQuery = (
       get(
         `https://data.brreg.no/enhetsregisteret/api/underenheter?organisasjonsnummer=${orgnummereJoined}&size=10000`,
       ),
+    { enabled: orgnummere.length > 0 },
   );
 };

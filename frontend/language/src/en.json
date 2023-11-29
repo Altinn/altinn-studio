@@ -652,6 +652,7 @@
   "resourceadm.about_resource_visible_label": "Visibility",
   "resourceadm.about_resource_visible_show_text": "The resource {{showText}} be visible.",
   "resourceadm.about_resource_visible_text": "After publishing, the resource will be visible on Altinn.no.",
+  "resourceadm.dashboard_change_organization_lists": "Change access lists",
   "resourceadm.dashboard_create_modal_create_button": "Create resource",
   "resourceadm.dashboard_create_modal_resource_name_and_id_text": "Choose a name and ID for the resource. Language support for names can be added on the next page. The ID is suggested based on the name you write and can be edited if you want a different one. Name can be changed later, while id cannot be changed.",
   "resourceadm.dashboard_create_modal_title": "Create new resource",

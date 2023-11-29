@@ -6,6 +6,7 @@
 
 .tabell {
   border-collapse: collapse;
+  margin-top: 2rem;
 }
 .tabell th {
   padding: 0.5rem;

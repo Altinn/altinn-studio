@@ -7,66 +7,87 @@ import {
 } from 'resourceadm/hooks/queries/useEnhetsregisterOrganizationQuery';
 import { useDebounce } from 'react-use';
 import { BrregOrganization } from 'app-shared/types/ResourceAdm';
-import {
-  useEnhetsregisterEnhetOrgnrQuery,
-  useEnhetsregisterUnderenhetOrgnrQuery,
-} from 'resourceadm/hooks/queries/useEnhetsregisterOrgnrQuery';
+import { ListMembers } from './listeTestData';
+import { FieldWrapper } from './FieldWrapper';
 
-const TEST_DATA = ['991825827', '997532422', '891611862', '111611111'];
-
-interface OrganizationAccessPageProps {}
+interface OrganizationAccessPageProps {
+  id: number;
+  env: string;
+  onBack: () => void;
+}
 
 // TODO: filtrer/disable  enheter som allerede finnes
-const enhetsListe = (enheter: BrregOrganization[], erUnderenhet: boolean): React.ReactNode => {
+const enhetsListe = (
+  enheter: BrregOrganization[],
+  erUnderenhet: boolean,
+  onSelectEnhet: (org) => void,
+): React.ReactNode => {
   if (enheter.length === 0) {
     return <div>{erUnderenhet ? 'Fant ingen underenheter' : 'Fant ingen enheter'}</div>;
   }
   return (
     <>
-      <option disabled={true}>{erUnderenhet ? 'Underenheter' : 'Enheter'}</option>
+      <Heading level={2} size='medium'>
+        {erUnderenhet ? 'Underenheter' : 'Enheter'}
+      </Heading>
       {enheter.map((org) => {
         return (
-          <option key={org.organisasjonsnummer} value={org.organisasjonsnummer}>
-            {org.navn}
-          </option>
+          <Button
+            size='small'
+            variant='tertiary'
+            onClick={() => {
+              onSelectEnhet({
+                orgNr: org.organisasjonsnummer,
+                orgName: org.navn,
+                isUnderenhet: erUnderenhet,
+              });
+            }}
+            key={org.organisasjonsnummer}
+          >
+            {`${org.organisasjonsnummer} - ${org.navn}`}
+          </Button>
         );
       })}
     </>
   );
 };
 
-const tabellRad = (enhet: BrregOrganization, typeString: string): React.ReactNode => {
+const tabellRad = (
+  orgNr: string,
+  orgName: string,
+  isUnderenhet: boolean,
+  onRemove: (orgNr: string) => void,
+): React.ReactNode => {
   return (
-    <tr key={enhet.organisasjonsnummer} className={classes.tabellRad}>
-      <td>{enhet.organisasjonsnummer}</td>
-      <td>{enhet.navn}</td>
-      <td>{typeString}</td>
+    <tr key={orgNr} className={classes.tabellRad}>
+      <td>{orgNr}</td>
+      <td>{orgName}</td>
+      <td>{isUnderenhet ? 'Underenhet' : 'Enhet'}</td>
       <td>{new Date().toLocaleString()}</td>
       <td>
-        <Button
-          color='danger'
-          onClick={() => {
-            /** */
-          }}
-          variant='secondary'
-          size='small'
-        >
-          Fjern tilgang
+        <Button color='danger' onClick={() => onRemove(orgNr)} variant='secondary' size='small'>
+          Fjern fra liste
         </Button>
       </td>
     </tr>
   );
 };
 
-export const OrganizationAccessPage = ({}: OrganizationAccessPageProps): React.ReactNode => {
+export const OrganizationAccessPage = ({
+  id,
+  env,
+  onBack,
+}: OrganizationAccessPageProps): React.ReactNode => {
   const [searchText, setSearchText] = useState<string>('');
   const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   useDebounce(() => setDebouncedSearchText(searchText), 500, [searchText]);
 
-  const reg_enheter = TEST_DATA;
+  const liste = ListMembers.find((x) => x.listId === id);
+  const reg_enheter = liste ? liste.members : [];
+  const [listItems, setListItems] =
+    useState<{ orgNr: string; isUnderenhet: boolean; orgName: string }[]>(reg_enheter);
 
-  const { data: enheterData } = useEnhetsregisterEnhetOrgnrQuery(reg_enheter);
-  const { data: underenheterData } = useEnhetsregisterUnderenhetOrgnrQuery(reg_enheter);
+  const [listName, setListName] = useState<string>(liste?.name || '');
 
   const { data: enheterSearchData, isLoading: isLoadingEnheterSearch } =
     useEnhetsregisterOrganizationQuery(debouncedSearchText);
@@ -75,10 +96,12 @@ export const OrganizationAccessPage = ({}: OrganizationAccessPageProps): React.R
 
   return (
     <div className={classes.pageWrapper}>
-      <Heading level={1} size='large' spacing>
-        Organisasjonstilganger
-      </Heading>
-      <Alert severity='info'>Følgende enheter har tilgang til ressursen</Alert>
+      <Button size='small' variant='tertiary' onClick={() => onBack()}>
+        Tilbake
+      </Button>
+      <FieldWrapper label='Listenavn' description='Gi listen et beskrivende navn'>
+        <Textfield value={listName} onChange={(event) => setListName(event.target.value)} />
+      </FieldWrapper>
       <table className={classes.tabell}>
         <thead>
           <tr>
@@ -90,48 +113,63 @@ export const OrganizationAccessPage = ({}: OrganizationAccessPageProps): React.R
           </tr>
         </thead>
         <tbody>
-          {TEST_DATA.map((orgnr) => {
-            const enhet = (enheterData?._embedded.enheter || []).find(
-              (x) => x.organisasjonsnummer === orgnr,
-            );
-            const erUnderenhet = (underenheterData?._embedded.underenheter || []).find(
-              (x) => x.organisasjonsnummer === orgnr,
-            );
-            if (enhet) {
-              return tabellRad(enhet, 'Enhet');
-            } else if (erUnderenhet) {
-              return tabellRad(erUnderenhet, 'Underenhet');
-            }
-            return tabellRad({ organisasjonsnummer: orgnr, navn: '<navn ikke funnet>' }, '');
+          {listItems.length === 0 && (
+            <tr>
+              <td colSpan={100}>
+                <Alert severity='info'>Listen inneholder ingen enheter</Alert>
+              </td>
+            </tr>
+          )}
+          {listItems.map((org) => {
+            return tabellRad(org.orgNr, org.orgName, org.isUnderenhet, (orgNr: string) => {
+              setListItems((old) => old.filter((x) => x.orgNr !== orgNr));
+            });
           })}
           <tr>
             <td colSpan={100}>
               <div>
-                <label>Legg til tilgang for enheter og underenheter:</label>
-                <Textfield
-                  list='orgsearch'
-                  value={searchText}
-                  placeholder='søk etter enhet'
-                  onChange={(event) => {
-                    setSearchText(event.target.value);
-                  }}
-                />
-                {(isLoadingEnheterSearch || isLoadingUnderenheterSearch) && (
-                  <Spinner size='xlarge' variant='interaction' title='Laster..' />
+                <FieldWrapper
+                  label='Legg til enhet'
+                  description='Du kan søke etter enheter med navn eller et organisasjonsnummer'
+                >
+                  <Textfield
+                    value={searchText}
+                    placeholder='søk etter enhet'
+                    onChange={(event) => {
+                      setSearchText(event.target.value);
+                    }}
+                  />
+                </FieldWrapper>
+
+                {(isLoadingEnheterSearch || isLoadingUnderenheterSearch) && debouncedSearchText && (
+                  <Spinner size='xlarge' variant='interaction' title='Laster...' />
                 )}
                 {debouncedSearchText.length > 0 &&
                   !isLoadingEnheterSearch &&
                   !isLoadingUnderenheterSearch && (
-                    <datalist id='orgsearch'>
-                      {enhetsListe(enheterSearchData?._embedded?.enheter || [], false)}
-                      {enhetsListe(underenheterSearchData?._embedded?.underenheter || [], true)}
-                    </datalist>
+                    <div>
+                      {enhetsListe(enheterSearchData?._embedded?.enheter || [], false, (nyOrg) => {
+                        setListItems((old) => [...old, nyOrg]);
+                      })}
+                      {enhetsListe(
+                        underenheterSearchData?._embedded?.underenheter || [],
+                        true,
+                        (nyOrg) => {
+                          setListItems((old) => [...old, nyOrg]);
+                        },
+                      )}
+                    </div>
                   )}
               </div>
             </td>
           </tr>
         </tbody>
       </table>
+      {!!id && (
+        <Button variant='secondary' color='danger'>
+          Slett liste
+        </Button>
+      )}
     </div>
   );
 };
