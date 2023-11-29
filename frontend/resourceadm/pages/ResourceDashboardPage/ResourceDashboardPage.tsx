@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner, Heading } from '@digdir/design-system-react';
-import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
+import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
 import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
@@ -91,6 +91,18 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           {t('resourceadm.dashboard_header', { org: selectedContext })}
         </Heading>
         <div className={classes.topRightWrapper}>
+          <Button
+            as={Link}
+            variant='tertiary'
+            color='second'
+            icon={<TasklistIcon />}
+            iconPlacement='right'
+            to={`/${selectedContext}/${repo}/listadmin`}
+            size='medium'
+          >
+            <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+          </Button>
+          <div className={classes.verticalDivider} />
           <Button
             variant='tertiary'
             color='second'
