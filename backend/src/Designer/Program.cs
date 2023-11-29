@@ -72,7 +72,7 @@ void ConfigureSetupLogging()
 
 async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
 {
-    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure providers.");
+    logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure providers");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     config.SetBasePath(basePath);
     config.AddJsonFile(basePath + "app/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
@@ -98,7 +98,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
         !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
     {
-        logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault.");
+        logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault");
         AzureServiceTokenProvider azureServiceTokenProvider = new($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
         KeyVaultClient keyVaultClient = new(
             new KeyVaultClient.AuthenticationCallback(
@@ -129,7 +129,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         }
     }
 
-    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Configured providers.");
+    logger.LogInformation("// Program.cs // SetConfigurationProviders // Configured providers");
 }
 
 void ConfigureLogging(ILoggingBuilder builder)
@@ -171,7 +171,7 @@ void ConfigureLogging(ILoggingBuilder builder)
 
 void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
 {
-    logger.LogInformation($"// Program.cs // ConfigureServices // Attempting to configure services.");
+    logger.LogInformation("// Program.cs // ConfigureServices // Attempting to configure services");
 
     services.Configure<KestrelServerOptions>(options =>
     {
@@ -249,12 +249,12 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     // Auto register all settings classes
     services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
-    logger.LogInformation($"// Program.cs // ConfigureServices // Configuration complete");
+    logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
 
 void Configure(IConfiguration configuration)
 {
-    logger.LogInformation($"// Program.cs // Configure // Attempting to configure env.");
+    logger.LogInformation("// Program.cs // Configure // Attempting to configure env");
     if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     {
         app.UseExceptionHandler("/error-local-development");

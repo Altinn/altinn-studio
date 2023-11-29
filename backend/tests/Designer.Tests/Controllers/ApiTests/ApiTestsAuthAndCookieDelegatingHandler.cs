@@ -40,14 +40,14 @@ internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
         if (loginResponse.Headers.Contains("Set-Cookie"))
         {
             cookies = loginResponse.Headers.GetValues("Set-Cookie");
-            SetAltinnStudiCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
+            SetAltinnStudioCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
         }
 
         var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
 
         var xsrfcookies = xsrfResponse.Headers.GetValues("Set-Cookie");
         var xsrfToken = GetXsrfTokenFromCookie(xsrfcookies);
-        SetAltinnStudiCookieFromResponseHeader(request, cookies, xsrfToken);
+        SetAltinnStudioCookieFromResponseHeader(request, cookies, xsrfToken);
 
         return await base.SendAsync(request, cancellationToken);
     }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Select, SingleSelectOption } from '@digdir/design-system-react';
+import { Button, Paragraph, Select, SingleSelectOption } from '@digdir/design-system-react';
 import {
   MagnifyingGlassIcon,
   PencilIcon,
@@ -139,7 +139,7 @@ export const TextResource = ({
       )}
       <span className={classes.textResource}>
         {textResource?.value ? (
-          <span>{textResource.value}</span>
+          <Paragraph className={classes.paragraph}>{textResource.value}</Paragraph>
         ) : (
           <span className={classes.placeholder}>{placeholder}</span>
         )}
