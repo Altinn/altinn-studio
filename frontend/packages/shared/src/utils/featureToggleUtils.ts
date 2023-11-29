@@ -103,5 +103,8 @@ const shouldPersistInSession = (): boolean => {
 // Add feature to session storage to persist the feature in the current session
 const addFeatureFlagToSessionStorage = (featureFlag: SupportedFeatureFlags): void => {
   const featureFlagsFromStorage = typedSessionStorage.getItem<string[]>(featureFlagKey) || [];
+
+  const featureFlagAlreadyExist = featureFlagsFromStorage.includes(featureFlag);
+  if (featureFlagAlreadyExist) return;
   typedSessionStorage.setItem<string[]>(featureFlagKey, [...featureFlagsFromStorage, featureFlag]);
 };
