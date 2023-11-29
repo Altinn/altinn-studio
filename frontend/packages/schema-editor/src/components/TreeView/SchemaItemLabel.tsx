@@ -10,7 +10,8 @@ import {
   getCapabilities,
   getNameFromPointer,
   pointerIsDefinition,
-  promoteProperty, FieldType,
+  promoteProperty,
+  FieldType,
 } from '@altinn/schema-model';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { Button } from '@digdir/design-system-react';

@@ -90,7 +90,6 @@ export const ItemFieldsTableRow = ({
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
         <Center>
           <Switch
-            className={classes.switch}
             size='small'
             aria-label={t('schema_editor.required')}
             checked={fieldNode?.isRequired ?? false}

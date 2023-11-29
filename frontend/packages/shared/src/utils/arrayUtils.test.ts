@@ -8,7 +8,8 @@ import {
   prepend,
   removeDuplicates,
   removeItemByValue,
-  replaceByPredicate, replaceItemsByValue,
+  replaceByPredicate,
+  replaceItemsByValue,
   swapArrayElements,
 } from './arrayUtils';
 

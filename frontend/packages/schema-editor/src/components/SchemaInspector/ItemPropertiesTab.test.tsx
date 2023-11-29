@@ -4,7 +4,8 @@ import { ItemPropertiesTab } from './ItemPropertiesTab';
 import type { CombinationNode, FieldNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   CombinationKind,
-  ObjectKind, SchemaModel,
+  ObjectKind,
+  SchemaModel,
   validateTestUiSchema,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../../testing/mocks/i18nMock';

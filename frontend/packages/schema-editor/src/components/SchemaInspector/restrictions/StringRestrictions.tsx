@@ -152,7 +152,7 @@ export function StringRestrictions({
         </div>
       </div>
       <Divider marginless />
-      <Fieldset className={classes.fieldSet} legend={t('regex')}>
+      <Fieldset legend={t('regex')}>
         <RestrictionField
           keyName={StrRestrictionKey.pattern}
           label={t(StrRestrictionKey.pattern)}
