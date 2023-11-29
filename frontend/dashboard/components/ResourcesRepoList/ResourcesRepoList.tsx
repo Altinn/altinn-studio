@@ -66,7 +66,7 @@ export const ResourcesRepoList = ({
             {t('dashboard.go_to_resources')}
           </Link>
           <ResourceTable
-            list={resourceListData || []}
+            list={resourceListData}
             onClickEditResource={(id: string) => {
               // we have to do a hard navigation (without react-router) to load the correct script files
               const resourceUrl = getResourcePageURL(selectedContext, repo, id, 'about');
