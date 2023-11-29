@@ -2,17 +2,18 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/contexts/appQueriesContext';
-import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
-import { Loader } from 'src/features/loading/Loader';
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { createContext } from 'src/core/contexts/context';
+import { DisplayError } from 'src/core/errorHandling/DisplayError';
+import { Loader } from 'src/core/loading/Loader';
+import { useIsStatelessApp } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import { ProcessTaskType } from 'src/types';
-import { useIsStatelessApp } from 'src/utils/appMetadata';
-import { createLaxContext } from 'src/utils/createContext';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import type { IInstance, IProcess } from 'src/types/shared';
+import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 interface IProcessContext {
   data: IProcess;
@@ -20,12 +21,16 @@ interface IProcessContext {
   reFetch: () => Promise<void>;
 }
 
-const { Provider, useCtx } = createLaxContext<IProcessContext>();
+const { Provider, useCtx } = createContext<IProcessContext | undefined>({
+  name: 'Process',
+  required: false,
+  default: undefined,
+});
 
 function useProcessQuery(instanceId: string) {
   const { fetchProcessState } = useAppQueries();
 
-  const out = useQuery({
+  const out = useQuery<IProcess, HttpClientError>({
     queryKey: ['fetchProcessState', instanceId],
     queryFn: () => fetchProcessState(instanceId),
     onError: (error) => {
@@ -57,7 +62,7 @@ export function ProcessProvider({ children, instance }: React.PropsWithChildren<
   }, [data, dispatch]);
 
   if (query.error) {
-    return <UnknownError />;
+    return <DisplayError error={query.error} />;
   }
 
   if (!data || query.isLoading) {

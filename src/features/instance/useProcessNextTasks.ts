@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData, useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { ProcessTaskType } from 'src/types';

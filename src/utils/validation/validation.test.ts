@@ -1,11 +1,11 @@
 import type { ErrorObject } from 'ajv';
 
-import { resourcesAsMap } from 'src/features/textResources/resourcesAsMap';
-import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
+import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
+import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { isOneOfError } from 'src/utils/validation/schemaValidation';
 import * as validation from 'src/utils/validation/validation';
-import type { TextResourceMap } from 'src/features/textResources';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { TextResourceMap } from 'src/features/language/textResources';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IRepeatingGroups } from 'src/types';
 import type { ILayoutValidations, IValidations } from 'src/utils/validation/types';
 

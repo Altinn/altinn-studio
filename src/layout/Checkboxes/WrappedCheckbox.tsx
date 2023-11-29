@@ -5,8 +5,8 @@ import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
-import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.css';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { IOption } from 'src/layout/common.generated';

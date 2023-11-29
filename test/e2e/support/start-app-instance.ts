@@ -1,13 +1,53 @@
 import dotenv from 'dotenv';
 import escapeRegex from 'escape-string-regexp';
 
-import { login } from 'test/e2e/support/auth';
+import { cyUserCredentials } from 'test/e2e/support/auth';
+import type { CyUser } from 'test/e2e/support/auth';
+import Response = Cypress.Response;
+
+function login(user: CyUser) {
+  cy.clearCookies();
+
+  if (Cypress.env('environment') === 'local') {
+    const { localPartyId } = cyUserCredentials[user];
+
+    const formData = new FormData();
+    formData.append('UserSelect', localPartyId);
+    formData.append('AuthenticationLevel', '1');
+
+    cy.request({
+      method: 'POST',
+      url: `${Cypress.config('baseUrl')}/Home/LogInTestUser`,
+      body: formData,
+    }).as('login');
+  } else {
+    const { userName, userPassword } = cyUserCredentials[user];
+    cy.request({
+      method: 'POST',
+      url: `${Cypress.config('baseUrl')}/api/authentication/authenticatewithpassword`,
+      headers: {
+        'Content-Type': 'application/hal+json',
+      },
+      body: JSON.stringify({
+        UserName: userName,
+        UserPassword: userPassword,
+      }),
+    }).as('login');
+  }
+
+  cy.get('@login').should((response) => {
+    const r = response as unknown as Response<any>;
+    expect(r.status).to.eq(200);
+  });
+}
 
 Cypress.Commands.add('startAppInstance', (appName, options) => {
-  const { user = 'default', evaluateBefore } = options || {};
-  const anonymous = user === null;
+  const { user = 'default', evaluateBefore, urlSuffix = '' } = options || {};
   const env = dotenv.config().parsed || {};
   cy.log(`Starting app instance: ${appName}`);
+  if (user) {
+    cy.log(`Logging in as user: ${user}`);
+  }
 
   // You can override the host we load css/js from, using multiple methods:
   //   1. Start Cypress with --env environment=<local|tt02>,host=<host>
@@ -52,7 +92,7 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
     cy.log(`Response fuzzing off, enable with --env responseFuzzing=on`);
   }
 
-  const targetUrlRaw = getTargetUrl(appName);
+  const targetUrlRaw = getTargetUrl(appName) + urlSuffix;
   const targetUrl = new RegExp(`^${escapeRegex(targetUrlRaw)}/?$`);
 
   // Rewrite all references to the app-frontend with a local URL
@@ -60,7 +100,7 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
   // to download assets from. If we redirect, Percy will download from altinncdn.no, which will cause the test to
   // use outdated CSS.
   // https://docs.percy.io/docs/debugging-sdks#asset-discovery
-  cy.intercept(targetUrl, (req) => {
+  cy.intercept({ url: targetUrl }, (req) => {
     const cookies = req.headers['cookie'] || '';
     req.on('response', (res) => {
       if (typeof res.body === 'string' || res.statusCode === 200) {
@@ -81,10 +121,8 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
     throw new Error('Requested asset from altinncdn.no, our rewrite code is apparently not working, aborting test');
   });
 
-  if (!anonymous) {
-    login(user);
-  }
-
+  user && login(user);
+  !user && cy.clearCookies();
   cy.visit(targetUrlRaw, visitOptions);
 
   if (evaluateBefore) {

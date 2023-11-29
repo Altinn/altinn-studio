@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { CircularProgress, createStyles, createTheme, makeStyles, Typography } from '@material-ui/core';
+import { CircularProgress, createStyles, makeStyles, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import type { ArgumentArray } from 'classnames';
 
-import { useLanguage } from 'src/hooks/useLanguage';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
+import { useLanguage } from 'src/features/language/useLanguage';
 
 export interface IAltinnSpinnerComponentProvidedProps {
   id?: string;
@@ -13,9 +12,7 @@ export interface IAltinnSpinnerComponentProvidedProps {
   styleObj?: ArgumentArray;
 }
 
-const theme = createTheme(AltinnAppTheme);
-
-const useStyles = makeStyles(() =>
+const useStyles = makeStyles((theme) =>
   createStyles({
     spinner: {
       color: theme.altinnPalette.primary.blueDark,

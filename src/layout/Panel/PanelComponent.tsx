@@ -5,7 +5,7 @@ import { Panel } from '@altinn/altinn-design-system';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { getVariant } from 'src/components/form/Panel';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Panel/Panel.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';

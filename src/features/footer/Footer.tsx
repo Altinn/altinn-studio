@@ -2,11 +2,10 @@ import React from 'react';
 
 import cn from 'classnames';
 
-import { AltinnLogo } from 'src/components/AltinnLogo';
+import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
 import { createFooterComponent } from 'src/features/footer';
 import classes from 'src/features/footer/Footer.module.css';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import type { IFooterLayout } from 'src/features/footer/types';
 
 export const Footer = () => {
@@ -28,7 +27,7 @@ export const Footer = () => {
       {useOrganisationLogo && (
         <>
           {components != null && <hr className={classes.separator} />}
-          <AltinnLogo color={AltinnAppTheme.altinnPalette.primary.blueDarker} />
+          <AltinnLogo color={LogoColor.blueDarker} />
         </>
       )}
     </footer>

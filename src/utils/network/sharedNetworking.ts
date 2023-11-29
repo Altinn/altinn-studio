@@ -15,7 +15,3 @@ export async function httpPut(url: string, data: any, config?: AxiosRequestConfi
   const response = await axios.put(url, data, config);
   return response.data;
 }
-
-export function isAxiosError(error: any): error is AxiosError<any, any> {
-  return error?.name === 'AxiosError';
-}

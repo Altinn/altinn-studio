@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAllOptions } from 'src/features/options/useAllOptions';
-import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';

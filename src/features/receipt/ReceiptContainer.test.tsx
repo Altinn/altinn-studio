@@ -2,16 +2,14 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { dataTypes, instanceOwner, partyMember, partyTypesAllowed, userProfile } from 'src/__mocks__/constants';
+import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { getInstanceDataMock } from 'src/__mocks__/instanceDataStateMock';
-import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
-import { ReceiptContainer, returnInstanceMetaDataObject } from 'src/features/receipt/ReceiptContainer';
-import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
+import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
+import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IRuntimeState } from 'src/types';
-import type { IAltinnOrgs, IInstance, IParty } from 'src/types/shared';
+import type { IInstance, IParty } from 'src/types/shared';
 
 interface IRender {
   autoDeleteOnProcessEnd?: boolean;
@@ -54,13 +52,12 @@ function buildInstance(hasPdf = true): IInstance {
   return {
     ...getInstanceDataMock(),
     id: exampleInstanceId,
-    instanceOwner,
     org: 'ttd',
     data: [
       {
         id: `${exampleDataGuid2}`,
         instanceGuid: exampleGuid,
-        dataType: 'default',
+        dataType: 'test-data-model',
         contentType: 'application/xml',
         blobStoragePath: `ttd/ui-components/${exampleGuid}/data/${exampleDataGuid2}`,
         selfLinks: {
@@ -83,63 +80,29 @@ function buildInstance(hasPdf = true): IInstance {
 }
 
 function getMockState({ autoDeleteOnProcessEnd = false }): IRuntimeState {
-  const initial = getInitialStateMock();
-  return {
-    ...initial,
-    organisationMetaData: {
-      error: null,
-      allOrgs: {
-        brg: {
-          name: {
-            en: 'Brønnøysund Register Centre',
-            nb: 'Brønnøysundregistrene',
-            nn: 'Brønnøysundregistera',
-          },
-          logo: 'https://altinncdn.no/orgs/brg/brreg.png',
-          orgnr: '974760673',
-          homepage: 'https://www.brreg.no',
-          environments: ['tt02', 'production'],
+  return getInitialStateMock((state) => {
+    state.organisationMetaData.allOrgs = {
+      brg: {
+        name: {
+          en: 'Brønnøysund Register Centre',
+          nb: 'Brønnøysundregistrene',
+          nn: 'Brønnøysundregistera',
         },
+        logo: 'https://altinncdn.no/orgs/brg/brreg.png',
+        orgnr: '974760673',
+        homepage: 'https://www.brreg.no',
+        environments: ['tt02', 'production'],
       },
-    },
-    applicationMetadata: {
-      error: null,
-      applicationMetadata: {
-        id: 'ttd/ui-components',
-        org: 'ttd',
-        title: {
-          nb: 'App frontend komponenter',
-          en: 'App frontend components',
-        },
-        dataTypes,
-        partyTypesAllowed,
-        autoDeleteOnProcessEnd,
-        created: '2020-03-02T07:32:53.8640778Z',
-        createdBy: 'jeeva',
-        lastChanged: '2020-03-02T07:32:53.8641776Z',
-        lastChangedBy: 'jeeva',
-      },
-    },
-    formLayout: {
-      ...initial.formLayout,
-      uiConfig: getUiConfigStateMock(),
-    },
-    party: {
-      parties: [partyMember],
-      error: null,
-      selectedParty: partyMember,
-    },
-    profile: {
-      profile: userProfile,
-      error: null,
-      selectedAppLanguage: 'nb',
-    },
-  };
+    };
+    state.applicationMetadata.applicationMetadata!.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
+  });
 }
 
 const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
   const reduxState = getMockState({ autoDeleteOnProcessEnd });
   reduxState.deprecated!.lastKnownInstance = buildInstance(hasPdf);
+  reduxState.deprecated!.lastKnownProcess!.currentTask = undefined;
+  reduxState.deprecated!.lastKnownProcess!.ended = '2022-02-05T09:19:32.8858042Z';
 
   return await renderWithInstanceAndLayout({
     renderer: () => <ReceiptContainer />,
@@ -153,12 +116,6 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
 describe('ReceiptContainer', () => {
   it('should show download link to pdf when all data is loaded, and data includes pdf', async () => {
     await render();
-
-    expect(
-      screen.queryByRole('img', {
-        name: /Laster/i,
-      }),
-    ).not.toBeInTheDocument();
 
     expect(
       screen.getByRole('heading', {
@@ -208,92 +165,8 @@ describe('ReceiptContainer', () => {
   });
 });
 
-describe('returnInstanceMetaDataObject', () => {
+describe('getSummaryDataObject', () => {
   it('should return correct object', () => {
-    const testData = {
-      orgsData: {
-        tdd: {
-          name: {
-            en: 'Test Ministry',
-            nb: 'Testdepartementet',
-            nn: 'Testdepartementet',
-          },
-          logo: '',
-          orgnr: '',
-          homepage: '',
-        },
-        ttd: {
-          name: {
-            en: 'Test Ministry',
-            nb: 'Testdepartementet',
-            nn: 'Testdepartementet',
-          },
-          logo: '',
-          orgnr: '',
-          homepage: '',
-        },
-      },
-      languageData: {},
-      textResources: {},
-      profileData: {
-        profile: {
-          userId: 1,
-          userName: 'OlaNordmann',
-          phoneNumber: '90012345',
-          email: 'ola@altinncore.no',
-          partyId: 50001,
-          party: {
-            partyId: 50001,
-            partyTypeName: 1,
-            orgNumber: null,
-            ssn: null,
-            unitType: null,
-            name: 'Ola Privatperson',
-            isDeleted: false,
-            onlyHierarchyElementWithNoAccess: false,
-            person: {
-              ssn: '01017512345',
-              name: null,
-              firstName: 'Ola',
-              middleName: null,
-              lastName: 'Privatperson',
-              telephoneNumber: null,
-              mobileNumber: null,
-              mailingAddress: null,
-              mailingPostalCode: null,
-              mailingPostalCity: null,
-              addressMunicipalNumber: null,
-              addressMunicipalName: null,
-              addressStreetName: null,
-              addressHouseNumber: null,
-              addressHouseLetter: null,
-              addressPostalCode: null,
-              addressCity: null,
-            },
-            organisation: null,
-          },
-          userType: 1,
-          profileSettingPreference: null,
-        },
-      },
-      instanceGuid: '6697de17-18c7-4fb9-a428-d6a414a797ae',
-      userLanguageString: 'nb',
-      lastChangedDateTime: '22.08.2019 / 09:08',
-      instance: {
-        org: 'tdd',
-      },
-      instanceOwnerParty: {
-        partyId: 50001,
-        name: 'Ola Privatperson',
-        ssn: '01017512345',
-      },
-    };
-    const langTools = staticUseLanguageForTests({
-      textResources: testData.textResources,
-      language: testData.languageData,
-      selectedAppLanguage: testData.userLanguageString,
-    });
-
     const expected: SummaryDataObject = {
       'receipt.date_sent': {
         value: '22.08.2019 / 09:08',
@@ -312,14 +185,21 @@ describe('returnInstanceMetaDataObject', () => {
     };
 
     expect(
-      returnInstanceMetaDataObject(
-        testData.orgsData as unknown as IAltinnOrgs,
-        langTools,
-        testData.instanceOwnerParty as unknown as IParty,
-        testData.instanceGuid,
-        testData.lastChangedDateTime,
-        testData.instance.org,
-      ),
+      getSummaryDataObject({
+        langTools: staticUseLanguageForTests({
+          language: {},
+        }),
+        instanceOwnerParty: {
+          partyId: '50001',
+          name: 'Ola Privatperson',
+          ssn: '01017512345',
+          isDeleted: false,
+          onlyHierarchyElementWithNoAccess: false,
+        } as IParty,
+        instanceGuid: '6697de17-18c7-4fb9-a428-d6a414a797ae',
+        lastChangedDateTime: '22.08.2019 / 09:08',
+        receiver: 'Testdepartementet',
+      }),
     ).toEqual(expected);
   });
 });

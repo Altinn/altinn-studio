@@ -2,10 +2,10 @@ import React from 'react';
 
 import { Select } from '@digdir/design-system-react';
 
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
-import { useLanguage } from 'src/hooks/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;

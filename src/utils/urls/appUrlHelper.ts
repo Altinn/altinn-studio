@@ -10,7 +10,6 @@ const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
-export const oldTextResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
 export const applicationSettingsApiUrl = `${appPath}/api/v1/applicationsettings`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
@@ -21,7 +20,7 @@ export const instantiateUrl = `${appPath}/instances/create`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
 export const applicationLanguagesUrl = `${appPath}/api/v1/applicationlanguages`;
 
-export const updateCookieUrl = (partyId: string) => `${appPath}/api/v1/parties/${partyId}`;
+export const getSetCurrentPartyUrl = (partyId: string) => `${appPath}/api/v1/parties/${partyId}`;
 
 export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
 
@@ -161,9 +160,6 @@ export const getRulehandlerUrl = (layoutset?: string) => {
   }
   return `${appPath}/api/rulehandler/${layoutset}`;
 };
-
-export const getPartyValidationUrl = (partyId: string) =>
-  `${appPath}/api/v1/parties/validateInstantiation?partyId=${partyId}`;
 
 export const getActiveInstancesUrl = (partyId: string) => `${appPath}/instances/${partyId}/active`;
 

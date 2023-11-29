@@ -2,7 +2,7 @@ import React from 'react';
 
 import cn from 'classnames';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemSimple.module.css';
 
 export interface ISummaryItemSimple {

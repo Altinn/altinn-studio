@@ -2,10 +2,6 @@ export interface IFetchFormDataFulfilled {
   formData: any;
 }
 
-export interface IFormDataRejected {
-  error: Error | null;
-}
-
 export interface ISingleFieldValidation {
   layoutId: string;
   dataModelBinding: string;

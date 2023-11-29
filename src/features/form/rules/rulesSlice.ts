@@ -1,10 +1,9 @@
 import { createSagaSlice } from 'src/redux/sagaSlice';
-import type { IFetchRuleModelFulfilled, IFetchRuleModelRejected, IFormRuleState } from 'src/features/form/rules/index';
+import type { IFetchRuleModelFulfilled, IFormRuleState } from 'src/features/form/rules/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
 
 const initialState: IFormRuleState = {
   model: [],
-  error: null,
 };
 
 export let FormRulesActions: ActionsFromSlice<typeof formRulesSlice>;
@@ -15,13 +14,7 @@ export const formRulesSlice = () => {
     actions: {
       fetchFulfilled: mkAction<IFetchRuleModelFulfilled>({
         reducer: (state, action) => {
-          state.error = null;
           state.model = action.payload.ruleModel;
-        },
-      }),
-      fetchRejected: mkAction<IFetchRuleModelRejected>({
-        reducer: (state, action) => {
-          state.error = action.payload.error;
         },
       }),
     },

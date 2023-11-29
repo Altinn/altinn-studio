@@ -6,7 +6,7 @@ import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { groupIsRepeatingLikert } from 'src/layout/Group/tools';
 import classes from 'src/layout/RadioButtons/ControlledRadioGroup.module.css';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';

@@ -5,7 +5,7 @@ import addAdditionalFormats from 'ajv-formats-draft2019';
 import type { Options } from 'ajv';
 import type * as AjvCore from 'ajv/dist/core';
 
-import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
+import { getCurrentDataTypeForApplication } from 'src/features/applicationMetadata/appMetadataUtils';
 import { convertDataBindingToModel } from 'src/utils/databindings';
 import {
   getRootElementPath,
@@ -15,7 +15,7 @@ import {
 } from 'src/utils/schemaUtils';
 import type { IJsonSchemas } from 'src/features/datamodel';
 import type { IFormData } from 'src/features/formData';
-import type { ValidLanguageKey } from 'src/hooks/useLanguage';
+import type { ValidLanguageKey } from 'src/features/language/useLanguage';
 import type { IDataType } from 'src/types/shared';
 import type { IValidationContext } from 'src/utils/validation/types';
 

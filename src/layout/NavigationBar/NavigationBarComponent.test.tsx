@@ -22,7 +22,6 @@ const render = async () => {
     },
     reduxState: getInitialStateMock((state) => {
       state.formLayout = {
-        error: null,
         layoutsets: null,
         layoutSetId: null,
         uiConfig: {

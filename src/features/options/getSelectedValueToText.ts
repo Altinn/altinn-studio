@@ -1,4 +1,4 @@
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IOption } from 'src/layout/common.generated';
 
 export function getSelectedValueToText(value: string, { langAsString }: IUseLanguage, optionList: IOption[]) {

@@ -1,4 +1,4 @@
-import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
+import { staticUseLanguageFromState } from 'src/features/language/useLanguage';
 import { Triggers } from 'src/layout/common.generated';
 import type { IRuntimeState, TriggersPageValidation } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -19,11 +19,12 @@ export function validationContextFromState(state: IRuntimeState, node: LayoutNod
   return {
     formData: state.formData.formData,
     langTools: staticUseLanguageFromState(state, node),
+    currentLanguage: state.deprecated.currentLanguage,
     attachments: state.deprecated.lastKnownAttachments || {},
-    application: state.applicationMetadata.applicationMetadata,
+    application: state.applicationMetadata.applicationMetadata!,
     instance: state.deprecated.lastKnownInstance || null,
     process: state.deprecated.lastKnownProcess || null,
-    layoutSets: state.formLayout.layoutsets,
+    layoutSets: state.formLayout.layoutsets!,
     schemas: state.formDataModel.schemas,
     customValidation: state.customValidation.customValidation,
   };

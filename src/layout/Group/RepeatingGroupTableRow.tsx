@@ -7,16 +7,16 @@ import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
 import { useIsMobile } from 'src/hooks/useIsMobile';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { implementsDisplayData, useDisplayDataProps } from 'src/layout/index';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { AlertOnChangeProps } from 'src/hooks/useAlertOnChange';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type {
   CompGroupRepeatingExternal,
   CompGroupRepeatingInternal,

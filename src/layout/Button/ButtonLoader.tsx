@@ -3,7 +3,7 @@ import React from 'react';
 import cn from 'classnames';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Button/ButtonLoader.module.css';
 
 type ButtonLoaderProps = {

@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 export function NoValidPartiesError() {

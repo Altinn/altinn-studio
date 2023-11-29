@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
+import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
 import { mapFormData } from 'src/utils/databindings';
@@ -11,11 +12,11 @@ type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedP
 export const InstantiationButton = ({ children, ...props }: Props) => {
   const instantiation = useInstantiation();
   const formData = useAppSelector((state) => state.formData.formData);
-  const party = useAppSelector((state) => state.party.selectedParty);
+  const party = useCurrentParty();
 
-  const instantiate = async () => {
+  const instantiate = () => {
     const prefill = mapFormData(formData, props.mapping);
-    await instantiation.instantiateWithPrefill(props.node, {
+    instantiation.instantiateWithPrefill(props.node, {
       prefill,
       instanceOwner: {
         partyId: party?.partyId.toString(),

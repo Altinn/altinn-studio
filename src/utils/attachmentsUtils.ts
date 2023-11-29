@@ -1,5 +1,5 @@
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IAttachmentGrouping, IData, IDataType, IDisplayAttachment } from 'src/types/shared';
 
 export enum DataTypeReference {

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
+import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
 import { dotNotationToPointer } from 'src/features/datamodel/notations';
 import { lookupBindingInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
 import { generateSimpleRepeatingGroups } from 'src/features/form/layout/repGroups/generateSimpleRepeatingGroups';

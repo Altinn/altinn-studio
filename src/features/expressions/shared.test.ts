@@ -1,12 +1,12 @@
 import dot from 'dot-object';
 
-import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
+import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
 import { evalExpr } from 'src/features/expressions';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { convertInstanceDataToAttachments, convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression } from 'src/features/expressions/validation';
-import { resourcesAsMap } from 'src/features/textResources/resourcesAsMap';
-import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
+import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
+import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
 import { getRepeatingGroups, splitDashedKey } from 'src/utils/formLayout';
@@ -84,8 +84,8 @@ describe('Expressions shared function tests', () => {
           authContext: buildAuthContext(permissions),
           langTools: staticUseLanguageForTests({
             textResources: textResources ? resourcesAsMap(textResources) : {},
-            profileLanguage: profileSettings?.language,
           }),
+          currentLanguage: profileSettings?.language || 'nb',
           options,
         };
 

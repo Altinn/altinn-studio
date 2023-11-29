@@ -4,17 +4,16 @@ import { AppBar, Grid, Toolbar } from '@material-ui/core';
 import cn from 'classnames';
 
 import classes from 'src/components/AltinnAppHeader.module.css';
-import { AltinnLogo } from 'src/components/AltinnLogo';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
-import { useLanguage } from 'src/hooks/useLanguage';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
+import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { renderParty } from 'src/utils/party';
 import { returnUrlToAllSchemas, returnUrlToMessagebox, returnUrlToProfile } from 'src/utils/urls/urlHelper';
 import type { IProfile } from 'src/types/shared';
 
 export interface IHeaderProps {
-  profile: IProfile;
-  type?: string;
+  profile: IProfile | undefined;
+  type?: 'partyChoice' | 'normal';
 }
 
 export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
@@ -44,13 +43,7 @@ export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
             item={true}
             className={cn(classes.logo, !type && classes.gridStyle)}
           >
-            <AltinnLogo
-              color={
-                type === 'partyChoice'
-                  ? AltinnAppTheme.altinnPalette.primary.blueDark
-                  : AltinnAppTheme.altinnPalette.primary.blueDarker
-              }
-            />
+            <AltinnLogo color={type === 'partyChoice' ? LogoColor.blueDark : LogoColor.blueDarker} />
           </Grid>
           {type && party && (
             <ul className={classes.headerLinkList}>

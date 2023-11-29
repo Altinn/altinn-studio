@@ -1,7 +1,7 @@
 import { BackendValidationSeverity } from 'src/utils/validation/backendValidationSeverity';
 import { buildValidationObject, unmappedError } from 'src/utils/validation/validationHelpers';
 import { validationTexts } from 'src/utils/validation/validationTexts';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IsHiddenOptions } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { BackendValidationIssue, IValidationObject, ValidationSeverity } from 'src/utils/validation/types';

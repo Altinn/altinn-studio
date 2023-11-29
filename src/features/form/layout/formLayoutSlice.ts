@@ -21,7 +21,6 @@ import type { ILayoutSets, IPagesSettings, IRepeatingGroups, IUiConfig } from 's
 export interface ILayoutState {
   layouts: ILayouts | null;
   layoutSetId: string | null;
-  error: Error | null;
   uiConfig: IUiConfig;
   layoutsets: ILayoutSets | null;
 }
@@ -29,7 +28,6 @@ export interface ILayoutState {
 export const initialState: ILayoutState = {
   layouts: null,
   layoutSetId: null,
-  error: null,
   uiConfig: {
     focus: null,
     hiddenFields: [],
@@ -55,12 +53,6 @@ export const initialState: ILayoutState = {
 export let FormLayoutActions: ActionsFromSlice<typeof formLayoutSlice>;
 export const formLayoutSlice = () => {
   const slice = createSagaSlice((mkAction: MkActionType<ILayoutState>) => {
-    const genericReject = mkAction<LayoutTypes.IFormLayoutActionRejected>({
-      reducer: (state, action) => {
-        const { error } = action.payload;
-        state.error = error;
-      },
-    });
     const genericSetRepeatingGroups = mkAction<{ updated: IRepeatingGroups }>({
       reducer: (state, { payload: { updated } }) => {
         state.uiConfig.repeatingGroups = updated;
@@ -77,12 +69,10 @@ export const formLayoutSlice = () => {
             state.layouts = layouts;
             state.uiConfig.pageOrderConfig.order = Object.keys(layouts);
             state.uiConfig.pageOrderConfig.hiddenExpr = hiddenLayoutsExpressions;
-            state.error = null;
             state.uiConfig.repeatingGroups = null;
             state.layoutSetId = layoutSetId;
           },
         }),
-        fetchRejected: genericReject,
         fetchSetsFulfilled: mkAction<LayoutTypes.IFetchLayoutSetsFulfilled>({
           reducer: (state, action) => {
             const { layoutSets } = action.payload;
@@ -97,7 +87,6 @@ export const formLayoutSlice = () => {
             }
           },
         }),
-        fetchSetsRejected: genericReject,
         fetchSettingsFulfilled: mkAction<LayoutTypes.IFetchLayoutSettingsFulfilled>({
           takeEvery: findAndMoveToNextVisibleLayout,
           reducer: (state, action) => {
@@ -130,7 +119,6 @@ export const formLayoutSlice = () => {
             state.uiConfig.excludePageFromPdf = settings?.pages?.excludeFromPdf ?? [];
           },
         }),
-        fetchSettingsRejected: genericReject,
         setCurrentViewCacheKey: mkAction<LayoutTypes.ISetCurrentViewCacheKey>({
           reducer: (state, action) => {
             const { key } = action.payload;
@@ -155,7 +143,6 @@ export const formLayoutSlice = () => {
         }),
         updateCurrentViewRejected: mkAction<LayoutTypes.IUpdateCurrentViewRejected>({
           reducer: (state, action) => {
-            state.error = action.payload.error;
             state.uiConfig.keepScrollPos = action.payload.keepScrollPos;
           },
         }),
@@ -175,7 +162,6 @@ export const formLayoutSlice = () => {
           takeEvery: repGroupAddRowSaga,
         }),
         repGroupAddRowFulfilled: genericSetRepeatingGroups,
-        repGroupAddRowRejected: genericReject,
         repGroupDeleteRow: mkAction<{ groupId: string; index: number }>({
           takeEvery: repGroupDeleteRowSaga,
           reducer: (state, { payload: { groupId, index } }) => {
@@ -194,7 +180,6 @@ export const formLayoutSlice = () => {
             ).filter((value) => value !== index);
           },
         }),
-        repGroupDeleteRowRejected: genericReject,
         repGroupSetMultiPage: mkAction<{ groupId: string; page: number }>({
           reducer: (state, { payload: { groupId, page } }) => {
             state.uiConfig.repeatingGroups = state.uiConfig.repeatingGroups || {};
@@ -220,8 +205,7 @@ export const formLayoutSlice = () => {
         }),
         updateRepeatingGroupsEditIndexRejected: mkAction<LayoutTypes.IFormLayoutActionRejected>({
           reducer: (state, action) => {
-            const { error, group } = action.payload;
-            state.error = error;
+            const { group } = action.payload;
             if (group && state.uiConfig.repeatingGroups && state.uiConfig.repeatingGroups[group]) {
               state.uiConfig.repeatingGroups[group].isLoading = false;
             }
@@ -240,7 +224,6 @@ export const formLayoutSlice = () => {
             state.uiConfig.pageOrderConfig.order = order;
           },
         }),
-        moveToNextPageRejected: genericReject,
         updateHiddenLayouts: mkAction<LayoutTypes.IHiddenLayoutsUpdate>({
           takeEvery: findAndMoveToNextVisibleLayout,
           reducer: (state, action) => {

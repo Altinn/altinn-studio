@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { FooterGenericLink } from 'src/features/footer/components/shared/FooterGenericLink';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import type { IFooterLinkComponent } from 'src/features/footer/components/Link/types';
 
 export const FooterLink = ({ title, target, icon }: IFooterLinkComponent) => {

@@ -3,8 +3,8 @@ import React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IImageProps = PropsFromGenericComponent<'Image'>;

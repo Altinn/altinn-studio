@@ -1,7 +1,7 @@
 import React from 'react';
 
 import classes from 'src/components/message/ErrorPaper.module.css';
-import { AsciiUnitSeparator } from 'src/utils/attachment';
+import { AsciiUnitSeparator } from 'src/layout/FileUpload/utils/asciiUnitSeparator';
 
 export interface IErrorPaperProps {
   message: string;

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 
+import { createContext } from 'src/core/contexts/context';
 import {
   runExpressionRules,
   runExpressionsForLayouts,
@@ -10,14 +11,17 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { selectPageOrderConfig } from 'src/selectors/getLayoutOrder';
 import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
-import { createLaxContext } from 'src/utils/createContext';
 import { _private, selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutNodeFromObj } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
-export const { Provider, useCtx } = createLaxContext<LayoutPages>();
+export const { Provider, useCtx } = createContext<LayoutPages | undefined>({
+  name: 'ExprContext',
+  required: false,
+  default: undefined,
+});
 
 /**
  * React hook used for getting a memoized LayoutPages object where you can look up components.

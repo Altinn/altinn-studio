@@ -2,8 +2,8 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getFormDataStateMock } from 'src/__mocks__/formDataStateMock';
-import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getFormDataStateMock } from 'src/__mocks__/getFormDataStateMock';
+import { getFormLayoutStateMock } from 'src/__mocks__/getFormLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { renderWithNode } from 'src/test/renderWithProviders';

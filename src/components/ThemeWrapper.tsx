@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 
 import { createTheme, ThemeProvider } from '@material-ui/core';
 
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsMobile, useIsTablet } from 'src/hooks/useIsMobile';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { rightToLeftISOLanguageCodes } from 'src/language/languages';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 
@@ -15,7 +15,7 @@ type ThemeWrapperProps = {
 export const ThemeWrapper = ({ children }: ThemeWrapperProps) => {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
-  const { selectedLanguage } = useLanguage();
+  const selectedLanguage = useCurrentLanguage();
 
   const isRtl = rightToLeftISOLanguageCodes.includes(selectedLanguage);
   const direction = isRtl ? 'rtl' : 'ltr';

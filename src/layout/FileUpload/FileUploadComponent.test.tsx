@@ -5,24 +5,24 @@ import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
 
-import { getAttachments } from 'src/__mocks__/attachmentsMock';
+import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
+import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { getInstanceDataMock } from 'src/__mocks__/instanceDataStateMock';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IGetAttachments } from 'src/__mocks__/attachmentsMock';
+import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import type { IOption } from 'src/layout/common.generated';
 import type { CompExternalExact } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
-interface GetDataProps extends IGetAttachments {
+interface GetDataProps extends IGetAttachmentsMock {
   dataType: string;
 }
 
 function getDataElements(props: GetDataProps): IData[] {
   const { dataType, ...rest } = props;
-  return getAttachments(rest).map((a) => ({ ...a.data, dataType, contentType: 'image/png' }));
+  return getAttachmentsMock(rest).map((a) => ({ ...a.data, dataType, contentType: 'image/png' }));
 }
 
 describe('FileUploadComponent', () => {

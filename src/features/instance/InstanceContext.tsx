@@ -4,17 +4,17 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
-import { useAppQueries } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { createContext } from 'src/core/contexts/context';
+import { DisplayError } from 'src/core/errorHandling/DisplayError';
+import { Loader } from 'src/core/loading/Loader';
 import { LayoutValidationProvider } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { DisplayError } from 'src/features/errorHandling/DisplayError';
 import { FormProvider } from 'src/features/form/FormContext';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
 import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
-import { Loader } from 'src/features/loading/Loader';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { DeprecatedActions } from 'src/redux/deprecatedSlice';
-import { createLaxContext } from 'src/utils/createContext';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { IInstance } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -39,7 +39,11 @@ export interface InstanceContext {
 
 export type ChangeInstanceData = (callback: (instance: IInstance | undefined) => IInstance | undefined) => void;
 
-const { Provider, useCtx, useHasProvider } = createLaxContext<InstanceContext>();
+const { Provider, useCtx, useHasProvider } = createContext<InstanceContext | undefined>({
+  name: 'InstanceContext',
+  required: false,
+  default: undefined,
+});
 
 function useGetInstanceDataQuery(enabled: boolean, partyId: string, instanceGuid: string) {
   const { fetchInstanceData } = useAppQueries();

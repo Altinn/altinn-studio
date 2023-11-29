@@ -2,8 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { appMetadataMock } from 'src/__mocks__/applicationMetadataMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
@@ -11,9 +10,9 @@ import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 const render = async (logo: IApplicationMetadata['logo']) =>
   await renderWithInstanceAndLayout({
     renderer: () => <OrganisationLogo />,
-    reduxState: getInitialStateMock({
-      applicationMetadata: appMetadataMock({ logo }),
-    }),
+    queries: {
+      fetchApplicationMetadata: () => Promise.resolve(getApplicationMetadataMock({ logo })),
+    },
   });
 
 describe('OrganisationLogo', () => {

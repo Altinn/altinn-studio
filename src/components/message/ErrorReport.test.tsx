@@ -15,7 +15,6 @@ describe('ErrorReport', () => {
         ...(validations as any),
       },
       invalidDataTypes: [],
-      error: null,
     };
     const reduxState = getInitialStateMock({
       formValidations: mockValidationState,

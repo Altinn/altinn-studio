@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse, RawAxiosRequestHeaders } from 'axios';
+import type { AxiosRequestConfig, AxiosResponse, RawAxiosRequestHeaders } from 'axios';
 
 export enum HttpStatusCodes {
   Ok = 200,
@@ -40,8 +40,4 @@ export async function putWithoutConfig<ReturnType>(url: string): Promise<ReturnT
   } catch (err) {
     throw new Error(`HTTP Call failed: ${err.message}`);
   }
-}
-
-export function checkIfAxiosError(error: Error | null | undefined): boolean {
-  return (error as AxiosError)?.config !== undefined;
 }

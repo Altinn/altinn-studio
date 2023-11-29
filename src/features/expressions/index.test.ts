@@ -84,9 +84,8 @@ describe('Expressions', () => {
         applicationSettings: {},
         hiddenFields: new Set<string>(),
         instanceDataSources: {},
-        langTools: {
-          selectedLanguage: 'nb',
-        },
+        langTools: {},
+        currentLanguage: 'nb',
       } as ContextDataSources;
       const node = new NodeNotFoundWithoutContext('test');
 
@@ -100,9 +99,8 @@ describe('Expressions', () => {
         applicationSettings: {},
         hiddenFields: new Set<string>(),
         instanceDataSources: {},
-        langTools: {
-          selectedLanguage: 'en',
-        },
+        langTools: {},
+        currentLanguage: 'en',
       } as ContextDataSources;
       const node = new NodeNotFoundWithoutContext('test');
 

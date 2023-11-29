@@ -3,13 +3,13 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
 
+import { getCurrentTaskDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
+import { staticUseLanguageFromState } from 'src/features/language/useLanguage';
 import { ValidationActions } from 'src/features/validation/validationSlice';
-import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { Triggers } from 'src/layout/common.generated';
 import { getLayoutOrderFromPageOrderConfig, selectLayoutOrder } from 'src/selectors/getLayoutOrder';
-import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { waitFor } from 'src/utils/sagas';
@@ -104,10 +104,10 @@ export function* updateCurrentViewSaga({
         },
       };
       const currentTaskDataId = getCurrentTaskDataElementId({
-        application: state.applicationMetadata.applicationMetadata,
+        application: state.applicationMetadata.applicationMetadata!,
         instance: state.deprecated.lastKnownInstance,
         process: state.deprecated.lastKnownProcess,
-        layoutSets: state.formLayout.layoutsets,
+        layoutSets: state.formLayout.layoutsets!,
       });
 
       const validationOptions = runValidations === Triggers.ValidatePage ? options : undefined;
@@ -180,7 +180,6 @@ export function* moveToNextPageSaga({
     const currentView = state.formLayout.uiConfig.currentView;
 
     if (!state.applicationMetadata.applicationMetadata) {
-      yield put(FormLayoutActions.moveToNextPageRejected({ error: null }));
       return;
     }
 
@@ -190,7 +189,7 @@ export function* moveToNextPageSaga({
 
     yield put(FormLayoutActions.updateCurrentView({ newView, runValidations, keepScrollPos }));
   } catch (error) {
-    yield put(FormLayoutActions.moveToNextPageRejected({ error }));
+    // TODO: Handle this error when rewriting to page navigation hook
   }
 }
 

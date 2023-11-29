@@ -10,8 +10,8 @@ import { FullWidthGroupWrapper } from 'src/components/form/FullWidthGroupWrapper
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { getVariant } from 'src/components/form/Panel';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { CustomIcon } from 'src/layout/Panel/CustomPanelIcon';
 import type { CompGroupNonRepeatingPanelInternal } from 'src/layout/Group/config.generated';

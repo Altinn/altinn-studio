@@ -1,7 +1,55 @@
-import { commonTheme } from 'src/theme/commonTheme';
-
 export const AltinnAppTheme = {
-  ...commonTheme,
+  accessibility: {
+    focusVisible: {
+      border: '2px solid #1eaef7',
+    },
+  },
+  altinnPalette: {
+    primary: {
+      blueDarker: '#022F51',
+      blueDark: '#0062BA',
+      blueDarkHover: '#1A72C1',
+      blueMedium: '#008FD6',
+      blue: '#1EADF7',
+      blueHover: '#37b7f8',
+      blueLight: '#CFF0FF',
+      blueLighter: '#E3F7FF',
+      green: '#12AA64',
+      greenHover: '#45D489',
+      greenLight: '#D4F9E4',
+      red: '#D5203B',
+      redLight: '#F9CAD3',
+      purple: '#3F3161',
+      purpleLight: '#E0DAF7',
+      yellow: '#FFDA06',
+      yellowLight: '#FBF6BD',
+      black: '#000',
+      grey: '#6a6a6a',
+      greyMedium: '#BCC7CC',
+      greyLight: '#EFEFEF',
+      white: '#FFF',
+    },
+  },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 1025,
+      lg: 1440,
+      xl: 1920,
+    },
+  },
+  palette: {
+    primary: {
+      main: '#000',
+    },
+    // Colors that are not part of the altinn color palette but is still used
+    secondary: {
+      main: '#000',
+      dark: '#d2d2d2',
+      transparentBlue: 'rgba(227, 247, 255, 0.5)',
+    },
+  },
   overrides: {
     MuiToolbar: {
       regular: {

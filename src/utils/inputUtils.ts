@@ -1,9 +1,10 @@
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 
 /**
+ * Utility to create a character limit object for use in input components
+ *
  * @param maxLength - max length of input
  * @param lang - language function from useLanguage()
- * @returns {maxCount: number, label: (count: number) => string, srLabel: string}
  */
 export const createCharacterLimit = (maxLength: number, lang: IUseLanguage['lang']) => ({
   maxCount: maxLength,

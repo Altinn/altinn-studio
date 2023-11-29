@@ -4,9 +4,9 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/desi
 import { Grid, Typography } from '@material-ui/core';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Likert/LikertComponent.module.css';

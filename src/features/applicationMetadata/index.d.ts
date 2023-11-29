@@ -25,7 +25,6 @@ export interface IApplicationMetadata {
 
 export interface IApplicationMetadataState {
   applicationMetadata: IApplicationMetadata | null;
-  error: Error | null;
 }
 
 export interface IOnEntry {
@@ -33,7 +32,7 @@ export interface IOnEntry {
   instanceSelection?: IInstanceSelection;
 }
 
-export type ShowTypes = 'new-instance' | 'select-instance' | 'startpage' | string;
+export type ShowTypes = 'new-instance' | 'select-instance' | string;
 
 export type IInstanceSelection = {
   rowsPerPageOptions: number[];

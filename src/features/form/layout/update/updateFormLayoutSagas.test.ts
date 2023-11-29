@@ -3,9 +3,9 @@ import { select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getFormLayoutStateMock } from 'src/__mocks__/getFormLayoutStateMock';
+import { getUiConfigStateMock } from 'src/__mocks__/getUiConfigStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import {
   findAndMoveToNextVisibleLayout,

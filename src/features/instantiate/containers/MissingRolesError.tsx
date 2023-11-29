@@ -2,13 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
+import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 export function MissingRolesError() {
   const { lang, langAsString } = useLanguage();
-  const selectedParty = useAppSelector((state) => state.party.selectedParty);
+  const selectedParty = useCurrentParty();
 
   function getErrorRights() {
     return lang('instantiate.authorization_error_rights', [selectedParty?.name]);
@@ -32,7 +32,7 @@ export function MissingRolesError() {
     const hostName = getHostname();
 
     const errorRights = getErrorRights();
-    const errorChangeParty = <Link to='/partyselection'>{lang('party_selection.change_party')}</Link>;
+    const errorChangeParty = <Link to='/party-selection/'>{lang('party_selection.change_party')}</Link>;
     const errorAsk = lang('instantiate.authorization_error_ask');
     const errorCheckRights = getCheckRights(hostName);
     const errorMoreInfo = getErrorInfoRights(hostName);

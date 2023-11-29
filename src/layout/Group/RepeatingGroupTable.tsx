@@ -3,8 +3,8 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
 import cn from 'classnames';
 
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowRenderer } from 'src/layout/Grid/GridComponent';

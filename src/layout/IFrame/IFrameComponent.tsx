@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { getSandboxProperties } from 'src/layout/IFrame/utils';
 import type { PropsFromGenericComponent } from 'src/layout';
 

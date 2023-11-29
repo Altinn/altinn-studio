@@ -6,7 +6,6 @@ import type { AxiosResponse } from 'axios';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
-import { resourcesAsMap } from 'src/features/textResources/resourcesAsMap';
 import { RepeatingGroupsLikertContainer } from 'src/layout/Likert/RepeatingGroupsLikertContainer';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -14,7 +13,7 @@ import { useResolvedNode } from 'src/utils/layout/ExprContext';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IFormDataState } from 'src/features/formData';
 import type { IUpdateFormDataSimple } from 'src/features/formData/formDataTypes';
-import type { IRawTextResource, ITextResourcesState } from 'src/features/textResources';
+import type { IRawTextResource, ITextResourceResult } from 'src/features/language/textResources';
 import type { IValidationState } from 'src/features/validation/validationSlice';
 import type { IOption } from 'src/layout/common.generated';
 import type { CompGroupExternal, CompGroupRepeatingLikertExternal } from 'src/layout/Group/config.generated';
@@ -107,6 +106,7 @@ export const createFormDataUpdateAction = (
     data: optionValue,
     field: `Questions[${index}].Answer`,
     skipValidation: false,
+    singleFieldValidation: undefined,
   },
   type: FormDataActions.update.type,
 });
@@ -116,7 +116,6 @@ const createLayout = (
   components: CompOrGroupExternal[],
   groupIndex: number,
 ): ILayoutState => ({
-  error: null,
   layoutsets: null,
   layouts: {
     FormLayout: [container, ...components],
@@ -153,13 +152,12 @@ export const createFormError = (index: number): ILayoutValidations => ({
 });
 
 const createFormValidationsForCurrentView = (validations: ILayoutValidations = {}): IValidationState => ({
-  error: null,
   invalidDataTypes: [],
   validations: { FormLayout: validations },
 });
 
-const createTextResource = (questions: IQuestion[], extraResources: IRawTextResource[]): ITextResourcesState => ({
-  resourceMap: resourcesAsMap([
+const createTextResource = (questions: IQuestion[], extraResources: IRawTextResource[]): ITextResourceResult => ({
+  resources: [
     {
       id: 'likert-questions',
       value: '{0}',
@@ -175,9 +173,8 @@ const createTextResource = (questions: IQuestion[], extraResources: IRawTextReso
       value: question.Question,
     })),
     ...extraResources,
-  ]),
+  ],
   language: 'nb',
-  error: null,
 });
 
 const { setScreenWidth } = mockMediaQuery(992);
@@ -212,7 +209,6 @@ export const render = async ({
   const mockData: IFormDataState = {
     formData: generateMockFormData(mockQuestions),
     lastSavedFormData: {},
-    error: null,
     submittingState: 'inactive',
     unsavedChanges: false,
     saving: false,
@@ -222,7 +218,6 @@ export const render = async ({
     formLayout: createLayout(mockLikertContainer, components, mockQuestions.length - 1),
     formData: mockData,
     formValidations: createFormValidationsForCurrentView(validations),
-    textResources: createTextResource(mockQuestions, extraTextResources),
   });
 
   setScreenWidth(mobileView ? 600 : 1200);
@@ -231,6 +226,7 @@ export const render = async ({
     reduxState,
     queries: {
       fetchOptions: () => Promise.resolve({ data: mockOptions, headers: {} } as AxiosResponse<IOption[], any>),
+      fetchTextResources: () => Promise.resolve(createTextResource(mockQuestions, extraTextResources)),
     },
   });
 

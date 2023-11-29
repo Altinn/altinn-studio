@@ -1,21 +1,18 @@
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { formatNumber } from 'src/utils/formattingUtils';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IInputFormatting } from 'src/layout/Input/config.generated';
 import type { CurrencyFormattingOptions, UnitFormattingOptions } from 'src/utils/formattingUtils';
 
 export const useMapToReactNumberConfig = (formatting: IInputFormatting | undefined, value = ''): IInputFormatting => {
-  const langTools = useLanguage();
-  return getMapToReactNumberConfig(formatting, value, langTools);
+  const selectedLanguage = useCurrentLanguage();
+  return getMapToReactNumberConfig(formatting, value, selectedLanguage);
 };
 
 export const getMapToReactNumberConfig = (
   formatting: IInputFormatting | undefined,
   value = '',
-  langTools: IUseLanguage,
+  selectedLanguage: string,
 ): IInputFormatting => {
-  const { selectedLanguage } = langTools;
-
   if (!formatting?.currency && !formatting?.unit) {
     return formatting ?? {};
   }

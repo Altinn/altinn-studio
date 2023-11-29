@@ -1,4 +1,5 @@
-import { isAxiosError } from 'src/utils/network/sharedNetworking';
+import { isAxiosError } from 'axios';
+
 import type { IDevToolsLog } from 'src/features/devtools/data/types';
 
 let logIndex = 0;

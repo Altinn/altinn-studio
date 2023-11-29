@@ -4,7 +4,7 @@ import type { FileRejection } from 'react-dropzone';
 
 import { CloudUpIcon } from '@navikt/aksel-icons';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/DropZone/DropzoneComponent.module.css';
 import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/DropZone/mapExtensionToAcceptMime';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';

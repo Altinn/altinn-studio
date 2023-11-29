@@ -2,7 +2,7 @@ import React from 'react';
 
 import { fireEvent, screen } from '@testing-library/react';
 
-import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getFormLayoutStateMock } from 'src/__mocks__/getFormLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
@@ -138,7 +138,6 @@ describe('SummaryComponent', () => {
         formLayout: mockLayout,
         formValidations: {
           validations,
-          error: null,
           invalidDataTypes: [],
         },
       },

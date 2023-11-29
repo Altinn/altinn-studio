@@ -6,12 +6,12 @@ import { useImmerReducer } from 'use-immer';
 import type { AxiosError } from 'axios';
 import type { ImmerReducer } from 'use-immer';
 
-import { useAppMutations } from 'src/contexts/appQueriesContext';
+import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useMappedAttachments } from 'src/features/attachments/utils/mapping';
 import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
 import type {
   AttachmentActionRemove,

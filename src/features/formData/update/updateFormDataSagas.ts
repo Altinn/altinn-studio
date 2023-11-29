@@ -36,7 +36,6 @@ export function* updateFormDataSaga({
     }
   } catch (error) {
     window.logError('Update form data failed:\n', error);
-    yield put(FormDataActions.updateRejected({ error }));
   }
 }
 
@@ -51,11 +50,6 @@ function* runValidations(
   if (!node) {
     const error = new Error('Missing component ID!');
     window.logError('Failed to run validations on update form data:\n', error);
-    yield put(
-      FormDataActions.updateRejected({
-        error,
-      }),
-    );
     return;
   }
 

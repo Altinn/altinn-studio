@@ -4,14 +4,14 @@ import { act, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import ResizeObserverModule from 'resize-observer-polyfill';
 
-import { getFormLayoutGroupMock } from 'src/__mocks__/formLayoutGroupMock';
+import { getFormLayoutGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IFormData } from 'src/features/formData';
-import type { TextResourceMap } from 'src/features/textResources';
+import type { TextResourceMap } from 'src/features/language/textResources';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 import type { IOption } from 'src/layout/common.generated';
 import type { CompGroupRepeatingExternal, CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
@@ -46,7 +46,6 @@ const getLayout = (group: CompGroupRepeatingExternal, components: CompOrGroupExt
       excludePageFromPdf: [],
       excludeComponentFromPdf: [],
     },
-    error: null,
     layoutsets: null,
   };
 

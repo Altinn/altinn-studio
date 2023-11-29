@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useMatch, useNavigate } from 'react-router-dom';
 
 import { Button, LegacyCheckbox, Textfield } from '@digdir/design-system-react';
@@ -6,11 +6,10 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { PlusIcon } from '@navikt/aksel-icons';
 
 import { AltinnParty } from 'src/components/altinnParty';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
-import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
-import { useSelectPartyMutation } from 'src/hooks/mutations/useSelectPartyMutation';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
+import { useCurrentParty, useParties, useSetCurrentParty } from 'src/features/party/PartiesProvider';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { HttpStatusCodes } from 'src/utils/network/networking';
@@ -68,23 +67,20 @@ const useStyles = makeStyles((theme) => ({
     paddingTop: '0.75rem',
   },
 }));
+
 export const PartySelection = () => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const classes = useStyles();
-  const match = useMatch(`/partyselection/:errorCode`);
-  const errorCode = match?.params.errorCode;
+  const match = useMatch(`/party-selection/:errorCode`);
+  const errorCode = match?.params.errorCode as 'error' | 'explained' | undefined;
 
-  const { mutate: selectPartyMutate, isSuccess: hasSelectedParty } = useSelectPartyMutation();
+  const selectParty = useSetCurrentParty();
+  const selectedParty = useCurrentParty();
 
-  const parties = useAppSelector((state) => state.party.parties);
-  const appMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
-  const selectedParty = useAppSelector((state) => state.party.selectedParty);
+  const parties = useParties() || [];
+  const appMetadata = useApplicationMetadata();
 
-  const appPromptForPartyOverride = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata?.promptForParty,
-  );
-  const autoRedirect = useAppSelector((state) => state.party.autoRedirect);
-
+  const appPromptForPartyOverride = appMetadata.promptForParty;
   const { langAsString, lang } = useLanguage();
 
   const [filterString, setFilterString] = React.useState('');
@@ -94,25 +90,12 @@ export const PartySelection = () => {
 
   const navigate = useNavigate();
 
-  const onSelectParty = (party: IParty) => {
-    selectPartyMutate(party);
+  const onSelectParty = async (party: IParty) => {
+    await selectParty(party);
+    navigate('/'); // Back to Entrypoint.tsx, where the next step will be determined
   };
 
-  useEffect(() => {
-    if (selectedParty && hasSelectedParty) {
-      navigate('/');
-    }
-  }, [selectedParty, navigate, hasSelectedParty]);
-
   function renderParties() {
-    if (!parties || !appMetadata) {
-      return null;
-    }
-
-    if (parties.length === 0) {
-      return <NoValidPartiesError />;
-    }
-
     let numberOfPartiesRendered = 0;
 
     return (
@@ -165,7 +148,7 @@ export const PartySelection = () => {
   }
 
   function templateErrorMessage() {
-    if (errorCode === `${HttpStatusCodes.Forbidden}`) {
+    if (errorCode === `error`) {
       return (
         <Typography
           data-testid={`error-code-${HttpStatusCodes.Forbidden}`}
@@ -178,28 +161,6 @@ export const PartySelection = () => {
         </Typography>
       );
     }
-  }
-
-  function autoRedirectMessage() {
-    if (!autoRedirect) {
-      return null;
-    }
-
-    const appOverride = appPromptForPartyOverride === 'always';
-
-    return (
-      <Grid style={{ padding: 12 }}>
-        <Typography
-          variant='h2'
-          style={{ fontSize: '1.5rem', fontWeight: '500', marginBottom: 12 }}
-        >
-          {langAsString('party_selection.why_seeing_this')}
-        </Typography>
-        <Typography variant='body1'>
-          {lang(appOverride ? 'party_selection.seeing_this_override' : 'party_selection.seeing_this_preference')}
-        </Typography>
-      </Grid>
-    );
   }
 
   function templatePartyTypesString() {
@@ -342,7 +303,23 @@ export const PartySelection = () => {
           </Grid>
         </Grid>
         {renderParties()}
-        {autoRedirectMessage()}
+        {errorCode === 'explained' && (
+          <Grid style={{ padding: 12 }}>
+            <Typography
+              variant='h2'
+              style={{ fontSize: '1.5rem', fontWeight: '500', marginBottom: 12 }}
+            >
+              {langAsString('party_selection.why_seeing_this')}
+            </Typography>
+            <Typography variant='body1'>
+              {lang(
+                appPromptForPartyOverride === 'always'
+                  ? 'party_selection.seeing_this_override'
+                  : 'party_selection.seeing_this_preference',
+              )}
+            </Typography>
+          </Grid>
+        )}
       </Grid>
     </InstantiationContainer>
   );

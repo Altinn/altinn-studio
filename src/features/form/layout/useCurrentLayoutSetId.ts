@@ -1,10 +1,11 @@
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getLayoutSetIdForApplication } from 'src/features/applicationMetadata/appMetadataUtils';
+import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
 
 export function useCurrentLayoutSetId() {
-  const application = useAppSelector((state) => state.applicationMetadata?.applicationMetadata);
-  const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
+  const application = useApplicationMetadata();
+  const layoutSets = useLayoutSets();
   const process = useLaxProcessData();
 
   return getLayoutSetIdForApplication({ application, layoutSets, process });

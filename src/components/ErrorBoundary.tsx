@@ -1,28 +1,31 @@
 import React from 'react';
+import type { ErrorInfo } from 'react';
 
-import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
+import { DisplayError } from 'src/core/errorHandling/DisplayError';
 
 interface IErrorBoundary {
-  hasError: boolean;
+  lastError?: Error;
 }
 
-export class ErrorBoundary extends React.Component<any, IErrorBoundary> {
-  constructor(props) {
+interface Props extends React.PropsWithChildren {}
+
+export class ErrorBoundary extends React.Component<Props, IErrorBoundary> {
+  constructor(props: Props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { lastError: undefined };
   }
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(lastError: Error) {
+    return { lastError };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error(error, errorInfo);
   }
 
   render() {
-    if (this.state.hasError) {
-      return <UnknownError />;
+    if (this.state.lastError) {
+      return <DisplayError error={this.state.lastError} />;
     }
 
     return this.props.children;

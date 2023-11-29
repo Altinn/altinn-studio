@@ -2,7 +2,7 @@ import React from 'react';
 
 import cn from 'classnames';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Accordion/SummaryAccordion.module.css';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';

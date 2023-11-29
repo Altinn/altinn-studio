@@ -238,12 +238,8 @@ export interface IAttachmentGrouping {
   [title: string]: IDisplayAttachment[];
 }
 
-export interface IDataSource {
-  [key: string]: any;
-}
-
 export interface IApplicationSettings {
-  [source: string]: string;
+  [source: string]: string | undefined;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

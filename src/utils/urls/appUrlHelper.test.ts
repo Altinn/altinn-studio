@@ -15,12 +15,12 @@ import {
   getProcessStateUrl,
   getRedirectUrl,
   getRulehandlerUrl,
+  getSetCurrentPartyUrl,
   getStatelessFormDataUrl,
   getUpgradeAuthLevelUrl,
   getValidationUrl,
   redirectToUpgrade,
   textResourcesUrl,
-  updateCookieUrl,
   validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
 
@@ -31,8 +31,8 @@ describe('Frontend urlHelper.ts', () => {
         'https://local.altinn.cloud/ttd/test/api/v1/parties?allowedtoinstantiatefilter=true',
       );
     });
-    it('should return the expected url for updateCookieUrl', () => {
-      expect(updateCookieUrl('12345')).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
+    it('should return the expected url for getSetCurrentPartyUrl', () => {
+      expect(getSetCurrentPartyUrl('12345')).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
     });
     it('should return the expected url for textResourcesUrl', () => {
       expect(textResourcesUrl('nb')).toBe('https://local.altinn.cloud/ttd/test/api/v1/texts/nb');

@@ -3,11 +3,11 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AxiosRequestConfig } from 'axios/index';
 import type { SagaIterator } from 'redux-saga';
 
+import { getCurrentTaskDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { staticUseLanguageFromState } from 'src/features/language/useLanguage';
 import { ValidationActions } from 'src/features/validation/validationSlice';
-import { staticUseLanguageFromState } from 'src/hooks/useLanguage';
 import { Triggers } from 'src/layout/common.generated';
-import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 import { ResolvedNodesSelector } from 'src/utils/layout/hierarchy';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
@@ -65,7 +65,7 @@ export function* updateRepeatingGroupEditIndexSaga({
         application: state.applicationMetadata.applicationMetadata,
         instance,
         process: state.deprecated.lastKnownProcess,
-        layoutSets: state.formLayout.layoutsets,
+        layoutSets: state.formLayout.layoutsets!,
       });
 
       if (!currentTaskDataId) {

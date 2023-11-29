@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { AlertBaseComponent } from 'src/layout/Alert/AlertBaseComponent';
 

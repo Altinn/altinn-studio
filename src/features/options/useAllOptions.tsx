@@ -3,14 +3,14 @@ import type { PropsWithChildren } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
+import { createContext } from 'src/core/contexts/context';
+import { Loader } from 'src/core/loading/Loader';
 import { useLaxProcessData, useRealTaskType } from 'src/features/instance/ProcessContext';
-import { Loader } from 'src/features/loading/Loader';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import { ProcessTaskType } from 'src/types';
-import { createStrictContext } from 'src/utils/createContext';
 import { useExprContext } from 'src/utils/layout/ExprContext';
 import type { IOption } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -23,7 +23,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
  */
 export type AllOptionsMap = { [nodeId: string]: IOption[] | undefined };
 
-const { Provider, useCtx } = createStrictContext<State>({ name: 'AllOptionsContext' });
+const { Provider, useCtx } = createContext<State>({ name: 'AllOptionsContext', required: true });
 
 export const useAllOptions = () => useCtx().nodes;
 export const useAllOptionsInitiallyLoaded = () => useCtx().allInitiallyLoaded;

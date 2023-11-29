@@ -1,32 +1,25 @@
-import React from 'react';
-
 import { useQuery } from '@tanstack/react-query';
-import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
-import { useAppQueries } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { delayedContext } from 'src/core/contexts/delayedContext';
+import { createQueryContext } from 'src/core/contexts/queryContext';
 import { CustomValidationActions } from 'src/features/customValidation/customValidationSlice';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
-import { Loader } from 'src/features/loading/Loader';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { createStrictContext } from 'src/utils/createContext';
 import { resolveExpressionValidationConfig } from 'src/utils/validation/expressionValidation';
 import type { IExpressionValidationConfig } from 'src/utils/validation/types';
 
-const { Provider, useCtx } = createStrictContext<IExpressionValidationConfig | null>({
-  name: 'CustomValidationContext',
-});
-
-const useCustomValidationConfigQuery = (
-  dataTypeId: string | undefined,
-): UseQueryResult<IExpressionValidationConfig | null> => {
+const useCustomValidationConfigQuery = () => {
   const dispatch = useAppDispatch();
   const { fetchCustomValidationConfig } = useAppQueries();
+  const dataTypeId = useCurrentDataModelName();
+  const enabled = Boolean(dataTypeId?.length);
 
-  return useQuery({
+  const utils = useQuery({
+    enabled,
     queryKey: ['fetchCustomValidationConfig', dataTypeId],
     queryFn: () => fetchCustomValidationConfig(dataTypeId!),
-    enabled: Boolean(dataTypeId?.length),
     onSuccess: (customValidationConfig) => {
       if (customValidationConfig) {
         const validationDefinition = resolveExpressionValidationConfig(customValidationConfig);
@@ -36,21 +29,24 @@ const useCustomValidationConfigQuery = (
       }
     },
     onError: (error: AxiosError) => {
-      dispatch(CustomValidationActions.fetchCustomValidationsRejected(error));
       window.logError('Fetching validation configuration failed:\n', error);
     },
   });
+
+  return {
+    ...utils,
+    enabled,
+  };
 };
 
-export function CustomValidationConfigProvider({ children }: React.PropsWithChildren) {
-  const dataTypeId = useCurrentDataModelName();
-  const query = useCustomValidationConfigQuery(dataTypeId);
+const { Provider, useCtx } = delayedContext(() =>
+  createQueryContext<IExpressionValidationConfig | null, false>({
+    name: 'CustomValidationContext',
+    required: false,
+    default: null,
+    query: useCustomValidationConfigQuery,
+  }),
+);
 
-  if (dataTypeId?.length && (query.isLoading || query.data === undefined)) {
-    return <Loader reason={'custom-validation-config'} />;
-  }
-
-  return <Provider value={query.data || null}>{children}</Provider>;
-}
-
+export const CustomValidationConfigProvider = Provider;
 export const useCustomValidationConfig = () => useCtx();

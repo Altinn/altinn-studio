@@ -2,7 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getFormLayoutStateMock } from 'src/__mocks__/getFormLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';

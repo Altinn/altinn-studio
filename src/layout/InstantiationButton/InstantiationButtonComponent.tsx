@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { InstantiationButton } from 'src/layout/InstantiationButton/InstantiationButton';
 import classes from 'src/layout/InstantiationButton/InstantiationButton.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';

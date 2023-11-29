@@ -1,5 +1,5 @@
 import React from 'react';
-import { Provider } from 'react-redux';
+import { Provider as ReduxProvider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
@@ -10,24 +10,38 @@ import type { RenderOptions } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
+import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getOrgsMock } from 'src/__mocks__/getOrgsMock';
+import { getPartyMock } from 'src/__mocks__/getPartyMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { getProfileMock } from 'src/__mocks__/getProfileMock';
+import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { getInstanceDataMock, getProcessDataMock } from 'src/__mocks__/instanceDataStateMock';
-import { AppQueriesProvider } from 'src/contexts/appQueriesContext';
+import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
+import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
 import { generateSimpleRepeatingGroups } from 'src/features/form/layout/repGroups/generateSimpleRepeatingGroups';
+import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
+import { LanguageProvider } from 'src/features/language/LanguageProvider';
+import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
+import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
+import { PartyProvider } from 'src/features/party/PartiesProvider';
+import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { setupStore } from 'src/redux/store';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { ExprContextWrapper, useExprContext } from 'src/utils/layout/ExprContext';
-import type { AppMutations, AppQueries } from 'src/contexts/appQueriesContext';
+import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/contexts/AppQueriesProvider';
 import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { IOption } from 'src/layout/common.generated';
 import type { CompExternalExact, CompTypes, ILayoutCollection, ILayouts } from 'src/layout/layout';
-import type { ILayoutSets, IRuntimeState } from 'src/types';
-import type { IProfile } from 'src/types/shared';
+import type { IRuntimeState } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
@@ -60,6 +74,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 
 interface BaseRenderOptions extends ExtendedRenderOptions {
   unMockableQueries?: Partial<UnMockableQueries>;
+  Providers?: typeof DefaultProviders;
 }
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
@@ -91,22 +106,22 @@ const makeMutationMocks = (): MockedMutations => ({
   doAttachmentUpload: promiseMock<AppMutations['doAttachmentUpload']>(),
   doInstantiate: promiseMock<AppMutations['doInstantiate']>(),
   doInstantiateWithPrefill: promiseMock<AppMutations['doInstantiateWithPrefill']>(),
-  doPartyValidation: promiseMock<AppMutations['doPartyValidation']>(),
   doProcessNext: promiseMock<AppMutations['doProcessNext']>(),
-  doSelectParty: promiseMock<AppMutations['doSelectParty']>(),
+  doSetCurrentParty: promiseMock<AppMutations['doSetCurrentParty']>(),
 });
 
 const makeDefaultQueryMocks = (state: IRuntimeState): MockableQueries => ({
+  fetchLogo: () => Promise.resolve(''),
   fetchApplicationMetadata: () => Promise.resolve(state.applicationMetadata.applicationMetadata!),
   fetchActiveInstances: () => Promise.resolve([]),
-  fetchCurrentParty: () => Promise.resolve({}),
+  fetchCurrentParty: () => Promise.resolve(getPartyMock()),
   fetchApplicationSettings: () => Promise.resolve({}),
   fetchFooterLayout: () => Promise.resolve({ footer: [] } as IFooterLayout),
-  fetchLayoutSets: () => Promise.resolve({} as unknown as ILayoutSets),
-  fetchOrgs: () => Promise.resolve({ orgs: {} }),
-  fetchUserProfile: () => Promise.resolve({} as unknown as IProfile),
+  fetchLayoutSets: () => Promise.resolve(getLayoutSetsMock()),
+  fetchOrgs: () => Promise.resolve({ orgs: getOrgsMock() }),
+  fetchUserProfile: () => Promise.resolve(getProfileMock()),
   fetchDataModelSchema: () => Promise.resolve({}),
-  fetchParties: () => Promise.resolve({}),
+  fetchParties: () => Promise.resolve([getPartyMock()]),
   fetchRefreshJwtToken: () => Promise.resolve({}),
   fetchCustomValidationConfig: () => Promise.resolve(null),
   fetchFormData: () => Promise.resolve({}),
@@ -115,7 +130,7 @@ const makeDefaultQueryMocks = (state: IRuntimeState): MockableQueries => ({
   fetchPdfFormat: () => Promise.resolve({ excludedPages: [], excludedComponents: [] }),
   fetchDynamics: () => Promise.resolve(null),
   fetchRuleHandler: () => Promise.resolve(null),
-  fetchTextResources: () => Promise.resolve({ language: 'nb', resources: [] }),
+  fetchTextResources: () => Promise.resolve({ language: 'nb', resources: getTextResourcesMock() }),
   fetchLayoutSchema: () => Promise.resolve({} as JSONSchema7),
   fetchAppLanguages: () => Promise.resolve([]),
   fetchProcessNextSteps: () => Promise.resolve([]),
@@ -133,6 +148,77 @@ const defaultReduxGateKeeper = (action: ReduxAction) =>
   // like the AllOptionsProvider (along with summary of options-components) to work
   !!(action && 'type' in action && action.type.startsWith('deprecated/'));
 
+function DefaultRouter({ children }: PropsWithChildren) {
+  return (
+    <MemoryRouter>
+      <Routes>
+        <Route
+          path={'/'}
+          element={<>{children}</>}
+        />
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
+interface ProvidersProps extends PropsWithChildren {
+  store: ReturnType<typeof setupStore>['store'];
+  queries: AppQueriesContext;
+  queryClient: QueryClient;
+  Router?: (props: PropsWithChildren) => React.ReactNode;
+}
+
+function DefaultProviders({ children, store, queries, queryClient, Router = DefaultRouter }: ProvidersProps) {
+  const theme = createTheme(AltinnAppTheme);
+  return (
+    <AppQueriesProvider
+      {...queries}
+      queryClient={queryClient}
+    >
+      <ReduxProvider store={store}>
+        <LanguageProvider>
+          <MuiThemeProvider theme={theme}>
+            <ExprContextWrapper>
+              <ApplicationMetadataProvider>
+                <OrgsProvider>
+                  <ApplicationSettingsProvider>
+                    <LayoutSetsProvider>
+                      <ProfileProvider>
+                        <PartyProvider>
+                          <TextResourcesProvider>
+                            <FooterLayoutProvider>
+                              <Router>
+                                <InstantiationProvider>{children}</InstantiationProvider>
+                              </Router>
+                            </FooterLayoutProvider>
+                          </TextResourcesProvider>
+                        </PartyProvider>
+                      </ProfileProvider>
+                    </LayoutSetsProvider>
+                  </ApplicationSettingsProvider>
+                </OrgsProvider>
+              </ApplicationMetadataProvider>
+            </ExprContextWrapper>
+          </MuiThemeProvider>
+        </LanguageProvider>
+      </ReduxProvider>
+    </AppQueriesProvider>
+  );
+}
+
+function MinimalProviders({ children, store, queries, queryClient, Router = DefaultRouter }: ProvidersProps) {
+  return (
+    <AppQueriesProvider
+      {...queries}
+      queryClient={queryClient}
+    >
+      <ReduxProvider store={store}>
+        <Router>{children}</Router>
+      </ReduxProvider>
+    </AppQueriesProvider>
+  );
+}
+
 const renderBase = async ({
   renderer,
   router,
@@ -141,6 +227,7 @@ const renderBase = async ({
   unMockableQueries = {},
   reduxState,
   reduxGateKeeper = defaultReduxGateKeeper,
+  Providers = DefaultProviders,
   ...renderOptions
 }: BaseRenderOptions) => {
   const state = reduxState || getInitialStateMock();
@@ -205,49 +292,21 @@ const renderBase = async ({
     });
   };
 
-  function ComponentToTest() {
-    return <>{renderer()}</>;
-  }
-
-  function DefaultRouter({ children }: PropsWithChildren) {
-    return (
-      <MemoryRouter>
-        <Routes>
-          <Route
-            path={'/'}
-            element={children}
-          />
-        </Routes>
-      </MemoryRouter>
-    );
-  }
-
-  function Providers() {
-    const theme = createTheme(AltinnAppTheme);
-
-    const RealRouter = router || DefaultRouter;
-    return (
-      <AppQueriesProvider
-        {...queryMocks}
-        {...mutationMocks}
-        queryClient={queryClient}
-      >
-        <MuiThemeProvider theme={theme}>
-          <Provider store={store}>
-            <ExprContextWrapper>
-              <RealRouter>
-                <InstantiationProvider>
-                  <ComponentToTest />
-                </InstantiationProvider>
-              </RealRouter>
-            </ExprContextWrapper>
-          </Provider>
-        </MuiThemeProvider>
-      </AppQueriesProvider>
-    );
-  }
-
-  const utils = rtlRender(Providers(), renderOptions);
+  const children = renderer();
+  const utils = rtlRender(
+    <Providers
+      Router={router}
+      queryClient={queryClient}
+      queries={{
+        ...queryMocks,
+        ...mutationMocks,
+      }}
+      store={store}
+    >
+      {children}
+    </Providers>,
+    renderOptions,
+  );
 
   if (waitUntilLoaded) {
     // This may fail early if any of the providers fail to load, and will give you the provider/reason for failure
@@ -309,6 +368,12 @@ const renderBase = async ({
     ...utils,
   };
 };
+
+export const renderWithMinimalProviders = async (props: ExtendedRenderOptions) =>
+  await renderBase({
+    ...props,
+    Providers: MinimalProviders,
+  });
 
 export const renderWithoutInstanceAndLayout = async (props: ExtendedRenderOptions) => await renderBase(props);
 export const renderWithInstanceAndLayout = async ({

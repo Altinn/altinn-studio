@@ -93,7 +93,6 @@ export function* repGroupDeleteRowSaga({ payload: { groupId, index } }: PayloadA
     yield put(FormDataActions.setFulfilled({ formData: updatedFormData }));
     yield put(FormDataActions.saveEvery({}));
   } catch (error) {
-    yield put(FormLayoutActions.repGroupDeleteRowRejected({ error }));
     window.logError(`Deleting row from repeating group (${groupId}) failed:\n`, error);
   }
 }

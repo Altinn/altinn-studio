@@ -1,26 +1,21 @@
-import React from 'react';
-
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { delayedContext } from 'src/core/contexts/delayedContext';
+import { createQueryContext } from 'src/core/contexts/queryContext';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { preProcessItem } from 'src/features/expressions/validation';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { useCurrentLayoutSetId } from 'src/features/form/layout/useCurrentLayoutSetId';
 import { useHasInstance, useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
-import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
-import { Loader } from 'src/features/loading/Loader';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { createStrictContext } from 'src/utils/createContext';
 import type { ExprObjConfig, ExprVal } from 'src/features/expressions/types';
 import type { ILayoutFileExternal } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IHiddenLayoutsExternal } from 'src/types';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
-
-const { Provider, useCtx } = createStrictContext<ILayoutCollection>({ name: 'LayoutsContext' });
 
 function useLayoutQuery() {
   const { fetchLayouts } = useAppQueries();
@@ -29,47 +24,34 @@ function useLayoutQuery() {
   const layoutSetId = useCurrentLayoutSetId();
   const dispatch = useAppDispatch();
   const instance = useLaxInstanceData();
-  const applicationMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
+  const applicationMetadata = useApplicationMetadata();
 
   return useQuery({
     // Waiting to fetch layouts until we have an instance, if we're supposed to have one
     enabled: hasInstance ? !!process : true,
 
     queryKey: ['formLayouts', layoutSetId],
-    queryFn: () => fetchLayouts(layoutSetId),
-    onSuccess: (data) => {
-      if (!data || !applicationMetadata) {
-        return;
-      }
+    queryFn: async () => {
       const currentViewCacheKey = instance?.id || applicationMetadata.id;
-      // const taskId = instance?.process?.currentTask?.elementId;
-      legacyProcessLayouts({ input: data, dispatch, currentViewCacheKey, layoutSetId });
+      return processLayouts({ input: await fetchLayouts(layoutSetId), dispatch, currentViewCacheKey, layoutSetId });
     },
     onError: (error: HttpClientError) => {
-      dispatch(FormLayoutActions.fetchRejected({ error }));
       window.logError('Fetching form layout failed:\n', error);
     },
   });
 }
 
-export function LayoutsProvider({ children }: React.PropsWithChildren) {
-  const query = useLayoutQuery();
-  const data = query.data;
+const { Provider, useCtx } = delayedContext(() =>
+  createQueryContext({
+    name: 'LayoutsContext',
+    required: true,
+    query: useLayoutQuery,
+  }),
+);
 
-  if (query.error) {
-    return <UnknownError />;
-  }
-
-  if (!data || query.isFetching) {
-    return <Loader reason='form-layout' />;
-  }
-
-  if (isSingleLayout(data)) {
-    return <Provider value={{ FormLayout: data }}>{children}</Provider>;
-  }
-
-  return <Provider value={data}>{children}</Provider>;
-}
+export const LayoutsProvider = Provider;
+export const useLayouts = () => useCtx().layouts;
+export const useHiddenLayoutsExpressions = () => useCtx().hiddenLayoutsExpressions;
 
 function isSingleLayout(layouts: ILayoutCollection | ILayoutFileExternal): layouts is ILayoutFileExternal {
   return 'data' in layouts && 'layout' in layouts.data && Array.isArray(layouts.data.layout);
@@ -82,7 +64,7 @@ interface LegacyProcessProps {
   layoutSetId?: string;
 }
 
-function legacyProcessLayouts({ input, dispatch, currentViewCacheKey, layoutSetId }: LegacyProcessProps) {
+function processLayouts({ input, dispatch, currentViewCacheKey, layoutSetId }: LegacyProcessProps) {
   const layouts: ILayouts = {};
   const hiddenLayoutsExpressions: IHiddenLayoutsExternal = {};
   if (isSingleLayout(input)) {
@@ -131,6 +113,9 @@ function legacyProcessLayouts({ input, dispatch, currentViewCacheKey, layoutSetI
       skipPageCaching: true,
     }),
   );
-}
 
-export const useLayoutCollection = () => useCtx();
+  return {
+    layouts,
+    hiddenLayoutsExpressions,
+  };
+}

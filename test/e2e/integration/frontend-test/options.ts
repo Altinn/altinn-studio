@@ -133,6 +133,6 @@ describe('Options', () => {
 
     cy.get(appFrontend.changeOfName.municipalityMetadata)
       .should('have.prop', 'value')
-      .should('match', /language=nb,id=131,variant=,date=\d{1,2}\/\d{1,2}\/\d{4},level=,parentCode=/);
+      .should('match', /language=nb,id=131,variant=,date=\d{1,2}[/.]\d{1,2}[/.]\d{4},level=,parentCode=/);
   });
 });

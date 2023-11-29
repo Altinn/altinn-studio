@@ -3,17 +3,15 @@ import React from 'react';
 import cn from 'classnames';
 
 import classes from 'src/components/presentation/OrganisationLogo/OrganisationLogo.module.css';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { selectAppOwner } from 'src/selectors/language';
-import { selectAppLogoAltText, selectAppLogoUrl, selectDisplayAppOwnerNameInHeader } from 'src/selectors/logo';
-import { selectAppLogoSize } from 'src/selectors/simpleSelectors';
+import { useAppLogoAltText, useAppOwner } from 'src/core/texts/appTexts';
+import { useAppLogoSize, useAppLogoUrl, useDisplayAppOwnerNameInHeader } from 'src/hooks/useAppLogo';
 
 export const OrganisationLogo = () => {
-  const appLogoUrl = useAppSelector(selectAppLogoUrl);
-  const appLogoAltText = useAppSelector(selectAppLogoAltText);
-  const appLogoSize = useAppSelector(selectAppLogoSize);
-  const showAppOwner = useAppSelector(selectDisplayAppOwnerNameInHeader);
-  const appOwner = useAppSelector(selectAppOwner);
+  const appLogoUrl = useAppLogoUrl();
+  const appLogoAltText = useAppLogoAltText();
+  const appLogoSize = useAppLogoSize();
+  const showAppOwner = useDisplayAppOwnerNameInHeader();
+  const appOwner = useAppOwner();
 
   return (
     <div className={classes.container}>

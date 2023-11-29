@@ -574,6 +574,7 @@ export const ExprFunctions = {
         attachments: this.dataSources.attachments,
         options: this.dataSources.options,
         langTools: this.dataSources.langTools,
+        currentLanguage: this.dataSources.currentLanguage,
       });
     },
     args: [ExprVal.String] as const,
@@ -581,7 +582,7 @@ export const ExprFunctions = {
   }),
   formatDate: defineFunc({
     impl(date: string, format: string | null): string | null {
-      const { selectedLanguage } = this.dataSources.langTools;
+      const selectedLanguage = this.dataSources.currentLanguage;
       if (!isDate(date)) {
         return null;
       }
@@ -614,7 +615,7 @@ export const ExprFunctions = {
   }),
   language: defineFunc({
     impl() {
-      return this.dataSources.langTools.selectedLanguage;
+      return this.dataSources.currentLanguage;
     },
     args: [] as const,
     returns: ExprVal.String,

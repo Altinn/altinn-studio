@@ -6,8 +6,8 @@ import type { IAttachments } from 'src/features/attachments';
 import type { EvalExprOptions } from 'src/features/expressions/index';
 import type { ExprConfig, Expression, ExprPositionalArgs } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/formData';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { AllOptionsMap } from 'src/features/options/useAllOptions';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
 import type { IUiConfig } from 'src/types';
 import type { IApplicationSettings, IAuthContext, IInstanceDataSources } from 'src/types/shared';
 import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -23,6 +23,7 @@ export interface ContextDataSources {
   authContext: Partial<IAuthContext> | null;
   hiddenFields: Set<string>;
   langTools: IUseLanguage;
+  currentLanguage: string;
 }
 
 export interface PrettyErrorsOptions {

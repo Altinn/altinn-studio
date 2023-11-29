@@ -1,14 +1,9 @@
 import { createSagaSlice } from 'src/redux/sagaSlice';
-import type {
-  IDataModelState,
-  IFetchJsonSchemaFulfilled,
-  IFetchJsonSchemaRejected,
-} from 'src/features/datamodel/index';
+import type { IDataModelState, IFetchJsonSchemaFulfilled } from 'src/features/datamodel/index';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
 
 const initialState: IDataModelState = {
   schemas: {},
-  error: null,
 };
 
 export let DataModelActions: ActionsFromSlice<typeof formDataModelSlice>;
@@ -21,12 +16,6 @@ export const formDataModelSlice = () => {
         reducer: (state, action) => {
           const { schema, id } = action.payload;
           state.schemas[id] = schema;
-        },
-      }),
-      fetchRejected: mkAction<IFetchJsonSchemaRejected>({
-        reducer: (state, action) => {
-          const { error } = action.payload;
-          state.error = error;
         },
       }),
     },

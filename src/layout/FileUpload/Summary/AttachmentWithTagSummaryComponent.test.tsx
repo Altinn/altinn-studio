@@ -103,20 +103,6 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
   };
   const reduxState = getInitialStateMock((state) => {
     state.formLayout.layouts!.FormLayout = [component];
-    state.textResources.resourceMap = {
-      a: {
-        value: 'the a',
-      },
-      b: {
-        value: 'the b',
-      },
-      c: {
-        value: 'the c',
-      },
-      'ba option value': {
-        value: 'the result',
-      },
-    };
     state.applicationMetadata.applicationMetadata!.dataTypes.push({
       id: 'myComponent',
       allowedContentTypes: ['application/pdf'],
@@ -136,6 +122,16 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
         availableOptions[url]
           ? Promise.resolve(availableOptions[url])
           : Promise.reject(new Error(`No options available for ${url}`)),
+      fetchTextResources: () =>
+        Promise.resolve({
+          language: 'nb',
+          resources: [
+            { id: 'a', value: 'the a' },
+            { id: 'b', value: 'the b' },
+            { id: 'c', value: 'the c' },
+            { id: 'ba option value', value: 'the result' },
+          ],
+        }),
     },
   });
 };

@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 
-import { useLanguage } from 'src/hooks/useLanguage';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal, ITextResourceBindings } from 'src/layout/layout';
 

@@ -3,8 +3,8 @@ import React from 'react';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { Value } from 'src/features/devtools/components/NodeInspector/NodeInspectorDataField';
 import { canBeExpression } from 'src/features/expressions/validation';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 

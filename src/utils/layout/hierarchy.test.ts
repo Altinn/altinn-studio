@@ -1,4 +1,4 @@
-import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
+import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getLayoutComponentObject } from 'src/layout';
 import { getRepeatingGroups } from 'src/utils/formLayout';

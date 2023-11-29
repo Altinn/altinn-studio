@@ -4,9 +4,9 @@ import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { selectLayoutOrder, selectPreviousAndNextPage } from 'src/selectors/getLayoutOrder';
 import { reducePageValidations } from 'src/types';

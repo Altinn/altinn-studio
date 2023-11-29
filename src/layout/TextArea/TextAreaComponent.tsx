@@ -2,8 +2,8 @@ import React from 'react';
 
 import { LegacyTextArea } from '@digdir/design-system-react';
 
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { createCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 

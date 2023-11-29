@@ -1,6 +1,6 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-import type { user } from 'test/e2e/support/auth';
+import type { CyUser } from 'test/e2e/support/auth';
 
 import type { CompOrGroupExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { ILayoutSets, IRuntimeState } from 'src/types';
@@ -10,12 +10,15 @@ export type FillableFrontendTasks = Exclude<FrontendTestTask, 'message' | 'confi
 
 export type StartAppInstanceOptions = {
   // User to log in as
-  user?: user | null;
+  user?: CyUser | null;
 
   // JavaScript code to evaluate before starting the app instance (evaluates in the browser, in context of the app).
   // The code runs inside an async function, and if it ends with a return value, that value will assumed to be a
   // URL that the app page should be navigated to.
   evaluateBefore?: string;
+
+  // You can add a URL suffix if you need, for example to start a specific instance
+  urlSuffix?: string;
 };
 
 declare global {
@@ -133,9 +136,8 @@ declare global {
 
       interceptLayoutSetsUiSettings(uiSettings: Partial<ILayoutSets['uiSettings']>): Chainable<null>;
 
-      switchUser(user: user): any;
-      assertUser(user: user): any;
-      interceptPermissions(): void;
+      assertUser(user: CyUser): Chainable<null>;
+      interceptPermissions(): Chainable<null>;
       setPermissions(permissionFormat: string): void;
 
       /**

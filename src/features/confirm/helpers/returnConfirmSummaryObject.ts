@@ -1,5 +1,5 @@
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IParty } from 'src/types/shared';
 
 export interface ISummaryData {

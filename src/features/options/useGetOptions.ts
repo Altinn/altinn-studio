@@ -1,10 +1,11 @@
 import { useRef } from 'react';
 
-import { useGetOptionsQuery } from 'src/hooks/queries/useGetOptionsQuery';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useLanguage } from 'src/features/language/useLanguage';
+import { useGetOptionsQuery } from 'src/features/options/useGetOptionsQuery';
 import { useSourceOptions } from 'src/hooks/useSourceOptions';
 import { duplicateOptionFilter } from 'src/utils/options';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IMapping, IOption, IOptionSourceExternal } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -79,7 +80,8 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
   if (!!setMetadata && downstreamParameters) {
     setMetadata(downstreamParameters);
   }
-  const { selectedLanguage, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
+  const selectedLanguage = useCurrentLanguage();
 
   usePreselectedOptionIndex(calculatedOptions, props);
   useRemoveStaleValues(calculatedOptions, props);

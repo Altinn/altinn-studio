@@ -1,4 +1,4 @@
-import { getHierarchyDataSourcesMock } from 'src/__mocks__/hierarchyMock';
+import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions/index';
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression, preProcessLayout } from 'src/features/expressions/validation';

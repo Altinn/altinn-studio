@@ -4,10 +4,10 @@ import { Grid, makeStyles } from '@material-ui/core';
 import cn from 'classnames';
 
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsMobile } from 'src/hooks/useIsMobile';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { reducePageValidations } from 'src/types';
 import type { PropsFromGenericComponent } from 'src/layout';

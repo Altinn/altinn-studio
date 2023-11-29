@@ -1,4 +1,4 @@
-import { createStrictContext } from 'src/utils/createContext';
+import { createContext } from 'src/core/contexts/context';
 
 export interface FileTableRowContext {
   index: number;
@@ -6,7 +6,7 @@ export interface FileTableRowContext {
   setEditIndex: (index: number) => void;
 }
 
-const { Provider, useCtx } = createStrictContext<FileTableRowContext>({ name: 'FileTableRowContext' });
+const { Provider, useCtx } = createContext<FileTableRowContext>({ name: 'FileTableRowContext', required: true });
 
 export const FileTableRowProvider = Provider;
 export const useFileTableRow = () => useCtx();

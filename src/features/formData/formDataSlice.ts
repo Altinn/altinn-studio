@@ -7,7 +7,6 @@ import { createSagaSlice } from 'src/redux/sagaSlice';
 import { convertDataBindingToModel } from 'src/utils/databindings';
 import type {
   IFetchFormDataFulfilled,
-  IFormDataRejected,
   ISaveAction,
   IUpdateFormDataAddToList,
   IUpdateFormDataRemoveFromList,
@@ -22,7 +21,6 @@ export const initialState: IFormDataState = {
   unsavedChanges: false,
   saving: false,
   submittingState: 'inactive',
-  error: null,
   reFetch: false,
 };
 
@@ -45,13 +43,6 @@ export const formDataSlice = () => {
           state.reFetch = false;
         },
       }),
-      fetchRejected: mkAction<IFormDataRejected>({
-        reducer: (state, action) => {
-          const { error } = action.payload;
-          state.error = error;
-          state.reFetch = false;
-        },
-      }),
       setFulfilled: mkAction<IFetchFormDataFulfilled>({
         reducer: (state, action) => {
           const { formData } = action.payload;
@@ -69,10 +60,8 @@ export const formDataSlice = () => {
           state.unsavedChanges = false;
         },
       }),
-      submitRejected: mkAction<IFormDataRejected>({
-        reducer: (state, action) => {
-          const { error } = action.payload;
-          state.error = error;
+      submitRejected: mkAction<void>({
+        reducer: (state) => {
           state.submittingState = 'inactive';
         },
       }),
@@ -151,12 +140,6 @@ export const formDataSlice = () => {
           for (let i = 0; i < newList.length; i++) {
             state.formData[`${field}[${i}]`] = newList[i];
           }
-        },
-      }),
-      updateRejected: mkAction<IFormDataRejected>({
-        reducer: (state, action) => {
-          const { error } = action.payload;
-          state.error = error;
         },
       }),
       saveEvery: mkAction<ISaveAction>({

@@ -1,9 +1,10 @@
 import { createContext, useMemo } from 'react';
 
 import { useAttachments } from 'src/features/attachments/AttachmentsContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { type IUseLanguage, useLanguage } from 'src/features/language/useLanguage';
 import { useAllOptions } from 'src/features/options/useAllOptions';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { type IUseLanguage, useLanguage } from 'src/hooks/useLanguage';
 import { ComponentConfigs } from 'src/layout/components.generated';
 import type { IAttachments } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
@@ -157,6 +158,7 @@ export interface DisplayDataProps {
   attachments: IAttachments;
   options: AllOptionsMap;
   langTools: IUseLanguage;
+  currentLanguage: string;
 }
 
 export interface DisplayData<Type extends CompTypes> {
@@ -175,6 +177,10 @@ export function useDisplayDataProps(): DisplayDataProps {
   const langTools = useLanguage();
   const options = useAllOptions();
   const attachments = useAttachments();
+  const currentLanguage = useCurrentLanguage();
 
-  return useMemo(() => ({ options, attachments, langTools, formData }), [attachments, langTools, options, formData]);
+  return useMemo(
+    () => ({ options, attachments, langTools, formData, currentLanguage }),
+    [attachments, langTools, options, formData, currentLanguage],
+  );
 }

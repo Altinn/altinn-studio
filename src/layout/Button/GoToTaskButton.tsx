@@ -2,7 +2,7 @@ import React from 'react';
 
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { useProcessNextTasks } from 'src/features/instance/useProcessNextTasks';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
 import type { IButtonProvidedProps } from 'src/layout/Button/ButtonComponent';
 

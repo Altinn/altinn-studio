@@ -4,8 +4,8 @@ import { LegacyTextField } from '@digdir/design-system-react';
 import axios from 'axios';
 
 import { Label } from 'src/components/form/Label';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
 import classes from 'src/layout/Address/AddressComponent.module.css';
 import { httpGet } from 'src/utils/network/sharedNetworking';

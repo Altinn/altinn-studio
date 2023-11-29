@@ -10,7 +10,7 @@ import { getSchemaValidationErrors } from 'src/utils/validation/schemaValidation
 import { emptyValidation } from 'src/utils/validation/validationHelpers';
 import type { IAttachments, UploadedAttachment } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CompGroupExternal } from 'src/layout/Group/config.generated';
 import type { CompInternal, CompOrGroupExternal, ILayout, ILayouts } from 'src/layout/layout';
 import type { IRepeatingGroups } from 'src/types';

@@ -1,13 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 
-import { createTheme, MuiThemeProvider, Typography } from '@material-ui/core';
+import { Typography } from '@material-ui/core';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useLaxProcessData, useReFetchProcessData } from 'src/features/instance/ProcessContext';
-import { useLanguage } from 'src/hooks/useLanguage';
-import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
-
-const theme = createTheme(AltinnAppTheme);
+import { useLanguage } from 'src/features/language/useLanguage';
 
 export function Feedback() {
   const { lang } = useLanguage();
@@ -22,10 +19,8 @@ export function Feedback() {
 
   return (
     <div id='FeedbackContainer'>
-      <MuiThemeProvider theme={theme}>
-        <Typography variant='body1'>{lang('feedback.title')}</Typography>
-        <Typography variant='body1'>{lang('feedback.body')}</Typography>
-      </MuiThemeProvider>
+      <Typography variant='body1'>{lang('feedback.title')}</Typography>
+      <Typography variant='body1'>{lang('feedback.body')}</Typography>
       <ReadyForPrint />
     </div>
   );

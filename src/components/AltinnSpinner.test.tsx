@@ -8,7 +8,9 @@ import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 describe('tests to make sure to follow accessibility requirements', () => {
   test('should have role progressbar', async () => {
     await renderWithoutInstanceAndLayout({ renderer: () => <AltinnSpinner />, waitUntilLoaded: false });
-    expect(screen.getByRole('progressbar'));
+    await waitFor(() => {
+      expect(screen.getByRole('progressbar'));
+    });
   });
 
   test('should have role alert on spinner text to make sure screen readers is focus the text content', async () => {
@@ -16,11 +18,12 @@ describe('tests to make sure to follow accessibility requirements', () => {
       renderer: () => <AltinnSpinner spinnerText={'Loading form'} />,
       waitUntilLoaded: false,
     });
-    const spinnerText = screen.getByRole('alert');
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Loading form');
+    });
 
-    expect(spinnerText).toHaveTextContent('Loading form');
-    expect(spinnerText).toHaveAttribute('aria-busy', 'true');
-    expect(spinnerText).toHaveTextContent('Loading form');
+    expect(screen.getByRole('alert')).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByRole('alert')).toHaveTextContent('Loading form');
   });
 
   test('should fallback spinnerText to "Laster innhold", but hidden from visual view to stay accessible"', async () => {

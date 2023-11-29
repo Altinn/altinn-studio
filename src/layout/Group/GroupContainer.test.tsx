@@ -4,7 +4,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-import { getFormLayoutGroupMock } from 'src/__mocks__/formLayoutGroupMock';
+import { getFormLayoutGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { Triggers } from 'src/layout/common.generated';
@@ -13,7 +13,6 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IUpdateRepeatingGroupsEditIndex } from 'src/features/form/layout/formLayoutTypes';
-import type { ITextResourcesState } from 'src/features/textResources';
 import type { CompGroupRepeatingExternal, CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
 import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import type { CompExternal } from 'src/layout/layout';
@@ -112,27 +111,27 @@ async function render({ container = mockContainer }: IRender = {}) {
     },
   } as any;
 
-  const mockTextResources: ITextResourcesState = {
-    language: 'en',
-    error: null,
-    resourceMap: {
-      'option.label': { value: 'Value to be shown' },
-      'button.open': { value: 'New open text' },
-      'button.close': { value: 'New close text' },
-      'button.save': { value: 'New save text' },
-    },
-  };
-
   const reduxState = getInitialStateMock({
     formLayout: mockLayout,
     formData: mockData,
-    textResources: mockTextResources,
   });
 
   const { store } = await renderWithNode<LayoutNodeForGroup<CompGroupRepeatingInternal>>({
     renderer: ({ node }) => <GroupContainer node={node} />,
     nodeId: container.id,
     reduxState,
+    queries: {
+      fetchTextResources: () =>
+        Promise.resolve({
+          language: 'en',
+          resources: [
+            { id: 'option.label', value: 'Value to be shown' },
+            { id: 'button.open', value: 'New open text' },
+            { id: 'button.close', value: 'New close text' },
+            { id: 'button.save', value: 'New save text' },
+          ],
+        }),
+    },
   });
 
   return store;

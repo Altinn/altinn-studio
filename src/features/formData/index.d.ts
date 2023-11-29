@@ -26,8 +26,6 @@ export interface IFormDataState {
   //   succeeded)
   submittingState: 'inactive' | 'validating' | 'validationSuccessful' | 'working';
 
-  error: Error | null;
-
   // Setting this to true will force a re-fetch of the form data.
   reFetch?: boolean;
 }

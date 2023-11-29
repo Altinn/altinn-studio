@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 

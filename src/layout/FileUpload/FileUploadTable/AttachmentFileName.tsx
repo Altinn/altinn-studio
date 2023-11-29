@@ -4,7 +4,7 @@ import { FileCsvIcon, FileExcelIcon, FileIcon, FilePdfIcon, FileWordIcon } from 
 
 import { isAttachmentUploaded } from 'src/features/attachments';
 import classes from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName.module.css';
-import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
+import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
 import { dataElementUrl } from 'src/utils/urls/appUrlHelper';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IAttachment } from 'src/features/attachments';

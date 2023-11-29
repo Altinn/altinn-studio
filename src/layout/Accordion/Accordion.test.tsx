@@ -30,4 +30,15 @@ const render = async ({ title }: { title?: string } = {}) =>
       },
       children: [],
     },
+    queries: {
+      fetchTextResources: async () => ({
+        language: 'nb',
+        resources: [
+          {
+            id: 'accordion.title',
+            value: 'This is a title',
+          },
+        ],
+      }),
+    },
   });

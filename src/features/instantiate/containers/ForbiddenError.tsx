@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 
 export function ForbiddenError() {
   const { lang, langAsString } = useLanguage();

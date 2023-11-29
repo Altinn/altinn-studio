@@ -4,7 +4,7 @@ import { Map } from '@altinn/altinn-design-system';
 import { makeStyles, Typography } from '@material-ui/core';
 import type { Location } from '@altinn/altinn-design-system';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { markerIcon } from 'src/layout/Map/MapIcons';
 import type { PropsFromGenericComponent } from 'src/layout';
 

@@ -3,7 +3,7 @@ import React from 'react';
 import { Accordion as DesignSystemAccordion } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Accordion/Accordion.module.css';
 import { AccordionItem } from 'src/layout/Accordion/AccordionItem';
 import { GenericComponent } from 'src/layout/GenericComponent';

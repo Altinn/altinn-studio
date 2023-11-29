@@ -1,6 +1,6 @@
 import type { FileRejection } from 'react-dropzone';
 
-import type { IUseLanguage } from 'src/hooks/useLanguage';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 
 const bytesInOneMB = 1048576;
 

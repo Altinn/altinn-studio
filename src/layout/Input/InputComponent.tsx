@@ -3,8 +3,8 @@ import React from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
 import { LegacyTextField } from '@digdir/design-system-react';
 
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { useRerender } from 'src/hooks/useReload';
 import { canBeParsedToDecimal } from 'src/utils/formattingUtils';

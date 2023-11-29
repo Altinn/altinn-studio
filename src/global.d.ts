@@ -39,3 +39,49 @@ declare global {
     logInfoOnce: (...args: any[]) => void;
   }
 }
+
+declare module '@material-ui/core/styles/createTheme' {
+  interface Theme {
+    accessibility: {
+      focusVisible: {
+        border: string;
+      };
+    };
+    altinnPalette: {
+      primary: {
+        blueDarker: string;
+        blueDark: string;
+        blueDarkHover: string;
+        blueMedium: string;
+        blue: string;
+        blueHover: string;
+        blueLight: string;
+        blueLighter: string;
+        green: string;
+        greenHover: string;
+        greenLight: string;
+        red: string;
+        redLight: string;
+        purple: string;
+        purpleLight: string;
+        yellow: string;
+        yellowLight: string;
+        black: string;
+        grey: string;
+        greyMedium: string;
+        greyLight: string;
+        white: string;
+      };
+    };
+    sharedStyles: {
+      boxShadow: string;
+      linkBorderBottom: string;
+      noLinkBorderBottom: string;
+      mainPaddingLeft: number;
+      leftDrawerMenuClosedWidth: number;
+      fontWeight: {
+        medium: number;
+      };
+    };
+  }
+}

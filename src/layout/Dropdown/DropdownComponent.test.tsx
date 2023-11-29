@@ -7,7 +7,7 @@ import type { AxiosResponse } from 'axios';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { promiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { AppQueries } from 'src/contexts/appQueriesContext';
+import type { AppQueries } from 'src/core/contexts/AppQueriesProvider';
 import type { IOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 

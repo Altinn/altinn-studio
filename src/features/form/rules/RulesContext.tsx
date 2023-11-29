@@ -1,27 +1,24 @@
-import React from 'react';
-
 import { useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
-import { useAppQueries } from 'src/contexts/appQueriesContext';
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { delayedContext } from 'src/core/contexts/delayedContext';
+import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layout/useCurrentLayoutSetId';
 import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
-import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
-import { Loader } from 'src/features/loading/Loader';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { createStrictContext } from 'src/utils/createContext';
 import { getRuleModelFields } from 'src/utils/rules';
 
 const RULES_SCRIPT_ID = 'rules-script';
-
-const { Provider } = createStrictContext<undefined>({ name: 'RulesContext' });
 
 const useRulesQuery = () => {
   const dispatch = useAppDispatch();
   const { fetchRuleHandler } = useAppQueries();
   const layoutSetId = useCurrentLayoutSetId();
 
-  return useQuery(['fetchRules', layoutSetId], () => fetchRuleHandler(layoutSetId), {
+  return useQuery({
+    queryKey: ['fetchRules', layoutSetId],
+    queryFn: () => fetchRuleHandler(layoutSetId),
     onSuccess: (ruleModel) => {
       clearExistingRules();
       if (ruleModel) {
@@ -32,13 +29,10 @@ const useRulesQuery = () => {
         const ruleModelFields = getRuleModelFields();
 
         dispatch(FormRulesActions.fetchFulfilled({ ruleModel: ruleModelFields }));
-      } else {
-        dispatch(FormRulesActions.fetchRejected({ error: null }));
       }
     },
     onError: (error: AxiosError) => {
       clearExistingRules();
-      dispatch(FormRulesActions.fetchRejected({ error }));
       window.logError('Fetching RuleHandler failed:\n', error);
     },
   });
@@ -51,16 +45,12 @@ function clearExistingRules() {
   }
 }
 
-export function RulesProvider({ children }: React.PropsWithChildren) {
-  const query = useRulesQuery();
+const { Provider } = delayedContext(() =>
+  createQueryContext({
+    name: 'RulesContext',
+    required: true,
+    query: useRulesQuery,
+  }),
+);
 
-  if (query.error) {
-    return <UnknownError />;
-  }
-
-  if (query.isFetching) {
-    return <Loader reason='form-rules' />;
-  }
-
-  return <Provider value={undefined}>{children}</Provider>;
-}
+export const RulesProvider = Provider;

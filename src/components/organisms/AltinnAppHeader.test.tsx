@@ -3,8 +3,8 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { appMetadataMock } from 'src/__mocks__/applicationMetadataMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AltinnAppHeader } from 'src/components/organisms/AltinnAppHeader';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
@@ -34,7 +34,8 @@ describe('organisms/AltinnAppHeader', () => {
   } as IParty;
 
   const headerBackgroundColor = 'blue';
-  const logoColor = 'blue';
+
+  const mockLogo = '<svg fill="black">Altinn</svg>';
 
   interface IRenderComponentProps {
     party: IParty;
@@ -47,13 +48,14 @@ describe('organisms/AltinnAppHeader', () => {
         <AltinnAppHeader
           party={party}
           userParty={user}
-          logoColor={logoColor}
+          logoColor={LogoColor.blueDarker}
           headerBackgroundColor={headerBackgroundColor}
         />
       ),
-      reduxState: getInitialStateMock({
-        applicationMetadata: appMetadataMock({ logo }),
-      }),
+      queries: {
+        fetchLogo: () => Promise.resolve(mockLogo),
+        fetchApplicationMetadata: () => Promise.resolve(getApplicationMetadataMock({ logo })),
+      },
     });
 
   it('should render private icon when party is person', async () => {
@@ -109,7 +111,7 @@ describe('organisms/AltinnAppHeader', () => {
 
   it('Should render Altinn logo if logo options are not set', async () => {
     await render({ party: partyPerson });
-    expect(screen.getByRole('img')).toHaveAttribute('src', 'https://altinncdn.no/img/Altinn-logo-black.svg');
+    expect(screen.getByRole('img')).toHaveAttribute('src', `data:image/svg+xml;utf8,${encodeURIComponent(mockLogo)}`);
   });
 
   it('Should render Organisation logo if logo options are set', async () => {

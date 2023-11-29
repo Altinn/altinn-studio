@@ -3,9 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { partyMock } from 'src/__mocks__/partyMock';
-import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
+import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { AltinnParty } from 'src/components/altinnParty';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IAltinnPartyProps } from 'src/components/altinnParty';
@@ -13,15 +11,15 @@ import type { IAltinnPartyProps } from 'src/components/altinnParty';
 const user = userEvent.setup();
 
 const partyWithChildParties = {
-  ...partyMock,
+  ...getPartyMock(),
   childParties: [
     {
-      ...partyMock,
+      ...getPartyMock(),
       partyId: '1',
       name: 'Child party 1',
     },
     {
-      ...partyMock,
+      ...getPartyMock(),
       partyId: '2',
       name: 'Child party 2',
     },
@@ -37,7 +35,7 @@ describe('altinnParty', () => {
 
     await user.click(party);
 
-    expect(handleSelectParty).toHaveBeenCalledWith(partyMock);
+    expect(handleSelectParty).toHaveBeenCalledWith(getPartyMock());
   });
 
   describe('showSubUnits', () => {
@@ -68,7 +66,7 @@ describe('altinnParty', () => {
     it('should not render childParties when party doesnt have childParties and showSubUnits is true', async () => {
       await render({
         showSubUnits: true,
-        party: partyMock,
+        party: getPartyMock(),
       });
 
       expect(screen.queryByText(/^2$/i)).not.toBeInTheDocument();
@@ -87,7 +85,7 @@ describe('altinnParty', () => {
     it('should render with building icon if party is a organisation', async () => {
       await render({
         party: {
-          ...partyMock,
+          ...getPartyMock(),
           orgNumber: 1000000,
         },
       });
@@ -98,16 +96,12 @@ describe('altinnParty', () => {
 
 const render = async (props: Partial<IAltinnPartyProps> = {}) => {
   const allProps = {
-    party: partyMock,
+    party: getPartyMock(),
     onSelectParty: jest.fn(),
     showSubUnits: false,
     ...props,
   };
   return await renderWithInstanceAndLayout({
     renderer: () => <AltinnParty {...allProps} />,
-    reduxState: {
-      ...getInitialStateMock(),
-      profile: getProfileStateMock({ selectedAppLanguage: 'nb' }),
-    },
   });
 };

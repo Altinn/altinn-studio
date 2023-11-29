@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Grid, List, ListItem, ListItemText, makeStyles, Typography } from '@material-ui/core';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 
 export interface IMultipleChoiceSummaryProps {
   formData: { [key: string]: string };

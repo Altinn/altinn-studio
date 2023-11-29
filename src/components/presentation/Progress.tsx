@@ -2,8 +2,8 @@ import React from 'react';
 
 import { CircularProgress } from '@altinn/altinn-design-system';
 
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 
 export const Progress = () => {

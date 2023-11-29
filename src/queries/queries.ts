@@ -1,3 +1,4 @@
+import axios from 'axios';
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -21,17 +22,16 @@ import {
   getLayoutSetsUrl,
   getLayoutSettingsUrl,
   getLayoutsUrl,
-  getPartyValidationUrl,
   getPdfFormatUrl,
   getProcessNextUrl,
   getProcessStateUrl,
   getRulehandlerUrl,
+  getSetCurrentPartyUrl,
   instancesControllerUrl,
   instantiateUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
   textResourcesUrl,
-  updateCookieUrl,
   validPartiesUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI, orgsListUrl } from 'src/utils/urls/urlHelper';
@@ -40,9 +40,8 @@ import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { IFormDynamics } from 'src/features/form/dynamics';
 import type { Instantiation } from 'src/features/instantiate/InstantiationContext';
-import type { IPartyValidationResponse } from 'src/features/party';
+import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IPdfFormat } from 'src/features/pdf/types';
-import type { ITextResourceResult } from 'src/features/textResources';
 import type { ILayoutFileExternal, IOption } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ILayoutSets, ILayoutSettings, ISimpleInstance } from 'src/types';
@@ -71,10 +70,8 @@ const cleanUpInstanceData = async (_instance: IInstance | Promise<IInstance>) =>
   return instance;
 };
 
-export const doPartyValidation = async (partyId: string): Promise<IPartyValidationResponse> =>
-  (await httpPost(getPartyValidationUrl(partyId))).data;
-
-export const doSelectParty = (partyId: string) => putWithoutConfig<IParty | null>(updateCookieUrl(partyId));
+export const doSetCurrentParty = (partyId: string) =>
+  putWithoutConfig<'Party successfully updated' | string | null>(getSetCurrentPartyUrl(partyId));
 
 export const doInstantiateWithPrefill = async (data: Instantiation): Promise<IInstance> =>
   cleanUpInstanceData((await httpPost(instantiateUrl, undefined, data)).data);
@@ -138,6 +135,9 @@ export const doAttachmentRemove = async (dataGuid: string): Promise<void> => {
  * Query functions (these should use httpGet and start with 'fetch')
  */
 
+export const fetchLogo = async (): Promise<string> =>
+  (await axios.get('https://altinncdn.no/img/Altinn-logo-blue.svg')).data;
+
 export const fetchActiveInstances = (partyId: string): Promise<ISimpleInstance[]> =>
   httpGet(getActiveInstancesUrl(partyId));
 
@@ -152,7 +152,7 @@ export const fetchApplicationMetadata = (): Promise<IApplicationMetadata> => htt
 
 export const fetchApplicationSettings = (): Promise<IApplicationSettings> => httpGet(applicationSettingsApiUrl);
 
-export const fetchCurrentParty = () => httpGet(currentPartyUrl);
+export const fetchCurrentParty = (): Promise<IParty | undefined> => httpGet(currentPartyUrl);
 
 export const fetchFooterLayout = (): Promise<IFooterLayout> => httpGet(getFooterLayoutUrl());
 
@@ -173,11 +173,11 @@ export const fetchOrgs = (): Promise<{ orgs: IAltinnOrgs }> =>
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
 
-export const fetchParties = () => httpGet(validPartiesUrl);
+export const fetchParties = (): Promise<IParty[]> => httpGet(validPartiesUrl);
 
 export const fetchAppLanguages = (): Promise<IAppLanguage[]> => httpGet(applicationLanguagesUrl);
 
-export const fetchRefreshJwtToken = () => httpGet(refreshJwtTokenUrl);
+export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 
 export const fetchCustomValidationConfig = (dataTypeId: string): Promise<IExpressionValidationConfig | null> =>
   httpGet(getCustomValidationConfigUrl(dataTypeId));

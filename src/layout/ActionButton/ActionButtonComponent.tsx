@@ -6,7 +6,7 @@ import type { PropsFromGenericComponent } from '..';
 
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ActionButtonStyle } from 'src/layout/ActionButton/config.generated';

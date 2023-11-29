@@ -20,7 +20,6 @@ export interface IRunSingleFieldValidation {
 export interface IValidationState {
   validations: IValidations;
   invalidDataTypes: string[];
-  error: Error | null;
 }
 
 export interface IUpdateComponentValidations {
@@ -45,13 +44,8 @@ export interface IAddValidations {
   validationObjects: IValidationObject[];
 }
 
-export interface IValidationActionRejected {
-  error?: Error;
-}
-
 export const initialState: IValidationState = {
   validations: {},
-  error: null,
   invalidDataTypes: [],
 };
 
@@ -63,14 +57,6 @@ export const validationSlice = () => {
     actions: {
       runSingleFieldValidation: mkAction<IRunSingleFieldValidation>({
         takeEvery: runSingleFieldValidationSaga,
-      }),
-      runSingleFieldValidationRejected: mkAction<IValidationActionRejected>({
-        reducer: (state, action) => {
-          if (action.payload.error) {
-            const { error } = action.payload;
-            state.error = error;
-          }
-        },
       }),
       updateComponentValidations: mkAction<IUpdateComponentValidations>({
         reducer: (state, action) => {

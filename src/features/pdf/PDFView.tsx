@@ -3,6 +3,7 @@ import React from 'react';
 import { Heading } from '@digdir/design-system-react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import classes from 'src/features/pdf/PDFView.module.css';
 import { usePdfPage } from 'src/hooks/usePdfPage';
 import { CompCategory } from 'src/layout/common';
@@ -10,11 +11,6 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-
-interface PDFViewProps {
-  appName: string;
-  appOwner?: string;
-}
 
 const PDFComponent = ({ node }: { node: LayoutNode }) => {
   if (node.isType('Summary') || ('renderAsSummary' in node.item && node.item.renderAsSummary)) {
@@ -54,8 +50,10 @@ const PDFComponent = ({ node }: { node: LayoutNode }) => {
   }
 };
 
-export const PDFView = ({ appName, appOwner }: PDFViewProps) => {
+export const PDFView = () => {
   const pdfPage = usePdfPage();
+  const appName = useAppName();
+  const appOwner = useAppOwner();
 
   if (!pdfPage) {
     return null;

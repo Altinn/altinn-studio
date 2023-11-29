@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { AlertBaseComponent } from 'src/layout/Alert/AlertBaseComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 

@@ -1,16 +1,15 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
-import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getFormLayoutStateMock } from 'src/__mocks__/getFormLayoutStateMock';
+import { getUiConfigStateMock } from 'src/__mocks__/getUiConfigStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
-import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { NavBar } from 'src/components/presentation/NavBar';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { TextResourceMap } from 'src/features/textResources';
+import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAppLanguage } from 'src/types/shared';
 
 afterEach(() => mockAxios.reset());
@@ -20,7 +19,7 @@ interface RenderNavBarProps {
   hideCloseButton: boolean;
   showLanguageSelector: boolean;
   languageResponse?: IAppLanguage[];
-  textResources?: TextResourceMap;
+  textResources?: IRawTextResource[];
 }
 
 const render = async ({
@@ -28,7 +27,7 @@ const render = async ({
   showBackArrow,
   showLanguageSelector,
   languageResponse,
-  textResources = {},
+  textResources = [],
 }: RenderNavBarProps) => {
   const mockClose = jest.fn();
   const mockBack = jest.fn();
@@ -44,12 +43,6 @@ const render = async ({
     ),
     reduxState: {
       ...getInitialStateMock(),
-      profile: getProfileStateMock({ selectedAppLanguage: 'nb' }),
-      textResources: {
-        resourceMap: textResources,
-        language: 'nb',
-        error: null,
-      },
       formLayout: getFormLayoutStateMock({
         uiConfig: getUiConfigStateMock({
           hideCloseButton,
@@ -60,8 +53,9 @@ const render = async ({
     queries: {
       fetchAppLanguages: () =>
         languageResponse ? Promise.resolve(languageResponse) : Promise.reject(new Error('No languages mocked')),
+      fetchTextResources: () => Promise.resolve({ language: 'nb', resources: textResources }),
     },
-    reduxGateKeeper: (action) => 'type' in action && action.type === 'profile/updateSelectedAppLanguage',
+    reduxGateKeeper: (action) => 'type' in action && action.type === 'deprecated/setCurrentLanguage',
   });
 
   return { mockClose, mockBack, mockAppLanguageChange };
@@ -115,30 +109,26 @@ describe('NavBar', () => {
       showLanguageSelector: true,
       languageResponse: [{ language: 'en' }, { language: 'nb' }],
     });
-    const dropdown = screen.getByRole('combobox', { name: /Språk/i });
-    await userEvent.click(dropdown);
+
+    await userEvent.click(screen.getByRole('combobox', { name: /Språk/i }));
     const en = screen.getByText(/Engelsk/i, { selector: '[role=option]' });
     await userEvent.click(en);
 
     // Language now changed, so the value should be the language name in the selected language
-    expect(dropdown).toHaveValue('English');
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /Language/i })).toHaveValue('English');
+    });
   });
   it('should render app language with custom labels', async () => {
     await render({
       hideCloseButton: false,
       showBackArrow: true,
       showLanguageSelector: true,
-      textResources: {
-        'language.selector.label': {
-          value: 'Velg språk test',
-        },
-        'language.full_name.nb': {
-          value: 'Norsk test',
-        },
-        'language.full_name.en': {
-          value: 'Engelsk test',
-        },
-      },
+      textResources: [
+        { id: 'language.selector.label', value: 'Velg språk test' },
+        { id: 'language.full_name.nb', value: 'Norsk test' },
+        { id: 'language.full_name.en', value: 'Engelsk test' },
+      ],
       languageResponse: [{ language: 'en' }, { language: 'nb' }],
     });
 

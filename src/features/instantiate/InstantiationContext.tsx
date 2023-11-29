@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
-import { useAppMutations } from 'src/contexts/appQueriesContext';
-import { createStrictContext } from 'src/utils/createContext';
+import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { createContext } from 'src/core/contexts/context';
 import type { IInstance } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -33,7 +33,7 @@ interface InstantiationContext {
   lastResult: IInstance | undefined;
 }
 
-const { Provider, useCtx } = createStrictContext<InstantiationContext>({ name: 'InstantiationContext' });
+const { Provider, useCtx } = createContext<InstantiationContext>({ name: 'InstantiationContext', required: true });
 
 function useInstantiateMutation() {
   const { doInstantiate } = useAppMutations();

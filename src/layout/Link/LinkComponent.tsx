@@ -4,7 +4,7 @@ import { Button } from '@digdir/design-system-react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
 import type { LinkStyle } from 'src/layout/Link/config.generated';

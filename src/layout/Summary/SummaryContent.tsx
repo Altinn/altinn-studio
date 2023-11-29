@@ -2,7 +2,7 @@ import React from 'react';
 
 import cn from 'classnames';
 
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import classes from 'src/layout/Summary/SummaryContent.module.css';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';

@@ -66,7 +66,6 @@ describe('PanelGroupContainer', () => {
       hiddenFields: [],
       currentView: 'FormLayout',
     },
-    error: null,
     layoutsets: null,
   };
 

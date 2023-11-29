@@ -5,7 +5,7 @@ import { Buldings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/a
 import cn from 'classnames';
 
 import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import type { IParty } from 'src/types/shared';
 
 const useStyles = makeStyles((theme) => ({

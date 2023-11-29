@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { getFormDataStateMock } from 'src/__mocks__/formDataStateMock';
-import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { renderWithNode } from 'src/test/renderWithProviders';
@@ -20,103 +18,66 @@ describe('SummaryGroupComponent', () => {
   });
 
   async function render() {
-    const formLayout = getFormLayoutStateMock({
-      layouts: {
-        page1: [
-          {
-            type: 'Group',
-            id: 'groupComponent',
-            dataModelBindings: {
-              group: 'mockGroup',
-            },
-            textResourceBindings: {
-              title: 'mockGroupTitle',
-            },
-            children: ['0:mockId1', '1:mockId2'],
-            edit: {
-              multiPage: true,
-            },
-            maxCount: 3,
-          },
-          {
-            type: 'Input',
-            id: 'mockId1',
-            dataModelBindings: {
-              simpleBinding: 'mockGroup.mockDataBinding1',
-            },
-            readOnly: false,
-            required: false,
-            textResourceBindings: {
-              title: 'mockField1',
-            },
-            triggers: [],
-          },
-          {
-            type: 'Input',
-            id: 'mockId2',
-            dataModelBindings: {
-              simpleBinding: 'mockGroup.mockDataBinding2',
-            },
-            readOnly: false,
-            required: false,
-            textResourceBindings: {
-              title: 'mockField2',
-            },
-            triggers: [],
-          },
-          {
-            type: 'Summary',
-            id: 'mySummary',
-            componentRef: 'groupComponent',
-            largeGroup: false,
-          },
-        ],
-      },
-      uiConfig: {
-        focus: null,
-        hiddenFields: [],
-        repeatingGroups: {
-          groupComponent: {
-            index: 0,
-            dataModelBinding: 'mockGroup',
-          },
-        },
-        currentView: 'page1',
-        pageOrderConfig: {
-          order: ['page1'],
-          hidden: [],
-          hiddenExpr: {},
-        },
-        excludePageFromPdf: [],
-        excludeComponentFromPdf: [],
-      },
-    });
-
-    const formData = getFormDataStateMock({
-      formData: {
+    const reduxState = getInitialStateMock((state) => {
+      state.formData.formData = {
         'mockGroup[0].mockDataBinding1': '1',
         'mockGroup[0].mockDataBinding2': '2',
-      },
-    });
-
-    const reduxState = getInitialStateMock({
-      formData,
-      formLayout,
-      textResources: {
-        error: null,
-        language: 'nb',
-        resourceMap: {
-          mockGroupTitle: {
-            value: 'Mock group',
-          },
-          mockField1: {
-            value: 'Mock field 1',
-          },
-          mockField2: {
-            value: 'Mock field 2',
-          },
+      };
+      state.formLayout.uiConfig.repeatingGroups = {
+        groupComponent: {
+          index: 0,
+          dataModelBinding: 'mockGroup',
         },
-      },
+      };
+      state.formLayout.layouts!.FormLayout = [
+        {
+          type: 'Group',
+          id: 'groupComponent',
+          dataModelBindings: {
+            group: 'mockGroup',
+          },
+          textResourceBindings: {
+            title: 'mockGroupTitle',
+          },
+          children: ['0:mockId1', '1:mockId2'],
+          edit: {
+            multiPage: true,
+          },
+          maxCount: 3,
+        },
+        {
+          type: 'Input',
+          id: 'mockId1',
+          dataModelBindings: {
+            simpleBinding: 'mockGroup.mockDataBinding1',
+          },
+          readOnly: false,
+          required: false,
+          textResourceBindings: {
+            title: 'mockField1',
+          },
+          triggers: [],
+        },
+        {
+          type: 'Input',
+          id: 'mockId2',
+          dataModelBindings: {
+            simpleBinding: 'mockGroup.mockDataBinding2',
+          },
+          readOnly: false,
+          required: false,
+          textResourceBindings: {
+            title: 'mockField2',
+          },
+          triggers: [],
+        },
+        {
+          type: 'Summary',
+          id: 'mySummary',
+          componentRef: 'groupComponent',
+          largeGroup: false,
+        },
+      ];
     });
 
     return await renderWithNode<LayoutNode<'Summary'>>({
@@ -133,6 +94,17 @@ describe('SummaryGroupComponent', () => {
         );
       },
       reduxState,
+      queries: {
+        fetchTextResources: () =>
+          Promise.resolve({
+            language: 'nb',
+            resources: [
+              { id: 'mockGroupTitle', value: 'Mock group' },
+              { id: 'mockField1', value: 'Mock field 1' },
+              { id: 'mockField2', value: 'Mock field 2' },
+            ],
+          }),
+      },
     });
   }
 });

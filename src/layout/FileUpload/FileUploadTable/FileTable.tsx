@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { FileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRow';
 import { FileTableRowProvider } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';

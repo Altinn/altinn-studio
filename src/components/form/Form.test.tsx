@@ -2,7 +2,7 @@ import React from 'react';
 
 import { screen, within } from '@testing-library/react';
 
-import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getFormLayoutStateMock } from 'src/__mocks__/getFormLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { Form } from 'src/components/form/Form';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -234,7 +234,6 @@ describe('Form', () => {
   function mockValidations(validations: RootState['formValidations']['validations'][string]): Partial<RootState> {
     return {
       formValidations: {
-        error: null,
         invalidDataTypes: [],
         validations: {
           page1: validations,

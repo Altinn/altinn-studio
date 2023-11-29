@@ -8,7 +8,7 @@ import { InputDef } from 'src/layout/Input/config.def.generated';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
 import type { IInputFormatting } from 'src/layout/Input/config.generated';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -18,7 +18,7 @@ export class Input extends InputDef {
     return <InputComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNode<'Input'>, { formData, langTools }): string {
+  getDisplayData(node: LayoutNode<'Input'>, { formData, currentLanguage }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
@@ -28,7 +28,7 @@ export class Input extends InputDef {
     const numberFormatting = getMapToReactNumberConfig(
       node.item.formatting as IInputFormatting | undefined,
       text,
-      langTools,
+      currentLanguage,
     );
 
     if (numberFormatting?.number) {

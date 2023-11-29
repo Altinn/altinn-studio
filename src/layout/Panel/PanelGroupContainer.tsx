@@ -6,7 +6,7 @@ import { Grid } from '@material-ui/core';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { getVariant } from 'src/components/form/Panel';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { CustomIcon } from 'src/layout/Panel/CustomPanelIcon';
 import classes from 'src/layout/Panel/Panel.module.css';

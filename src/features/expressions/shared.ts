@@ -2,8 +2,7 @@ import fs from 'node:fs';
 
 import type { IAttachments, UploadedAttachment } from 'src/features/attachments';
 import type { Expression } from 'src/features/expressions/types';
-import type { IProfileState } from 'src/features/profile';
-import type { IRawTextResource } from 'src/features/textResources';
+import type { IRawTextResource } from 'src/features/language/textResources';
 import type { ILayout, ILayouts } from 'src/layout/layout';
 import type { IApplicationSettings, IData, IInstance, ITask } from 'src/types/shared';
 
@@ -27,7 +26,9 @@ export interface SharedTest {
   permissions?: ITask;
   frontendSettings?: IApplicationSettings;
   textResources?: IRawTextResource[];
-  profileSettings?: Pick<IProfileState['profile']['profileSettingPreference'], 'language'>;
+  profileSettings?: {
+    language?: string;
+  };
 }
 
 export interface SharedTestContext {

@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 import Ajv2020 from 'ajv/dist/2020';
 import { v4 as uuid } from 'uuid';
 
-import { staticUseLanguageForTests } from 'src/hooks/useLanguage';
+import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { createValidator, getSchemaValidationErrors } from 'src/utils/validation/schemaValidation';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IJsonSchemas } from 'src/features/datamodel';
@@ -41,6 +41,7 @@ function runGetSchemaValidationErrors(formData: IFormData, schema: object) {
   return getSchemaValidationErrors({
     attachments,
     langTools,
+    currentLanguage: 'nb',
     formData,
     application,
     instance,

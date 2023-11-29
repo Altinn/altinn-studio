@@ -3,8 +3,8 @@ import React from 'react';
 import classNames from 'classnames';
 
 import classes from 'src/components/form/MessageBanner.module.css';
-import { useLanguage } from 'src/hooks/useLanguage';
-import type { ValidLanguageKey } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
+import type { ValidLanguageKey } from 'src/features/language/useLanguage';
 
 interface IMessageBannerProps {
   error?: boolean;

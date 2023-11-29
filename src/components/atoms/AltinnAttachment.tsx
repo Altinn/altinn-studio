@@ -3,9 +3,10 @@ import React from 'react';
 import { Link, List } from '@digdir/design-system-react';
 
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { FileExtensionIcon } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
-import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
+import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IDisplayAttachment } from 'src/types/shared';
 interface IAltinnAttachmentProps {
@@ -15,7 +16,8 @@ interface IAltinnAttachmentProps {
 }
 
 export function AltinnAttachment({ attachments, id, title }: IAltinnAttachmentProps) {
-  const { lang, langAsString, selectedLanguage } = useLanguage();
+  const { lang, langAsString } = useLanguage();
+  const selectedLanguage = useCurrentLanguage();
 
   const filteredAndSortedAttachments = attachments
     ?.filter((attachment) => attachment.name)

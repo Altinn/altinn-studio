@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import type { MultiSelectOption, SingleSelectOption } from '@digdir/design-system-react';
 
 import { SelectOptionItem } from 'src/components/form/SelectOptionItem';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import type { IOption } from 'src/layout/common.generated';
 
 export function useFormattedOptions(options: IOption[] | undefined, includeDeleteLabel?: false): SingleSelectOption[];

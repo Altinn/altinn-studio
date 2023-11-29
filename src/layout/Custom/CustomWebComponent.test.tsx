@@ -2,10 +2,8 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { TextResourceMap } from 'src/features/textResources';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const jsonAttributeValue = { customKey: 'customValue' };
@@ -39,12 +37,6 @@ describe('CustomWebComponent', () => {
   });
 
   const render = async ({ component }: Partial<RenderGenericComponentTestProps<'Custom'>> = {}) => {
-    const resourceMap = {
-      title: {
-        value: 'Title',
-      },
-    } as TextResourceMap;
-
     await renderGenericComponentTest({
       type: 'Custom',
       renderer: (props) => <CustomWebComponent {...props} />,
@@ -65,13 +57,16 @@ describe('CustomWebComponent', () => {
         shouldFocus: false,
         ...({ 'data-CustomAttributeWithReact': <span>Hello world</span> } as any),
       },
-      reduxState: {
-        ...getInitialStateMock(),
-        textResources: {
+      queries: {
+        fetchTextResources: async () => ({
           language: 'nb',
-          resourceMap,
-          error: null,
-        },
+          resources: [
+            {
+              id: 'title',
+              value: 'Title',
+            },
+          ],
+        }),
       },
     });
   };

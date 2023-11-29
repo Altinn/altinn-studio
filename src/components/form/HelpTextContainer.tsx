@@ -3,7 +3,7 @@ import React from 'react';
 import { HelpText } from '@digdir/design-system-react';
 
 import classes from 'src/components/form/HelpTextContainer.module.css';
-import { useLanguage } from 'src/hooks/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 
 export interface IHelpTextContainerProps {
   helpText: React.ReactNode;

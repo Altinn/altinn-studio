@@ -3,9 +3,9 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/applicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { getInstanceDataMock } from 'src/__mocks__/instanceDataStateMock';
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/confirm/containers/ConfirmPage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 

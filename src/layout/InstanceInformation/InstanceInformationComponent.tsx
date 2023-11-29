@@ -6,14 +6,14 @@ import Moment from 'moment';
 import type { PropsFromGenericComponent } from '..';
 
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
+import { useAppReceiver } from 'src/core/texts/appTexts';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
-import { selectAppReceiver } from 'src/selectors/language';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useLanguage } from 'src/features/language/useLanguage';
+import { useParties } from 'src/features/party/PartiesProvider';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
-import type { IUseLanguage } from 'src/hooks/useLanguage';
-import type { IRuntimeState } from 'src/types';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IParty } from 'src/types/shared';
 
 export const returnInstanceMetaDataObject = (
@@ -59,11 +59,11 @@ export function InstanceInformationComponent({ node }: PropsFromGenericComponent
   const elements = node.item.elements;
   const { dateSent, sender, receiver, referenceNumber } = elements || {};
   const langTools = useLanguage();
-  const { selectedLanguage } = langTools;
+  const selectedLanguage = useCurrentLanguage();
 
   const instance = useLaxInstanceData();
-  const parties: IParty[] | null = useAppSelector((state: IRuntimeState) => state.party.parties);
-  const appReceiver = useAppSelector(selectAppReceiver);
+  const parties = useParties();
+  const appReceiver = useAppReceiver();
 
   const instanceOwnerParty =
     instance && parties?.find((party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId);

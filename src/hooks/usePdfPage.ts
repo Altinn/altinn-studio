@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { usePdfFormatQuery } from 'src/hooks/queries/usePdfFormatQuery';
+import { usePdfFormatQuery } from 'src/features/pdf/usePdfFormatQuery';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLayoutComponentObject } from 'src/layout';
 import { useExprContext } from 'src/utils/layout/ExprContext';

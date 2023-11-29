@@ -1,12 +1,9 @@
 import React from 'react';
 
-import { createTheme, Paper } from '@material-ui/core';
+import { Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { AltinnStudioTheme } from 'src/theme/altinnStudioTheme';
-
-const theme = createTheme(AltinnStudioTheme);
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   paper: {
     background: theme.altinnPalette.primary.white,
     boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
@@ -14,7 +11,7 @@ const useStyles = makeStyles({
     fontSize: 16,
     padding: 24,
   },
-});
+}));
 
 export interface IAltinnInformationPaperProps {
   children: JSX.Element[] | JSX.Element;

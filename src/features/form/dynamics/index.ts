@@ -4,9 +4,7 @@ export type IFormDynamics = {
   conditionalRendering: IConditionalRenderingRules | null;
 };
 
-export type IFormDynamicState = IFormDynamics & {
-  error: Error | null;
-};
+export type IFormDynamicState = IFormDynamics;
 
 export interface IRuleConnection {
   inputParams: IParameters;
@@ -18,10 +16,6 @@ export interface IRuleConnection {
 
 export interface IRuleConnections {
   [id: string]: IRuleConnection;
-}
-
-export interface IFetchServiceConfigRejected {
-  error: Error | null;
 }
 
 export interface IConditionalRenderingRules {

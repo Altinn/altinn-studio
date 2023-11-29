@@ -197,55 +197,6 @@ export function removeGroupData(
   return result;
 }
 
-/*
-export function removeAttachmentReference(
-  formData: IFormData,
-  attachmentId: string,
-  attachments: IAttachments,
-  dataModelBindings: IDataModelBindings<'FileUpload' | 'FileUploadWithTag'>,
-  componentId: string,
-): IFormData {
-  if (!hasSimpleBinding(dataModelBindings) && !hasListBinding(dataModelBindings)) {
-    return formData;
-  }
-
-  const result = { ...formData };
-
-  if (hasSimpleBinding(dataModelBindings) && typeof result[dataModelBindings.simpleBinding] === 'string') {
-    delete result[dataModelBindings.simpleBinding];
-  } else if (hasListBinding(dataModelBindings)) {
-    let index = -1;
-    const dataModelWithoutIndex = getKeyWithoutIndex(dataModelBindings.list);
-    for (const key in result) {
-      if (getKeyWithoutIndex(key).startsWith(dataModelWithoutIndex) && result[key] === attachmentId) {
-        const lastIndex = getKeyIndex(key).pop();
-        if (lastIndex !== undefined) {
-          index = lastIndex;
-        }
-        break;
-      }
-    }
-
-    if (index === -1) {
-      throw new Error(
-        `Unable to find attachment ID "${attachmentId}" in a key starting with "${dataModelWithoutIndex}" in form data: ${JSON.stringify(
-          result,
-        )}`,
-      );
-    }
-
-    deleteGroupData(result, dataModelBindings.list, index, true);
-
-    const componentAttachments = attachments[componentId] || [];
-    for (let laterIdx = index + 1; laterIdx <= componentAttachments.length - 1; laterIdx++) {
-      deleteGroupData(result, dataModelBindings.list, laterIdx, true, true);
-    }
-  }
-
-  return result;
-}
- */
-
 export function deleteGroupData(
   data: { [key: string]: any },
   keyStart: string | undefined,

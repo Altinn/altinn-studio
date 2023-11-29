@@ -44,7 +44,7 @@ export class Datepicker extends DatepickerDef implements ComponentValidation {
 
   runComponentValidation(
     node: LayoutNode<'Datepicker'>,
-    { formData, langTools }: IValidationContext,
+    { formData, langTools, currentLanguage }: IValidationContext,
     overrideFormData?: IFormData,
   ): IValidationObject[] {
     const formDataToValidate = { ...formData, ...overrideFormData };
@@ -58,7 +58,7 @@ export class Datepicker extends DatepickerDef implements ComponentValidation {
 
     const minDate = getDateConstraint(node.item.minDate, 'min');
     const maxDate = getDateConstraint(node.item.maxDate, 'max');
-    const format = getDateFormat(node.item.format, langTools.selectedLanguage);
+    const format = getDateFormat(node.item.format, currentLanguage);
 
     const validations: IValidationObject[] = [];
     const date = moment(data, moment.ISO_8601);

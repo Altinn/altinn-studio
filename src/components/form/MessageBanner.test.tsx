@@ -5,7 +5,7 @@ import { screen } from '@testing-library/react';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { MessageBanner } from 'src/components/form/MessageBanner';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { ValidLanguageKey } from 'src/hooks/useLanguage';
+import type { ValidLanguageKey } from 'src/features/language/useLanguage';
 
 describe('MessageBanner', () => {
   const mockState = getInitialStateMock();

@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { getInstanceDataMock } from 'src/__mocks__/instanceDataStateMock';
+import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
@@ -39,7 +39,10 @@ describe('InstantiationButton', () => {
     const { mutations } = await render();
 
     expect(screen.getByText('Instantiate')).toBeInTheDocument();
-    expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
+    });
 
     await userEvent.click(screen.getByRole('button'));
 

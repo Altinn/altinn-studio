@@ -2,17 +2,17 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { useMutation } from '@tanstack/react-query';
 
-import { useAppMutations } from 'src/contexts/appQueriesContext';
+import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { createContext } from 'src/core/contexts/context';
+import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { useAttachments } from 'src/features/attachments/AttachmentsContext';
-import { DisplayError } from 'src/features/errorHandling/DisplayError';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { useStrictInstance } from 'src/features/instance/InstanceContext';
 import { useRealTaskType, useSetProcessData } from 'src/features/instance/ProcessContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useLanguage } from 'src/hooks/useLanguage';
 import { ProcessTaskType } from 'src/types';
-import { createLaxContext } from 'src/utils/createContext';
 import type { IActionType, IProcess } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -27,7 +27,7 @@ function useProcessNext() {
   const realTaskType = useRealTaskType();
   const { doProcessNext } = useAppMutations();
   const { reFetch: reFetchInstanceData } = useStrictInstance();
-  const language = useLanguage().selectedLanguage;
+  const language = useCurrentLanguage();
   const setProcessData = useSetProcessData();
 
   const utils = useMutation({
@@ -96,7 +96,11 @@ interface ContextData {
   next: (props: ProcessNextProps & { nodeId: string }) => Promise<void>;
 }
 
-const { Provider, useCtx } = createLaxContext<ContextData>();
+const { Provider, useCtx } = createContext<ContextData | undefined>({
+  name: 'ProcessNavigation',
+  required: false,
+  default: undefined,
+});
 
 export function ProcessNavigationProvider({ children }: React.PropsWithChildren) {
   const { perform, error } = useProcessNext();
