@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { run } from './sagas';
 import { setupStore } from './store';
-import { App } from './App';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
@@ -13,6 +12,7 @@ import { LoggerConfig, LoggerContextProvider } from 'app-shared/contexts/LoggerC
 import 'app-shared/design-tokens';
 import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 import { QueryClientConfig } from '@tanstack/react-query';
+import { PageRoutes } from './router/PageRoutes';
 
 const store = setupStore();
 
@@ -44,7 +44,7 @@ root.render(
     <Provider store={store}>
       <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
         <PreviewConnectionContextProvider>
-          <App />
+          <PageRoutes />
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>
     </Provider>

@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import postMessages from 'app-shared/utils/postMessages';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
+import { HandleServiceInformationActions } from '../features/administration/handleServiceInformationSlice';
 import {
   fetchRemainingSession,
   keepAliveSession,
   signOutUser,
-} from './sharedResources/user/userSlice';
-import './App.css';
-import { matchPath, useLocation } from 'react-router-dom';
-import classes from './App.module.css';
-import { useAppDispatch, useAppSelector } from './hooks';
+} from '../sharedResources/user/userSlice';
+import './Layout.css';
+import { Outlet, matchPath, useLocation } from 'react-router-dom';
+import classes from './Layout.module.css';
+import { useAppDispatch, useAppSelector } from '../hooks';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
 import {
@@ -21,12 +21,11 @@ import {
 } from 'app-shared/api/paths';
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
-import nb from '../language/src/nb.json';
-import en from '../language/src/en.json';
+import nb from '../../language/src/nb.json';
+import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import * as testids from '../testing/testids';
-import { PageRoutes } from './router/PageRoutes';
+import * as testids from '../../testing/testids';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -43,7 +42,7 @@ i18next.use(initReactI18next).init({
   },
 });
 
-export function App() {
+export function Layout() {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const org = match?.params?.org ?? '';
@@ -158,7 +157,7 @@ export function App() {
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
       <div data-testid={testids.appContentWrapper}>
-        <PageRoutes />
+        <Outlet />
       </div>
     </div>
   );
