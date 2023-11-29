@@ -2,8 +2,8 @@ import React from 'react';
 import classes from './ComplexExpression.module.css';
 import { Alert, LegacyTextArea } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { Expression } from '../../../types/Expressions';
-import { stringifyData } from '../../../utils/jsonUtils';
+import { Expression } from '../../../../../types/Expressions';
+import { stringifyData } from '../../../../../utils/jsonUtils';
 
 export type ComplexExpressionProps = {
   disabled?: boolean;

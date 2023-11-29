@@ -3,25 +3,28 @@ import {
   Expression,
   ExpressionFunction,
   ExpressionPropertyBase,
+  ExpressionPropertyForGroup,
   Operator,
   SubExpression,
 } from '../types/Expressions';
 import {
-  addProperty,
-  addExpressionIfLimitNotReached,
+  addDataSourceToSubExpression,
+  addDataSourceValueToSubExpression,
+  addFunctionToSubExpression,
+  addPropertyForExpression,
+  addPropertyToExpression,
+  addSubExpressionToExpression,
+  canExpressionBeSaved,
   convertAndAddExpressionToComponent,
   convertExternalExpressionToInternal,
   convertInternalExpressionToExternal,
-  convertSubExpression,
-  deleteExpressionAndAddDefaultIfEmpty,
-  removeInvalidExpressions,
-  removeSubExpressionAndAdaptParentProps,
-  addDataSource,
-  addDataSourceValue,
-  tryParseExpression,
-  stringifyValueForDisplay,
-  deleteExpressionFromComponent,
   convertInternalSubExpressionToExternal,
+  convertSubExpression,
+  deleteExpression,
+  deleteExpressionFromPropertyOnComponent,
+  removeSubExpression,
+  stringifyValueForDisplay,
+  tryParseExpression,
 } from './expressionsUtils';
 import { component1Mock } from '../testing/layoutMock';
 import {
@@ -49,6 +52,7 @@ import {
 } from '../testing/expressionMocks';
 import { deepCopy } from 'app-shared/pure';
 import { textMock } from '../../../../testing/mocks/i18nMock';
+import { FormContainer } from '../types/FormContainer';
 
 describe('expressionsUtils', () => {
   describe('convertSubExpression', () => {
@@ -384,80 +388,71 @@ describe('expressionsUtils', () => {
       expect(updatedComponent.hidden).toStrictEqual(unParsableComplexExpression);
       expect(typeof updatedComponent.hidden).toBe('string');
     });
+    it('converted expression is set as string on form group component edit.addButton property', () => {
+      const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer = {
+        id: 'some-id',
+        itemType: 'CONTAINER',
+        hidden: parsableExternalExpression,
+        required: parsableExternalExpression,
+        readOnly: parsableExternalExpression,
+        edit: {
+          addButton: parsableExternalExpression,
+          deleteButton: parsableExternalExpression,
+          saveButton: parsableExternalExpression,
+          saveAndNextButton: parsableExternalExpression,
+        },
+      };
+      const updatedComponent = convertAndAddExpressionToComponent(
+        groupComponentWithAllBooleanFieldsAsExpressions,
+        {
+          ...internalExpressionWithMultipleSubExpressions,
+          property: ExpressionPropertyForGroup.EditAddButton,
+        },
+      );
+
+      expect(updatedComponent.edit.addButton).toStrictEqual(
+        equivalentExternalExpressionWithMultipleSubExpressions,
+      );
+      expect(updatedComponent.edit.addButton).toBeInstanceOf(Array);
+    });
   });
-  describe('deleteExpressionFromComponent', () => {
+  describe('deleteExpressionFromPropertyOnComponent', () => {
     it('should delete the property on the form component connected to the expression', () => {
-      const newExpressions = deleteExpressionFromComponent(
+      const newFormComponent = deleteExpressionFromPropertyOnComponent(
         component1Mock,
+        ExpressionPropertyBase.Hidden,
+      );
+
+      expect(newFormComponent.hidden).toBeUndefined();
+    });
+  });
+  describe('addPropertyForExpression', () => {
+    it('should add a new property for expression', () => {
+      const oldProperties = [];
+      const newProperties = addPropertyForExpression(
+        oldProperties,
+        ExpressionPropertyBase.ReadOnly,
+      );
+
+      expect(newProperties).toHaveLength(1);
+    });
+  });
+  describe('deleteExpression', () => {
+    it('should delete the expression from the expressions', () => {
+      const oldExpressions: Expression[] = [internalExpressionWithMultipleSubExpressions];
+      const updatedExpressions = deleteExpression(
         internalExpressionWithMultipleSubExpressions,
-      );
-
-      expect(newExpressions.hidden).toBeUndefined();
-    });
-  });
-  describe('addExpressionIfLimitNotReached', () => {
-    it('should add a new expression if the limit is not reached', () => {
-      const oldExpressions = [];
-      const newExpressions = addExpressionIfLimitNotReached(oldExpressions, false);
-
-      expect(newExpressions).toHaveLength(1);
-    });
-    it('should not add a new expression if the limit is reached', () => {
-      const oldExpressions = [internalExpressionWithMultipleSubExpressions];
-      const newExpressions = addExpressionIfLimitNotReached(oldExpressions, true);
-
-      expect(newExpressions).toEqual(oldExpressions);
-    });
-  });
-  describe('deleteExpressionAndAddDefaultIfEmpty', () => {
-    it('should delete the expression property from component and add a default expression when expressionToDelete was the only pre-existing', () => {
-      component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
-      const expressionToDelete = internalExpressionWithMultipleSubExpressions;
-      const oldExpressions = [expressionToDelete];
-      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(
-        expressionToDelete,
         oldExpressions,
       );
 
-      expect(updatedExpressions).toHaveLength(1);
-      expect(updatedExpressions[0].id).not.toBe(internalExpressionWithMultipleSubExpressions.id);
-    });
-
-    it('should not add a default expression when there are more than one pre-existing expressions', () => {
-      component1Mock.hidden = internalExpressionWithMultipleSubExpressions;
-      const expressionToDelete = internalExpressionWithMultipleSubExpressions;
-      const oldExpressions = [expressionToDelete, internalParsableComplexExpression];
-      const updatedExpressions = deleteExpressionAndAddDefaultIfEmpty(
-        expressionToDelete,
-        oldExpressions,
-      );
-
-      expect(updatedExpressions).toHaveLength(1);
-      expect(updatedExpressions[0]).toStrictEqual(internalParsableComplexExpression);
+      expect(updatedExpressions).toHaveLength(0);
     });
   });
-  describe('removeInvalidExpressions', () => {
-    it('should remove expressions with invalid properties', () => {
-      const expression1 = { id: '1', property: ExpressionPropertyBase.Hidden };
-      const expression2 = { id: '2' };
-      const expression3 = { id: '3', complexExpression: 'some-complex-expression' };
-      const expression4 = { id: '4' };
-      const oldExpressions = [expression1, expression2, expression3, expression4];
-      const updatedExpressions = removeInvalidExpressions(oldExpressions);
-
-      expect(updatedExpressions).toHaveLength(2);
-      expect(updatedExpressions).toContainEqual(expression1);
-      expect(updatedExpressions).toContainEqual(expression3);
-    });
-  });
-  describe('removeSubExpressionAndAdaptParentProps', () => {
+  describe('removeSubExpression', () => {
     it('should remove a subExpression and do nothing more with parent properties when there are more than 2 subExpressions to start with', () => {
       const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
       internalExpressionCopy.subExpressions.push(subExpression0);
-      const newExpression = removeSubExpressionAndAdaptParentProps(
-        internalExpressionCopy,
-        subExpression0,
-      );
+      const newExpression = removeSubExpression(internalExpressionCopy, subExpression0);
 
       expect(newExpression.operator).toBe(Operator.Or);
       expect(newExpression.property).toBe(ExpressionPropertyBase.Hidden);
@@ -467,9 +462,8 @@ describe('expressionsUtils', () => {
       );
     });
     it('should remove a subExpression and clear operator when there is only one subExpression left', () => {
-      const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
-      const newExpression = removeSubExpressionAndAdaptParentProps(
-        internalExpressionCopy,
+      const newExpression = removeSubExpression(
+        internalExpressionWithMultipleSubExpressions,
         subExpression1,
       );
 
@@ -477,23 +471,10 @@ describe('expressionsUtils', () => {
       expect(newExpression.property).toBe(ExpressionPropertyBase.Hidden);
       expect(newExpression.subExpressions).toHaveLength(1);
     });
-
-    it('should have no subExpressions and clear operator and property when there is no subExpressions left', () => {
-      const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
-      internalExpressionCopy.subExpressions.pop();
-      const newExpression = removeSubExpressionAndAdaptParentProps(
-        internalExpressionCopy,
-        subExpression1,
-      );
-
-      expect(newExpression.operator).toBeUndefined();
-      expect(newExpression.property).toBeUndefined();
-      expect(newExpression.subExpressions).toBeUndefined();
-    });
   });
-  describe('addProperty', () => {
+  describe('addPropertyToExpression', () => {
     it('should add an action to the expression when action is not "default"', () => {
-      const newExpression = addProperty(
+      const newExpression = addPropertyToExpression(
         internalExpressionWithMultipleSubExpressions,
         ExpressionPropertyBase.Required,
       );
@@ -505,12 +486,12 @@ describe('expressionsUtils', () => {
       );
       expect(newExpression.property).toBe(ExpressionPropertyBase.Required);
       expect(newExpression.subExpressions).toHaveLength(2);
-      expect(newExpression.subExpressions[0].id).toBe(subExpression1.id);
-      expect(newExpression.subExpressions[1].id).toBe(subExpression2.id);
+      expect(newExpression.subExpressions[0]).toStrictEqual(subExpression1);
+      expect(newExpression.subExpressions[1]).toStrictEqual(subExpression2);
     });
     it('should return nothing when action is "default"', () => {
       const propertyToAdd = 'default';
-      const newExpression = addProperty(
+      const newExpression = addPropertyToExpression(
         internalExpressionWithMultipleSubExpressions,
         propertyToAdd,
       );
@@ -518,17 +499,62 @@ describe('expressionsUtils', () => {
       expect(newExpression).toStrictEqual(internalExpressionWithMultipleSubExpressions);
     });
     it('should create a new subExpression when there are no subExpressions', () => {
-      const newExpression = addProperty(baseInternalExpression, ExpressionPropertyBase.ReadOnly);
+      const newExpression = addPropertyToExpression(
+        baseInternalExpression,
+        ExpressionPropertyBase.ReadOnly,
+      );
 
       expect(newExpression).toBeDefined();
       expect(newExpression.property).toBe(ExpressionPropertyBase.ReadOnly);
       expect(newExpression.subExpressions).toHaveLength(1);
-      expect(newExpression.subExpressions[0]).toHaveProperty('id');
+      expect(newExpression.subExpressions[0]).toMatchObject({});
+    });
+  });
+  describe('addFunctionToSubExpression', () => {
+    it('should add a function to a base sub expression when function is not "default"', () => {
+      const newSubExpression = addFunctionToSubExpression({}, ExpressionFunction.Not);
+
+      expect(newSubExpression.function).toBe(ExpressionFunction.Not);
+    });
+    it('should delete function when function is "default"', () => {
+      const functionToAdd = 'default';
+      const newSubExpression = addFunctionToSubExpression(baseInternalSubExpression, functionToAdd);
+
+      expect(newSubExpression.function).not.toBeDefined();
+    });
+    it('should update function only when new function is selected', () => {
+      const newSubExpression = addFunctionToSubExpression(subExpression0, ExpressionFunction.Not);
+
+      expect(subExpression0.function).toBe(ExpressionFunction.Equals);
+      expect(newSubExpression.function).toBe(ExpressionFunction.Not);
+      expect(newSubExpression.dataSource).toBe(subExpression0.dataSource);
+      expect(newSubExpression.value).toBe(subExpression0.value);
+      expect(newSubExpression.comparableDataSource).toBe(subExpression0.comparableDataSource);
+      expect(newSubExpression.comparableValue).toBe(subExpression0.comparableValue);
+    });
+  });
+  describe('addSubExpressionToExpression', () => {
+    it('should add an empty sub expression and no operator when there is no subexpression from before', () => {
+      const newExpression = addSubExpressionToExpression(
+        { property: ExpressionPropertyBase.Hidden },
+        Operator.Or,
+      );
+
+      expect(newExpression.subExpressions).toHaveLength(1);
+      expect(newExpression.subExpressions[0]).toStrictEqual({});
+      expect(newExpression.operator).toBeUndefined();
+    });
+    it('should add sub expression and operator when there are subexpressions from before', () => {
+      const newExpression = addSubExpressionToExpression(simpleInternalExpression, Operator.And);
+
+      expect(newExpression.subExpressions).toHaveLength(2);
+      expect(newExpression.subExpressions[1]).toStrictEqual({});
+      expect(newExpression.operator).toBe(Operator.And);
     });
   });
   describe('addDataSource', () => {
     it('should remove comparableValue and comparableDataSource when dataSource is "default" and isComparable is true', () => {
-      const newExpEl = addDataSource(subExpression0, 'default', true);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, 'default', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBeUndefined();
@@ -536,7 +562,7 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBeUndefined();
     });
     it('should remove value and dataSource when dataSource is "default" and isComparable is false', () => {
-      const newExpEl = addDataSource(subExpression0, 'default', false);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, 'default', false);
 
       expect(newExpEl.dataSource).toBeUndefined();
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -544,7 +570,11 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
     });
     it('should remove comparableValue when comparableDataSource has not changed and isComparable is true', () => {
-      const newExpEl = addDataSource(subExpression0, subExpression0.comparableDataSource, true);
+      const newExpEl = addDataSourceToSubExpression(
+        subExpression0,
+        subExpression0.comparableDataSource,
+        true,
+      );
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -552,7 +582,11 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBeUndefined();
     });
     it('should remove value when dataSource has not changed and isComparable is false', () => {
-      const newExpEl = addDataSource(subExpression0, subExpression0.dataSource, false);
+      const newExpEl = addDataSourceToSubExpression(
+        subExpression0,
+        subExpression0.dataSource,
+        false,
+      );
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -560,7 +594,7 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
     });
     it('should set comparableValue to true when dataSource is DataSource.Boolean and isComparable is true', () => {
-      const newExpEl = addDataSource(subExpression0, DataSource.Boolean, true);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, DataSource.Boolean, true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(DataSource.Boolean);
@@ -568,7 +602,7 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBe(true);
     });
     it('should set value to true when dataSource is DataSource.Boolean and isComparable is false', () => {
-      const newExpEl = addDataSource(subExpression0, DataSource.Boolean, false);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, DataSource.Boolean, false);
 
       expect(newExpEl.dataSource).toBe(DataSource.Boolean);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -576,7 +610,7 @@ describe('expressionsUtils', () => {
       expect(newExpEl.comparableValue).toBe(subExpression0.comparableValue);
     });
     it('should remove value when dataSource is set to something else than it was, but not Boolean or DropDown', () => {
-      const newExpEl = addDataSource(subExpression0, DataSource.Number, false);
+      const newExpEl = addDataSourceToSubExpression(subExpression0, DataSource.Number, false);
 
       expect(newExpEl.dataSource).toBe(DataSource.Number);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -586,7 +620,7 @@ describe('expressionsUtils', () => {
   });
   describe('addDataSourceValue', () => {
     it('should remove comparableValue when dataSourceValue is "default"', () => {
-      const newExpEl = addDataSourceValue(subExpression0, 'default', true);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, 'default', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -595,7 +629,7 @@ describe('expressionsUtils', () => {
     });
     it('should set comparableValue to boolean type true when dataSource is DataSource.Boolean and dataSourceValue is "true"', () => {
       subExpression0.comparableDataSource = DataSource.Boolean;
-      const newExpEl = addDataSourceValue(subExpression0, 'true', true);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, 'true', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -604,7 +638,7 @@ describe('expressionsUtils', () => {
     });
     it('should set comparableValue to boolean type false when dataSource is DataSource.Boolean and dataSourceValue is "false"', () => {
       subExpression0.comparableDataSource = DataSource.Boolean;
-      const newExpEl = addDataSourceValue(subExpression0, 'false', true);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, 'false', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(DataSource.Boolean);
@@ -613,7 +647,7 @@ describe('expressionsUtils', () => {
     });
     it('should set comparableValue to the parsed float when dataSource is DataSource.Number', () => {
       subExpression0.dataSource = DataSource.Number;
-      const newExpEl = addDataSourceValue(subExpression0, '123.45', false);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, '123.45', false);
 
       expect(newExpEl.dataSource).toBe(DataSource.Number);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -622,7 +656,7 @@ describe('expressionsUtils', () => {
     });
     it('should set comparableValue to the string value when dataSource is not DataSource.Boolean or DataSource.Number and dataSourceValue is not null', () => {
       subExpression0.comparableDataSource = DataSource.String;
-      const newExpEl = addDataSourceValue(subExpression0, 'NewValue', true);
+      const newExpEl = addDataSourceValueToSubExpression(subExpression0, 'NewValue', true);
 
       expect(newExpEl.dataSource).toBe(subExpression0.dataSource);
       expect(newExpEl.comparableDataSource).toBe(subExpression0.comparableDataSource);
@@ -647,6 +681,64 @@ describe('expressionsUtils', () => {
       );
 
       expect(newExpression.complexExpression).toStrictEqual(unParsableComplexExpression);
+    });
+  });
+  describe('canExpressionBeSaved', () => {
+    it('should return true for a simple expression that have property and function set for all subexpressions', () => {
+      const canBeSaved: boolean = canExpressionBeSaved(
+        internalExpressionWithMultipleSubExpressions,
+      );
+      expect(canBeSaved).toBe(true);
+    });
+    it('should return true for a complex expression that have property and complex expression set', () => {
+      const canBeSaved: boolean = canExpressionBeSaved(internalParsableComplexExpression);
+      expect(canBeSaved).toBe(true);
+    });
+    it('should return false for a simple expression that does not have property but function set for all subexpressions', () => {
+      const expressionWithoutProperty: Expression = {
+        ...internalExpressionWithMultipleSubExpressions,
+        property: undefined,
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(expressionWithoutProperty);
+      expect(canBeSaved).toBe(false);
+    });
+    it('should return false for a simple expression that have property but not function set for all subexpressions', () => {
+      const expressionWithSubExpressionWithoutFunction: Expression = {
+        ...internalExpressionWithMultipleSubExpressions,
+        subExpressions: [
+          ...internalExpressionWithMultipleSubExpressions.subExpressions,
+          {
+            ...internalExpressionWithMultipleSubExpressions.subExpressions[0],
+            function: undefined,
+          },
+        ],
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(expressionWithSubExpressionWithoutFunction);
+      expect(canBeSaved).toBe(false);
+    });
+    it('should return false for a complex expression that does not have property but complex expression is set', () => {
+      const complexExpressionWithoutProperty: Expression = {
+        ...internalParsableComplexExpression,
+        property: undefined,
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(complexExpressionWithoutProperty);
+      expect(canBeSaved).toBe(false);
+    });
+    it('should return false for a complex expression that have property but complex expression is undefined', () => {
+      const expressionWithoutComplexExpression: Expression = {
+        ...internalParsableComplexExpression,
+        complexExpression: undefined,
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(expressionWithoutComplexExpression);
+      expect(canBeSaved).toBe(false);
+    });
+    it('should return false for a complex expression that have property but complex expression is null', () => {
+      const expressionWithoutComplexExpression: Expression = {
+        ...internalParsableComplexExpression,
+        complexExpression: null,
+      };
+      const canBeSaved: boolean = canExpressionBeSaved(expressionWithoutComplexExpression);
+      expect(canBeSaved).toBe(false);
     });
   });
   describe('stringifyValueForDisplay', () => {

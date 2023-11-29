@@ -1,11 +1,14 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { internalParsableComplexExpression, internalUnParsableComplexExpression } from '../../../testing/expressionMocks';
+import {
+  internalParsableComplexExpression,
+  internalUnParsableComplexExpression,
+} from '../../../../../testing/expressionMocks';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { renderWithMockStore } from '../../../testing/mocks';
+import { renderWithMockStore } from '../../../../../testing/mocks';
 import { ComplexExpression, ComplexExpressionProps } from './ComplexExpression';
-import { stringifyData } from '../../../utils/jsonUtils';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { stringifyData } from '../../../../../utils/jsonUtils';
+import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 
 describe('ComplexExpression', () => {
   beforeEach(() => {
@@ -14,7 +17,9 @@ describe('ComplexExpression', () => {
   it('displays textArea with complex expression as value', () => {
     render({});
     const complexExpression = screen.getByRole('textbox');
-    expect(complexExpression).toHaveTextContent(stringifyData(internalUnParsableComplexExpression.complexExpression));
+    expect(complexExpression).toHaveTextContent(
+      stringifyData(internalUnParsableComplexExpression.complexExpression),
+    );
   });
   it('displays an editable textArea', () => {
     render({});
@@ -24,30 +29,37 @@ describe('ComplexExpression', () => {
   it('displays an non-editable textArea when expression is preview', () => {
     render({
       props: {
-        disabled: true
-      }
+        disabled: true,
+      },
     });
     const complexExpression = screen.getByRole('textbox');
     expect(complexExpression).toHaveAttribute('disabled');
   });
   it('displays too complex expression info message if expression can not be interpreted by Studio', () => {
     render({});
-    const tooComplexExpressionAlert = screen.getByText(textMock('right_menu.expressions_complex_expression_message'));
+    const tooComplexExpressionAlert = screen.getByText(
+      textMock('right_menu.expressions_complex_expression_message'),
+    );
     expect(tooComplexExpressionAlert).toBeInTheDocument();
   });
   it('does not display too complex expression info message if expression can be interpreted by Studio', () => {
     render({
       props: {
         expression: internalParsableComplexExpression.complexExpression,
-        isStudioFriendly: true
-      }
+        isStudioFriendly: true,
+      },
     });
-    const tooComplexExpressionAlert = screen.queryByText(textMock('right_menu.expressions_complex_expression_message'));
+    const tooComplexExpressionAlert = screen.queryByText(
+      textMock('right_menu.expressions_complex_expression_message'),
+    );
     expect(tooComplexExpressionAlert).not.toBeInTheDocument();
   });
 });
 
-const render = ({ props = {}, queries = {}, }: {
+const render = ({
+  props = {},
+  queries = {},
+}: {
   props?: Partial<ComplexExpressionProps>;
   queries?: Partial<ServicesContextProps>;
 }) => {
