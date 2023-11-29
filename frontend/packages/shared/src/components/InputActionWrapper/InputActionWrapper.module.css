@@ -4,3 +4,20 @@
   align-items: center;
   min-height: var(--fds-component-mode-height-medium);
 }
+
+.standByContainer {
+  position: relative;
+}
+
+.buttonWrapper {
+  display: flex;
+  gap: 2px;
+  background-color: var(--fds-semantic-background-subtle);
+  padding: 1px;
+}
+
+.standByButtonWrapper {
+  position: absolute;
+  right: 0;
+  top: 0.5;
+}
