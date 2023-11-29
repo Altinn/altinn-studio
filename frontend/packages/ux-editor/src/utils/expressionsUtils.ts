@@ -168,9 +168,7 @@ export const convertAndAddExpressionToComponent = (
     const parsedExpression = tryParseExpression(newExpression, newExpression.complexExpression);
     newExpression = { ...parsedExpression };
   }
-  if (!newExpression.subExpressions && !newExpression.complexExpression) {
-    delete newForm[newExpression.property];
-  } else if (newExpression.property) {
+  if (newExpression.property) {
     // TODO: What if expression is invalid format? Have some way to validate with app-frontend dev-tools. Issue #10859
     if (form.itemType === LayoutItemType.Container && newExpression.property.includes('edit.')) {
       const editPropertyForGroup = newExpression.property.split('edit.')[1];

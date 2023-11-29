@@ -37,7 +37,7 @@ export const ExpressionContent = ({
     await handleSave(formId, updatedComponent);
   };
 
-  const saveExpressionAndSetCheckMark = async (exp: Expression) => {
+  const saveExpression = async (exp: Expression) => {
     const updatedComponent = convertAndAddExpressionToComponent(form, exp);
     await updateAndSaveLayout(updatedComponent);
   };
@@ -62,7 +62,7 @@ export const ExpressionContent = ({
       onSetEditMode={setEditMode}
       onDeleteExpression={deleteExpression}
       onDeleteSubExpression={deleteSubExpression}
-      onSaveExpressionAndSetCheckMark={saveExpressionAndSetCheckMark}
+      onSaveExpression={saveExpression}
       onSetExpression={setExpression}
     />
   ) : (

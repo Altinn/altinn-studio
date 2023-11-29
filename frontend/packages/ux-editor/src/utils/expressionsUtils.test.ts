@@ -3,6 +3,7 @@ import {
   Expression,
   ExpressionFunction,
   ExpressionPropertyBase,
+  ExpressionPropertyForGroup,
   Operator,
   SubExpression,
 } from '../types/Expressions';
@@ -50,6 +51,7 @@ import {
 } from '../testing/expressionMocks';
 import { deepCopy } from 'app-shared/pure';
 import { textMock } from '../../../../testing/mocks/i18nMock';
+import { FormContainer } from '../types/FormContainer';
 
 describe('expressionsUtils', () => {
   describe('convertSubExpression', () => {
@@ -384,6 +386,33 @@ describe('expressionsUtils', () => {
 
       expect(updatedComponent.hidden).toStrictEqual(unParsableComplexExpression);
       expect(typeof updatedComponent.hidden).toBe('string');
+    });
+    it('converted expression is set as string on form group component edit.addButton property', () => {
+      const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer = {
+        id: 'some-id',
+        itemType: 'CONTAINER',
+        hidden: parsableExternalExpression,
+        required: parsableExternalExpression,
+        readOnly: parsableExternalExpression,
+        edit: {
+          addButton: parsableExternalExpression,
+          deleteButton: parsableExternalExpression,
+          saveButton: parsableExternalExpression,
+          saveAndNextButton: parsableExternalExpression,
+        },
+      };
+      const updatedComponent = convertAndAddExpressionToComponent(
+        groupComponentWithAllBooleanFieldsAsExpressions,
+        {
+          ...internalExpressionWithMultipleSubExpressions,
+          property: ExpressionPropertyForGroup.EditAddButton,
+        },
+      );
+
+      expect(updatedComponent.edit.addButton).toStrictEqual(
+        equivalentExternalExpressionWithMultipleSubExpressions,
+      );
+      expect(updatedComponent.edit.addButton).toBeInstanceOf(Array);
     });
   });
   describe('deleteExpressionFromPropertyOnComponent', () => {

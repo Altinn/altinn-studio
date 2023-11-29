@@ -121,7 +121,7 @@ describe('ExpressionEditMode', () => {
     const mockOnSaveExpression = jest.fn();
     render({
       props: {
-        onSaveExpressionAndSetCheckMark: mockOnSaveExpression,
+        onSaveExpression: mockOnSaveExpression,
       },
     });
     const saveExpressionButton = screen.getByRole('button', {
@@ -260,7 +260,7 @@ const render = ({
     onSetEditMode: jest.fn(),
     onDeleteExpression: jest.fn(),
     onDeleteSubExpression: jest.fn(),
-    onSaveExpressionAndSetCheckMark: jest.fn(),
+    onSaveExpression: jest.fn(),
     onSetExpression: jest.fn(),
   };
   const queryClient = createQueryClientMock();

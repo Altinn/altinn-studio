@@ -31,7 +31,7 @@ export interface ExpressionEditModeProps {
   onSetEditMode: (editMode: boolean) => void;
   onDeleteExpression: (expression: Expression) => void;
   onDeleteSubExpression: (subExpression: SubExpression) => void;
-  onSaveExpressionAndSetCheckMark: (expression: Expression) => void;
+  onSaveExpression: (expression: Expression) => void;
   onSetExpression: (expression: Expression) => void;
 }
 
@@ -41,7 +41,7 @@ export const ExpressionEditMode = ({
   onSetEditMode,
   onDeleteExpression,
   onDeleteSubExpression,
-  onSaveExpressionAndSetCheckMark,
+  onSaveExpression,
   onSetExpression,
 }: ExpressionEditModeProps) => {
   const [freeStyleEditing, setFreeStyleEditing] = useState<boolean>(!!expression.complexExpression);
@@ -149,7 +149,7 @@ export const ExpressionEditMode = ({
         icon={<CheckmarkIcon />}
         onClick={() => {
           onSetEditMode(false);
-          onSaveExpressionAndSetCheckMark(expression);
+          onSaveExpression(expression);
         }}
         variant='primary'
         size='small'
