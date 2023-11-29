@@ -53,5 +53,41 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             var notesNode = JsonNode.Parse(await noteResponse.Content.ReadAsStringAsync());
             notesNode!["message"]!.ToString().Should().Be("studio-commit");
         }
+
+        [Theory]
+        [Trait("Category", "GiteaIntegrationTest")]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Commit_AndPush_AndContents_Should_Ccreate_GitNote(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            // Add a file to local repo and try to push with designer
+            await File.WriteAllTextAsync($"{CreatedFolderPath}/test.txt", "I am a new file");
+
+            InvalidateAllCookies();
+            using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
+            commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            // Check if file is pushed to gitea
+            var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test.txt");
+            giteaFileResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            // Check contents with designer endpoint
+            InvalidateAllCookies();
+            using HttpResponseMessage contentsResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/contents?path=test.txt");
+            contentsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            InvalidateAllCookies();
+            // Check if note is added to a commit
+            using HttpResponseMessage getCommitResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/latest-commit");
+            Commit commit = await getCommitResponse.Content.ReadAsAsync<Commit>();
+
+            var noteResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/git/notes/{commit.Sha}");
+
+            var notesNode = JsonNode.Parse(await noteResponse.Content.ReadAsStringAsync());
+            notesNode!["message"]!.ToString().Should().Be("studio-commit");
+        }
     }
 }
