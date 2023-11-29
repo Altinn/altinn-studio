@@ -11,6 +11,5 @@ Cypress.Commands.add('isVisible', { prevSubject: true }, (subject) => {
  * @param persistFeatureFlag Specifies if the feature flag should be persisted on navigation. Defaults to true.
  */
 Cypress.Commands.add('visitWithFeatureFlag', (path, featureFlag, persistFeatureFlag = true) => {
-  console.log(`url: ${path}?featureFlags=${featureFlag}&persistFeatureFlag=${persistFeatureFlag}`);
   cy.visit(`${path}?featureFlags=${featureFlag}&persistFeatureFlag=${persistFeatureFlag}`);
 });
