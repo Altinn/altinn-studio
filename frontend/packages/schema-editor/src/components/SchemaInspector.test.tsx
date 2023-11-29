@@ -43,9 +43,7 @@ const texts = {
   'schema_editor.minLength': 'Minimal lengde',
 };
 
-const saveDatamodel = jest.fn(() => {
-  console.log('saveDatamodel called');
-});
+const saveDatamodel = jest.fn();
 const setSelectedTypePointer = jest.fn();
 
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {

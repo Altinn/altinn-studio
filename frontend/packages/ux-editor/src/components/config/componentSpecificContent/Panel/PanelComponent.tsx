@@ -49,8 +49,9 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
         value={component.variant || 'info'}
         onChange={handleVariantClick}
         propertyPath={`${component.propertyPath}/properties/variant`}
-        renderField={() => (
+        renderField={({ fieldProps }) => (
           <Select
+            {...fieldProps}
             options={Object.values(FormPanelVariant).map((value: FormPanelVariant) => ({
               label: t(`ux_editor.${value}`),
               value,

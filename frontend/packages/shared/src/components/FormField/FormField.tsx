@@ -109,19 +109,20 @@ export const FormField = <T extends unknown, TT extends unknown>({
   };
 
   const generateProps = (): RenderFieldArgs<TT> => {
+    const fieldProps: FormFieldChildProps<TT> = {
+      value: tmpValue,
+      label,
+      onChange: handleOnChange,
+    };
+    if (errorCode) {
+      fieldProps['aria-errormessage'] = errorMessageId;
+      fieldProps['aria-invalid'] = true;
+    }
     const props: RenderFieldArgs<TT> = {
-      fieldProps: {
-        value: tmpValue,
-        label,
-        onChange: handleOnChange,
-      },
+      fieldProps,
       errorCode,
       customRequired,
     };
-    if (errorCode) {
-      props['aria-errormessage'] = errorMessageId;
-      props['aria-invalid'] = true;
-    }
     return props;
   };
 
