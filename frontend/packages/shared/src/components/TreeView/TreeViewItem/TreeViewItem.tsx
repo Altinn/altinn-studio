@@ -50,7 +50,7 @@ export const TreeViewItem = ({
   const { selectedId, setSelectedId, rootId, focusedId, setFocusedId, focusableId } =
     useTreeViewRootContext();
   const { level } = useTreeViewItemContext();
-  const treeItemRef = useRef<HTMLButtonElement>(null);
+  const treeItemRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (focusedId === nodeId) {
@@ -61,7 +61,7 @@ export const TreeViewItem = ({
   const selected = selectedId === nodeId;
   const focusable = focusableId === nodeId;
 
-  const handleClick = () => {
+  const selectNode = () => {
     setOpen((prevOpen) => !prevOpen);
     setSelectedId(nodeId);
   };
@@ -90,6 +90,9 @@ export const TreeViewItem = ({
       case 'End': // Focus on last visible node
         setFocusedId(findLastVisibleNodeId(rootId));
         break;
+      case 'Enter': // Select node
+        selectNode();
+        break;
     }
   };
 
@@ -105,11 +108,12 @@ export const TreeViewItem = ({
       aria-level={level}
       aria-owns={listId}
       aria-selected={selected}
+      as='div' // Cannot be button because of dragging issues in Firefox
       className={classes.button}
       color='first'
       icon={<Icon customIcon={icon} hasChildren={hasChildren} open={open} />}
       id={treeItemId}
-      onClick={handleClick}
+      onClick={selectNode}
       onFocus={handleFocus}
       onKeyDown={handleKeyDown}
       ref={treeItemRef}

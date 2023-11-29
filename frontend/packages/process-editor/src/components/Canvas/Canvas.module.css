@@ -2,30 +2,10 @@
   --mask-icon-size: 0 0 /46px 46px;
 }
 
-.container {
-  padding: 18px;
-  box-sizing: border-box;
-}
-
-.canvasContainer {
-  height: 100vh;
-}
-
-.canvasMenuContainer {
-  composes: container;
-  justify-content: space-between;
+.wrapper {
   display: flex;
-  gap: 8px;
-}
-
-.unsavedChanges {
-  color: #ff0000;
-  font-weight: 500;
-}
-
-.alertContainer {
-  composes: container;
-  max-width: 780px;
+  flex: 1;
+  margin-top: 18px;
 }
 
 div[class*='bpmn-icon-task-generic'] {

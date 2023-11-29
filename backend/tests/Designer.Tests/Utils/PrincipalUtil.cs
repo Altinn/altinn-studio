@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using AltinnCore.Authentication.Constants;
@@ -15,11 +14,11 @@ namespace Designer.Tests.Utils
 
         public static ClaimsPrincipal GetToken(string userName)
         {
-            List<Claim> claims = new List<Claim>();
+            List<Claim> claims = new();
             const string Issuer = "https://altinn.no";
 
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, Issuer));
-            ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
+            ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
 
             return new ClaimsPrincipal(identity);

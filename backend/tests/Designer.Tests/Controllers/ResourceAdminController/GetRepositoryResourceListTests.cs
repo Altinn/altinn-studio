@@ -70,7 +70,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         }
     }
 }
