@@ -26,13 +26,18 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
         value={(component as FormAddressComponent).simplified || false}
         onChange={handleToggleAddressSimple}
         propertyPath={`${component.propertyPath}/properties/simplified`}
-      >
-        {({ value, onChange }) => (
-          <Switch checked={value} onChange={(e) => onChange(e.target.checked, e)} size='small'>
+        renderField={({ fieldProps }) => (
+          <Switch
+            {...fieldProps}
+            size='small'
+            onChange={(e) => fieldProps.onChange(e.target.checked, e)}
+            checked={fieldProps.value}
+          >
             {t('ux_editor.modal_configure_address_component_simplified')}
           </Switch>
         )}
-      </FormField>
+      />
+
       {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
         const simple: boolean = (component as FormAddressComponent).simplified;
         if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {

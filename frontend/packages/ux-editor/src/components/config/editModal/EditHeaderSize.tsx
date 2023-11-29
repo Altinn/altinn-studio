@@ -18,7 +18,8 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
     { value: HeaderSize.M, label: t('ux_editor.modal_header_type_h3') },
     { value: HeaderSize.L, label: t('ux_editor.modal_header_type_h2') },
   ];
-  const selectedHeaderSize = HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
+  const selectedHeaderSize =
+    HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
 
   const onSizeChange = (size: string) => {
     handleComponentChange({
@@ -33,13 +34,13 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
         id={component.id}
         label={t('ux_editor.modal_header_type_helper')}
         onChange={onSizeChange}
-        value={(selectedHeaderSize ? sizes.find((size) => size.value === selectedHeaderSize) : sizes[0])?.value}
-        propertyPath={`${component.propertyPath}/properties/size`}
-      >
-        {
-          () => <Select options={sizes} />
+        value={
+          (selectedHeaderSize ? sizes.find((size) => size.value === selectedHeaderSize) : sizes[0])
+            ?.value
         }
-      </FormField>
+        propertyPath={`${component.propertyPath}/properties/size`}
+        renderField={({ fieldProps }) => <Select {...fieldProps} options={sizes} />}
+      />
     </div>
   );
 };

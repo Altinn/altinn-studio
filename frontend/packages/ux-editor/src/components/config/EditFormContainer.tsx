@@ -151,25 +151,29 @@ export const EditFormContainer = ({
           }
         }}
         onChange={handleIdChange}
-      >
-        {({ onChange }) => (
+        renderField={({ fieldProps }) => (
           <LegacyTextField
+            {...fieldProps}
             name={`group-id${container.id}`}
-            onChange={(e) => onChange(e.target.value, e)}
+            onChange={(e) => fieldProps.onChange(e.target.value, e)}
           />
         )}
-      </FormField>
+      />
       <FormField
         id={container.id}
         value={container.maxCount > 1}
         onChange={handleChangeRepeatingGroup}
-      >
-        {({ value, onChange }) => (
-          <Switch checked={value} onChange={(e) => onChange(e.target.checked, e)} size='small'>
+        renderField={({ fieldProps }) => (
+          <Switch
+            {...fieldProps}
+            checked={fieldProps.value}
+            size='small'
+            onChange={(e) => fieldProps.onChange(e.target.checked, e)}
+          >
             {t('ux_editor.modal_properties_group_repeating')}
           </Switch>
         )}
-      </FormField>
+      />
       {container.maxCount > 1 && (
         <>
           <EditGroupDataModelBindings
@@ -182,16 +186,16 @@ export const EditFormContainer = ({
             onChange={handleMaxOccurChange}
             value={container.maxCount}
             propertyPath={`${container.propertyPath}/properties/maxCount`}
-          >
-            {({ onChange }) => (
+            renderField={({ fieldProps }) => (
               <LegacyTextField
+                {...fieldProps}
                 id='modal-properties-maximum-files'
                 disabled={!!container.dataModelBindings?.group}
                 formatting={{ number: {} }}
-                onChange={(e) => onChange(parseInt(e.target.value), e)}
+                onChange={(e) => fieldProps.onChange(parseInt(e.target.value), e)}
               />
             )}
-          </FormField>
+          />
           <TextResource
             description={t('ux_editor.modal_properties_group_add_button_description')}
             handleIdChange={handleButtonTextChange}
@@ -204,8 +208,7 @@ export const EditFormContainer = ({
               value={items}
               onChange={handleTableHeadersChange}
               propertyPath={`${container.propertyPath}/properties/tableHeaders`}
-            >
-              {() => {
+              renderField={() => {
                 const filteredItems = items.filter((id) => !!components[id]);
                 const checkboxes = filteredItems.map((id) => ({
                   id,
@@ -229,7 +232,7 @@ export const EditFormContainer = ({
                   </Checkbox.Group>
                 );
               }}
-            </FormField>
+            />
           )}
         </>
       )}
