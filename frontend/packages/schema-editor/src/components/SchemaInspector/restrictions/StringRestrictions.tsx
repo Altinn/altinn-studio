@@ -9,7 +9,6 @@ import {
   LegacyTextField,
   Label,
   Switch,
-  Heading,
   Textfield,
 } from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -79,9 +78,6 @@ export function StringRestrictions({
   return (
     <>
       <Divider marginless />
-      <Heading level={1} size='large'>
-        jgnaelgnaeljgog
-      </Heading>
       <Select
         inputId='format-select-input'
         label={t('format')}
