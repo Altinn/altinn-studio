@@ -7,7 +7,7 @@
   margin: 0;
   background-color: var(--fds-semantic-surface-neutral-default);
   border-radius: 12px;
-  border: solid 1px var(--fds-semantic-border-neutral-divider);
+  border: solid 1px var(--fds-semantic-border-divider-default);
   cursor: pointer;
 }
 
@@ -17,7 +17,7 @@
 
 .button:focus-visible,
 .button:focus-within {
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
   background-color: var(--fds-semantic-background-default);
 
   --fds-inner-focus-border-color: var(--fds-semantic-border-focus-boxshadow);

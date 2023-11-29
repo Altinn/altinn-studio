@@ -14,7 +14,10 @@ export const Documentation = () => {
       <Paragraph size='small' className={classes.content}>
         {t('administration.documentation.content')}
       </Paragraph>
-      <Link href='https://docs.altinn.studio/nb/app/' className={classes.link}>
+      <Link
+        href='https://docs.altinn.studio/nb/app/getting-started/create-app/'
+        className={classes.link}
+      >
         <span>{t('administration.documentation.link')}</span>
         <ExternalLinkIcon className={classes.linkIcon} />
       </Link>

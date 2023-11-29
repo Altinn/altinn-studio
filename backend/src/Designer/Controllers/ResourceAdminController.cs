@@ -82,7 +82,7 @@ namespace Altinn.Studio.Designer.Controllers
                 listviewServiceResources.Add(listviewResource);
             }
 
-            return listviewServiceResources != null && listviewServiceResources.Count > 0 ? listviewServiceResources : StatusCode(204);
+            return listviewServiceResources;
         }
 
         [HttpGet]

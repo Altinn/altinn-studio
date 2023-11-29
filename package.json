@@ -84,10 +84,10 @@
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
     "./frontend/language/src/*.json": "yarn run sort-texts"
   },
-  "packageManager": "yarn@3.6.4",
+  "packageManager": "yarn@4.0.2",
   "private": true,
   "scripts": {
-    "build": "yarn workspaces foreach -p run build",
+    "build": "yarn workspaces foreach -A -p run build",
     "lint": "eslint \"frontend/**/*.ts*\"",
     "lint:fix": "npm run lint --fix",
     "setup": "husky install && node development/setup.js",
@@ -96,11 +96,12 @@
     "start-app-preview": "yarn workspace app-preview start",
     "start-dashboard": "yarn workspace dashboard start",
     "start-resourceadm": "yarn workspace resourceadm start",
+    "start-studio-root": "yarn workspace studio-root start",
     "stats": "node frontend/stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
-    "typecheck": "yarn workspaces foreach run typecheck"
+    "typecheck": "yarn workspaces foreach -A run typecheck"
   },
   "syncpack": {
     "semverRange": ""
@@ -112,6 +113,7 @@
     "frontend/dashboard",
     "frontend/resourceadm",
     "frontend/language",
+    "frontend/studio-root",
     "frontend/testing/mockend",
     "frontend/testing/cypress",
     "frontend/packages/schema-editor",

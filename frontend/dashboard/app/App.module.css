@@ -3,11 +3,8 @@
   display: grid;
   grid-template-rows: auto 1fr;
 }
-.root > header {
-  background-color: rgb(2, 47, 81);
-}
 
-.appDashboardSpinner{
+.appDashboardSpinner {
   height: 100vh;
   justify-content: center;
   align-items: center;

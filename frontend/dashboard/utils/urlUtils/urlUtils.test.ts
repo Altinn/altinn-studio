@@ -1,10 +1,10 @@
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { applicationAboutPage, getRepoEditUrl } from './urlUtils';
+import { getAppDevelopmentRootRoute, getRepoEditUrl } from './urlUtils';
 
 describe('urlUtils', () => {
   describe('applicationAboutPage', () => {
     it('should return url to about page', () => {
-      const result = applicationAboutPage({
+      const result = getAppDevelopmentRootRoute({
         org: 'org-name',
         repo: 'app-name',
       });

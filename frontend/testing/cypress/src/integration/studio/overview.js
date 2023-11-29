@@ -6,6 +6,7 @@ import * as texts from '../../../../../language/src/nb.json';
 const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerAppName')}`;
 const orgAppId = `${Cypress.env('orgUserName')}/${Cypress.env('designerAppName')}`;
 const NEW_ADM_FEATURE_FLAG = 'newAdministration';
+const PROCESS_EDITOR_FEATURE_FLAG = 'processEditor';
 
 context('Designer', () => {
   before(() => {
@@ -93,12 +94,15 @@ context('Designer', () => {
   });
 
   it('should be possible to navigate to the process editor from overview page', () => {
-    // Ensure feature flag is toggled
+    // Ensure feature flag is toggled BOTH for new administration AND process editor
     // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11495)
-    cy.visitWithFeatureFlag('/editor/' + designerAppId, NEW_ADM_FEATURE_FLAG);
+    cy.visitWithFeatureFlag(
+      '/editor/' + designerAppId,
+      `${NEW_ADM_FEATURE_FLAG},${PROCESS_EDITOR_FEATURE_FLAG}`,
+    );
     const navigationContainer = cy.findByText(texts['administration.navigation_title']).parent();
     navigationContainer
-      .findByRole('link', { name: texts['top_menu.process-editor'] })
+      .findByRole('link', { name: `${texts['top_menu.process-editor']} ${texts['general.beta']}` })
       .should('be.visible')
       .click();
     cy.findByText(texts['process_editor.edit_mode']).should('be.visible');

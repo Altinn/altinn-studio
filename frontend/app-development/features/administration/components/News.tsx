@@ -30,10 +30,10 @@ export const News = () => {
       <NewsTemplate>
         {newsList.news?.map(({ title, content }) => (
           <div className={classes.newsContent} key={title}>
-            <Label level={3} size='small'>
+            <Label level={3} size='medium'>
               {title}
             </Label>
-            <Paragraph size='xsmall'>{content}</Paragraph>
+            <Paragraph size='small'>{content}</Paragraph>
           </div>
         ))}
       </NewsTemplate>
