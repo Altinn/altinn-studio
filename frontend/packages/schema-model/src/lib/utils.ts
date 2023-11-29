@@ -62,9 +62,6 @@ export const pointerIsDefinition = (pointer: string) =>
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
   childNodes.some((child) => child.objectKind === ObjectKind.Field && child.fieldType === FieldType.Null);
 
-export const getNameFromPointer = ({ pointer }: { pointer: string }) =>
-  pointer.split('/').pop() ?? '';
-
 export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: string): string => {
   let newPointer = targetPointer;
   let postfix = 0;

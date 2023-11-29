@@ -27,6 +27,6 @@ describe('useSchemaAndReduxSelector', () => {
       state,
     })(() => useSchemaAndReduxSelector(selector));
 
-    expect(result.current).toEqual({ tab: selectedEditorTab, schema: uiSchemaNodesMock });
+    expect(result.current).toEqual({ tab: selectedEditorTab, schema: data });
   });
 });

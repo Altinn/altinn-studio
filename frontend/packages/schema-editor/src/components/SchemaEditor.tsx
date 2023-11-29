@@ -11,7 +11,7 @@ import { ModelsPanel, TypesPanel } from '@altinn/schema-editor/components/layout
 import { SchemaInspector } from '@altinn/schema-editor/components/SchemaInspector';
 import {
   UiSchemaNodes,
-  getNameFromPointer,
+  extractNameFromPointer,
 } from '@altinn/schema-model';
 import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
 import {
@@ -19,7 +19,6 @@ import {
   selectedPropertyParentSelector,
 } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface SchemaEditorProps {
   modelName?: string;
@@ -70,47 +69,45 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
 
   return (
     <>
-      <DragAndDropTree.Provider onAdd={() => {}} onMove={() => {}} rootId='#'>
-        <aside className={classes.inspector}>
-          <TypesInspector schemaItems={definitions} />
-        </aside>
-        {selectedType ? (
-          <div id='types-editor' className={classNames(classes.editor, classes.editorTypes)}>
-            <div className={classes.typeInfo}>
-              <span>
-                {t('schema_editor.types_editing', {
-                  type: getNameFromPointer({ pointer: selectedTypePointer }),
-                })}
-              </span>
-              <Button
-                onClick={handleResetSelectedType}
-                icon={<XMarkIcon />}
-                variant='tertiary'
-                color='inverted'
-                aria-label={t('schema_editor.close_type')}
-                size='small'
-              />
-            </div>
-            <TypesPanel
-              uiSchemaNode={selectedType}
-              setExpandedDefNodes={setExpandedDefNodes}
-              expandedDefNodes={
-                expandedDefNodes.includes(selectedTypePointer)
-                  ? expandedDefNodes
-                  : expandedDefNodes.concat([selectedTypePointer])
-              }
+      <aside className={classes.inspector}>
+        <TypesInspector schemaItems={definitions} />
+      </aside>
+      {selectedType ? (
+        <div id='types-editor' className={classNames(classes.editor, classes.editorTypes)}>
+          <div className={classes.typeInfo}>
+            <span>
+              {t('schema_editor.types_editing', {
+                type: extractNameFromPointer(selectedTypePointer),
+              })}
+            </span>
+            <Button
+              onClick={handleResetSelectedType}
+              icon={<XMarkIcon />}
+              variant='tertiary'
+              color='inverted'
+              aria-label={t('schema_editor.close_type')}
+              size='small'
             />
           </div>
-        ) : (
-          <div id='schema-editor' className={classes.editor}>
-            <ModelsPanel
-              setExpandedPropNodes={setExpandedPropNodes}
-              expandedPropNodes={expandedPropNodes}
-              properties={properties}
-            />
-          </div>
-        )}
-      </DragAndDropTree.Provider>
+          <TypesPanel
+            uiSchemaNode={selectedType}
+            setExpandedDefNodes={setExpandedDefNodes}
+            expandedDefNodes={
+              expandedDefNodes.includes(selectedTypePointer)
+                ? expandedDefNodes
+                : expandedDefNodes.concat([selectedTypePointer])
+            }
+          />
+        </div>
+      ) : (
+        <div id='schema-editor' className={classes.editor}>
+          <ModelsPanel
+            setExpandedPropNodes={setExpandedPropNodes}
+            expandedPropNodes={expandedPropNodes}
+            properties={properties}
+          />
+        </div>
+      )}
       <aside className={classes.inspector}>
         <SchemaInspector />
       </aside>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
 import type { TextfieldProps } from '@digdir/design-system-react';
 import { AltinnTextField } from 'app-shared/components/AltinnTextField';
-import { getNameFromPointer, replaceLastPointerSegment } from '@altinn/schema-model';
+import { extractNameFromPointer, replaceLastPointerSegment } from '@altinn/schema-model';
 import { isValidName } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
@@ -18,10 +18,10 @@ export type NameFieldProps = TextfieldProps & {
 export function NameField({ id, pointer, handleSave, label, ...props }: NameFieldProps) {
   const { t } = useTranslation();
   const { data } = useSchemaEditorAppContext();
-  const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
+  const [nodeName, setNodeName] = useState(extractNameFromPointer(pointer));
 
   useEffect(() => {
-    setNodeName(getNameFromPointer({ pointer }));
+    setNodeName(extractNameFromPointer(pointer));
   }, [pointer]);
 
   const validateName = (nodeNameToValidate: string): NameError => {

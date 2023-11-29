@@ -27,11 +27,9 @@ import {
   isField,
   isReference,
   isCombination,
-} from '@altinn/schema-model';
-import {
+  extractNameFromPointer,
   FieldType,
   combinationIsNullable,
-  getNameFromPointer,
 } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
@@ -60,7 +58,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
   const [itemTitle, setItemItemTitle] = useState<string>(title);
   const [itemDescription, setItemItemDescription] = useState<string>(description);
-  const nodeName = getNameFromPointer({ pointer });
+  const nodeName = extractNameFromPointer(pointer);
 
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? data.getChildNodes(pointer) : [];

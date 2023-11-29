@@ -9,7 +9,6 @@ import type { FieldNode, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-mode
 import {
   buildUiSchema,
   FieldType,
-  getNodeByPointer,
   SchemaModel,
   validateTestUiSchema,
 } from '@altinn/schema-model';
@@ -35,8 +34,9 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 const mockUiSchema = buildUiSchema(dataMock);
+const model = SchemaModel.fromArray(mockUiSchema);
 const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
-  getNodeByPointer(mockUiSchema, selectedId);
+  model.getNode(selectedId);
 
 const texts = {
   'schema_editor.maxLength': 'Maksimal lengde',

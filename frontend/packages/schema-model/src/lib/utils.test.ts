@@ -1,7 +1,6 @@
 import {
   combinationIsNullable,
   createNodeBase,
-  getNameFromPointer,
   getUniqueNodePath,
   isNodeValidParent,
   replaceLastPointerSegment,
@@ -9,7 +8,6 @@ import {
 import { FieldType, Keyword, UiSchemaNode } from '../types';
 import { expect } from '@jest/globals';
 import { buildUiSchema } from './build-ui-schema';
-import { getNodeByPointer } from './selectors';
 import { selectorsTestSchema } from '../../test/testUtils';
 import { makePointerFromArray } from './pointerUtils';
 import {
@@ -39,12 +37,6 @@ describe('utils', () => {
     nullableChild.fieldType = FieldType.Null;
     expect(combinationIsNullable([regularChild, regularChild])).toBeFalsy();
     expect(combinationIsNullable([regularChild, nullableChild])).toBeTruthy();
-  });
-
-  test('getNameFromPointer', () => {
-    const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
-    const uiSchemaNode = getNodeByPointer(uiSchemaNodes, makePointerFromArray([Keyword.Properties, 'hello']));
-    expect(getNameFromPointer(uiSchemaNode)).toBe('hello');
   });
 
   test('getUniqueNodePath', () => {

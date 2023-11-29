@@ -8,10 +8,9 @@ import {
   Keyword,
   ObjectKind,
   getCapabilities,
-  getNameFromPointer,
   pointerIsDefinition,
   promoteProperty,
-  FieldType,
+  FieldType, extractNameFromPointer,
 } from '@altinn/schema-model';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { Button } from '@digdir/design-system-react';
@@ -35,7 +34,7 @@ import {
   ArrowDownIcon,
 } from '@navikt/aksel-icons';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { isCombination, isReference } from '../../../../schema-model/src/lib/utils';
+import { isCombination, isReference } from '../../../../schema-model';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 
 export interface SchemaItemLabelProps {
@@ -124,7 +123,7 @@ export const SchemaItemLabel = ({
         <span className={classes.iconContainer}>
           <i className={`fa ${icon}`} />
         </span>{' '}
-        <span>{getNameFromPointer(selectedNode)}</span>
+        <span>{extractNameFromPointer(selectedNode.pointer)}</span>
         {selectedNode.isRequired && <span aria-hidden> *</span>}
         {hasReferredNodes && <span className={classes.greenDot}> ●</span>}
         {refNode && (
