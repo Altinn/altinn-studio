@@ -7,18 +7,17 @@ export const useConfirmNavigation = (hasUnsavedChanges: boolean, confirmationMes
       (event) => {
         if (hasUnsavedChanges) {
           event.preventDefault();
-          event.returnValue = '';
+          event.returnValue = confirmationMessage;
         }
       },
-      [hasUnsavedChanges],
+      [confirmationMessage, hasUnsavedChanges],
     ),
     { capture: true },
   );
 
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname,
-  );
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    return hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname;
+  });
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
