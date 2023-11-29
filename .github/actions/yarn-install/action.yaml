@@ -4,7 +4,7 @@ runs:
   using: "composite"
   steps:
     - name: 'Setting up Node'
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
 
     - name: "Getting yarn cache directory path"
       id: yarn-cache-dir-path
