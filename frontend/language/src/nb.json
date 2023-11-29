@@ -188,6 +188,7 @@
   "dashboard.resource_design_label": "Design / brukertest",
   "dashboard.resource_docs_description": "Dokumentasjonen til Altinn Studio. Her vil du få hjelp til å utvikle dine egne applikasjoner.",
   "dashboard.resource_docs_label": "docs.altinn.studio",
+  "dashboard.resource_list_load_error": "Kunne ikke laste ressurser",
   "dashboard.resource_organisations_description": "Se hva andre organisasjoner lager. Du har mulighet til å se og klone andre sine repositories.",
   "dashboard.resource_organisations_label": "Alle organisasjoner",
   "dashboard.resource_roadmap_description": "Altinn er under kontinuerlig videreutvikling. Du får vite mer om hva vi har gjort og hva vi planlegger å gjøre her.",

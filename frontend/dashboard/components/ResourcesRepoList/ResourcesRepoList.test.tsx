@@ -81,6 +81,20 @@ describe('RepoList', () => {
     });
   });
 
+  test('Should show error when loading fails', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: 'ttd',
+    });
+    renderWithMockServices({
+      searchRepos: () => Promise.resolve(searchReposResponse),
+      getResourceList: () => Promise.reject(),
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(textMock('dashboard.resource_list_load_error'))).toBeInTheDocument();
+    });
+  });
+
   test('Should show correct header', async () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: 'ttd',

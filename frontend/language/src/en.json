@@ -132,6 +132,7 @@
   "dashboard.resource_design_label": "Design / usertest",
   "dashboard.resource_docs_description": "Documentation for Altinn Studio. Here you will find resources on how to develop your application.",
   "dashboard.resource_docs_label": "docs.altinn.studio",
+  "dashboard.resource_list_load_error": "Could not load resources",
   "dashboard.resource_organisations_description": "Look at what other organisations are making. You can both look at and clone repositories.",
   "dashboard.resource_organisations_label": "All organisations",
   "dashboard.resource_roadmap_description": "Altinn is under continuous development. Find out whats being worked on and what we are planning for in the future.",

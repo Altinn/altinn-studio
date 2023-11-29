@@ -8,7 +8,7 @@ import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
 import { AltinnSpinner } from 'app-shared/components';
-import { Heading, Link } from '@digdir/design-system-react';
+import { Alert, Heading, Link } from '@digdir/design-system-react';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
 import { User } from 'app-shared/types/User';
 import { getUidFilter } from 'dashboard/utils/filterUtils';
@@ -39,13 +39,18 @@ export const ResourcesRepoList = ({
     page: 0,
   });
 
-  const { data: resourceListData, isLoading: isLoadingResourceList } = useGetResourceListQuery(
-    selectedContext,
-    !resourcesRepos?.data.length,
-  );
+  const {
+    data: resourceListData,
+    isLoading: isLoadingResourceList,
+    isError: isResourceListError,
+  } = useGetResourceListQuery(selectedContext, !resourcesRepos?.data.length);
 
   if (!resourcesRepos?.data.length) {
     return null;
+  }
+
+  if (isResourceListError) {
+    return <Alert severity='danger'>{t('dashboard.resource_list_load_error')}</Alert>;
   }
 
   return (
