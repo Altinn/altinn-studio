@@ -71,22 +71,26 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>();
         }
 
-        private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services, IConfiguration config)
+        private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services,
+            IConfiguration config)
             => services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
                 {
                     IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-                    ServiceRepositorySettings serviceRepSettings = config.GetSection("ServiceRepositorySettings").Get<ServiceRepositorySettings>();
-                    Uri uri = new Uri(serviceRepSettings.ApiEndPoint);
+                    ServiceRepositorySettings serviceRepoSettings =
+                        config.GetSection("ServiceRepositorySettings").Get<ServiceRepositorySettings>();
+                    Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
                     httpClient.BaseAddress = uri;
                     httpClient.DefaultRequestHeaders.Add(
                         General.AuthorizationTokenHeaderName,
                         AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
                 })
-                .ConfigurePrimaryHttpMessageHandler(() =>
-                    new HttpClientHandler
-                    {
-                        AllowAutoRedirect = true
-                    });
+                .ConfigurePrimaryHttpMessageHandler((sp) =>
+                {
+                    var handler = new HttpClientHandler { AllowAutoRedirect = true };
+
+                    return new Custom401Handler(handler);
+                });
+
 
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
             => services.AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>((sp, httpClient) =>

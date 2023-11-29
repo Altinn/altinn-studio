@@ -1,5 +1,6 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { formDesignerMock } from '../../../testing/stateMocks';
@@ -22,9 +23,27 @@ const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
+const componentWithExpression: FormComponent = {
+  id: 'some-id',
+  type: ComponentType.Input,
+  itemType: 'COMPONENT',
+  hidden: parsableExternalExpression,
+};
 
 describe('Expressions', () => {
   beforeEach(jest.clearAllMocks);
+
+  it('renders only add new expression button when there are no existing expressions on component', async () => {
+    render({ component: { ...componentWithExpression, hidden: true } });
+    const deleteExpressionButtons = screen.queryByRole('button', {
+      name: textMock('right_menu.expression_delete'),
+    });
+    expect(deleteExpressionButtons).not.toBeInTheDocument();
+    const addExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_add'),
+    });
+    expect(addExpressionButton).toBeInTheDocument();
+  });
 
   it('renders existing expressions and addExpressionButton when hidden field on the component has an expression', () => {
     render({});
@@ -84,10 +103,59 @@ describe('Expressions', () => {
       component: groupComponentWithAllBooleanFieldsAsExpressions,
     });
 
-    const expressionLimitAlert = screen.queryByText(
+    const expressionLimitAlert = screen.getByText(
       textMock('right_menu.expressions_expressions_limit_reached_alert'),
     );
     expect(expressionLimitAlert).toBeInTheDocument();
+  });
+
+  it('adds new expression on read only property when read only menuItem is selected after add expression button is clicked', async () => {
+    const user = userEvent.setup();
+    render({});
+
+    const addExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_add'),
+    });
+    await act(() => user.click(addExpressionButton));
+    const propertyDropDownMenuItem = screen.getByRole('menuitem', {
+      name: textMock('right_menu.expressions_property_read_only'),
+    });
+    await act(() => user.click(propertyDropDownMenuItem));
+
+    const newExpression = screen.getByText(
+      textMock('right_menu.expressions_property_preview_read_only'),
+    );
+    expect(newExpression).toBeInTheDocument();
+  });
+
+  it('expression is no longer in previewMode when edit expression is clicked', async () => {
+    const user = userEvent.setup();
+    render({});
+
+    const expressionInPreview = screen.getByText(
+      textMock('right_menu.expressions_property_preview_hidden'),
+    );
+    expect(expressionInPreview).toBeInTheDocument();
+
+    const editExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_edit'),
+    });
+    await act(() => user.click(editExpressionButton));
+
+    expect(expressionInPreview).not.toBeInTheDocument();
+  });
+
+  it('expression is deleted when delete expression button is clicked', async () => {
+    const user = userEvent.setup();
+    render({});
+
+    const deleteExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expression_delete'),
+    });
+    expect(deleteExpressionButton).toBeInTheDocument();
+    await act(() => user.click(deleteExpressionButton));
+
+    expect(deleteExpressionButton).not.toBeInTheDocument();
   });
 
   it('Renders successfully when the component is a multipage group', () => {
@@ -117,13 +185,14 @@ describe('Expressions', () => {
       component: componentWithoutExpressions,
     });
 
-    const defaultExpressionSelectProperty = screen.getByRole('combobox', {
-      name: textMock('right_menu.expressions_property'),
-    });
-    expect(defaultExpressionSelectProperty).toBeInTheDocument();
-    expect(defaultExpressionSelectProperty).toHaveValue(
-      textMock('right_menu.expressions_property_select'),
+    const createRuleForComponentIdText = screen.getByText(
+      textMock('right_menu.expressions_property_on_component'),
     );
+    expect(createRuleForComponentIdText).toBeInTheDocument();
+    const createNewExpressionButton = screen.getByRole('button', {
+      name: textMock('right_menu.expressions_add'),
+    });
+    expect(createNewExpressionButton).toBeInTheDocument();
   });
 
   it('renders link to docs', () => {
@@ -135,13 +204,6 @@ describe('Expressions', () => {
     expect(linkToExpressionDocs).toBeInTheDocument();
   });
 });
-
-const componentWithExpression: FormComponent = {
-  id: 'some-id',
-  type: ComponentType.Input,
-  itemType: 'COMPONENT',
-  hidden: parsableExternalExpression,
-};
 
 const render = ({
   props = {},
