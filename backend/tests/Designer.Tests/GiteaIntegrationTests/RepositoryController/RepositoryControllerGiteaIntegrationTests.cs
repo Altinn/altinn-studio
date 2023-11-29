@@ -103,7 +103,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await CreateAppUsingDesigner(org, targetRepo);
 
             // Create a file in gitea
-            using var createFileContent = new StringContent(CreateFileJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var createFileContent = new StringContent(GenerateCommitJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
             using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/test2.txt", createFileContent);
             createFileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
@@ -221,7 +221,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await CreateAppUsingDesigner(org, targetRepo);
 
             // Create a file in gitea
-            using var createFileContent = new StringContent(CreateFileJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using var createFileContent = new StringContent(GenerateCommitJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
             using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/test2.txt", createFileContent);
             createFileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
@@ -232,31 +232,5 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
-
-        private static string GetCommitInfoJson(string text, string org, string repository) =>
-            @$"{{
-                ""message"": ""{text}"",
-                ""org"": ""{org}"",
-                ""repository"": ""{repository}""
-            }}";
-
-        private static string CreateFileJsonPayload(string text, string message) =>
-            @$"{{
-                 ""author"": {{
-                     ""email"": ""{GiteaConstants.AdminEmail}"",
-                     ""name"": ""{GiteaConstants.AdminUser}""
-                 }},
-                 ""committer"": {{
-                     ""email"": ""{GiteaConstants.AdminEmail}"",
-                     ""name"": ""{GiteaConstants.AdminUser}""
-                 }},
-                 ""content"": ""{Convert.ToBase64String(Encoding.UTF8.GetBytes(text))}"",
-                 ""dates"": {{
-                     ""author"": ""{DateTime.Now:O}"",
-                     ""committer"": ""{DateTime.Now:O}""
-                 }},
-                 ""message"": ""{message}"",
-                 ""signoff"": true
-            }}";
     }
 }

@@ -167,32 +167,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             bool pushSuccess = true;
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
+            using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
+            string remoteUrl = FindRemoteRepoLocation(org, repository);
+            Remote remote = repo.Network.Remotes["origin"];
+
+            if (!remote.PushUrl.Equals(remoteUrl))
             {
-                string remoteUrl = FindRemoteRepoLocation(org, repository);
-                Remote remote = repo.Network.Remotes["origin"];
-
-                if (!remote.PushUrl.Equals(remoteUrl))
-                {
-                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files.
-                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                }
-
-                PushOptions options = new()
-                {
-                    OnPushStatusError = pushError =>
-                    {
-                        _logger.LogError("Push error: {0}", pushError.Message);
-                        pushSuccess = false;
-                    }
-                };
-                options.CredentialsProvider = (url, user, cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-
-                repo.Network.Push(remote, @"refs/heads/master", options);
-                repo.Network.Push(remote, "refs/notes/commits", options);
+                // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                // Requires adminstrator access to update files.
+                repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
             }
+
+            PushOptions options = new()
+            {
+                OnPushStatusError = pushError =>
+                {
+                    _logger.LogError("Push error: {0}", pushError.Message);
+                    pushSuccess = false;
+                }
+            };
+            options.CredentialsProvider = (url, user, cred) =>
+                new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+            repo.Network.Push(remote, @"refs/heads/master", options);
+            repo.Network.Push(remote, "refs/notes/commits", options);
 
             return await Task.FromResult(pushSuccess);
         }
@@ -226,7 +224,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var commit = repo.Commit(message, signature, signature);
 
             var notes = repo.Notes;
-            Note note = notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
+            notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
 
         }
 
@@ -472,39 +470,41 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message)
         {
-            using (LibGit2Sharp.Repository repo = new(localPath))
+            using LibGit2Sharp.Repository repo = new(localPath);
+            // Restrict users from empty commit
+            if (repo.RetrieveStatus().IsDirty)
             {
-                // Restrict users from empty commit
-                if (repo.RetrieveStatus().IsDirty)
+                string remoteUrl = FindRemoteRepoLocation(org, repository);
+                Remote remote = repo.Network.Remotes["origin"];
+
+                if (!remote.PushUrl.Equals(remoteUrl))
                 {
-                    string remoteUrl = FindRemoteRepoLocation(org, repository);
-                    Remote remote = repo.Network.Remotes["origin"];
-
-                    if (!remote.PushUrl.Equals(remoteUrl))
-                    {
-                        // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                        // Requires adminstrator access to update files.
-                        repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                    }
-
-                    Commands.Stage(repo, "*");
-
-                    LibGit2Sharp.Signature signature = GetDeveloperSignature();
-                    repo.Commit(message, signature, signature);
-
-                    PushOptions options = new();
-                    options.CredentialsProvider = (url, user, cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-
-                    if (branchName == "master")
-                    {
-                        repo.Network.Push(remote, @"refs/heads/master", options);
-                        return;
-                    }
-
-                    Branch b = repo.Branches[branchName];
-                    repo.Network.Push(b, options);
+                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                    // Requires adminstrator access to update files.
+                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                 }
+
+                Commands.Stage(repo, "*");
+
+                LibGit2Sharp.Signature signature = GetDeveloperSignature();
+                var commit = repo.Commit(message, signature, signature);
+                var notes = repo.Notes;
+                notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
+
+                PushOptions options = new();
+                options.CredentialsProvider = (url, user, cred) =>
+                    new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+                if (branchName == "master")
+                {
+                    repo.Network.Push(remote, @"refs/heads/master", options);
+                    repo.Network.Push(remote, "refs/notes/commits", options);
+                    return;
+                }
+
+                Branch b = repo.Branches[branchName];
+                repo.Network.Push(b, options);
+                repo.Network.Push(remote, "refs/notes/commits", options);
             }
         }
 

@@ -60,7 +60,10 @@ namespace Designer.Tests.GiteaIntegrationTests
                 return;
             }
 
-            var directory = new DirectoryInfo(directoryPath) { Attributes = FileAttributes.Normal };
+            var directory = new DirectoryInfo(directoryPath)
+            {
+                Attributes = FileAttributes.Normal
+            };
 
             foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
             {
@@ -134,5 +137,31 @@ namespace Designer.Tests.GiteaIntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.Created);
             InvalidateAllCookies();
         }
+
+        protected static string GetCommitInfoJson(string text, string org, string repository) =>
+            @$"{{
+                    ""message"": ""{text}"",
+                    ""org"": ""{org}"",
+                    ""repository"": ""{repository}""
+                }}";
+
+        protected static string GenerateCommitJsonPayload(string text, string message) =>
+            @$"{{
+                 ""author"": {{
+                     ""email"": ""{GiteaConstants.AdminEmail}"",
+                     ""name"": ""{GiteaConstants.AdminUser}""
+                 }},
+                 ""committer"": {{
+                     ""email"": ""{GiteaConstants.AdminEmail}"",
+                     ""name"": ""{GiteaConstants.AdminUser}""
+                 }},
+                 ""content"": ""{Convert.ToBase64String(Encoding.UTF8.GetBytes(text))}"",
+                 ""dates"": {{
+                     ""author"": ""{DateTime.Now:O}"",
+                     ""committer"": ""{DateTime.Now:O}""
+                 }},
+                 ""message"": ""{message}"",
+                 ""signoff"": true
+            }}";
     }
 }

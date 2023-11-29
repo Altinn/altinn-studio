@@ -16,10 +16,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
     public class CopyAppGiteaIntegrationTests : GiteaIntegrationTestsBase<CopyAppGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        // Gitea needs some time to process changes to the repo, so we need to retry a few times
-        private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
-            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
-
         private string CopyRepoName { get; set; }
 
         public CopyAppGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
