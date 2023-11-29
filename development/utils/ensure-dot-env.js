@@ -4,7 +4,7 @@ const os = require('os');
 const getCommit = require('./git-commit-hash');
 const randomPass = () =>
   [Math.random().toString(36).substring(2, 5), Math.random().toString(36).substring(2, 5)].join(
-    'DIG@'
+    'DIG@',
   );
 
 const defaultEnvVars = {
@@ -14,6 +14,7 @@ const defaultEnvVars = {
   DEVELOP_BACKEND: 0,
   DEVELOP_DASHBOARD: 0,
   DEVELOP_PREVIEW: 0,
+  DEVELOP_STUDIO_ROOT: 0,
   GITEA_ADMIN_PASS: randomPass(),
   GITEA_ADMIN_USER: 'localgiteaadmin',
   GITEA_CYPRESS_USER: 'cypress_testuser',

@@ -91,6 +91,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
     <>
       {!pointerIsDefinition(pointer) && (
         <Switch
+          className={classes.switch}
           size='small'
           checked={isRequired}
           name='checkedRequired'

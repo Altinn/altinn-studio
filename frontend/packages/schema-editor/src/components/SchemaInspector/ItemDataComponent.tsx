@@ -159,9 +159,9 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       )}
       {!isCombination(schemaNode) && !pointerIsDefinition(pointer) && (
         <Switch
+          className={classes.switch}
           size='small'
           checked={isArray}
-          name='checkedMultipleAnswers'
           onChange={handleArrayPropertyToggle}
         >
           {t('schema_editor.multiple_answers')}
@@ -179,10 +179,9 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       )}
       {isCombination(schemaNode) && (
         <Switch
+          className={classes.switch}
           size='small'
-          id='multiple-answers-checkbox'
           checked={combinationIsNullable(getChildNodes())}
-          name='checkedNullable'
           onChange={onChangeNullable}
         >
           {t('schema_editor.nullable')}

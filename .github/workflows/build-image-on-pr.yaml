@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'frontend/**'
+      - '!frontend/stats/**'
       - 'backend/**'
       - '.github/workflows/build-image-on-pr.yaml'
   workflow_dispatch:

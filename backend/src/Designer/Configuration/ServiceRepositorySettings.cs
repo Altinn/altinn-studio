@@ -172,7 +172,7 @@ namespace Altinn.Studio.Designer.Configuration
         public string GiteaLoginUrl { get; set; }
 
         /// <summary>
-        /// Gets or sets the BaseResourceFolderContainer that identifes where in the docker container the runtime can find files needed
+        /// Gets or sets the BaseResourceFolderContainer that identifies where in the docker container the runtime can find files needed
         /// </summary>
         public string BaseResourceFolderContainer { get; set; }
 

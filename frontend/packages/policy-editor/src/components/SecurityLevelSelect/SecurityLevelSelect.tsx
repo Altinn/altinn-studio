@@ -44,7 +44,7 @@ export const SecurityLevelSelect = ({
   }, [t]);
 
   return (
-    <div>
+    <div className={classes.securityLevelContainer}>
       <Heading level={2} size='xxsmall' spacing>
         {t('policy_editor.security_level_label')}
       </Heading>
@@ -57,7 +57,7 @@ export const SecurityLevelSelect = ({
           <Label size='small' htmlFor={SELECT_AUTH_LEVEL_ID}>
             {t('policy_editor.select_auth_level_label')}
           </Label>
-          <HelpText title={t('policy_editor.select_auth_level_help_text')}>
+          <HelpText size='small' title={t('policy_editor.select_auth_level_help_text')}>
             <Link
               href={URL_TO_SECURITY_LEVEL_PAGE}
               target='_newTab'

@@ -1,0 +1,17 @@
+@{ViewBag.Title = "Altinn Studio";}
+
+<html lang="no">
+<head>
+  <title>@ViewBag.Title</title>
+  <link rel="shortcut icon" href="/designer/img/favicon.ico"/>
+  <script type="text/javascript">
+    var instrumentationKey = "@ViewBag.InstrumentationKey"
+    window.instrumentationKey = instrumentationKey;
+  </script>
+</head>
+<body>
+<div id="root" class="media-body flex-column d-flex"></div>
+<link  href="/designer/frontend/dashboard/dashboard.css" rel="stylesheet"      asp-append-version="true"/>
+<script src="/designer/frontend/dashboard/dashboard.js" type="text/javascript" asp-append-version="true"></script>
+</body>
+</html>

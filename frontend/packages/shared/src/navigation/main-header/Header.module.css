@@ -1,6 +1,7 @@
-.appBar {
+header.appBar {
   background-color: #022f51;
   box-shadow: none;
+  z-index: 1;
 }
 
 .toolbar {
