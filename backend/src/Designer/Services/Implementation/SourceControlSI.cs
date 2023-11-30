@@ -59,10 +59,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CloneOptions cloneOptions = new();
             cloneOptions.CredentialsProvider = CredentialsProvider();
             string localPath = FindLocalRepoLocation(org, repository);
-            string cloningResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
+            string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
 
             FetchGitNotes(localPath);
-            return cloningResult;
+            return cloneResult;
         }
 
         /// <inheritdoc />
@@ -77,7 +77,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 cloneOptions.BranchName = branchName;
             }
 
-            return LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
+            string cloneResult =  LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
+            FetchGitNotes(destinationPath);
+            return cloneResult;
         }
 
         /// <inheritdoc />
@@ -639,12 +641,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void FetchGitNotes(string localRepositoryPath)
         {
-            var repo = new LibGit2Sharp.Repository(localRepositoryPath);
-            Commands.Fetch(repo, "origin", new List<string>() { "refs/notes/*:refs/notes/*" }, new FetchOptions()
+            using var repo = new LibGit2Sharp.Repository(localRepositoryPath);
+            var options = new FetchOptions()
             {
                 CredentialsProvider = CredentialsProvider()
-            },
-                "fetch notes");
+            };
+            Commands.Fetch(repo, "origin", new List<string> { "refs/notes/*:refs/notes/*" }, options, "fetch notes");
         }
     }
 }
