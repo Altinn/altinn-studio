@@ -16,17 +16,17 @@ export const AppLogs = () => {
 
   const {
     data: appDeployments = [],
-    isLoading: isLoadingDeploys,
+    isPending: isPendingDeploys,
     isError: deploysHasError,
   } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
 
   const {
     data: environmentList = [],
-    isLoading: envIsLoading,
+    isPending: envIsPending,
     isError: envIsError,
   } = useEnvironmentsQuery({ hideDefaultError: true });
 
-  if (isLoadingDeploys || envIsLoading) return <StudioSpinner />;
+  if (isPendingDeploys || envIsPending) return <StudioSpinner />;
 
   if (deploysHasError || envIsError)
     return <Alert severity='danger'>{t('administration.app_logs_error')}</Alert>;

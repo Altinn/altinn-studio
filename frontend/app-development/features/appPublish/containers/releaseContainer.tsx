@@ -25,8 +25,8 @@ export function ReleaseContainer() {
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
-  const { data: repoStatus, isLoading: repoStatusIsLoading } = useRepoStatusQuery(org, app);
-  const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } = useBranchStatusQuery(
+  const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
+  const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
     org,
     app,
     'master',
@@ -47,7 +47,9 @@ export function ReleaseContainer() {
     const interval = setInterval(async () => {
       const index = releases.findIndex((release) => release.build.status !== BuildStatus.completed);
       if (index > -1) {
-        await queryClient.invalidateQueries([QueryKey.AppReleases, org, app]);
+        await queryClient.invalidateQueries({
+          queryKey: [QueryKey.AppReleases, org, app],
+        });
       }
     }, 7777);
     return () => clearInterval(interval);
@@ -58,7 +60,7 @@ export function ReleaseContainer() {
   const handlePopoverClose = () => setPopoverOpenHover(false);
 
   function renderCreateRelease() {
-    if (repoStatusIsLoading || masterBranchStatusIsLoading) {
+    if (isRepoStatusPending || masterBranchStatusIsPending) {
       return (
         <div style={{ padding: '2rem' }}>
           <div>

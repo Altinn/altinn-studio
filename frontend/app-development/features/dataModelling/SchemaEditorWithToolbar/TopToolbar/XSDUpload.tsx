@@ -44,8 +44,10 @@ export const XSDUpload = ({ disabled, submitButtonRenderer }: IXSDUploadProps) =
       })
       .finally(async () => {
         await Promise.all([
-          queryClient.invalidateQueries([QueryKey.DatamodelsJson, org, app]),
-          queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
+          queryClient.invalidateQueries({
+            queryKey: [QueryKey.DatamodelsJson, org, app],
+          }),
+          queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
         ]);
         setUploading(false);
       });

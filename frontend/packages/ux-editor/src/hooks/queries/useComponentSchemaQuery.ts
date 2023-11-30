@@ -16,19 +16,17 @@ export interface UseComponentSchemaQueryResult {
 export const useComponentSchemaQuery = (component: string): UseQueryResult<any> => {
   const queryClient = useQueryClient();
 
-  return useQuery(
-    [QueryKey.FormComponent, component],
-    () => {
+  return useQuery({
+    queryKey: [QueryKey.FormComponent, component],
+    queryFn: () => {
       addSchemas([componentSchemaMocks[component]]);
       return Promise.resolve(dereferenceSchema(componentSchemaMocks[component]));
     },
-    {
-      cacheTime: Infinity,
-      staleTime: Infinity,
-      enabled:
-        !!queryClient.getQueryData(['expressionSchema']) &&
-        !!queryClient.getQueryData(['numberFormatSchema']) &&
-        !!queryClient.getQueryData(['common-defs']),
-    }
-  );
+    gcTime: Infinity,
+    staleTime: Infinity,
+    enabled:
+      !!queryClient.getQueryData(['expressionSchema']) &&
+      !!queryClient.getQueryData(['numberFormatSchema']) &&
+      !!queryClient.getQueryData(['common-defs']),
+  });
 };

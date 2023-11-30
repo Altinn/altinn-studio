@@ -11,6 +11,8 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 jest.mock('../language/src/nb.json', jest.fn());
 jest.mock('../language/src/en.json', jest.fn());
 
+// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
+const realConsole = console;
 const render = async (remainingMinutes: number = 40) => {
   renderWithProviders(<App />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
@@ -25,7 +27,16 @@ const render = async (remainingMinutes: number = 40) => {
   });
 };
 describe('App', () => {
-  afterEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    global.console = {
+      ...console,
+      error: jest.fn(),
+    };
+  });
+  afterEach(() => {
+    global.console = realConsole;
+    jest.clearAllMocks();
+  });
 
   it('should present popover with options to log out or stay logged in when session about to expire ', async () => {
     render(6);

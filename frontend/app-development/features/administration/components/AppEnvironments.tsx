@@ -16,16 +16,16 @@ export const AppEnvironments = () => {
 
   const {
     data: environmentList = [],
-    isLoading: envIsLoading,
+    isPending: envIsPending,
     isError: envIsError,
   } = useEnvironmentsQuery({ hideDefaultError: true });
   const {
     data: orgs = { orgs: {} },
-    isLoading: orgsIsLoading,
+    isPending: orgsIsPending,
     isError: orgsIsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
-  if (envIsLoading || orgsIsLoading) return <StudioSpinner />;
+  if (envIsPending || orgsIsPending) return <StudioSpinner />;
 
   if (envIsError || orgsIsError)
     return <Alert severity='danger'>{t('administration.app_environments_error')}</Alert>;

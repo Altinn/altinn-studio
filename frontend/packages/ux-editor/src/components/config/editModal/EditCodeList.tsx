@@ -13,7 +13,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
 
-  const { data: optionListIds, isLoading, isError, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);
   const handleOptionsIdChange = (optionsId: string) => {
     handleComponentChange({
@@ -24,7 +24,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   return (
     <div>
-      {isLoading ? (
+      {isPending ? (
         <StudioSpinner />
       ) : isError ? (
         <ErrorMessage>

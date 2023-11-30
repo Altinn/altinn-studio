@@ -15,7 +15,10 @@ import { sortResourceListByDateAndMap } from 'resourceadm/utils/mapperUtils';
 export const useGetResourceListQuery = (org: string): UseQueryResult<ResourceListItem[]> => {
   const { getResourceList } = useServicesContext();
 
-  return useQuery<ResourceListItem[]>([QueryKey.ResourceList, org], () => getResourceList(org), {
-    select: (data) => data && sortResourceListByDateAndMap(data),
+  return useQuery<ResourceListItem[]>({
+    queryKey: [QueryKey.ResourceList, org],
+    queryFn: () => getResourceList(org),
+    select: (resourceListItems: ResourceListItem[]) =>
+      resourceListItems && sortResourceListByDateAndMap(resourceListItems),
   });
 };

@@ -29,7 +29,7 @@ export const DatamodelsReposList = ({
     organizations,
   });
 
-  const { data: repos, isLoading: isLoadingOrgRepos } = useSearchReposQuery({
+  const { data: repos, isPending: isPendingOrgRepos } = useSearchReposQuery({
     uid: uid as number,
     keyword: '-datamodels',
     page: 0,
@@ -47,7 +47,7 @@ export const DatamodelsReposList = ({
   return (
     <div>
       <h2>{getReposLabel({ selectedContext, orgs: organizations, t, isDatamodelsRepo: true })}</h2>
-      <RepoList repos={reposWithStarred} isLoading={isLoadingOrgRepos} pageSize={5} rowCount={2} />
+      <RepoList repos={reposWithStarred} isLoading={isPendingOrgRepos} pageSize={5} rowCount={2} />
     </div>
   );
 };
