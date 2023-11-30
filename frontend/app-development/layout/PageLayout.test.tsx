@@ -43,7 +43,7 @@ jest.mock('react-router-dom', () => ({
 // Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
 const realConsole = console;
 
-describe('App', () => {
+describe('PageLayout', () => {
   beforeEach(() => {
     global.console = {
       ...console,
