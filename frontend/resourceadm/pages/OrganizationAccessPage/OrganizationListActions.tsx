@@ -1,6 +1,7 @@
-import { Accordion, Button, Chip, Heading, Paragraph, Select } from '@digdir/design-system-react';
-import React, { useState } from 'react';
+import { Button, Chip, Heading, Select } from '@digdir/design-system-react';
+import React from 'react';
 import { FieldWrapper } from './FieldWrapper';
+import { ResourceList } from 'app-shared/types/ResourceAdm';
 
 const actionOptions = [
   {
@@ -21,23 +22,17 @@ const actionOptions = [
   },
 ];
 
-interface ListItem {
-  listName: string;
-  resourceId: string;
-  env: string;
-  list: number;
-  actions: string[];
-}
-
 interface OrganizationListActionsProps {
-  listItem: ListItem;
+  listItem: ResourceList;
+  listName: string;
   listOptions: { value: string; label: string }[];
   onRemove: (listId: number) => void;
-  onChange: (listItem: ListItem, diff: Partial<ListItem>) => void;
+  onChange: (listItem: ResourceList, diff: Partial<ResourceList>) => void;
 }
 
 export const OrganizationListActions = ({
   listItem,
+  listName,
   listOptions,
   onRemove,
   onChange,
@@ -45,14 +40,10 @@ export const OrganizationListActions = ({
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-        backgroundColor: '#eee',
-        marginBottom: '2rem',
-        padding: '1.5rem',
+        marginBottom: '4rem',
         borderRadius: '8px',
         maxWidth: '50%',
+        border: '2px solid #ddd',
       }}
     >
       <div
@@ -61,23 +52,24 @@ export const OrganizationListActions = ({
           flexDirection: 'row',
           gap: '1rem',
           alignItems: 'flex-end',
+          padding: '1rem 1.5rem',
+          borderBottom: '2px solid #ddd',
         }}
       >
         <div style={{ flex: 1 }}>
           <FieldWrapper label='Liste'>
-            {listItem.list ? (
+            {listItem.listId ? (
               <Heading level={2} size='small'>
-                {listItem.listName}
+                {listName}
               </Heading>
             ) : (
               <Select
                 options={listOptions}
-                value={`${listItem.list}`}
-                disabled={!!listItem.list}
+                value={`${listItem.listId}`}
+                disabled={!!listItem.listId}
                 onChange={(value: string) => {
                   onChange(listItem, {
-                    list: parseInt(value),
-                    listName: listOptions.find((x) => x.value === value).label,
+                    listId: parseInt(value),
                   });
                 }}
               />
@@ -88,12 +80,12 @@ export const OrganizationListActions = ({
           color='danger'
           size='small'
           variant='secondary'
-          onClick={() => onRemove(listItem.list)}
+          onClick={() => onRemove(listItem.listId)}
         >
           Fjern fra ressurs
         </Button>
       </div>
-      <div>
+      <div style={{ padding: '1rem 1.5rem' }}>
         <FieldWrapper
           label='Rettigheter'
           description='Legg til hvilke rettigheter som kreves for å bruke denne ressursen'

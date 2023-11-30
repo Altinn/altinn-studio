@@ -1,18 +1,5 @@
 .pageWrapper {
-  width: 90%;
+  width: 45rem;
   margin: 0;
   padding: 40px;
-}
-
-.tabell {
-  border-collapse: collapse;
-  margin-top: 2rem;
-}
-.tabell th {
-  padding: 0.5rem;
-  text-align: left;
-}
-
-.tabellRad td {
-  padding: 0.5rem;
 }

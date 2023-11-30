@@ -13,10 +13,7 @@ import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
 import { SearchField } from '@altinn/altinn-design-system';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import { OrganizationAccessPage } from 'resourceadm/pages/OrganizationAccessPage';
-import { OrganizationListPage } from 'resourceadm/pages/OrganizationAccessPage/OrganizationListPage';
 import { ListAdmin } from 'resourceadm/pages/OrganizationAccessPage/ListAdmin';
-import { ListAdminEnv } from 'resourceadm/pages/OrganizationAccessPage/ListAdminEnv';
 
 export const App = (): JSX.Element => {
   const { data: user, isError: isUserError } = useUserQuery();

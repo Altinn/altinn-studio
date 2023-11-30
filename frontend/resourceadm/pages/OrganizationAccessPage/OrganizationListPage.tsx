@@ -1,21 +1,14 @@
-import { Button, Heading, Select } from '@digdir/design-system-react';
+import { Button, Heading } from '@digdir/design-system-react';
 import React, { useState } from 'react';
 import { OrganizationAccessPage } from './OrganizationAccessPage';
 import { OrganizationListActions } from './OrganizationListActions';
 import { TestLister, ListConnections } from './listeTestData';
+import { ResourceList } from 'app-shared/types/ResourceAdm';
 
 interface OrganizationListPageProps {
   env: string;
   resourceId: string;
   onBack: () => void;
-}
-
-interface ListItem {
-  listName: string;
-  resourceId: string;
-  env: string;
-  list: number;
-  actions: string[];
 }
 
 export const OrganizationListPage = ({
@@ -27,47 +20,57 @@ export const OrganizationListPage = ({
 
   const connectedLists = ListConnections.filter(
     (x) => x.resourceId === resourceId && x.env === env,
-  ).map((x) => {
-    return {
-      ...x,
-      listName: TestLister.find((y) => y.id === x.list).navn,
-    };
-  });
+  );
 
-  const [selectedLists, setSelectedLists] = useState(connectedLists);
+  const [selectedLists, setSelectedLists] = useState<ResourceList[]>(connectedLists);
 
   const filterAvailableLists = () => {
     return TestLister.filter((z) => {
-      const usedLists = selectedLists.map((x) => x.list);
+      const usedLists = selectedLists.map((x) => x.listId);
       return z.env === env && usedLists.indexOf(z.id) === -1;
     }).map((z) => {
       return {
         value: `${z.id}`,
-        label: z.navn,
+        label: z.title,
       };
     });
   };
 
-  const handleSave = (listItem: ListItem, diff: Partial<ListItem>) => {
+  const handleSave = (listItem: ResourceList, diff: Partial<ResourceList>) => {
     const saveItem = { ...listItem, ...diff };
     // call service to save
     console.log('SAVE', saveItem);
     // update state
-    setSelectedLists((old) => old.map((y) => (y.list === listItem.list ? saveItem : y)));
+    setSelectedLists((old) => old.map((y) => (y.listId === listItem.listId ? saveItem : y)));
   };
 
   const handleDelete = (listItemId: number) => {
-    setSelectedLists((old) => old.filter((y) => y.list !== listItemId));
-    console.log('DELETE', listItemId);
+    setSelectedLists((old) => old.filter((y) => y.listId !== listItemId));
+    console.log('DELETE', listItemId); // do not delete when listItemId is 0, just remove from state
   };
 
-  const handleAdd = (listItem: ListItem) => {
+  const handleAdd = (listItem: ResourceList) => {
     console.log('ADD', listItem);
     setSelectedLists((old) => [...old, listItem]);
   };
 
   if (isCreatingList) {
-    return <OrganizationAccessPage id={0} env={env} onBack={() => setIsCreatingList(false)} />;
+    return (
+      <div>
+        <Button size='small' variant='tertiary' onClick={() => setIsCreatingList(false)}>
+          Tilbake
+        </Button>
+        <OrganizationAccessPage
+          list={{
+            env: env,
+            id: 0,
+            title: 'Ny liste',
+            members: [],
+          }}
+          onDeleted={() => setIsCreatingList(false)}
+        />
+      </div>
+    );
   }
 
   return (
@@ -79,13 +82,14 @@ export const OrganizationListPage = ({
       {selectedLists.map((x) => {
         return (
           <OrganizationListActions
-            key={x.list}
+            key={x.listId}
+            listName={TestLister.find((y) => y.id === x.listId)?.title}
             listItem={x}
             listOptions={filterAvailableLists()}
             onRemove={(listIdToRemove: number) => {
               handleDelete(listIdToRemove);
             }}
-            onChange={(listItem: ListItem, diff: Partial<ListItem>) => {
+            onChange={(listItem: ResourceList, diff: Partial<ResourceList>) => {
               handleSave(listItem, diff);
             }}
           />
@@ -93,13 +97,12 @@ export const OrganizationListPage = ({
       })}
       <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem', marginTop: '1rem' }}>
         <Button
-          disabled={selectedLists.some((x) => !x.list)}
+          disabled={selectedLists.some((x) => !x.listId)}
           onClick={() =>
             handleAdd({
-              listName: '',
               resourceId: resourceId,
               env: env,
-              list: 0,
+              listId: 0,
               actions: [],
             })
           }

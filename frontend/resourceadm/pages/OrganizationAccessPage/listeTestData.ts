@@ -1,47 +1,54 @@
+import {
+  ResourceList,
+  ResourceRightsRegistryList,
+  ResourceRightsRegistryListWithMembers,
+} from 'app-shared/types/ResourceAdm';
+
 // tjeneste for å hente ut alle lister gitt miljø
-export const TestLister = [
+export const TestLister: ResourceRightsRegistryList[] = [
   {
     env: 'tt02',
     id: 1,
-    navn: 'Gode fiskere',
+    title: 'Gode fiskere',
   },
   {
     env: 'tt02',
     id: 2,
-    navn: 'Banksvindlere',
+    title: 'Banksvindlere',
   },
   {
     env: 'tt02',
     id: 3,
-    navn: 'Kakespisere',
+    title: 'Kakespisere',
   },
   {
     env: 'prod',
     id: 11,
-    navn: 'Gode fiskere',
+    title: 'Gode fiskere',
   },
   {
     env: 'at22',
     id: 111,
-    navn: 'Gode fiskere',
+    title: 'Gode fiskere',
   },
   {
     env: 'at22',
     id: 333,
-    navn: 'Kakespisere',
+    title: 'Kakespisere',
   },
   {
     env: 'at23',
     id: 3333,
-    navn: 'Kakespisere',
+    title: 'Kakespisere',
   },
 ];
 
 // tjeneste for å hente ut detaljer for en liste
-export const ListMembers = [
+export const ListMembers: ResourceRightsRegistryListWithMembers[] = [
   {
-    listId: 1,
-    name: 'Gode fiskere',
+    id: 1,
+    env: 'tt02',
+    title: 'Gode fiskere',
     members: [
       {
         orgNr: '991825827',
@@ -66,8 +73,9 @@ export const ListMembers = [
     ],
   },
   {
-    listId: 2,
-    name: 'Banksvindlere',
+    id: 2,
+    env: 'tt02',
+    title: 'Banksvindlere',
     members: [
       {
         orgNr: '991825827',
@@ -82,8 +90,9 @@ export const ListMembers = [
     ],
   },
   {
-    listId: 3,
-    name: 'Kakespisere',
+    id: 3,
+    env: 'tt02',
+    title: 'Kakespisere',
     members: [
       {
         orgNr: '991825827',
@@ -93,8 +102,9 @@ export const ListMembers = [
     ],
   },
   {
-    listId: 11,
-    name: 'Gode fiskere',
+    id: 11,
+    env: 'prod',
+    title: 'Gode fiskere',
     members: [
       {
         orgNr: '991825827',
@@ -104,8 +114,9 @@ export const ListMembers = [
     ],
   },
   {
-    listId: 111,
-    name: 'Gode fiskere',
+    id: 111,
+    env: 'at22',
+    title: 'Gode fiskere',
     members: [
       {
         orgNr: '991825827',
@@ -115,8 +126,9 @@ export const ListMembers = [
     ],
   },
   {
-    listId: 111,
-    name: 'Gode fiskere',
+    id: 333,
+    env: 'at22',
+    title: 'Kakespisere',
     members: [
       {
         orgNr: '991825827',
@@ -126,19 +138,9 @@ export const ListMembers = [
     ],
   },
   {
-    listId: 333,
-    name: 'Kakespisere',
-    members: [
-      {
-        orgNr: '991825827',
-        orgName: 'DIGITALISERINGSDIREKTORATET',
-        isUnderenhet: false,
-      },
-    ],
-  },
-  {
-    listId: 3333,
-    name: 'Kakespisere',
+    id: 3333,
+    env: 'at23',
+    title: 'Kakespisere',
     members: [
       {
         orgNr: '991825827',
@@ -150,9 +152,9 @@ export const ListMembers = [
 ];
 
 // tjeneste for å hente ut alle lister en gitt ressurs er koblet til. Join inn navn i BFF?
-export const ListConnections = [
-  { resourceId: 'test-ressurs', env: 'tt02', list: 1, actions: ['read', 'write', 'sign'] },
-  { resourceId: 'test-ressurs', env: 'tt02', list: 2, actions: ['read', 'instansiate'] },
-  { resourceId: 'test-ressurs', env: 'prod', list: 11, actions: ['read', 'write'] },
-  { resourceId: 'test-ressurs', env: 'at22', list: 333, actions: ['read'] },
+export const ListConnections: ResourceList[] = [
+  { resourceId: 'test-ressurs', env: 'tt02', listId: 1, actions: ['read', 'write', 'sign'] },
+  { resourceId: 'test-ressurs', env: 'tt02', listId: 2, actions: ['read', 'instansiate'] },
+  { resourceId: 'test-ressurs', env: 'prod', listId: 11, actions: ['read', 'write'] },
+  { resourceId: 'test-ressurs', env: 'at22', listId: 333, actions: ['read'] },
 ];
