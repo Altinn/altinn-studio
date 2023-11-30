@@ -7,7 +7,7 @@ export const useConfirmationDialogOnPageLeave = (
 ) => {
   useBeforeUnload(
     useCallback(
-      (event) => {
+      (event: BeforeUnloadEvent) => {
         if (showConfirmationDialog) {
           event.preventDefault();
           event.returnValue = confirmationMessage;
