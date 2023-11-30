@@ -18,7 +18,8 @@
     "@mui/lab",
     "@mui/x-data-grid",
     "@microsoft/applicationinsights-web",
-    "@microsoft/applicationinsights-react-js"
+    "@microsoft/applicationinsights-react-js",
+    "Moq"
   ],
   "schedule": ["before 07:00 on Monday"]
 }
