@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
-import { AltinnLink, AltinnSpinner } from 'app-shared/components';
+import { AltinnLink } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import {
   Alert,
@@ -183,7 +184,7 @@ export const AppDeploymentComponent = ({
             />
           )}
           {deployInProgress && (
-            <AltinnSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
+            <StudioSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
           )}
         </div>
         <div className={classes.deploymentListGrid}>

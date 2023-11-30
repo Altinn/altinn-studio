@@ -1,6 +1,6 @@
 import type { MouseEvent, ChangeEvent } from 'react';
 import React, { useState } from 'react';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import type { PopoverOrigin } from '@mui/material';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -111,7 +111,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
           />
           {errorMessage && <div className={classes.errorMessage}>{errorMessage}</div>}
         </div>
-        {isLoadingCopyApp && <AltinnSpinner spinnerText={t('dashboard.creating_your_copy')} />}
+        {isLoadingCopyApp && <StudioSpinner spinnerText={t('dashboard.creating_your_copy')} />}
       </SimpleContainer>
     </AltinnPopoverSimple>
   );

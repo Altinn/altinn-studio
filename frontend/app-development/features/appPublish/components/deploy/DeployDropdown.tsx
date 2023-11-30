@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
-import { AltinnIcon, AltinnSpinner, AltinnConfirmDialog } from 'app-shared/components';
+import { AltinnIcon, AltinnConfirmDialog } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { Button, Select } from '@digdir/design-system-react';
 import { DeploymentStatus, ImageOption } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
@@ -79,7 +80,7 @@ export const DeployDropdown = ({
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (
         <div className={classes.deployStatusGridContainer}>
           <div className={classes.deploySpinnerGridItem}>
-            {deploymentStatus === DeploymentStatus.inProgress && <AltinnSpinner />}
+            {deploymentStatus === DeploymentStatus.inProgress && <StudioSpinner />}
             {deploymentStatus === DeploymentStatus.succeeded && (
               <AltinnIcon iconClass='ai ai-check-circle' iconColor='#12AA64' iconSize='3.6rem' />
             )}

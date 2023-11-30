@@ -7,7 +7,7 @@ import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { EditComponentId } from './editModal/EditComponentId';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
@@ -87,7 +87,7 @@ export const EditFormComponent = ({
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
-      {showComponentConfigBeta && isLoading && <AltinnSpinner spinnerText={t('general.loading')} />}
+      {showComponentConfigBeta && isLoading && <StudioSpinner spinnerText={t('general.loading')} />}
       {showComponentConfigBeta && !isLoading && (
         <FormComponentConfig
           schema={isLoading ? {} : schema}

@@ -13,7 +13,7 @@ import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { navigateToAppDevelopment } from './utils/navigationUtils';
 
@@ -121,7 +121,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       <RepoNameInput name='repoName' errorMessage={formError.repoName} />
       <div className={classes.actionContainer}>
         {isCreatingRepo || isCreatingRepoSuccess ? (
-          <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
+          <StudioSpinner spinnerText={t('dashboard.creating_your_service')} />
         ) : (
           <>
             <Button type='submit' color='first' size='small'>
