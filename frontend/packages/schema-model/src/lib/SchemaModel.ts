@@ -88,7 +88,7 @@ export class SchemaModel {
     const node = this.getNode(pointer);
     return isReference(node)
       ? this.getChildNodes(node.reference)
-      : this.getDirectChildNodes(node)
+      : this.getDirectChildNodes(node);
   }
 
   private getDirectChildNodes(node: FieldNode | CombinationNode): UiSchemaNodes {
@@ -106,8 +106,7 @@ export class SchemaModel {
 
   public addReference = (name: string, reference: string, target: NodePosition = defaultNodePosition): ReferenceNode => {
     const referencePointer = createDefinitionPointer(reference);
-    const referencedNode = this.getNode(referencePointer);
-    if (!isDefinition(referencedNode)) throw new Error(`The referenced node ${referencePointer} is not a definition.`);
+    if (!this.hasNode(referencePointer)) throw new Error(`There is no definition named ${reference}.`);
     const newNode: ReferenceNode = { ...defaultReferenceNode, reference: referencePointer };
     return this.addNode<ReferenceNode>(name, newNode, target);
   }

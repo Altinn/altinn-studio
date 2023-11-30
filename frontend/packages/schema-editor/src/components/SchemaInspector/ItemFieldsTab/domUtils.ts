@@ -1,9 +1,8 @@
 export const nameFieldClass = 'object-name-field';
 
-export const getLastNameField = (): HTMLInputElement | null => {
+export const getLastNameField = (): HTMLInputElement => {
   const fields = document.getElementsByClassName(nameFieldClass);
   const numberOfFields = fields.length;
-  if (!numberOfFields) return null;
   const indexOfLastField = numberOfFields - 1;
   const fieldWrapper = fields[indexOfLastField];
   return fieldWrapper.getElementsByTagName('input')[0];

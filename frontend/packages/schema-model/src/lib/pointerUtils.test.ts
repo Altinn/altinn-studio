@@ -59,6 +59,10 @@ describe('pointerUtils', () => {
       expect(extractNameFromPointer('#/properties/hello/anyOf/world')).toBe('world');
       expect(extractNameFromPointer('#')).toBe('#');
     });
+
+    it('Returns an empty string when an empty string is passed', () => {
+      expect(extractNameFromPointer('')).toBe('');
+    });
   });
 
   describe('changeNameInPointer', () => {

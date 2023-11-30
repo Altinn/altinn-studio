@@ -37,7 +37,7 @@ export const makePointerFromArray = (array: string[]): string => {
 
 export const extractNameFromPointer = (pointer: string): string => {
   const parts = pointer.split('/');
-  return parts.pop() ?? '';
+  return parts.pop();
 }
 
 export const changeNameInPointer = (pointer: string, newName: string): string => {
