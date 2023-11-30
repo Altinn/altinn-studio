@@ -9,6 +9,7 @@ import { AxiosError } from 'axios';
  *
  * @param org the organisation of the user
  * @param app the app the user is in
+ * @param meta the query meta data
  *
  * @returns UseQueryResult with a string result
  */
@@ -19,11 +20,9 @@ export const useAppConfigQuery = (
 ): UseQueryResult<AppConfig, AxiosError> => {
   const { getAppConfig } = useServicesContext();
 
-  return useQuery<AppConfig, AxiosError>(
-    [QueryKey.AppConfig, org, app],
-    () => getAppConfig(org, app),
-    {
-      meta,
-    },
-  );
+  return useQuery<AppConfig, AxiosError>({
+    queryKey: [QueryKey.AppConfig, org, app],
+    queryFn: () => getAppConfig(org, app),
+    meta,
+  });
 };

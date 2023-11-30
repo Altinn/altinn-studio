@@ -22,7 +22,7 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
 
   const {
     data: appDeployments = [],
-    isLoading: deploysAreLoading,
+    isPending: isPendingDeploys,
     isError: deploysAreError,
   } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
 
@@ -63,7 +63,7 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
     });
   };
 
-  if (deploysAreLoading) return <AltinnSpinner />;
+  if (isPendingDeploys) return <AltinnSpinner />;
 
   if (deploysAreError)
     return (

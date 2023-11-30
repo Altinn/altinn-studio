@@ -5,5 +5,5 @@ import { NewsList } from 'app-shared/types/api/NewsList';
 
 export const useNewsListQuery = (): UseQueryResult<NewsList> => {
   const { getNewsList } = useServicesContext();
-  return useQuery<NewsList>([QueryKey.NewsList], () => getNewsList('nb'));
+  return useQuery<NewsList>({ queryKey: [QueryKey.NewsList], queryFn: () => getNewsList('nb') });
 };

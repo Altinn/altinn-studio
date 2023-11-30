@@ -46,7 +46,7 @@ const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
 >;
 mockUpdateAppConfigMutation.mockReturnValue({
   mutate: updateAppConfigMutation,
-} as unknown as UseMutationResult<void, unknown, AppConfig, unknown>);
+} as unknown as UseMutationResult<void, Error, AppConfig, unknown>);
 
 const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
