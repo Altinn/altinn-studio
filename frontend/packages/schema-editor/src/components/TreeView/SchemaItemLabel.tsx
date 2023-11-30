@@ -1,4 +1,4 @@
-import type { SyntheticEvent } from 'react';
+import type {MouseEvent, SyntheticEvent} from 'react';
 import React, { useState } from 'react';
 import classNames from 'classnames';
 import classes from './SchemaItemLabel.module.css';
@@ -15,7 +15,7 @@ import {
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
-import { useDispatch } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   navigateToType,
   setSelectedAndFocusedNode,
@@ -36,6 +36,7 @@ import {
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { isCombination, isReference } from '../../../../schema-model';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
+import {selectedIdSelector} from '@altinn/schema-editor/selectors/reduxSelectors';
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -63,6 +64,7 @@ export const SchemaItemLabel = ({
   const { data, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
   const addProperty = useAddProperty();
+  const selectedPointer = useSelector(selectedIdSelector);
 
   // Simple wrapper to avoid repeating ourselves...
   const wrapper = (callback: (arg: any) => void) => {
@@ -91,7 +93,9 @@ export const SchemaItemLabel = ({
     setContextAnchor(e.currentTarget);
   };
 
-  const handleAddNode = (objectKind: ObjectKind, fieldType?: FieldType) => {
+  const handleAddNode = (objectKind: ObjectKind, fieldType?: FieldType) => (event: MouseEvent) => {
+    event.stopPropagation();
+    setContextAnchor(null);
     const newPointer = addProperty(objectKind, fieldType, selectedNode.pointer);
     if (newPointer) {
       dispatch(
@@ -165,7 +169,7 @@ export const SchemaItemLabel = ({
             testId={SchemaItemLabelTestIds.contextMenuAddReference}
             id='add-reference-to-node-button'
             key='add_reference'
-            onClick={() => handleAddNode(ObjectKind.Reference)}
+            onClick={handleAddNode(ObjectKind.Reference)}
             text={t('schema_editor.add_reference')}
             icon={LinkIcon}
           />
@@ -175,7 +179,7 @@ export const SchemaItemLabel = ({
             testId={SchemaItemLabelTestIds.contextMenuAddField}
             id='add-field-to-node-button'
             key='add_field'
-            onClick={() => handleAddNode(ObjectKind.Field)}
+            onClick={handleAddNode(ObjectKind.Field)}
             text={t('schema_editor.add_field')}
             icon={BulletListIcon}
           />
@@ -185,7 +189,7 @@ export const SchemaItemLabel = ({
             testId={SchemaItemLabelTestIds.contextMenuAddCombination}
             id='add-combination-to-node-button'
             key='add_combination'
-            onClick={() => handleAddNode(ObjectKind.Combination)}
+            onClick={handleAddNode(ObjectKind.Combination)}
             text={t('schema_editor.add_combination')}
             icon={TabsIcon}
           />
