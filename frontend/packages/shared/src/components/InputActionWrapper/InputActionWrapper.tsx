@@ -3,6 +3,7 @@ import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@altinn/icons';
 import { useText } from '../../../../ux-editor/src/hooks/index';
 import { Button, ButtonProps } from '@digdir/design-system-react';
 import classes from './InputActionWrapper.module.css';
+import cn from 'classnames';
 
 type AvailableAction = 'edit' | 'save' | 'delete';
 export type ActionGroup = 'editMode' | 'hoverMode' | 'standBy';
@@ -94,23 +95,31 @@ export const InputActionWrapper = ({
   };
 
   return (
-    <div className={classes.container} onMouseOver={handleHover} onMouseLeave={handleMouseLeave}>
+    <div
+      className={cn(classes.container, mode === 'standBy' && classes.standByContainer)}
+      onMouseOver={handleHover}
+      onMouseLeave={handleMouseLeave}
+    >
       {React.cloneElement(children, {
         ...rest,
         onFocus: handleFocus,
       })}
-      {actions.map((action) => (
-        <Button
-          variant='tertiary'
-          size='medium'
-          color={actionToColorMap[action]}
-          key={action}
-          onClick={() => handleActionClick(action)}
-          aria-label={actionToAriaLabelMap[action]}
-        >
-          {actionToIconMap[action]}
-        </Button>
-      ))}
+      <div
+        className={cn(classes.buttonWrapper, mode === 'standBy' && classes.standByButtonWrapper)}
+      >
+        {actions.map((action) => (
+          <Button
+            variant='tertiary'
+            size='medium'
+            color={actionToColorMap[action]}
+            key={action}
+            onClick={() => handleActionClick(action)}
+            aria-label={actionToAriaLabelMap[action]}
+          >
+            {actionToIconMap[action]}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 };
