@@ -5,7 +5,7 @@ import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NotFoundPage } from 'app-shared/components/notFound';
 import { PageSpinner } from 'app-shared/components';
-import { Center } from 'app-shared/components/Center';
+import { StudioCenter } from '@altinn/studio-components';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
 
 /**
@@ -26,9 +26,9 @@ export const AppShell = (): React.ReactNode => {
 
   if (repoStatusLoading || userLoading) {
     return (
-      <Center style={{ height: '100vh' }}>
+      <StudioCenter>
         <PageSpinner />
-      </Center>
+      </StudioCenter>
     );
   }
 
