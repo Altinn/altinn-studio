@@ -100,6 +100,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             {
                 Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
             };
+            _logger.LogInformation($"Request sent to Altinn Storage: {request.Content}");
             await _httpClient.SendAsync(request);
         }
 
