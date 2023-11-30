@@ -1064,6 +1064,7 @@
   "schema_editor.textRow-deletion-confirm": "Ja, slett raden",
   "schema_editor.textRow-deletion-text": "Er du sikker på at du vil slette denne raden?",
   "schema_editor.textRow-title-confirmCancel-popover": "Er du sikker på at du vil slette denne raden?",
+  "schema_editor.textfield_label": "Rad i listen med gyldige verdier med id {{ id }}",
   "schema_editor.title": "Tittel",
   "schema_editor.type": "Type",
   "schema_editor.types": "Typer",
