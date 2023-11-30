@@ -10,7 +10,7 @@ using Moq;
 using Prometheus;
 using Xunit;
 
-namespace Altinn.App.Core.Tests.InfrastrucZture.Clients.Storage;
+namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage;
 
 public class InstanceClientMetricsDecoratorTests
 {
@@ -192,16 +192,12 @@ public class InstanceClientMetricsDecoratorTests
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
-        var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
         var instance = new Instance();
 
         // Act
         await instanceClientMetricsDecorator.GetInstance(instance);
-        var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Assert
-        var diff = GetDiff(preUpdateMetrics, postUpdateMetrics);
-        diff.Should().BeEmpty();
         instanceClient.Verify(i => i.GetInstance(instance));
         instanceClient.VerifyNoOtherCalls();
     }

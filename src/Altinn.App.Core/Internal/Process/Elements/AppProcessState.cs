@@ -26,7 +26,6 @@ public class AppProcessState: ProcessState
         {
             return;
         }
-        
         Started = processState.Started;
         StartEvent = processState.StartEvent;
         if (processState.CurrentTask != null)
@@ -35,10 +34,16 @@ public class AppProcessState: ProcessState
         }
         Ended = processState.Ended;
         EndEvent = processState.EndEvent;
+        
     }
-    
     /// <summary>
     /// Gets or sets a status object containing the task info of the currentTask of an ongoing process.
     /// </summary>
     public new AppProcessElementInfo? CurrentTask { get; set; }
+
+    /// <summary>
+    /// Gets or sets a list of all tasks. The list contains information about the task Id
+    /// and the task  type.
+    /// </summary>
+    public List<AppProcessTaskTypeInfo>? ProcessTasks { get; set; }
 }

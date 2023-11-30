@@ -474,6 +474,18 @@ namespace Altinn.App.Api.Controllers
                     appProcessState.CurrentTask.UserActions = authDecisions;
                 }
             }
+            
+            var processTasks = new List<AppProcessTaskTypeInfo>();
+            foreach (var processElement in _processReader.GetAllFlowElements().OfType<ProcessTask>())
+            {
+                processTasks.Add(new AppProcessTaskTypeInfo
+                    {
+                        ElementId = processElement.Id,
+                        AltinnTaskType = processElement.ExtensionElements?.TaskExtension?.TaskType
+                    });
+            }
+
+            appProcessState.ProcessTasks = processTasks;
 
             return appProcessState;
         }

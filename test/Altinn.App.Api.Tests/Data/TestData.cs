@@ -64,7 +64,7 @@ public static class TestData
     public static string GetTestDataRolesFolder(int userId, int resourcePartyId)
     {
         string testDataDirectory = GetTestDataRootDirectory();
-        return Path.Combine(testDataDirectory, @"authorization/Roles/User_" + userId, "party_" + resourcePartyId, "roles.json");
+        return Path.Combine(testDataDirectory, "authorization","roles", "User_" + userId, "party_" + resourcePartyId, "roles.json");
     }
 
     public static string GetAltinnAppsPolicyPath(string org, string app)

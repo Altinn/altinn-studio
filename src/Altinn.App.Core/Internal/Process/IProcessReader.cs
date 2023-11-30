@@ -8,7 +8,6 @@ namespace Altinn.App.Core.Internal.Process;
 /// </summary>
 public interface IProcessReader
 {
-
     /// <summary>
     /// Get all defined StartEvents in the process
     /// </summary>
@@ -111,4 +110,9 @@ public interface IProcessReader
     /// <returns><see cref="ProcessElement"/> or null</returns>
     public ProcessElement? GetFlowElement(string? elementId);
 
+    /// <summary>
+    /// Returns all available ProcessElements
+    /// </summary>
+    /// <returns><see cref="ProcessElement"/></returns>
+    public List<ProcessElement> GetAllFlowElements();
 }
