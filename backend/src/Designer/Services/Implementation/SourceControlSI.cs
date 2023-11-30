@@ -77,7 +77,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 cloneOptions.BranchName = branchName;
             }
 
-            string cloneResult =  LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
+            string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
             FetchGitNotes(destinationPath);
             return cloneResult;
         }
