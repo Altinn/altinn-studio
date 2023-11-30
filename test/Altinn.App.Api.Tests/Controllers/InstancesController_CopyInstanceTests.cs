@@ -153,7 +153,7 @@ public class InstancesController_CopyInstanceTests
         // Arrange
         const string Org = "ttd";
         const string AppName = "copy-instance";
-        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337));
+        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
         _appMetadata.Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(CreateApplicationMetadata($"{Org}/{AppName}", true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -186,7 +186,7 @@ public class InstancesController_CopyInstanceTests
             Status = new InstanceStatus() { IsArchived = false }
         };
 
-        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337));
+        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
         _appMetadata.Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(CreateApplicationMetadata($"{Org}/{AppName}", true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -221,7 +221,7 @@ public class InstancesController_CopyInstanceTests
         PlatformHttpException platformHttpException = 
             await PlatformHttpException.CreateAsync(new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden));
 
-        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337));
+        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
         _appMetadata.Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(CreateApplicationMetadata($"{Org}/{AppName}", true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -256,7 +256,7 @@ public class InstancesController_CopyInstanceTests
         PlatformHttpException platformHttpException =
             await PlatformHttpException.CreateAsync(new HttpResponseMessage(System.Net.HttpStatusCode.BadGateway));
 
-        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337));
+        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
         _appMetadata.Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(CreateApplicationMetadata($"{Org}/{AppName}", true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -300,7 +300,7 @@ public class InstancesController_CopyInstanceTests
         };
         InstantiationValidationResult? instantiationValidationResult = new() { Valid = false };
 
-        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337));
+        _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
         _appMetadata.Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(CreateApplicationMetadata($"{Org}/{AppName}", true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -347,7 +347,7 @@ public class InstancesController_CopyInstanceTests
         };
         InstantiationValidationResult? instantiationValidationResult = new() { Valid = true };
 
-        _httpContextMock.Setup(hc => hc.User).Returns(PrincipalUtil.GetUserPrincipal(1337));
+        _httpContextMock.Setup(hc => hc.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
         _httpContextMock.Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
         _appMetadata.Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(CreateApplicationMetadata($"{Org}/{AppName}", true));

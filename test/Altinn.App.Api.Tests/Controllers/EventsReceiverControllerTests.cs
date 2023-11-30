@@ -28,7 +28,7 @@ namespace Altinn.App.Api.Tests.Controllers
         public async Task Post_ValidEventType_ShouldReturnOk()
         {
             var client = _factory.CreateClient();
-            string token = PrincipalUtil.GetToken(1337);
+            string token = PrincipalUtil.GetToken(1337, null);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             CloudEvent cloudEvent = new()
             {
@@ -58,7 +58,7 @@ namespace Altinn.App.Api.Tests.Controllers
         public async Task Post_NonValidEventType_ShouldReturnBadRequest()
         {
             var client = _factory.CreateClient();
-            string token = PrincipalUtil.GetToken(1337);
+            string token = PrincipalUtil.GetToken(1337, null);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             CloudEvent cloudEvent = new()
             {
