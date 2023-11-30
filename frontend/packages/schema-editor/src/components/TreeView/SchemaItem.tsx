@@ -35,7 +35,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, index }: SchemaItem
 
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const refNode = isReference(selectedNode) ? data.getReferredNode(selectedNode) : undefined
+  const refNode = isReference(selectedNode) ? data.getReferredNode(selectedNode) : undefined;
   const childNodes = data.getChildNodes((refNode || selectedNode).pointer);
   const selectedPointer = useSelector(selectedIdSelector);
   const onLabelClick = (e: any, schemaItem: UiSchemaNode) => {

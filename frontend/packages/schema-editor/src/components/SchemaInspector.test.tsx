@@ -135,7 +135,7 @@ describe('SchemaInspector', () => {
     const rootNode: FieldNode = {
       ...rootNodeMock,
       children: [parentNodePointer],
-    }
+    };
     const parentNode: FieldNode = {
       ...nodeMockBase,
       pointer: parentNodePointer,

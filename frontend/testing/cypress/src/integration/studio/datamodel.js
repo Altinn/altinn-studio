@@ -80,7 +80,7 @@ context('datamodel', () => {
       });
 
     //Add number1
-    addFieldToTestObject()
+    addFieldToTestObject();
     cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
       .should('exist')
       .click()

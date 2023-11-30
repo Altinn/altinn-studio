@@ -43,7 +43,7 @@ export const getNodeByPointer = (
   } catch {
     return undefined;
   }
-}
+};
 
 /**
  * Returns the index or undefined.
