@@ -1,16 +1,16 @@
-import type {ChangeEvent} from 'react';
+import type { ChangeEvent } from 'react';
 import React from 'react';
-import {ActionMenu} from '../common/ActionMenu';
+import { ActionMenu } from '../common/ActionMenu';
 import classes from './ModelsPanel.module.css';
-import {IconImage} from '../common/Icon';
-import {SchemaTreeView} from '../TreeView/SchemaTreeView';
-import {setSelectedAndFocusedNode} from '../../features/editor/schemaEditorSlice';
-import type {UiSchemaNodes} from '@altinn/schema-model';
-import {FieldType, ObjectKind,} from '@altinn/schema-model';
-import {useDispatch, useSelector} from 'react-redux';
-import type {SchemaState} from '../../types';
-import {useTranslation} from 'react-i18next';
-import {useAddProperty} from '@altinn/schema-editor/hooks/useAddProperty';
+import { IconImage } from '../common/Icon';
+import { SchemaTreeView } from '../TreeView/SchemaTreeView';
+import { setSelectedAndFocusedNode } from '../../features/editor/schemaEditorSlice';
+import type { UiSchemaNodes } from '@altinn/schema-model';
+import { FieldType, ObjectKind, } from '@altinn/schema-model';
+import { useDispatch, useSelector } from 'react-redux';
+import type { SchemaState } from '../../types';
+import { useTranslation } from 'react-i18next';
+import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 
 export type ModelsPanelProps = {
   expandedPropNodes: string[];

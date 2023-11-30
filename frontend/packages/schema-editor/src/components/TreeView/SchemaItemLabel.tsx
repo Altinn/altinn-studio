@@ -1,4 +1,4 @@
-import type {MouseEvent, SyntheticEvent} from 'react';
+import type { MouseEvent, SyntheticEvent } from 'react';
 import React, { useState } from 'react';
 import classNames from 'classnames';
 import classes from './SchemaItemLabel.module.css';
@@ -15,7 +15,7 @@ import {
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   navigateToType,
   setSelectedAndFocusedNode,
@@ -36,7 +36,6 @@ import {
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { isCombination, isReference } from '../../../../schema-model';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
-import {selectedIdSelector} from '@altinn/schema-editor/selectors/reduxSelectors';
 
 export interface SchemaItemLabelProps {
   hasReferredNodes: boolean;
@@ -64,7 +63,6 @@ export const SchemaItemLabel = ({
   const { data, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
   const addProperty = useAddProperty();
-  const selectedPointer = useSelector(selectedIdSelector);
 
   // Simple wrapper to avoid repeating ourselves...
   const wrapper = (callback: (arg: any) => void) => {
