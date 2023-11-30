@@ -40,7 +40,11 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     repoName: '',
   });
 
-  const { mutate: addRepo, isPending: isCreatingRepo } = useAddRepoMutation({
+  const {
+    mutate: addRepoMutation,
+    isPending: isCreatingRepo,
+    isSuccess: isCreatingRepoSuccess,
+  } = useAddRepoMutation({
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
 
