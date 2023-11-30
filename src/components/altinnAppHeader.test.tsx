@@ -19,7 +19,9 @@ describe('AltinnAppHeader', () => {
       type: undefined,
     });
 
-    expect(screen.getByText(`for ${org.name.toUpperCase()}`)).toBeInTheDocument();
+    // eslint-disable-next-line testing-library/no-node-access
+    const fullText = screen.getByText('for').parentElement!.textContent;
+    expect(fullText).toBe(`for ${org.name.toUpperCase()}`);
   });
 
   it('should not show organisation name when profile has party, and party has organisation with name, and "type" is set', async () => {

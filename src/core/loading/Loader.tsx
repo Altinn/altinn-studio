@@ -3,7 +3,7 @@ import React from 'react';
 import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIconFormData';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { ProcessTaskType } from 'src/types';
 
 interface LoaderProps {
@@ -11,22 +11,18 @@ interface LoaderProps {
   details?: string;
 }
 
-export function Loader({ reason, details }: LoaderProps) {
-  const { lang } = useLanguage();
-
-  return (
-    <PresentationComponent
-      header={lang('instantiate.starting')}
-      type={ProcessTaskType.Unknown}
+export const Loader = ({ reason, details }: LoaderProps) => (
+  <PresentationComponent
+    header={<Lang id='instantiate.starting' />}
+    type={ProcessTaskType.Unknown}
+  >
+    <AltinnContentLoader
+      width='100%'
+      height='400'
+      reason={reason}
+      details={details}
     >
-      <AltinnContentLoader
-        width='100%'
-        height='400'
-        reason={reason}
-        details={details}
-      >
-        <AltinnContentIconFormData />
-      </AltinnContentLoader>
-    </PresentationComponent>
-  );
-}
+      <AltinnContentIconFormData />
+    </AltinnContentLoader>
+  </PresentationComponent>
+);

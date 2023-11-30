@@ -3,14 +3,14 @@ import React from 'react';
 import { IconButton, makeStyles, Menu, MenuItem } from '@material-ui/core';
 
 import { AltinnIcon } from 'src/components/AltinnIcon';
+import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { logoutUrlAltinn } from 'src/utils/urls/urlHelper';
 import type { IParty } from 'src/types/shared';
 
 export interface IAltinnAppHeaderMenuProps {
   party: IParty | undefined;
   logoColor: string;
-  ariaLabel: string;
-  logoutText: string;
 }
 
 const useStyles = makeStyles({
@@ -35,10 +35,10 @@ const useStyles = makeStyles({
   },
 });
 
-export function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
-  const { party, logoColor, ariaLabel, logoutText } = props;
+export function AltinnAppHeaderMenu({ party, logoColor }: IAltinnAppHeaderMenuProps) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const classes = useStyles();
+  const { langAsString } = useLanguage();
 
   const handleClick = (event: any) => {
     setAnchorEl(event.currentTarget);
@@ -57,7 +57,7 @@ export function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
       <IconButton
         aria-owns={anchorEl ? 'profile-menu' : undefined}
         aria-haspopup='true'
-        aria-label={ariaLabel}
+        aria-label={langAsString('general.header_profile_icon_label')}
         onClick={handleClick}
         className={classes.iconButton}
         id='profile-icon-button'
@@ -98,7 +98,9 @@ export function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
           className={classes.menuItem}
           id='logout-menu-item'
         >
-          <a href={logoutUrlAltinn(window.location.origin)}>{logoutText}</a>
+          <a href={logoutUrlAltinn(window.location.origin)}>
+            <Lang id='general.log_out' />
+          </a>
         </MenuItem>
       </Menu>
     </>

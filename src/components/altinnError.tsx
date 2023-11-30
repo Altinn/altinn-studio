@@ -4,7 +4,7 @@ import classes from 'src/components/altinnError.module.css';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from 'src/utils/urls/urlHelper';
 
 export interface IAltinnErrorProps {
-  statusCode: string;
+  statusCode: string | React.ReactNode;
   title: string | React.ReactNode;
   content: string | React.ReactNode;
   url?: string;

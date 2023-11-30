@@ -9,7 +9,7 @@ export interface ILandmarkShortcutsProps {
 
 interface ILandmarkShortcut {
   id: string;
-  text: string;
+  text: React.ReactNode;
 }
 
 const useStyles = makeStyles({

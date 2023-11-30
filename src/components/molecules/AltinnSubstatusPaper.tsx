@@ -5,8 +5,8 @@ import { Grid, Typography } from '@material-ui/core';
 import { AltinnInformationPaper } from 'src/components/molecules/AltinnInformationPaper';
 
 export interface IInformationPaperProps {
-  label: string;
-  description: string;
+  label: React.ReactNode;
+  description: React.ReactNode;
 }
 
 export function AltinnSubstatusPaper({ label, description }: IInformationPaperProps) {

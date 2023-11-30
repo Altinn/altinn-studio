@@ -18,16 +18,19 @@ import type { IRuntimeState } from 'src/types';
 import type { IApplicationSettings, IInstanceDataSources, ILanguage, IVariable } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type ValidParam = string | number | undefined;
+export type ValidLangParam = string | number | undefined;
 
 export interface IUseLanguage {
   language: ILanguage;
-  lang(key: ValidLanguageKey | string | undefined, params?: ValidParam[]): string | JSX.Element | JSX.Element[] | null;
-  langAsString(key: ValidLanguageKey | string | undefined, params?: ValidParam[]): string;
+  lang(
+    key: ValidLanguageKey | string | undefined,
+    params?: ValidLangParam[],
+  ): string | JSX.Element | JSX.Element[] | null;
+  langAsString(key: ValidLanguageKey | string | undefined, params?: ValidLangParam[]): string;
   langAsStringUsingPathInDataModel(
     key: ValidLanguageKey | string | undefined,
     dataModelPath: string,
-    params?: ValidParam[],
+    params?: ValidLangParam[],
   ): string;
 }
 
@@ -186,7 +189,7 @@ function staticUseLanguage(
     langAsStringUsingPathInDataModel(
       key: ValidLanguageKey | string | undefined,
       dataModelPath: string,
-      params?: ValidParam[],
+      params?: ValidLangParam[],
     ): string {
       if (!key) {
         return '';
@@ -208,7 +211,7 @@ function staticUseLanguage(
   };
 }
 
-function getLanguageFromKey(key: string, language: ILanguage) {
+export function getLanguageFromKey(key: string, language: ILanguage) {
   const path = key.split('.');
   const value = getNestedObject(language, path);
   if (!value || typeof value === 'object') {
@@ -285,16 +288,26 @@ function getNestedObject(nestedObj: ILanguage, pathArr: string[]) {
   return pathArr.reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), nestedObj);
 }
 
-type LangParams = (string | undefined | number)[];
+type LangParams = ValidLangParam[];
 const replaceParameters = (nameString: string | undefined, params: LangParams) => {
   if (nameString === undefined) {
     return nameString;
   }
+
   let mutatingString = nameString;
-  params.forEach((param, index: number) => {
-    if (param !== undefined) {
-      mutatingString = mutatingString.replaceAll(`{${index}}`, `${param}`);
+  for (const index in params) {
+    const param = params[index];
+    let paramAsString: string | undefined;
+    if (typeof param === 'string') {
+      paramAsString = param;
+    } else if (typeof param === 'number') {
+      paramAsString = param.toString();
     }
-  });
+
+    if (paramAsString !== undefined) {
+      mutatingString = mutatingString.replaceAll(`{${index}}`, paramAsString);
+    }
+  }
+
   return mutatingString;
 };

@@ -15,7 +15,16 @@ interface LanguageCtx {
 
 const { Provider, useCtx } = createContext<LanguageCtx>({
   name: 'Language',
-  required: true,
+  required: false,
+  default: {
+    current: 'nb',
+    updateProfile: () => {
+      throw new Error('LanguageProvider not initialized');
+    },
+    setWithLanguageSelector: () => {
+      throw new Error('LanguageProvider not initialized');
+    },
+  },
 });
 
 export const LanguageProvider = ({ children }: PropsWithChildren) => {

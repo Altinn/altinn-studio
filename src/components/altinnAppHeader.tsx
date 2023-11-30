@@ -6,7 +6,7 @@ import cn from 'classnames';
 import classes from 'src/components/AltinnAppHeader.module.css';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { renderParty } from 'src/utils/party';
 import { returnUrlToAllSchemas, returnUrlToMessagebox, returnUrlToProfile } from 'src/utils/urls/urlHelper';
 import type { IProfile } from 'src/types/shared';
@@ -18,7 +18,6 @@ export interface IHeaderProps {
 
 export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
   const party = profile?.party;
-  const { langAsString } = useLanguage();
   const blueClass = type ? classes.blueDark : classes.blueDarker;
 
   return (
@@ -30,7 +29,7 @@ export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
         shortcuts={[
           {
             id: 'main-content',
-            text: langAsString('navigation.to_main_content'),
+            text: <Lang id='navigation.to_main_content' />,
           },
         ]}
       />
@@ -49,17 +48,17 @@ export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
             <ul className={classes.headerLinkList}>
               <li className={classes.headerLink}>
                 <a href={returnUrlToMessagebox(window.location.origin, party?.partyId) || '#'}>
-                  {langAsString('instantiate.inbox')}
+                  <Lang id='instantiate.inbox' />
                 </a>
               </li>
               <li className={classes.headerLink}>
                 <a href={returnUrlToAllSchemas(window.location.origin) || '#'}>
-                  {langAsString('instantiate.all_forms')}
+                  <Lang id='instantiate.all_forms' />
                 </a>
               </li>
               <li className={classes.headerLink}>
                 <a href={returnUrlToProfile(window.location.origin, party?.partyId) || '#'}>
-                  {langAsString('instantiate.profile')}
+                  <Lang id='instantiate.profile' />
                 </a>
               </li>
             </ul>
@@ -71,9 +70,11 @@ export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
                   <>
                     <span className={`d-block ${blueClass}`}>{renderParty(profile)}</span>
                     <span className={blueClass}>
-                      {party &&
-                        party.organization &&
-                        `${langAsString('general.for')} ${party.organization.name.toUpperCase()}`}
+                      {party && party.organization && (
+                        <>
+                          <Lang id='general.for' /> {party.organization.name.toUpperCase()}
+                        </>
+                      )}
                     </span>
                   </>
                 )}

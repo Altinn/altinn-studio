@@ -14,7 +14,7 @@ import { Progress } from 'src/components/presentation/Progress';
 import { Footer } from 'src/features/footer/Footer';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
@@ -32,7 +32,6 @@ export interface IPresentationProvidedProps extends PropsWithChildren {
 
 export const PresentationComponent = ({ header, type, children }: IPresentationProvidedProps) => {
   const dispatch = useAppDispatch();
-  const { lang, langAsString } = useLanguage();
   const party = useCurrentParty();
   const instance = useLaxInstanceData();
   const userParty = useAppSelector((state) => state.profile.profile?.party);
@@ -40,7 +39,7 @@ export const PresentationComponent = ({ header, type, children }: IPresentationP
   const { previous } = useAppSelector(selectPreviousAndNextPage);
   const returnToView = useAppSelector((state) => state.formLayout.uiConfig.returnToView);
 
-  const realHeader = header || (type === ProcessTaskType.Archived ? lang('receipt.receipt') : undefined);
+  const realHeader = header || (type === ProcessTaskType.Archived ? <Lang id={'receipt.receipt'} /> : undefined);
 
   const handleBackArrowButton = () => {
     if (returnToView) {
@@ -93,8 +92,8 @@ export const PresentationComponent = ({ header, type, children }: IPresentationP
       <main className={classes.page}>
         {isProcessStepsArchived && instance?.status?.substatus && (
           <AltinnSubstatusPaper
-            label={langAsString(instance.status.substatus.label)}
-            description={langAsString(instance.status.substatus.description)}
+            label={<Lang id={instance.status.substatus.label} />}
+            description={<Lang id={instance.status.substatus.description} />}
           />
         )}
         <NavBar

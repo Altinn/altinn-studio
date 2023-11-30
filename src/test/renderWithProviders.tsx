@@ -12,6 +12,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { getOrgsMock } from 'src/__mocks__/getOrgsMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
@@ -111,7 +112,7 @@ const makeMutationMocks = (): MockedMutations => ({
 });
 
 const makeDefaultQueryMocks = (state: IRuntimeState): MockableQueries => ({
-  fetchLogo: () => Promise.resolve(''),
+  fetchLogo: () => Promise.resolve(getLogoMock()),
   fetchApplicationMetadata: () => Promise.resolve(state.applicationMetadata.applicationMetadata!),
   fetchActiveInstances: () => Promise.resolve([]),
   fetchCurrentParty: () => Promise.resolve(getPartyMock()),

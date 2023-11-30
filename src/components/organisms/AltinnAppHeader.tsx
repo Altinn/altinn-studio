@@ -9,7 +9,7 @@ import { AltinnAppHeaderMenu } from 'src/components/organisms/AltinnAppHeaderMen
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { useHasAppTextsYet } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { renderPartyName } from 'src/utils/party';
 import type { LogoColor } from 'src/components/logo/AltinnLogo';
 import type { IParty } from 'src/types/shared';
@@ -23,48 +23,40 @@ export interface IAltinnAppHeaderProps {
   headerBackgroundColor: string;
 }
 
-export const AltinnAppHeader = ({ logoColor, headerBackgroundColor, party, userParty }: IAltinnAppHeaderProps) => {
-  const { langAsString } = useLanguage();
-
-  return (
-    <AppBar
-      data-testid='AltinnAppHeader'
-      position='relative'
-      classes={{ root: classes.appBar }}
-      style={{ backgroundColor: headerBackgroundColor, color: logoColor }}
-    >
-      <LandmarkShortcuts
-        shortcuts={[
-          {
-            id: 'main-content',
-            text: langAsString('navigation.to_main_content'),
-          },
-        ]}
-      />
-      <div className={classes.container}>
-        <Logo color={logoColor} />
-        <div className={classes.wrapper}>
-          {party && userParty && party.partyId === userParty.partyId && (
-            <span className={classes.appBarText}>{renderPartyName(userParty)}</span>
-          )}
-          {party && userParty && party.partyId !== userParty.partyId && (
-            <>
-              <span className={classes.appBarText}>
-                {renderPartyName(userParty)} for {renderPartyName(party)}
-              </span>
-            </>
-          )}
-          <AltinnAppHeaderMenu
-            party={party}
-            logoColor={logoColor}
-            logoutText={langAsString('general.log_out')}
-            ariaLabel={langAsString('general.header_profile_icon_label')}
-          />
-        </div>
+export const AltinnAppHeader = ({ logoColor, headerBackgroundColor, party, userParty }: IAltinnAppHeaderProps) => (
+  <AppBar
+    data-testid='AltinnAppHeader'
+    position='relative'
+    classes={{ root: classes.appBar }}
+    style={{ backgroundColor: headerBackgroundColor, color: logoColor }}
+  >
+    <LandmarkShortcuts
+      shortcuts={[
+        {
+          id: 'main-content',
+          text: <Lang id={'navigation.to_main_content'} />,
+        },
+      ]}
+    />
+    <div className={classes.container}>
+      <Logo color={logoColor} />
+      <div className={classes.wrapper}>
+        {party && userParty && party.partyId === userParty.partyId && (
+          <span className={classes.appBarText}>{renderPartyName(userParty)}</span>
+        )}
+        {party && userParty && party.partyId !== userParty.partyId && (
+          <span className={classes.appBarText}>
+            {renderPartyName(userParty)} for {renderPartyName(party)}
+          </span>
+        )}
+        <AltinnAppHeaderMenu
+          party={party}
+          logoColor={logoColor}
+        />
       </div>
-    </AppBar>
-  );
-};
+    </div>
+  </AppBar>
+);
 
 const Logo = ({ color }: { color: LogoColor }) => {
   const hasLoaded = useHasAppTextsYet();
