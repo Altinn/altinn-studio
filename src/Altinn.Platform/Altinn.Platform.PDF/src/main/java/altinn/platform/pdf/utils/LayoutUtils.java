@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class LayoutUtils {
 
@@ -38,23 +39,12 @@ public class LayoutUtils {
     TextResourceBindings textResourceBindings = element.getTextResourceBindings();
 
     if (textResourceBindings != null) {
-
-      if (textResourceBindings.getTitle() != null && !textResourceBindings.getTitle().isEmpty()) {
-        String title = TextUtils.getTextResourceByKey(textResourceBindings.getTitle(), textResources);
-        height += TextUtils.getHeightNeededForText(title, font, fontSize, width);
-        height += textMargin;
-      }
-
-      if (textResourceBindings.getDescription() != null && !textResourceBindings.getDescription().isEmpty()) {
-        String description = TextUtils.getTextResourceByKey(textResourceBindings.getDescription(), textResources);
-        height += TextUtils.getHeightNeededForText(description, font, fontSize, width);
-        height += textMargin;
-      }
-
-      if (textResourceBindings.getBody() != null && !textResourceBindings.getBody().isEmpty()) {
-        String body = TextUtils.getTextResourceByKey(textResourceBindings.getBody(), textResources);
-        height += TextUtils.getHeightNeededForText(body, font, fontSize, width);
-        height += textMargin;
+      List<String> keys = Arrays.asList(
+          textResourceBindings.getTitle(),
+          textResourceBindings.getDescription(),
+          textResourceBindings.getBody());
+      for (String key : keys) {
+        height += getHeightIfTextKeyExists(textResources, key, font, fontSize, width, textMargin);
       }
     }
 
@@ -102,6 +92,20 @@ public class LayoutUtils {
       PDRectangle rect = new PDRectangle(0, 0, width, rectHeight);
       height += rect.getHeight();
     }
+    return height;
+  }
+
+  private static float getHeightIfTextKeyExists(TextResources textResources, String key, PDType0Font font,
+      float fontSize, float width, float textMargin)
+      throws IOException {
+    float height = 0;
+
+    if (key != null && !key.isEmpty()) {
+      String text = TextUtils.getTextResourceByKey(key, textResources);
+      height += TextUtils.getHeightNeededForText(text, font, fontSize, width);
+      height += textMargin;
+    }
+
     return height;
   }
 
