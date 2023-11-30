@@ -37,12 +37,6 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
 
   const { t } = useTranslation();
 
-  useEffect(() => {
-    if (hasCopyAppError) {
-      t('dashboard.app_already_exists');
-    }
-  }, [hasCopyAppError]);
-
   const handleClone = async () => {
     if (validAppName()) {
       const [org, app] = serviceFullName.split('/');
@@ -51,6 +45,11 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
         {
           onSuccess: () => {
             window.location.href = `${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`;
+          },
+          onError: () => {
+            if (hasCopyAppError) {
+              setErrorMessage(t('dashboard.app_already_exists'));
+            }
           },
         },
       );
