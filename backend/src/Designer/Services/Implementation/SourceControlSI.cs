@@ -640,10 +640,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private void FetchGitNotes(string localRepositoryPath)
         {
             var repo = new LibGit2Sharp.Repository(localRepositoryPath);
-            Commands.Fetch(repo,"origin", new List<string>() {"refs/notes/*:refs/notes/*"}, new FetchOptions()
-                {
-                    CredentialsProvider =  CredentialsProvider()
-                },
+            Commands.Fetch(repo, "origin", new List<string>() { "refs/notes/*:refs/notes/*" }, new FetchOptions()
+            {
+                CredentialsProvider = CredentialsProvider()
+            },
                 "fetch notes");
         }
     }

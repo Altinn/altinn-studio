@@ -23,12 +23,12 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         [Theory]
         [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task Commit_AndPush_Separate_Should_Create_Git_Note(string org)
+        public async Task Commit_AndPush_Separate_Should_Create_GitNote(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             await CreateAppUsingDesigner(org, targetRepo);
 
-            // Commmit and push separately
+            // Commit and push separately
             InvalidateAllCookies();
             await File.WriteAllTextAsync($"{CreatedFolderPath}/test3.txt", "I am a new file");
             using var commitContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
@@ -45,7 +45,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         [Theory]
         [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task Commit_AndPush_AndContents_Should_Ccreate_GitNote(string org)
+        public async Task Commit_AndPush_AndContents_Should_Create_GitNote(string org)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             await CreateAppUsingDesigner(org, targetRepo);
