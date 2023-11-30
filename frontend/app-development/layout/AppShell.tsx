@@ -18,13 +18,13 @@ export const AppShell = (): React.ReactNode => {
 
   const {
     data: repoStatus,
-    isLoading: repoStatusLoading,
+    isPending: isRepoStatusPending,
     error: repoStatusError,
   } = useRepoStatusQuery(org, app);
 
-  const { data: user, isLoading: userLoading } = useUserQuery();
+  const { data: user, isPending: isUserPending } = useUserQuery();
 
-  if (repoStatusLoading || userLoading) {
+  if (isRepoStatusPending || isUserPending) {
     return (
       <Center style={{ height: '100vh' }}>
         <PageSpinner />

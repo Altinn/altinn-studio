@@ -40,8 +40,20 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
+// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
+const realConsole = console;
+
 describe('App', () => {
-  afterEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    global.console = {
+      ...console,
+      error: jest.fn(),
+    };
+  });
+  afterEach(() => {
+    global.console = realConsole;
+    jest.clearAllMocks();
+  });
 
   it('initially displays the spinner when loading data', () => {
     render();

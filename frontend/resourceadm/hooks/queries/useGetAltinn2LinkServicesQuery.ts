@@ -18,8 +18,8 @@ export const useGetAltinn2LinkServicesQuery = (
 ): UseQueryResult<Altinn2LinkService[], AxiosError> => {
   const { getAltinn2LinkServices } = useServicesContext();
 
-  return useQuery<Altinn2LinkService[], AxiosError>(
-    [QueryKey.Altinn2Services, org, environment],
-    () => getAltinn2LinkServices(org, environment),
-  );
+  return useQuery<Altinn2LinkService[], AxiosError>({
+    queryKey: [QueryKey.Altinn2Services, org, environment],
+    queryFn: () => getAltinn2LinkServices(org, environment),
+  });
 };

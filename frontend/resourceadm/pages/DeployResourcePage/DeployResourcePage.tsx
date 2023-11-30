@@ -79,7 +79,7 @@ export const DeployResourcePage = ({
   } = useValidateResourceQuery(selectedContext, repo, resourceId);
 
   // Query function fo rpublishing a resource
-  const { mutate: publishResource, isLoading: publisingResourceLoading } =
+  const { mutate: publishResource, isPending: publisingResourcePending } =
     usePublishResourceMutation(selectedContext, repo, resourceId);
 
   const handlePublish = (env: 'tt02' | 'prod' | 'at22' | 'at23') => {
@@ -239,9 +239,9 @@ export const DeployResourcePage = ({
    */
   const displayContent = () => {
     switch (mergeQueryStatuses(publishStatusStatus, validatePolicyStatus, validateResourceStatus)) {
-      case 'loading': {
+      case 'pending': {
         return (
-          <div className={classes.spinnerWrapper}>
+          <div>
             <Spinner size='xlarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
           </div>
         );
@@ -312,7 +312,7 @@ export const DeployResourcePage = ({
                     resourceVersionText !== tt02Version ? resourceVersionText : undefined
                   }
                   onClick={() => handlePublish('tt02')}
-                  loading={publisingResourceLoading && envPublishedTo === 'tt02'}
+                  loading={publisingResourcePending && envPublishedTo === 'tt02'}
                 />
                 <ResourceDeployEnvCard
                   isDeployPossible={isDeployPossible('prod', prodVersion)}
@@ -322,7 +322,7 @@ export const DeployResourcePage = ({
                     resourceVersionText !== prodVersion ? resourceVersionText : undefined
                   }
                   onClick={() => handlePublish('prod')}
-                  loading={publisingResourceLoading && envPublishedTo === 'prod'}
+                  loading={publisingResourcePending && envPublishedTo === 'prod'}
                 />
               </div>
               {selectedContext === 'ttd' && (
@@ -335,7 +335,7 @@ export const DeployResourcePage = ({
                       resourceVersionText !== at22Version ? resourceVersionText : undefined
                     }
                     onClick={() => handlePublish('at22')}
-                    loading={publisingResourceLoading && envPublishedTo === 'at22'}
+                    loading={publisingResourcePending && envPublishedTo === 'at22'}
                   />
                   <ResourceDeployEnvCard
                     isDeployPossible={isDeployPossible('prod', at23Version)}
@@ -345,7 +345,7 @@ export const DeployResourcePage = ({
                       resourceVersionText !== at23Version ? resourceVersionText : undefined
                     }
                     onClick={() => handlePublish('at23')}
-                    loading={publisingResourceLoading && envPublishedTo === 'at23'}
+                    loading={publisingResourcePending && envPublishedTo === 'at23'}
                   />
                 </div>
               )}

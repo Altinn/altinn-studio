@@ -23,7 +23,7 @@ const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunct
 >;
 mockUpdateAppMetadataMutation.mockReturnValue({
   mutate: updateAppMetadataMutation,
-} as unknown as UseMutationResult<void, unknown, ApplicationMetadata, unknown>);
+} as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
 
 const defaultProps: SetupTabContentProps = {
   appMetadata: mockAppMetadata,
