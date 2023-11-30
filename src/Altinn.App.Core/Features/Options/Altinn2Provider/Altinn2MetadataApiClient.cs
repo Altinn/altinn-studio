@@ -1,4 +1,6 @@
 #nullable enable
+using Altinn.App.Core.Helpers;
+
 namespace Altinn.App.Core.Features.Options.Altinn2Provider
 {
     /// <summary>
@@ -33,7 +35,7 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
                 response = await _client.GetAsync($"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString() ?? string.Empty}");
             }
             response.EnsureSuccessStatusCode();
-            var codelist = await response.Content.ReadAsAsync<MetadataCodelistResponse>();
+            var codelist = await JsonSerializerPermissive.DeserializeAsync<MetadataCodelistResponse>(response.Content);
             return codelist;
         }
     }

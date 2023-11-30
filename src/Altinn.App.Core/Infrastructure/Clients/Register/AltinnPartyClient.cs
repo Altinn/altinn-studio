@@ -13,7 +13,6 @@ using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Register
 {
@@ -70,7 +69,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App));
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                party = await response.Content.ReadAsAsync<Party>();
+                party = await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content);
             }
             else if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
@@ -92,7 +91,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             string endpointUrl = "parties/lookup";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            StringContent content = new StringContent(JsonConvert.SerializeObject(partyLookup));
+            StringContent content = new StringContent(JsonSerializerPermissive.Serialize(partyLookup));
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             HttpRequestMessage request = new HttpRequestMessage
             {
@@ -108,7 +107,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                party = await response.Content.ReadAsAsync<Party>();
+                party = await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content);
             }
             else
             {

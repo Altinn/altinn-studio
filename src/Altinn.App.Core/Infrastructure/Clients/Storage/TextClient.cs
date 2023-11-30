@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
@@ -73,7 +74,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 HttpResponseMessage response = await _client.GetAsync(token, url);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    textResource = await response.Content.ReadAsAsync<TextResource>();
+                    textResource = await JsonSerializerPermissive.DeserializeAsync<TextResource>(response.Content);
                     _memoryCache.Set(cacheKey, textResource, cacheEntryOptions);
                 }
                 else

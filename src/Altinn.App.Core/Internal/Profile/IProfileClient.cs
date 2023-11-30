@@ -12,6 +12,6 @@ namespace Altinn.App.Core.Internal.Profile
         /// </summary>
         /// <param name="userId">the user id</param>
         /// <returns>The userprofile for the given user id</returns>
-        Task<UserProfile> GetUserProfile(int userId);
+        Task<UserProfile?> GetUserProfile(int userId);
     }
 }

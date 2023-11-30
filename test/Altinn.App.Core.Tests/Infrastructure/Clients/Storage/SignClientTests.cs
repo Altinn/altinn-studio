@@ -89,7 +89,7 @@ public class SignClientTests
         platformRequest.Should().NotBeNull();
         platformRequest!.Method.Should().Be(HttpMethod.Post);
         platformRequest!.RequestUri!.ToString().Should().Be($"{apiStorageEndpoint}instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/sign");
-        SignRequest actual = await platformRequest.Content.ReadAsAsync<SignRequest>();
+        SignRequest actual = await JsonSerializerPermissive.DeserializeAsync<SignRequest>(platformRequest!.Content!);
         actual.Should().BeEquivalentTo(expectedRequest);
     }
     
