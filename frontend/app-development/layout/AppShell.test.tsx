@@ -1,119 +1,50 @@
 import React from 'react';
 import { AppShell } from './AppShell';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import type { IUserState } from '../sharedResources/user/userSlice';
+import { screen } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
+import * as testids from '../../testing/testids';
 import { textMock } from '../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { User } from 'app-shared/types/User';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 
-const mockOrg: string = 'org';
-const mockApp: string = 'app';
+jest.mock('../../language/src/nb.json', jest.fn());
+jest.mock('../../language/src/en.json', jest.fn());
 
-const getRepoStatus = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getUser = jest.fn().mockImplementation(() => Promise.resolve({}));
-
-const mockRepoStatus: RepoStatus = {
-  aheadBy: 0,
-  behindBy: 0,
-  contentStatus: [],
-  hasMergeConflict: false,
-  repositoryStatus: 'Ok',
+const render = async (remainingMinutes: number = 40) => {
+  renderWithProviders(<AppShell />, {
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+    queries: { ...queriesMock },
+    preloadedState: {
+      userState: {
+        session: {
+          remainingMinutes: remainingMinutes,
+        },
+      } as IUserState,
+    },
+  });
 };
 
-const mockUser: User = {
-  avatar_url: 'test',
-  email: 'test@test.com',
-  full_name: 'Mock Tester',
-  id: 1,
-  login: 'MT1',
-};
+describe('AppShell', () => {
+  afterEach(() => jest.clearAllMocks());
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
-  }),
-}));
+  it('should present popover with options to log out or stay logged in when session about to expire ', async () => {
+    render(6);
 
-// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
-const realConsole = console;
-
-describe('App', () => {
-  beforeEach(() => {
-    global.console = {
-      ...console,
-      error: jest.fn(),
-    };
-  });
-  afterEach(() => {
-    global.console = realConsole;
-    jest.clearAllMocks();
+    await screen.findByTestId(testids.appContentWrapper);
+    expect(screen.getByRole('button', { name: textMock('general.continue') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('general.sign_out') })).toBeInTheDocument();
   });
 
-  it('initially displays the spinner when loading data', () => {
-    render();
+  it('should not present popover if session is over 10min', async () => {
+    render(40);
 
-    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
-  });
-
-  it('renders "StudioNotFoundPage" when repoStatus has error', async () => {
-    render({
-      getRepoStatus: () => Promise.reject({ message: 'Not found', response: { status: 404 } }),
-    });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
-
+    await screen.findByTestId(testids.appContentWrapper);
     expect(
-      screen.getByRole('heading', { name: textMock('not_found_page.heading'), level: 1 }),
-    ).toBeInTheDocument();
-  });
-
-  it('renders "MergeConflictWarning" when repoStatus has merge conflict', async () => {
-    render({
-      getRepoStatus: () => Promise.resolve({ ...mockRepoStatus, hasMergeConflict: true }),
-    });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
-
-    expect(
-      screen.getByRole('heading', { name: textMock('merge_conflict.headline'), level: 1 }),
-    ).toBeInTheDocument();
-  });
-
-  it('renderes the page content and no errors when there are no errors', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-
-    expect(
-      screen.queryByRole('heading', { name: textMock('not_found_page.heading'), level: 1 }),
+      screen.queryByRole('button', { name: textMock('general.continue') }),
     ).not.toBeInTheDocument();
-
     expect(
-      screen.queryByRole('heading', { name: textMock('merge_conflict.headline'), level: 1 }),
+      screen.queryByRole('button', { name: textMock('general.sign_out') }),
     ).not.toBeInTheDocument();
   });
 });
-
-const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
-  getRepoStatus.mockImplementation(() => Promise.resolve(mockRepoStatus));
-  getUser.mockImplementation(() => Promise.resolve(mockUser));
-
-  render(queries);
-  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
-};
-
-const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    getRepoStatus,
-    getUser,
-    ...queries,
-  };
-
-  renderWithProviders(<AppShell />, {
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
-    queries: allQueries,
-  });
-};

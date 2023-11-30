@@ -6,8 +6,8 @@ import {
   Navigate,
   Route,
 } from 'react-router-dom';
-import { Layout } from 'app-development/layout/Layout';
 import { AppShell } from 'app-development/layout/AppShell';
+import { PageLayout } from 'app-development/layout/PageLayout';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { routerRoutes } from 'app-development/router/routes';
 import { StudioNotFoundPage } from '@studio/components';
@@ -17,8 +17,8 @@ const BASE_PATH = '/:org/:app';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path='/' element={<Layout />}>
-      <Route path={BASE_PATH} element={<AppShell />}>
+    <Route path='/' element={<AppShell />}>
+      <Route path={BASE_PATH} element={<PageLayout />}>
         {/* Redirects from /:org/:app to child route /overview */}
         <Route path={RoutePaths.Root} element={<Navigate to={RoutePaths.Overview} />} />
         {routerRoutes.map((route) => (
