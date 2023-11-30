@@ -7,10 +7,10 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 
 import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
+import { useConfirmationDialogOnPageLeave } from 'app-shared/hooks/useConfirmationDialogOnPageLeave';
 import { BPMNViewer } from './BPMNViewer';
 import { BPMNEditor } from './BPMNEditor';
 import { CanvasActionMenu } from './CanvasActionMenu';
-import { useConfirmNavigation } from './useConfirmNavigation';
 
 export type CanvasProps = {
   onSave: (bpmnXml: string) => void;
@@ -38,7 +38,10 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
     onSave(await getUpdatedXml());
   };
 
-  useConfirmNavigation(!!numberOfUnsavedChanges, t('process_editor.unsaved_changes_warning'));
+  useConfirmationDialogOnPageLeave(
+    !!numberOfUnsavedChanges,
+    t('process_editor.unsaved_changes_warning'),
+  );
 
   return (
     <div className={classes.container}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, render as rtlRender } from '@testing-library/react';
-import { useConfirmNavigation } from './useConfirmNavigation';
+import { useConfirmationDialogOnPageLeave } from './useConfirmationDialogOnPageLeave';
 import { RouterProvider, createMemoryRouter, useBeforeUnload } from 'react-router-dom';
 
 jest.mock('react-router-dom', () => ({
@@ -10,16 +10,16 @@ jest.mock('react-router-dom', () => ({
 
 const confirmationMessage = 'test';
 
-const Component = ({ hasUnsavedChanges }: { hasUnsavedChanges: boolean }) => {
-  useConfirmNavigation(hasUnsavedChanges, confirmationMessage);
+const Component = ({ showConfirmationDialog }: { showConfirmationDialog: boolean }) => {
+  useConfirmationDialogOnPageLeave(showConfirmationDialog, confirmationMessage);
   return null;
 };
 
-const render = (hasUnsavedChanges: boolean) => {
+const render = (showConfirmationDialog: boolean) => {
   const router = createMemoryRouter([
     {
       path: '/',
-      element: <Component hasUnsavedChanges={hasUnsavedChanges} />,
+      element: <Component showConfirmationDialog={showConfirmationDialog} />,
     },
     {
       path: '/test',
@@ -34,29 +34,29 @@ const render = (hasUnsavedChanges: boolean) => {
   };
 };
 
-describe('usePreventNavigation', () => {
+describe('useConfirmationDialogOnPageLeave', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('should call useBeforeUnload with the expected arguments', () => {
-    const hasUnsavedChanges = true;
-    render(hasUnsavedChanges);
+    const showConfirmationDialog = true;
+    render(showConfirmationDialog);
 
     expect(useBeforeUnload).toHaveBeenCalledWith(expect.any(Function), {
       capture: true,
     });
   });
 
-  it('should prevent navigation if hasUnsavedChanges is true', () => {
+  it('should prevent navigation if showConfirmationDialog is true', () => {
     const event = {
       type: 'beforeunload',
       returnValue: confirmationMessage,
     } as BeforeUnloadEvent;
     event.preventDefault = jest.fn();
 
-    const hasUnsavedChanges = true;
-    render(hasUnsavedChanges);
+    const showConfirmationDialog = true;
+    render(showConfirmationDialog);
 
     const callbackFn = (useBeforeUnload as jest.MockedFunction<typeof useBeforeUnload>).mock
       .calls[0][0];
@@ -66,15 +66,15 @@ describe('usePreventNavigation', () => {
     expect(event.returnValue).toBe(confirmationMessage);
   });
 
-  it('should not prevent navigation if hasUnsavedChanges is false', () => {
+  it('should not prevent navigation if showConfirmationDialog is false', () => {
     const event = {
       type: 'beforeunload',
       returnValue: '',
     } as BeforeUnloadEvent;
     event.preventDefault = jest.fn();
 
-    const hasUnsavedChanges = false;
-    render(hasUnsavedChanges);
+    const showConfirmationDialog = false;
+    render(showConfirmationDialog);
 
     const callbackFn = (useBeforeUnload as jest.MockedFunction<typeof useBeforeUnload>).mock
       .calls[0][0];
@@ -87,8 +87,8 @@ describe('usePreventNavigation', () => {
   it('doesnt show confirmation dialog when there are no unsaved changes', async () => {
     window.confirm = jest.fn();
 
-    const hasUnsavedChanges = false;
-    const { router } = render(hasUnsavedChanges);
+    const showConfirmationDialog = false;
+    const { router } = render(showConfirmationDialog);
 
     await act(async () => {
       await router.navigate('/test');
@@ -101,8 +101,8 @@ describe('usePreventNavigation', () => {
   it('show confirmation dialog when there are unsaved changes', async () => {
     window.confirm = jest.fn();
 
-    const hasUnsavedChanges = true;
-    const { router } = render(hasUnsavedChanges);
+    const showConfirmationDialog = true;
+    const { router } = render(showConfirmationDialog);
 
     await act(async () => {
       await router.navigate('/test');
@@ -115,8 +115,8 @@ describe('usePreventNavigation', () => {
   it('cancel redirection when clicking cancel', async () => {
     window.confirm = jest.fn(() => false);
 
-    const hasUnsavedChanges = true;
-    const { router } = render(hasUnsavedChanges);
+    const showConfirmationDialog = true;
+    const { router } = render(showConfirmationDialog);
 
     await act(async () => {
       await router.navigate('/test');
@@ -129,8 +129,8 @@ describe('usePreventNavigation', () => {
   it('redirect when clicking OK', async () => {
     window.confirm = jest.fn(() => true);
 
-    const hasUnsavedChanges = true;
-    const { router } = render(hasUnsavedChanges);
+    const showConfirmationDialog = true;
+    const { router } = render(showConfirmationDialog);
 
     await act(async () => {
       await router.navigate('/test');

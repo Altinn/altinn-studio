@@ -1,22 +1,25 @@
 import { useCallback, useEffect } from 'react';
 import { useBeforeUnload, useBlocker } from 'react-router-dom';
 
-export const useConfirmNavigation = (hasUnsavedChanges: boolean, confirmationMessage: string) => {
+export const useConfirmationDialogOnPageLeave = (
+  showConfirmationDialog: boolean,
+  confirmationMessage: string,
+) => {
   useBeforeUnload(
     useCallback(
       (event) => {
-        if (hasUnsavedChanges) {
+        if (showConfirmationDialog) {
           event.preventDefault();
           event.returnValue = confirmationMessage;
         }
       },
-      [confirmationMessage, hasUnsavedChanges],
+      [showConfirmationDialog, confirmationMessage],
     ),
     { capture: true },
   );
 
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {
-    return hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname;
+    return showConfirmationDialog && currentLocation.pathname !== nextLocation.pathname;
   });
 
   useEffect(() => {
