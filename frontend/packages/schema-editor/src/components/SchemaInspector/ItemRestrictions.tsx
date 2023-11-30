@@ -21,6 +21,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { getDomFriendlyID } from '@altinn/schema-editor/utils/ui-schema-utils';
 
 export interface RestrictionItemProps {
   restrictions: any;
@@ -122,7 +123,6 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
             )}
             {schemaNode.enum?.map((value: string, index) => (
               <EnumField
-                fullWidth={true}
                 key={`add-enum-field-${index}`}
                 onChange={onChangeEnumValue}
                 onDelete={onDeleteEnumClick}
@@ -130,6 +130,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
                 path={pointer}
                 value={value}
                 isValid={enumError !== value}
+                baseId={getDomFriendlyID(pointer)}
               />
             ))}
             <div className={classes.addEnumButton}>

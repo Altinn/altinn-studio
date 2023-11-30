@@ -1,32 +1,21 @@
-.editMode {
-  position: relative;
+.expressionContainer {
   border: 2px solid #e1e1e1;
   border-radius: 5px;
   padding: 1rem;
   background-color: white;
 }
 
-.editMode .topBar {
+.topBar {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
 }
 
 .previewMode {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  background-color: white;
-  border: 2px solid #e1e1e1;
-  border-radius: 5px;
-}
-
-.expressionDetails {
-  display: flex;
-  flex-direction: column;
-  margin: 20px 20px 0 20px;
 }
 
 .expressionDetails div p span {
@@ -43,10 +32,9 @@
   gap: 0.5rem;
 }
 
-.checkMark {
-  display: flex;
-  align-items: center;
+.subExpression {
+  display: grid;
   gap: 0.5rem;
-  color: var(--fds-semantic-surface-success-default);
+  grid-template-rows: auto;
+  margin: 0.5rem 0;
 }
-

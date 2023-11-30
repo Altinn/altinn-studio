@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
@@ -175,7 +175,7 @@ describe('ItemFieldsTab', () => {
     const confirmButton = screen.getByRole('button', {
       name: texts['schema_editor.datamodel_field_deletion_confirm'],
     });
-    await act(() => user.click(confirmButton));
+    await waitFor(async () => user.click(confirmButton));
 
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
