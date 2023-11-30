@@ -24,7 +24,7 @@ namespace Altinn.App.Core.Tests.Internal.App
         public async Task GetFeatures_returns_list_of_enabled_features_when_feature_flag_is_enabled()
         {
             var featureManagerMock = new Mock<IFeatureManager>();
-            featureManagerMock.Setup(f => f.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse, default)).ReturnsAsync(true);
+            featureManagerMock.Setup(f => f.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse)).ReturnsAsync(true);
             IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
             var actual = await frontendFeatures.GetFrontendFeatures();
             actual.Should().Contain(new KeyValuePair<string, bool>("jsonObjectInDataResponse", true));
