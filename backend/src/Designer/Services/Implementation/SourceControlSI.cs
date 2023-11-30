@@ -57,8 +57,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
-            cloneOptions.CredentialsProvider = (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-            return LibGit2Sharp.Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
+            cloneOptions.CredentialsProvider = CredentialsProvider();
+            string localPath = FindLocalRepoLocation(org, repository);
+            string cloningResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
+
+            FetchGitNotes(localPath);
+            return cloningResult;
         }
 
         /// <inheritdoc />
@@ -66,7 +70,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
-            cloneOptions.CredentialsProvider = (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+            cloneOptions.CredentialsProvider = CredentialsProvider();
 
             if (!string.IsNullOrEmpty(branchName))
             {
@@ -90,8 +94,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     },
                 };
                 pullOptions.FetchOptions = new FetchOptions();
-                pullOptions.FetchOptions.CredentialsProvider = (url, user, cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+                pullOptions.FetchOptions.CredentialsProvider = CredentialsProvider();
 
                 try
                 {
@@ -131,8 +134,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
                 FetchOptions fetchOptions = new();
-                fetchOptions.CredentialsProvider = (url, user, cred) =>
-                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+                fetchOptions.CredentialsProvider = CredentialsProvider();
 
                 foreach (Remote remote in repo?.Network?.Remotes)
                 {
@@ -186,8 +188,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     pushSuccess = false;
                 }
             };
-            options.CredentialsProvider = (url, user, cred) =>
-                new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+            options.CredentialsProvider = CredentialsProvider();
 
             repo.Network.Push(remote, @"refs/heads/master", options);
             repo.Network.Push(remote, "refs/notes/commits", options);
@@ -492,13 +493,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
 
                 PushOptions options = new();
-                options.CredentialsProvider = (url, user, cred) =>
-                    new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+                options.CredentialsProvider = CredentialsProvider();
 
                 if (branchName == "master")
                 {
                     repo.Network.Push(remote, @"refs/heads/master", options);
                     repo.Network.Push(remote, "refs/notes/commits", options);
+
                     return;
                 }
 
@@ -632,6 +633,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private LibGit2Sharp.Signature GetDeveloperSignature()
         {
             return new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+        }
+
+        private LibGit2Sharp.Handlers.CredentialsHandler CredentialsProvider() => (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+        private void FetchGitNotes(string localRepositoryPath)
+        {
+            var repo = new LibGit2Sharp.Repository(localRepositoryPath);
+            Commands.Fetch(repo,"origin", new List<string>() {"refs/notes/*:refs/notes/*"}, new FetchOptions()
+                {
+                    CredentialsProvider =  CredentialsProvider()
+                },
+                "fetch notes");
         }
     }
 }
