@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import classes from './releaseContainer.module.css';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { Button, LegacyPopover } from '@digdir/design-system-react';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
-import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
+import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@altinn/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useMediaQuery } from 'app-shared/hooks/useMediaQuery';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
@@ -77,10 +76,7 @@ export function ReleaseContainer() {
       return (
         <div className={classes.cannotCreateReleaseContainer}>
           {hiddenMdDown ? null : (
-            <AltinnIconComponent
-              iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
-              iconColor='#E23B53'
-            />
+            <XMarkOctagonFillIcon className={classes.renderCannotCreateReleaseIcon} />
           )}
           <div>
             <div className={classes.cannotCreateReleaseTitle}>

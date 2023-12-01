@@ -10,3 +10,16 @@
 .paperProps {
   background-color: #f9cad3;
 }
+
+.successIcon {
+  color: var(--fds-semantic-text-success-default);
+  font-size: 3rem;
+}
+.infoIcon {
+  color: var(--fds-semantic-text-action-default);
+  font-size: 3rem;
+}
+.errorIcon {
+  color: var(--fds-semantic-text-danger-default);
+  font-size: 3rem;
+}
