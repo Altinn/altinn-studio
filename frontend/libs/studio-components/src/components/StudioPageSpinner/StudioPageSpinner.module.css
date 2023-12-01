@@ -2,10 +2,3 @@
   display: flex;
   flex-direction: column;
 }
-
-.loadingSpinner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
