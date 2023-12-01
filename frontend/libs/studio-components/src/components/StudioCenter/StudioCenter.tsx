@@ -2,11 +2,13 @@ import React, { HTMLAttributes, forwardRef } from 'react';
 import classes from './StudioCenter.module.css';
 import cn from 'classnames';
 
+type StudioCenterProps = HTMLAttributes<HTMLDivElement>;
+
 /**
  * @component
  *    Component that centers its content both vertically and horizontally.
  */
-export const StudioCenter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+export const StudioCenter = forwardRef<HTMLDivElement, StudioCenterProps>(
   ({ className, ...rest }, ref): JSX.Element => (
     <div ref={ref} className={cn(className, classes.root)} {...rest} />
   ),
