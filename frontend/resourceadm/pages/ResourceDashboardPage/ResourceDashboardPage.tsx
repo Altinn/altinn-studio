@@ -38,7 +38,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
   const {
     data: resourceListData,
-    isLoading: resourceListLoading,
+    isPending: resourceListPending,
     isRefetching: refetchingList,
   } = useGetResourceListQuery(selectedContext);
 
@@ -60,7 +60,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
    * Display different content based on the loading state
    */
   const displayContent = () => {
-    if (resourceListLoading || refetchingList) {
+    if (resourceListPending || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner size='xlarge' variant='interaction' title={t('resourceadm.dashboard_spinner')} />

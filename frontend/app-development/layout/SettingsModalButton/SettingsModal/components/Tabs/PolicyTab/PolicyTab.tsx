@@ -55,7 +55,7 @@ export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
 
   const displayContent = () => {
     switch (mergeQueryStatuses(policyStatus, actionStatus, subjectStatus)) {
-      case 'loading': {
+      case 'pending': {
         return <LoadingTabData />;
       }
       case 'error': {

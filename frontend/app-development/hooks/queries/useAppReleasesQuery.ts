@@ -5,8 +5,9 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useAppReleasesQuery = (owner, app): UseQueryResult<AppRelease[]> => {
   const { getAppReleases } = useServicesContext();
-  return useQuery<AppRelease[]>(
-    [QueryKey.AppReleases, owner, app],
-    () => getAppReleases(owner, app).then((res) => res.results),
-  );
+  return useQuery<AppRelease[]>({
+    queryKey: [QueryKey.AppReleases, owner, app],
+    queryFn: () =>
+      getAppReleases(owner, app).then((appReleasesResponse) => appReleasesResponse.results),
+  });
 };

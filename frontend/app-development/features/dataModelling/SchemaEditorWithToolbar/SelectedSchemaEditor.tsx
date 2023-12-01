@@ -26,7 +26,7 @@ export const SelectedSchemaEditor = ({
 
   const render = () => {
     switch (status) {
-      case 'loading':
+      case 'pending':
         return <PageSpinner />;
 
       case 'error':
@@ -44,7 +44,7 @@ export const SelectedSchemaEditor = ({
         return <SchemaEditor modelName={modelName} />;
     }
   };
-  
+
   return (
     <SchemaEditorApp datamodels={datamodels} jsonSchema={data} save={mutate} modelPath={modelPath}>
       {render()}

@@ -28,7 +28,7 @@ export const TextEditor = () => {
   const { data: appLangCodes } = useLanguagesQuery(org, app);
   const {
     data: textResources,
-    isLoading: isInitialLoadingLang,
+    isPending: isInitialLoadingLang,
     isFetching: isFetchingTranslations,
   } = useTextResourcesQuery(org, app);
 

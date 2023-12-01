@@ -7,7 +7,7 @@ import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { LinkIcon } from '@altinn/icons';
-import { Button } from '@digdir/design-system-react';
+import { Button, Paragraph } from '@digdir/design-system-react';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
 
@@ -77,7 +77,7 @@ export const EditDataModelBindings = ({
           }}
           onSaveClick={() => setDataModelSelectVisible(false)}
         >
-          <div className={classes.SelectDataModelComponent}>
+          <div className={classes.selectDataModelComponent}>
             {dataModelSelectVisible ? (
               <SelectDataModelComponent
                 propertyPath={`definitions/component/properties/dataModelBindings/properties/${
@@ -104,7 +104,7 @@ export const EditDataModelBindings = ({
                 helpText={helpText}
               />
             ) : (
-              <>{selectedOption && <SelectedOption selectedOption={selectedOption} />}</>
+              selectedOption && <SelectedOption selectedOption={selectedOption} />
             )}
           </div>
         </InputActionWrapper>
@@ -117,7 +117,7 @@ const SelectedOption = ({ selectedOption }: { selectedOption: string }) => {
   return (
     <div className={classes.linkedDatamodelContainer}>
       <LinkIcon />
-      <div className={classes.selectedOption}>{selectedOption}</div>
+      <Paragraph className={classes.selectedOption}>{selectedOption}</Paragraph>
     </div>
   );
 };

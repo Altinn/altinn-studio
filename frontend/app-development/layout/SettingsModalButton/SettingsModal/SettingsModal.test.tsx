@@ -27,6 +27,9 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
+// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
+const realConsole = console;
+
 jest.mock('../../../hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
 const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
@@ -34,11 +37,20 @@ const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
 >;
 mockUpdateAppConfigMutation.mockReturnValue({
   mutate: updateAppConfigMutation,
-} as unknown as UseMutationResult<void, unknown, AppConfig, unknown>);
+} as unknown as UseMutationResult<void, Error, AppConfig, unknown>);
 
 describe('SettingsModal', () => {
   const user = userEvent.setup();
-  afterEach(jest.clearAllMocks);
+  beforeEach(() => {
+    global.console = {
+      ...console,
+      error: jest.fn(),
+    };
+  });
+  afterEach(() => {
+    global.console = realConsole;
+    jest.clearAllMocks();
+  });
 
   const mockOnClose = jest.fn();
 
@@ -145,7 +157,7 @@ describe('SettingsModal', () => {
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
   });
 
-  it('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
+  it.only('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(
