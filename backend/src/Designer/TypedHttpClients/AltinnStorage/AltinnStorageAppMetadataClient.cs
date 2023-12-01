@@ -3,10 +3,14 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
+
+using Azure;
+
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
@@ -100,8 +104,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             {
                 Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
             };
-            _logger.LogInformation($"Request sent to Altinn Storage: {request.Content}");
-            await _httpClient.SendAsync(request);
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorMessage = await response.Content.ReadAsStringAsync();
+                _logger.LogError($"// UpdateApplicationMetadata // Failed with status code {response.StatusCode} and message {errorMessage}.\r\n Content: {stringContent}");
+            }
         }
 
         private async Task<Uri> CreateStorageUri(string envName)
