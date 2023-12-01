@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Heading, Paragraph, Label, Alert } from '@digdir/design-system-react';
 import { useNewsListQuery } from 'app-development/hooks/queries/useNewsListQuery';
-import { AltinnSpinner } from 'app-shared/components/AltinnSpinner';
+import { StudioSpinner } from '@altinn/studio-components';
 import { useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 
@@ -12,7 +12,7 @@ export const News = () => {
   if (isPending) {
     return (
       <NewsTemplate>
-        <AltinnSpinner spinnerText={t('administration.fetch_news_loading_message')} />
+        <StudioSpinner spinnerText={t('administration.fetch_news_loading_message')} />
       </NewsTemplate>
     );
   }

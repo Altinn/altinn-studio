@@ -9,7 +9,7 @@ import { Documentation } from './Documentation';
 import { AppEnvironments } from './AppEnvironments';
 import { AppLogs } from './AppLogs';
 import { Navigation } from './Navigation';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import { StudioCenter } from '@altinn/studio-components';
@@ -39,7 +39,7 @@ export const Administration = () => {
   if (isPendingAppConfig || isPendingOrgs) {
     return (
       <StudioCenter>
-        <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />
+        <StudioSpinner spinnerText={t('general.loading')} className={classes.spinner} />
       </StudioCenter>
     );
   }

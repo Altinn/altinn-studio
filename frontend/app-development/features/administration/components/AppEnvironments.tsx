@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useEnvironmentsQuery, useOrgListQuery } from 'app-development/hooks/queries';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { ICreateAppDeploymentEnvObject } from 'app-development/sharedResources/appDeployment/types';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { AppStatus } from './AppStatus';
@@ -25,7 +25,7 @@ export const AppEnvironments = () => {
     isError: orgsIsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
-  if (envIsPending || orgsIsPending) return <AltinnSpinner />;
+  if (envIsPending || orgsIsPending) return <StudioSpinner />;
 
   if (envIsError || orgsIsError)
     return <Alert severity='danger'>{t('administration.app_environments_error')}</Alert>;

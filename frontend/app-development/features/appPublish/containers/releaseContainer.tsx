@@ -13,7 +13,7 @@ import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/querie
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
@@ -63,7 +63,7 @@ export function ReleaseContainer() {
       return (
         <div style={{ padding: '2rem' }}>
           <div>
-            <AltinnSpinner />
+            <StudioSpinner />
           </div>
           <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
         </div>
