@@ -26,7 +26,7 @@ export const SelectedSchemaEditor = ({
 
   const render = () => {
     switch (status) {
-      case 'loading':
+      case 'pending':
         return <PageSpinner />;
 
       case 'error':

@@ -14,11 +14,12 @@ import { AxiosError } from 'axios';
  */
 export const useAppMetadataQuery = (
   org: string,
-  app: string
+  app: string,
 ): UseQueryResult<ApplicationMetadata, AxiosError> => {
   const { getAppMetadata } = useServicesContext();
 
-  return useQuery<ApplicationMetadata, AxiosError>([QueryKey.AppMetadata, org, app], () =>
-    getAppMetadata(org, app)
-  );
+  return useQuery<ApplicationMetadata, AxiosError>({
+    queryKey: [QueryKey.AppMetadata, org, app],
+    queryFn: () => getAppMetadata(org, app),
+  });
 };

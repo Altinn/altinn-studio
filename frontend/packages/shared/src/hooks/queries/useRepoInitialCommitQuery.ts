@@ -17,23 +17,21 @@ export const useRepoInitialCommitQuery = (
   app: string,
 ): UseQueryResult<Commit, AxiosError> => {
   const { getRepoInitialCommit } = useServicesContext();
-  return useQuery<Commit, AxiosError>(
-    [QueryKey.RepoInitialCommit, owner, app],
-    () => getRepoInitialCommit(owner, app),
-    {
-      select: (data: Commit) => {
-        // Convert the 'when' property of the author and comitter to a Date
-        const author: CommitAuthor = {
-          ...data.author,
-          when: new Date(data.author.when),
-        };
-        const comitter: CommitAuthor = {
-          ...data.comitter,
-          when: new Date(data.comitter.when),
-        };
+  return useQuery<Commit, AxiosError>({
+    queryKey: [QueryKey.RepoInitialCommit, owner, app],
+    queryFn: () => getRepoInitialCommit(owner, app),
+    select: (data: Commit) => {
+      // Convert the 'when' property of the author and comitter to a Date
+      const author: CommitAuthor = {
+        ...data.author,
+        when: new Date(data.author.when),
+      };
+      const comitter: CommitAuthor = {
+        ...data.comitter,
+        when: new Date(data.comitter.when),
+      };
 
-        return { ...data, author, comitter };
-      },
+      return { ...data, author, comitter };
     },
-  );
+  });
 };

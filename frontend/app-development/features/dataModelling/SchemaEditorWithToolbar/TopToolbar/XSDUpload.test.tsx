@@ -26,7 +26,7 @@ const clickUploadButton = async () => {
 };
 
 const render = (queryClient: QueryClient = createQueryClientMock()) =>
-  renderWithMockStore({}, {}, queryClient)(<XSDUpload/>);
+  renderWithMockStore({}, {}, queryClient)(<XSDUpload />);
 
 describe('XSDUpload', () => {
   afterEach(jest.restoreAllMocks);
@@ -49,7 +49,7 @@ describe('XSDUpload', () => {
     await clickUploadButton();
 
     expect(
-      screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload'))
+      screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload')),
     ).not.toBeInTheDocument();
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
@@ -57,7 +57,7 @@ describe('XSDUpload', () => {
     await act(() => user.upload(fileInput, file));
 
     expect(
-      screen.getByText(textMock('form_filler.file_uploader_validation_error_upload'))
+      screen.getByText(textMock('form_filler.file_uploader_validation_error_upload')),
     ).toBeInTheDocument();
   });
 
@@ -76,7 +76,11 @@ describe('XSDUpload', () => {
     await act(() => user.upload(fileInput, file));
 
     expect(invalidateQueriesSpy).toHaveBeenCalledTimes(2);
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith([QueryKey.DatamodelsJson, org, app]);
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith([QueryKey.DatamodelsXsd, org, app]);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.DatamodelsJson, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.DatamodelsXsd, org, app],
+    });
   });
 });

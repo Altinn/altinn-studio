@@ -17,18 +17,18 @@ import { StudioCenter } from '@altinn/studio-components';
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
   const {
-    data: orgs = { orgs: {} },
-    isLoading: isLoadingOrgs,
+    data: orgs,
+    isPending: isPendingOrgs,
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
-  const selectedOrg = orgs.orgs[org];
+  const selectedOrg = orgs?.orgs[org];
   const hasEnvironments = selectedOrg?.environments?.length > 0;
 
   const {
     data: appConfigData,
     isError: isAppConfigError,
-    isLoading: isLoadingAppConfig,
+    isPending: isPendingAppConfig,
   } = useAppConfigQuery(org, app, { hideDefaultError: true });
   const { t } = useTranslation();
 
@@ -36,7 +36,7 @@ export const Administration = () => {
     toast.error(t('administration.fetch_title_error_message'));
   }
 
-  if (isLoadingAppConfig || isLoadingOrgs) {
+  if (isPendingAppConfig || isPendingOrgs) {
     return (
       <StudioCenter>
         <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />

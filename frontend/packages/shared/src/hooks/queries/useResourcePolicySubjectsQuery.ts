@@ -27,18 +27,16 @@ export const useResourcePolicySubjectsQuery = (
 ): UseQueryResult<PolicySubject[], AxiosError> => {
   const { getPolicySubjects } = useServicesContext();
 
-  return useQuery<PolicySubject[], AxiosError>(
-    [QueryKey.ResourcePolicySubjects, org, repo],
-    () => getPolicySubjects(org, repo),
-    {
-      select: (policySubjects) => {
-        if (
-          addOrgToList &&
-          !(policySubjects || []).some((d) => d.subjectId === policySubjectOrg.subjectId)
-        )
-          policySubjects.push(policySubjectOrg);
-        return policySubjects;
-      },
+  return useQuery<PolicySubject[], AxiosError>({
+    queryKey: [QueryKey.ResourcePolicySubjects, org, repo],
+    queryFn: () => getPolicySubjects(org, repo),
+    select: (policySubjects) => {
+      if (
+        addOrgToList &&
+        !(policySubjects || []).some((d) => d.subjectId === policySubjectOrg.subjectId)
+      )
+        policySubjects.push(policySubjectOrg);
+      return policySubjects;
     },
-  );
+  });
 };

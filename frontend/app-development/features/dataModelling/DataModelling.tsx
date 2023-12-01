@@ -20,7 +20,7 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
   const { status: xsdStatus, error: xsdError, data: xsdData } = useDatamodelsXsdQuery(org, app);
 
   switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
-    case 'loading':
+    case 'pending':
       return <PageSpinner />;
     case 'error':
       return (

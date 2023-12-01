@@ -17,20 +17,21 @@ describe('useDatamodelsJsonQuery', () => {
     const getDatamodelsJson = jest.fn().mockImplementation(() => Promise.resolve(datamodels));
     const client = createQueryClientMock();
 
-    const { result } = renderHook(
-      () => useDatamodelsJsonQuery(org, app),
-      { wrapper: ({ children }) => (
-        <ServicesContextProvider {...{
-          ...queriesMock,
-          getDatamodelsJson,
-          client,
-        }}>
+    const { result } = renderHook(() => useDatamodelsJsonQuery(org, app), {
+      wrapper: ({ children }) => (
+        <ServicesContextProvider
+          {...{
+            ...queriesMock,
+            getDatamodelsJson,
+            client,
+          }}
+        >
           {children}
         </ServicesContextProvider>
-      ) }
-    );
+      ),
+    });
 
-    await waitFor(() => result.current.isLoading);
+    await waitFor(() => result.current.isPending);
     expect(getDatamodelsJson).toHaveBeenCalledWith(org, app);
     await waitFor(() => result.current.isSuccess);
     expect(result.current.data).toEqual(datamodels);

@@ -59,7 +59,7 @@ export const ServiceContent = ({
    * Return the content based on the status of the API call
    */
   switch (altinn2LinkServicesStatus) {
-    case 'loading': {
+    case 'pending': {
       return (
         <StudioCenter className={classes.contentWrapper}>
           <Spinner

@@ -5,4 +5,5 @@ export type {
   PolicySubject,
   PolicyRule,
   PolicyRuleResource,
+  RequiredAuthLevel,
 } from './types';

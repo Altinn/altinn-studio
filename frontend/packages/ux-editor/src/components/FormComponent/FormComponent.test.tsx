@@ -37,7 +37,7 @@ const mockUseDeleteFormComponentMutation = useDeleteFormComponentMutation as jes
 >;
 mockUseDeleteFormComponentMutation.mockReturnValue({
   mutate: mockDeleteFormComponent,
-} as unknown as UseMutationResult<IInternalLayout, unknown, string, unknown>);
+} as unknown as UseMutationResult<IInternalLayout, Error, string, unknown>);
 
 describe('FormComponent', () => {
   it('should render the component', async () => {

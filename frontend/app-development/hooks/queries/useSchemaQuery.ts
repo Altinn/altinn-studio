@@ -7,15 +7,16 @@ import { isXsdFile } from 'app-shared/utils/filenameUtils';
 import { removeStart } from 'app-shared/utils/stringUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
-export const useSchemaQuery = (modelPath: string): UseQueryResult<JsonSchema | null, AxiosError> => {
+export const useSchemaQuery = (
+  modelPath: string,
+): UseQueryResult<JsonSchema | null, AxiosError> => {
   const { org, app } = useStudioUrlParams();
   const { getDatamodel, addXsdFromRepo } = useServicesContext();
-  return useQuery<JsonSchema | null, AxiosError>(
-    [QueryKey.JsonSchema, org, app, modelPath],
-    async () => (
+  return useQuery<JsonSchema | null, AxiosError>({
+    queryKey: [QueryKey.JsonSchema, org, app, modelPath],
+    queryFn: async (): Promise<JsonSchema> =>
       isXsdFile(modelPath)
         ? addXsdFromRepo(org, app, removeStart(modelPath, '/'))
-        : getDatamodel(org, app, modelPath)
-    ),
-  );
-}
+        : getDatamodel(org, app, modelPath),
+  });
+};
