@@ -61,6 +61,45 @@ describe('ParagraphComponent', () => {
     // eslint-disable-next-line testing-library/no-node-access
     expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('SPAN');
   });
+
+  it('should render as a <p> when text content contains inline elements', async () => {
+    [
+      { id: 'mock-id1', tag: 'strong' },
+      { id: 'mock-id2', tag: 'i' },
+      { id: 'mock-id3', tag: 'a' },
+      { id: 'mock-id4', tag: 'br' },
+      { id: 'mock-id5' },
+    ].forEach(async ({ id, tag }) => {
+      await render({
+        component: {
+          id,
+          textResourceBindings: {
+            title: tag ? `Hello world with <${tag}>inline element</${tag}> text` : 'A simple string',
+          },
+        },
+      });
+      expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual('P');
+    });
+  });
+
+  it('should render as a <div> when text content contains block-level elements', async () => {
+    [
+      { id: 'mock-id1', tag: 'div' },
+      { id: 'mock-id2', tag: 'p' },
+      { id: 'mock-id3', tag: 'h1' },
+      { id: 'mock-id4', tag: 'ol' },
+    ].forEach(async ({ id, tag }) => {
+      await render({
+        component: {
+          id,
+          textResourceBindings: {
+            title: `Hello world with <${tag}>block-level element</${tag}> text`,
+          },
+        },
+      });
+      expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual('DIV');
+    });
+  });
 });
 
 const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Paragraph'>> = {}) => {

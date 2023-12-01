@@ -1,9 +1,10 @@
 import React from 'react';
 
-import { Grid, Typography } from '@material-ui/core';
+import { Paragraph } from '@digdir/design-system-react';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { useLanguage } from 'src/features/language/useLanguage';
+import classes from 'src/layout/Paragraph/ParagraphComponent.module.css';
 import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -14,30 +15,25 @@ export function ParagraphComponent({ node }: IParagraphProps) {
   const { lang } = useLanguage();
   const text = lang(textResourceBindings?.title);
 
+  // The lang() function returns an object with a type property set to 'span'
+  // if text contains inline-element(s) or just a string.
+  const hasInlineContent = text && typeof text === 'object' && 'type' in text && text.type === 'span';
+
   return (
-    <Grid
-      container={true}
-      direction='row'
-      alignItems='center'
-      spacing={1}
-    >
-      <Grid item={true}>
-        <Typography
-          component={'div'}
-          id={id}
-          data-testid={`paragraph-component-${id}`}
-        >
-          {text}
-        </Typography>
-      </Grid>
+    <span className={classes.paragraphWrapper}>
+      <Paragraph
+        as={hasInlineContent ? 'p' : 'div'}
+        id={id}
+        data-testid={`paragraph-component-${id}`}
+      >
+        {text}
+      </Paragraph>
       {textResourceBindings?.help && (
-        <Grid item={true}>
-          <HelpTextContainer
-            helpText={lang(textResourceBindings.help)}
-            title={getPlainTextFromNode(text)}
-          />
-        </Grid>
+        <HelpTextContainer
+          helpText={lang(textResourceBindings.help)}
+          title={getPlainTextFromNode(text)}
+        />
       )}
-    </Grid>
+    </span>
   );
 }
