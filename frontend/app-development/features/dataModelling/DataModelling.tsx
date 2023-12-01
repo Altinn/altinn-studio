@@ -13,16 +13,14 @@ interface DataModellingProps {
   createPathOption?: boolean;
 }
 
-export function DataModelling({
-  createPathOption = false,
-}: DataModellingProps): ReactNode {
+export function DataModelling({ createPathOption = false }: DataModellingProps): ReactNode {
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
   const { status: jsonStatus, error: jsonError, data: jsonData } = useDatamodelsJsonQuery(org, app);
   const { status: xsdStatus, error: xsdError, data: xsdData } = useDatamodelsXsdQuery(org, app);
 
   switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
-    case 'loading':
+    case 'pending':
       return <PageSpinner />;
     case 'error':
       return (
@@ -37,12 +35,7 @@ export function DataModelling({
       );
     case 'success': {
       const data = mergeJsonAndXsdData(jsonData, xsdData);
-      return (
-        <SchemaEditorWithToolbar
-          createPathOption={createPathOption}
-          datamodels={data}
-        />
-      );
+      return <SchemaEditorWithToolbar createPathOption={createPathOption} datamodels={data} />;
     }
   }
 }

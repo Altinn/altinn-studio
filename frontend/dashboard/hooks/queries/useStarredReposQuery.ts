@@ -5,9 +5,9 @@ import { IRepository } from 'app-shared/types/global';
 
 export const useStarredReposQuery = (): UseQueryResult<IRepository[]> => {
   const { getStarredRepos } = useServicesContext();
-  return useQuery(
-    [QueryKey.StarredRepos],
-    () => getStarredRepos()
-      .then((data) => data.map((repo) => ({ ...repo, user_has_starred: true })))
-  );
+  return useQuery({
+    queryKey: [QueryKey.StarredRepos],
+    queryFn: () =>
+      getStarredRepos().then((data) => data.map((repo) => ({ ...repo, user_has_starred: true }))),
+  });
 };

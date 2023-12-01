@@ -6,12 +6,12 @@ import { IWidget } from '../../types/global';
 
 export const useWidgetsQuery = (org: string, app: string): UseQueryResult<IWidget[]> => {
   const { getWidgetSettings } = useServicesContext();
-  return useQuery(
-    [QueryKey.Widgets, org, app],
-    async () => {
+  return useQuery({
+    queryKey: [QueryKey.Widgets, org, app],
+    queryFn: async () => {
       const widgetSettings = await getWidgetSettings(org, app);
-      const urls: string[] = widgetSettings && widgetSettings?.widgetUrls || [];
+      const urls: string[] = (widgetSettings && widgetSettings?.widgetUrls) || [];
       return await Promise.all(urls.map((url) => get<IWidget>(url)));
-    }
-  );
+    },
+  });
 };

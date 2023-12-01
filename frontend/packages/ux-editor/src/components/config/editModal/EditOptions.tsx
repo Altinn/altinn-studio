@@ -119,13 +119,13 @@ export function EditOptions({
       {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
+
       {selectedOptionsType === SelectedOptionsType.Manual && (
         <FormField
           id={component.id}
           value={component.options}
           propertyPath={`${component.propertyPath}/properties/options`}
-        >
-          {() => (
+          renderField={() => (
             <div>
               {component.options?.map((option, index) => {
                 const updateValue = (e: any) => handleUpdateOptionValue(index, e);
@@ -175,8 +175,9 @@ export function EditOptions({
               })}
             </div>
           )}
-        </FormField>
+        />
       )}
+
       {selectedOptionsType === SelectedOptionsType.Manual && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <Button

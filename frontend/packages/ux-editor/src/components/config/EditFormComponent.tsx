@@ -39,7 +39,7 @@ export const EditFormComponent = ({
   );
 
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
-  const { data: schema, isLoading } = useComponentSchemaQuery(component.type);
+  const { data: schema, isPending } = useComponentSchemaQuery(component.type);
 
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {
     if (!configDef) return null;
@@ -78,23 +78,19 @@ export const EditFormComponent = ({
         propertyPath={component.propertyPath}
         componentType={component.type}
         helpText={t('ux_editor.edit_component.show_beta_func_helptext')}
-      >
-        {({ value }) => {
-          return (
-            <Switch checked={value} size='small'>
-              {t('ux_editor.edit_component.show_beta_func')}
-            </Switch>
-          );
-        }}
-      </FormField>
-
+        renderField={({ fieldProps }) => (
+          <Switch {...fieldProps} checked={fieldProps.value} size='small'>
+            {t('ux_editor.edit_component.show_beta_func')}
+          </Switch>
+        )}
+      />
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
-      {showComponentConfigBeta && isLoading && <AltinnSpinner spinnerText={t('general.loading')} />}
-      {showComponentConfigBeta && !isLoading && (
+      {showComponentConfigBeta && isPending && <AltinnSpinner spinnerText={t('general.loading')} />}
+      {showComponentConfigBeta && !isPending && (
         <FormComponentConfig
-          schema={isLoading ? {} : schema}
+          schema={isPending ? {} : schema}
           component={component}
           editFormId={editFormId}
           handleComponentUpdate={handleComponentUpdate}

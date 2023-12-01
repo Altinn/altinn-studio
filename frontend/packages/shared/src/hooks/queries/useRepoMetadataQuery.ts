@@ -14,10 +14,11 @@ import { AxiosError } from 'axios';
  */
 export const useRepoMetadataQuery = (
   owner: string,
-  app: string
+  app: string,
 ): UseQueryResult<Repository, AxiosError> => {
   const { getRepoMetadata } = useServicesContext();
-  return useQuery<Repository, AxiosError>([QueryKey.RepoMetaData, owner, app], () =>
-    getRepoMetadata(owner, app)
-  );
+  return useQuery<Repository, AxiosError>({
+    queryKey: [QueryKey.RepoMetaData, owner, app],
+    queryFn: () => getRepoMetadata(owner, app),
+  });
 };
