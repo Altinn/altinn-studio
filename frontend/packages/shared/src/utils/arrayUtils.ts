@@ -143,4 +143,4 @@ export const generateUniqueStringWithNumber = (array: string[], prefix: string =
     uniqueString = prefix + i;
   }
   return uniqueString;
-}
+};
