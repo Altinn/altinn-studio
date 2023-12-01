@@ -61,8 +61,9 @@ export const EnumField = ({
       {onDelete && (
         <Button
           title={t('schema_editor.delete_field')}
+          aria-label={t('schema_editor.delete_field')}
           className={classes.delete}
-          icon={<TrashIcon />}
+          icon={<TrashIcon aria-hidden />}
           id={`${baseId}-delete-${value}`}
           onClick={() => onDelete?.(path, value)}
           color='danger'
