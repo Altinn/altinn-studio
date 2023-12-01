@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
-import { AltinnLink } from 'app-shared/components';
 import { StudioSpinner } from '@altinn/studio-components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import {
@@ -151,12 +150,9 @@ export const AppDeploymentComponent = ({
         </div>
         <div className={classes.gridItem}>
           {showLinkToApp && (
-            <AltinnLink
-              url={urlToApp}
-              linkTxt={urlToAppLinkTxt}
-              shouldShowIcon={false}
-              openInNewTab={true}
-            />
+            <Link href={urlToApp} target='_blank' rel='noopener noreferrer'>
+              {urlToAppLinkTxt}
+            </Link>
           )}
         </div>
       </div>

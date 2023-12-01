@@ -34,3 +34,5 @@ export const StudioSpinner = forwardRef<HTMLDivElement, StudioSpinnerProps>(
     );
   },
 );
+
+StudioSpinner.displayName = 'StudioSpinner';
