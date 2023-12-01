@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using Altinn.App.Core.Models;
@@ -92,7 +93,11 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             var storageUri = await CreateStorageUri(envName);
             Uri uri = new($"{storageUri}{org}/{app}");
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
-            string stringContent = JsonSerializer.Serialize(applicationMetadata);
+            string stringContent = JsonSerializer.Serialize(applicationMetadata, new JsonSerializerOptions()
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            });
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
              * because the base address can change on each request and after HttpClient gets initial base address,
@@ -103,13 +108,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
                 Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
             };
 
-            var response = await _httpClient.SendAsync(request);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                string errorMessage = await response.Content.ReadAsStringAsync();
-                _logger.LogError("// UpdateApplicationMetadata // Failed with status code {StatusCode} and message {responseMessage}.\r\n Content: {appMetadata}", response.StatusCode, errorMessage, stringContent);
-            }
+            await _httpClient.SendAsync(request);
         }
 
         private async Task<Uri> CreateStorageUri(string envName)
