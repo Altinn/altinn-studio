@@ -14,11 +14,10 @@ jest.mock('react', () => ({
 describe('StudioSpinner', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should render the spinner without spinnerText when it is not present', () => {
+  it('should render default loading message as accessibility title when spinnerText is not provided', () => {
     render(<StudioSpinner />);
 
-    const spinnerTitle = screen.getByText(textMock('general.loading'));
-    expect(spinnerTitle).toBeInTheDocument();
+    expect(screen.getByTitle(textMock('general.loading')));
 
     const spinner = screen.getByTestId('studio-spinner-test-id');
     expect(spinner).not.toHaveAttribute('aria-describedby');

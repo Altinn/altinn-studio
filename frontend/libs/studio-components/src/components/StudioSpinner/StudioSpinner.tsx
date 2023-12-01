@@ -5,8 +5,9 @@ import { useTranslation } from 'react-i18next';
 
 export type StudioSpinnerProps = {
   spinnerText?: string;
-} & Pick<SpinnerProps, 'size' | 'variant'> &
-  HTMLAttributes<HTMLDivElement>;
+  size?: SpinnerProps['size'];
+  variant?: SpinnerProps['variant'];
+} & HTMLAttributes<HTMLDivElement>;
 
 export const StudioSpinner = forwardRef<HTMLDivElement, StudioSpinnerProps>(
   ({ spinnerText, size = 'medium', variant = 'interaction', ...rest }, ref): JSX.Element => {
@@ -33,5 +34,3 @@ export const StudioSpinner = forwardRef<HTMLDivElement, StudioSpinnerProps>(
     );
   },
 );
-
-StudioSpinner.displayName = 'StudioSpinner';
