@@ -7,35 +7,28 @@ import {
 import { get } from 'app-shared/utils/networking';
 import { AxiosError } from 'axios';
 
-const getSearchTerm = (search: string) => {
+const getQueryUrl = (enhetType: string, search: string) => {
   const isOrgnrSearch = /^\d{9}$/.test(search); // regex for at search er eksakt 9 siffer
-  return isOrgnrSearch ? `organisasjonsnummer=${search}` : `navn=${search}`;
+  const searchTerm = isOrgnrSearch ? `organisasjonsnummer=${search}` : `navn=${search}`;
+  return `https://data.brreg.no/enhetsregisteret/api/${enhetType}?${searchTerm}&sort=navn,ASC`;
 };
 
 export const useEnhetsregisterOrganizationQuery = (
   navn: string,
 ): UseQueryResult<BrregOrganizationResult, AxiosError> => {
-  return useQuery<BrregOrganizationResult, AxiosError>(
-    [QueryKey.EnhetsregisterOrgenhetSearch, navn],
-    () =>
-      get(
-        `https://data.brreg.no/enhetsregisteret/api/enheter?${getSearchTerm(navn)}&sort=navn,ASC`,
-      ),
-    { enabled: !!navn },
-  );
+  return useQuery<BrregOrganizationResult, AxiosError>({
+    queryKey: [QueryKey.EnhetsregisterOrgenhetSearch, navn],
+    queryFn: () => get(getQueryUrl('enheter', navn)),
+    enabled: !!navn,
+  });
 };
 
 export const useEnhetsregisterUnderOrganizationQuery = (
   navn: string,
 ): UseQueryResult<BrregUnderOrganizationResult, AxiosError> => {
-  return useQuery<BrregUnderOrganizationResult, AxiosError>(
-    [QueryKey.EnhetsregisterUnderenhetSearch, navn],
-    () =>
-      get(
-        `https://data.brreg.no/enhetsregisteret/api/underenheter?${getSearchTerm(
-          navn,
-        )}&sort=navn,ASC`,
-      ),
-    { enabled: !!navn },
-  );
+  return useQuery<BrregUnderOrganizationResult, AxiosError>({
+    queryKey: [QueryKey.EnhetsregisterUnderenhetSearch, navn],
+    queryFn: () => get(getQueryUrl('underenheter', navn)),
+    enabled: !!navn,
+  });
 };
