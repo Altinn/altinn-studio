@@ -9,8 +9,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
 
-using Azure;
-
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
@@ -110,7 +108,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             if (!response.IsSuccessStatusCode)
             {
                 string errorMessage = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"// UpdateApplicationMetadata // Failed with status code {response.StatusCode} and message {errorMessage}.\r\n Content: {stringContent}");
+                _logger.LogError("// UpdateApplicationMetadata // Failed with status code {StatusCode} and message {responseMessage}.\r\n Content: {appMetadata}", response.StatusCode, errorMessage, stringContent);
             }
         }
 
