@@ -73,7 +73,12 @@ export function SchemaEditorApp({
   }, [jsonSchema]);
 
   const value = useMemo(
-    () => ({ data: SchemaModel.fromArray(model), save: saveInternalModel, selectedTypePointer, setSelectedTypePointer }),
+    () => ({
+      schemaModel: SchemaModel.fromArray(model),
+      save: saveInternalModel,
+      selectedTypePointer,
+      setSelectedTypePointer
+    }),
     [model, saveInternalModel, selectedTypePointer]
   );
 

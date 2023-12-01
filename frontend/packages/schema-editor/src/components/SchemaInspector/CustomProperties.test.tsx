@@ -153,6 +153,6 @@ describe('CustomProperties', () => {
 
 const render = (path: string = defaultPath, schemaState: Partial<SchemaState> = {}) =>
   renderWithProviders({
-    appContextProps: { data: SchemaModel.fromArray(uiSchema), save: saveDatamodel },
+    appContextProps: { schemaModel: SchemaModel.fromArray(uiSchema), save: saveDatamodel },
     state: { ...defaultSchemaState, ...schemaState },
   })(<CustomProperties path={path} />);

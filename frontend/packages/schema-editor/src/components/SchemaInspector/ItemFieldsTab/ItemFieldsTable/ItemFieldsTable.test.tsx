@@ -54,7 +54,7 @@ const renderItemFieldsTab = (
   renderWithProviders({
     ...data,
     appContextProps: {
-      data: model,
+      schemaModel: model,
       save: saveDatamodel,
       ...data.appContextProps,
     },

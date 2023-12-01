@@ -29,7 +29,7 @@ export const renderWithProviders = ({
   };
 
   const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
-    data: SchemaModel.fromArray(uiSchemaNodesMock),
+    schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
     save: jest.fn(),
     setSelectedTypePointer: jest.fn(),
     ...appContextProps,
@@ -61,7 +61,7 @@ export const renderWithProviders = ({
     };
 
     const newAppContextProps: SchemaEditorAppContextProps = {
-      data: SchemaModel.fromArray(uiSchemaNodesMock),
+      schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
       save: jest.fn(),
       setSelectedTypePointer: jest.fn(),
       ...rerenderAppContextProps,

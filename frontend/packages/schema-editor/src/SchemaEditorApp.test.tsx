@@ -39,10 +39,10 @@ describe('SchemaEditorApp', () => {
     const user = userEvent.setup();
 
     render(() => {
-      const { data, save } = useSchemaEditorAppContext();
+      const { schemaModel, save } = useSchemaEditorAppContext();
       return (
         <>
-          <div data-testid='data'>{JSON.stringify(data.asArray())}</div>
+          <div data-testid='data'>{JSON.stringify(schemaModel.asArray())}</div>
           <button data-testid='button' onClick={() => save(SchemaModel.fromArray(uiSchemaNodesMock))} />
         </>
       );

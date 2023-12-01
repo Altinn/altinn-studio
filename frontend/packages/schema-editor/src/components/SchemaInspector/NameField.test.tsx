@@ -26,7 +26,7 @@ const defaultProps: NameFieldProps = {
 const render = async (
   props?: Partial<NameFieldProps>,
 ) => renderWithProviders({
-  appContextProps: { data: SchemaModel.fromArray(uiSchemaNodesMock) },
+  appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodesMock) },
 })(<NameField {...defaultProps} {...props} />);
 
 describe('NameField', () => {

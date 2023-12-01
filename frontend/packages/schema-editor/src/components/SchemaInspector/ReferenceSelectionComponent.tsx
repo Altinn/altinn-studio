@@ -21,8 +21,8 @@ export function ReferenceSelectionComponent({
   onChangeRef,
   onGoToDefButtonClick,
 }: IReferenceSelectionProps) {
-  const { data } = useSchemaEditorAppContext();
-  const definitions: UiSchemaNode[] = data.getDefinitions();
+  const { schemaModel } = useSchemaEditorAppContext();
+  const definitions: UiSchemaNode[] = schemaModel.getDefinitions();
   const selectId = makeDomFriendlyID(selectedNode.pointer, { suffix: 'ref-select' });
   return (
     <div>

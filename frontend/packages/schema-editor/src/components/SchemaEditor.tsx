@@ -26,7 +26,7 @@ export interface SchemaEditorProps {
 
 export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const dispatch = useDispatch();
-  const { data, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { schemaModel, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   useEffect(() => {
     if (modelName) {
@@ -55,17 +55,17 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
     }
   }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
-  if (data.isEmpty()) return null;
+  if (schemaModel.isEmpty()) return null;
 
   const handleResetSelectedType = () => {
     setSelectedTypePointer(null);
     dispatch(setSelectedId({ pointer: '' }));
   };
 
-  const definitions: UiSchemaNodes = data.getDefinitions();
+  const definitions: UiSchemaNodes = schemaModel.getDefinitions();
   const selectedType = definitions.find((item) => item.pointer === selectedTypePointer);
 
-  const properties: UiSchemaNodes = data.getRootProperties();
+  const properties: UiSchemaNodes = schemaModel.getRootProperties();
 
   return (
     <>

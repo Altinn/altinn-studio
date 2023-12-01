@@ -17,7 +17,7 @@ export type NameFieldProps = TextfieldProps & {
 
 export function NameField({ id, pointer, handleSave, label, ...props }: NameFieldProps) {
   const { t } = useTranslation();
-  const { data } = useSchemaEditorAppContext();
+  const { schemaModel } = useSchemaEditorAppContext();
   const [nodeName, setNodeName] = useState(extractNameFromPointer(pointer));
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export function NameField({ id, pointer, handleSave, label, ...props }: NameFiel
   const validateName = (nodeNameToValidate: string): NameError => {
     if (nodeNameToValidate === nodeName) return;
     if (!isValidName(nodeNameToValidate)) return NameError.InvalidCharacter;
-    if (data.hasNode(replaceLastPointerSegment(pointer, nodeNameToValidate)))
+    if (schemaModel.hasNode(replaceLastPointerSegment(pointer, nodeNameToValidate)))
       return NameError.AlreadyInUse;
   };
 

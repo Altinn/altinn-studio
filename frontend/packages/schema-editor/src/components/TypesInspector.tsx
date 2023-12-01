@@ -20,14 +20,14 @@ export interface TypesInspectorProps {
 export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { data, save, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { schemaModel, save, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
-    const name = data.generateUniqueChildName(ROOT_POINTER, 'name');
-    const newNode = data.addFieldType(name);
+    const name = schemaModel.generateUniqueChildName(ROOT_POINTER, 'name');
+    const newNode = schemaModel.addFieldType(name);
     dispatch(setSelectedAndFocusedNode(newNode.pointer));
-    save(data);
+    save(schemaModel);
   };
 
   if (!schemaItems) {

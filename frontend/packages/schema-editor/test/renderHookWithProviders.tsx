@@ -28,7 +28,7 @@ export const renderHookWithProviders = ({
   };
 
   const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
-    data: SchemaModel.fromArray(uiSchemaNodesMock),
+    schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
     save: jest.fn(),
     setSelectedTypePointer: jest.fn(),
     ...appContextProps,

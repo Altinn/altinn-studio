@@ -31,12 +31,12 @@ SchemaItem.defaultProps = {
 
 export function SchemaItem({ selectedNode, isPropertiesView, index }: SchemaItemProps) {
   const dispatch = useDispatch();
-  const { data, save } = useSchemaEditorAppContext();
+  const { schemaModel, save } = useSchemaEditorAppContext();
 
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const refNode = isReference(selectedNode) ? data.getReferredNode(selectedNode) : undefined;
-  const childNodes = data.getChildNodes((refNode || selectedNode).pointer);
+  const refNode = isReference(selectedNode) ? schemaModel.getReferredNode(selectedNode) : undefined;
+  const childNodes = schemaModel.getChildNodes((refNode || selectedNode).pointer);
   const selectedPointer = useSelector(selectedIdSelector);
   const onLabelClick = (e: any, schemaItem: UiSchemaNode) => {
     e.preventDefault();
@@ -47,7 +47,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, index }: SchemaItem
   const isRef = selectedNode.objectKind === ObjectKind.Reference;
   const { base } = splitPointerInBaseAndName(selectedNode.pointer);
   const onMove = (from: DragItem, to: DragItem) =>
-    save(changeChildrenOrder(data, { pointerA: from.itemId, pointerB: to.itemId }));
+    save(changeChildrenOrder(schemaModel, { pointerA: from.itemId, pointerB: to.itemId }));
 
   return (
     <TreeItem

@@ -31,5 +31,5 @@ describe('ItemRestrictions', () => {
 
 const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) =>
   renderWithProviders({
-    appContextProps: { data: SchemaModel.fromArray(uiSchemaNodesMock), save: saveDatamodel },
+    appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodesMock), save: saveDatamodel },
   })(<ItemRestrictions {...defaultProps} {...props} />);

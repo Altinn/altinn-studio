@@ -86,7 +86,7 @@ const renderItemFieldsTab = (
   renderWithProviders({
     ...data,
     appContextProps: {
-      data: createModel(),
+      schemaModel: createModel(),
       save: saveDatamodel,
       ...data.appContextProps,
     },
@@ -199,7 +199,7 @@ describe('ItemFieldsTab', () => {
     const newUiSchema = [rootItem, newSelectedItem, ...childNodes, newChildNode];
     validateTestUiSchema(newUiSchema);
     rerender({
-      appContextProps: { data: SchemaModel.fromArray(newUiSchema), save: saveDatamodel },
+      appContextProps: { schemaModel: SchemaModel.fromArray(newUiSchema), save: saveDatamodel },
     })(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />);
     expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
     await act(() => user.keyboard('a')); // Should replace the current value since the text should be selected

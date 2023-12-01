@@ -29,11 +29,11 @@ const renderItemDataComponent = (
   schemaNode: UiSchemaNode = defaultNode,
   state: Partial<SchemaState> = {}
 ) => {
-  const data = SchemaModel.fromArray(uiSchemaNodesMock);
+  const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   return renderWithProviders({
     state: { ...defaultState, ...state },
     appContextProps: {
-      data,
+      schemaModel,
       save: saveDatamodel,
     },
   })(<ItemDataComponent schemaNode={schemaNode}/>);

@@ -10,8 +10,8 @@ interface ItemPropertiesTabProps {
 }
 
 export const ItemPropertiesTab = ({ selectedItem }: ItemPropertiesTabProps) => {
-  const { data } = useSchemaEditorAppContext();
-  if (data.isChildOfCombination(selectedItem.pointer) && selectedItem.objectKind !== ObjectKind.Reference) {
+  const { schemaModel } = useSchemaEditorAppContext();
+  if (schemaModel.isChildOfCombination(selectedItem.pointer) && selectedItem.objectKind !== ObjectKind.Reference) {
     return <InlineObject item={selectedItem} />;
   } else if (selectedItem.pointer === ROOT_POINTER) {
     return <>root</>;

@@ -2,7 +2,7 @@ import { createContext } from 'react';
 import { SchemaModel } from '@altinn/schema-model';
 
 export interface SchemaEditorAppContextProps {
-  data: SchemaModel;
+  schemaModel: SchemaModel;
   save: (datamodel: SchemaModel, saveAfterMs?: number) => void;
   selectedTypePointer?: string;
   setSelectedTypePointer: (pointer: string) => void;

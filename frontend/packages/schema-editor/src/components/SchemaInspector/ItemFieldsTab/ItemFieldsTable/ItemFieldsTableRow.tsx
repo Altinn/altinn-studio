@@ -31,7 +31,7 @@ export const ItemFieldsTableRow = ({
   onEnterKeyPress,
 }: ItemFieldsTableRowProps): ReactNode => {
   const { t } = useTranslation();
-  const { data, save } = useSchemaEditorAppContext();
+  const { schemaModel, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const dispatch = useDispatch();
@@ -40,21 +40,21 @@ export const ItemFieldsTableRow = ({
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
-      setPropertyName(data, {
+      setPropertyName(schemaModel, {
         path: fullPath,
         name: newNodeName,
       }),
     );
   };
 
-  const onTypeChange = (path: string, type: FieldType) => save(setType(data, { path, type }));
+  const onTypeChange = (path: string, type: FieldType) => save(setType(schemaModel, { path, type }));
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
   const changeRequiredHandler: ChangeEventHandler<HTMLInputElement> = (e) => {
     save(
-      setRequired(data, {
+      setRequired(schemaModel, {
         path: fullPath,
         required: e.target.checked,
       }),
@@ -62,7 +62,7 @@ export const ItemFieldsTableRow = ({
   };
 
   const deleteHandler = () => {
-    save(deleteNode(data, fullPath));
+    save(deleteNode(schemaModel, fullPath));
     dispatch(removeSelection(fullPath));
   };
 

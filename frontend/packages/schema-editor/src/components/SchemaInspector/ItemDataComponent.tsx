@@ -52,7 +52,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     custom,
   } = schemaNode;
   const dispatch = useDispatch();
-  const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { schemaModel, save, setSelectedTypePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
   const typeOptions = useTypeOptions();
 
@@ -61,19 +61,19 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const nodeName = extractNameFromPointer(pointer);
 
   const getChildNodes = () =>
-    pointer && pointer.endsWith(nodeName) ? data.getChildNodes(pointer) : [];
+    pointer && pointer.endsWith(nodeName) ? schemaModel.getChildNodes(pointer) : [];
 
   const onChangeRef = (path: string, ref: string) =>
-    save(setRef(data, { path, ref }));
+    save(setRef(schemaModel, { path, ref }));
 
   const onChangeFieldType = (type: FieldType) =>
-    save(setType(data, { path: pointer, type }));
+    save(setType(schemaModel, { path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
     if (isChecked) {
       save(
-        addCombinationItem(data, {
+        addCombinationItem(schemaModel, {
           pointer,
           callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
         }),
@@ -83,17 +83,17 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
     getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (isField(childNode) && childNode.fieldType === FieldType.Null) {
-        save(deleteNode(data, childNode.pointer));
+        save(deleteNode(schemaModel, childNode.pointer));
         removeSelection(childNode.pointer);
       }
     });
   };
 
   const onChangeTitle = () =>
-    save(setTitle(data, { path: pointer, title: itemTitle }));
+    save(setTitle(schemaModel, { path: pointer, title: itemTitle }));
 
   const onChangeDescription = () =>
-    save(setDescription(data, { path: pointer, description: itemDescription }));
+    save(setDescription(schemaModel, { path: pointer, description: itemDescription }));
 
   const onGoToDefButtonClick = () => {
     if (isReference(schemaNode)) {
@@ -102,14 +102,14 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
-    save(setCombinationType(data, { path: pointer, type: value }));
+    save(setCombinationType(schemaModel, { path: pointer, type: value }));
 
   const handleArrayPropertyToggle = () =>
-    save(toggleArrayField(data, pointer));
+    save(toggleArrayField(schemaModel, pointer));
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
-      setPropertyName(data, {
+      setPropertyName(schemaModel, {
         path: pointer,
         name: newNodeName,
         callback: (newPointer: string) => {
@@ -129,7 +129,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
   return (
     <div className={classes.root}>
-      {!data.isChildOfCombination(pointer) && (
+      {!schemaModel.isChildOfCombination(pointer) && (
         <NameField
           id='selectedItemName'
           label={t('schema_editor.name')}

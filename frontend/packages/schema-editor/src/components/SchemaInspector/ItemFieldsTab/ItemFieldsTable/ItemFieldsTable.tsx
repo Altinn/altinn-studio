@@ -21,13 +21,13 @@ export const ItemFieldsTable = ({
   selectedItem,
 }: ItemFieldsTableProps): ReactNode => {
   const { t } = useTranslation();
-  const { data } = useSchemaEditorAppContext();
+  const { schemaModel } = useSchemaEditorAppContext();
   const addProperty = useAddProperty();
 
   const dispatchAddProperty = () =>
     addProperty(ObjectKind.Field, FieldType.String, selectedItem.pointer);
 
-  const fieldNodes = data.getChildNodes(selectedItem.pointer);
+  const fieldNodes = schemaModel.getChildNodes(selectedItem.pointer);
   const displayTableRows = fieldNodes.map((fieldNode, i) => (
     <ItemFieldsTableRow
       fieldNode={fieldNode}

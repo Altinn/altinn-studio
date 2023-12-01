@@ -126,11 +126,11 @@ const render = async (props: Partial<SchemaItemProps> = {}) => {
     ...props,
   };
   const uiSchema = buildUiSchema(dataMock);
-  const data = SchemaModel.fromArray(uiSchema);
+  const schemaModel = SchemaModel.fromArray(uiSchema);
 
   return renderWithProviders({
     state: mockInitialState,
-    appContextProps: { data },
+    appContextProps: { schemaModel },
   })(
     <DndProvider backend={HTML5Backend}>
       <SchemaItem {...allProps} />

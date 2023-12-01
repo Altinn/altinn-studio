@@ -60,7 +60,7 @@ export const SchemaItemLabel = ({
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
-  const { data, save } = useSchemaEditorAppContext();
+  const { schemaModel, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
   const addProperty = useAddProperty();
 
@@ -79,10 +79,10 @@ export const SchemaItemLabel = ({
     }
   });
   const handleConvertToReference = wrapper(() => {
-    save(promoteProperty(data, selectedNode.pointer));
+    save(promoteProperty(schemaModel, selectedNode.pointer));
   });
   const handleConvertToField = wrapper(() => {
-    save(promoteProperty(data, selectedNode.pointer));
+    save(promoteProperty(schemaModel, selectedNode.pointer));
   });
   const handleCloseContextMenu = wrapper(() => undefined);
 
@@ -105,7 +105,7 @@ export const SchemaItemLabel = ({
   };
 
   const handleDeleteClick = () => {
-    save(deleteNode(data, selectedNode.pointer));
+    save(deleteNode(schemaModel, selectedNode.pointer));
     dispatch(removeSelection(selectedNode.pointer));
   };
 

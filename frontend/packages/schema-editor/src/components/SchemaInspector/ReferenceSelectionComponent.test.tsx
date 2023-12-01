@@ -29,7 +29,7 @@ const rootNode = {
   children: [selectedNode, type1, type2].map((node) => node.pointer),
 };
 const uiSchema: UiSchemaNodes = [rootNode, selectedNode, type1, type2];
-const data = SchemaModel.fromArray(uiSchema);
+const schemaModel = SchemaModel.fromArray(uiSchema);
 
 const defaultProps: IReferenceSelectionProps = {
   buttonText,
@@ -41,7 +41,7 @@ const defaultProps: IReferenceSelectionProps = {
 
 const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) =>
   renderWithProviders({
-    appContextProps: { data },
+    appContextProps: { schemaModel },
   })(<ReferenceSelectionComponent {...defaultProps} {...props} />);
 
 describe('ReferenceSelectionComponent', () => {

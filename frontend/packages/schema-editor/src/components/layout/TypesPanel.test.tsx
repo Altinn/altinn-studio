@@ -48,10 +48,10 @@ const render = (props?: Partial<TypesPanelProps>) => {
     setExpandedDefNodes: () => {},
   };
   const schemaNodes = buildUiSchema(dataMock);
-  const data = SchemaModel.fromArray(schemaNodes);
+  const schemaModel = SchemaModel.fromArray(schemaNodes);
   return renderWithProviders({
     state: mockInitialState,
-    appContextProps: { data },
+    appContextProps: { schemaModel },
   })(<TypesPanel {...defaultProps} {...props} />);
 };
 

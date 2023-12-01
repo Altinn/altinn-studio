@@ -42,22 +42,22 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
     isArray,
     restrictions,
   } = schemaNode;
-  const { data, save } = useSchemaEditorAppContext();
+  const { schemaModel, save } = useSchemaEditorAppContext();
 
   const [enumError, setEnumError] = useState<string>(null);
 
   const handleRequiredChanged = (e: any) => {
     const { checked } = e.target;
     if (checked !== isRequired) {
-      save(setRequired(data, { path: pointer, required: checked }));
+      save(setRequired(schemaModel, { path: pointer, required: checked }));
     }
   };
 
   const onChangeRestrictionValue = (path: string, key: string, value?: string | boolean) =>
-    save(setRestriction(data, { path, key, value }));
+    save(setRestriction(schemaModel, { path, key, value }));
 
   const onChangeRestrictions = (path: string, changedRestrictions: KeyValuePairs) =>
-    save(setRestrictions(data, { path, restrictions: changedRestrictions }));
+    save(setRestrictions(schemaModel, { path, restrictions: changedRestrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) => {
     if (!isField(schemaNode) || value === oldValue) return;
@@ -66,14 +66,14 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
       setEnumError(value);
     } else {
       setEnumError(null);
-      save(addEnumValue(data, { path: pointer, value, oldValue }));
+      save(addEnumValue(schemaModel, { path: pointer, value, oldValue }));
     }
   };
 
   const onDeleteEnumClick = (path: string, value: string) =>
-    save(deleteEnumValue(data, { path, value }));
+    save(deleteEnumValue(schemaModel, { path, value }));
 
-  const dispatchAddEnum = () => save(addEnumValue(data, { path: pointer, value: 'value' }));
+  const dispatchAddEnum = () => save(addEnumValue(schemaModel, { path: pointer, value: 'value' }));
 
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();

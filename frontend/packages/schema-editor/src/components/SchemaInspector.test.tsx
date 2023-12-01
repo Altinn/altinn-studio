@@ -47,7 +47,7 @@ const saveDatamodel = jest.fn();
 const setSelectedTypePointer = jest.fn();
 
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
-  const data = SchemaModel.fromArray(uiSchemaMap);
+  const schemaModel = SchemaModel.fromArray(uiSchemaMap);
   const store = configureStore()({
     selectedDefinitionNodeId: selectedItem?.pointer,
     selectedEditorTab: 'definitions',
@@ -59,7 +59,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
       selectedEditorTab: 'definitions',
     },
     appContextProps: {
-      data,
+      schemaModel,
       save: saveDatamodel,
       setSelectedTypePointer,
     },
