@@ -19,9 +19,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// Constructor to inject logger
         /// </summary>
         /// <param name="logger">ILogger instance</param>
-        public EnsureSuccessHandler(ILogger<EnsureSuccessHandler> logger)
+        public EnsureSuccessHandler(ILogger<EnsureSuccessHandler> logger = null)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger;
         }
 
         /// <summary>
