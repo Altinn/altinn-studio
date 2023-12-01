@@ -3,11 +3,17 @@ import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { Fieldset, Select, LegacyTextField, Switch } from '@digdir/design-system-react';
+import {
+  Fieldset,
+  Select,
+  LegacyTextField,
+  Label,
+  Switch,
+  Textfield,
+} from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
-import { Label } from 'app-shared/components/Label';
 import { makeDomFriendlyID } from '../../../utils/ui-schema-utils';
 import type { StringRestrictionsReducerAction } from './StringRestrictionsReducer';
 import {
@@ -90,10 +96,9 @@ export function StringRestrictions({
       ) && (
         <>
           <div>
-            <Label htmlFor='format-after-field'>{t(formatMinLangKey)}</Label>
             <div className={classes.formatFieldsRowContent}>
-              <LegacyTextField
-                id='format-after-field'
+              <Textfield
+                label={t(formatMinLangKey)}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
                 }
@@ -111,10 +116,9 @@ export function StringRestrictions({
             </div>
           </div>
           <div>
-            <Label htmlFor='format-before-field'>{t(formatMaxLangKey)}</Label>
             <div className={classes.formatFieldsRowContent}>
-              <LegacyTextField
-                id='format-before-field'
+              <Textfield
+                label={t(formatMaxLangKey)}
                 onChange={(e) =>
                   dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
                 }
