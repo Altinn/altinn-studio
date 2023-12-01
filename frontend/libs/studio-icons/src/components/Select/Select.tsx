@@ -6,7 +6,7 @@ import { SvgTemplate } from '../SvgTemplate';
  * @param {IconProps} props the icon props
  * @returns {JSX.Element} the icon as a react component
  * @example
- * import { Select } from '@altinn/icons';
+ * import { Select } from '@studio/icons';
  */
 export const Select = (props: IconProps): JSX.Element => {
   return (

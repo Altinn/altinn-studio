@@ -3,7 +3,7 @@ import classes from './StudioModal.module.css';
 import ReactModal from 'react-modal'; // TODO - Replace with component from Designsystemet. Issue:
 import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { MultiplyIcon } from '@altinn/icons';
+import { MultiplyIcon } from '@studio/icons';
 
 export type StudioModalProps = {
   isOpen: boolean;

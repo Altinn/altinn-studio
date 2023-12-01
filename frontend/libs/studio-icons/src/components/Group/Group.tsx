@@ -6,7 +6,7 @@ import { SvgTemplate } from '../SvgTemplate';
  * @param {IconProps} props the icon props
  * @returns {JSX.Element} the icon as a react component
  * @example
- * import { Group } from '@altinn/icons';
+ * import { Group } from '@studio/icons';
  */
 export const Group = (props: IconProps): JSX.Element => {
   return (

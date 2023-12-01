@@ -6,7 +6,7 @@ import { SvgTemplate } from '../SvgTemplate';
  * @param {IconProps} props the icon props
  * @returns {JSX.Element} the icon as a react component
  * @example
- * import { Likert } from '@altinn/icons';
+ * import { Likert } from '@studio/icons';
  */
 export const Likert = (props: IconProps): JSX.Element => {
   return (

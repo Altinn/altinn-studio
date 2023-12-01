@@ -1,14 +1,14 @@
-// This test file is used to test that all icons in the altinn-icons module
+// This test file is used to test that all icons in the studio-icons module
 import { render, screen } from '@testing-library/react';
-import * as AltinnIcons from './index';
+import * as StudioIcons from './index';
 import React from 'react';
 
-// Get all icon names from the AltinnIcons module
-const altinnIcons = Object.keys(AltinnIcons);
+// Get all icon names from the StudioIcons module
+const studioIcons = Object.keys(StudioIcons);
 
-describe('AltinnIcons', () => {
-  it.each(altinnIcons)('should render %s icon with correct attributes', (iconName) => {
-    const IconComponent = AltinnIcons[iconName];
+describe('StudioIcons', () => {
+  it.each(studioIcons)('should render %s icon with correct attributes', (iconName) => {
+    const IconComponent = StudioIcons[iconName];
     render(<IconComponent role='img' title='icon-title' />);
 
     const iconElement = screen.getByRole('img');
@@ -18,14 +18,14 @@ describe('AltinnIcons', () => {
     expect(iconElement).toHaveAttribute('viewBox', '0 0 24 24');
   });
 
-  it.each(altinnIcons)('should render %s icon with title-tag', (iconName) => {
-    const IconComponent = AltinnIcons[iconName];
+  it.each(studioIcons)('should render %s icon with title-tag', (iconName) => {
+    const IconComponent = StudioIcons[iconName];
     render(<IconComponent title='icon-title' />);
     expect(screen.getByTitle('icon-title')).toBeInTheDocument();
   });
 
-  it.each(altinnIcons)('should be possible to pass SVGElements props to icon %s', (iconName) => {
-    const IconComponent = AltinnIcons[iconName];
+  it.each(studioIcons)('should be possible to pass SVGElements props to icon %s', (iconName) => {
+    const IconComponent = StudioIcons[iconName];
     render(<IconComponent role='img' className='demoClass' />);
 
     const iconElement = screen.getByRole('img');
