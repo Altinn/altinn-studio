@@ -8,7 +8,7 @@ import { Button, LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { InformationSquareFillIcon } from '@altinn/icons';
+import { InformationSquareFillIcon } from '@studio/icons';
 
 export interface ICloneModalProps {
   anchorEl: Element;
