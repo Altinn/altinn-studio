@@ -1,5 +1,4 @@
 import React from 'react';
-import AltinnIcon from './AltinnIcon';
 import classes from './AltinnLink.module.css';
 
 export interface IAltinnLinkComponentProvidedProps {
@@ -19,15 +18,6 @@ const AltinnLink = (props: IAltinnLinkComponentProvidedProps) => {
       rel='noreferrer'
     >
       {props.linkTxt}
-      {props.shouldShowIcon && (
-        <AltinnIcon
-          isActive={false}
-          iconClass='ai ai-arrowrightup'
-          iconColor={'#000'}
-          iconSize={20}
-          margin='5px'
-        />
-      )}
     </a>
   );
 };
