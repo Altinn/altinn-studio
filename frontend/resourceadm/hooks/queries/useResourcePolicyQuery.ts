@@ -15,19 +15,17 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 export const useResourcePolicyQuery = (
   org: string,
   repo: string,
-  id: string
+  id: string,
 ): UseQueryResult<Policy> => {
   const { getPolicy } = useServicesContext();
 
-  return useQuery<Policy>(
-    [QueryKey.ResourcePolicy, org, repo, id],
-    () => getPolicy(org, repo, id),
-    {
-      select: (data) => ({
-        rules: data.rules ?? [],
-        requiredAuthenticationLevelEndUser: '3',
-        requiredAuthenticationLevelOrg: '3',
-      }),
-    }
-  );
+  return useQuery<Policy>({
+    queryKey: [QueryKey.ResourcePolicy, org, repo, id],
+    queryFn: () => getPolicy(org, repo, id),
+    select: (data) => ({
+      rules: data.rules ?? [],
+      requiredAuthenticationLevelEndUser: '3',
+      requiredAuthenticationLevelOrg: '3',
+    }),
+  });
 };

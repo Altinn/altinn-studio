@@ -2,15 +2,13 @@ import { UseText } from '../hooks';
 import { LayoutItemType } from './global';
 
 export interface Expression {
-  id?: string;
   operator?: Operator;
-  property?: ExpressionProperty;
+  property: ExpressionProperty;
   subExpressions?: SubExpression[];
   complexExpression?: any;
 }
 
 export interface SubExpression {
-  id: string;
   function?: ExpressionFunction;
   dataSource?: string;
   value?: string | number | boolean;
@@ -101,23 +99,19 @@ export const expressionPropertyTexts = (t: UseText) => ({
   ),
 });
 
-export const expressionInPreviewPropertyTexts = (t: UseText) => ({
-  [ExpressionPropertyBase.Hidden]: t('right_menu.expressions_property_preview_hidden'),
-  [ExpressionPropertyBase.ReadOnly]: t('right_menu.expressions_property_preview_read_only'),
-  [ExpressionPropertyBase.Required]: t('right_menu.expressions_property_preview_required'),
-  [ExpressionPropertyForGroup.EditAddButton]: t(
+export const expressionInPreviewPropertyTextKeys = {
+  [ExpressionPropertyBase.Hidden]: 'right_menu.expressions_property_preview_hidden',
+  [ExpressionPropertyBase.ReadOnly]: 'right_menu.expressions_property_preview_read_only',
+  [ExpressionPropertyBase.Required]: 'right_menu.expressions_property_preview_required',
+  [ExpressionPropertyForGroup.EditAddButton]:
     'right_menu.expressions_group_property_preview_show_add_button',
-  ),
-  [ExpressionPropertyForGroup.EditSaveAndNextButton]: t(
+  [ExpressionPropertyForGroup.EditSaveAndNextButton]:
     'right_menu.expressions_group_property_preview_show_edit_button',
-  ),
-  [ExpressionPropertyForGroup.EditDeleteButton]: t(
+  [ExpressionPropertyForGroup.EditDeleteButton]:
     'right_menu.expressions_group_property_preview_show_delete_button',
-  ),
-  [ExpressionPropertyForGroup.EditSaveButton]: t(
+  [ExpressionPropertyForGroup.EditSaveButton]:
     'right_menu.expressions_group_property_preview_show_save_button',
-  ),
-});
+};
 
 export const expressionDataSourceTexts = (t: UseText) => ({
   [DataSource.Component]: t('right_menu.expressions_data_source_component'),

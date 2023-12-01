@@ -20,7 +20,7 @@ const mockDeleteLocalChangesyMutation = useResetRepositoryMutation as jest.Mocke
 >;
 mockDeleteLocalChangesyMutation.mockReturnValue({
   mutate: deleteLocalChangesMutation,
-} as unknown as UseMutationResult<any, unknown, void, unknown>);
+} as unknown as UseMutationResult<any, Error, void, unknown>);
 
 describe('LocalChangesTab', () => {
   const user = userEvent.setup();

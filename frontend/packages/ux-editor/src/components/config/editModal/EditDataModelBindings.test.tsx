@@ -62,7 +62,7 @@ const render = async ({
     },
   };
 
-  renderWithMockStore(
+  return renderWithMockStore(
     { appData },
     { getDatamodelMetadata },
     handleDataModelChange(),
@@ -272,5 +272,24 @@ describe('EditDataModelBindings', () => {
 
     expect(editIcon).toBeInTheDocument();
     expect(onEditClick).toHaveBeenCalled;
+  });
+
+  it('show right data model when switching component', async () => {
+    const { renderResult } = await render({
+      dataModelBindings: { simpleBinding: 'testModel.field1' },
+    });
+    expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
+    renderResult.rerender(
+      <EditDataModelBindings
+        handleComponentChange={jest.fn()}
+        component={{
+          id: 'someComponentId',
+          type: ComponentType.Input,
+          dataModelBindings: { simpleBinding: 'testModel.field2' },
+          itemType: 'COMPONENT',
+        }}
+      />,
+    );
+    expect(await screen.findByText('testModel.field2')).toBeInTheDocument();
   });
 });

@@ -8,6 +8,6 @@ export const useSetStarredRepoMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (repo: IRepository) => setStarredRepo(repo),
-    onSuccess: () => queryClient.invalidateQueries([QueryKey.StarredRepos]),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKey.StarredRepos] }),
   });
 };

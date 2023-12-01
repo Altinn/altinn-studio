@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
     public class SessionController : ControllerBase
     {
         private readonly GeneralSettings _settings;
-        private readonly int _sessingExtensionInMinutes = 30;
+        private readonly int _sessionExtensionInMinutes = 30;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
@@ -71,19 +71,19 @@ namespace Altinn.Studio.Designer.Controllers
                 return Unauthorized();
             }
 
-            HttpContext.Response.Cookies.Append(_settings.SessionTimeoutCookieName, DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes - 5).ToString());
+            HttpContext.Response.Cookies.Append(_settings.SessionTimeoutCookieName, DateTime.UtcNow.AddMinutes(_sessionExtensionInMinutes - 5).ToString());
 
             await HttpContext.SignInAsync(
               CookieAuthenticationDefaults.AuthenticationScheme,
               HttpContext.User,
               new AuthenticationProperties
               {
-                  ExpiresUtc = DateTime.UtcNow.AddMinutes(_sessingExtensionInMinutes),
+                  ExpiresUtc = DateTime.UtcNow.AddMinutes(_sessionExtensionInMinutes),
                   IsPersistent = false,
                   AllowRefresh = false,
               });
 
-            return Ok(_sessingExtensionInMinutes);
+            return Ok(_sessionExtensionInMinutes);
         }
 
         /// <summary>

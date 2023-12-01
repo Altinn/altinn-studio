@@ -47,14 +47,14 @@ namespace Designer.Tests.Fixtures
 
             using var giteaGetLoginResponse = await giteaClient.GetAsync(giteaLoginUrl, cancellationToken);
             string htmlContent = await giteaGetLoginResponse.Content.ReadAsStringAsync(cancellationToken);
-            List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>
+            List<KeyValuePair<string, string>> formValues = new()
             {
                 new KeyValuePair<string, string>("user_name", GiteaConstants.TestUser),
                 new KeyValuePair<string, string>("password", GiteaConstants.TestUserPassword),
                 new KeyValuePair<string, string>("_csrf", GetStringFromHtmlContent(htmlContent, "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
             };
 
-            using FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
+            using FormUrlEncodedContent content = new(formValues);
 
             using var giteaPostLoginMessage = new HttpRequestMessage(HttpMethod.Post, giteaLoginUrl)
             {
@@ -82,14 +82,14 @@ namespace Designer.Tests.Fixtures
             if (loginResponse.Headers.Contains("Set-Cookie"))
             {
                 cookies = loginResponse.Headers.GetValues("Set-Cookie");
-                AuthenticationUtil.SetAltinnStudiCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
+                AuthenticationUtil.SetAltinnStudioCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
             }
 
             var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
 
             var xsrfcookies = xsrfResponse.Headers.GetValues("Set-Cookie");
             string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfcookies);
-            AuthenticationUtil.SetAltinnStudiCookieFromResponseHeader(request, cookies, xsrfToken);
+            AuthenticationUtil.SetAltinnStudioCookieFromResponseHeader(request, cookies, xsrfToken);
             SetCookies(request, GetGiteaAuthCookiesFromResponseMessage(xsrfResponse));
 
             return await base.SendAsync(request, cancellationToken);

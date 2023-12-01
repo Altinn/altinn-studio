@@ -63,7 +63,12 @@ export const GiteaHeader = ({
       <div className={classes.leftContentWrapper}>{leftComponent}</div>
       <div className={`${classes.rightContentWrapper} ${rightContentClassName}`}>
         <VersionControlButtons org={org} app={app} />
-        <ThreeDotsMenu onlyShowRepository={menuOnlyHasRepository} hasCloneModal={hasCloneModal} />
+        <ThreeDotsMenu
+          onlyShowRepository={menuOnlyHasRepository}
+          hasCloneModal={hasCloneModal}
+          org={org}
+          app={app}
+        />
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ export interface GenerateModelsButtonProps {
 
 export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) => {
   const { data } = useSchemaQuery(modelPath);
-  const { mutate, isLoading } = useGenerateModelsMutation(modelPath);
+  const { mutate, isPending } = useGenerateModelsMutation(modelPath);
   const { t } = useTranslation();
 
   const handleGenerateButtonClick = () => {
@@ -25,7 +25,7 @@ export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) =
 
   return (
     <>
-      {isLoading ? (
+      {isPending ? (
         <Spinner title={t('general.saving')} />
       ) : (
         <Button

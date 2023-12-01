@@ -57,16 +57,16 @@ export function NameField({ id, pointer, handleSave, label, ...props }: NameFiel
             return '';
         }
       }}
-    >
-      {({ errorCode, onChange, customRequired }) => (
+      renderField={({ errorCode, customRequired, fieldProps }) => (
         <AltinnTextField
+          {...fieldProps}
           id={id}
-          onChange={(e) => onChange(e.target.value, e)}
+          onChange={(e) => fieldProps.onChange(e.target.value, e)}
           onBlur={(e) => onNameBlur(e.target.value, errorCode)}
           withAsterisk={customRequired}
           {...props}
         />
       )}
-    </FormField>
+    />
   );
 }

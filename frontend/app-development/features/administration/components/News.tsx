@@ -6,10 +6,10 @@ import { useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 
 export const News = () => {
-  const { data: newsList, isLoading, isError } = useNewsListQuery();
+  const { data: newsList, isPending, isError } = useNewsListQuery();
   const { t } = useTranslation();
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <NewsTemplate>
         <AltinnSpinner spinnerText={t('administration.fetch_news_loading_message')} />
@@ -30,10 +30,10 @@ export const News = () => {
       <NewsTemplate>
         {newsList.news?.map(({ title, content }) => (
           <div className={classes.newsContent} key={title}>
-            <Label level={3} size='small'>
+            <Label level={3} size='medium'>
               {title}
             </Label>
-            <Paragraph size='xsmall'>{content}</Paragraph>
+            <Paragraph size='small'>{content}</Paragraph>
           </div>
         ))}
       </NewsTemplate>

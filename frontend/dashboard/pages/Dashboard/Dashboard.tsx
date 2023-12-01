@@ -30,7 +30,7 @@ type DashboardProps = {
 export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
-  const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useStarredReposQuery();
+  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
@@ -44,7 +44,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
 
-  if (isLoadingStarredRepos) {
+  if (areStarredReposPending) {
     return <PageSpinner />;
   }
 

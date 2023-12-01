@@ -1,34 +1,23 @@
-import React, { useLayoutEffect, useRef } from 'react';
-import { AltinnPopper } from 'app-shared/components/AltinnPopper';
-import { Textfield } from '@digdir/design-system-react';
+import React from 'react';
+import { Textfield, TextfieldProps } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
-interface IRepoNameInputProps {
-  repoName: string;
+type RepoNameInputProps = {
+  repoName?: string;
   errorMessage?: string;
-  onRepoNameChanged: (newValue: string) => void;
-}
+} & TextfieldProps;
 
-export const RepoNameInput = ({
-  repoName,
-  onRepoNameChanged,
-  errorMessage,
-}: IRepoNameInputProps) => {
-  const serviceNameRef = useRef(null);
+export const RepoNameInput = ({ repoName, errorMessage, name }: RepoNameInputProps) => {
   const { t } = useTranslation();
-  useLayoutEffect(() => {
-    serviceNameRef.current = document.querySelector('#service-saved-name');
-  });
-  const handleChange = ({ target }: { target: HTMLInputElement }) =>
-    onRepoNameChanged(target.value);
 
   return (
     <div>
       <Textfield
+        name={name}
         id='service-saved-name'
         label={t('general.service_name')}
-        value={repoName}
-        onChange={handleChange}
+        defaultValue={repoName}
+        error={errorMessage}
       />
       <p>
         {t('dashboard.service_saved_name_description')}{' '}
@@ -36,15 +25,6 @@ export const RepoNameInput = ({
           {t('dashboard.service_saved_name_description_cannot_be_changed')}
         </strong>
       </p>
-      {errorMessage && (
-        <AltinnPopper
-          anchorEl={serviceNameRef.current}
-          message={errorMessage}
-          styleObj={{
-            zIndex: 1300,
-          }}
-        />
-      )}
     </div>
   );
 };

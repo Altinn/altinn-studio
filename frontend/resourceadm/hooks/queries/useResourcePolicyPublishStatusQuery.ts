@@ -20,8 +20,8 @@ export const useResourcePolicyPublishStatusQuery = (
 ): UseQueryResult<ResourceVersionStatus, AxiosError> => {
   const { getResourcePublishStatus } = useServicesContext();
 
-  return useQuery<ResourceVersionStatus, AxiosError>(
-    [QueryKey.ResourcePublishStatus, org, repo, id],
-    () => getResourcePublishStatus(org, repo, id),
-  );
+  return useQuery<ResourceVersionStatus, AxiosError>({
+    queryKey: [QueryKey.ResourcePublishStatus, org, repo, id],
+    queryFn: () => getResourcePublishStatus(org, repo, id),
+  });
 };

@@ -1,5 +1,6 @@
 export enum QueryKey {
   AppDeployments = 'AppDeployments',
+  AppLibVersion = 'AppLibVersion',
   AppMetadata = 'AppMetadata',
   AppPolicy = 'AppPolicy',
   AppReleases = 'AppReleases',

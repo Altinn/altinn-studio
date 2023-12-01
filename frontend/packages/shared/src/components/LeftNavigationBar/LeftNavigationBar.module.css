@@ -3,7 +3,7 @@
   width: 250px;
   height: 100%;
   left: 0;
-  border-right: 1px solid var(--fds-semantic-border-neutral-divider);
+  border-right: 1px solid var(--fds-semantic-border-divider-default);
   border-top: none;
 }
 
@@ -18,7 +18,7 @@
   padding-left: 15px;
   padding-block: 20px;
   border: none;
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-divider);
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
   background-color: var(--fds-semantic-background-subtle);
   cursor: pointer;
 }

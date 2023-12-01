@@ -4,7 +4,7 @@
 }
 
 .backButton {
-  border-bottom: 2px solid var(--fds-semantic-border-neutral-divider);
+  border-bottom: 2px solid var(--fds-semantic-border-divider-default);
 }
 
 .backButton:hover {
