@@ -1,11 +1,16 @@
 import { useSchemaEditorAppContext } from './useSchemaEditorAppContext';
 import { FieldType, NodePosition, ObjectKind, ROOT_POINTER } from '../../../schema-model';
+import { useTranslation } from 'react-i18next';
 
 export const useAddProperty = () => {
   const { schemaModel, save } = useSchemaEditorAppContext();
+  const { t } = useTranslation();
 
-  const addProperty = (objectKind: ObjectKind, fieldType?: FieldType, parentPointer: string = ROOT_POINTER): string | undefined => {
-
+  const addProperty = (
+    objectKind: ObjectKind,
+    fieldType?: FieldType,
+    parentPointer: string = ROOT_POINTER
+  ): string | undefined => {
     const target: NodePosition = { parentPointer, index: -1 };
     const name = schemaModel.generateUniqueChildName(parentPointer, 'name');
     switch (objectKind) {
@@ -19,14 +24,14 @@ export const useAddProperty = () => {
   };
 
   const addReference = (name: string): string | undefined => {
-    const reference = prompt('Oppgi navnet på typen det skal refereres til.');
+    const reference = prompt(t('schema_editor.add_reference.prompt'));
     if (!reference) return undefined;
     if (schemaModel.hasDefinition(reference)) {
       const { pointer } = schemaModel.addReference(name, reference);
       save(schemaModel);
       return pointer;
     } else {
-      alert(`Typen ${reference} finnes ikke.`);
+      alert(t('schema_editor.add_reference.type_does_not_exist', { reference }));
       return undefined;
     }
   };
