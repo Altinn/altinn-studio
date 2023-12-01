@@ -1,7 +1,7 @@
 import React from 'react';
 import { StudioSpinner } from '@altinn/studio-components';
 import classes from './PageSpinner.module.css';
-import { Center } from '../Center';
+import { StudioCenter } from '@altinn/studio-components';
 
 export type PageSpinnerProps = {
   spinnerText?: string;
@@ -9,8 +9,8 @@ export type PageSpinnerProps = {
 
 export const PageSpinner = ({ spinnerText }: PageSpinnerProps) => {
   return (
-    <Center>
+    <StudioCenter>
       <StudioSpinner spinnerText={spinnerText} size='xlarge' className={classes.spinnerText} />
-    </Center>
+    </StudioCenter>
   );
 };
