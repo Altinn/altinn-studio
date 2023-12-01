@@ -538,6 +538,37 @@ describe('SchemaModel', () => {
       model.addField(result3, FieldType.String, target);
       validateTestUiSchema(model.asArray());
     });
+
+    it('Returns prefix + 0 and does not change the model when run on a reference node', () => {
+      const model = schemaModel.deepClone();
+      const result = model.generateUniqueChildName(referenceNodeMock.pointer, 'newName');
+      expect(result).toBe('newName0');
+      expect(model.asArray()).toEqual(schemaModel.asArray());
+    });
+  });
+
+  describe('generateUniqueDefinitionName', () => {
+    it('Returns a unique definition name with the given prefix and does not change the schema', () => {
+      const model = schemaModel.deepClone();
+      const result = model.generateUniqueDefinitionName('newName');
+      expect(result).toBe('newName0');
+      expect(model.asArray()).toEqual(schemaModel.asArray());
+    });
+
+    it('Keeps returning unique names when definitions with the generated names are added', () => {
+      const model = schemaModel.deepClone();
+      const prefix = 'newName';
+      const result = model.generateUniqueDefinitionName(prefix);
+      expect(result).toBe('newName0');
+      model.addFieldType(result);
+      const result2 = model.generateUniqueDefinitionName(prefix);
+      expect(result2).toBe('newName1');
+      model.addFieldType(result2);
+      const result3 = model.generateUniqueDefinitionName(prefix);
+      expect(result3).toBe('newName2');
+      model.addFieldType(result3);
+      validateTestUiSchema(model.asArray());
+    });
   });
 
   describe('changeCombinationType', () => {

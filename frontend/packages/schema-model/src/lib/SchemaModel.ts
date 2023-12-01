@@ -12,6 +12,7 @@ import {
   isReference
 } from './utils';
 import {
+  generateUniqueStringWithNumber,
   insertArrayElementAtPos,
   removeItemByValue,
   replaceItemsByValue,
@@ -277,15 +278,18 @@ export class SchemaModel {
     }
   }
 
-  public generateUniqueChildName(pointer: string, namePrefix: string = ''): string {
-    const createPointer = (i: number) => this.createChildPointer(pointer, namePrefix + i);
-    let i = 0;
-    let newPointer = createPointer(i);
-    while (this.hasNode(newPointer)) {
-      i++;
-      newPointer = createPointer(i);
-    }
-    return extractNameFromPointer(newPointer);
+  public generateUniqueChildName(pointer: string, namePrefix: string = ''): string | undefined {
+    const node = this.getNode(pointer);
+    const childPointers = isFieldOrCombination(node) ? node.children : [];
+    const childNames = childPointers.map(extractNameFromPointer);
+    return generateUniqueStringWithNumber(childNames, namePrefix);
+  }
+
+  public generateUniqueDefinitionName(namePrefix: string = ''): string {
+    const definitions = this.getDefinitions();
+    const definitionPointers = definitions.map((node) => node.pointer);
+    const definitionNames = definitionPointers.map(extractNameFromPointer);
+    return generateUniqueStringWithNumber(definitionNames, namePrefix);
   }
 
   public changeCombinationType(pointer: string, combinationType: CombinationKind): SchemaModel {

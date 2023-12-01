@@ -1,6 +1,7 @@
 import {
   areItemsUnique,
   arrayIntersection,
+  generateUniqueStringWithNumber,
   insertArrayElementAtPos,
   last,
   mapByKey,
@@ -163,6 +164,27 @@ describe('arrayUtils', () => {
     it('Keeps the array unchanged if the two indices are the same', () => {
       const array = ['a', 'b', 'c', 'd', 'e', 'f'];
       expect(moveArrayItem(array, 1, 1)).toEqual(array);
+    });
+  });
+
+  describe('generateUniqueStringWithNumber', () => {
+    it('Returns prefix + 0 when the array is empty', () => {
+      expect(generateUniqueStringWithNumber([], 'prefix')).toBe('prefix0');
+    });
+
+    it('Returns prefix + 0 when the array does not contain this value already', () => {
+      const array = ['something', 'something else'];
+      expect(generateUniqueStringWithNumber(array, 'prefix')).toBe('prefix0');
+    });
+
+    it('Returns prefix + number based on the existing values', () => {
+      const array = ['prefix0', 'prefix1', 'prefix2'];
+      expect(generateUniqueStringWithNumber(array, 'prefix')).toBe('prefix3');
+    });
+
+    it('Returns number only when the prefix is empty', () => {
+      const array = ['0', '1', '2'];
+      expect(generateUniqueStringWithNumber(array)).toBe('3');
     });
   });
 });

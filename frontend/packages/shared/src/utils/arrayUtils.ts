@@ -133,3 +133,14 @@ export const moveArrayItem = <T>(array: T[], from: number, to: number): T[] => {
   out.splice(to, 0, item);
   return out;
 };
+
+/** Returns a string that is not already present in the given array by appending a number to the given prefix. */
+export const generateUniqueStringWithNumber = (array: string[], prefix: string = ''): string => {
+  let i = 0;
+  let uniqueString = prefix + i;
+  while (array.includes(uniqueString)) {
+    i++;
+    uniqueString = prefix + i;
+  }
+  return uniqueString;
+}
