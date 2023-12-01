@@ -4,10 +4,13 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import { AxiosError } from 'axios';
 
-export const useDatamodelsXsdQuery = (owner, app): UseQueryResult<DatamodelMetadataXsd[], AxiosError> => {
+export const useDatamodelsXsdQuery = (
+  owner,
+  app,
+): UseQueryResult<DatamodelMetadataXsd[], AxiosError> => {
   const { getDatamodelsXsd } = useServicesContext();
-  return useQuery<DatamodelMetadataXsd[], AxiosError>(
-    [QueryKey.DatamodelsXsd, owner, app],
-    () => getDatamodelsXsd(owner, app),
-  );
+  return useQuery<DatamodelMetadataXsd[], AxiosError>({
+    queryKey: [QueryKey.DatamodelsXsd, owner, app],
+    queryFn: () => getDatamodelsXsd(owner, app),
+  });
 };

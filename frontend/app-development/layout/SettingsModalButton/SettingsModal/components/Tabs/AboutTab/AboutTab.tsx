@@ -58,7 +58,7 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
 
   const displayContent = () => {
     switch (mergeQueryStatuses(appConfigStatus, repositoryStatus, initialCommitStatus)) {
-      case 'loading': {
+      case 'pending': {
         return <LoadingTabData />;
       }
       case 'error': {

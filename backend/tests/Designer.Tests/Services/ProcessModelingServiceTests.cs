@@ -44,7 +44,16 @@ namespace Designer.Tests.Services
             },
             new object[]
             {
-                "7.0.0"
+                "7.0.0", new string[]
+                {
+                    "start-data-confirmation-end.bpmn",
+                    "start-data-data-data-end.bpmn",
+                    "start-data-end.bpmn",
+                }
+            },
+            new object[]
+            {
+                "6.0.0"
             }
         };
     }

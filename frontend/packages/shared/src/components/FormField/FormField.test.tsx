@@ -34,7 +34,17 @@ const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
     value: '',
     ...props,
   };
-  return rtlRender(<FormField {...allProps}>{() => <LegacyTextField />}</FormField>);
+  return rtlRender(
+    <FormField
+      {...allProps}
+      renderField={({ fieldProps }) => (
+        <LegacyTextField
+          {...fieldProps}
+          onChange={(event) => fieldProps.onChange(event.target.value, event)}
+        />
+      )}
+    />,
+  );
 };
 
 describe('FormField', () => {
@@ -60,7 +70,7 @@ describe('FormField', () => {
       onChange: mockOnChange,
     });
 
-    await act(() => user.type(screen.getByRole('textbox'), 'test'));
+    await act(async () => await user.type(screen.getByRole('textbox'), 'test'));
     expect(mockOnChange).toHaveBeenCalledTimes(4);
   });
 

@@ -13,7 +13,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
 
-  const { data: optionListIds, isLoading, isError, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);
   const handleOptionsIdChange = (optionsId: string) => {
     handleComponentChange({
@@ -24,7 +24,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   return (
     <div>
-      {isLoading ? (
+      {isPending ? (
         <AltinnSpinner />
       ) : isError ? (
         <ErrorMessage>
@@ -44,6 +44,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}
             </Button>
           </p>
+
           {!useCustomCodeList && (
             <FormField
               id={component.id}
@@ -51,8 +52,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               onChange={handleOptionsIdChange}
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
-            >
-              {() => (
+              renderField={() => (
                 <Select
                   options={optionListIds.map((option) => ({
                     label: option,
@@ -60,7 +60,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
                   }))}
                 />
               )}
-            </FormField>
+            />
           )}
         </>
       )}

@@ -49,7 +49,10 @@ export const App = (): JSX.Element => {
       <div className={classes.root}>
         <Routes>
           <Route element={<PageLayout />}>
-            <Route path='/:selectedContext?' element={<Dashboard user={user} organizations={organizations} />} />
+            <Route
+              path='/:selectedContext?'
+              element={<Dashboard user={user} organizations={organizations} />}
+            />
             <Route
               path='/:selectedContext/new'
               element={<CreateService organizations={organizations} user={user} />}
@@ -60,5 +63,9 @@ export const App = (): JSX.Element => {
     );
   }
 
-  return <div className={classes.appDashboardSpinner}><PageSpinner/></div>;
+  return (
+    <div className={classes.appDashboardSpinner}>
+      <PageSpinner />
+    </div>
+  );
 };

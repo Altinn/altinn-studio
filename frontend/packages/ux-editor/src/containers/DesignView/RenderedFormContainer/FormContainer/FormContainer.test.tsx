@@ -25,7 +25,7 @@ const mockUseDeleteFormContainerMutation = useDeleteFormContainerMutation as jes
 >;
 mockUseDeleteFormContainerMutation.mockReturnValue({
   mutate: mockDeleteFormContainer,
-} as unknown as UseMutationResult<IInternalLayout, unknown, string, unknown>);
+} as unknown as UseMutationResult<IInternalLayout, Error, string, unknown>);
 
 describe('FormContainer', () => {
   afterEach(jest.clearAllMocks);

@@ -6,7 +6,7 @@ import { Heading } from '@digdir/design-system-react';
 
 export const FavoriteReposList = () => {
   const { t } = useTranslation();
-  const { data: userStarredRepos, isLoading: isLoadingUserStarredRepos } = useStarredReposQuery();
+  const { data: userStarredRepos, isPending: areUserStarredReposPending } = useStarredReposQuery();
 
   return (
     <div>
@@ -15,7 +15,7 @@ export const FavoriteReposList = () => {
       </Heading>
       <RepoList
         repos={userStarredRepos}
-        isLoading={isLoadingUserStarredRepos}
+        isLoading={areUserStarredReposPending}
         pageSize={5}
         rowCount={userStarredRepos?.length ?? 0}
       />

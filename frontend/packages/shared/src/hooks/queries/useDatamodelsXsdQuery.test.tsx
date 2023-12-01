@@ -17,20 +17,21 @@ describe('useDatamodelsXsdQuery', () => {
     const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve(datamodels));
     const client = createQueryClientMock();
 
-    const { result } = renderHook(
-      () => useDatamodelsXsdQuery(org, app),
-      { wrapper: ({ children }) => (
-        <ServicesContextProvider {...{
-          ...queriesMock,
-          getDatamodelsXsd,
-          client,
-        }}>
+    const { result } = renderHook(() => useDatamodelsXsdQuery(org, app), {
+      wrapper: ({ children }) => (
+        <ServicesContextProvider
+          {...{
+            ...queriesMock,
+            getDatamodelsXsd,
+            client,
+          }}
+        >
           {children}
         </ServicesContextProvider>
-      ) }
-    );
+      ),
+    });
 
-    await waitFor(() => result.current.isLoading);
+    await waitFor(() => result.current.isPending);
     expect(getDatamodelsXsd).toHaveBeenCalledWith(org, app);
     await waitFor(() => result.current.isSuccess);
     expect(result.current.data).toEqual(datamodels);

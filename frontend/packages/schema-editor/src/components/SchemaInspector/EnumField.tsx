@@ -1,62 +1,73 @@
-import type { KeyboardEvent } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
-import { IconButton } from '../common/IconButton';
-import { LegacyTextField } from '@digdir/design-system-react';
+import { Button, Textfield } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
-import { getDomFriendlyID } from '../../utils/ui-schema-utils';
-import { IconImage } from '../common/Icon';
 import { useTranslation } from 'react-i18next';
+import { TrashIcon } from '@altinn/icons';
 
-export interface IEnumFieldProps {
+export type EnumFieldProps = {
   path: string;
   value: string;
   readOnly?: boolean;
-  fullWidth?: boolean;
   isValid?: boolean;
   onChange: (value: string, oldValue?: string) => void;
   onDelete?: (path: string, key: string) => void;
   onEnterKeyPress?: () => void;
-}
+  baseId: string;
+};
 
-export const EnumField = (props: IEnumFieldProps) => {
-  const [val, setVal] = useState(props.value);
+export const EnumField = ({
+  path,
+  value,
+  readOnly,
+  isValid,
+  onChange,
+  onDelete,
+  onEnterKeyPress,
+  baseId,
+}: EnumFieldProps) => {
+  const [inputValue, setInputValue] = useState(value);
   useEffect(() => {
-    setVal(props.value);
-  }, [props.value]);
+    setInputValue(value);
+  }, [value]);
   const { t } = useTranslation();
 
   const onBlur = () => {
-    props.onChange(val, props.value);
+    onChange(inputValue, value);
   };
 
-  const onChange = (e: any) => {
-    e.stopPropagation();
-    setVal(e.target.value);
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+    setInputValue(event.target.value);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
-    e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
+    e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
-  const baseId = getDomFriendlyID(props.path);
+  const label = t('schema_editor.textfield_label', { id: `${baseId}-enum-${value}` });
+
   return (
     <div className={classes.root}>
-      <LegacyTextField
-        id={`${baseId}-enum-${props.value}`}
-        disabled={props.readOnly}
-        value={val}
-        onChange={onChange}
+      <Textfield
+        label={label}
+        hideLabel
+        disabled={readOnly}
+        value={inputValue}
+        onChange={handleChange}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        autoFocus
-        isValid={props.isValid}
+        error={!isValid}
       />
-      {props.onDelete && (
-        <IconButton
-          ariaLabel={t('schema_editor.delete_field')}
+      {onDelete && (
+        <Button
+          title={t('schema_editor.delete_field')}
+          aria-label={t('schema_editor.delete_field')}
           className={classes.delete}
-          icon={IconImage.Wastebucket}
-          id={`${baseId}-delete-${props.value}`}
-          onClick={() => props.onDelete?.(props.path, props.value)}
+          icon={<TrashIcon aria-hidden />}
+          id={`${baseId}-delete-${value}`}
+          onClick={() => onDelete?.(path, value)}
+          color='danger'
+          variant='tertiary'
         />
       )}
     </div>

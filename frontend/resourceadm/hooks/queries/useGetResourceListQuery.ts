@@ -18,8 +18,11 @@ export const useGetResourceListQuery = (
 ): UseQueryResult<ResourceListItem[]> => {
   const { getResourceList } = useServicesContext();
 
-  return useQuery<ResourceListItem[]>([QueryKey.ResourceList, org], () => getResourceList(org), {
-    select: (data) => data && sortResourceListByDateAndMap(data),
+  return useQuery<ResourceListItem[]>({
+    queryKey: [QueryKey.ResourceList, org],
+    queryFn: () => getResourceList(org),
+    select: (resourceListItems: ResourceListItem[]) =>
+      resourceListItems && sortResourceListByDateAndMap(resourceListItems),
     enabled: !disabled,
   });
 };
