@@ -12,7 +12,7 @@ import { Navigation } from './Navigation';
 import { AltinnSpinner } from 'app-shared/components';
 import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
-import { StudioCenter } from '@altinn/studio-components';
+import { StudioCenter } from '@studio/components';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();

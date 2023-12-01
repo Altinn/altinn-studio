@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioModal } from '@altinn/studio-components';
+import { StudioModal } from '@studio/components';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { Button, Heading, Paragraph, Textfield } from '@digdir/design-system-react';
 
