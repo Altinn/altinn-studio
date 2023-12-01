@@ -1,7 +1,8 @@
-using System.Net;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
@@ -11,6 +12,18 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
     /// </summary>
     public class EnsureSuccessHandler : DelegatingHandler
     {
+
+        private readonly ILogger<EnsureSuccessHandler> _logger;
+
+        /// <summary>
+        /// Constructor to inject logger
+        /// </summary>
+        /// <param name="logger">ILogger instance</param>
+        public EnsureSuccessHandler(ILogger<EnsureSuccessHandler> logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         /// <summary>
         /// Checks to see if response is success
         /// Otherwise, throws Exception
@@ -24,6 +37,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
 
             if (!response.IsSuccessStatusCode)
             {
+
+                string errorMessage = await response.Content.ReadAsStringAsync();
+                _logger.LogError("// UpdateApplicationMetadata // Failed with status code {StatusCode} and message {ResponseMessage}.\r\n Content: {AppMetadata}", response.StatusCode, errorMessage, request.Content);
+
                 throw new HttpRequestWithStatusException(response.ReasonPhrase)
                 {
                     StatusCode = response.StatusCode
