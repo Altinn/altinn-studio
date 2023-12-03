@@ -39,10 +39,14 @@ export const RemoveChangesModal = forwardRef<HTMLDialogElement, RemoveChangesMod
     };
 
     return (
-      <Modal ref={ref} onClose={onClose} title={t('administration.reset_repo_confirm_heading')}>
+      <Modal
+        ref={ref}
+        onClose={onClose}
+        title={t('settings_modal.local_changes_tab_delete_modal_title')}
+      >
         <Paragraph size='small'>
           <Trans
-            i18nKey={'administration.reset_repo_confirm_info'}
+            i18nKey={'settings_modal.local_changes_tab_delete_modal_text'}
             values={{ repositoryName: repo }}
             components={{ bold: <strong /> }}
           />
@@ -67,7 +71,7 @@ export const RemoveChangesModal = forwardRef<HTMLDialogElement, RemoveChangesMod
             variant='secondary'
             size='small'
           >
-            {t('administration.reset_repo_button')}
+            {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
           </Button>
           <Button color='second' onClick={handleClose} variant='secondary' size='small'>
             {t('general.cancel')}

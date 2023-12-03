@@ -38,7 +38,7 @@ describe('AppEnvironments', () => {
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
-    expect(screen.getByText(textMock('administration.app_environments_error'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.app_environments_error'))).toBeInTheDocument();
   });
 
   it('shows no environments message when organization has no environment', async () => {
@@ -106,7 +106,7 @@ describe('AppEnvironments', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
     expect(screen.getByRole('heading', { name: envName })).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.unavailable'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.go_to_build_log'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.unavailable'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.go_to_build_log'))).toBeInTheDocument();
   });
 });

@@ -12,7 +12,7 @@ export const News = () => {
   if (isPending) {
     return (
       <NewsTemplate>
-        <StudioSpinner spinnerText={t('administration.fetch_news_loading_message')} />
+        <StudioSpinner spinnerText={t('overview.fetch_news_loading_message')} />
       </NewsTemplate>
     );
   }
@@ -20,7 +20,7 @@ export const News = () => {
   if (isError) {
     return (
       <NewsTemplate>
-        <Alert severity='danger'>{t('administration.fetch_news_error_message')}</Alert>
+        <Alert severity='danger'>{t('overview.fetch_news_error_message')}</Alert>
       </NewsTemplate>
     );
   }
@@ -50,7 +50,7 @@ const NewsTemplate = ({ children }: NewsTemplateProps) => {
   return (
     <>
       <Heading level={2} size='xxsmall' spacing>
-        {t('administration.news_title')}
+        {t('overview.news_title')}
       </Heading>
       <div className={classes.news}>{children}</div>
     </>
