@@ -4,7 +4,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppDeploymentsQuery } from 'app-development/hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 import { IDeployment } from 'app-development/sharedResources/appDeployment/types';
@@ -63,7 +63,7 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
     });
   };
 
-  if (isPendingDeploys) return <AltinnSpinner />;
+  if (isPendingDeploys) return <StudioSpinner />;
 
   if (deploysAreError)
     return (
