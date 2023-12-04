@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './VerificationModal.module.css';
 import { Button, Heading, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { StudioModal } from '@altinn/studio-components';
+import { StudioModal } from '@studio/components';
 
 export type VerificationModalProps = {
   isOpen: boolean;

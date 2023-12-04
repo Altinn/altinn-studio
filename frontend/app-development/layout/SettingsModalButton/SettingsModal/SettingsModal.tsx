@@ -9,7 +9,7 @@ import {
   ShieldLockIcon,
   SidebarBothIcon,
 } from '@navikt/aksel-icons';
-import { StudioModal } from '@altinn/studio-components';
+import { StudioModal } from '@studio/components';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
