@@ -39,7 +39,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
             {
 
                 string errorMessage = await response.Content.ReadAsStringAsync();
-                _logger.LogError("// UpdateApplicationMetadata // Failed with status code {StatusCode} and message {ResponseMessage}.\r\n Content: {AppMetadata}", response.StatusCode, errorMessage, request.Content);
+                string requestContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("// EnsureSuccessHandler // SendAsync // Request to {RequestUri} failed with status code {StatusCode} and message {ResponseMessage}.\r\n Content: {RequestContent}", request.RequestUri, response.StatusCode, errorMessage, requestContent);
 
                 throw new HttpRequestWithStatusException(response.ReasonPhrase)
                 {
