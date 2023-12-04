@@ -90,7 +90,12 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
         <Heading size='large' level={1}>
-          {getReposLabel({ selectedContext, orgs: organizations, t, isResourcesRepo: true })}
+          {getReposLabel({
+            selectedContext,
+            orgs: organizations ? organizations : [],
+            t,
+            isResourcesRepo: true,
+          })}
         </Heading>
         <div className={classes.topRightWrapper}>
           <Button

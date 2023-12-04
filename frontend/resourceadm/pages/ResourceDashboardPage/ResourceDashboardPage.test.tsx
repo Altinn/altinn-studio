@@ -56,6 +56,13 @@ const mockResourceList: ResourceListItem[] = [
 
 const getResourceList = jest.fn().mockImplementation(() => Promise.resolve({}));
 
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({
+    selectedContext: 'tdd',
+  }),
+}));
+
 // Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
 const realConsole = console;
 
@@ -73,6 +80,11 @@ describe('ResourceDashBoardPage', () => {
   it('fetches resource list on mount', () => {
     render();
     expect(getResourceList).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows correct organization header', () => {
+    render();
+    expect(screen.getByText(textMock('dashboard.resources'))).toBeInTheDocument();
   });
 
   it('shows the loading state when page is loading', () => {
