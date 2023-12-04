@@ -1,6 +1,6 @@
 import React, { HTMLAttributes, forwardRef } from 'react';
 import classes from './StudioPageSpinner.module.css';
-import { StudioCenter, StudioSpinner } from '@altinn/studio-components';
+import { StudioCenter, StudioSpinner } from '@studio/components';
 
 export type StudioPageSpinnerProps = {
   spinnerText?: string;
