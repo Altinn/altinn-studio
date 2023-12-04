@@ -4,7 +4,7 @@ import './App.css';
 import { Route, Routes } from 'react-router-dom';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
-import { PageSpinner } from 'app-shared/components';
+import { StudioPageSpinner } from '@studio/components';
 import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
 import { PageLayout } from 'resourceadm/pages/PageLayout';
 import { ResourcePage } from 'resourceadm/pages/ResourcePage';
@@ -67,5 +67,5 @@ export const App = (): JSX.Element => {
       </div>
     );
   }
-  return <PageSpinner />;
+  return <StudioPageSpinner />;
 };

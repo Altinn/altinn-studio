@@ -1,8 +1,7 @@
 import React from 'react';
 import { useSchemaQuery } from '../../../hooks/queries';
 import { useSchemaMutation } from '../../../hooks/mutations';
-import { PageSpinner } from 'app-shared/components';
-import { StudioCenter } from '@studio/components';
+import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +26,7 @@ export const SelectedSchemaEditor = ({
   const render = () => {
     switch (status) {
       case 'pending':
-        return <PageSpinner />;
+        return <StudioPageSpinner />;
 
       case 'error':
         return (
