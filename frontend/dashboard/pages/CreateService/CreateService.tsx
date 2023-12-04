@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import classes from './CreateService.module.css';
@@ -122,7 +122,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       <RepoNameInput name='repoName' errorMessage={formError.repoName} />
       <div className={classes.actionContainer}>
         {isCreatingRepo || isCreatingRepoSuccess ? (
-          <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
+          <StudioSpinner spinnerText={t('dashboard.creating_your_service')} />
         ) : (
           <>
             <Button type='submit' color='first' size='small'>

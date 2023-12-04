@@ -1,6 +1,5 @@
 import React from 'react';
 import { Popover } from '@mui/material';
-import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { datamodelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { SimpleContainer } from 'app-shared/primitives';
@@ -9,6 +8,7 @@ import { Button, LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { InformationSquareFillIcon } from '@altinn/icons';
 
 export interface ICloneModalProps {
   anchorEl: Element;
@@ -41,12 +41,7 @@ export const CloneModal = (props: ICloneModalProps) => {
         {dataModel.length === 0 && (
           <>
             <div className={classes.blackText}>
-              <AltinnIconComponent
-                iconClass='ai ai-circle-exclamation'
-                iconColor='#0062BA'
-                iconSize={30}
-                padding='0px 0px 3px 0px'
-              />
+              <InformationSquareFillIcon className={classes.infoIcon} />
               {t('sync_header.data_model_missing')}
             </div>
             <div className={classes.blackText}>{t('sync_header.data_model_missing_helper')}</div>

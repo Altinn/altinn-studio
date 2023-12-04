@@ -3,7 +3,7 @@ import { Select, Textfield } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@altinn/studio-components';
 import { ErrorMessage, Button } from '@digdir/design-system-react';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
@@ -25,7 +25,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   return (
     <div>
       {isPending ? (
-        <AltinnSpinner />
+        <StudioSpinner />
       ) : isError ? (
         <ErrorMessage>
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
