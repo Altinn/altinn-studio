@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
-namespace SharedResources.Tests
+namespace Altinn.Studio.DataModeling.Converter.Csharp
 {
     public static class Compiler
     {
@@ -42,13 +42,10 @@ namespace SharedResources.Tests
                         errors.AppendLine($"{diagnostic.Id}: {diagnostic.GetMessage()}");
                     }
 
-                    throw new Exception($"Uh dude, you seem to have provoked some compilation errors with your code change. Please fix before merging! {errors}");
+                    throw new CsharpGenerationException($"// Compiler // CompileToAssembly // Csharp compilation failed with errors: {errors}");
                 }
-                else
-                {
-                    ms.Seek(0, SeekOrigin.Begin);
-                    assembly = Assembly.Load(ms.ToArray());
-                }
+                ms.Seek(0, SeekOrigin.Begin);
+                assembly = Assembly.Load(ms.ToArray());
             }
 
             return assembly;

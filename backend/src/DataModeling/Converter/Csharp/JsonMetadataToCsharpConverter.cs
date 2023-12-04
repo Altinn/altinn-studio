@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Metamodel;
@@ -21,6 +23,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
         private string Indent(int level = 1) => new string(' ', level * _generationSettings.IndentSize);
 
+        public void TryGenerateCsharpClass(string csharpClass)
+        {
+            Compiler.CompileToAssembly(csharpClass);
+        }
+
         /// <summary>
         /// Create Model from ServiceMetadata object
         /// </summary>
@@ -28,15 +35,15 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         /// <returns>The model code in C#</returns>
         public string CreateModelFromMetadata(ModelMetadata serviceMetadata)
         {
-            Dictionary<string, string> classes = new Dictionary<string, string>();
+            Dictionary<string, string> classes = new();
 
             CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null), serviceMetadata, serviceMetadata.TargetNamespace);
 
             StringBuilder writer = new StringBuilder()
-                .AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using System.Linq;")
+                .AppendLine("using System.Runtime;")
                 .AppendLine("using System.Text.Json.Serialization;")
                 .AppendLine("using System.Threading.Tasks;")
                 .AppendLine("using System.Xml.Serialization;")
