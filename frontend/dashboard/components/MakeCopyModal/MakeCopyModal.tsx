@@ -1,6 +1,6 @@
 import type { MouseEvent, ChangeEvent } from 'react';
 import React, { useState } from 'react';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import type { PopoverOrigin } from '@mui/material';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
