@@ -252,16 +252,15 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public Task GetOptions_WhenSpecifiedOptionIdDoesNotExistInApp_ShouldThrowNotFoundException()
+        public async Task GetOptions_WhenSpecifiedOptionIdDoesNotExistInApp_ShouldThrowNotFoundException()
         {
             string org = "ttd";
             string repository = "app-with-options";
             string developer = "testUser";
-            string optionsId = "test-options";
+            string optionsId = "non-existing-test-options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptions(optionsId));
-            return Task.CompletedTask;
+            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptions(optionsId));
         }
 
         [Fact]

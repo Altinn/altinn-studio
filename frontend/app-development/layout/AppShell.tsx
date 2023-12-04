@@ -5,7 +5,7 @@ import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NotFoundPage } from 'app-shared/components/notFound';
 import { PageSpinner } from 'app-shared/components';
-import { Center } from 'app-shared/components/Center';
+import { StudioCenter } from '@altinn/studio-components';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
 
 /**
@@ -18,17 +18,17 @@ export const AppShell = (): React.ReactNode => {
 
   const {
     data: repoStatus,
-    isLoading: repoStatusLoading,
+    isPending: isRepoStatusPending,
     error: repoStatusError,
   } = useRepoStatusQuery(org, app);
 
-  const { data: user, isLoading: userLoading } = useUserQuery();
+  const { data: user, isPending: isUserPending } = useUserQuery();
 
-  if (repoStatusLoading || userLoading) {
+  if (isRepoStatusPending || isUserPending) {
     return (
-      <Center style={{ height: '100vh' }}>
+      <StudioCenter>
         <PageSpinner />
-      </Center>
+      </StudioCenter>
     );
   }
 

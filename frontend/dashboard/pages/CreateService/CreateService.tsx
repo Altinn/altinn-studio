@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { StudioSpinner } from '@altinn/studio-components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import classes from './CreateService.module.css';
@@ -13,7 +14,6 @@ import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { AltinnSpinner } from 'app-shared/components';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { navigateToAppDevelopment } from './utils/navigationUtils';
 
@@ -30,6 +30,7 @@ type CreateServiceProps = {
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
   const dataModellingPreference: DatamodelFormat.XSD = DatamodelFormat.XSD;
+
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
@@ -39,14 +40,18 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     repoName: '',
   });
 
-  const { mutate: addRepo, isLoading: isCreatingRepo } = useAddRepoMutation({
+  const {
+    mutate: addRepoMutation,
+    isPending: isCreatingRepo,
+    isSuccess: isCreatingRepoSuccess,
+  } = useAddRepoMutation({
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
 
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self ? user.login : selectedContext;
   const createAppRepo = async (createAppForm: CreateAppForm) => {
-    addRepo(
+    addRepoMutation(
       {
         org: createAppForm.org,
         repository: createAppForm.repoName,
@@ -116,14 +121,16 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       />
       <RepoNameInput name='repoName' errorMessage={formError.repoName} />
       <div className={classes.actionContainer}>
-        <Button type='submit' color='first' size='small' disabled={isCreatingRepo}>
-          {isCreatingRepo ? (
-            <AltinnSpinner size='xxsmall' aria-label={t('dashboard.creating_your_service')} />
-          ) : (
-            <span>{t('dashboard.create_service_btn')}</span>
-          )}
-        </Button>
-        <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
+        {isCreatingRepo || isCreatingRepoSuccess ? (
+          <StudioSpinner spinnerText={t('dashboard.creating_your_service')} />
+        ) : (
+          <>
+            <Button type='submit' color='first' size='small'>
+              {t('dashboard.create_service_btn')}
+            </Button>
+            <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
+          </>
+        )}
       </div>
     </form>
   );

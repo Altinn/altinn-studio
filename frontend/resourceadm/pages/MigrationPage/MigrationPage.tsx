@@ -44,12 +44,12 @@ export const MigrationPage = ({
   const { org: selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
-  const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
+  const { data: validatePolicyData, isPending: isValidatePolicyPending } = useValidatePolicyQuery(
     selectedContext,
     repo,
     resourceId,
   );
-  const { data: validateResourceData, isLoading: validateResourceLoading } =
+  const { data: validateResourceData, isPending: validateResourceLoading } =
     useValidateResourceQuery(selectedContext, repo, resourceId);
 
   // TODO - API call. Issue: #10715
@@ -67,7 +67,7 @@ export const MigrationPage = ({
    * Display the content on the page
    */
   const displayContent = () => {
-    if (validatePolicyLoading || validateResourceLoading) {
+    if (isValidatePolicyPending || validateResourceLoading) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner size='xlarge' variant='interaction' title='Laster inn migreringsstatus' />

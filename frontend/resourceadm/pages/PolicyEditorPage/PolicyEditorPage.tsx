@@ -33,16 +33,16 @@ export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): 
   const repo = `${selectedContext}-resources`;
 
   // Get the data
-  const { data: policyData, isLoading: policyLoading } = useResourcePolicyQuery(
+  const { data: policyData, isPending: isPolicyPending } = useResourcePolicyQuery(
     selectedContext,
     repo,
     resourceId,
   );
-  const { data: actionData, isLoading: actionLoading } = useResourcePolicyActionsQuery(
+  const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(
     selectedContext,
     repo,
   );
-  const { data: subjectData, isLoading: subjectsLoading } = useResourcePolicySubjectsQuery(
+  const { data: subjectData, isPending: isSubjectsPending } = useResourcePolicySubjectsQuery(
     selectedContext,
     repo,
   );
@@ -69,7 +69,7 @@ export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): 
    * Displays the content based on the state of the page
    */
   const displayContent = () => {
-    if (policyLoading || actionLoading || subjectsLoading) {
+    if (isPolicyPending || isActionPending || isSubjectsPending) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner

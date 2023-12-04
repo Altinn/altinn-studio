@@ -3,8 +3,9 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { Policy } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { AxiosError } from 'axios';
+import { PolicyRule, RequiredAuthLevel } from '@altinn/policy-editor';
 
-const DEFAULT_AUTH_LEVEL = '3';
+const DEFAULT_AUTH_LEVEL: RequiredAuthLevel = '3';
 
 /**
  * Query to get a policy of an app.
@@ -17,19 +18,27 @@ const DEFAULT_AUTH_LEVEL = '3';
 export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Policy, AxiosError> => {
   const { getAppPolicy } = useServicesContext();
 
-  return useQuery<Policy, AxiosError>(
-    [QueryKey.AppPolicy, org, app],
-    () => getAppPolicy(org, app),
-    {
-      select: (response): Policy => ({
-        rules: (response?.rules || []).map((rule) => ({
-          ...rule,
-          subject: rule.subject.map((s) => s.toLowerCase()),
-        })),
-        requiredAuthenticationLevelEndUser:
-          response?.requiredAuthenticationLevelEndUser ?? DEFAULT_AUTH_LEVEL,
-        requiredAuthenticationLevelOrg: DEFAULT_AUTH_LEVEL,
-      }),
-    },
+  return useQuery<Policy, AxiosError>({
+    queryKey: [QueryKey.AppPolicy, org, app],
+    queryFn: () => getAppPolicy(org, app),
+    select: (response: Policy): Policy => mapAppPolicyResponse(response),
+  });
+};
+const mapAppPolicyResponse = (appPolicy: Policy): Policy => {
+  const policyRules: PolicyRule[] = ruleSubjectToLowerCase(appPolicy.rules);
+  return {
+    rules: policyRules,
+    requiredAuthenticationLevelEndUser:
+      appPolicy?.requiredAuthenticationLevelEndUser ?? DEFAULT_AUTH_LEVEL,
+    requiredAuthenticationLevelOrg: DEFAULT_AUTH_LEVEL,
+  };
+};
+
+const ruleSubjectToLowerCase = (policyRules: PolicyRule[] = []) => {
+  return policyRules.map(
+    (rule: PolicyRule): PolicyRule => ({
+      ...rule,
+      subject: rule.subject.map((subject: string) => subject.toLowerCase()),
+    }),
   );
 };

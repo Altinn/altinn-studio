@@ -5,14 +5,14 @@ import { useStarredReposQuery } from '../../hooks/queries';
 
 export const FavoriteReposList = () => {
   const { t } = useTranslation();
-  const { data: userStarredRepos, isLoading: isLoadingUserStarredRepos } = useStarredReposQuery();
+  const { data: userStarredRepos, isPending: areUserStarredReposPending } = useStarredReposQuery();
 
   return (
     <div>
       <h2>{t('dashboard.favourites')}</h2>
       <RepoList
         repos={userStarredRepos}
-        isLoading={isLoadingUserStarredRepos}
+        isLoading={areUserStarredReposPending}
         pageSize={5}
         rowCount={userStarredRepos?.length ?? 0}
       />

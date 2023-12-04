@@ -9,7 +9,8 @@ export const useRepoStatusQuery = (
   app: string,
 ): UseQueryResult<RepoStatus, AxiosError> => {
   const { getRepoStatus } = useServicesContext();
-  return useQuery<RepoStatus, AxiosError>([QueryKey.RepoStatus, owner, app], () =>
-    getRepoStatus(owner, app),
-  );
+  return useQuery<RepoStatus, AxiosError>({
+    queryKey: [QueryKey.RepoStatus, owner, app],
+    queryFn: () => getRepoStatus(owner, app),
+  });
 };

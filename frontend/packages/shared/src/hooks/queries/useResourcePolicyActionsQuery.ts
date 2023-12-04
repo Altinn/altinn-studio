@@ -18,7 +18,8 @@ export const useResourcePolicyActionsQuery = (
 ): UseQueryResult<PolicyAction[], AxiosError> => {
   const { getPolicyActions } = useServicesContext();
 
-  return useQuery<PolicyAction[], AxiosError>([QueryKey.ResourcePolicyActions, org, repo], () =>
-    getPolicyActions(org, repo),
-  );
+  return useQuery<PolicyAction[], AxiosError>({
+    queryKey: [QueryKey.ResourcePolicyActions, org, repo],
+    queryFn: () => getPolicyActions(org, repo),
+  });
 };

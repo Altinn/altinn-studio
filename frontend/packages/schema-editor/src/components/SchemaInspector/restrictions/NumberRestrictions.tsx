@@ -4,9 +4,8 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { IntRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
-import { Label } from 'app-shared/components/Label';
 import classes from './StringRestrictions.module.css';
-import { ErrorMessage, LegacyTextField, Switch } from '@digdir/design-system-react';
+import { ErrorMessage, LegacyTextField, Switch, Label } from '@digdir/design-system-react';
 import {
   numberRestrictionsReducer,
   NumberRestrictionsReducerAction,

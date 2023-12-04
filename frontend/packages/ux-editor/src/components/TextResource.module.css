@@ -12,13 +12,17 @@
 }
 
 .root.isSearching {
-  --search-background-color: #1EADF718;
+  --search-background-color: #1eadf718;
   background-color: var(--search-background-color);
   box-shadow: 0 0 0 var(--frame-offset) var(--search-background-color);
 }
 
 .root.previewMode:not(.isSearching):not(:hover) .button {
   visibility: hidden;
+}
+
+.paragraph {
+  word-break: break-word;
 }
 
 .label {

@@ -9,13 +9,15 @@ import { useFormContext } from '../../containers/FormContext';
 import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,
-  shouldDisplayFeature
+  shouldDisplayFeature,
 } from 'app-shared/utils/featureToggleUtils';
 import classes from './Properties.module.css';
 
 export const Properties = () => {
   const { t } = useTranslation();
-  const [showNewExpressions, setShowNewExpressions] = React.useState<boolean>(shouldDisplayFeature('expressions'));
+  const [showNewExpressions, setShowNewExpressions] = React.useState<boolean>(
+    shouldDisplayFeature('expressions'),
+  );
   const { formId } = useFormContext();
   const formIdRef = React.useRef(formId);
 
@@ -39,7 +41,7 @@ export const Properties = () => {
   const handleToggleNewDynamics = (event: React.ChangeEvent<HTMLInputElement>) => {
     setShowNewExpressions(event.target.checked);
     // Ensure choice of feature toggling is persisted in local storage
-    if(event.target.checked){
+    if (event.target.checked) {
       addFeatureFlagToLocalStorage('expressions');
     } else {
       removeFeatureFlagFromLocalStorage('expressions');
@@ -64,14 +66,18 @@ export const Properties = () => {
           <Accordion.Content>
             <>
               <Switch
-                  name={'new-dynamics-switch'}
-                  onChange={handleToggleNewDynamics}
-                  checked={showNewExpressions}
-                  size={'small'}
+                name={'new-dynamics-switch'}
+                onChange={handleToggleNewDynamics}
+                checked={showNewExpressions}
+                size={'small'}
               >
                 {t('right_menu.show_new_dynamics')}
               </Switch>
-            {showNewExpressions ? (<Expressions/>) : (<ConditionalRendering/>)}
+              {showNewExpressions ? (
+                formId && <Expressions key={formId} />
+              ) : (
+                <ConditionalRendering />
+              )}
             </>
           </Accordion.Content>
         </Accordion.Item>
