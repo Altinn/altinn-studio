@@ -72,7 +72,7 @@ export const swapArrayElements = <T>(array: T[], itemA: T, itemB: T): T[] => {
  */
 export const insertArrayElementAtPos = <T>(array: T[], item: T, targetPos: number): T[] => {
   const out = [...array];
-  if (targetPos >= array.length || targetPos < 0) out.push(item)
+  if (targetPos >= array.length || targetPos < 0) out.push(item);
   else out.splice(targetPos, 0, item);
   return out;
 };
@@ -91,5 +91,56 @@ export const arrayIntersection = <T>(arrA: T[], arrB: T[]) => arrA.filter((x) =>
  * @param key The key to map by.
  * @returns An array of values mapped by the given key.
  */
-export const mapByKey = <T extends object>(array: T[], key: keyof T): T[keyof T][] =>
+export const mapByKey = <T extends object, K extends keyof T>(array: T[], key: K): T[K][] =>
   array.map((item) => item[key]);
+
+/**
+ * Returns an array of which the items matching the given value are replaced with the given item.
+ * @param array The array of interest.
+ * @param value The value to match items by.
+ * @param replaceWith The item to replace the matching items with.
+ */
+export const replaceItemsByValue = <T>(array: T[], value: T, replaceWith: T): T[] =>
+  replaceByPredicate(array, (item) => item === value, replaceWith);
+
+/**
+ * Returns an array of which the items matching the given predicate are replaced with the given item.
+ * @param array The array of interest.
+ * @param predicate The predicate to match items by.
+ * @param replaceWith The item to replace the matching items with.
+ * @returns A shallow copy of the array with the matching items replaced.
+ */
+export const replaceByPredicate = <T>(
+  array: T[],
+  predicate: (item: T) => boolean,
+  replaceWith: T,
+): T[] => {
+  const out = [...array];
+  const index = array.findIndex(predicate);
+  if (index > -1) out[index] = replaceWith;
+  return out;
+};
+
+/**
+ * Returns an array where the item at the given index is moved to the given index.
+ * @param array The array of interest.
+ * @param from The index of the item to move.
+ * @param to The index to move the item to.
+ */
+export const moveArrayItem = <T>(array: T[], from: number, to: number): T[] => {
+  const out = [...array];
+  const item = out.splice(from, 1)[0];
+  out.splice(to, 0, item);
+  return out;
+};
+
+/** Returns a string that is not already present in the given array by appending a number to the given prefix. */
+export const generateUniqueStringWithNumber = (array: string[], prefix: string = ''): string => {
+  let i = 0;
+  let uniqueString = prefix + i;
+  while (array.includes(uniqueString)) {
+    i++;
+    uniqueString = prefix + i;
+  }
+  return uniqueString;
+};

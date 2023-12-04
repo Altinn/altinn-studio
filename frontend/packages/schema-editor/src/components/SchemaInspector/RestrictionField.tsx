@@ -1,7 +1,7 @@
 import type { BaseSyntheticEvent, ChangeEvent } from 'react';
 import React from 'react';
 import { Textfield } from '@digdir/design-system-react';
-import { getDomFriendlyID } from '../../utils/ui-schema-utils';
+import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 
 export interface IRestrictionFieldProps {
   className?: string;
@@ -23,7 +23,7 @@ export const RestrictionField = ({
   readOnly,
   value,
 }: IRestrictionFieldProps) => {
-  const fieldId = getDomFriendlyID(path, { suffix: `${keyName}-value` });
+  const fieldId = makeDomFriendlyID(path, { suffix: `${keyName}-value` });
   const handleChange = ({ target }: ChangeEvent) => {
     const element = target as HTMLInputElement;
     if (element.value !== value) {

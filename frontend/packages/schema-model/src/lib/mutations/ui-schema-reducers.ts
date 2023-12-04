@@ -1,28 +1,11 @@
-import { getNodeByPointer, getParentNodeByPointer } from '../selectors';
-import {
-  CombinationKind,
-  FieldType,
-  Keyword,
-  ObjectKind,
-  UiSchemaNode,
-  UiSchemaNodes,
-  UiSchemaReducer
-} from '../../types';
-import { deepCopy } from 'app-shared/pure';
-import {
-  createNodeBase,
-  getUniqueNodePath,
-  makePointer,
-  replaceLastPointerSegment,
-  splitPointerInBaseAndName
-} from '../utils';
-import { ROOT_POINTER } from '../constants';
+import { CombinationKind, FieldType, NodePosition, UiSchemaReducer } from '../../types';
+import { isField, isReference, splitPointerInBaseAndName } from '../utils';
 import { convertPropToType } from './convert-node';
-import { removeNodeByPointer } from './remove-node';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { castRestrictionType } from '../restrictions';
-import { renameNodePointer } from './rename-node';
 import { removeItemByValue, swapArrayElements } from 'app-shared/utils/arrayUtils';
+import { changeNameInPointer } from '../pointerUtils';
+import { SchemaModel } from '../SchemaModel';
 
 export type AddEnumValueArgs = {
   path: string;
@@ -30,55 +13,16 @@ export type AddEnumValueArgs = {
   oldValue?: string;
 };
 export const addEnumValue: UiSchemaReducer<AddEnumValueArgs> =
-  (uiSchema: UiSchemaNodes, { path, value, oldValue }) => {
-    const newSchema = deepCopy(uiSchema);
-    const node = getNodeByPointer(newSchema, path);
-    node.enum = node.enum ?? [];
-    if (oldValue === null || oldValue === undefined) node.enum.push(value);
-    if (node.enum.includes(oldValue)) node.enum[node.enum.indexOf(oldValue)] = value;
-    if (!node.enum.includes(value)) node.enum.push(value);
-    return newSchema;
-  };
-
-export type AddRootItemArgs = {
-  location: string;
-  name: string;
-  props: Partial<UiSchemaNode>;
-  callback: (pointer: string) => void;
-};
-export const addRootItem: UiSchemaReducer<AddRootItemArgs> =
-  (uiSchema: UiSchemaNodes, { location, name, props, callback }) => {
-    const newSchema = deepCopy(uiSchema);
-    const newPointer = getUniqueNodePath(newSchema, [location, name].join('/'));
-    const newNode = createNodeBase(newPointer);
-    newNode.implicitType = false;
-    newSchema.push(Object.assign(newNode, props));
-    getNodeByPointer(newSchema, ROOT_POINTER).children.push(newPointer);
-    callback(newPointer);
-    return newSchema;
-  };
-
-export type AddPropertyArgs = {
-  pointer: string;
-  props: Partial<UiSchemaNode>;
-  callback?: (pointer: string) => void;
-};
-export const addProperty: UiSchemaReducer<AddPropertyArgs> =
-  (uiSchema: UiSchemaNodes, { pointer, props, callback }) => {
-    const newSchema = deepCopy(uiSchema);
-    const addToNode = getNodeByPointer(newSchema, pointer);
-    const pointerBase = addToNode.isArray
-      ? makePointer(addToNode.pointer, Keyword.Items)
-      : addToNode.pointer;
-    const newNodePointer = getUniqueNodePath(
-      newSchema,
-      makePointer(pointerBase, Keyword.Properties, 'name')
-    );
-    addToNode.children.push(newNodePointer);
-    callback && callback(newNodePointer);
-    props.implicitType = false;
-    newSchema.push(Object.assign(createNodeBase(newNodePointer), props));
-    return newSchema;
+  (uiSchema: SchemaModel, { path, value, oldValue }) => {
+    const newSchema = uiSchema.deepClone();
+    const node = newSchema.getNode(path);
+    if (isField(node)) {
+      node.enum = node.enum ?? [];
+      if (oldValue === null || oldValue === undefined) node.enum.push(value);
+      if (node.enum.includes(oldValue)) node.enum[node.enum.indexOf(oldValue)] = value;
+      if (!node.enum.includes(value)) node.enum.push(value);
+      return newSchema;
+    }
   };
 
 export type DeleteEnumValueArgs = {
@@ -86,18 +30,27 @@ export type DeleteEnumValueArgs = {
   value: string;
 };
 export const deleteEnumValue: UiSchemaReducer<DeleteEnumValueArgs> =
-  (uiSchema: UiSchemaNodes, { path, value }) => {
-    const newSchema = deepCopy(uiSchema);
-    const enumItem = getNodeByPointer(newSchema, path);
-    enumItem.enum = removeItemByValue(enumItem.enum, value);
+  (uiSchema: SchemaModel, { path, value }) => {
+    const newSchema = uiSchema.deepClone();
+    const enumItem = newSchema.getNode(path);
+    if (isField(enumItem)) {
+      enumItem.enum = removeItemByValue(enumItem.enum, value);
+    }
     return newSchema;
   };
 
 export const promoteProperty: UiSchemaReducer<string> =
-  (uiSchema, path) => convertPropToType(deepCopy(uiSchema), path);
+  (uiSchema, path) => {
+  const newSchema = uiSchema.deepClone();
+  return convertPropToType(newSchema, path);
+};
 
 export const deleteNode: UiSchemaReducer<string> =
-  (uiSchema, path) => removeNodeByPointer(deepCopy(uiSchema), path);
+  (uiSchema, path) => {
+    const newSchema = uiSchema.deepClone();
+    newSchema.deleteNode(path);
+    return newSchema;
+  };
 
 export type SetRestrictionArgs = {
   path: string;
@@ -106,8 +59,8 @@ export type SetRestrictionArgs = {
 };
 export const setRestriction: UiSchemaReducer<SetRestrictionArgs> =
   (uiSchema, { path, key, value }) => {
-    const newSchema = deepCopy(uiSchema);
-    const schemaItem = getNodeByPointer(newSchema, path);
+    const newSchema = uiSchema.deepClone();
+    const schemaItem = newSchema.getNode(path);
     const restrictions = { ...schemaItem.restrictions };
     restrictions[key] = castRestrictionType(key, value);
     Object.keys(restrictions).forEach((k) => {
@@ -125,8 +78,8 @@ export type SetRestrictionsArgs = {
 };
 export const setRestrictions: UiSchemaReducer<SetRestrictionsArgs> =
   (uiSchema, { path, restrictions }) => {
-    const newSchema = deepCopy(uiSchema);
-    const schemaItem = getNodeByPointer(newSchema, path);
+    const newSchema = uiSchema.deepClone();
+    const schemaItem = newSchema.getNode(path);
     const schemaItemRestrictions = { ...schemaItem.restrictions };
     Object.keys(restrictions).forEach((key) => {
       schemaItemRestrictions[key] = castRestrictionType(key, restrictions[key]);
@@ -146,13 +99,12 @@ export type SetRefArgs = {
 };
 export const setRef: UiSchemaReducer<SetRefArgs> =
   (uiSchema, { path, ref }) => {
-    const newSchema = deepCopy(uiSchema);
-    const referredNode = getNodeByPointer(newSchema, ref);
-    const uiSchemaNode = getNodeByPointer(newSchema, path);
-    uiSchemaNode.reference = ref;
-    uiSchemaNode.objectKind = ObjectKind.Reference;
-    uiSchemaNode.fieldType = referredNode.fieldType;
-    uiSchemaNode.implicitType = true;
+    const newSchema = uiSchema.deepClone();
+    const uiSchemaNode = newSchema.getNode(path);
+    if (isReference(uiSchemaNode)) {
+      uiSchemaNode.reference = ref;
+      uiSchemaNode.implicitType = true;
+    }
     return newSchema;
   };
 
@@ -162,12 +114,13 @@ export type SetTypeArgs = {
 };
 export const setType: UiSchemaReducer<SetTypeArgs> =
   (uiSchema, { path, type }) => {
-    const newSchema = deepCopy(uiSchema);
-    const uiSchemaNode = getNodeByPointer(newSchema, path);
-    uiSchemaNode.reference = undefined;
-    uiSchemaNode.children = [];
-    uiSchemaNode.fieldType = type;
-    uiSchemaNode.implicitType = false;
+    const newSchema = uiSchema.deepClone();
+    const uiSchemaNode = newSchema.getNode(path);
+    if (isField(uiSchemaNode)) {
+      uiSchemaNode.children = [];
+      uiSchemaNode.fieldType = type;
+      uiSchemaNode.implicitType = false;
+    }
     return newSchema;
   };
 
@@ -177,8 +130,8 @@ export type SetTitleArgs = {
 };
 export const setTitle: UiSchemaReducer<SetTitleArgs> =
   (uiSchema, { path, title }) => {
-    const newSchema = deepCopy(uiSchema);
-    getNodeByPointer(newSchema, path).title = title;
+    const newSchema = uiSchema.deepClone();
+    newSchema.getNode(path).title = title;
     return newSchema;
   };
 
@@ -188,8 +141,8 @@ export type SetDescriptionArgs = {
 };
 export const setDescription: UiSchemaReducer<SetDescriptionArgs> =
   (uiSchema, { path, description }) => {
-    const newSchema = deepCopy(uiSchema);
-    getNodeByPointer(newSchema, path).description = description;
+    const newSchema = uiSchema.deepClone();
+    newSchema.getNode(path).description = description;
     return newSchema;
   };
 
@@ -199,8 +152,8 @@ export type SetRequiredArgs = {
 };
 export const setRequired: UiSchemaReducer<SetRequiredArgs> =
   (uiSchema, { path, required }) => {
-    const newSchema = deepCopy(uiSchema);
-    getNodeByPointer(newSchema, path).isRequired = required;
+    const newSchema = uiSchema.deepClone();
+    newSchema.getNode(path).isRequired = required;
     return newSchema;
   };
 
@@ -210,8 +163,8 @@ export type SetCustomPropertiesArgs = {
 };
 export const setCustomProperties: UiSchemaReducer<SetCustomPropertiesArgs> =
   (uiSchema, { path, properties }) => {
-    const newSchema = deepCopy(uiSchema);
-    getNodeByPointer(newSchema, path).custom = properties;
+    const newSchema = uiSchema.deepClone();
+    newSchema.getNode(path).custom = properties;
     return newSchema;
   };
 
@@ -221,31 +174,22 @@ export type SetCombinationTypeArgs = {
 };
 export const setCombinationType: UiSchemaReducer<SetCombinationTypeArgs> =
   (uiSchema, { path, type }) => {
-    const newSchema = deepCopy(uiSchema);
-    const uiSchemaNode = getNodeByPointer(newSchema, path);
-    const oldPointer = [path, uiSchemaNode.fieldType].join('/');
-    const newPointer = [path, type].join('/');
-    uiSchemaNode.fieldType = type;
-    return renameNodePointer(newSchema, oldPointer, newPointer);
+    const newSchema = uiSchema.deepClone();
+    newSchema.changeCombinationType(path, type);
+    return newSchema;
   };
 
 export type AddCombinationItemArgs = {
   pointer: string;
-  props: Partial<UiSchemaNode>;
   callback: (pointer: string) => void;
 };
 export const addCombinationItem: UiSchemaReducer<AddCombinationItemArgs> =
-  (uiSchema, { pointer, props, callback }) => {
-    const newSchema = deepCopy(uiSchema);
-    const node = getNodeByPointer(newSchema, pointer);
-    const item = Object.assign(
-      createNodeBase(pointer, node.fieldType, node.children.length.toString()),
-      props
-    );
-    item.isCombinationItem = true;
-    node.children.push(item.pointer);
-    newSchema.push(item);
-    callback(item.pointer);
+  (uiSchema, { pointer, callback }) => {
+    const newSchema = uiSchema.deepClone();
+    const name = newSchema.generateUniqueChildName(pointer);
+    const target: NodePosition = { parentPointer: pointer, index: -1 };
+    const newNode = newSchema.addField(name, FieldType.Null, target);
+    callback(newNode.pointer);
     return newSchema;
   };
 
@@ -259,33 +203,18 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> =
     if (!name || name.length === 0) {
       return uiSchema;
     }
-    const newSchema = deepCopy(uiSchema);
-    const nodeToRename = getNodeByPointer(newSchema, path);
-    const oldPointer = nodeToRename.pointer;
-    const newPointer = replaceLastPointerSegment(oldPointer, name);
+    const newSchema = uiSchema.deepClone();
+    const nodeToRename = newSchema.getNode(path);
+    const newPointer = changeNameInPointer(path, name);
+    const newNode = { ...nodeToRename, pointer: newPointer };
+    newSchema.updateNode(path, newNode);
     callback?.(newPointer);
-    return renameNodePointer(newSchema, nodeToRename.pointer, newPointer);
+    return newSchema;
   };
 
 export const toggleArrayField: UiSchemaReducer<string> = (uiSchema, pointer) => {
-  let newSchema = deepCopy(uiSchema);
-  const node = getNodeByPointer(newSchema, pointer);
-  node.isArray = !node.isArray;
-  node.children.forEach((child) => {
-    if (node.isArray) {
-      newSchema = renameNodePointer(
-        newSchema,
-        child,
-        child.replace(pointer, makePointer(pointer, Keyword.Items))
-      );
-    } else {
-      newSchema = renameNodePointer(
-        newSchema,
-        child,
-        child.replace(makePointer(pointer, Keyword.Items), pointer)
-      );
-    }
-  });
+  const newSchema = uiSchema.deepClone();
+  newSchema.toggleIsArray(pointer);
   return newSchema;
 };
 
@@ -298,8 +227,8 @@ export const changeChildrenOrder: UiSchemaReducer<ChangeChildrenOrderArgs> =
     const { base: baseA } = splitPointerInBaseAndName(pointerA);
     const { base: baseB } = splitPointerInBaseAndName(pointerB);
     if (baseA !== baseB) return uiSchema;
-    const newSchema = deepCopy(uiSchema);
-    const parentNode = getParentNodeByPointer(newSchema, pointerA);
+    const newSchema = uiSchema.deepClone();
+    const parentNode = newSchema.getParentNode(pointerA);
     if (parentNode) parentNode.children = swapArrayElements(parentNode.children, pointerA, pointerB);
     return newSchema;
   };
