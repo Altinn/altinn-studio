@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useEnvironmentsQuery, useOrgListQuery } from 'app-development/hooks/queries';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 import { ICreateAppDeploymentEnvObject } from 'app-development/sharedResources/appDeployment/types';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { AppStatus } from './AppStatus';

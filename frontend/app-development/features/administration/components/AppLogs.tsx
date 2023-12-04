@@ -3,7 +3,7 @@ import classes from './AppLogs.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppDeploymentsQuery, useEnvironmentsQuery } from 'app-development/hooks/queries';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { IDeployment } from 'app-development/sharedResources/appDeployment/types';

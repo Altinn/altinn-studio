@@ -3,7 +3,7 @@ import { useErrorBoundary } from 'react-error-boundary';
 import { Trans, useTranslation } from 'react-i18next';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 import { Alert, Button, ErrorMessage, Link, Paragraph } from '@digdir/design-system-react';
-import { StudioCenter } from '@altinn/studio-components';
+import { StudioCenter } from '@studio/components';
 import classes from './ErrorBoundaryFallback.module.css';
 
 export type ErrorBoundaryFallbackProps = {

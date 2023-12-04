@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { removeSelection } from '../../../../features/editor/schemaEditorSlice';
 import { TrashIcon } from '@navikt/aksel-icons';
-import { StudioCenter } from '@altinn/studio-components';
+import { StudioCenter } from '@studio/components';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 
 export type ItemFieldsTableRowProps = {

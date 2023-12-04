@@ -7,7 +7,7 @@ import { useDatamodelsJsonQuery, useDatamodelsXsdQuery } from 'app-shared/hooks/
 import { useParams } from 'react-router-dom';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { mergeJsonAndXsdData } from '../../utils/metadataUtils';
-import { StudioCenter } from '@altinn/studio-components';
+import { StudioCenter } from '@studio/components';
 
 interface DataModellingProps {
   createPathOption?: boolean;

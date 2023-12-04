@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import classes from './ServiceContent.module.css';
 import { Alert, ErrorMessage, Paragraph, Select, Spinner } from '@digdir/design-system-react';
-import { StudioCenter } from '@altinn/studio-components';
+import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from 'resourceadm/hooks/queries';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';

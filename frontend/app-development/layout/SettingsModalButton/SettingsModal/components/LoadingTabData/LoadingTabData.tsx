@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioCenter } from '@altinn/studio-components';
+import { StudioCenter } from '@studio/components';
 import { Spinner } from '@digdir/design-system-react';
 
 export const LoadingTabData = (): ReactNode => {

@@ -1,7 +1,6 @@
 import React from 'react';
-import { StudioSpinner } from '@altinn/studio-components';
 import classes from './PageSpinner.module.css';
-import { StudioCenter } from '@altinn/studio-components';
+import { StudioCenter, StudioSpinner } from '@studio/components';
 
 export type PageSpinnerProps = {
   spinnerText?: string;
