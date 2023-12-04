@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Heading, Paragraph, Label, Alert } from '@digdir/design-system-react';
 import { useNewsListQuery } from 'app-development/hooks/queries/useNewsListQuery';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 

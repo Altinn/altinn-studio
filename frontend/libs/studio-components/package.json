@@ -1,5 +1,5 @@
 {
-  "name": "@altinn/studio-components",
+  "name": "@studio/components",
   "packageManager": "yarn@3.6.3",
   "version": "0.1.0",
   "main": "./src/index.ts",
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@altinn/icons": "^0.1.0",
-    "@digdir/design-system-react": "0.35.0",
+    "@digdir/design-system-react": "0.38.0",
     "@digdir/design-system-tokens": "0.10.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

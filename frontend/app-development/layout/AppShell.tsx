@@ -4,8 +4,7 @@ import { PageHeader } from './PageHeader';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NotFoundPage } from 'app-shared/components/notFound';
-import { StudioPageSpinner } from '@studio/components';
-import { StudioCenter } from '@altinn/studio-components';
+import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
 
 /**

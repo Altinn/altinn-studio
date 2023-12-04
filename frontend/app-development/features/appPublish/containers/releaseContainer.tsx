@@ -13,7 +13,7 @@ import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/querie
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 

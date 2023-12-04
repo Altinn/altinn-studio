@@ -4,7 +4,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppDeploymentsQuery } from 'app-development/hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 import { IDeployment } from 'app-development/sharedResources/appDeployment/types';

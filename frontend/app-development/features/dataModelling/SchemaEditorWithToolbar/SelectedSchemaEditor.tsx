@@ -1,8 +1,7 @@
 import React from 'react';
 import { useSchemaQuery } from '../../../hooks/queries';
 import { useSchemaMutation } from '../../../hooks/mutations';
-import { StudioPageSpinner } from '@studio/components';
-import { StudioCenter } from '@altinn/studio-components';
+import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';

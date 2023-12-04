@@ -1,6 +1,6 @@
 import React from 'react';
 import { FileSelector } from 'app-shared/components';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 import axios from 'axios';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { datamodelsUploadPath } from 'app-shared/api/paths';

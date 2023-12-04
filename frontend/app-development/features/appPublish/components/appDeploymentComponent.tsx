@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import {
   Alert,

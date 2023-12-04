@@ -137,26 +137,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/studio-components@workspace:frontend/libs/studio-components":
-  version: 0.0.0-use.local
-  resolution: "@altinn/studio-components@workspace:frontend/libs/studio-components"
-  dependencies:
-    "@altinn/icons": "npm:^0.1.0"
-    "@digdir/design-system-react": "npm:0.35.0"
-    "@digdir/design-system-tokens": "npm:0.10.0"
-    "@testing-library/jest-dom": "npm:^6.1.3"
-    "@testing-library/react": "npm:^14.0.0"
-    "@types/jest": "npm:^29.5.5"
-    eslint: "npm:8.50.0"
-    jest: "npm:^29.7.0"
-    jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    ts-jest: "npm:^29.1.1"
-    typescript: "npm:^5.2.2"
-  languageName: unknown
-  linkType: soft
-
 "@altinn/text-editor@workspace:frontend/packages/text-editor":
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:frontend/packages/text-editor"
@@ -1760,25 +1740,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.35.0":
-  version: 0.35.0
-  resolution: "@digdir/design-system-react@npm:0.35.0"
-  dependencies:
-    "@altinn/figma-design-tokens": "npm:^6.0.1"
-    "@digdir/design-system-tokens": "npm:^0.8.1"
-    "@floating-ui/react": "npm:0.25.2"
-    "@navikt/aksel-icons": "npm:^3.2.4"
-    react-number-format: "npm:5.2.2"
-  peerDependencies:
-    react: ">=18.2.0"
-    react-dom: ">=18.2.0"
-  checksum: ee362b031b43a2608cc540bfb963a4a06ee74973723b7f339a36b4e00de847ddb180ffa436e3181b8ee305e46d5104e3921dfff8d33d10cb17bd57ceb59949a2
-  languageName: node
-  linkType: hard
-
-"@digdir/design-system-react@npm:0.37.0":
-  version: 0.37.0
-  resolution: "@digdir/design-system-react@npm:0.37.0"
+"@digdir/design-system-react@npm:0.38.0":
+  version: 0.38.0
+  resolution: "@digdir/design-system-react@npm:0.38.0"
   dependencies:
     "@altinn/figma-design-tokens": "npm:^6.0.1"
     "@digdir/design-system-tokens": "npm:^0.10.0"
@@ -1789,7 +1753,7 @@ __metadata:
   peerDependencies:
     react: ">=18.2.0"
     react-dom: ">=18.2.0"
-  checksum: 3eda1bb6006cfd692b2299f5f0a13d0be45280d7e643012e657981e88fd7a229f26db9c915721377238cdd6cb8e0ffec9d1108ed42146c1fbb92c9d2297a8bd0
+  checksum: ccbe4b9ae7e39584167d117b116f7bc1ec6cef5839df58c6a3b79a559b511d9ce3603563bfee64a7279ab7acf34c32371fb963dd559d53334f88b33407df89e7
   languageName: node
   linkType: hard
 
@@ -1804,13 +1768,6 @@ __metadata:
   version: 0.1.7
   resolution: "@digdir/design-system-tokens@npm:0.1.7"
   checksum: 319bc8c5d0f6150e4ffdd3fa0ff0a5bbe3458af7e9b02dd47908c3affa938fede2b53356748b43dff72b4957c30473ef83c71962860398a702a76f314fbc4d3f
-  languageName: node
-  linkType: hard
-
-"@digdir/design-system-tokens@npm:^0.8.1":
-  version: 0.8.1
-  resolution: "@digdir/design-system-tokens@npm:0.8.1"
-  checksum: d2c491e50d7dd6793099672edbf5019dd5667d3b05d8ca937f98405dd8c55f664bbd8b67d1ddff47dd8f1b245dba820758af4859ba02efe0ca043d46678a8633
   languageName: node
   linkType: hard
 
@@ -3862,6 +3819,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@studio/components@workspace:frontend/libs/studio-components":
+  version: 0.0.0-use.local
+  resolution: "@studio/components@workspace:frontend/libs/studio-components"
+  dependencies:
+    "@altinn/icons": "npm:^0.1.0"
+    "@digdir/design-system-react": "npm:0.38.0"
+    "@digdir/design-system-tokens": "npm:0.10.0"
+    "@testing-library/jest-dom": "npm:^6.1.3"
+    "@testing-library/react": "npm:^14.0.0"
+    "@types/jest": "npm:^29.5.5"
+    eslint: "npm:8.50.0"
+    jest: "npm:^29.7.0"
+    jest-environment-jsdom: "npm:^29.7.0"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:^5.2.2"
+  languageName: unknown
+  linkType: soft
+
 "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0":
   version: 8.0.0
   resolution: "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0"
@@ -5565,7 +5542,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": "npm:0.29.1"
     "@altinn/figma-design-tokens": "npm:6.0.1"
-    "@digdir/design-system-react": "npm:0.37.0"
+    "@digdir/design-system-react": "npm:0.38.0"
     "@digdir/design-system-tokens": "npm:0.10.0"
     "@emotion/react": "npm:11.11.1"
     "@emotion/styled": "npm:11.11.0"
