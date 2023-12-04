@@ -100,6 +100,33 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
         }
 
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task LocalAndStudioDevelopment_BehaveAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
+            await CreateAppUsingDesigner(org, targetRepo);
+            await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+
+            // Create a file using gitea client
+            using var createFileContent = new StringContent(GenerateCommitJsonPayload("I am a new file created in gitea", "test gitea commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/test2.txt", createFileContent);
+            createFileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+            // Try pull file with designer endpoint
+            InvalidateAllCookies();
+            using HttpResponseMessage pullResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/pull");
+            pullResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            // Add a new file and try to push with designer
+            await File.WriteAllTextAsync($"{CreatedFolderPath}/test2.txt", "I am a new file created directly with gitea");
+            InvalidateAllCookies();
+            using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
+            commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        }
+
         private async Task VerifyStudioNoteAddedToLatestCommit(string org, string targetRepo)
         {
             InvalidateAllCookies();
