@@ -1,5 +1,5 @@
 {
-  "name": "@altinn/studio-components",
+  "name": "@studio/components",
   "packageManager": "yarn@3.6.3",
   "version": "0.1.0",
   "main": "./src/index.ts",

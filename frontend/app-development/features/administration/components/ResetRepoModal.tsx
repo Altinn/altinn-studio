@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import classes from './RepoModal.module.css';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 import { Button, Textfield } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';

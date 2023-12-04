@@ -46,7 +46,7 @@ const config = {
     '^@altinn/ux-editor/(.*)': path.join(__dirname, 'packages/ux-editor/src/$1'),
     '^@altinn/process-editor/(.*)': path.join(__dirname, 'packages/process-editor/src/$1'),
     '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
-    '^@altinn/studio-components': path.join(__dirname, 'libs/studio-components/src/$1'),
+    '^@studio/components': path.join(__dirname, 'libs/studio-components/src/$1'),
     '^@altinn/icons': path.join(__dirname, 'libs/altinn-icons/src/$1'),
   },
   testRegex: '(\\.(test|spec))\\.(ts|tsx)$',

@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import classes from './Modal.module.css';
 import cn from 'classnames';
 import { Heading } from '@digdir/design-system-react';
-import { StudioModal } from '@altinn/studio-components';
+import { StudioModal } from '@studio/components';
 
 type ModalProps = {
   isOpen: boolean;

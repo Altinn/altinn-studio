@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import classes from './SyncModal.module.css';
 import { Button, LegacyTextArea } from '@digdir/design-system-react';
 import { SimpleContainer } from 'app-shared/primitives';
-import { StudioSpinner } from '@altinn/studio-components';
+import { StudioSpinner } from '@studio/components';
 
 export interface ISyncModalProps {
   anchorEl: Element;
