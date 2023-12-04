@@ -9,14 +9,12 @@ import {
   renderWithMockStore,
 } from '../../../../testing/mocks';
 import { formDesignerMock } from '../../../../testing/stateMocks';
-import { layout2NameMock } from '../../../../testing/layoutMock';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 
 const mockOrg = 'org';
 const mockApp = 'app';
 const mockPageName1: string = formDesignerMock.layout.selectedLayout;
 const mockSelectedLayoutSet = 'test-layout-set';
-const mockPageName2 = layout2NameMock;
 
 const mockSetSearchParams = jest.fn();
 const mockSearchParams = { layout: mockPageName1 };
@@ -53,32 +51,6 @@ describe('NavigationMenu', () => {
       name: textMock('ux_editor.page_menu_up'),
     });
     expect(elementInMenuAfter).toBeInTheDocument();
-  });
-
-  it('should update the url to new page when deleting selected page', async () => {
-    const user = userEvent.setup();
-    await render();
-
-    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    await act(() => user.click(menuButton));
-
-    const deleteButton = screen.getByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_delete'),
-    });
-    await act(() => user.click(deleteButton));
-
-    const confirmButton = screen.getByRole('button', {
-      name: textMock('ux_editor.page_delete_confirm'),
-    });
-    await act(() => user.click(confirmButton));
-
-    expect(queriesMock.deleteFormLayout).toBeCalledWith(
-      mockOrg,
-      mockApp,
-      mockPageName1,
-      mockSelectedLayoutSet,
-    );
-    expect(mockSetSearchParams).toHaveBeenCalledWith({ layout: mockPageName2 });
   });
 
   it('Calls updateFormLayoutName with new name when name is changed by the user', async () => {

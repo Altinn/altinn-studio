@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, DropdownMenu } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@navikt/aksel-icons';
@@ -7,15 +7,11 @@ import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpd
 import { useUpdateLayoutNameMutation } from '../../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelector } from 'react-redux';
-import { useDeleteLayoutMutation } from '../../../../hooks/mutations/useDeleteLayoutMutation';
 import type { IAppState } from '../../../../types/global';
-import { Divider } from 'app-shared/primitives';
 import { useSearchParams } from 'react-router-dom';
-import { firstAvailableLayout } from '../../../../utils/formLayoutsUtils';
 import { InputPopover } from './InputPopover';
 import { deepCopy } from 'app-shared/pure';
 import { useAppContext } from '../../../../hooks/useAppContext';
-import { DeletePopover } from './DeletePopover';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -29,9 +25,9 @@ export type NavigationMenuProps = {
  * @property {string}[pageName] - The name of the page
  * @property {boolean}[pageIsReceipt] - If the page is a receipt page
  *
- * @returns {ReactNode} - The rendered component
+ * @returns {JSX.Element} - The rendered component
  */
-export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps): ReactNode => {
+export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps): JSX.Element => {
   const { t } = useTranslation();
 
   const { org, app } = useStudioUrlParams();
@@ -49,11 +45,9 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
   const disableDown = layoutOrder.indexOf(pageName) === layoutOrder.length - 1;
 
   const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app, selectedLayoutSet);
-  const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, selectedLayoutSet);
   const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app, selectedLayoutSet);
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const selectedLayout = searchParams.get('layout');
 
   const settingsRef = useRef(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -63,15 +57,6 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
       updateLayoutOrder({ layoutName: pageName, direction: action });
     }
     setDropdownOpen(false);
-  };
-
-  const handleConfirmDelete = () => {
-    deleteLayout(pageName);
-
-    if (selectedLayout === pageName) {
-      const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
-      setSearchParams({ layout: layoutToSelect });
-    }
   };
 
   const handleSaveNewName = (newName: string) => {
@@ -125,10 +110,6 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
             saveNewName={handleSaveNewName}
             onClose={() => setDropdownOpen(false)}
           />
-        </DropdownMenu.Group>
-        <Divider marginless />
-        <DropdownMenu.Group>
-          <DeletePopover onClose={() => setDropdownOpen(false)} onDelete={handleConfirmDelete} />
         </DropdownMenu.Group>
       </DropdownMenu>
     </div>

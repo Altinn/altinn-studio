@@ -4,6 +4,7 @@ import cn from 'classnames';
 import { Accordion } from '@digdir/design-system-react';
 import { NavigationMenu } from './NavigationMenu';
 import * as testids from '../../../../../../testing/testids';
+import { DeletePopover } from './DeletePopover';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -44,6 +45,7 @@ export const PageAccordion = ({
         </Accordion.Header>
         <div className={classes.navigationMenu}>
           <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
+          <DeletePopover pageName={pageName} />
         </div>
       </div>
       <Accordion.Content
