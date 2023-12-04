@@ -7,7 +7,7 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { Alert, Heading, Link } from '@digdir/design-system-react';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
 import { User } from 'app-shared/types/User';
@@ -64,7 +64,7 @@ export const ResourcesRepoList = ({
         })}
       </Heading>
       {isLoadingResourceList ? (
-        <AltinnSpinner spinnerText={t('general.loading')} />
+        <StudioSpinner spinnerText={t('general.loading')} />
       ) : (
         <div data-testid='resource-table-wrapper'>
           <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
