@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
-import { PageSpinner } from 'app-shared/components';
+import { StudioPageSpinner } from '@studio/components';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
@@ -45,7 +45,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
 
   if (areStarredReposPending) {
-    return <PageSpinner />;
+    return <StudioPageSpinner />;
   }
 
   return (

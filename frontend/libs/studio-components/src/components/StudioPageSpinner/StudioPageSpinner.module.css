@@ -1,0 +1,4 @@
+.spinnerText {
+  display: flex;
+  flex-direction: column;
+}
