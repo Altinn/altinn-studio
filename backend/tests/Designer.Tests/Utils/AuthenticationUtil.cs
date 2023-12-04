@@ -27,14 +27,14 @@ namespace Designer.Tests.Utils
             if (loginResponse.Headers.Contains("Set-Cookie"))
             {
                 cookies = loginResponse.Headers.GetValues("Set-Cookie");
-                SetAltinnStudiCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
+                SetAltinnStudioCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
             }
 
             HttpResponseMessage xsrfResponse = await client.SendAsync(httpRequestMessageXsrf);
 
             IEnumerable<string> xsrfcookies = xsrfResponse.Headers.GetValues("Set-Cookie");
             string xsrfToken = GetXsrfTokenFromCookie(xsrfcookies);
-            SetAltinnStudiCookieFromResponseHeader(message, cookies, xsrfToken);
+            SetAltinnStudioCookieFromResponseHeader(message, cookies, xsrfToken);
         }
 
         internal static string GetXsrfTokenFromCookie(IEnumerable<string> setCookieHeader)
@@ -57,7 +57,7 @@ namespace Designer.Tests.Utils
             return null;
         }
 
-        internal static void SetAltinnStudiCookieFromResponseHeader(HttpRequestMessage requestMessage, IEnumerable<string> setCookieHeader, string xsrfToken = null)
+        internal static void SetAltinnStudioCookieFromResponseHeader(HttpRequestMessage requestMessage, IEnumerable<string> setCookieHeader, string xsrfToken = null)
         {
             if (setCookieHeader != null)
             {

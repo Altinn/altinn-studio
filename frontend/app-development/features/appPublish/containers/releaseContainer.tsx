@@ -2,19 +2,18 @@ import React, { useEffect, useState } from 'react';
 import classes from './releaseContainer.module.css';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { Button, LegacyPopover } from '@digdir/design-system-react';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
-import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
+import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@altinn/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useMediaQuery } from 'app-shared/hooks/useMediaQuery';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
@@ -25,8 +24,8 @@ export function ReleaseContainer() {
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
-  const { data: repoStatus, isLoading: repoStatusIsLoading } = useRepoStatusQuery(org, app);
-  const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } = useBranchStatusQuery(
+  const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
+  const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
     org,
     app,
     'master',
@@ -47,7 +46,9 @@ export function ReleaseContainer() {
     const interval = setInterval(async () => {
       const index = releases.findIndex((release) => release.build.status !== BuildStatus.completed);
       if (index > -1) {
-        await queryClient.invalidateQueries([QueryKey.AppReleases, org, app]);
+        await queryClient.invalidateQueries({
+          queryKey: [QueryKey.AppReleases, org, app],
+        });
       }
     }, 7777);
     return () => clearInterval(interval);
@@ -58,11 +59,11 @@ export function ReleaseContainer() {
   const handlePopoverClose = () => setPopoverOpenHover(false);
 
   function renderCreateRelease() {
-    if (repoStatusIsLoading || masterBranchStatusIsLoading) {
+    if (isRepoStatusPending || masterBranchStatusIsPending) {
       return (
         <div style={{ padding: '2rem' }}>
           <div>
-            <AltinnSpinner />
+            <StudioSpinner />
           </div>
           <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
         </div>
@@ -75,10 +76,7 @@ export function ReleaseContainer() {
       return (
         <div className={classes.cannotCreateReleaseContainer}>
           {hiddenMdDown ? null : (
-            <AltinnIconComponent
-              iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
-              iconColor='#E23B53'
-            />
+            <XMarkOctagonFillIcon className={classes.renderCannotCreateReleaseIcon} />
           )}
           <div>
             <div className={classes.cannotCreateReleaseTitle}>

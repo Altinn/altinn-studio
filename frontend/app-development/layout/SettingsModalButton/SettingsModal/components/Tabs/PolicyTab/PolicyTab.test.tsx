@@ -53,7 +53,7 @@ const mockUpdateAppPolicyMutation = useAppPolicyMutation as jest.MockedFunction<
 >;
 mockUpdateAppPolicyMutation.mockReturnValue({
   mutate: updateAppPolicyMutation,
-} as unknown as UseMutationResult<void, unknown, Policy, unknown>);
+} as unknown as UseMutationResult<void, Error, Policy, unknown>);
 
 const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve({}));

@@ -83,7 +83,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         private async Task<Build> SendRequest(QueueBuildRequest queueBuildRequest)
         {
             string requestBody = JsonConvert.SerializeObject(queueBuildRequest);
-            using StringContent httpContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
+            using StringContent httpContent = new(requestBody, Encoding.UTF8, "application/json");
             string requestUri = "?api-version=5.1";
             _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
 

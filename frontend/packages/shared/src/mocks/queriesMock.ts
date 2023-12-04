@@ -1,7 +1,6 @@
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import inputComponentSchema from '../../../ux-editor/src/testing/schemas/json/component/Input.schema.v1.json';
 import commonDefsComponentSchema from '../../../ux-editor/src/testing/schemas/json/component/Input.schema.v1.json';
-
 export const queriesMock: ServicesContextProps = {
   addAppAttachmentMetadata: jest.fn(),
   addLanguageCode: jest.fn(),
@@ -91,4 +90,5 @@ export const queriesMock: ServicesContextProps = {
   publishResource: jest.fn(),
   getAltinn2LinkServices: jest.fn(),
   importResourceFromAltinn2: jest.fn(),
+  getAppLibVersion: jest.fn(),
 };

@@ -3,7 +3,7 @@ import { Select, Textfield } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { ErrorMessage, Button } from '@digdir/design-system-react';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
@@ -13,7 +13,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
 
-  const { data: optionListIds, isLoading, isError, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);
   const handleOptionsIdChange = (optionsId: string) => {
     handleComponentChange({
@@ -24,8 +24,8 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   return (
     <div>
-      {isLoading ? (
-        <AltinnSpinner />
+      {isPending ? (
+        <StudioSpinner />
       ) : isError ? (
         <ErrorMessage>
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
@@ -44,6 +44,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}
             </Button>
           </p>
+
           {!useCustomCodeList && (
             <FormField
               id={component.id}
@@ -51,8 +52,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               onChange={handleOptionsIdChange}
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
-            >
-              {() => (
+              renderField={() => (
                 <Select
                   options={optionListIds.map((option) => ({
                     label: option,
@@ -60,7 +60,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
                   }))}
                 />
               )}
-            </FormField>
+            />
           )}
         </>
       )}

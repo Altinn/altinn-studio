@@ -1,6 +1,6 @@
 import type { MouseEvent, ChangeEvent } from 'react';
 import React, { useState } from 'react';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import type { PopoverOrigin } from '@mui/material';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -11,6 +11,7 @@ import { SimpleContainer } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
 import { AxiosError } from 'axios';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
@@ -24,13 +25,18 @@ const transformAnchorOrigin: PopoverOrigin = {
 };
 
 export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
-  const { mutate: copyAppMutate, isLoading: isLoadingCopyApp } = useCopyAppMutation({
-    hideDefaultError: (error: AxiosError) => error?.response?.status === 409,
+  const {
+    mutate: copyAppMutate,
+    isPending: isCopyAppPending,
+    isError: hasCopyAppError,
+  } = useCopyAppMutation({
+    hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
   const [repoName, setRepoName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>(null);
 
   const { t } = useTranslation();
+
   const handleClone = async () => {
     if (validAppName()) {
       const [org, app] = serviceFullName.split('/');
@@ -40,8 +46,8 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
           onSuccess: () => {
             window.location.href = `${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`;
           },
-          onError: (error: { response: { status: number } }) => {
-            if (error?.response?.status === 409) {
+          onError: () => {
+            if (hasCopyAppError) {
               setErrorMessage(t('dashboard.app_already_exists'));
             }
           },
@@ -51,7 +57,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
   };
 
   const closeHandler = (_x: string | MouseEvent<HTMLElement>, event?: MouseEvent<HTMLElement>) => {
-    if (isLoadingCopyApp) {
+    if (isCopyAppPending) {
       return;
     }
     if (typeof _x !== 'string') {
@@ -87,8 +93,8 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
       anchorOrigin={transformAnchorOrigin}
       transformOrigin={transformAnchorOrigin}
       handleClose={closeHandler}
-      btnCancelText={isLoadingCopyApp ? null : t('general.cancel')}
-      btnConfirmText={isLoadingCopyApp ? null : t('dashboard.make_copy')}
+      btnCancelText={isCopyAppPending ? null : t('general.cancel')}
+      btnConfirmText={isCopyAppPending ? null : t('dashboard.make_copy')}
       btnClick={handleClone}
       paperProps={{
         style: {
@@ -111,7 +117,7 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
           />
           {errorMessage && <div className={classes.errorMessage}>{errorMessage}</div>}
         </div>
-        {isLoadingCopyApp && <AltinnSpinner spinnerText={t('dashboard.creating_your_copy')} />}
+        {isCopyAppPending && <StudioSpinner spinnerText={t('dashboard.creating_your_copy')} />}
       </SimpleContainer>
     </AltinnPopoverSimple>
   );

@@ -27,7 +27,12 @@ const mockUseUpdateFormContainerMutation = useUpdateFormContainerMutation as jes
 >;
 mockUseUpdateFormContainerMutation.mockReturnValue({
   mutateAsync: mockUpdateFormContainer,
-} as unknown as UseMutationResult<{ currentId: string; newId: string }, unknown, UpdateFormContainerMutationArgs, unknown>);
+} as unknown as UseMutationResult<
+  { currentId: string; newId: string },
+  Error,
+  UpdateFormContainerMutationArgs,
+  unknown
+>);
 
 jest.mock('../hooks/mutations/useUpdateFormComponentMutation');
 const mockUpdateFormComponent = jest.fn();
@@ -36,13 +41,18 @@ const mockUseUpdateFormComponentMutation = useUpdateFormComponentMutation as jes
 >;
 mockUseUpdateFormComponentMutation.mockReturnValue({
   mutateAsync: mockUpdateFormComponent,
-} as unknown as UseMutationResult<{ currentId: string; newId: string }, unknown, UpdateFormComponentMutationArgs, unknown>);
+} as unknown as UseMutationResult<
+  { currentId: string; newId: string },
+  Error,
+  UpdateFormComponentMutationArgs,
+  unknown
+>);
 
 const render = (ChildComponent: React.ElementType) => {
   return renderWithMockStore()(
     <FormContextProvider>
       <ChildComponent />
-    </FormContextProvider>
+    </FormContextProvider>,
   );
 };
 
@@ -68,10 +78,10 @@ describe('FormContext', () => {
     await act(() => user.click(button));
 
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.id')).textContent).toEqual(mockForm.id)
+      expect((await screen.findByTestId('form.id')).textContent).toEqual(mockForm.id),
     );
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.itemType')).textContent).toEqual(mockForm.itemType)
+      expect((await screen.findByTestId('form.itemType')).textContent).toEqual(mockForm.itemType),
     );
   });
 
@@ -97,13 +107,13 @@ describe('FormContext', () => {
     const state = store.getState() as IAppState;
     expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
     await waitFor(async () =>
-      expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id)
+      expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id),
     );
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.id')).textContent).toEqual(mockForm.id)
+      expect((await screen.findByTestId('form.id')).textContent).toEqual(mockForm.id),
     );
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.itemType')).textContent).toEqual(mockForm.itemType)
+      expect((await screen.findByTestId('form.itemType')).textContent).toEqual(mockForm.itemType),
     );
   });
 
@@ -132,16 +142,16 @@ describe('FormContext', () => {
     expect(screen.getByTestId('form.itemType')).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByTestId('formId')).toHaveTextContent(mockForm.id);  
+      expect(screen.getByTestId('formId')).toHaveTextContent(mockForm.id);
     });
     await waitFor(() => {
-      expect(screen.getByTestId('form.id')).toHaveTextContent(mockForm.id); 
+      expect(screen.getByTestId('form.id')).toHaveTextContent(mockForm.id);
     });
     await waitFor(() => {
-      expect(screen.getByTestId('form.itemType')).toHaveTextContent(mockForm.itemType); 
+      expect(screen.getByTestId('form.itemType')).toHaveTextContent(mockForm.itemType);
     });
   });
-  
+
   it('should discard the form when calling handleDiscard', async () => {
     const user = userEvent.setup();
     const { store } = render(() => {
@@ -164,7 +174,7 @@ describe('FormContext', () => {
     await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toBe(''));
     await waitFor(async () => expect((await screen.findByTestId('form.id')).textContent).toBe(''));
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.itemType')).textContent).toBe('')
+      expect((await screen.findByTestId('form.itemType')).textContent).toBe(''),
     );
   });
 
@@ -201,7 +211,7 @@ describe('FormContext', () => {
     await act(() => user.click(button));
 
     await waitFor(async () =>
-      expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id)
+      expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id),
     );
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
@@ -256,7 +266,7 @@ describe('FormContext', () => {
     await act(() => user.click(button));
 
     await waitFor(async () =>
-      expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id)
+      expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id),
     );
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });

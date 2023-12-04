@@ -1,6 +1,6 @@
 import { MouseEvent, useState } from 'react';
 import React from 'react';
-import { pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
+import { isField, isReference, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
 import { FieldType } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import {
@@ -21,6 +21,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { makeDomFriendlyID } from '@altinn/schema-editor/utils/ui-schema-utils';
 
 export interface RestrictionItemProps {
   restrictions: any;
@@ -38,44 +39,41 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const {
     pointer,
     isRequired,
-    reference,
     isArray,
-    enum: enums,
     restrictions,
-    fieldType,
   } = schemaNode;
-  const { data, save } = useSchemaEditorAppContext();
+  const { schemaModel, save } = useSchemaEditorAppContext();
 
   const [enumError, setEnumError] = useState<string>(null);
 
   const handleRequiredChanged = (e: any) => {
     const { checked } = e.target;
     if (checked !== isRequired) {
-      save(setRequired(data, { path: pointer, required: checked }));
+      save(setRequired(schemaModel, { path: pointer, required: checked }));
     }
   };
 
   const onChangeRestrictionValue = (path: string, key: string, value?: string | boolean) =>
-    save(setRestriction(data, { path, key, value }));
+    save(setRestriction(schemaModel, { path, key, value }));
 
   const onChangeRestrictions = (path: string, changedRestrictions: KeyValuePairs) =>
-    save(setRestrictions(data, { path, restrictions: changedRestrictions }));
+    save(setRestrictions(schemaModel, { path, restrictions: changedRestrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) => {
-    if (value === oldValue) return;
+    if (!isField(schemaNode) || value === oldValue) return;
 
-    if (enums.includes(value)) {
+    if (schemaNode.enum.includes(value)) {
       setEnumError(value);
     } else {
       setEnumError(null);
-      save(addEnumValue(data, { path: pointer, value, oldValue }));
+      save(addEnumValue(schemaModel, { path: pointer, value, oldValue }));
     }
   };
 
   const onDeleteEnumClick = (path: string, value: string) =>
-    save(deleteEnumValue(data, { path, value }));
+    save(deleteEnumValue(schemaModel, { path, value }));
 
-  const dispatchAddEnum = () => save(addEnumValue(data, { path: pointer, value: 'value' }));
+  const dispatchAddEnum = () => save(addEnumValue(schemaModel, { path: pointer, value: 'value' }));
 
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -85,7 +83,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const { t } = useTranslation();
   const restrictionProps: RestrictionItemProps = {
     restrictions: restrictions ?? {},
-    readonly: reference !== undefined,
+    readonly: isReference(schemaNode),
     path: pointer ?? '',
     onChangeRestrictionValue,
     onChangeRestrictions,
@@ -94,6 +92,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
     <>
       {!pointerIsDefinition(pointer) && (
         <Switch
+          className={classes.switch}
           size='small'
           checked={isRequired}
           name='checkedRequired'
@@ -102,19 +101,19 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
           {t('schema_editor.required')}
         </Switch>
       )}
-      {reference === undefined &&
+      {isField(schemaNode) &&
         {
           [FieldType.Integer]: <NumberRestrictions {...restrictionProps} isInteger />,
           [FieldType.Number]: <NumberRestrictions {...restrictionProps} isInteger={false} />,
           [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
           [FieldType.String]: <StringRestrictions {...restrictionProps} />,
-        }[fieldType as string]}
+        }[schemaNode.fieldType]}
       {isArray && <ArrayRestrictions {...restrictionProps} />}
-      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(fieldType as FieldType) && (
+      {isField(schemaNode) && [FieldType.String, FieldType.Integer, FieldType.Number].includes(schemaNode.fieldType) && (
         <>
           <Divider marginless />
           <Fieldset legend={t('schema_editor.enum_legend')}>
-            {!enums?.length && (
+            {!schemaNode.enum?.length && (
               <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
             )}
             {enumError !== null && (
@@ -122,9 +121,8 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
                 <p>{t('schema_editor.enum_error_duplicate')}</p>
               </ErrorMessage>
             )}
-            {enums?.map((value: string, index) => (
+            {schemaNode.enum?.map((value: string, index) => (
               <EnumField
-                fullWidth={true}
                 key={`add-enum-field-${index}`}
                 onChange={onChangeEnumValue}
                 onDelete={onDeleteEnumClick}
@@ -132,6 +130,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
                 path={pointer}
                 value={value}
                 isValid={enumError !== value}
+                baseId={makeDomFriendlyID(pointer)}
               />
             ))}
             <div className={classes.addEnumButton}>

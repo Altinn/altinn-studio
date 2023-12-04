@@ -48,13 +48,13 @@ export const EditComponentId = ({
           return t('ux_editor.modal_properties_component_id_not_valid');
         }
       }}
-    >
-      {({ onChange }) => (
+      renderField={({ fieldProps }) => (
         <Textfield
+          {...fieldProps}
           name={`component-id-input${component.id}`}
-          onChange={(e) => onChange(e.target.value, e)}
+          onChange={(e) => fieldProps.onChange(e.target.value, e)}
         />
       )}
-    </FormField>
+    />
   );
 };

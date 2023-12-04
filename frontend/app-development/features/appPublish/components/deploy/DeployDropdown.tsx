@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
-import { AltinnIcon, AltinnSpinner, AltinnConfirmDialog } from 'app-shared/components';
+import { AltinnConfirmDialog } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { Button, Select } from '@digdir/design-system-react';
 import { DeploymentStatus, ImageOption } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
 import { shouldDisplayDeployStatus } from './utils';
 import { useTranslation, Trans } from 'react-i18next';
+import {
+  CheckmarkCircleFillIcon,
+  InformationSquareFillIcon,
+  XMarkOctagonFillIcon,
+} from '@altinn/icons';
 
 export interface DeployDropdownProps {
   appDeployedVersion: string;
@@ -79,21 +85,17 @@ export const DeployDropdown = ({
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (
         <div className={classes.deployStatusGridContainer}>
           <div className={classes.deploySpinnerGridItem}>
-            {deploymentStatus === DeploymentStatus.inProgress && <AltinnSpinner />}
+            {deploymentStatus === DeploymentStatus.inProgress && <StudioSpinner />}
             {deploymentStatus === DeploymentStatus.succeeded && (
-              <AltinnIcon iconClass='ai ai-check-circle' iconColor='#12AA64' iconSize='3.6rem' />
+              <CheckmarkCircleFillIcon className={classes.successIcon} />
             )}
             {(deploymentStatus === DeploymentStatus.partiallySucceeded ||
               deploymentStatus === DeploymentStatus.none) && (
-              <AltinnIcon iconClass='ai ai-info-circle' iconColor='#008FD6' iconSize='3.6rem' />
+              <InformationSquareFillIcon className={classes.infoIcon} />
             )}
             {(deploymentStatus === DeploymentStatus.canceled ||
               deploymentStatus === DeploymentStatus.failed) && (
-              <AltinnIcon
-                iconClass='ai ai-circle-exclamation'
-                iconColor='#E23B53'
-                iconSize='3.6rem'
-              />
+              <XMarkOctagonFillIcon className={classes.errorIcon} />
             )}
           </div>
           <div>

@@ -3,7 +3,11 @@ import { GridSortModel } from '@mui/x-data-grid';
 import { useSearchReposQuery } from '../queries';
 import { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
 import { useSearchParamsState } from '../useSearchParamsState';
-import { DATAGRID_PAGE_SIZE_TYPE, DATAGRID_ROWS_PER_PAGE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
+import {
+  DATAGRID_PAGE_SIZE_TYPE,
+  DATAGRID_ROWS_PER_PAGE_OPTIONS,
+  DATAGRID_DEFAULT_PAGE_SIZE,
+} from '../../constants';
 
 type UseRepoSearchResult = {
   searchResults: SearchRepositoryResponse | undefined;
@@ -26,13 +30,19 @@ export const useReposSearch = ({
   defaultPageSize = DATAGRID_DEFAULT_PAGE_SIZE,
 }: UseReposSearchProps): UseRepoSearchResult => {
   const [pageNumber, setPageNumber] = useState(0);
-  const [pageSize, setPageSize] = useSearchParamsState<DATAGRID_PAGE_SIZE_TYPE>('pageSize', defaultPageSize, (value: string) => {
-    const parsedValue = Number(value);
-    return DATAGRID_ROWS_PER_PAGE_OPTIONS.includes(parsedValue) ? parsedValue as DATAGRID_PAGE_SIZE_TYPE : defaultPageSize;
-  });
+  const [pageSize, setPageSize] = useSearchParamsState<DATAGRID_PAGE_SIZE_TYPE>(
+    'pageSize',
+    defaultPageSize,
+    (value: string) => {
+      const parsedValue = Number(value);
+      return DATAGRID_ROWS_PER_PAGE_OPTIONS.includes(parsedValue)
+        ? (parsedValue as DATAGRID_PAGE_SIZE_TYPE)
+        : defaultPageSize;
+    },
+  );
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
 
-  const { data: searchResults, isLoading: isLoadingSearchResults } = useSearchReposQuery({
+  const { data: searchResults, isPending: isLoadingSearchResults } = useSearchReposQuery({
     ...buildQuery({ keyword, uid, limit: pageSize }),
     page: pageNumber,
     sortby: sortModel?.[0]?.field,

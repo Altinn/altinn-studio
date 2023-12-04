@@ -22,12 +22,12 @@ export interface CustomPropertiesProps {
 const inputId = (key: string) => `custom-property-${key}`;
 
 export const CustomProperties = ({ path }: CustomPropertiesProps) => {
-  const { data, save } = useSchemaEditorAppContext();
+  const { schemaModel, save } = useSchemaEditorAppContext();
   const { t } = useTranslation();
   const { custom } = useSchemaAndReduxSelector(selectedItemSelector);
 
   function changeProperties(properties: KeyValuePairs) {
-    save(setCustomProperties(data, { path, properties }));
+    save(setCustomProperties(schemaModel, { path, properties }));
   }
 
   function handlePropertyChange<T>(key: string, value: T) {

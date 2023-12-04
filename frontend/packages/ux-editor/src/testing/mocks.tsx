@@ -68,11 +68,6 @@ export const queriesMock: ServicesContextProps = {
 };
 
 export const queryClientMock = new QueryClient({
-  logger: {
-    log: () => {},
-    warn: () => {},
-    error: () => {},
-  },
   defaultOptions: {
     queries: { staleTime: Infinity },
   },
@@ -125,7 +120,9 @@ export const renderWithMockStore =
       storeCreator,
     });
     const renderResult = render(renderComponent(component));
-    return { renderResult, store };
+    const rerender = (rerenderedComponent) =>
+      renderResult.rerender(renderComponent(rerenderedComponent));
+    return { renderResult: { ...renderResult, rerender }, store };
   };
 
 export const renderHookWithMockStore =

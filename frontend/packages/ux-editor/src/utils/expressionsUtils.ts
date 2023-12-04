@@ -1,14 +1,14 @@
 import {
   DataSource,
   Expression,
-  SubExpression,
   ExpressionFunction,
+  ExpressionProperty,
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
-  Operator,
   getExpressionPropertiesBasedOnComponentType,
+  Operator,
+  SubExpression,
 } from '../types/Expressions';
-import { v4 as uuidv4 } from 'uuid'; // TODO: Refactor so that we don't need this. https://github.com/Altinn/altinn-studio/issues/11523
 import { deepCopy } from 'app-shared/pure';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { IFormLayouts, LayoutItemType } from '../types/global';
@@ -65,7 +65,7 @@ export const convertInternalSubExpressionToExternal = (subExp: SubExpression): a
 };
 
 export const isStudioFriendlyExpression = (expression: any): boolean => {
-  if (expression?.length === 0) {
+  if (!expression[0]) {
     // For building expressions free style from beginning
     return true;
   }
@@ -95,7 +95,6 @@ export const convertExternalExpressionToInternal = (
 ): Expression => {
   const hasMoreExpressions: boolean = Object.values(Operator).includes(expression[0] as Operator);
   const convertedExpression: Expression = {
-    id: uuidv4(),
     property: booleanValue as ExpressionPropertyBase | ExpressionPropertyForGroup,
     subExpressions: [],
   };
@@ -108,7 +107,6 @@ export const convertExternalExpressionToInternal = (
 
   if (!hasMoreExpressions) {
     const subExp: SubExpression = {
-      id: uuidv4(),
       function: expression[0] as ExpressionFunction,
     };
     const updatedExpAddingValue = convertSubExpression(subExp, expression[1], false);
@@ -120,8 +118,7 @@ export const convertExternalExpressionToInternal = (
     convertedExpression.operator = expression[0] as Operator;
     expression.slice(1).map((expEl) => {
       const exp: SubExpression = {
-        id: uuidv4(),
-        function: expEl[0] as ExpressionFunction, // might need an error handling if function is invalid
+        function: expEl[0] as ExpressionFunction,
       };
       const updatedExpAddingValue = convertSubExpression(exp, expEl[1], false);
       convertedExpression.subExpressions.push(
@@ -171,9 +168,7 @@ export const convertAndAddExpressionToComponent = (
     const parsedExpression = tryParseExpression(newExpression, newExpression.complexExpression);
     newExpression = { ...parsedExpression };
   }
-  if (!newExpression.subExpressions && !newExpression.complexExpression) {
-    delete newForm[newExpression.property];
-  } else if (newExpression.property) {
+  if (newExpression.property) {
     // TODO: What if expression is invalid format? Have some way to validate with app-frontend dev-tools. Issue #10859
     if (form.itemType === LayoutItemType.Container && newExpression.property.includes('edit.')) {
       const editPropertyForGroup = newExpression.property.split('edit.')[1];
@@ -185,65 +180,52 @@ export const convertAndAddExpressionToComponent = (
   return newForm;
 };
 
-export const deleteExpressionFromComponent = (
+export const deleteExpressionFromPropertyOnComponent = (
   form,
-  expression: Expression,
+  property: ExpressionProperty,
 ): FormComponent | FormContainer => {
   const newForm = deepCopy(form);
-  const expressionToDelete = deepCopy(expression);
-  if (expressionToDelete.property) {
-    // TODO: What if the property was set to true or false before? Issue #10860
-    delete newForm[expressionToDelete.property];
-  }
+  // TODO: What if the property was set to true or false before? Issue #10860
+  delete newForm[property];
   return newForm;
 };
 
-export const addExpressionIfLimitNotReached = (
-  oldExpressions: Expression[],
-  isExpressionLimitReached: boolean,
-): Expression[] => {
-  const newExpressions = deepCopy(oldExpressions);
-  const newExpression: Expression = { id: uuidv4() };
-  return isExpressionLimitReached ? newExpressions : newExpressions.concat(newExpression);
+export const addPropertyForExpression = (
+  oldProperties: ExpressionProperty[],
+  property: ExpressionProperty,
+): ExpressionProperty[] => {
+  return [...oldProperties, property];
 };
 
-export const deleteExpressionAndAddDefaultIfEmpty = (
+export const deleteExpression = (
   expressionToDelete: Expression,
-  oldExpressions: Expression[],
-): Expression[] => {
-  const expressionsCopy = deepCopy(oldExpressions);
-  let newExpressions = expressionsCopy;
-  if (expressionToDelete.property) {
-    newExpressions = expressionsCopy.filter(
-      (prevExpression) => prevExpression.id !== expressionToDelete.id,
-    );
-    if (newExpressions.length === 0) {
-      const defaultExpression: Expression = { id: uuidv4() };
-      newExpressions = [defaultExpression];
-    }
-  }
-  return newExpressions;
-};
+  expressions: Expression[],
+): Expression[] =>
+  expressions.filter((expression) => expression.property !== expressionToDelete.property);
 
-export const removeInvalidExpressions = (oldExpressions: Expression[]): Expression[] => {
-  const newExpressions = deepCopy(oldExpressions);
-  return newExpressions.filter(
-    (prevExpression) =>
-      prevExpression.property || complexExpressionIsSet(prevExpression.complexExpression),
-  );
-};
-
-export const addProperty = (oldExpression: Expression, property: string): Expression => {
+export const addPropertyToExpression = (
+  oldExpression: Expression,
+  property: string,
+): Expression => {
   const newExpression = deepCopy(oldExpression);
   if (property === 'default') {
     return newExpression;
   }
-  newExpression.property = property as ExpressionPropertyBase;
-  if (!newExpression.subExpressions) {
-    const newSubExpression: SubExpression = { id: uuidv4() };
-    newExpression.subExpressions = [newSubExpression];
-  }
+  newExpression.property = property as ExpressionProperty;
   return newExpression;
+};
+
+export const addFunctionToSubExpression = (
+  oldSubExpression: SubExpression,
+  func: string,
+): SubExpression => {
+  const newSubExpression = deepCopy(oldSubExpression);
+  if (func === 'default') {
+    delete newSubExpression.function;
+    return newSubExpression;
+  }
+  newSubExpression.function = func as ExpressionFunction;
+  return newSubExpression;
 };
 
 export const addSubExpressionToExpression = (
@@ -251,19 +233,28 @@ export const addSubExpressionToExpression = (
   operator: Operator,
 ): Expression => {
   const newExpression = deepCopy(oldExpression);
-  const newSubExpression: SubExpression = { id: uuidv4() };
+  const newSubExpression: SubExpression = {};
+  if (!newExpression.subExpressions) {
+    newExpression.subExpressions = [newSubExpression];
+    return newExpression;
+  }
+  if (newExpression.subExpressions.length > 0) {
+    newExpression.operator = operator;
+  }
   newExpression.subExpressions.push(newSubExpression);
-  newExpression.operator = operator;
   return newExpression;
 };
 
-export const updateOperator = (oldExpression: Expression, operator: Operator): Expression => {
+export const updateOperatorOnExpression = (
+  oldExpression: Expression,
+  operator: Operator,
+): Expression => {
   const newExpression = deepCopy(oldExpression);
   newExpression.operator = operator;
   return newExpression;
 };
 
-export const updateExpression = (
+export const updateSubExpressionOnExpression = (
   oldExpression: Expression,
   index: number,
   subExpression: SubExpression,
@@ -273,7 +264,7 @@ export const updateExpression = (
   return newExpression;
 };
 
-export const updateComplexExpression = (
+export const updateComplexExpressionOnExpression = (
   oldExpression: Expression,
   complexExpression: any,
 ): Expression => {
@@ -282,27 +273,21 @@ export const updateComplexExpression = (
   return newExpression;
 };
 
-export const removeSubExpressionAndAdaptParentProps = (
+export const removeSubExpression = (
   oldExpression: Expression,
   subExpression: SubExpression,
 ): Expression => {
   const newExpression = deepCopy(oldExpression);
-  const updatedSubExpressions = newExpression.subExpressions.filter(
-    (expEl: SubExpression) => expEl.id !== subExpression.id,
+  newExpression.subExpressions = oldExpression.subExpressions.filter(
+    (expEl: SubExpression) => expEl !== subExpression,
   );
-  if (updatedSubExpressions.length === 0) {
-    delete newExpression.operator;
-    delete newExpression.property;
-    delete newExpression.subExpressions;
-    return newExpression;
-  } else if (updatedSubExpressions.length === 1) {
+  if (newExpression.subExpressions.length < 2) {
     delete newExpression.operator;
   }
-  newExpression.subExpressions = updatedSubExpressions;
   return newExpression;
 };
 
-export const addDataSource = (
+export const addDataSourceToSubExpression = (
   expEl: SubExpression,
   dataSource: string,
   isComparable: boolean,
@@ -329,7 +314,7 @@ export const addDataSource = (
   return newExpEl;
 };
 
-export const addDataSourceValue = (
+export const addDataSourceValueToSubExpression = (
   expEl: SubExpression,
   dataSourceValue: string,
   isComparable: boolean,
@@ -393,54 +378,61 @@ export const complexExpressionIsSet = (complexExpression: string): boolean => {
   return complexExpression !== undefined && complexExpression !== null;
 };
 
+export const canExpressionBeSaved = (expression: Expression): boolean => {
+  const allSubExpressionsHaveFunctions: boolean =
+    expression.subExpressions?.length > 0 &&
+    expression.subExpressions.every((subExp) => subExp.function);
+  const expressionHasProperty: boolean = !!expression.property;
+  const expressionIsComplex: boolean = complexExpressionIsSet(expression.complexExpression);
+  return expressionHasProperty && (allSubExpressionsHaveFunctions || expressionIsComplex);
+};
+
 export const getAllComponentPropertiesThatCanHaveExpressions = (
   form: FormComponent | FormContainer,
-):
-  | {
-      generalProperties: ExpressionPropertyBase[];
-      propertiesForGroup: ExpressionPropertyForGroup[];
-    }
-  | undefined => {
+): ExpressionProperty[] => {
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(
     form.itemType as LayoutItemType,
   );
-  let editPropertiesForGroup: ExpressionPropertyForGroup[] = [];
+  let editPropertiesForGroup: ExpressionProperty[] = [];
   if (form['edit']) {
     editPropertiesForGroup = Object.keys(form['edit'])
       .map((property) => 'edit.' + property)
       .filter(canGroupPropertyHaveExpressions);
   }
-  const generalFormPropertiesThatCouldHaveExpressions = Object.keys(form)
-    .filter((property) => expressionProperties?.includes(property as ExpressionPropertyBase))
-    .map((property) => property as ExpressionPropertyBase);
-  return {
-    generalProperties: generalFormPropertiesThatCouldHaveExpressions,
-    propertiesForGroup: editPropertiesForGroup,
-  };
+  const generalComponentPropertiesThatCanHaveExpressions: ExpressionProperty[] = Object.keys(
+    form,
+  ).filter(
+    (property) => expressionProperties?.includes(property as ExpressionProperty),
+  ) as ExpressionProperty[];
+  return generalComponentPropertiesThatCanHaveExpressions.concat(editPropertiesForGroup);
 };
 
-const canGroupPropertyHaveExpressions = (
-  property: string,
-): property is ExpressionPropertyForGroup =>
+const canGroupPropertyHaveExpressions = (property: string): property is ExpressionProperty =>
   Object.values(ExpressionPropertyForGroup).includes(property as ExpressionPropertyForGroup);
 
-export const getAllConvertedExpressions = (form: FormComponent | FormContainer): Expression[] => {
-  const { generalProperties, propertiesForGroup } =
-    getAllComponentPropertiesThatCanHaveExpressions(form);
-  const convertedExternalExpressionsForGroupProperties = propertiesForGroup.map((property) => {
-    const editPropertyForGroup = property.split('edit.')[1];
-    const value = form['edit'][editPropertyForGroup];
-    if (typeof value !== 'boolean') {
-      return convertExternalExpressionToInternal(property, value);
-    }
-  });
-  const convertedExternalExpressionsForGeneralProperties: Expression[] = generalProperties
-    ?.filter((property) => typeof form[property] !== 'boolean')
-    ?.map((property) => convertExternalExpressionToInternal(property, form[property]));
-
-  return convertedExternalExpressionsForGroupProperties.concat(
-    convertedExternalExpressionsForGeneralProperties,
+export const getPropertiesWithExistingExpression = (
+  form: FormComponent | FormContainer,
+  availableProperties: ExpressionProperty[],
+): ExpressionProperty[] => {
+  return availableProperties.filter(
+    (property) => getExternalExpressionOnComponentProperty(form, property) !== undefined,
   );
+};
+
+export const getExternalExpressionOnComponentProperty = (
+  form: FormComponent | FormContainer,
+  property: ExpressionProperty,
+): any => {
+  let value = form[property];
+  if (form.itemType === 'CONTAINER' && property.includes('edit')) {
+    const editPropertyForGroup = property.split('edit.')[1];
+    value = form['edit'][editPropertyForGroup];
+  }
+  return typeof value !== 'boolean' ? value : undefined;
+};
+
+export const getNonOverlappingElementsFromTwoLists = (list1: any[], list2: any[]): any[] => {
+  return list1.filter((item) => !list2.includes(item));
 };
 
 // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855

@@ -1,4 +1,10 @@
-import React, { HTMLAttributes, useEffect, useId, useLayoutEffect, useState } from 'react';
+import React, {
+  HTMLAttributes,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import { TreeViewRootContext } from '../TreeViewRoot';
 import classes from './TreeViewRoot.module.css';
 import { findFirstNodeId } from 'app-shared/components/TreeView/utils/domUtils';

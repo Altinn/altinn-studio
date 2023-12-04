@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import classes from './SyncModal.module.css';
 import { Button, LegacyTextArea } from '@digdir/design-system-react';
 import { SimpleContainer } from 'app-shared/primitives';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 
 export interface ISyncModalProps {
   anchorEl: Element;
@@ -75,7 +75,7 @@ export const SyncModal = ({
             })}
           </div>
         )}
-        {isLoading && <AltinnSpinner />}
+        {isLoading && <StudioSpinner />}
         {shouldShowDoneIcon && (
           <div className={classNames(classes.doneLoadingIcon)}>
             <i className={classNames('fa fa-circlecheck')} />

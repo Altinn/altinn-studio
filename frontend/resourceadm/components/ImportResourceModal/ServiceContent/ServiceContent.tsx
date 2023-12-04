@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import classes from './ServiceContent.module.css';
 import { Alert, ErrorMessage, Paragraph, Select, Spinner } from '@digdir/design-system-react';
-import { Center } from 'app-shared/components/Center';
+import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from 'resourceadm/hooks/queries';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
@@ -59,20 +59,20 @@ export const ServiceContent = ({
    * Return the content based on the status of the API call
    */
   switch (altinn2LinkServicesStatus) {
-    case 'loading': {
+    case 'pending': {
       return (
-        <Center className={classes.contentWrapper}>
+        <StudioCenter className={classes.contentWrapper}>
           <Spinner
             size='xlarge'
             variant='interaction'
             title={t('resourceadm.import_resource_spinner')}
           />
-        </Center>
+        </StudioCenter>
       );
     }
     case 'error': {
       return (
-        <Center className={classes.contentWrapper}>
+        <StudioCenter className={classes.contentWrapper}>
           <Alert severity='danger'>
             <Paragraph size='small'>{t('general.fetch_error_message')}</Paragraph>
             <Paragraph size='small'>{t('general.error_message_with_colon')}</Paragraph>
@@ -80,7 +80,7 @@ export const ServiceContent = ({
               <ErrorMessage size='small'>{altinn2LinkServicesError.message}</ErrorMessage>
             )}
           </Alert>
-        </Center>
+        </StudioCenter>
       );
     }
     case 'success': {

@@ -33,7 +33,7 @@ export const SetupTab = ({ org, app }: SetupTabProps): ReactNode => {
 
   const displayContent = () => {
     switch (appMetadataStatus) {
-      case 'loading':
+      case 'pending':
         return <LoadingTabData />;
       case 'error':
         return (

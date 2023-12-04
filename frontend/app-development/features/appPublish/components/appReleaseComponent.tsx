@@ -4,7 +4,7 @@ import { formatDateTime } from 'app-shared/pure/date-format';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { Build, BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { AppRelease } from 'app-shared/types/AppRelease';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -26,7 +26,7 @@ export function ReleaseComponent(props: IAppReleaseComponent) {
       return <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`} />;
     }
     if (status.status !== BuildStatus.completed) {
-      return <AltinnSpinner className={classes.spinnerRoot} />;
+      return <StudioSpinner className={classes.spinnerRoot} />;
     }
     return null;
   }

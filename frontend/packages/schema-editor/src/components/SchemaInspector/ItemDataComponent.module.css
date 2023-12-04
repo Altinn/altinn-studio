@@ -37,3 +37,7 @@
   flex-direction: column;
   gap: 2rem;
 }
+
+.switch {
+  width: fit-content;
+}

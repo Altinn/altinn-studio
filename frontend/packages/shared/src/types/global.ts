@@ -1,29 +1,5 @@
 import { TextResourceVariable } from '@altinn/text-editor/src/types';
 
-export interface ISelfLinks {
-  apps: string;
-  platform: string;
-}
-
-export interface IAttachment {
-  name: string;
-  iconClass: string;
-  url: string;
-}
-
-export interface IData {
-  id: string;
-  dataType: string;
-  filename: string;
-  contentType: string;
-  storageUrl: string;
-  selfLinks: ISelfLinks;
-  size: number;
-  locked: boolean;
-  created: Date;
-  lastChanged: Date;
-}
-
 export interface IFrontEndSettings {
   appUrl?: string;
 }

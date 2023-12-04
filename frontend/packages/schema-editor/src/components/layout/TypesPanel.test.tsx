@@ -3,7 +3,7 @@ import { dataMock } from '../../mockData';
 import { screen } from '@testing-library/react';
 
 import { TypesPanel, TypesPanelProps } from './TypesPanel';
-import { buildUiSchema, FieldType, ObjectKind } from '@altinn/schema-model';
+import { buildUiSchema, FieldType, ObjectKind, SchemaModel } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';
@@ -38,19 +38,20 @@ const render = (props?: Partial<TypesPanelProps>) => {
       fieldType: FieldType.Object,
       implicitType: false,
       isArray: false,
-      isCombinationItem: false,
       isNillable: false,
       isRequired: false,
       objectKind: ObjectKind.Field,
-      pointer: '#/$defs/TestType',
+      pointer: '#/$defs/Test',
       restrictions: {},
     },
     expandedDefNodes: [],
     setExpandedDefNodes: () => {},
   };
+  const schemaNodes = buildUiSchema(dataMock);
+  const schemaModel = SchemaModel.fromArray(schemaNodes);
   return renderWithProviders({
     state: mockInitialState,
-    appContextProps: { data: buildUiSchema(dataMock) },
+    appContextProps: { schemaModel },
   })(<TypesPanel {...defaultProps} {...props} />);
 };
 
@@ -58,6 +59,6 @@ describe('TypesPanel', () => {
   it('should render the tree view for the supplied type', () => {
     render();
     expect(screen.getByRole('button', { name: 'Legg til' })).toBeInTheDocument();
-    expect(screen.getByText('TestType')).toBeInTheDocument();
+    expect(screen.getByText('Test')).toBeInTheDocument();
   });
 });

@@ -3,6 +3,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { Validation } from 'app-shared/types/ResourceAdm';
 import { AxiosError } from 'axios';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 /**
  * Query to get the validation status of a policy.
@@ -20,27 +21,26 @@ export const useValidatePolicyQuery = (
 ): UseQueryResult<Validation, AxiosError> => {
   const { getValidatePolicy } = useServicesContext();
 
-  return useQuery<Validation, AxiosError>(
-    [QueryKey.ValidatePolicy, org, repo, id],
-    () => getValidatePolicy(org, repo, id),
-    {
-      select: (data) => {
-        const errorsArray: string[][] = Object.values(data.errors);
-        let allErrors: string[] = [];
+  return useQuery<Validation, AxiosError>({
+    queryKey: [QueryKey.ValidatePolicy, org, repo, id],
+    queryFn: () => getValidatePolicy(org, repo, id),
+    select: (data) => {
+      const errorsArray: string[][] = Object.values(data.errors);
+      let allErrors: string[] = [];
 
-        if (errorsArray.length > 1) {
-          allErrors = errorsArray.reduce(
-            (flattenArr, row, i) => flattenArr.concat(row.map((s) => `rule${i + 1}.${s}`)),
-            [],
-          );
-        } else {
-          allErrors = errorsArray.flat(1).map((row) => {
-            return `${data.status === 404 ? '' : 'rule1.'}${row}`;
-          });
-        }
+      const hasErrors = errorsArray.length > 1;
+      if (hasErrors) {
+        allErrors = errorsArray.reduce(
+          (flattenArr, row, i) => flattenArr.concat(row.map((s) => `rule${i + 1}.${s}`)),
+          [],
+        );
+      } else {
+        allErrors = errorsArray.flat(1).map((row) => {
+          return `${data.status === ServerCodes.NotFound ? '' : 'rule1.'}${row}`;
+        });
+      }
 
-        return { status: data.status, errors: allErrors };
-      },
+      return { status: data.status, errors: allErrors };
     },
-  );
+  });
 };
