@@ -4,6 +4,7 @@
 import * as texts from '../../../../../language/src/nb.json';
 
 const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerAppName')}`;
+const orgAppId = `${Cypress.env('orgUserName')}/${Cypress.env('designerAppName')}`;
 
 const FeatureFlagEnum = Object.freeze({
   ProcessEditor: 'processEditor',
@@ -34,6 +35,7 @@ context('Designer', () => {
   });
 
   it('loads the overview page when navigating to app for user with no environments', () => {
+    cy.visit('/editor/' + designerAppId);
     cy.findByText(Cypress.env('designerAppName')).should('be.visible');
     cy.findByText(texts['app_publish.no_env_title']).should('be.visible');
     cy.findByText(texts['overview.navigation_title']).should('be.visible');
@@ -42,6 +44,7 @@ context('Designer', () => {
   });
 
   it('loads the overview page when navigating to app for org with environments', () => {
+    cy.visit('/editor/' + orgAppId);
     cy.findByText(Cypress.env('designerAppName')).should('be.visible');
     cy.findByRole('heading', { name: 'tt02' }).should('be.visible');
     cy.findByText(texts['overview.activity']).should('be.visible');
@@ -51,6 +54,7 @@ context('Designer', () => {
   });
 
   it('should be possible to navigate to the forms builder from overview page', () => {
+    cy.visit('/editor/' + designerAppId);
     const navigationContainer = cy.findByText(texts['overview.navigation_title']).parent();
     navigationContainer
       .findByRole('link', { name: texts['top_menu.create'] })
@@ -61,6 +65,7 @@ context('Designer', () => {
   });
 
   it('should be possible to navigate to the data model editor from overview page', () => {
+    cy.visit('/editor/' + designerAppId);
     const navigationContainer = cy.findByText(texts['overview.navigation_title']).parent();
     navigationContainer
       .findByRole('link', { name: texts['top_menu.datamodel'] })
@@ -70,6 +75,7 @@ context('Designer', () => {
   });
 
   it('should be possible to navigate to the text editor from overview page', () => {
+    cy.visit('/editor/' + designerAppId);
     const navigationContainer = cy.findByText(texts['overview.navigation_title']).parent();
     navigationContainer
       .findByRole('link', { name: texts['top_menu.texts'] })
