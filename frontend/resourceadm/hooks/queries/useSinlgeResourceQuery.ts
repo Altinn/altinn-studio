@@ -15,11 +15,12 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
 export const useSinlgeResourceQuery = (
   org: string,
   repo: string,
-  id: string
+  id: string,
 ): UseQueryResult<Resource> => {
   const { getResource } = useServicesContext();
 
-  return useQuery<Resource>([QueryKey.SingleResource, org, repo, id], () =>
-    getResource(org, repo, id)
-  );
+  return useQuery<Resource>({
+    queryKey: [QueryKey.SingleResource, org, repo, id],
+    queryFn: () => getResource(org, repo, id),
+  });
 };

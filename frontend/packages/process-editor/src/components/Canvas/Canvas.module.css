@@ -1,21 +1,37 @@
-.container {
-  padding: 18px;
-  box-sizing: border-box;
+:root {
+  --mask-icon-size: 0 0 /46px 46px;
 }
 
-.canvasMenuContainer {
-  composes: container;
-  justify-content: space-between;
+.wrapper {
   display: flex;
-  gap: 8px;
+  flex: 1;
+  margin-top: 18px;
 }
 
-.unsavedChanges {
-  color: #ff0000;
-  font-weight: 500;
+div[class*='bpmn-icon-task-generic'] {
+  background-color: var(--palette-entry-color);
 }
 
-.alertContainer  {
-  composes: container;
-  max-width: 780px;
+div[class*='bpmn-icon-task-generic']:hover {
+  background-color: var(--palette-entry-hover-color);
+}
+
+div[class*='bpmn-icon-data-task'] {
+  -webkit-mask: url('../../../img/DataTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/DataTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-confirmation-task'] {
+  -webkit-mask: url('../../../img/ConfirmationTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/ConfirmationTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-feedback-task'] {
+  -webkit-mask: url('../../../img/FeedbackTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/FeedbackTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-signing-task'] {
+  -webkit-mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
 }

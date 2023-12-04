@@ -1,6 +1,4 @@
-import { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
-
-type PartyTypesAllowedOption = 'bankruptcyEstate' | 'organisation' | 'person' | 'subUnit';
+import { PartyTypesAllowed, AllowedPartyTypes } from 'app-shared/types/ApplicationMetadata';
 
 /**
  * PartyTypesAllowed where all values are set to false
@@ -15,7 +13,7 @@ export const initialPartyTypes: PartyTypesAllowed = {
 /**
  * Map to handle the different text to display in the checkboxes
  */
-export const partyTypesAllowedMap: Record<PartyTypesAllowedOption, string> = {
+export const partyTypesAllowedMap: Record<AllowedPartyTypes, string> = {
   bankruptcyEstate: 'settings_modal.access_control_tab_option_bankruptcy_estate',
   organisation: 'settings_modal.access_control_tab_option_organisation',
   person: 'settings_modal.access_control_tab_option_person',

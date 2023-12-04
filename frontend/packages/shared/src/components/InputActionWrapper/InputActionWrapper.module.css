@@ -4,3 +4,18 @@
   align-items: center;
   min-height: var(--fds-component-mode-height-medium);
 }
+
+.standByContainer {
+  position: relative;
+}
+
+.buttonWrapper {
+  display: flex;
+  background-color: var(--fds-semantic-background-subtle);
+}
+
+.standByButtonWrapper {
+  position: absolute;
+  right: 0;
+  top: 0.5;
+}

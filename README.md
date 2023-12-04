@@ -91,6 +91,7 @@ is configured with the following variables.
 DEVELOP_BACKEND=0
 DEVELOP_DASHBOARD=0
 DEVELOP_APP_DEVELOPMENT=0
+DEVELOP_STUDIO_ROOT=0
 ```
 
 ## Developing Backend

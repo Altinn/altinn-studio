@@ -20,12 +20,16 @@ export const EditRequired = ({ component, handleComponentChange }: IGenericEditC
       value={component.required || false}
       onChange={handleChange}
       propertyPath='definitions/component/properties/required'
-    >
-      {({ value, onChange }) => (
-        <Switch checked={value} onChange={(e) => onChange(e.target.checked, e)} size='small'>
+      renderField={({ fieldProps }) => (
+        <Switch
+          {...fieldProps}
+          checked={fieldProps.value}
+          onChange={(e) => fieldProps.onChange(e.target.checked, e)}
+          size='small'
+        >
           {t('ux_editor.modal_configure_required')}
         </Switch>
       )}
-    </FormField>
+    />
   );
 };

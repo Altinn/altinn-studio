@@ -20,13 +20,12 @@ export const useValidateResourceQuery = (
 ): UseQueryResult<Validation, AxiosError> => {
   const { getValidateResource } = useServicesContext();
 
-  return useQuery<Validation, AxiosError>(
-    [QueryKey.ValidateResource, org, repo, id],
-    () => getValidateResource(org, repo, id),
-    {
-      select: (data) => {
-        return { status: data.status, errors: Object.keys(data.errors) };
-      },
-    },
-  );
+  return useQuery<Validation, AxiosError>({
+    queryKey: [QueryKey.ValidateResource, org, repo, id],
+    queryFn: () => getValidateResource(org, repo, id),
+    select: (data) => ({
+      status: data.status,
+      errors: Object.keys(data.errors),
+    }),
+  });
 };

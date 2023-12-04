@@ -12,7 +12,7 @@
     "eslint-plugin-prettier": "5.0.1",
     "glob": "10.3.10",
     "husky": "8.0.3",
-    "lint-staged": "14.0.1",
+    "lint-staged": "15.1.0",
     "prettier": "^3.0.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
@@ -24,6 +24,6 @@
     "generate-config-coverage-stats": "node -r ts-node/register/transpile-only -r tsconfig-paths/register configurationStats/run.ts",
     "lint": "eslint \"./**/*.ts*\"",
     "lint:fix": "npm run lint --fix",
-    "typecheck": "yarn workspaces foreach run typecheck"
+    "typecheck": "yarn workspaces foreach -A run typecheck"
   }
 }

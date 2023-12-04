@@ -72,15 +72,16 @@ export const ImageComponent = ({
         onChange={handleSourceChange}
         value={nbSrc && { nb: nbSrc }}
         propertyPath={`${component.propertyPath}/properties/image/properties/src`}
-      >
-        {({ value, onChange }) => (
+        renderField={({ fieldProps }) => (
           <Textfield
-            name={`image_nb_src-input-${component.id}`}
-            onChange={(e) => onChange({ nb: e.target.value }, e)}
-            value={value?.nb || ''}
+            {...fieldProps}
+            name={`image_src-input-${component.id}`}
+            onChange={(e) => fieldProps.onChange({ nb: e.target.value }, e)}
+            value={fieldProps.value?.nb || ''}
           />
         )}
-      </FormField>
+      />
+
       <TextResource
         handleIdChange={handleAltTextChange}
         label={t('ux_editor.modal_properties_image_alt_text_label')}
@@ -91,6 +92,7 @@ export const ImageComponent = ({
           textResourceKey: 'altTextImg',
         }}
       />
+
       <div className={classes.widthAndPlacement}>
         <FormField
           id={component.id}
@@ -99,14 +101,15 @@ export const ImageComponent = ({
           onChange={handleWidthChange}
           value={component.image?.width || ''}
           propertyPath={`${component.propertyPath}/properties/image/properties/width`}
-        >
-          {({ onChange }) => (
+          renderField={({ fieldProps }) => (
             <Textfield
+              {...fieldProps}
               name={`image_width-input-${component.id}`}
-              onChange={(e) => onChange(e.target.value, e)}
+              onChange={(e) => fieldProps.onChange(e.target.value, e)}
             />
           )}
-        </FormField>
+        />
+
         <FormField
           id={component.id}
           className={classes.placementContainer}
@@ -114,17 +117,10 @@ export const ImageComponent = ({
           onChange={handlePlacementChange}
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
-        >
-          {() => (
-            <Select
-              // name={placementSelectId}
-              options={alignOptions}
-              // isClearable={true}
-              // placeholder=''
-              inputId={placementSelectId}
-            />
+          renderField={({ fieldProps }) => (
+            <Select {...fieldProps} options={alignOptions} inputId={placementSelectId} />
           )}
-        </FormField>
+        />
       </div>
       <div>
         <p>

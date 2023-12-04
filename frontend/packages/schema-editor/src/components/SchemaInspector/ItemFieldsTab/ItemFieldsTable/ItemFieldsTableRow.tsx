@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { removeSelection } from '../../../../features/editor/schemaEditorSlice';
 import { TrashIcon } from '@navikt/aksel-icons';
-import { Center } from 'app-shared/components/Center';
+import { StudioCenter } from '@altinn/studio-components';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 
 export type ItemFieldsTableRowProps = {
@@ -94,8 +94,9 @@ export const ItemFieldsTableRow = ({
         />
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
-        <Center>
+        <StudioCenter>
           <Switch
+            className={classes.switch}
             size='small'
             aria-label={t('schema_editor.required')}
             checked={fieldNode?.isRequired ?? false}
@@ -103,10 +104,10 @@ export const ItemFieldsTableRow = ({
             name='checkedArray'
             onChange={changeRequiredHandler}
           />
-        </Center>
+        </StudioCenter>
       </td>
       <td className={cn(classes.tableColumnDelete, classes.tableCell)}>
-        <Center>
+        <StudioCenter>
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
             confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
@@ -126,7 +127,7 @@ export const ItemFieldsTableRow = ({
             <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
             <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
           </AltinnConfirmDialog>
-        </Center>
+        </StudioCenter>
       </td>
     </tr>
   );

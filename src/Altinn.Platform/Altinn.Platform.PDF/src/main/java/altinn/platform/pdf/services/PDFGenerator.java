@@ -371,18 +371,13 @@ public class PDFGenerator {
     }
     addPart();
 
-    String titleKey = element.getTextResourceBindings().getTitle();
-    if (titleKey != null && !titleKey.isEmpty()) {
-      String title = TextUtils.getTextResourceByKey(titleKey, textResources);
-      renderText(title, fontBold, fontSize, StandardStructureTypes.H2);
+    TextResourceBindings bindings = element.getTextResourceBindings();
+    // render title and description
+    if (bindings != null) {
+      renderTextIfKeyExists(bindings.getTitle(), fontBold, StandardStructureTypes.H2);
+      renderTextIfKeyExists(bindings.getDescription(), font, StandardStructureTypes.P);
     }
 
-    // Render description
-    String descriptionKey = element.getTextResourceBindings().getDescription();
-    if (descriptionKey != null && !descriptionKey.isEmpty()) {
-      String description = TextUtils.getTextResourceByKey(descriptionKey, textResources);
-      renderText(description, font, fontSize, StandardStructureTypes.P);
-    }
     String elementType = element.getType();
     // Render content
     if (elementType.equalsIgnoreCase("paragraph") || elementType.equalsIgnoreCase("header")) {
@@ -408,6 +403,14 @@ public class PDFGenerator {
       renderLayoutElementContent(element);
     }
     yPoint -= componentMargin;
+  }
+
+  private void renderTextIfKeyExists(String key, PDType0Font font, String structureType)
+      throws IOException {
+    if (key != null && !key.isEmpty()) {
+      String text = TextUtils.getTextResourceByKey(key, textResources);
+      renderText(text, font, fontSize, structureType);
+    }
   }
 
   private void renderPanelComponent(FormLayoutElement element) throws IOException {

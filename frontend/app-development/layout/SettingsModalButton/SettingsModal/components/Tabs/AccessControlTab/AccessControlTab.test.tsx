@@ -26,7 +26,7 @@ const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunct
 >;
 mockUpdateAppMetadataMutation.mockReturnValue({
   mutate: updateAppMetadataMutation,
-} as unknown as UseMutationResult<void, unknown, ApplicationMetadata, unknown>);
+} as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
@@ -111,23 +111,16 @@ describe('AccessControlTab', () => {
 
     await act(() => user.click(organisationCheckboxBefore));
 
-    const organisationCheckboxAfter = screen.getByRole('checkbox', {
-      name: textMock('settings_modal.access_control_tab_option_organisation'),
+    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
+      ...mockAppMetadata,
+      partyTypesAllowed: {
+        bankruptcyEstate: true,
+        organisation: true,
+        person: false,
+        subUnit: false,
+      },
     });
-    expect(organisationCheckboxAfter).toBeChecked();
-  });
-
-  it('calles saving function when checboxgroup is blurred', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const organisationCheckboxBefore = screen.getByRole('checkbox', {
-      name: textMock('settings_modal.access_control_tab_option_organisation'),
-    });
-    await act(() => user.click(organisationCheckboxBefore));
-    await act(() => user.tab());
-
-    expect(updateAppMetadataMutation).toBeCalledTimes(1);
   });
 });
 

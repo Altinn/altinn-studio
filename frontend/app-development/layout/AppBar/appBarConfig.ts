@@ -35,6 +35,7 @@ export const topBarMenuItem: TopBarMenuItem[] = [
     icon: TenancyIcon,
     repositoryTypes: [RepositoryType.App],
     featureFlagName: 'processEditor',
+    isBeta: true,
   },
 ];
 

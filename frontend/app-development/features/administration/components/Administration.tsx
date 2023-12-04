@@ -2,32 +2,33 @@ import React from 'react';
 import classes from './Administration.module.css';
 import { useAppConfigQuery, useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Heading } from '@digdir/design-system-react';
+import { Heading, Link } from '@digdir/design-system-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { Documentation } from './Documentation';
 import { AppEnvironments } from './AppEnvironments';
 import { AppLogs } from './AppLogs';
 import { Navigation } from './Navigation';
-import { AltinnSpinner } from 'app-shared/components';
-import { Center } from 'app-shared/components/Center';
+import { StudioSpinner } from '@altinn/studio-components';
 import { News } from './News';
+import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
+import { StudioCenter } from '@altinn/studio-components';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
   const {
-    data: orgs = { orgs: {} },
-    isLoading: isLoadingOrgs,
+    data: orgs,
+    isPending: isPendingOrgs,
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
-  const selectedOrg = orgs.orgs[org];
+  const selectedOrg = orgs?.orgs[org];
   const hasEnvironments = selectedOrg?.environments?.length > 0;
 
   const {
     data: appConfigData,
     isError: isAppConfigError,
-    isLoading: isLoadingAppConfig,
+    isPending: isPendingAppConfig,
   } = useAppConfigQuery(org, app, { hideDefaultError: true });
   const { t } = useTranslation();
 
@@ -35,44 +36,49 @@ export const Administration = () => {
     toast.error(t('administration.fetch_title_error_message'));
   }
 
-  if (isLoadingAppConfig || isLoadingOrgs) {
+  if (isPendingAppConfig || isPendingOrgs) {
     return (
-      <Center>
-        <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />
-      </Center>
+      <StudioCenter>
+        <StudioSpinner spinnerText={t('general.loading')} className={classes.spinner} />
+      </StudioCenter>
     );
   }
 
   return (
-    <div className={classes.pageContainer}>
+    <PageContainer>
       <div className={classes.container}>
-        <div className={classes.header}>
+        <header className={classes.header}>
           <Heading size='xlarge'>{appConfigData?.serviceName || app}</Heading>
-        </div>
-        <div className={classes.content}>
-          <main className={classes.main}>
-            <div className={classes.mainBlock}>
-              <AppEnvironments />
-            </div>
-            {hasEnvironments && (
-              <div className={classes.mainBlock}>
-                <AppLogs />
-              </div>
-            )}
-            <div className={classes.mainBlock}>
-              <Navigation />
-            </div>
-          </main>
-          <aside className={classes.aside}>
-            <div className={classes.asideBlock}>
-              <Documentation />
-            </div>
-            <div>
-              <News />
-            </div>
-          </aside>
+        </header>
+        <div className={classes.panel}>
+          <div className={classes.content}>
+            <main className={classes.main}>
+              <section className={classes.mainSection}>
+                <AppEnvironments />
+              </section>
+              {hasEnvironments && (
+                <section className={classes.mainSection}>
+                  <AppLogs />
+                </section>
+              )}
+              <section className={classes.mainSection}>
+                <Navigation />
+              </section>
+            </main>
+            <aside className={classes.aside}>
+              <section className={classes.asideSection}>
+                <Documentation />
+              </section>
+              <section>
+                <News />
+              </section>
+            </aside>
+          </div>
+          <footer className={classes.footer}>
+            <Link href='/contact'>{t('general.contact')}</Link>
+          </footer>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };

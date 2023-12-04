@@ -85,7 +85,7 @@ const mockPublishResource = usePublishResourceMutation as jest.MockedFunction<
 >;
 mockPublishResource.mockReturnValue({
   mutate: publishResource,
-} as unknown as UseMutationResult<void, unknown, string, unknown>);
+} as unknown as UseMutationResult<void, Error, string, unknown>);
 
 const defaultProps: DeployResourcePageProps = {
   navigateToPageWithError: mockNavigateToPageWithError,

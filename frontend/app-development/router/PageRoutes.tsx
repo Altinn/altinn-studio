@@ -4,7 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from 'app-development/layout/AppShell';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { routerRoutes } from 'app-development/router/routes';
-import { NotFoundPage } from 'app-development/features/notFound';
+import { NotFoundPage } from 'app-shared/components/notFound';
 
 const BASE_PATH = '/:org/:app';
 

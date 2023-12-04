@@ -5,8 +5,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useBranchStatusQuery = (owner, app, branch): UseQueryResult<BranchStatus> => {
   const { getBranchStatus } = useServicesContext();
-  return useQuery<BranchStatus>(
-    [QueryKey.BranchStatus, owner, app, branch],
-    () => getBranchStatus(owner, app, branch),
-  );
+  return useQuery<BranchStatus>({
+    queryKey: [QueryKey.BranchStatus, owner, app, branch],
+    queryFn: () => getBranchStatus(owner, app, branch),
+  });
 };

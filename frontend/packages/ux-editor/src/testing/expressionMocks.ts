@@ -15,11 +15,9 @@ export const numberValue = 1024;
 export const nullValue = null;
 export const booleanValue = true;
 export const baseInternalSubExpression: SubExpression = {
-  id: 'some-sub-exp-id',
   function: ExpressionFunction.Equals,
 };
 export const subExpression0: SubExpression = {
-  id: 'some-sub-exp-id-0',
   function: ExpressionFunction.Equals,
   dataSource: DataSource.Component,
   value: componentId,
@@ -27,7 +25,6 @@ export const subExpression0: SubExpression = {
   comparableValue: stringValue,
 };
 export const subExpression1: SubExpression = {
-  id: 'some-sub-exp-id-1',
   function: ExpressionFunction.Equals,
   dataSource: DataSource.Null,
   value: nullValue,
@@ -35,7 +32,6 @@ export const subExpression1: SubExpression = {
   comparableValue: numberValue,
 };
 export const subExpression2: SubExpression = {
-  id: 'some-sub-exp-id-2',
   function: ExpressionFunction.Equals,
   dataSource: DataSource.Boolean,
   value: booleanValue,
@@ -43,17 +39,14 @@ export const subExpression2: SubExpression = {
   comparableValue: componentId,
 };
 export const baseInternalExpression: Expression = {
-  id: 'some-id-0',
   property: ExpressionPropertyBase.Hidden,
   subExpressions: [baseInternalSubExpression],
 };
 export const simpleInternalExpression: Expression = {
-  id: 'some-id-1',
   property: ExpressionPropertyBase.Hidden,
   subExpressions: [subExpression0],
 };
 export const internalExpressionWithMultipleSubExpressions: Expression = {
-  id: 'some-id-2',
   property: ExpressionPropertyBase.Hidden,
   operator: Operator.Or,
   subExpressions: [subExpression1, subExpression2],
@@ -78,12 +71,10 @@ export const parsableNotStudioFriendlyLongComplexExpression: any = [
   ['equals', ['dataModel', 'some-field'], 'true'],
 ];
 export const internalUnParsableComplexExpression: Expression = {
-  id: 'some-id-4',
   property: ExpressionPropertyBase.Hidden,
   complexExpression: unParsableComplexExpression,
 };
 export const internalParsableComplexExpression: Expression = {
-  id: 'some-id-5',
   property: ExpressionPropertyBase.Hidden,
   complexExpression: parsableExternalExpression,
 };
