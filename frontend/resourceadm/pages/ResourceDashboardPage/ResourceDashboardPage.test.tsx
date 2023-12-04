@@ -55,11 +55,12 @@ const mockResourceList: ResourceListItem[] = [
 ];
 
 const getResourceList = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getOrganizations = jest.fn().mockImplementation(() => Promise.resolve([]));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    selectedContext: 'tdd',
+    selectedContext: 'ttd',
   }),
 }));
 
@@ -82,9 +83,27 @@ describe('ResourceDashBoardPage', () => {
     expect(getResourceList).toHaveBeenCalledTimes(1);
   });
 
-  it('shows correct organization header', () => {
+  it('shows correct organization header', async () => {
+    getOrganizations.mockImplementation(() =>
+      Promise.resolve([
+        {
+          avatar_url: 'http://studio.localhost/repos/avatars/5d076e5c3d34cb8bb08e54a4bb7e223e',
+          description: 'Internt organisasjon for test av løsning',
+          full_name: 'Testdepartementet',
+          id: 3,
+          location: '',
+          username: 'ttd',
+          website: '',
+        },
+      ]),
+    );
     render();
-    expect(screen.getByText(textMock('dashboard.resources'))).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+    );
+    expect(
+      screen.getByText(textMock('dashboard.org_resources', { orgName: 'Testdepartementet' })),
+    ).toBeInTheDocument();
   });
 
   it('shows the loading state when page is loading', () => {
@@ -231,6 +250,7 @@ const render = (
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getResourceList,
+    getOrganizations,
     ...queries,
   };
   return rtlRender(
