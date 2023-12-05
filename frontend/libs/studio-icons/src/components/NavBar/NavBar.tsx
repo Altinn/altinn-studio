@@ -6,7 +6,7 @@ import { SvgTemplate } from '../SvgTemplate';
  * @param {IconProps} props the icon props
  * @returns {JSX.Element} the icon as a react component
  * @example
- * import { NavBar } from '@altinn/icons';
+ * import { NavBar } from '@studio/icons';
  */
 export const NavBar = (props: IconProps): JSX.Element => {
   return (

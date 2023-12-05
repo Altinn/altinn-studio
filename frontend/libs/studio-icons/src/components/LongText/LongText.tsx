@@ -6,31 +6,40 @@ import { SvgTemplate } from '../SvgTemplate';
  * @param {IconProps} props the icon props
  * @returns {JSX.Element} the icon as a react component
  * @example
- * import { Paragraph } from '@altinn/icons';
+ * import { LongText } from '@studio/icons';
  */
-export const Paragraph = (props: IconProps): JSX.Element => {
+export const LongText = (props: IconProps): JSX.Element => {
   return (
     <SvgTemplate {...props}>
+      <rect
+        x='3.95972'
+        y='4.76318'
+        width='18'
+        height='16'
+        rx='3'
+        stroke='currentColor'
+        strokeWidth='1.5'
+      />
       <path
-        d='M4.95947 18.6934H12.9595'
+        d='M6.95972 14.4292H18.9597'
         stroke='currentColor'
         strokeWidth='1.5'
         strokeLinecap='round'
       />
       <path
-        d='M4.95947 10.6436H12.9595'
+        d='M6.95972 11.2388H18.9597'
         stroke='currentColor'
         strokeWidth='1.5'
         strokeLinecap='round'
       />
       <path
-        d='M4.95947 14.6934H20.9595'
+        d='M6.95972 8.04834H18.9597'
         stroke='currentColor'
         strokeWidth='1.5'
         strokeLinecap='round'
       />
       <path
-        d='M4.95947 6.69336H20.9595'
+        d='M6.96069 17.4292H12.9607'
         stroke='currentColor'
         strokeWidth='1.5'
         strokeLinecap='round'

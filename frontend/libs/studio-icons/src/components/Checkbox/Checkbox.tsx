@@ -6,7 +6,7 @@ import { SvgTemplate } from '../SvgTemplate';
  * @param {IconProps} props the icon props
  * @returns {JSX.Element} the icon as a react component
  * @example
- * import { Checkbox } from '@altinn/icons';
+ * import { Checkbox } from '@studio/icons';
  */
 export const Checkbox = (props: IconProps): JSX.Element => {
   return (

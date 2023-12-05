@@ -21,7 +21,7 @@ import {
 } from '../utils/domUtils';
 import { AnimateHeight } from 'app-shared/components/AnimateHeight';
 import { TreeViewItemContext } from './TreeViewItemContext';
-import { ChevronDownIcon, ChevronRightIcon } from '@altinn/icons';
+import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import { Button } from '@digdir/design-system-react';
 import classes from './TreeViewItem.module.css';
 import cn from 'classnames';
