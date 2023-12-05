@@ -30,7 +30,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
 
   const navigate = useNavigate();
 
-  const { org: selectedContext } = useParams();
+  const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const [id, setId] = useState('');

@@ -40,7 +40,7 @@ export const ImportResourceModal = ({
 }: ImportResourceModalProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { org: selectedContext } = useParams();
+  const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const navigate = useNavigate();

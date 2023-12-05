@@ -41,8 +41,8 @@ export const App = (): JSX.Element => {
     );
   }
 
-  // PageLayout banner uses organization, named as org
-  const basePath = '/:org/:app';
+  // PageLayout banner uses organization, named as selectedContext
+  const basePath = '/:selectedContext/:app';
 
   if (componentIsReady) {
     return (
@@ -61,7 +61,7 @@ export const App = (): JSX.Element => {
             <Route path={basePath} element={<ResourceDashboardPage />} />
             <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
             <Route path='/' element={<ErrorPage />} />
-            <Route path='/:org' element={<RedirectPage />} />
+            <Route path='/:selectedContext' element={<RedirectPage />} />
           </Route>
         </Routes>
       </div>
