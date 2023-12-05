@@ -9,6 +9,7 @@ import { Organization } from 'app-shared/types/Organization';
 import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery';
 import { IRepository } from 'app-shared/types/global';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import { Heading } from '@digdir/design-system-react';
 
 type DataModelsReposListProps = {
   user: User;
@@ -46,7 +47,9 @@ export const DatamodelsReposList = ({
 
   return (
     <div>
-      <h2>{getReposLabel({ selectedContext, orgs: organizations, t, isDatamodelsRepo: true })}</h2>
+      <Heading level={2} size='small' spacing>
+        {getReposLabel({ selectedContext, orgs: organizations, t, isDatamodelsRepo: true })}
+      </Heading>
       <RepoList repos={reposWithStarred} isLoading={isPendingOrgRepos} pageSize={5} rowCount={2} />
     </div>
   );

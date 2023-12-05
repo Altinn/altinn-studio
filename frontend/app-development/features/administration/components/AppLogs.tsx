@@ -3,7 +3,7 @@ import classes from './AppLogs.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppDeploymentsQuery, useEnvironmentsQuery } from 'app-development/hooks/queries';
 import { useTranslation } from 'react-i18next';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { IDeployment } from 'app-development/sharedResources/appDeployment/types';
@@ -26,7 +26,7 @@ export const AppLogs = () => {
     isError: envIsError,
   } = useEnvironmentsQuery({ hideDefaultError: true });
 
-  if (isPendingDeploys || envIsPending) return <AltinnSpinner />;
+  if (isPendingDeploys || envIsPending) return <StudioSpinner />;
 
   if (deploysHasError || envIsError)
     return <Alert severity='danger'>{t('administration.app_logs_error')}</Alert>;

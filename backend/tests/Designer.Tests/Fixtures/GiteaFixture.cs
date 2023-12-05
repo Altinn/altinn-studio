@@ -34,9 +34,9 @@ namespace Designer.Tests.Fixtures
         private Lazy<HttpClient> _giteaClient;
         public Lazy<HttpClient> GiteaClient
         {
-            get => _giteaClient ??= new Lazy<HttpClient>(() => new HttpClient(new EnsureSuccessHandler
+            get => _giteaClient ??= new Lazy<HttpClient>(() => new HttpClient(new EnsureSuccessHandler()
             {
-                InnerHandler = new HttpClientHandler()
+                InnerHandler = new HttpClientHandler(),
             })
             {
                 BaseAddress = new Uri("http://localhost:" + _giteaContainer.GetMappedPublicPort(3000) + "/api/v1/"),

@@ -4,8 +4,7 @@ import { PageHeader } from './PageHeader';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NotFoundPage } from 'app-shared/components/notFound';
-import { PageSpinner } from 'app-shared/components';
-import { Center } from 'app-shared/components/Center';
+import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
 
 /**
@@ -26,9 +25,9 @@ export const AppShell = (): React.ReactNode => {
 
   if (isRepoStatusPending || isUserPending) {
     return (
-      <Center style={{ height: '100vh' }}>
-        <PageSpinner />
-      </Center>
+      <StudioCenter>
+        <StudioPageSpinner />
+      </StudioCenter>
     );
   }
 

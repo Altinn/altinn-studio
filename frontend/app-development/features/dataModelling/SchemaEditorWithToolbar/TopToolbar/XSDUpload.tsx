@@ -1,5 +1,6 @@
 import React from 'react';
-import { AltinnSpinner, FileSelector } from 'app-shared/components';
+import { FileSelector } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import axios from 'axios';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { datamodelsUploadPath } from 'app-shared/api/paths';
@@ -56,7 +57,7 @@ export const XSDUpload = ({ disabled, submitButtonRenderer }: IXSDUploadProps) =
     <>
       <span ref={uploadButton}>
         {uploading ? (
-          <AltinnSpinner spinnerText={t('app_data_modelling.uploading_xsd')} />
+          <StudioSpinner spinnerText={t('app_data_modelling.uploading_xsd')} />
         ) : (
           <FileSelector
             busy={false}

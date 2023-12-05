@@ -3,7 +3,7 @@
   "dependencies": {
     "@altinn/altinn-design-system": "0.29.1",
     "@altinn/figma-design-tokens": "6.0.1",
-    "@digdir/design-system-react": "0.37.0",
+    "@digdir/design-system-react": "0.38.0",
     "@digdir/design-system-tokens": "0.10.0",
     "@microsoft/applicationinsights-react-js": "17.0.1",
     "@microsoft/applicationinsights-web": "3.0.3",
@@ -89,7 +89,7 @@
   "scripts": {
     "build": "yarn workspaces foreach -A -p run build",
     "lint": "eslint \"frontend/**/*.ts*\"",
-    "lint:fix": "npm run lint --fix",
+    "lint:fix": "yarn run lint --fix",
     "setup": "husky install && node development/setup.js",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start",

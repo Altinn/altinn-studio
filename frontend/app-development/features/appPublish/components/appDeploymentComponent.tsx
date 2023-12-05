@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
-import { AltinnLink, AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import {
   Alert,
@@ -150,12 +150,9 @@ export const AppDeploymentComponent = ({
         </div>
         <div className={classes.gridItem}>
           {showLinkToApp && (
-            <AltinnLink
-              url={urlToApp}
-              linkTxt={urlToAppLinkTxt}
-              shouldShowIcon={false}
-              openInNewTab={true}
-            />
+            <Link href={urlToApp} target='_blank' rel='noopener noreferrer'>
+              {urlToAppLinkTxt}
+            </Link>
           )}
         </div>
       </div>
@@ -183,7 +180,7 @@ export const AppDeploymentComponent = ({
             />
           )}
           {deployInProgress && (
-            <AltinnSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
+            <StudioSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
           )}
         </div>
         <div className={classes.deploymentListGrid}>

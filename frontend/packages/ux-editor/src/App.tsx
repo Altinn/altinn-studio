@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText } from './hooks';
-import { PageSpinner } from 'app-shared/components/PageSpinner';
+import { StudioPageSpinner } from '@studio/components';
 import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQuery';
 import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
@@ -10,7 +10,7 @@ import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from "./hooks/useAppContext";
+import { useAppContext } from './hooks/useAppContext';
 
 /**
  * This is the main React component responsible for controlling
@@ -31,9 +31,9 @@ export function App() {
 
   useEffect(() => {
     if (
-        areLayoutSetsFetched &&
-        selectedLayoutSet &&
-        (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSet))
+      areLayoutSetsFetched &&
+      selectedLayoutSet &&
+      (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSet))
     )
       removeSelectedLayoutSet();
   }, [
@@ -80,12 +80,7 @@ export function App() {
   }
 
   if (componentIsReady) {
-    return (
-      <FormDesigner
-        selectedLayout={selectedLayout}
-        selectedLayoutSet={selectedLayoutSet}
-      />
-    );
+    return <FormDesigner selectedLayout={selectedLayout} selectedLayoutSet={selectedLayoutSet} />;
   }
-  return <PageSpinner />;
+  return <StudioPageSpinner />;
 }

@@ -9,6 +9,7 @@ import {
   parentNodeMock,
   uiSchemaNodesMock
 } from '../../../test/mocks/uiSchemaMock';
+import { SchemaModel } from '../../../../schema-model';
 
 const user = userEvent.setup();
 
@@ -25,7 +26,7 @@ const defaultProps: NameFieldProps = {
 const render = async (
   props?: Partial<NameFieldProps>,
 ) => renderWithProviders({
-  appContextProps: { data: uiSchemaNodesMock },
+  appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodesMock) },
 })(<NameField {...defaultProps} {...props} />);
 
 describe('NameField', () => {

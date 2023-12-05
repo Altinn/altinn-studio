@@ -143,7 +143,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
     <div className={className}>
       <div className={classes.container}>
         <div className={classes.formField}>{renderField(generateProps())}</div>
-        <div className={classes.helpTextContainer}>
+        <div>
           {helpText && (
             <HelpText className={classes.helpText} title={helpText}>
               {helpText}

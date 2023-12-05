@@ -9,10 +9,9 @@ import { Documentation } from './Documentation';
 import { AppEnvironments } from './AppEnvironments';
 import { AppLogs } from './AppLogs';
 import { Navigation } from './Navigation';
-import { AltinnSpinner } from 'app-shared/components';
-import { Center } from 'app-shared/components/Center';
 import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
+import { StudioCenter, StudioSpinner } from '@studio/components';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
@@ -38,9 +37,9 @@ export const Administration = () => {
 
   if (isPendingAppConfig || isPendingOrgs) {
     return (
-      <Center>
-        <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />
-      </Center>
+      <StudioCenter>
+        <StudioSpinner spinnerText={t('general.loading')} className={classes.spinner} />
+      </StudioCenter>
     );
   }
 

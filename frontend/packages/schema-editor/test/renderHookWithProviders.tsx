@@ -9,6 +9,7 @@ import {
   SchemaEditorAppContextProps
 } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
+import { SchemaModel } from '../../schema-model';
 
 export const renderHookWithProviders = ({
   state = {},
@@ -27,7 +28,7 @@ export const renderHookWithProviders = ({
   };
 
   const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
-    data: uiSchemaNodesMock,
+    schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
     save: jest.fn(),
     setSelectedTypePointer: jest.fn(),
     ...appContextProps,

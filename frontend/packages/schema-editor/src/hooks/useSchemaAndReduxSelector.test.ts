@@ -6,11 +6,13 @@ import { SchemaAndReduxSelector } from '@altinn/schema-editor/selectors/schemaAn
 import type { UiSchemaNodes } from '@altinn/schema-model';
 import { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { ReduxSelector } from '@altinn/schema-editor/selectors/reduxSelectors';
+import { SchemaModel } from '@altinn/schema-model';
 
 describe('useSchemaAndReduxSelector', () => {
   it('Accesses the datamodel and the redux state and returns the result of the selector', () => {
     const selectedEditorTab = 'properties';
-    const appContextProps: Partial<SchemaEditorAppContextProps> = { data: uiSchemaNodesMock, save: jest.fn() };
+    const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
+    const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, save: jest.fn() };
     const state: Partial<SchemaState> = { selectedEditorTab };
 
     const reduxSelector: ReduxSelector<string> = (state) => state?.selectedEditorTab;
@@ -25,6 +27,6 @@ describe('useSchemaAndReduxSelector', () => {
       state,
     })(() => useSchemaAndReduxSelector(selector));
 
-    expect(result.current).toEqual({ tab: selectedEditorTab, schema: uiSchemaNodesMock });
+    expect(result.current).toEqual({ tab: selectedEditorTab, schema: schemaModel });
   });
 });
