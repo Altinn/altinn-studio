@@ -6,14 +6,14 @@ import {
   SchemaEditorAppContextProps,
 } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { uiSchemaNodesMock } from '../../test/mocks/uiSchemaMock';
-import type { UiSchemaNodes } from '@altinn/schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 
 describe('useSchemaEditorAppContext', () => {
   it('Returns the provided context value if used inside a SchemaEditorAppContextProvider', () => {
-    const data: UiSchemaNodes = uiSchemaNodesMock;
+    const schemaModel: SchemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
     const save = jest.fn();
     const providedContext: SchemaEditorAppContextProps = {
-      data,
+      schemaModel,
       save,
       setSelectedTypePointer: jest.fn(),
     };

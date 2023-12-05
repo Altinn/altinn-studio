@@ -10,7 +10,7 @@ import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import { ErrorPage } from '../components/ErrorPage';
-import { PageSpinner } from 'app-shared/components';
+import { StudioPageSpinner } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
@@ -134,5 +134,5 @@ export const FormDesigner = ({
       </DragAndDropTree.Provider>
     );
   }
-  return <PageSpinner />;
+  return <StudioPageSpinner />;
 };

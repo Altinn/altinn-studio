@@ -6,7 +6,7 @@ import { store } from './store';
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
 import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
-import { buildJsonSchema, buildUiSchema, UiSchemaNodes } from '@altinn/schema-model';
+import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
 import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
@@ -32,13 +32,14 @@ export function SchemaEditorApp({
   const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
 
   const saveInternalModel = useCallback(
-    (newModel: UiSchemaNodes, saveAfterMs: number = AUTOSAVE_DEBOUNCE_INTERVAL) => {
-      prevModelRef.current = newModel;
-      setModel(newModel);
+    (newModel: SchemaModel, saveAfterMs: number = AUTOSAVE_DEBOUNCE_INTERVAL) => {
+      const nodes = newModel.asArray();
+      prevModelRef.current = nodes;
+      setModel(nodes);
       clearTimeout(autoSaveTimeoutRef.current);
       autoSaveTimeoutRef.current = setTimeout(async () => {
         clearTimeout(autoSaveTimeoutRef.current);
-        save({ modelPath, model: buildJsonSchema(newModel) });
+        save({ modelPath, model: buildJsonSchema(nodes) });
       }, saveAfterMs);
     },
     [modelPath, save]
@@ -72,7 +73,12 @@ export function SchemaEditorApp({
   }, [jsonSchema]);
 
   const value = useMemo(
-    () => ({ data: model, save: saveInternalModel, selectedTypePointer, setSelectedTypePointer }),
+    () => ({
+      schemaModel: SchemaModel.fromArray(model),
+      save: saveInternalModel,
+      selectedTypePointer,
+      setSelectedTypePointer
+    }),
     [model, saveInternalModel, selectedTypePointer]
   );
 

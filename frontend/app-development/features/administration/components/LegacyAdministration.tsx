@@ -1,6 +1,6 @@
 import React from 'react';
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
-import { PageSpinner } from 'app-shared/components';
+import { StudioPageSpinner } from '@studio/components';
 import { DatamodelsAdministration } from './DatamodelsAdministration';
 import { RepositoryType } from 'app-shared/types/global';
 import { ServiceAdministration } from './ServiceAdministration';
@@ -36,7 +36,7 @@ export function LegacyAdministration() {
           {repositoryType === RepositoryType.Datamodels && <DatamodelsAdministration />}
         </AltinnColumnLayout>
       )}
-      {!repository && <PageSpinner />}
+      {!repository && <StudioPageSpinner />}
     </div>
   );
 }
