@@ -20,12 +20,12 @@ namespace Altinn.Studio.Designer.Filters.DataModeling
                 return;
             }
 
-            if (context.Exception is CsharpGenerationException)
+            if (context.Exception is CsharpCompilationException compilationException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.CsharpCompilationError, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.CsharpCompilationError, HttpStatusCode.BadRequest, compilationException.CustomErrorMessages)) { StatusCode = (int)HttpStatusCode.BadRequest };
             }
 
-            if (context.Exception is CsharpCompilationException)
+            if (context.Exception is CsharpGenerationException)
             {
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.CsharpGenerationError, HttpStatusCode.InternalServerError)) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }

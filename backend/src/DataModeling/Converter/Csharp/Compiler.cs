@@ -37,12 +37,15 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                         diagnostic.Severity == DiagnosticSeverity.Error);
 
                     var errors = new StringBuilder();
+                    List<string> customErrorMessages = new ();
                     foreach (Diagnostic diagnostic in failures)
                     {
-                        errors.AppendLine($"{diagnostic.Id}: {diagnostic.GetMessage()}");
+                        string errorMessage = $"{diagnostic.Id}: {diagnostic.GetMessage()}";
+                        errors.AppendLine(errorMessage);
+                        customErrorMessages.Add(errorMessage);
                     }
 
-                    throw new CsharpCompilationException($"// Compiler // CompileToAssembly // Csharp compilation failed with errors: {errors}");
+                    throw new CsharpCompilationException($"// Compiler // CompileToAssembly // Csharp compilation failed with errors: {errors}", customErrorMessages);
                 }
                 ms.Seek(0, SeekOrigin.Begin);
                 assembly = Assembly.Load(ms.ToArray());

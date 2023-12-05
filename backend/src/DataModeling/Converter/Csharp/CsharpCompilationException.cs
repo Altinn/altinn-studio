@@ -1,28 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace Altinn.Studio.DataModeling.Converter.Csharp;
 
 public class CsharpCompilationException : Exception
 {
-    /// <inheritdoc/>
-    public CsharpCompilationException()
-    {
-    }
+
+    public List<string> CustomErrorMessages { get; }
 
     /// <inheritdoc/>
-    public CsharpCompilationException(string message) : base(message)
+    public CsharpCompilationException(string message, List<string> customErrorMessages) : base(message)
     {
-    }
-
-    /// <inheritdoc/>
-    public CsharpCompilationException(string message, Exception innerException) : base(message, innerException)
-    {
-    }
-
-    /// <inheritdoc/>
-    protected CsharpCompilationException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
+        CustomErrorMessages = customErrorMessages;
     }
 
 }
