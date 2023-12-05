@@ -59,7 +59,26 @@ const handleError = (
     const errorMessageKey = `api_errors.${errorCode}`;
 
     if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), { toastId: errorMessageKey });
+      const mainErrorMessage = t(errorMessageKey);
+      toast.error(mainErrorMessage, { toastId: errorMessageKey });
+
+      const customErrorMessages = error?.response?.data?.customErrorMessages;
+      if (customErrorMessages && customErrorMessages.length > 0) {
+        toast.update(errorMessageKey, {
+          render: () => (
+            <div>
+              <p>{mainErrorMessage}</p>
+              <ul>
+                {customErrorMessages.map((errorMessage, index) => (
+                  <li key={index}>{errorMessage}</li>
+                ))}
+              </ul>
+            </div>
+          ),
+        });
+        customErrorMessages.forEach((cem) => toast.bind(cem));
+      }
+
       return;
     }
   }

@@ -40,6 +40,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null), serviceMetadata, serviceMetadata.TargetNamespace);
 
             StringBuilder writer = new StringBuilder()
+                .AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using System.Linq;")

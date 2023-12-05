@@ -13,6 +13,7 @@
   "access_control.test_what_header": "Hva kan du teste i Altinn Studio?",
   "address_component.validation_error_house_number": "Bolignummer er ugyldig",
   "address_component.validation_error_zipcode": "Postnummer er ugyldig",
+  "api_errors.DM_01": "Noe gikk galt under bygging av datamodellen.",
   "api_errors.GT_01": "Deling av endringer mislyktes. Vennligst prøv igjen.",
   "api_errors.ResourceNotFound": "Fant ikke en fil applikasjonen din prøvde å få tak i.",
   "app_create_release.application_builds_based_on": "Applikasjonen bygges basert på",
