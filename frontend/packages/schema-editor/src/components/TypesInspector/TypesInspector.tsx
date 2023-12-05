@@ -1,13 +1,13 @@
 import React, { MouseEvent } from 'react';
 import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { UiSchemaNode } from '@altinn/schema-model';
+import { UiSchemaNode } from '../../../../schema-model';
 import classes from './TypesInspector.module.css';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
-import { TypeItem } from './TypesInspector/TypeItem';
+import { TypeItem } from './TypeItem';
 import { useDispatch } from 'react-redux';
-import { setSelectedAndFocusedNode } from '../features/editor/schemaEditorSlice';
+import { setSelectedAndFocusedNode } from '../../features/editor/schemaEditorSlice';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface TypesInspectorProps {

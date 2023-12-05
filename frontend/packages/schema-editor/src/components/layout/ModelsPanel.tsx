@@ -11,6 +11,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { SchemaState } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
+import {SchemaTree} from '@altinn/schema-editor/components/SchemaTree';
+import {useSchemaEditorAppContext} from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export type ModelsPanelProps = {
   expandedPropNodes: string[];
@@ -27,6 +29,7 @@ export const ModelsPanel = ({
   const dispatch = useDispatch();
   const selectedPropertyNodeId = useSelector((state: SchemaState) => state.selectedPropertyNodeId);
   const addProperty = useAddProperty();
+  const { schemaModel } = useSchemaEditorAppContext();
 
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newPointer = addProperty(objectKind, fieldType);
@@ -87,6 +90,7 @@ export const ModelsPanel = ({
         selectedPointer={selectedPropertyNodeId}
         isPropertiesView={true}
       />
+      <SchemaTree schema={schemaModel}/>
     </>
   );
 };

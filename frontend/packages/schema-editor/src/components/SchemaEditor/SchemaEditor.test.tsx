@@ -1,9 +1,9 @@
 import React from 'react';
-import { dataMock } from '../mockData';
+import { dataMock } from '../../mockData';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
-import type { SchemaState } from '../types';
+import type { SchemaState } from '../../types';
 import {
   CombinationKind,
   FieldType,
@@ -12,13 +12,13 @@ import {
   UiSchemaNodes,
   makePointerFromArray,
   SchemaModel,
-} from '@altinn/schema-model';
-import { textMock } from '../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../test/renderWithProviders';
-import { getSavedModel } from '../../test/test-utils';
+} from '../../../../schema-model';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
+import { getSavedModel } from '../../../test/test-utils';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
-import * as testids from '../../../../testing/testids';
-import { uiSchemaNodesMock } from '../../test/mocks/uiSchemaMock';
+import * as testids from '../../../../../testing/testids';
+import { uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
 
 const user = userEvent.setup();
 

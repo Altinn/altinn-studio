@@ -96,7 +96,7 @@ export class SchemaModel {
     return node.children.map((childPointer) => this.getNode(childPointer));
   }
 
-  public getReferredNode(node: ReferenceNode): UiSchemaNode | undefined {
+  public getReferredNode(node: ReferenceNode): UiSchemaNode {
     return this.getNode(node.reference);
   }
 

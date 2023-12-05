@@ -1,0 +1,8 @@
+.schemaNodeLabel {
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
