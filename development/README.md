@@ -52,7 +52,7 @@ docker compose -f ../docker-compose.yml up -d
 To format the nginx file if needed.
 
 ```bash
-npx nginxbeautifier -i ./load-balancer/nginx.conf.conf
+npx nginxbeautifier -i ./load-balancer/nginx.conf
 ```
 
 ### To work with the deploy-page
