@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import classes from './BPMNViewer.module.css';
 import { useBpmnViewer } from '../../../hooks/useBpmnViewer';
 import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
@@ -7,9 +7,9 @@ import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
  * @component
  *  Displays the canvas area of the ProcessEditor
  *
- * @returns {ReactNode} - The rendered component
+ * @returns {JSX.Element} - The rendered component
  */
-export const BPMNViewer = (): ReactNode => {
+export const BPMNViewer = (): JSX.Element => {
   const { canvasRef, bpmnViewerError } = useBpmnViewer();
 
   return (

@@ -30,10 +30,10 @@ export const ProcessEditor = ({
   }
 
   return (
-    <BpmnContextProvider bpmnXml={bpmnXml}>
+    <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <div className={classes.container}>
-        <Canvas onSave={onSave} appLibVersion={appLibVersion} />
-        <ConfigPanel appLibVersion={appLibVersion} />
+        <Canvas onSave={onSave} />
+        <ConfigPanel />
       </div>
     </BpmnContextProvider>
   );

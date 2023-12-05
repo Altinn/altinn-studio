@@ -4,12 +4,13 @@
 
 .container {
   flex: 3;
+  height: calc(90vh - var(--header-height));
 }
 
 .wrapper {
   display: flex;
   flex: 1;
-  height: calc(90vh - var(--header-height));
+  height: 100%;
   margin-top: 18px;
 }
 

@@ -4,8 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { BPMNViewer } from './BPMNViewer';
 
 describe('Viewer', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render the BPMN viewer', async () => {
     const user = userEvent.setup();
     render(<BPMNViewer />);

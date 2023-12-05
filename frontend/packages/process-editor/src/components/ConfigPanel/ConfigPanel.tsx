@@ -2,28 +2,22 @@ import React from 'react';
 
 import classes from './ConfigPanel.module.css';
 import { VersionAlert } from './VersionAlert';
-import { supportsProcessEditor } from '../../utils/processEditorUtils';
 import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-
-export interface ConfigPanelProps {
-  appLibVersion: string;
-}
+import { useBpmnContext } from '../../contexts/BpmnContext';
 
 /**
  * @component
  *  Displays the configuration panel area of the ProcessEditor
  *
- * @property {string}[appLibVersion] - The app-lib version the user has
- *
- * @returns {ReactNode} - The rendered component
+ * @returns {JSX.Element} - The rendered component
  */
-export const ConfigPanel = ({ appLibVersion }: ConfigPanelProps) => {
+export const ConfigPanel = (): JSX.Element => {
   const { t } = useTranslation();
-  const isEditAllowed: boolean = supportsProcessEditor(appLibVersion);
+  const { isEditAllowed } = useBpmnContext();
   return (
     <div className={classes.configPanel}>
-      {!isEditAllowed && <VersionAlert appLibVersion={appLibVersion} />}
+      {!isEditAllowed && <VersionAlert />}
       <div className={classes.content}>
         <h2>{t('process_editor.configuration_panel_heading')}</h2>
         <Alert severity='info'>
