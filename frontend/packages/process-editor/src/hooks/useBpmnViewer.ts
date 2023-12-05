@@ -39,7 +39,7 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
     };
 
     initializeViewer();
-  }, [bpmnXml, t]);
+  }, [bpmnXml]);
 
   return { canvasRef, bpmnViewerError };
 };

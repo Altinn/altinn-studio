@@ -41,7 +41,7 @@ export const Canvas = ({ onSave, appLibVersion }: CanvasProps): JSX.Element => {
   const isEditAllowed: boolean = supportsProcessEditor(appLibVersion);
 
   return (
-    <>
+    <div className={classes.container}>
       {(isEditAllowed || shouldDisplayFeature('shouldOverrideAppLibCheck')) && (
         <CanvasActionMenu
           onSave={handleOnSave}
@@ -49,9 +49,7 @@ export const Canvas = ({ onSave, appLibVersion }: CanvasProps): JSX.Element => {
           isEditorView={isEditorView}
         />
       )}
-      <div className={classes.wrapper}>
-        {isEditorView ? <BPMNEditor /> : <BPMNViewer appLibVersion={appLibVersion} />}
-      </div>
-    </>
+      <div className={classes.wrapper}>{isEditorView ? <BPMNEditor /> : <BPMNViewer />}</div>
+    </div>
   );
 };

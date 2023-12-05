@@ -2,9 +2,14 @@
   --mask-icon-size: 0 0 /46px 46px;
 }
 
+.container {
+  flex: 3;
+}
+
 .wrapper {
   display: flex;
   flex: 1;
+  height: calc(90vh - var(--header-height));
   margin-top: 18px;
 }
 
