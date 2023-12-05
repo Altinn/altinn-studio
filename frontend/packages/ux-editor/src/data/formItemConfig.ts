@@ -29,7 +29,7 @@ import {
   TableIcon,
   TasklistIcon,
   Title,
-} from '@altinn/icons';
+} from '@studio/icons';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;

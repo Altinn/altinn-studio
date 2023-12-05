@@ -6,7 +6,7 @@ import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { Button, LegacyPopover } from '@digdir/design-system-react';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
-import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@altinn/icons';
+import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useMediaQuery } from 'app-shared/hooks/useMediaQuery';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
