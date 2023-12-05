@@ -56,7 +56,7 @@ export const ReceiptContent = ({
     const receiptData = formLayoutData.find((d) => d.page === receiptName);
     if (receiptData === undefined) return null;
 
-    const layout = receiptData.data || {};
+    const layout = receiptData.data;
 
     return (
       <div className={classes.wrapper}>
