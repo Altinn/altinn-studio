@@ -19,7 +19,9 @@ export const ConfigPanel = (): JSX.Element => {
     <div className={classes.configPanel}>
       {!isEditAllowed && <VersionAlert />}
       <div className={classes.content}>
-        <h2>{t('process_editor.configuration_panel_heading')}</h2>
+        <Heading level={2} size='xsmall'>
+          {t('process_editor.configuration_panel_heading')}
+        </Heading>
         <Alert severity='info'>
           <Heading level={3} size='xxsmall'>
             {t('process_editor.configuration_panel.under_development_title')}
