@@ -10,7 +10,6 @@ export type SupportedFeatureFlags =
   | 'processEditor'
   | 'configureLayoutSet'
   | 'newAdministration'
-  | 'formTree'
   | 'shouldOverrideAppLibCheck';
 
 /*
