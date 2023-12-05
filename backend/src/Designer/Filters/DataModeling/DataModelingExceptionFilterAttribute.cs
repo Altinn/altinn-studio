@@ -22,6 +22,11 @@ namespace Altinn.Studio.Designer.Filters.DataModeling
 
             if (context.Exception is CsharpGenerationException)
             {
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.CsharpCompilationError, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
+            }
+
+            if (context.Exception is CsharpCompilationException)
+            {
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.CsharpGenerationError, HttpStatusCode.InternalServerError)) { StatusCode = (int)HttpStatusCode.InternalServerError };
             }
 

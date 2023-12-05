@@ -42,7 +42,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                         errors.AppendLine($"{diagnostic.Id}: {diagnostic.GetMessage()}");
                     }
 
-                    throw new CsharpGenerationException($"// Compiler // CompileToAssembly // Csharp compilation failed with errors: {errors}");
+                    throw new CsharpCompilationException($"// Compiler // CompileToAssembly // Csharp compilation failed with errors: {errors}");
                 }
                 ms.Seek(0, SeekOrigin.Begin);
                 assembly = Assembly.Load(ms.ToArray());
