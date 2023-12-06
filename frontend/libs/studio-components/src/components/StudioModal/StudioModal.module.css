@@ -4,11 +4,6 @@
   --modal-max-height: 80vh;
   --modal-max-width: 80%;
 
-  --heading-height: 60px;
-  --modal-border-size: 1px;
-  --modal-content-max-height: calc(var(--modal-max-height) - var(--heading-height)) -
-    var(--modal-border-size);
-
   max-width: var(--modal-max-width);
   min-width: var(--modal-min-width);
   width: max-content;
@@ -31,12 +26,4 @@
 .footer {
   margin: 0;
   padding: 0;
-}
-
-.headingWrapper {
-  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
-  height: var(--heading-height);
-  position: sticky;
-  top: 0;
-  background-color: var(--fds-semantic-background-default);
 }
