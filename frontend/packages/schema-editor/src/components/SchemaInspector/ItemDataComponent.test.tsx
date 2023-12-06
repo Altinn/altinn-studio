@@ -1,5 +1,5 @@
 import { ItemDataComponent } from './ItemDataComponent';
-import { getNodeByPointer, UiSchemaNode } from '@altinn/schema-model';
+import { SchemaModel, UiSchemaNode } from '@altinn/schema-model';
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -26,17 +26,17 @@ const defaultState: Partial<SchemaState> = {
 };
 
 const renderItemDataComponent = (
-  schemaNode: Partial<UiSchemaNode> = {},
+  schemaNode: UiSchemaNode = defaultNode,
   state: Partial<SchemaState> = {}
 ) => {
-
+  const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   return renderWithProviders({
     state: { ...defaultState, ...state },
     appContextProps: {
-      data: uiSchemaNodesMock,
+      schemaModel,
       save: saveDatamodel,
     },
-  })(<ItemDataComponent schemaNode={{ ...defaultNode, ...schemaNode }}/>);
+  })(<ItemDataComponent schemaNode={schemaNode}/>);
 };
 
 describe('ItemDataComponent', () => {
@@ -102,7 +102,7 @@ describe('ItemDataComponent', () => {
     await act(() => user.tab());
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, parentNodeMock.pointer);
+    const updatedNode = updatedModel.getNode(parentNodeMock.pointer);
     expect(updatedNode.title).toEqual(title);
   });
 
@@ -119,7 +119,7 @@ describe('ItemDataComponent', () => {
     await act(() => user.tab());
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, parentNodeMock.pointer);
+    const updatedNode = updatedModel.getNode(parentNodeMock.pointer);
     expect(updatedNode.description).toEqual(description);
   });
 
@@ -144,5 +144,4 @@ describe('ItemDataComponent', () => {
     fireEvent.blur(inputField);
     expect(screen.queryByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeNull();
   });
-
 });

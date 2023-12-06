@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner, Heading } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
+import { useGetResourceListQuery, useOrganizationsQuery } from 'resourceadm/hooks/queries';
 import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
 import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
 import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
@@ -13,6 +13,7 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from 'resourceadm/utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getReposLabel } from 'dashboard/utils/repoUtils';
 
 /**
  * @component
@@ -21,8 +22,9 @@ import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceDashboardPage = (): React.ReactNode => {
-  const { org: selectedContext } = useParams();
+  const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
+  const { data: organizations } = useOrganizationsQuery();
 
   const { t } = useTranslation();
 
@@ -31,8 +33,9 @@ export const ResourceDashboardPage = (): React.ReactNode => {
   const [searchValue, setSearchValue] = useState('');
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
-  const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
-  const [importModalOpen, setImportModalOpen] = useState(false);
+  const importModalRef = useRef<HTMLDialogElement>(null);
+  const newResourceModalRef = useRef<HTMLDialogElement>(null);
+  const mergeConflictModalRef = useRef<HTMLDialogElement>(null);
 
   // Get metadata with queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
@@ -50,6 +53,13 @@ export const ResourceDashboardPage = (): React.ReactNode => {
       setHasMergeConflict(repoStatus.hasMergeConflict);
     }
   }, [repoStatus]);
+
+  // Open the modal when there is a merge conflict
+  useEffect(() => {
+    if (hasMergeConflict && mergeConflictModalRef.current) {
+      mergeConflictModalRef.current.showModal();
+    }
+  }, [hasMergeConflict]);
 
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
@@ -88,7 +98,12 @@ export const ResourceDashboardPage = (): React.ReactNode => {
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
         <Heading size='large' level={1}>
-          {t('resourceadm.dashboard_header', { org: selectedContext })}
+          {getReposLabel({
+            selectedContext,
+            orgs: organizations ? organizations : [],
+            t,
+            isResourcesRepo: true,
+          })}
         </Heading>
         <div className={classes.topRightWrapper}>
           <Button
@@ -96,7 +111,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
             color='second'
             icon={<MigrationIcon />}
             iconPlacement='right'
-            onClick={() => setImportModalOpen(true)}
+            onClick={() => importModalRef.current?.showModal()}
             size='medium'
           >
             <strong>{t('resourceadm.dashboard_import_resource')}</strong>
@@ -107,7 +122,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
             color='second'
             icon={<PlusCircleIcon />}
             iconPlacement='right'
-            onClick={() => setNewResourceModalOpen(true)}
+            onClick={() => newResourceModalRef.current?.showModal()}
             size='medium'
           >
             <strong>{t('resourceadm.dashboard_create_resource')}</strong>
@@ -116,19 +131,17 @@ export const ResourceDashboardPage = (): React.ReactNode => {
       </div>
       <div className={classes.horizontalDivider} />
       <div className={classes.componentWrapper}>{displayContent()}</div>
-      {hasMergeConflict && (
-        <MergeConflictModal
-          isOpen={hasMergeConflict}
-          handleSolveMerge={refetch}
-          org={selectedContext}
-          repo={repo}
-        />
-      )}
-      <NewResourceModal
-        isOpen={newResourceModalOpen}
-        onClose={() => setNewResourceModalOpen(false)}
+      <MergeConflictModal
+        ref={mergeConflictModalRef}
+        handleSolveMerge={refetch}
+        org={selectedContext}
+        repo={repo}
       />
-      <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
+      <NewResourceModal
+        ref={newResourceModalRef}
+        onClose={() => newResourceModalRef.current?.close()}
+      />
+      <ImportResourceModal ref={importModalRef} onClose={() => importModalRef.current?.close()} />
     </div>
   );
 };

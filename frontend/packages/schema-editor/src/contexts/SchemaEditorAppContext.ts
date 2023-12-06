@@ -1,9 +1,9 @@
 import { createContext } from 'react';
-import { UiSchemaNodes } from '@altinn/schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 
 export interface SchemaEditorAppContextProps {
-  data: UiSchemaNodes;
-  save: (datamodel: UiSchemaNodes, saveAfterMs?: number) => void;
+  schemaModel: SchemaModel;
+  save: (datamodel: SchemaModel, saveAfterMs?: number) => void;
   selectedTypePointer?: string;
   setSelectedTypePointer: (pointer: string) => void;
 }

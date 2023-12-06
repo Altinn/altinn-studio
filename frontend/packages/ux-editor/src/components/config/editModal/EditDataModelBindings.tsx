@@ -6,7 +6,7 @@ import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { LinkIcon } from '@altinn/icons';
+import { LinkIcon } from '@studio/icons';
 import { Button, Paragraph } from '@digdir/design-system-react';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';

@@ -5,6 +5,7 @@ import { SchemaEditorAppContext, SchemaEditorAppContextProps } from '@altinn/sch
 import { SchemaState } from '@altinn/schema-editor/types';
 import configureStore from 'redux-mock-store';
 import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
+import { SchemaModel } from '../../schema-model';
 
 export interface RenderWithProvidersData {
   state?: Partial<SchemaState>,
@@ -28,7 +29,7 @@ export const renderWithProviders = ({
   };
 
   const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
-    data: uiSchemaNodesMock,
+    schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
     save: jest.fn(),
     setSelectedTypePointer: jest.fn(),
     ...appContextProps,
@@ -60,7 +61,7 @@ export const renderWithProviders = ({
     };
 
     const newAppContextProps: SchemaEditorAppContextProps = {
-      data: uiSchemaNodesMock,
+      schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
       save: jest.fn(),
       setSelectedTypePointer: jest.fn(),
       ...rerenderAppContextProps,

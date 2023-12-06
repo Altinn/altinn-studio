@@ -14,6 +14,7 @@ using LibGit2Sharp;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Commit = LibGit2Sharp.Commit;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -56,8 +57,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
-            cloneOptions.CredentialsProvider = (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-            return LibGit2Sharp.Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
+            cloneOptions.CredentialsProvider = CredentialsProvider();
+            string localPath = FindLocalRepoLocation(org, repository);
+            string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
+
+            FetchGitNotes(localPath);
+            return cloneResult;
         }
 
         /// <inheritdoc />
@@ -65,14 +70,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
-            cloneOptions.CredentialsProvider = (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+            cloneOptions.CredentialsProvider = CredentialsProvider();
 
             if (!string.IsNullOrEmpty(branchName))
             {
                 cloneOptions.BranchName = branchName;
             }
 
-            return LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
+            string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
+            FetchGitNotes(destinationPath);
+            return cloneResult;
         }
 
         /// <inheritdoc />
@@ -89,8 +96,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     },
                 };
                 pullOptions.FetchOptions = new FetchOptions();
-                pullOptions.FetchOptions.CredentialsProvider = (url, user, cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+                pullOptions.FetchOptions.CredentialsProvider = CredentialsProvider();
 
                 try
                 {
@@ -130,8 +136,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
                 FetchOptions fetchOptions = new();
-                fetchOptions.CredentialsProvider = (url, user, cred) =>
-                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+                fetchOptions.CredentialsProvider = CredentialsProvider();
 
                 foreach (Remote remote in repo?.Network?.Remotes)
                 {
@@ -166,31 +171,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             bool pushSuccess = true;
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
+            using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
+            string remoteUrl = FindRemoteRepoLocation(org, repository);
+            Remote remote = repo.Network.Remotes["origin"];
+
+            if (!remote.PushUrl.Equals(remoteUrl))
             {
-                string remoteUrl = FindRemoteRepoLocation(org, repository);
-                Remote remote = repo.Network.Remotes["origin"];
-
-                if (!remote.PushUrl.Equals(remoteUrl))
-                {
-                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files.
-                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                }
-
-                PushOptions options = new()
-                {
-                    OnPushStatusError = pushError =>
-                    {
-                        _logger.LogError("Push error: {0}", pushError.Message);
-                        pushSuccess = false;
-                    }
-                };
-                options.CredentialsProvider = (url, user, cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-
-                repo.Network.Push(remote, @"refs/heads/master", options);
+                // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                // Requires adminstrator access to update files.
+                repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
             }
+
+            PushOptions options = new()
+            {
+                OnPushStatusError = pushError =>
+                {
+                    _logger.LogError("Push error: {0}", pushError.Message);
+                    pushSuccess = false;
+                }
+            };
+            options.CredentialsProvider = CredentialsProvider();
+
+            repo.Network.Push(remote, @"refs/heads/master", options);
+            repo.Network.Push(remote, "refs/notes/commits", options);
 
             return await Task.FromResult(pushSuccess);
         }
@@ -201,24 +204,31 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="commitInfo">Information about the commit</param>
         public void Commit(CommitInfo commitInfo)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new(localServiceRepoFolder))
+            CommitAndAddStudioNote(commitInfo.Org, commitInfo.Repository, commitInfo.Message);
+        }
+
+        private void CommitAndAddStudioNote(string org, string repository, string message)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
+            string remoteUrl = FindRemoteRepoLocation(org, repository);
+            Remote remote = repo.Network.Remotes["origin"];
+
+            if (!remote.PushUrl.Equals(remoteUrl))
             {
-                string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
-                Remote remote = repo.Network.Remotes["origin"];
-
-                if (!remote.PushUrl.Equals(remoteUrl))
-                {
-                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files.
-                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                }
-
-                Commands.Stage(repo, "*");
-
-                LibGit2Sharp.Signature signature = GetDeveloperSignature();
-                repo.Commit(commitInfo.Message, signature, signature);
+                // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                // Requires adminstrator access to update files.
+                repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
             }
+
+            Commands.Stage(repo, "*");
+
+            LibGit2Sharp.Signature signature = GetDeveloperSignature();
+            var commit = repo.Commit(message, signature, signature);
+
+            var notes = repo.Notes;
+            notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
+
         }
 
         /// <summary>
@@ -463,39 +473,41 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message)
         {
-            using (LibGit2Sharp.Repository repo = new(localPath))
+            using LibGit2Sharp.Repository repo = new(localPath);
+            // Restrict users from empty commit
+            if (repo.RetrieveStatus().IsDirty)
             {
-                // Restrict users from empty commit
-                if (repo.RetrieveStatus().IsDirty)
+                string remoteUrl = FindRemoteRepoLocation(org, repository);
+                Remote remote = repo.Network.Remotes["origin"];
+
+                if (!remote.PushUrl.Equals(remoteUrl))
                 {
-                    string remoteUrl = FindRemoteRepoLocation(org, repository);
-                    Remote remote = repo.Network.Remotes["origin"];
-
-                    if (!remote.PushUrl.Equals(remoteUrl))
-                    {
-                        // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                        // Requires adminstrator access to update files.
-                        repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                    }
-
-                    Commands.Stage(repo, "*");
-
-                    LibGit2Sharp.Signature signature = GetDeveloperSignature();
-                    repo.Commit(message, signature, signature);
-
-                    PushOptions options = new();
-                    options.CredentialsProvider = (url, user, cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-
-                    if (branchName == "master")
-                    {
-                        repo.Network.Push(remote, @"refs/heads/master", options);
-                        return;
-                    }
-
-                    Branch b = repo.Branches[branchName];
-                    repo.Network.Push(b, options);
+                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                    // Requires adminstrator access to update files.
+                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                 }
+
+                Commands.Stage(repo, "*");
+
+                LibGit2Sharp.Signature signature = GetDeveloperSignature();
+                var commit = repo.Commit(message, signature, signature);
+                var notes = repo.Notes;
+                notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
+
+                PushOptions options = new();
+                options.CredentialsProvider = CredentialsProvider();
+
+                if (branchName == "master")
+                {
+                    repo.Network.Push(remote, @"refs/heads/master", options);
+                    repo.Network.Push(remote, "refs/notes/commits", options);
+
+                    return;
+                }
+
+                Branch b = repo.Branches[branchName];
+                repo.Network.Push(b, options);
+                repo.Network.Push(remote, "refs/notes/commits", options);
             }
         }
 
@@ -623,6 +635,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private LibGit2Sharp.Signature GetDeveloperSignature()
         {
             return new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+        }
+
+        private LibGit2Sharp.Handlers.CredentialsHandler CredentialsProvider() => (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+        private void FetchGitNotes(string localRepositoryPath)
+        {
+            using var repo = new LibGit2Sharp.Repository(localRepositoryPath);
+            var options = new FetchOptions()
+            {
+                CredentialsProvider = CredentialsProvider()
+            };
+            Commands.Fetch(repo, "origin", new List<string> { "refs/notes/*:refs/notes/*" }, options, "fetch notes");
         }
     }
 }

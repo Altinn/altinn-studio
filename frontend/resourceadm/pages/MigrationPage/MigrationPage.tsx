@@ -41,7 +41,7 @@ export const MigrationPage = ({
 }: MigrationPageProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { org: selectedContext, resourceId } = useParams();
+  const { selectedContext, resourceId } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const { data: validatePolicyData, isPending: isValidatePolicyPending } = useValidatePolicyQuery(

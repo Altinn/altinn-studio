@@ -1,46 +1,58 @@
 import React, { ReactNode } from 'react';
-import { render, screen, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { StudioModal, StudioModalProps } from './StudioModal';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
 
-const mockTitle: ReactNode = (
+const mockHeaderText: string = 'Title';
+const mockContentText: string = 'Modal test';
+const mockFooterText: string = 'Footer content';
+
+const MockHeader: ReactNode = (
   <div>
-    <h2>Title</h2>
+    <h3>{mockHeaderText}</h3>
   </div>
 );
 
-const mockChildren = (
+const MockContent: ReactNode = (
   <div>
-    <p>Modal test</p>
+    <p>{mockContentText}</p>
   </div>
 );
 
-describe('Modal', () => {
+const MockFooter: ReactNode = (
+  <div>
+    <p>{mockFooterText}</p>
+  </div>
+);
+
+const mockOnClose = jest.fn();
+
+const defaultProps: StudioModalProps = {
+  onClose: mockOnClose,
+  header: MockHeader,
+  content: MockContent,
+  open: true,
+};
+
+describe('StudioModal', () => {
   afterEach(jest.clearAllMocks);
 
-  const mockOnClose = jest.fn();
-
-  const defaultProps: StudioModalProps = {
-    isOpen: true,
-    onClose: mockOnClose,
-    title: mockTitle,
-    children: mockChildren,
-  };
-
-  it('calls onClose when the close button is clicked', async () => {
-    const user = userEvent.setup();
+  it('shows the header and content components correctly, and hides the footer when not present', () => {
     render(<StudioModal {...defaultProps} />);
 
-    const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
-    await act(() => user.click(closeButton));
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
+    const header = screen.getByRole('heading', { name: 'Title', level: 3 });
+    expect(header).toBeInTheDocument();
+
+    const content = screen.getByText(mockContentText);
+    expect(content).toBeInTheDocument();
+
+    const footer = screen.queryByText(mockFooterText);
+    expect(footer).not.toBeInTheDocument();
   });
 
-  it('does not show content when modal is clsoed', () => {
-    render(<StudioModal {...defaultProps} isOpen={false} />);
+  it('shows the footer component when it is present', () => {
+    render(<StudioModal {...defaultProps} footer={MockFooter} />);
 
-    const closeButton = screen.queryByRole('button', { name: textMock('modal.close_icon') });
-    expect(closeButton).not.toBeInTheDocument();
+    const footer = screen.getByText(mockFooterText);
+    expect(footer).toBeInTheDocument();
   });
 });

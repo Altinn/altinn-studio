@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './App.module.css';
 import { Route, Routes } from 'react-router-dom';
-import { NotFoundPage } from 'app-shared/components/notFound';
+import { StudioNotFoundPage } from '@studio/components';
 
 import './App.css';
 import { PageLayout } from '../pages/PageLayout';
@@ -13,7 +13,7 @@ export const App = (): JSX.Element => {
       <Routes>
         <Route element={<PageLayout />}>
           <Route path='/contact' element={<Contact />} />
-          <Route path='*' element={<NotFoundPage />} />
+          <Route path='*' element={<StudioNotFoundPage />} />
         </Route>
       </Routes>
     </div>
