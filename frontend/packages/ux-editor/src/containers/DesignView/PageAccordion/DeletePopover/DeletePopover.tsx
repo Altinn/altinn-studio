@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './DeletePopover.module.css';
 import { Button, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { TrashIcon } from '@altinn/icons';
+import { TrashIcon } from '@studio/icons';
 import { useSearchParams } from 'react-router-dom';
 import { useDeleteLayoutMutation } from '../../../../hooks/mutations/useDeleteLayoutMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';

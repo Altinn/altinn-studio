@@ -9,7 +9,7 @@ import {
 } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
-import { PencilIcon } from '@altinn/icons';
+import { PencilIcon } from '@studio/icons';
 
 export type InputPopoverProps = {
   disabled: boolean;
