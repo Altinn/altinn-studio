@@ -12,7 +12,10 @@ import { sortResourceListByDateAndMap } from 'resourceadm/utils/mapperUtils';
  *
  * @returns UseQueryResult with a list of resources of Resource
  */
-export const useGetResourceListQuery = (org: string): UseQueryResult<ResourceListItem[]> => {
+export const useGetResourceListQuery = (
+  org: string,
+  disabled?: boolean,
+): UseQueryResult<ResourceListItem[]> => {
   const { getResourceList } = useServicesContext();
 
   return useQuery<ResourceListItem[]>({
@@ -20,5 +23,6 @@ export const useGetResourceListQuery = (org: string): UseQueryResult<ResourceLis
     queryFn: () => getResourceList(org),
     select: (resourceListItems: ResourceListItem[]) =>
       resourceListItems && sortResourceListByDateAndMap(resourceListItems),
+    enabled: !disabled,
   });
 };

@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PageSpinner } from 'app-shared/components';
+import { StudioPageSpinner } from '@studio/components';
 import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorWithToolbar } from './SchemaEditorWithToolbar';
 import { useDatamodelsJsonQuery, useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
@@ -21,7 +21,7 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
 
   switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
     case 'pending':
-      return <PageSpinner />;
+      return <StudioPageSpinner />;
     case 'error':
       return (
         <StudioCenter>

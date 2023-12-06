@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './App.module.css';
-import { PageSpinner } from 'app-shared/components';
+import { StudioPageSpinner } from '@studio/components';
 import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
 import { Route, Routes } from 'react-router-dom';
@@ -65,7 +65,7 @@ export const App = (): JSX.Element => {
 
   return (
     <div className={classes.appDashboardSpinner}>
-      <PageSpinner />
+      <StudioPageSpinner />
     </div>
   );
 };
