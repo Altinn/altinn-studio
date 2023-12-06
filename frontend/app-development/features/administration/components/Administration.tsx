@@ -9,26 +9,25 @@ import { Documentation } from './Documentation';
 import { AppEnvironments } from './AppEnvironments';
 import { AppLogs } from './AppLogs';
 import { Navigation } from './Navigation';
-import { AltinnSpinner } from 'app-shared/components';
-import { Center } from 'app-shared/components/Center';
 import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
+import { StudioCenter, StudioSpinner } from '@studio/components';
 
 export const Administration = () => {
   const { org, app } = useStudioUrlParams();
   const {
-    data: orgs = { orgs: {} },
-    isLoading: isLoadingOrgs,
+    data: orgs,
+    isPending: isPendingOrgs,
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
-  const selectedOrg = orgs.orgs[org];
+  const selectedOrg = orgs?.orgs[org];
   const hasEnvironments = selectedOrg?.environments?.length > 0;
 
   const {
     data: appConfigData,
     isError: isAppConfigError,
-    isLoading: isLoadingAppConfig,
+    isPending: isPendingAppConfig,
   } = useAppConfigQuery(org, app, { hideDefaultError: true });
   const { t } = useTranslation();
 
@@ -36,11 +35,11 @@ export const Administration = () => {
     toast.error(t('administration.fetch_title_error_message'));
   }
 
-  if (isLoadingAppConfig || isLoadingOrgs) {
+  if (isPendingAppConfig || isPendingOrgs) {
     return (
-      <Center>
-        <AltinnSpinner spinnerText={t('general.loading')} className={classes.spinner} />
-      </Center>
+      <StudioCenter>
+        <StudioSpinner spinnerText={t('general.loading')} className={classes.spinner} />
+      </StudioCenter>
     );
   }
 

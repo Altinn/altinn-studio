@@ -5,5 +5,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useUserQuery = (): UseQueryResult<User> => {
   const { getUser } = useServicesContext();
-  return useQuery<User>([QueryKey.CurrentUser], () => getUser());
+  return useQuery({
+    queryKey: [QueryKey.CurrentUser],
+    queryFn: getUser,
+  });
 };

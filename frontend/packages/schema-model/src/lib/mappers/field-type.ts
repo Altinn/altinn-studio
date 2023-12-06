@@ -7,7 +7,7 @@ import {
   ObjectKind,
   StrRestrictionKey,
 } from '../../types';
-import { getCombinationKind, getObjectKind } from '../utils';
+import { getCombinationKind, getObjectKind, isField } from '../utils';
 import { removeDuplicates, arrayIntersection } from 'app-shared/utils/arrayUtils';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
@@ -19,7 +19,10 @@ export const findUiFieldType = (schemaNode: KeyValuePairs) => {
   const keys = Object.keys(schemaNode);
   if (typeof schemaNode.properties === 'object') {
     return FieldType.Object;
-  } else if (typeof schemaNode.type === 'string' && [ObjectKind.Field, ObjectKind.Reference].includes(objectKind)) {
+  } else if (
+    typeof schemaNode.type === 'string' &&
+    [ObjectKind.Field, ObjectKind.Reference].includes(objectKind)
+  ) {
     return schemaNode.type;
   } else if (objectKind === ObjectKind.Combination) {
     const kind = getCombinationKind(schemaNode);
@@ -56,11 +59,11 @@ export const findEnumFieldType = (nodeEnum: any[]) => {
 };
 
 export const findJsonFieldType = (uiNode: UiSchemaNode) => {
-  const { objectKind, isNillable, implicitType } = uiNode;
+  const { isNillable, implicitType } = uiNode;
   let jsonFieldType;
   if (implicitType) {
     jsonFieldType = undefined;
-  } else if (objectKind === ObjectKind.Field || objectKind === ObjectKind.Reference) {
+  } else if (isField(uiNode)) {
     jsonFieldType = uiNode.fieldType;
   }
   if (typeof jsonFieldType === 'string' && isNillable && jsonFieldType !== FieldType.Null) {

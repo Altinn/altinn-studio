@@ -1,7 +1,7 @@
 import React, { ReactNode, KeyboardEvent, ChangeEventHandler, useState } from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
-import { FieldType, UiSchemaNode, deleteNode, setType } from '@altinn/schema-model';
+import { FieldType, UiSchemaNode, deleteNode, setType, isField } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { Button, NativeSelect, Switch } from '@digdir/design-system-react';
@@ -11,13 +11,12 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { removeSelection } from '../../../../features/editor/schemaEditorSlice';
 import { TrashIcon } from '@navikt/aksel-icons';
-import { Center } from 'app-shared/components/Center';
+import { StudioCenter } from '@studio/components';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
+import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 
 export type ItemFieldsTableRowProps = {
-  fieldNode: UiSchemaNode & {
-    domId: string;
-  };
+  fieldNode: UiSchemaNode;
   readonly: boolean;
   onEnterKeyPress: () => void;
 };
@@ -25,12 +24,6 @@ export type ItemFieldsTableRowProps = {
 /**
  * @component
  *    Displays a row in the Item Fields Table
- *
- * @property {UiSchemaNode & { domId: string }}[fieldNoe] - The field node
- * @property {boolean}[readonly] - If the field is readonly or not
- * @property {function}[onEnterKeyPress] - Function to be executed on enter keypress
- *
- * @returns {ReactNode} - the rendered component
  */
 export const ItemFieldsTableRow = ({
   fieldNode,
@@ -38,7 +31,7 @@ export const ItemFieldsTableRow = ({
   onEnterKeyPress,
 }: ItemFieldsTableRowProps): ReactNode => {
   const { t } = useTranslation();
-  const { data, save } = useSchemaEditorAppContext();
+  const { schemaModel, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const dispatch = useDispatch();
@@ -47,21 +40,22 @@ export const ItemFieldsTableRow = ({
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
-      setPropertyName(data, {
+      setPropertyName(schemaModel, {
         path: fullPath,
         name: newNodeName,
       }),
     );
   };
 
-  const onTypeChange = (path: string, type: FieldType) => save(setType(data, { path, type }));
+  const onTypeChange = (path: string, type: FieldType) =>
+    save(setType(schemaModel, { path, type }));
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
   const changeRequiredHandler: ChangeEventHandler<HTMLInputElement> = (e) => {
     save(
-      setRequired(data, {
+      setRequired(schemaModel, {
         path: fullPath,
         required: e.target.checked,
       }),
@@ -69,7 +63,7 @@ export const ItemFieldsTableRow = ({
   };
 
   const deleteHandler = () => {
-    save(deleteNode(data, fullPath));
+    save(deleteNode(schemaModel, fullPath));
     dispatch(removeSelection(fullPath));
   };
 
@@ -77,7 +71,7 @@ export const ItemFieldsTableRow = ({
     <tr>
       <td className={cn(classes.tableColumnName, classes.tableCell)}>
         <NameField
-          id={fieldNode.domId}
+          className={nameFieldClass}
           disabled={readonly}
           handleSave={handleChangeNodeName}
           onKeyDown={onKeyDown}
@@ -87,16 +81,16 @@ export const ItemFieldsTableRow = ({
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
-        <TypeSelect
-          id={`${fieldNode.domId}-typeselect`}
-          onChange={(fieldType) => onTypeChange(fullPath, fieldType)}
-          value={fieldNode.fieldType as FieldType}
-        />
+        {isField(fieldNode) && (
+          <TypeSelect
+            onChange={(fieldType) => onTypeChange(fullPath, fieldType)}
+            value={fieldNode.fieldType as FieldType}
+          />
+        )}
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
-        <Center>
+        <StudioCenter>
           <Switch
-            className={classes.switch}
             size='small'
             aria-label={t('schema_editor.required')}
             checked={fieldNode?.isRequired ?? false}
@@ -104,10 +98,10 @@ export const ItemFieldsTableRow = ({
             name='checkedArray'
             onChange={changeRequiredHandler}
           />
-        </Center>
+        </StudioCenter>
       </td>
       <td className={cn(classes.tableColumnDelete, classes.tableCell)}>
-        <Center>
+        <StudioCenter>
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
             confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
@@ -127,25 +121,23 @@ export const ItemFieldsTableRow = ({
             <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
             <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
           </AltinnConfirmDialog>
-        </Center>
+        </StudioCenter>
       </td>
     </tr>
   );
 };
 
 interface TypeSelectProps {
-  id: string;
   onChange: (type: FieldType) => void;
   value: FieldType;
 }
 
-const TypeSelect = ({ id, onChange, value }: TypeSelectProps) => {
+const TypeSelect = ({ onChange, value }: TypeSelectProps) => {
   const typeOptions = useTypeOptions();
   const { t } = useTranslation();
   return (
     <NativeSelect
       hideLabel
-      id={id}
       label={t('schema_editor.type')}
       onChange={(event) => onChange(event.target.value as FieldType)}
       value={value}

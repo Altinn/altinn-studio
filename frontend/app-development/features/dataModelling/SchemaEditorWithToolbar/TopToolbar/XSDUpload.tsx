@@ -1,5 +1,6 @@
 import React from 'react';
-import { AltinnSpinner, FileSelector } from 'app-shared/components';
+import { FileSelector } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import axios from 'axios';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { datamodelsUploadPath } from 'app-shared/api/paths';
@@ -13,10 +14,7 @@ export interface IXSDUploadProps {
   submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
 }
 
-export const XSDUpload = ({
-  disabled,
-  submitButtonRenderer,
-}: IXSDUploadProps) => {
+export const XSDUpload = ({ disabled, submitButtonRenderer }: IXSDUploadProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
@@ -46,8 +44,10 @@ export const XSDUpload = ({
       })
       .finally(async () => {
         await Promise.all([
-          queryClient.invalidateQueries([QueryKey.DatamodelsJson, org, app]),
-          queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
+          queryClient.invalidateQueries({
+            queryKey: [QueryKey.DatamodelsJson, org, app],
+          }),
+          queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
         ]);
         setUploading(false);
       });
@@ -57,7 +57,7 @@ export const XSDUpload = ({
     <>
       <span ref={uploadButton}>
         {uploading ? (
-          <AltinnSpinner spinnerText={t('app_data_modelling.uploading_xsd')} />
+          <StudioSpinner spinnerText={t('app_data_modelling.uploading_xsd')} />
         ) : (
           <FileSelector
             busy={false}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { StudioSpinner } from '@studio/components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import classes from './CreateService.module.css';
@@ -13,7 +14,6 @@ import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { AltinnSpinner } from 'app-shared/components';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { navigateToAppDevelopment } from './utils/navigationUtils';
 
@@ -30,6 +30,7 @@ type CreateServiceProps = {
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
   const dataModellingPreference: DatamodelFormat.XSD = DatamodelFormat.XSD;
+
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
@@ -41,7 +42,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
 
   const {
     mutate: addRepoMutation,
-    isLoading: isCreatingRepo,
+    isPending: isCreatingRepo,
     isSuccess: isCreatingRepoSuccess,
   } = useAddRepoMutation({
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
@@ -121,7 +122,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       <RepoNameInput name='repoName' errorMessage={formError.repoName} />
       <div className={classes.actionContainer}>
         {isCreatingRepo || isCreatingRepoSuccess ? (
-          <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
+          <StudioSpinner spinnerText={t('dashboard.creating_your_service')} />
         ) : (
           <>
             <Button type='submit' color='first' size='small'>

@@ -1,11 +1,11 @@
 import type { UiSchemaNodes } from '../../types';
-import { getChildNodesByPointer } from '../selectors';
+import { getChildNodesByFieldPointer } from '../selectors';
 
 export const findRequiredProps = (
   uiSchemaNodes: UiSchemaNodes,
-  parentPointer: string
+  parentPointer: string,
 ): string[] | undefined => {
-  const childNodes = getChildNodesByPointer(uiSchemaNodes, parentPointer);
+  const childNodes = getChildNodesByFieldPointer(uiSchemaNodes, parentPointer);
   const required: string[] = [];
   childNodes.forEach((child) => {
     const childName = child.pointer.split('/').pop();

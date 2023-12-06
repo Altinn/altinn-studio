@@ -1,10 +1,12 @@
 name: "My Shared Steps"
-description: "Doing yarn installs with propper caching"
+description: "Doing yarn installs with proper caching"
 runs:
   using: "composite"
   steps:
     - name: 'Setting up Node'
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
+      with:
+        cache: 'yarn'
 
     - name: "Getting yarn cache directory path"
       id: yarn-cache-dir-path

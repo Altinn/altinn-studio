@@ -1,19 +1,25 @@
 import {
   combinationIsNullable,
   createNodeBase,
-  getNameFromPointer,
   getUniqueNodePath,
-  makePointer,
+  isNodeValidParent,
   replaceLastPointerSegment,
-  isEmpty,
 } from './utils';
-import { FieldType, Keyword } from '../types';
+import { FieldType, Keyword, UiSchemaNode } from '../types';
 import { expect } from '@jest/globals';
 import { buildUiSchema } from './build-ui-schema';
-import { getNodeByPointer } from './selectors';
 import { selectorsTestSchema } from '../../test/testUtils';
-import { rootNodeMock, uiSchemaMock } from '../../test/uiSchemaMock';
-import { validateTestUiSchema } from '../../test/validateTestUiSchema';
+import { makePointerFromArray } from './pointerUtils';
+import {
+  allOfNodeMock,
+  enumNodeMock,
+  numberNodeMock,
+  referenceNodeMock,
+  simpleArrayMock,
+  simpleParentNodeMock,
+  stringNodeMock,
+} from '../../test/uiSchemaMock';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 describe('utils', () => {
   test('creatNodeBase', () => {
@@ -25,11 +31,6 @@ describe('utils', () => {
     expect(nodeBase.pointer.split('/')).toHaveLength(3);
   });
 
-  test('makePointer', () => {
-    expect(makePointer('properties', 'hello')).toBe('#/properties/hello');
-    expect(makePointer('#/properties', 'hello')).toBe('#/properties/hello');
-  });
-
   test('combinationIsNullable', () => {
     const regularChild = createNodeBase('regular child');
     const nullableChild = createNodeBase('nullable child');
@@ -38,42 +39,46 @@ describe('utils', () => {
     expect(combinationIsNullable([regularChild, nullableChild])).toBeTruthy();
   });
 
-  test('getNameFromPointer', () => {
-    const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
-    const uiSchemaNode = getNodeByPointer(uiSchemaNodes, makePointer(Keyword.Properties, 'hello'));
-    expect(getNameFromPointer(uiSchemaNode)).toBe('hello');
-  });
-
   test('getUniqueNodePath', () => {
     const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
-    expect(getUniqueNodePath(uiSchemaNodes, makePointer(Keyword.Properties, 'hello'))).toBe(
-      makePointer(Keyword.Properties, 'hello0')
-    );
+    expect(
+      getUniqueNodePath(uiSchemaNodes, makePointerFromArray([Keyword.Properties, 'hello'])),
+    ).toBe(makePointerFromArray([Keyword.Properties, 'hello0']));
   });
 
   test('replaceLastPointerSegment', () => {
-    expect(replaceLastPointerSegment(makePointer('some', 'thing', 'cozy'), 'scary')).toBe(
-      makePointer('some', 'thing', 'scary')
-    );
-    expect(replaceLastPointerSegment(makePointer('trying', 'to', 'fool'), 'to/fool')).toBe(
-      makePointer('trying', 'to', 'to', 'fool')
-    );
+    expect(
+      replaceLastPointerSegment(makePointerFromArray(['some', 'thing', 'cozy']), 'scary'),
+    ).toBe(makePointerFromArray(['some', 'thing', 'scary']));
+    expect(
+      replaceLastPointerSegment(makePointerFromArray(['trying', 'to', 'fool']), 'to/fool'),
+    ).toBe(makePointerFromArray(['trying', 'to', 'to', 'fool']));
   });
 
-  describe('isEmpty', () => {
-    it('Returns true if only the root node is present', () => {
-      const rootNode = { ...rootNodeMock, children: [] };
-      const schema = [rootNode];
-      validateTestUiSchema(schema);
-      expect(isEmpty(schema)).toBe(true);
-    });
+  describe('isNodeValidParent', () => {
+    const testData: KeyValuePairs<UiSchemaNode> = {
+      'an object': simpleParentNodeMock,
+      'an array': simpleArrayMock,
+      'a combination': allOfNodeMock,
+      'a string': stringNodeMock,
+      'a number': numberNodeMock,
+      'an enum': enumNodeMock,
+      'a reference': referenceNodeMock,
+    };
 
-    it.each([null, undefined])('Returns true if the input is %s', (input: null | undefined) => {
-      expect(isEmpty(input)).toBe(true);
-    });
+    type TestCase = [boolean, keyof typeof testData];
+    const testCases: TestCase[] = [
+      [true, 'an object'],
+      [true, 'an array'],
+      [true, 'a combination'],
+      [false, 'a string'],
+      [false, 'a number'],
+      [false, 'an enum'],
+      [false, 'a reference'],
+    ];
 
-    it('Returns false if additional nodes are present', () => {
-      expect(isEmpty(uiSchemaMock)).toBe(false);
+    it.each(testCases)('Returns %s when the node is %s', (expectedResult, caseKey) => {
+      expect(isNodeValidParent(testData[caseKey])).toBe(expectedResult);
     });
   });
 });

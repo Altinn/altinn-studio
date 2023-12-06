@@ -5,15 +5,18 @@ import { AxiosError } from 'axios';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
-export const useGenerateModelsMutation = (modelPath: string): UseMutationResult<void, AxiosError> => {
+export const useGenerateModelsMutation = (
+  modelPath: string,
+): UseMutationResult<void, AxiosError> => {
   const queryClient = useQueryClient();
   const { org, app } = useStudioUrlParams();
   const { generateModels } = useServicesContext();
   return useMutation({
     mutationFn: (payload: JsonSchema) => generateModels(org, app, modelPath, payload),
-    onSuccess: () => Promise.all([
-      queryClient.invalidateQueries([QueryKey.DatamodelsJson, org, app]),
-      queryClient.invalidateQueries([QueryKey.DatamodelsXsd, org, app]),
-    ]),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsJson, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
+      ]),
   });
-}
+};

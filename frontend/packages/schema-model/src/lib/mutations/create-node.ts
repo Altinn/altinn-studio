@@ -1,15 +1,15 @@
 import type { UiSchemaNode, UiSchemaNodes } from '../../types';
-import { FieldType, Keyword, ObjectKind } from '../../types';
-import { createNodeBase } from '../utils';
+import { Keyword } from '../../types';
+import { createNodeBase, isCombination, isField, isObject, isReference } from '../utils';
 import { getParentNodeByPointer, hasNodePointer } from '../selectors';
 import { deepCopy } from 'app-shared/pure';
 
 export const insertSchemaNode = (
   uiSchemaNodes: UiSchemaNodes,
-  newNode: UiSchemaNode
+  newNode: UiSchemaNode,
 ): UiSchemaNodes => {
   if (hasNodePointer(uiSchemaNodes, newNode.pointer)) {
-    throw new Error(`Pointer ${newNode.pointer} exists allready`);
+    throw new Error(`Pointer ${newNode.pointer} exists already`);
   }
 
   const mutatedNodeArray: UiSchemaNodes = deepCopy(uiSchemaNodes);
@@ -32,23 +32,26 @@ export const insertSchemaNode = (
 export const createChildNode = (
   parentNode: UiSchemaNode,
   displayName: string,
-  isDefinition: boolean
+  isDefinition: boolean,
 ): UiSchemaNode => {
-  const { pointer, objectKind, children, fieldType, isArray } = parentNode;
+  const { pointer, isArray } = parentNode;
   if (isArray) {
     throw new Error("This application doesn't support combined array types.");
-  } else if (objectKind === ObjectKind.Reference && fieldType !== FieldType.Object) {
+  } else if (isReference(parentNode)) {
     throw new Error("Can't create a new node under a reference.");
-  } else if (objectKind === ObjectKind.Combination) {
-    return Object.assign(createNodeBase(pointer, fieldType, children.length.toString()), {
-      isCombinationItem: true,
-    });
-  } else if (fieldType === FieldType.Object && isDefinition) {
+  } else if (isCombination(parentNode)) {
+    return Object.assign(
+      createNodeBase(pointer, parentNode.combinationType, parentNode.children.length.toString()),
+      {
+        isCombinationItem: true,
+      },
+    );
+  } else if (isField(parentNode) && isObject(parentNode) && isDefinition) {
     return createNodeBase(pointer, Keyword.Definitions, displayName);
-  } else if (fieldType === FieldType.Object && !isDefinition) {
+  } else if (isField(parentNode) && isObject(parentNode) && !isDefinition) {
     return createNodeBase(pointer, Keyword.Properties, displayName);
-  } else if (objectKind === ObjectKind.Field) {
-    throw new Error(`Can't add node to fieldtype ${fieldType}`);
+  } else if (isField(parentNode)) {
+    throw new Error(`Can't add node to fieldtype ${parentNode.fieldType}`);
   } else {
     throw new Error('invalid parent node');
   }

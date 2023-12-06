@@ -1,7 +1,7 @@
 import React, { MouseEvent } from 'react';
 import { Button } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { FieldType, Keyword, makePointer, UiSchemaNode, addRootItem } from '@altinn/schema-model';
+import { UiSchemaNode } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
@@ -17,20 +17,15 @@ export interface TypesInspectorProps {
 export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { data, save, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { schemaModel, save, selectedTypePointer, setSelectedTypePointer } =
+    useSchemaEditorAppContext();
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
-    save(
-      addRootItem(data, {
-        name: 'name',
-        location: makePointer(Keyword.Definitions),
-        props: { fieldType: FieldType.Object },
-        callback: (newPointer) => {
-          dispatch(setSelectedAndFocusedNode(newPointer));
-        },
-      }),
-    );
+    const name = schemaModel.generateUniqueDefinitionName('name');
+    const newNode = schemaModel.addFieldType(name);
+    dispatch(setSelectedAndFocusedNode(newNode.pointer));
+    save(schemaModel);
   };
 
   if (!schemaItems) {

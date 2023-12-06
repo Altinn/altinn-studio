@@ -1,19 +1,29 @@
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType, ObjectKind } from '@altinn/schema-model';
+import { FieldType, isCombination, isField, isReference } from '@altinn/schema-model';
 
 export const getIconStr = (item: UiSchemaNode) => {
-  const { fieldType, isArray } = item;
-  if (!isArray && item.reference !== undefined) {
+  const { isArray } = item;
+  if (!isArray && isReference(item)) {
     return 'fa-datamodel-ref';
-  } else if (item.objectKind === ObjectKind.Combination) {
+  } else if (isCombination(item)) {
     return 'fa-group';
-  } else if (fieldType === FieldType.Integer) {
-    return 'fa-datamodel-number';
-  } else if (fieldType === FieldType.Null) {
-    return 'fa-datamodel-null';
-  } else if (fieldType === undefined) {
-    return 'fa-help-circle';
+  } else if (isField(item)) {
+    switch (item.fieldType) {
+      case FieldType.Boolean:
+        return 'fa-datamodel-boolean';
+      case FieldType.Number:
+      case FieldType.Integer:
+        return 'fa-datamodel-number';
+      case FieldType.String:
+        return 'fa-datamodel-string';
+      case FieldType.Null:
+        return 'fa-datamodel-null';
+      case FieldType.Object:
+        return 'fa-datamodel-object';
+      default:
+        return 'fa-help-circle';
+    }
   } else {
-    return fieldType ? `fa-datamodel-${fieldType}` : 'fa-help-circle';
+    return 'fa-help-circle';
   }
 };

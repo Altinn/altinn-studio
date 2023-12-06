@@ -65,23 +65,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/icons@npm:^0.1.0, @altinn/icons@workspace:^, @altinn/icons@workspace:frontend/libs/altinn-icons":
-  version: 0.0.0-use.local
-  resolution: "@altinn/icons@workspace:frontend/libs/altinn-icons"
-  dependencies:
-    "@navikt/aksel-icons": "npm:^5.6.1"
-    "@testing-library/jest-dom": "npm:^6.1.3"
-    "@testing-library/react": "npm:^14.0.0"
-    "@types/jest": "npm:^29.5.5"
-    jest: "npm:^29.7.0"
-    jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    ts-jest: "npm:^29.1.1"
-    typescript: "npm:^5.2.2"
-  languageName: unknown
-  linkType: soft
-
 "@altinn/policy-editor@workspace:frontend/packages/policy-editor":
   version: 0.0.0-use.local
   resolution: "@altinn/policy-editor@workspace:frontend/packages/policy-editor"
@@ -134,26 +117,6 @@ __metadata:
   dependencies:
     jest: "npm:29.7.0"
     jsonpointer: "npm:5.0.1"
-  languageName: unknown
-  linkType: soft
-
-"@altinn/studio-components@workspace:frontend/libs/studio-components":
-  version: 0.0.0-use.local
-  resolution: "@altinn/studio-components@workspace:frontend/libs/studio-components"
-  dependencies:
-    "@altinn/icons": "npm:^0.1.0"
-    "@digdir/design-system-react": "npm:0.35.0"
-    "@digdir/design-system-tokens": "npm:0.10.0"
-    "@testing-library/jest-dom": "npm:^6.1.3"
-    "@testing-library/react": "npm:^14.0.0"
-    "@types/jest": "npm:^29.5.5"
-    eslint: "npm:8.50.0"
-    jest: "npm:^29.7.0"
-    jest-environment-jsdom: "npm:^29.7.0"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    ts-jest: "npm:^29.1.1"
-    typescript: "npm:^5.2.2"
   languageName: unknown
   linkType: soft
 
@@ -1760,25 +1723,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.35.0":
-  version: 0.35.0
-  resolution: "@digdir/design-system-react@npm:0.35.0"
-  dependencies:
-    "@altinn/figma-design-tokens": "npm:^6.0.1"
-    "@digdir/design-system-tokens": "npm:^0.8.1"
-    "@floating-ui/react": "npm:0.25.2"
-    "@navikt/aksel-icons": "npm:^3.2.4"
-    react-number-format: "npm:5.2.2"
-  peerDependencies:
-    react: ">=18.2.0"
-    react-dom: ">=18.2.0"
-  checksum: ee362b031b43a2608cc540bfb963a4a06ee74973723b7f339a36b4e00de847ddb180ffa436e3181b8ee305e46d5104e3921dfff8d33d10cb17bd57ceb59949a2
-  languageName: node
-  linkType: hard
-
-"@digdir/design-system-react@npm:0.37.0":
-  version: 0.37.0
-  resolution: "@digdir/design-system-react@npm:0.37.0"
+"@digdir/design-system-react@npm:0.38.0":
+  version: 0.38.0
+  resolution: "@digdir/design-system-react@npm:0.38.0"
   dependencies:
     "@altinn/figma-design-tokens": "npm:^6.0.1"
     "@digdir/design-system-tokens": "npm:^0.10.0"
@@ -1789,7 +1736,7 @@ __metadata:
   peerDependencies:
     react: ">=18.2.0"
     react-dom: ">=18.2.0"
-  checksum: 3eda1bb6006cfd692b2299f5f0a13d0be45280d7e643012e657981e88fd7a229f26db9c915721377238cdd6cb8e0ffec9d1108ed42146c1fbb92c9d2297a8bd0
+  checksum: ccbe4b9ae7e39584167d117b116f7bc1ec6cef5839df58c6a3b79a559b511d9ce3603563bfee64a7279ab7acf34c32371fb963dd559d53334f88b33407df89e7
   languageName: node
   linkType: hard
 
@@ -1804,13 +1751,6 @@ __metadata:
   version: 0.1.7
   resolution: "@digdir/design-system-tokens@npm:0.1.7"
   checksum: 319bc8c5d0f6150e4ffdd3fa0ff0a5bbe3458af7e9b02dd47908c3affa938fede2b53356748b43dff72b4957c30473ef83c71962860398a702a76f314fbc4d3f
-  languageName: node
-  linkType: hard
-
-"@digdir/design-system-tokens@npm:^0.8.1":
-  version: 0.8.1
-  resolution: "@digdir/design-system-tokens@npm:0.8.1"
-  checksum: d2c491e50d7dd6793099672edbf5019dd5667d3b05d8ca937f98405dd8c55f664bbd8b67d1ddff47dd8f1b245dba820758af4859ba02efe0ca043d46678a8633
   languageName: node
   linkType: hard
 
@@ -3862,6 +3802,43 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@studio/components@workspace:frontend/libs/studio-components":
+  version: 0.0.0-use.local
+  resolution: "@studio/components@workspace:frontend/libs/studio-components"
+  dependencies:
+    "@digdir/design-system-react": "npm:0.38.0"
+    "@digdir/design-system-tokens": "npm:0.10.0"
+    "@studio/icons": "npm:^0.1.0"
+    "@testing-library/jest-dom": "npm:^6.1.3"
+    "@testing-library/react": "npm:^14.0.0"
+    "@types/jest": "npm:^29.5.5"
+    eslint: "npm:8.50.0"
+    jest: "npm:^29.7.0"
+    jest-environment-jsdom: "npm:^29.7.0"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:^5.2.2"
+  languageName: unknown
+  linkType: soft
+
+"@studio/icons@npm:^0.1.0, @studio/icons@workspace:^, @studio/icons@workspace:frontend/libs/studio-icons":
+  version: 0.0.0-use.local
+  resolution: "@studio/icons@workspace:frontend/libs/studio-icons"
+  dependencies:
+    "@navikt/aksel-icons": "npm:^5.6.1"
+    "@testing-library/jest-dom": "npm:^6.1.3"
+    "@testing-library/react": "npm:^14.0.0"
+    "@types/jest": "npm:^29.5.5"
+    jest: "npm:^29.7.0"
+    jest-environment-jsdom: "npm:^29.7.0"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:^5.2.2"
+  languageName: unknown
+  linkType: soft
+
 "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0":
   version: 8.0.0
   resolution: "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0"
@@ -4160,53 +4137,48 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/match-sorter-utils@npm:^8.7.0":
-  version: 8.7.6
-  resolution: "@tanstack/match-sorter-utils@npm:8.7.6"
-  dependencies:
-    remove-accents: "npm:0.4.2"
-  checksum: 69e0db12fc192255f3ece602235594249312bff863fdf2d07b17bc44d5f2c98dfb62ae9602386ab0a5e0cb3dbb05d1d1d0b839e338c891c3b54e5b9d5378bb9f
+"@tanstack/query-core@npm:5.4.3":
+  version: 5.4.3
+  resolution: "@tanstack/query-core@npm:5.4.3"
+  checksum: 01a0ffab4dfae4741f2629a2884fceb1af7cb5e280f3e37952bff4af7210cc57a69b2683cea16099b68af4fdd858f2bbd6b5a76d4f847a07cec2ae1b3f598839
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:4.36.1":
-  version: 4.36.1
-  resolution: "@tanstack/query-core@npm:4.36.1"
-  checksum: 7c648872cd491bcab2aa4c18e0b7ca130c072f05c277a5876977fa3bfa87634bbfde46e9d249236587d78c39866889a02e4e202b478dc6074ff96093732ae56d
+"@tanstack/query-devtools@npm:5.7.4":
+  version: 5.7.4
+  resolution: "@tanstack/query-devtools@npm:5.7.4"
+  checksum: b7ddf3cde9e65c2e96a77a501184f560348b1ab112cd3a6ffe72132942431faae7bc1b8d14be4b7a00558730e48c62ed5b0e87230a0c95a3c11c3ea38e2be9e7
   languageName: node
   linkType: hard
 
-"@tanstack/react-query-devtools@npm:4.36.1":
-  version: 4.36.1
-  resolution: "@tanstack/react-query-devtools@npm:4.36.1"
+"@tanstack/react-query-devtools@npm:5.8.1":
+  version: 5.8.1
+  resolution: "@tanstack/react-query-devtools@npm:5.8.1"
   dependencies:
-    "@tanstack/match-sorter-utils": "npm:^8.7.0"
-    superjson: "npm:^1.10.0"
-    use-sync-external-store: "npm:^1.2.0"
+    "@tanstack/query-devtools": "npm:5.7.4"
   peerDependencies:
-    "@tanstack/react-query": ^4.36.1
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: f21896c97a50304071d9ebe130c9d1ea35b29462830fd3f908b986690a9d7f018d76c7595406154d83e4e173ffc2fe0be5ae78f19b36f6df2a3f4d551776d2b7
+    "@tanstack/react-query": ^5.8.1
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: 48b2ed0f8b014f330ac0cba87cd95d327a6d902ed6b6703a08da3fc3b3fb9c1f684cdbce8671a64aedf5e5e4adcaaa85fc4ab5c75e92f0febf02463e84bfbfb4
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:4.36.1":
-  version: 4.36.1
-  resolution: "@tanstack/react-query@npm:4.36.1"
+"@tanstack/react-query@npm:5.4.3":
+  version: 5.4.3
+  resolution: "@tanstack/react-query@npm:5.4.3"
   dependencies:
-    "@tanstack/query-core": "npm:4.36.1"
-    use-sync-external-store: "npm:^1.2.0"
+    "@tanstack/query-core": "npm:5.4.3"
   peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react: ^18.0.0
+    react-dom: ^18.0.0
     react-native: "*"
   peerDependenciesMeta:
     react-dom:
       optional: true
     react-native:
       optional: true
-  checksum: 764b860c3ac8d254fc6b07e01054a0f58058644d59626c724b213293fbf1e31c198cbb26e4c32c0d16dcaec0353c0ae19147d9c667675b31f8cea1d64f1ff4ac
+  checksum: 7ed45d8e17aeb072809fb4d9c74f562912ee0e1e22e890f531955a45a91c52dfe9063ac8646d96ad7fb7d9c7614361491c29bb9e333341b592e460d717957fcb
   languageName: node
   linkType: hard
 
@@ -5570,7 +5542,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": "npm:0.29.1"
     "@altinn/figma-design-tokens": "npm:6.0.1"
-    "@digdir/design-system-react": "npm:0.37.0"
+    "@digdir/design-system-react": "npm:0.38.0"
     "@digdir/design-system-tokens": "npm:0.10.0"
     "@emotion/react": "npm:11.11.1"
     "@emotion/styled": "npm:11.11.0"
@@ -5583,8 +5555,8 @@ __metadata:
     "@svgr/webpack": "npm:8.1.0"
     "@swc/core": "npm:1.3.95"
     "@swc/jest": "npm:0.2.29"
-    "@tanstack/react-query": "npm:4.36.1"
-    "@tanstack/react-query-devtools": "npm:4.36.1"
+    "@tanstack/react-query": "npm:5.4.3"
+    "@tanstack/react-query-devtools": "npm:5.8.1"
     "@testing-library/dom": "npm:9.3.3"
     "@testing-library/jest-dom": "npm:6.1.4"
     "@testing-library/react": "npm:14.0.0"
@@ -5741,9 +5713,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:frontend/app-development"
   dependencies:
-    "@altinn/icons": "workspace:^"
     "@mui/material": "npm:5.14.16"
     "@reduxjs/toolkit": "npm:1.9.7"
+    "@studio/icons": "workspace:^"
     axios: "npm:1.6.0"
     classnames: "npm:2.3.2"
     cross-env: "npm:7.0.3"
@@ -7210,15 +7182,6 @@ __metadata:
   dependencies:
     is-what: "npm:^3.14.1"
   checksum: 3b41be8f6322c2c13e93cde62a64d532f138f31d44ab85a3405d88601134afccc068be06534c162ed5c06b209788c423d7aaa50f1c34a92db81a1f8560d199eb
-  languageName: node
-  linkType: hard
-
-"copy-anything@npm:^3.0.2":
-  version: 3.0.3
-  resolution: "copy-anything@npm:3.0.3"
-  dependencies:
-    is-what: "npm:^4.1.8"
-  checksum: d376bfd5f657c96e9b0ef5e8709dcb52bc085c0af7b1c30c6c0337fa9ce56287bf0aaf4db13f9931b504ee5f6beb4494d9ca1b6e947a12995476ca288b3653c6
   languageName: node
   linkType: hard
 
@@ -10967,13 +10930,6 @@ __metadata:
   version: 3.14.1
   resolution: "is-what@npm:3.14.1"
   checksum: 249beb4a8c1729c80ed24fa8527835301c8c70d2fa99706a301224576e0650df61edd7a0a8853999bf5fbe2c551f07148d2c3535260772e05a4c373d3d5362e1
-  languageName: node
-  linkType: hard
-
-"is-what@npm:^4.1.8":
-  version: 4.1.8
-  resolution: "is-what@npm:4.1.8"
-  checksum: 943eca6c1e64df487060857a4b6ac2e584b99e633a96e64c82bd49584a85d91f6f3e22d4a2d28c1243522152b261f50021db40a5ef7d98c754ebc7209c87b071
   languageName: node
   linkType: hard
 
@@ -14931,13 +14887,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remove-accents@npm:0.4.2":
-  version: 0.4.2
-  resolution: "remove-accents@npm:0.4.2"
-  checksum: 25d5c84f1355be60b42f8ad8a1ba29c2413dead138a9e2a88633e4fc94a1b953afe306dd27479125aef231d267482c54d292e558b04ec100fb9adf063ccbf75a
-  languageName: node
-  linkType: hard
-
 "renderkid@npm:^3.0.0":
   version: 3.0.0
   resolution: "renderkid@npm:3.0.0"
@@ -16199,15 +16148,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"superjson@npm:^1.10.0":
-  version: 1.12.2
-  resolution: "superjson@npm:1.12.2"
-  dependencies:
-    copy-anything: "npm:^3.0.2"
-  checksum: 8c094900248f78b0932543ec03934fb7a14b44bdfc595a9513fb2776d2ee57f311a11de56f5778574e524f41b4657e37cb50810cfa856d28e1c5e0362e346abe
-  languageName: node
-  linkType: hard
-
 "supports-color@npm:^5.3.0, supports-color@npm:^5.5.0":
   version: 5.5.0
   resolution: "supports-color@npm:5.5.0"
@@ -17082,7 +17022,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:^1.0.0, use-sync-external-store@npm:^1.2.0":
+"use-sync-external-store@npm:^1.0.0":
   version: 1.2.0
   resolution: "use-sync-external-store@npm:1.2.0"
   peerDependencies:
@@ -17147,9 +17087,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ux-editor@workspace:frontend/packages/ux-editor"
   dependencies:
-    "@altinn/icons": "workspace:^"
     "@mui/material": "npm:5.14.16"
     "@reduxjs/toolkit": "npm:1.9.7"
+    "@studio/icons": "workspace:^"
     axios: "npm:1.6.0"
     classnames: "npm:2.3.2"
     jest: "npm:29.7.0"

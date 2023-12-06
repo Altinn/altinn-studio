@@ -9,21 +9,12 @@ import { Button } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { ModelsPanel, TypesPanel } from '@altinn/schema-editor/components/layout';
 import { SchemaInspector } from '@altinn/schema-editor/components/SchemaInspector';
-import {
-  UiSchemaNodes,
-  getNameFromPointer,
-  isEmpty,
-  pointerIsDefinition,
-} from '@altinn/schema-model';
+import { UiSchemaNodes, extractNameFromPointer } from '@altinn/schema-model';
 import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
 import {
   selectedDefinitionParentSelector,
   selectedPropertyParentSelector,
 } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
-import {
-  rootChildrenSelector,
-  rootNodesSelector,
-} from '@altinn/schema-editor/selectors/schemaSelectors';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface SchemaEditorProps {
@@ -32,7 +23,7 @@ export interface SchemaEditorProps {
 
 export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const dispatch = useDispatch();
-  const { data, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { schemaModel, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   useEffect(() => {
     if (modelName) {
@@ -45,16 +36,6 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
 
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
-
-  const rootNodeMap = rootNodesSelector(data);
-  const rootChildren = rootChildrenSelector(data);
-  const properties: UiSchemaNodes = [];
-  const definitions: UiSchemaNodes = [];
-  rootChildren?.forEach((childPointer) =>
-    pointerIsDefinition(childPointer)
-      ? definitions.push(rootNodeMap.get(childPointer))
-      : properties.push(rootNodeMap.get(childPointer)),
-  );
 
   const selectedPropertyParent = useSchemaAndReduxSelector(selectedPropertyParentSelector);
 
@@ -71,14 +52,17 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
     }
   }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
-  if (isEmpty(data)) return null;
+  if (schemaModel.isEmpty()) return null;
 
   const handleResetSelectedType = () => {
     setSelectedTypePointer(null);
     dispatch(setSelectedId({ pointer: '' }));
   };
 
+  const definitions: UiSchemaNodes = schemaModel.getDefinitions();
   const selectedType = definitions.find((item) => item.pointer === selectedTypePointer);
+
+  const properties: UiSchemaNodes = schemaModel.getRootProperties();
 
   return (
     <>
@@ -90,7 +74,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
           <div className={classes.typeInfo}>
             <span>
               {t('schema_editor.types_editing', {
-                type: getNameFromPointer({ pointer: selectedTypePointer }),
+                type: extractNameFromPointer(selectedTypePointer),
               })}
             </span>
             <Button

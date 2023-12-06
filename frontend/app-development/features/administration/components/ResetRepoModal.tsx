@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import classes from './RepoModal.module.css';
-import { AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { Button, Textfield } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -90,8 +90,8 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
             autoFocus
             onKeyUp={handleOnKeypressEnter}
           />
-          {repoResetMutation.isLoading && <AltinnSpinner />}
-          {!repoResetMutation.isLoading && (
+          {repoResetMutation.isPending && <StudioSpinner />}
+          {!repoResetMutation.isPending && (
             <div className={classes.buttonContainer}>
               <Button
                 color='danger'

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
-import { PageSpinner } from 'app-shared/components';
+import { StudioPageSpinner } from '@studio/components';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
@@ -20,6 +20,8 @@ import { Organization } from 'app-shared/types/Organization';
 import { useStarredReposQuery } from '../../hooks/queries';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import * as testids from '../../../testing/testids';
+import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
+import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 type DashboardProps = {
   user: User;
@@ -30,7 +32,7 @@ type DashboardProps = {
 export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
-  const { data: starredRepos = [], isLoading: isLoadingStarredRepos } = useStarredReposQuery();
+  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
@@ -44,8 +46,8 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
 
-  if (isLoadingStarredRepos) {
-    return <PageSpinner />;
+  if (areStarredReposPending) {
+    return <StudioPageSpinner />;
   }
 
   return (
@@ -108,6 +110,10 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                 organizations={organizations}
                 starredRepos={starredRepos}
               />
+              {selectedContext !== SelectedContextType.All &&
+                selectedContext !== SelectedContextType.Self && (
+                  <ResourcesRepoList user={user} organizations={organizations} />
+                )}
             </>
           )}
         </div>

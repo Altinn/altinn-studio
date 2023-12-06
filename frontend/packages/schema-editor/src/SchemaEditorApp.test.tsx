@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { useSchemaEditorAppContext } from './hooks/useSchemaEditorAppContext';
 import { uiSchemaNodesMock } from '../test/mocks/uiSchemaMock';
 import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
-import { buildJsonSchema, buildUiSchema } from '@altinn/schema-model';
+import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
 
 jest.useFakeTimers({ advanceTimers: true });
 
@@ -23,7 +23,7 @@ const initialProps = {
 
 export const render = (ChildComponent?: React.ElementType) => {
   return rtlRender(
-    <SchemaEditorApp {...initialProps}>{ChildComponent && <ChildComponent />}</SchemaEditorApp>
+    <SchemaEditorApp {...initialProps}>{ChildComponent && <ChildComponent />}</SchemaEditorApp>,
   );
 };
 
@@ -39,11 +39,14 @@ describe('SchemaEditorApp', () => {
     const user = userEvent.setup();
 
     render(() => {
-      const { data, save } = useSchemaEditorAppContext();
+      const { schemaModel, save } = useSchemaEditorAppContext();
       return (
         <>
-          <div data-testid='data'>{JSON.stringify(data)}</div>
-          <button data-testid='button' onClick={() => save(uiSchemaNodesMock)} />
+          <div data-testid='data'>{JSON.stringify(schemaModel.asArray())}</div>
+          <button
+            data-testid='button'
+            onClick={() => save(SchemaModel.fromArray(uiSchemaNodesMock))}
+          />
         </>
       );
     });

@@ -8,11 +8,10 @@ import {
   CombinationKind,
   FieldType,
   Keyword,
-  ObjectKind,
   buildUiSchema,
-  getNodeByPointer,
-  makePointer,
   UiSchemaNodes,
+  makePointerFromArray,
+  SchemaModel,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { renderWithProviders, RenderWithProvidersData } from '../../test/renderWithProviders';
@@ -39,7 +38,7 @@ const renderEditor = (data: Partial<RenderWithProvidersData> = {}) => {
       ...data.state,
     },
     appContextProps: {
-      data: uiSchemaNodesMock,
+      schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
       save,
       ...data.appContextProps,
     },
@@ -63,20 +62,23 @@ describe('SchemaEditor', () => {
 
   test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
     const uiSchema: UiSchemaNodes = buildUiSchema(dataMock);
-    renderEditor({ appContextProps: { data: uiSchema } });
+    const schemaModel = SchemaModel.fromArray(uiSchema);
+    renderEditor({ appContextProps: { schemaModel } });
     await clickMenuItem(textMock('schema_editor.field'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
-    expect(updatedModel.length).toBe(uiSchema.length + 1);
+    expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
 
   test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
     const uiSchema = buildUiSchema(dataMock);
-    renderEditor({ appContextProps: { data: uiSchema } });
+    const schemaModel = SchemaModel.fromArray(uiSchema);
+    renderEditor({ appContextProps: { schemaModel } });
+    jest.spyOn(window, 'prompt').mockImplementation(() => 'Tekst');
     await clickMenuItem(textMock('schema_editor.reference'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
-    expect(updatedModel.length).toBe(uiSchema.length + 1);
+    expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
 
   test('should show context menu and trigger correct dispatch when adding field on a specific node', async () => {
@@ -85,26 +87,30 @@ describe('SchemaEditor', () => {
       [Keyword.Definitions]: {},
     };
     const uiSchema = buildUiSchema(jsonSchema);
-    renderEditor({ appContextProps: { data: uiSchema } });
+    const schemaModel = SchemaModel.fromArray(uiSchema);
+    renderEditor({ appContextProps: { schemaModel } });
     await clickOpenContextMenuButton();
     await clickMenuItem(textMock('schema_editor.add_field'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
-    expect(updatedModel.length).toBe(uiSchema.length + 1);
+    expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
 
   test('should show context menu and trigger correct dispatch when adding reference on a specific node', async () => {
+    const definitionName = 'definition';
     const jsonSchema: JsonSchema = {
       [Keyword.Properties]: { mockItem: { [Keyword.Type]: FieldType.Object } },
-      [Keyword.Definitions]: {},
+      [Keyword.Definitions]: { [definitionName]: { [Keyword.Type]: FieldType.String } },
     };
     const uiSchema = buildUiSchema(jsonSchema);
-    renderEditor({ appContextProps: { data: uiSchema } });
+    const schemaModel = SchemaModel.fromArray(uiSchema);
+    renderEditor({ appContextProps: { schemaModel } });
+    jest.spyOn(window, 'prompt').mockImplementation(() => definitionName);
     await clickOpenContextMenuButton();
     await clickMenuItem(textMock('schema_editor.add_reference'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
-    expect(updatedModel.length).toBe(uiSchema.length + 1);
+    expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
 
   test('should show context menu and show deletion dialog', async () => {
@@ -117,7 +123,8 @@ describe('SchemaEditor', () => {
 
   test('should trigger correct dispatch when deleting a specific node', async () => {
     const uiSchema = buildUiSchema(dataMock);
-    renderEditor({ appContextProps: { data: uiSchema } });
+    const schemaModel = SchemaModel.fromArray(uiSchema);
+    renderEditor({ appContextProps: { schemaModel } });
     await clickOpenContextMenuButton();
     await clickMenuItem(textMock('schema_editor.delete'));
     const dialog = screen.getByRole('dialog');
@@ -128,7 +135,7 @@ describe('SchemaEditor', () => {
     await act(() => user.click(confirmDeletButton));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
-    expect(updatedModel.length).toBe(uiSchema.length - 1);
+    expect(updatedModel.asArray().length).toBe(uiSchema.length - 1);
   });
 
   test('should close the dialog and not delete the node when the user just cancels deletion dialog', async () => {
@@ -149,15 +156,15 @@ describe('SchemaEditor', () => {
     const jsonSchema: JsonSchema = {
       [Keyword.Properties]: {
         mockItem: {
-          [Keyword.Reference]: makePointer(Keyword.Definitions, 'mockDefinition'),
+          [Keyword.Reference]: makePointerFromArray([Keyword.Definitions, 'mockDefinition']),
         },
       },
       [Keyword.Definitions]: {
         mockDefinition: { [Keyword.Type]: FieldType.Object },
       },
     };
-    const data = buildUiSchema(jsonSchema);
-    renderEditor({ appContextProps: { data } });
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+    renderEditor({ appContextProps: { schemaModel } });
     await clickOpenContextMenuButton();
     const menuitems = screen.getAllByRole('menuitem');
     const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
@@ -165,46 +172,38 @@ describe('SchemaEditor', () => {
     expect(menuItemIds).not.toContain('add-reference-to-node-button');
   });
 
-  test('should not show add property or add reference buttons on a reference node that has not yet set reference', async () => {
-    const jsonSchema: JsonSchema = {
-      [Keyword.Properties]: {
-        mockItem: { [Keyword.Reference]: undefined },
-      },
-      [Keyword.Definitions]: {
-        mockDefinition: { [Keyword.Type]: FieldType.Object },
-      },
-    };
-    const uiSchemaToTest = buildUiSchema(jsonSchema);
+  it('Should not add a reference when an invalid reference name is given', async () => {
+    const uiSchema = buildUiSchema(dataMock);
+    const schemaModel = SchemaModel.fromArray(uiSchema);
+    renderEditor({ appContextProps: { schemaModel } });
+    jest.spyOn(window, 'prompt').mockImplementation(() => 'Noe som ikke finnes');
+    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
+    await clickMenuItem(textMock('schema_editor.reference'));
+    expect(save).not.toHaveBeenCalled();
+  });
 
-    /**
-     * Important, the new model engine doesn't allow references to be unknown. While the old would use an empty string.
-     * This logic need to be implemented.
-     */
-    const mockItem = getNodeByPointer(uiSchemaToTest, '#/properties/mockItem');
-    mockItem.reference = '';
-    mockItem.objectKind = ObjectKind.Reference;
-
-    renderEditor({ appContextProps: { data: uiSchemaToTest } });
-    await clickOpenContextMenuButton();
-    const menuitems = screen.getAllByRole('menuitem');
-    const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
-    expect(menuItemIds).not.toContain('add-field-to-node-button');
-    expect(menuItemIds).not.toContain('add-reference-to-node-button');
+  it('Should not add a reference when the prompt is cancelled', async () => {
+    const uiSchema = buildUiSchema(dataMock);
+    const schemaModel = SchemaModel.fromArray(uiSchema);
+    renderEditor({ appContextProps: { schemaModel } });
+    jest.spyOn(window, 'prompt').mockImplementation(() => null);
+    await clickMenuItem(textMock('schema_editor.reference'));
+    expect(save).not.toHaveBeenCalled();
   });
 
   test('should not show add property or add reference buttons on a field that is not type object', async () => {
     const jsonSchema: JsonSchema = {
       [Keyword.Properties]: {
         mockItem: {
-          [Keyword.Reference]: makePointer(Keyword.Definitions, 'mockDefinition'),
+          [Keyword.Reference]: makePointerFromArray([Keyword.Definitions, 'mockDefinition']),
         },
       },
       [Keyword.Definitions]: {
         mockDefinition: { [Keyword.Type]: FieldType.Integer },
       },
     };
-    const data = buildUiSchema(jsonSchema);
-    renderEditor({ appContextProps: { data } });
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+    renderEditor({ appContextProps: { schemaModel } });
     await clickOpenContextMenuButton();
     const menuitems = screen.getAllByRole('menuitem');
     const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
@@ -213,26 +212,28 @@ describe('SchemaEditor', () => {
   });
 
   test('should show menu with option field, reference, and combination when pressing add', async () => {
-    const data = buildUiSchema(dataMock);
-    renderEditor({ appContextProps: { data } });
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(dataMock));
+
+    renderEditor({ appContextProps: { schemaModel } });
     expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.field') })
+      screen.getByRole('menuitem', { name: textMock('schema_editor.field') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.reference') })
+      screen.getByRole('menuitem', { name: textMock('schema_editor.reference') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.combination') })
+      screen.getByRole('menuitem', { name: textMock('schema_editor.combination') }),
     ).toBeInTheDocument();
   });
 
   test('should trigger correct dispatch when adding combination to root', async () => {
     const uiSchema = buildUiSchema(dataMock);
-    renderEditor({ appContextProps: { data: uiSchema } });
+    const schemaModel = SchemaModel.fromArray(uiSchema);
+    renderEditor({ appContextProps: { schemaModel } });
     await clickMenuItem(textMock('schema_editor.combination'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
-    expect(updatedModel.length).toBe(uiSchema.length + 1);
+    expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
 
   test('should show context menu and trigger correct dispatch when adding a combination on a specific node', async () => {
@@ -241,12 +242,13 @@ describe('SchemaEditor', () => {
       [Keyword.Definitions]: {},
     };
     const uiSchema = buildUiSchema(jsonSchema);
-    renderEditor({ appContextProps: { data: uiSchema } });
+    const schemaModel = SchemaModel.fromArray(uiSchema);
+    renderEditor({ appContextProps: { schemaModel } });
     await clickOpenContextMenuButton();
     await clickMenuItem(textMock('schema_editor.add_combination'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
-    expect(updatedModel.length).toBe(uiSchema.length + 1);
+    expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
 
   test('should only be possible to add a reference to a combination type', async () => {
@@ -258,8 +260,8 @@ describe('SchemaEditor', () => {
       },
       [Keyword.Definitions]: {},
     };
-    const data = buildUiSchema(jsonSchema);
-    renderEditor({ appContextProps: { data } });
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+    renderEditor({ appContextProps: { schemaModel } });
     await clickOpenContextMenuButton();
     const menuitems = screen.getAllByRole('menuitem');
     const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
@@ -285,11 +287,11 @@ describe('SchemaEditor', () => {
         },
       },
     };
-    const data = buildUiSchema(jsonSchema);
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
     const setSelectedTypePointerMock = jest.fn();
     renderEditor({
       appContextProps: {
-        data,
+        schemaModel,
         selectedTypePointer,
         setSelectedTypePointer: setSelectedTypePointerMock,
       },
@@ -297,7 +299,7 @@ describe('SchemaEditor', () => {
     const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
     await act(() => user.click(type));
     expect(
-      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' }))
+      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
     ).toBeDefined();
   });
 
@@ -318,9 +320,9 @@ describe('SchemaEditor', () => {
         },
       },
     };
-    const data = buildUiSchema(jsonSchema);
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
     renderEditor({
-      appContextProps: { data, selectedTypePointer, setSelectedTypePointer: jest.fn() },
+      appContextProps: { schemaModel, selectedTypePointer, setSelectedTypePointer: jest.fn() },
     });
     const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
     await act(() => user.click(type));

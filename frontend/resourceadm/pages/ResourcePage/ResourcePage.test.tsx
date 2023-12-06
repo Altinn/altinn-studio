@@ -11,6 +11,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient } from '@tanstack/react-query';
 
+// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
+const realConsole = console;
+
 const mockResource1: Resource = {
   identifier: 'r1',
   title: { nb: 'ressurs 1', nn: 'res1', en: 'resource 1' },
@@ -45,7 +48,16 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('ResourcePage', () => {
-  afterEach(jest.clearAllMocks);
+  beforeEach(() => {
+    global.console = {
+      ...console,
+      error: jest.fn(),
+    };
+  });
+  afterEach(() => {
+    global.console = realConsole;
+    jest.clearAllMocks();
+  });
 
   it('fetches validate policy on mount', () => {
     render();

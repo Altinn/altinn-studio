@@ -1,5 +1,5 @@
 import { ItemDataComponent } from './ItemDataComponent';
-import { getNodeByPointer, UiSchemaNode } from '@altinn/schema-model';
+import { SchemaModel, UiSchemaNode } from '@altinn/schema-model';
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -26,41 +26,35 @@ const defaultState: Partial<SchemaState> = {
 };
 
 const renderItemDataComponent = (
-  schemaNode: Partial<UiSchemaNode> = {},
-  state: Partial<SchemaState> = {}
+  schemaNode: UiSchemaNode = defaultNode,
+  state: Partial<SchemaState> = {},
 ) => {
-
+  const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   return renderWithProviders({
     state: { ...defaultState, ...state },
     appContextProps: {
-      data: uiSchemaNodesMock,
+      schemaModel,
       save: saveDatamodel,
     },
-  })(<ItemDataComponent schemaNode={{ ...defaultNode, ...schemaNode }}/>);
+  })(<ItemDataComponent schemaNode={schemaNode} />);
 };
 
 describe('ItemDataComponent', () => {
   afterEach(jest.clearAllMocks);
 
   test('"Multiple answers" checkbox should appear if selected item is field', async () => {
-    renderItemDataComponent(
-      fieldNode1Mock,
-      { selectedPropertyNodeId: fieldNode1Mock.pointer }
-    );
+    renderItemDataComponent(fieldNode1Mock, { selectedPropertyNodeId: fieldNode1Mock.pointer });
     expect(await screen.findByLabelText(textMock('schema_editor.multiple_answers'))).toBeDefined();
   });
 
   test('"Multiple answers" checkbox should not appear if selected item is combination', async () => {
     renderItemDataComponent();
     await screen.findByLabelText(textMock('schema_editor.name'));
-    expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull()
+    expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull();
   });
 
   test('Model is saved when "multiple answers" checkbox is checked', async () => {
-    renderItemDataComponent(
-      toggableNodeMock,
-      { selectedPropertyNodeId: toggableNodeMock.pointer }
-    );
+    renderItemDataComponent(toggableNodeMock, { selectedPropertyNodeId: toggableNodeMock.pointer });
     const checkbox = screen.queryByLabelText(textMock('schema_editor.multiple_answers'));
     if (checkbox === null) fail();
     await act(() => user.click(checkbox));
@@ -73,10 +67,7 @@ describe('ItemDataComponent', () => {
   });
 
   test('"Nullable" checkbox should not appear if selected item is not combination', async () => {
-    renderItemDataComponent(
-      fieldNode1Mock,
-      { selectedPropertyNodeId: fieldNode1Mock.pointer }
-    );
+    renderItemDataComponent(fieldNode1Mock, { selectedPropertyNodeId: fieldNode1Mock.pointer });
     await screen.findAllByRole('combobox');
     expect(screen.queryByLabelText(textMock('schema_editor.nullable'))).toBeNull();
   });
@@ -102,7 +93,7 @@ describe('ItemDataComponent', () => {
     await act(() => user.tab());
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, parentNodeMock.pointer);
+    const updatedNode = updatedModel.getNode(parentNodeMock.pointer);
     expect(updatedNode.title).toEqual(title);
   });
 
@@ -119,7 +110,7 @@ describe('ItemDataComponent', () => {
     await act(() => user.tab());
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, parentNodeMock.pointer);
+    const updatedNode = updatedModel.getNode(parentNodeMock.pointer);
     expect(updatedNode.description).toEqual(description);
   });
 
@@ -130,10 +121,9 @@ describe('ItemDataComponent', () => {
   });
 
   it('Renders custom properties section if there are custom properties', async () => {
-    renderItemDataComponent(
-      nodeWithCustomPropsMock,
-      { selectedPropertyNodeId: nodeWithCustomPropsMock.pointer }
-    );
+    renderItemDataComponent(nodeWithCustomPropsMock, {
+      selectedPropertyNodeId: nodeWithCustomPropsMock.pointer,
+    });
     expect(await screen.findByText(textMock('schema_editor.custom_props'))).toBeInTheDocument();
   });
 
@@ -144,5 +134,4 @@ describe('ItemDataComponent', () => {
     fireEvent.blur(inputField);
     expect(screen.queryByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeNull();
   });
-
 });

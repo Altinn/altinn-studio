@@ -2,41 +2,49 @@ import React from 'react';
 import { act, screen, within } from '@testing-library/react';
 import { ItemFieldsTable, ItemFieldsTableProps } from './ItemFieldsTable';
 import {
-  createChildNode,
+  extractNameFromPointer,
+  FieldNode,
   FieldType,
-  getNameFromPointer,
   ObjectKind,
-  UiSchemaNode,
+  SchemaModel,
   UiSchemaNodes,
 } from '@altinn/schema-model';
 import {
   renderWithProviders,
   RenderWithProvidersData,
 } from '../../../../../test/renderWithProviders';
-import { nodeMockBase } from '../../../../../test/mocks/uiSchemaMock';
+import { nodeMockBase, rootNodeMock } from '../../../../../test/mocks/uiSchemaMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
+import { validateTestUiSchema } from '../../../../../../schema-model';
 
-const selectedItemPointer = 'test';
-const rootItem: UiSchemaNode = {
-  ...nodeMockBase,
-  pointer: '#/test',
-  fieldType: FieldType.Object,
-  children: [`#/properties/${selectedItemPointer}`],
+const selectedItemPointer = '#/properties/test';
+const selectedItemChildPointer = '#/properties/test/properties/testProperty';
+const rootNode = {
+  ...rootNodeMock,
+  children: [selectedItemPointer],
 };
-const selectedItem: UiSchemaNode = {
-  ...createChildNode(rootItem, selectedItemPointer, false),
+const selectedItem: FieldNode = {
+  ...nodeMockBase,
+  objectKind: ObjectKind.Field,
+  pointer: selectedItemPointer,
+  fieldType: FieldType.Object,
+  children: [selectedItemChildPointer],
+};
+const selectedItemChild: FieldNode = {
+  ...nodeMockBase,
+  pointer: selectedItemChildPointer,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
+  children: [],
 };
-const uiSchema: UiSchemaNodes = [rootItem, selectedItem];
+const uiSchema: UiSchemaNodes = [rootNode, selectedItem, selectedItemChild];
 const saveDatamodel = jest.fn();
-const mockFieldNodes = uiSchema.map((u, i) => ({ domId: `test-node-${i}`, ...u }));
+const model = SchemaModel.fromArray(uiSchema);
 
 const defaultProps: ItemFieldsTableProps = {
-  fieldNodes: mockFieldNodes,
   readonly: false,
-  selectedItem: selectedItem,
+  selectedItem,
 };
 
 const renderItemFieldsTab = (
@@ -46,27 +54,34 @@ const renderItemFieldsTab = (
   renderWithProviders({
     ...data,
     appContextProps: {
-      data: uiSchema,
+      schemaModel: model,
       save: saveDatamodel,
       ...data.appContextProps,
     },
   })(<ItemFieldsTable {...defaultProps} {...props} />);
 
 describe('ItemFieldsTable', () => {
+  beforeAll(() => {
+    validateTestUiSchema(uiSchema);
+  });
+
   afterEach(jest.clearAllMocks);
 
   it('render inputs and delete buttons correctly for all fields', async () => {
     const user = userEvent.setup();
     renderItemFieldsTab();
-    const textboxes = screen.getAllByLabelText(textMock('schema_editor.field_name'));
-    expect(textboxes).toHaveLength(mockFieldNodes.length);
-    textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(getNameInTextField(i)));
-    expect(screen.getAllByRole('checkbox')).toHaveLength(mockFieldNodes.length);
+    const textboxes = screen.getAllByRole('textbox', {
+      name: textMock('schema_editor.field_name'),
+    });
+    const children = model.getChildNodes(selectedItemPointer);
+    expect(textboxes).toHaveLength(children.length);
+    textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(expectedNameInTextField(i)));
+    expect(screen.getAllByRole('checkbox')).toHaveLength(children.length);
     expect(
       screen.getAllByRole('button', {
         name: textMock('schema_editor.delete_field'),
       }),
-    ).toHaveLength(mockFieldNodes.length);
+    ).toHaveLength(children.length);
 
     // Added to avoid the "Warning: An update to Select inside a test was not wrapped in act(...)." bug
     await act(() => user.tab());
@@ -76,16 +91,18 @@ describe('ItemFieldsTable', () => {
     const user = userEvent.setup();
     renderItemFieldsTab();
 
-    const [firstTextBox] = screen.getAllByLabelText(textMock('schema_editor.field_name'));
-    expect(firstTextBox).toHaveValue(getNameInTextField(0));
+    const [firstTextBox] = screen.getAllByRole('textbox', {
+      name: textMock('schema_editor.field_name'),
+    });
+    expect(firstTextBox).toHaveValue(expectedNameInTextField(0));
 
     await act(() => user.type(firstTextBox, 'a'));
     await act(() => user.tab());
 
     const [firstTextBoxAfter] = screen.getAllByLabelText(textMock('schema_editor.field_name'));
-    expect(firstTextBoxAfter).toHaveValue(getNameInTextField(0) + 'a');
+    expect(firstTextBoxAfter).toHaveValue(expectedNameInTextField(0) + 'a');
 
-    expect(saveDatamodel).toBeCalledTimes(1);
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
   });
 
   it('Calls "save" when "Enter" key is pressed in Text field', async () => {
@@ -93,12 +110,12 @@ describe('ItemFieldsTable', () => {
     renderItemFieldsTab();
 
     const [firstTextBox] = screen.getAllByLabelText(textMock('schema_editor.field_name'));
-    expect(firstTextBox).toHaveValue(getNameInTextField(0));
+    expect(firstTextBox).toHaveValue(expectedNameInTextField(0));
 
     await act(() => user.type(firstTextBox, 'a'));
     await act(() => user.keyboard('{Enter}'));
 
-    expect(saveDatamodel).toBeCalledTimes(1);
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
   });
 
   it('Updates the select correctly', async () => {
@@ -113,7 +130,7 @@ describe('ItemFieldsTable', () => {
 
     await act(() => user.selectOptions(firstSelect, textMock('schema_editor.string')));
 
-    expect(saveDatamodel).toBeCalledTimes(1);
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
   });
 
   it('Updates the switch correctly', async () => {
@@ -125,14 +142,15 @@ describe('ItemFieldsTable', () => {
 
     await act(() => user.click(firstSwitch));
 
-    expect(saveDatamodel).toBeCalledTimes(1);
+    expect(saveDatamodel).toHaveBeenCalledTimes(1);
   });
 
   it('Calls "save" when the delete button is clicked', async () => {
     const user = userEvent.setup();
     renderItemFieldsTab();
 
-    const lastIndex = mockFieldNodes.length - 1;
+    const children = model.getChildNodes(selectedItemPointer);
+    const lastIndex = children.length - 1;
     const lastDeleteButton = screen.getAllByRole('button', {
       name: textMock('schema_editor.delete_field'),
     })[lastIndex];
@@ -149,7 +167,7 @@ describe('ItemFieldsTable', () => {
   });
 });
 
-const getNameInTextField = (pos: number): string => {
-  const pointer = mockFieldNodes[pos].pointer;
-  return getNameFromPointer({ pointer });
+const expectedNameInTextField = (pos: number): string => {
+  const pointer = selectedItem.children[pos]; // eslint-disable-line testing-library/no-node-access
+  return extractNameFromPointer(pointer);
 };

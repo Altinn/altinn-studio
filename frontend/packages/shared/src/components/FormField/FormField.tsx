@@ -9,12 +9,18 @@ import {
 import { TranslationKey } from 'language/type';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 
-export type FormFieldChildProps<TT> = {
+export type RenderFieldArgs<TT> = {
   errorCode: string;
+  customRequired: boolean;
+  fieldProps: FormFieldChildProps<TT>;
+};
+
+export type FormFieldChildProps<TT> = {
   value: any;
   label: string;
   onChange: (value: TT, event?: React.ChangeEvent<HTMLInputElement>) => void;
-  customRequired: boolean;
+  'aria-errormessage'?: string;
+  'aria-invalid'?: boolean;
 };
 
 export interface FormFieldProps<T, TT> {
@@ -24,13 +30,13 @@ export interface FormFieldProps<T, TT> {
   label?: string;
   value: T;
   helpText?: string;
-  children: (props: FormFieldChildProps<TT>) => React.ReactNode;
   onChange?: (value: TT, event: React.ChangeEvent<HTMLInputElement>, errorCode: string) => void;
   propertyPath?: string;
   componentType?: string;
   customRequired?: boolean;
   customValidationRules?: (value: T | TT) => string;
   customValidationMessages?: (errorCode: string) => string;
+  renderField: (props: RenderFieldArgs<TT>) => React.ReactNode;
 }
 
 export const FormField = <T extends unknown, TT extends unknown>({
@@ -39,13 +45,13 @@ export const FormField = <T extends unknown, TT extends unknown>({
   className,
   label,
   value,
-  children,
   onChange,
   propertyPath,
   helpText,
   customRequired = false,
   customValidationRules,
   customValidationMessages,
+  renderField,
 }: FormFieldProps<T, TT>): JSX.Element => {
   const t = useText();
 
@@ -102,28 +108,22 @@ export const FormField = <T extends unknown, TT extends unknown>({
     if (!errCode && onChange) onChange(newValue, event, errorCode);
   };
 
-  const renderChildren = (childList: React.ReactNode) => {
-    return React.Children.map(childList, (child) => {
-      if (React.isValidElement(child)) {
-        const props =
-          typeof child.type !== 'string'
-            ? {
-                value: tmpValue,
-                required: isRequired,
-                label,
-                onChange: handleOnChange,
-                ...child.props,
-              }
-            : {};
-
-        if (errorCode) {
-          props['aria-errormessage'] = errorMessageId;
-          props['aria-invalid'] = true;
-        }
-
-        return React.cloneElement(child, props);
-      }
-    });
+  const generateProps = (): RenderFieldArgs<TT> => {
+    const fieldProps: FormFieldChildProps<TT> = {
+      value: tmpValue,
+      label,
+      onChange: handleOnChange,
+    };
+    if (errorCode) {
+      fieldProps['aria-errormessage'] = errorMessageId;
+      fieldProps['aria-invalid'] = true;
+    }
+    const props: RenderFieldArgs<TT> = {
+      fieldProps,
+      errorCode,
+      customRequired,
+    };
+    return props;
   };
 
   const showErrorMessages = () => {
@@ -142,18 +142,8 @@ export const FormField = <T extends unknown, TT extends unknown>({
   return (
     <div className={className}>
       <div className={classes.container}>
-        <div className={classes.formField}>
-          {renderChildren(
-            children({
-              errorCode,
-              value: tmpValue,
-              label,
-              onChange: handleOnChange,
-              customRequired: isRequired,
-            }),
-          )}
-        </div>
-        <div className={classes.helpTextContainer}>
+        <div className={classes.formField}>{renderField(generateProps())}</div>
+        <div>
           {helpText && (
             <HelpText className={classes.helpText} title={helpText}>
               {helpText}

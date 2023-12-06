@@ -24,15 +24,14 @@ import {
   setTitle,
   setType,
   toggleArrayField,
-} from '@altinn/schema-model';
-import {
+  isField,
+  isReference,
+  isCombination,
+  extractNameFromPointer,
   FieldType,
-  ObjectKind,
   combinationIsNullable,
-  getChildNodesByPointer,
-  getNameFromPointer,
 } from '@altinn/schema-model';
-import { getDomFriendlyID } from '../../utils/ui-schema-utils';
+import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
@@ -45,40 +44,30 @@ export type IItemDataComponentProps = {
 };
 
 export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
-  const {
-    fieldType,
-    pointer,
-    title = '',
-    description = '',
-    reference,
-    isCombinationItem,
-    objectKind,
-    isArray,
-    custom,
-  } = schemaNode;
+  const { pointer, title = '', description = '', isArray, custom } = schemaNode;
   const dispatch = useDispatch();
-  const { data, save, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { schemaModel, save, setSelectedTypePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
   const typeOptions = useTypeOptions();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title);
   const [itemDescription, setItemItemDescription] = useState<string>(description);
-  const nodeName = getNameFromPointer({ pointer });
+  const nodeName = extractNameFromPointer(pointer);
 
   const getChildNodes = () =>
-    pointer && pointer.endsWith(nodeName) ? getChildNodesByPointer(data, pointer) : [];
+    pointer && pointer.endsWith(nodeName) ? schemaModel.getChildNodes(pointer) : [];
 
-  const onChangeRef = (path: string, ref: string) => save(setRef(data, { path, ref }));
+  const onChangeRef = (path: string, ref: string) => save(setRef(schemaModel, { path, ref }));
 
-  const onChangeFieldType = (type: FieldType) => save(setType(data, { path: pointer, type }));
+  const onChangeFieldType = (type: FieldType) =>
+    save(setType(schemaModel, { path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
     if (isChecked) {
       save(
-        addCombinationItem(data, {
-          pointer: pointer,
-          props: { fieldType: FieldType.Null },
+        addCombinationItem(schemaModel, {
+          pointer,
           callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
         }),
       );
@@ -86,32 +75,32 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     }
 
     getChildNodes().forEach((childNode: UiSchemaNode) => {
-      if (childNode.fieldType === FieldType.Null) {
-        save(deleteNode(data, childNode.pointer));
+      if (isField(childNode) && childNode.fieldType === FieldType.Null) {
+        save(deleteNode(schemaModel, childNode.pointer));
         removeSelection(childNode.pointer);
       }
     });
   };
 
-  const onChangeTitle = () => save(setTitle(data, { path: pointer, title: itemTitle }));
+  const onChangeTitle = () => save(setTitle(schemaModel, { path: pointer, title: itemTitle }));
 
   const onChangeDescription = () =>
-    save(setDescription(data, { path: pointer, description: itemDescription }));
+    save(setDescription(schemaModel, { path: pointer, description: itemDescription }));
 
   const onGoToDefButtonClick = () => {
-    if (reference !== undefined) {
-      dispatch(navigateToType({ pointer: reference }));
+    if (isReference(schemaNode)) {
+      dispatch(navigateToType({ pointer: schemaNode.reference }));
     }
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
-    save(setCombinationType(data, { path: pointer, type: value }));
+    save(setCombinationType(schemaModel, { path: pointer, type: value }));
 
-  const handleArrayPropertyToggle = () => save(toggleArrayField(data, pointer));
+  const handleArrayPropertyToggle = () => save(toggleArrayField(schemaModel, pointer));
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
-      setPropertyName(data, {
+      setPropertyName(schemaModel, {
         path: pointer,
         name: newNodeName,
         callback: (newPointer: string) => {
@@ -126,12 +115,12 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
   const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
 
-  const titleId = getDomFriendlyID(pointer, { suffix: 'title' });
-  const descriptionId = getDomFriendlyID(pointer, { suffix: 'description' });
+  const titleId = makeDomFriendlyID(pointer, { suffix: 'title' });
+  const descriptionId = makeDomFriendlyID(pointer, { suffix: 'description' });
 
   return (
     <div className={classes.root}>
-      {!isCombinationItem && (
+      {!schemaModel.isChildOfCombination(pointer) && (
         <NameField
           id='selectedItemName'
           label={t('schema_editor.name')}
@@ -140,25 +129,24 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           size='small'
         />
       )}
-      {objectKind === ObjectKind.Field && (
+      {isField(schemaNode) && (
         <Select
           label={t('schema_editor.type')}
           onChange={(type: FieldType) => onChangeFieldType(type)}
           options={typeOptions}
-          value={fieldType as string}
+          value={schemaNode.fieldType as string}
         />
       )}
-      {objectKind === ObjectKind.Reference && (
+      {isReference(schemaNode) && (
         <ReferenceSelectionComponent
           buttonText={t('schema_editor.go_to_type')}
-          emptyOptionLabel={t('schema_editor.choose_type')}
           label={t('schema_editor.reference_to')}
           onChangeRef={onChangeRef}
           onGoToDefButtonClick={onGoToDefButtonClick}
-          selectedNode={{ pointer, reference }}
+          selectedNode={schemaNode}
         />
       )}
-      {objectKind !== ObjectKind.Combination && !pointerIsDefinition(pointer) && (
+      {!isCombination(schemaNode) && !pointerIsDefinition(pointer) && (
         <Switch
           className={classes.switch}
           size='small'
@@ -168,17 +156,17 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           {t('schema_editor.multiple_answers')}
         </Switch>
       )}
-      {objectKind === ObjectKind.Combination && (
+      {isCombination(schemaNode) && (
         <Select
           label={t('schema_editor.type')}
           onChange={(combination: string) =>
             onChangeCombinationType(combination as CombinationKind)
           }
           options={getCombinationOptions(t)}
-          value={fieldType}
+          value={schemaNode.combinationType}
         />
       )}
-      {objectKind === ObjectKind.Combination && (
+      {isCombination(schemaNode) && (
         <Switch
           className={classes.switch}
           size='small'

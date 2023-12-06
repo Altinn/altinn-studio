@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LegacyTabs } from '@digdir/design-system-react';
 import type { LegacyTabItem } from '@digdir/design-system-react';
-import { FieldType, ObjectKind } from '@altinn/schema-model';
+import { FieldType, isField, isObject, ObjectKind } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
@@ -40,9 +40,8 @@ export const SchemaInspector = () => {
       },
     ];
     if (
-      selectedItem?.fieldType === FieldType.Object &&
-      selectedItem.objectKind !== ObjectKind.Combination &&
-      selectedItem.objectKind !== ObjectKind.Reference
+      selectedItem.objectKind === ObjectKind.Field &&
+      selectedItem.fieldType === FieldType.Object
     ) {
       tabs.push({
         name: t('schema_editor.fields'),
@@ -56,7 +55,8 @@ export const SchemaInspector = () => {
 
   const switchTab = (tabValue: string) => {
     if (
-      (tabValue === TabValue.Fields.toString() && selectedItem.fieldType !== FieldType.Object) ||
+      (tabValue === TabValue.Fields.toString() &&
+        (!isField(selectedItem) || !isObject(selectedItem))) ||
       !selectedItem
     ) {
       setActiveTab(TabValue.Properties);

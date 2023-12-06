@@ -5,10 +5,8 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { NameFieldProps } from './NameField';
 import { NameField } from './NameField';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import {
-  parentNodeMock,
-  uiSchemaNodesMock
-} from '../../../test/mocks/uiSchemaMock';
+import { parentNodeMock, uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
+import { SchemaModel } from '../../../../schema-model';
 
 const user = userEvent.setup();
 
@@ -22,11 +20,10 @@ const defaultProps: NameFieldProps = {
   handleSave: jest.fn(),
 };
 
-const render = async (
-  props?: Partial<NameFieldProps>,
-) => renderWithProviders({
-  appContextProps: { data: uiSchemaNodesMock },
-})(<NameField {...defaultProps} {...props} />);
+const render = async (props?: Partial<NameFieldProps>) =>
+  renderWithProviders({
+    appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodesMock) },
+  })(<NameField {...defaultProps} {...props} />);
 
 describe('NameField', () => {
   const mockOnChange = jest.fn();
@@ -46,7 +43,9 @@ describe('NameField', () => {
     await render();
     await act(() => user.type(screen.getByRole('textbox'), '@'));
     await act(() => user.tab());
-    expect(screen.getByText(textMock('schema_editor.nameError_invalidCharacter'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('schema_editor.nameError_invalidCharacter')),
+    ).toBeInTheDocument();
     expect(defaultProps.handleSave).not.toHaveBeenCalled();
   });
 

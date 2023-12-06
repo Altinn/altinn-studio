@@ -6,7 +6,7 @@ import { SchemaItem } from './SchemaItem';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';
-import { buildUiSchema, FieldType, ObjectKind } from '@altinn/schema-model';
+import { buildUiSchema, FieldType, ObjectKind, SchemaModel } from '@altinn/schema-model';
 import { dataMock } from '../../mockData';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
@@ -114,7 +114,6 @@ const render = async (props: Partial<SchemaItemProps> = {}) => {
       fieldType: FieldType.Object,
       implicitType: false,
       isArray: false,
-      isCombinationItem: false,
       isNillable: false,
       isRequired: false,
       objectKind: ObjectKind.Field,
@@ -126,13 +125,15 @@ const render = async (props: Partial<SchemaItemProps> = {}) => {
     index: 0,
     ...props,
   };
+  const uiSchema = buildUiSchema(dataMock);
+  const schemaModel = SchemaModel.fromArray(uiSchema);
 
   return renderWithProviders({
     state: mockInitialState,
-    appContextProps: { data: buildUiSchema(dataMock) },
+    appContextProps: { schemaModel },
   })(
     <DndProvider backend={HTML5Backend}>
       <SchemaItem {...allProps} />
-    </DndProvider>
+    </DndProvider>,
   );
 };

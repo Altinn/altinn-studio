@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
 import { getComponentPropertyLabel } from '../../../utils/language';
 import { setComponentProperty } from '../../../utils/component';
-import { StudioDecimalInput } from '@altinn/studio-components';
+import { StudioDecimalInput } from '@studio/components';
 
 export interface EditNumberValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -31,13 +31,13 @@ export const EditNumberValue = ({
       onChange={handleValueChange}
       propertyPath={component.propertyPath}
       helpText={helpText}
-    >
-      {({ onChange }) => (
+      renderField={({ fieldProps }) => (
         <StudioDecimalInput
-          onChange={onChange}
+          {...fieldProps}
+          onChange={fieldProps.onChange}
           description={getComponentPropertyLabel(propertyKey, t)}
         />
       )}
-    </FormField>
+    />
   );
 };

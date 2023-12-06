@@ -1,7 +1,7 @@
 import React from 'react';
 import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
-import { PageSpinner } from 'app-shared/components';
+import { StudioPageSpinner } from '@studio/components';
 import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { useSearchParams } from 'react-router-dom';
 import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
@@ -28,7 +28,7 @@ export const TextEditor = () => {
   const { data: appLangCodes } = useLanguagesQuery(org, app);
   const {
     data: textResources,
-    isLoading: isInitialLoadingLang,
+    isPending: isInitialLoadingLang,
     isFetching: isFetchingTranslations,
   } = useTextResourcesQuery(org, app);
 
@@ -52,7 +52,7 @@ export const TextEditor = () => {
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
   if (isInitialLoadingLang || isFetchingTranslations || !textResources) {
-    return <PageSpinner />;
+    return <StudioPageSpinner />;
   }
 
   return (

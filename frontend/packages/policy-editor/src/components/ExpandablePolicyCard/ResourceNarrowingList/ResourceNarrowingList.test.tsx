@@ -42,7 +42,7 @@ describe('ResourceNarrowingList', () => {
       name: textMock('policy_editor.narrowing_list_field_delete'),
     });
     const typeInputs = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type')
+      textMock('policy_editor.narrowing_list_field_type'),
     );
     const idInputs = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
@@ -76,7 +76,7 @@ describe('ResourceNarrowingList', () => {
     mockHandleInputChange.mockClear();
 
     const [typeInput] = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type')
+      textMock('policy_editor.narrowing_list_field_type'),
     );
     await act(() => user.type(typeInput, mockNewText));
     expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
@@ -117,7 +117,7 @@ describe('ResourceNarrowingList', () => {
     });
     await act(() => user.click(moreButton));
 
-    const [deleteElementButton] = screen.getAllByRole('button', {
+    const [deleteElementButton] = screen.getAllByRole('menuitem', {
       name: textMock('general.delete'),
     });
     await act(() => user.click(deleteElementButton));
@@ -134,7 +134,7 @@ describe('ResourceNarrowingList', () => {
     });
     await act(() => user.click(moreButton));
 
-    const [cloneElementButton] = screen.getAllByRole('button', {
+    const [cloneElementButton] = screen.getAllByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
     await act(() => user.click(cloneElementButton));
@@ -147,7 +147,7 @@ describe('ResourceNarrowingList', () => {
     render(<ResourceNarrowingList {...defaultProps} />);
 
     const [typeInput] = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type')
+      textMock('policy_editor.narrowing_list_field_type'),
     );
 
     await act(() => user.type(typeInput, mockNewText));

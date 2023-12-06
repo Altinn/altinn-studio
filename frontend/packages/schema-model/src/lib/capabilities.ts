@@ -1,7 +1,14 @@
 import type { UiSchemaNode } from '../types';
-import { FieldType, ObjectKind } from '../types';
+import { ObjectKind } from '../types';
 import { ROOT_POINTER } from './constants';
-import { pointerIsDefinition } from './utils';
+import {
+  isCombination,
+  isField,
+  isFieldOrCombination,
+  isObject,
+  isReference,
+  pointerIsDefinition,
+} from './utils';
 
 export enum Capabilites {
   CanBeConvertedToArray = 'CAN_BE_CONVERTED_TO_ARRAY', // no restrictions, not combination
@@ -15,20 +22,16 @@ export enum Capabilites {
 }
 
 export const getCapabilities = (node: UiSchemaNode): Capabilites[] => {
-  const { objectKind, fieldType, isArray } = node;
+  const { objectKind, isArray } = node;
   const output = [];
   const isRootNode = node.pointer === ROOT_POINTER;
   const hasRestrictions = Object.keys(node.restrictions).length > 0;
-  const hasChildren = node.children.length > 0;
+  const hasChildren = isFieldOrCombination(node) && node.children.length > 0;
 
   if (objectKind === ObjectKind.Field || objectKind === ObjectKind.Reference) {
     output.push(Capabilites.CanBeConvertedToArray);
   }
-  if (
-    (objectKind === ObjectKind.Reference && node.reference) ||
-    (isArray && !hasRestrictions) ||
-    (objectKind === ObjectKind.Combination && !hasChildren)
-  ) {
+  if (isReference(node) || (isArray && !hasRestrictions) || (isCombination(node) && !hasChildren)) {
     output.push(Capabilites.CanBeConvertedToField);
   }
 
@@ -36,16 +39,13 @@ export const getCapabilities = (node: UiSchemaNode): Capabilites[] => {
     output.push(Capabilites.CanBeConvertedToReference);
   }
 
-  if (objectKind === ObjectKind.Field && fieldType === FieldType.Object) {
+  if (isField(node) && isObject(node)) {
     output.push(Capabilites.CanHaveFieldAdded, Capabilites.CanHaveReferenceAdded);
-  }
-
-  if (objectKind === ObjectKind.Combination) {
-    output.push(Capabilites.CanHaveReferenceAdded);
-  }
-
-  if (objectKind !== ObjectKind.Reference && fieldType === FieldType.Object) {
     output.push(Capabilites.CanHaveCombinationAdded);
+  }
+
+  if (isCombination(node)) {
+    output.push(Capabilites.CanHaveReferenceAdded);
   }
 
   if (!isRootNode) {

@@ -1,5 +1,5 @@
 import { buildUiSchema } from '../build-ui-schema';
-import { FieldType, Keyword, ObjectKind } from '../../types';
+import { Keyword } from '../../types';
 import { buildJsonSchema } from '../build-json-schema';
 import {
   getGeneralJsonSchemaForTest,
@@ -7,7 +7,7 @@ import {
   validateSchema,
 } from '../../../test/testUtils';
 import { createChildNode, insertSchemaNode } from './create-node';
-import { createNodeBase } from '../utils';
+import { createNodeBase, isCombination, isField, isObject } from '../utils';
 
 const complexJsonTestSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
 
@@ -16,13 +16,11 @@ describe('create-node', () => {
     it('Can create nodes', () => {
       const map = buildUiSchema(complexJsonTestSchema);
       map.forEach((parentNode) => {
-        const { objectKind, fieldType } = parentNode;
-
-        if (objectKind === ObjectKind.Combination) {
+        if (isCombination(parentNode)) {
           const newNode = createChildNode(parentNode, 'hello', false);
           expect(newNode).toHaveProperty('objectKind');
         }
-        if (fieldType === FieldType.Object) {
+        if (isField(parentNode) && isObject(parentNode)) {
           const newNode = createChildNode(parentNode, 'hello', false);
           expect(newNode).toHaveProperty('objectKind');
         }
@@ -40,10 +38,7 @@ describe('create-node', () => {
     it('Inserts nodes into the node array', () => {
       const uiSchemaNodes = buildUiSchema(complexJsonTestSchema);
       uiSchemaNodes
-        .filter(
-          (uiNode) =>
-            uiNode.objectKind === ObjectKind.Combination || uiNode.fieldType === FieldType.Object
-        )
+        .filter((uiNode) => isCombination(uiNode) || (isField(uiNode) && isObject(uiNode)))
         .forEach((uiNode) => {
           [true, false].forEach((isDefinition) => {
             const newNode = createChildNode(uiNode, 'hello', isDefinition);
@@ -62,7 +57,7 @@ describe('create-node', () => {
     it('Throws error on existing pointer', () => {
       const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
       expect(() =>
-        insertSchemaNode(uiSchemaNodes, createNodeBase(Keyword.Properties, 'hello'))
+        insertSchemaNode(uiSchemaNodes, createNodeBase(Keyword.Properties, 'hello')),
       ).toThrowError();
     });
   });

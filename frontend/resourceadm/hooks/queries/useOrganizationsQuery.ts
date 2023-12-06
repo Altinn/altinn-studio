@@ -5,8 +5,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useOrganizationsQuery = (): UseQueryResult<Organization[]> => {
   const { getOrganizations } = useServicesContext();
-  return useQuery<Organization[]>(
-    [QueryKey.Organizations],
-    () => getOrganizations()
-  );
+  return useQuery<Organization[]>({
+    queryKey: [QueryKey.Organizations],
+    queryFn: () => getOrganizations(),
+  });
 };

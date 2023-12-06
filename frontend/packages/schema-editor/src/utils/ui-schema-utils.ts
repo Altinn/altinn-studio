@@ -7,17 +7,17 @@ let uniqueIdNumber = 0;
  * Adds a suffix with a number that has yet been used
  * It also removes unsupported characters and replaces them with a dash (-) and replaces whitespace with underscore (_).
  * */
-export const getDomFriendlyID = (
+export const makeDomFriendlyID = (
   baseId: string,
   options: {
     suffix?: string;
     reset?: boolean;
-  } = {}
+  } = {},
 ): string => {
   const { reset, ...restOptions } = options;
   if (reset) {
     uniqueIdNumber = 0;
-    return getDomFriendlyID(baseId, restOptions);
+    return makeDomFriendlyID(baseId, restOptions);
   }
   const suffix = options?.suffix ? `-${options.suffix}` : '';
   const rawId = `${baseId}${suffix}-${uniqueIdNumber++}`.toLowerCase();

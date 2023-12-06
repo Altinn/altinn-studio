@@ -14,3 +14,9 @@
 .blackText {
   color: black;
 }
+
+.infoIcon {
+  font-size: 1.5rem;
+  color: var(--fds-semantic-text-action-default);
+  padding: 0px 0px 3px 0px;
+}

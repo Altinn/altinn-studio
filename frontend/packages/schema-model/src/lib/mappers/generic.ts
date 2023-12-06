@@ -1,6 +1,6 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { Keyword } from '../../types';
-import { makePointer } from '../utils';
+import { makePointerFromArray } from '../pointerUtils';
 
 export const genericKeywords: Keyword[] = [
   Keyword.Default,
@@ -18,5 +18,8 @@ export const findGenericKeywordsOnNode = (schemaNode: KeyValuePairs) => {
 
 export const findReference = (ref?: string) =>
   ref
-    ? ref.replace(makePointer(Keyword.DeprecatedDefinitions), makePointer(Keyword.Definitions))
+    ? ref.replace(
+        makePointerFromArray([Keyword.DeprecatedDefinitions]),
+        makePointerFromArray([Keyword.Definitions]),
+      )
     : undefined;

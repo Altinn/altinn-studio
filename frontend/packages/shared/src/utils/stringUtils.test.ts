@@ -2,8 +2,9 @@ import {
   removeEnd,
   removeStart,
   replaceEnd,
+  replaceStart,
   substringAfterLast,
-  substringBeforeLast
+  substringBeforeLast,
 } from 'app-shared/utils/stringUtils';
 
 describe('stringUtils', () => {
@@ -32,6 +33,18 @@ describe('stringUtils', () => {
 
     it('Returns whole string if there are no characters before the last separator', () => {
       expect(substringBeforeLast('/abc', '/')).toBe('');
+    });
+  });
+
+  describe('replaceStart', () => {
+    it('Replaces the given substring with the given replacement at the start of the string', () => {
+      expect(replaceStart('abc/def/ghi', 'abc', 'xyz')).toBe('xyz/def/ghi');
+    });
+
+    it('Does not replace the given substring other places than at the start', () => {
+      expect(replaceStart('abcdefghi', 'ghi', 'xyz')).toBe('abcdefghi');
+      expect(replaceStart('abcdefghi', 'def', 'xyz')).toBe('abcdefghi');
+      expect(replaceStart('defabcdefghi', 'def', 'xyz')).toBe('xyzabcdefghi');
     });
   });
 

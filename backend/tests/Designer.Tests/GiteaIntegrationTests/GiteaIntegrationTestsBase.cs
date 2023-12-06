@@ -8,7 +8,6 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
@@ -27,6 +26,10 @@ namespace Designer.Tests.GiteaIntegrationTests
         protected string CreatedFolderPath { get; set; }
 
         private CookieContainer CookieContainer { get; } = new CookieContainer();
+
+        /// On some systems path too long error occurs if repo is nested deep in file system.
+        protected override string TestRepositoriesLocation =>
+            Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
 
         /// <summary>
         /// Used when performing chained calls to designer api
@@ -50,14 +53,17 @@ namespace Designer.Tests.GiteaIntegrationTests
             DeleteDirectoryIfExists(CreatedFolderPath);
         }
 
-        private static void DeleteDirectoryIfExists(string directoryPath)
+        protected static void DeleteDirectoryIfExists(string directoryPath)
         {
             if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
             {
                 return;
             }
 
-            var directory = new DirectoryInfo(directoryPath) { Attributes = FileAttributes.Normal };
+            var directory = new DirectoryInfo(directoryPath)
+            {
+                Attributes = FileAttributes.Normal
+            };
 
             foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
             {
@@ -131,5 +137,31 @@ namespace Designer.Tests.GiteaIntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.Created);
             InvalidateAllCookies();
         }
+
+        protected static string GetCommitInfoJson(string text, string org, string repository) =>
+            @$"{{
+                    ""message"": ""{text}"",
+                    ""org"": ""{org}"",
+                    ""repository"": ""{repository}""
+                }}";
+
+        protected static string GenerateCommitJsonPayload(string text, string message) =>
+            @$"{{
+                 ""author"": {{
+                     ""email"": ""{GiteaConstants.AdminEmail}"",
+                     ""name"": ""{GiteaConstants.AdminUser}""
+                 }},
+                 ""committer"": {{
+                     ""email"": ""{GiteaConstants.AdminEmail}"",
+                     ""name"": ""{GiteaConstants.AdminUser}""
+                 }},
+                 ""content"": ""{Convert.ToBase64String(Encoding.UTF8.GetBytes(text))}"",
+                 ""dates"": {{
+                     ""author"": ""{DateTime.Now:O}"",
+                     ""committer"": ""{DateTime.Now:O}""
+                 }},
+                 ""message"": ""{message}"",
+                 ""signoff"": true
+            }}";
     }
 }
