@@ -16,8 +16,6 @@ using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Validator.Json;
-using Altinn.Studio.Designer.Controllers;
-using Altinn.Studio.Designer.Filters.DataModeling;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DataModelsController.Utils;
 using Designer.Tests.Utils;
@@ -36,7 +34,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, 
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private string TargetTestRepository { get; }
 
-    private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
+    private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"rootType\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
     public PutDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
     {

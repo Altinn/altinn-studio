@@ -109,7 +109,7 @@ namespace Designer.Tests.Services
 
                 // Act
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter, TestDataHelper.ModelMetadataToCsharpConverter);
-                var expectedSchemaUpdates = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
+                var expectedSchemaUpdates = @"{""properties"":{""rootType1"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
                 await schemaModelService.UpdateSchema(editingContext, $"App/models/HvemErHvem_SERES.schema.json", expectedSchemaUpdates);
 
                 // Assert

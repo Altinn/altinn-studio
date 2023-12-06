@@ -151,10 +151,10 @@ namespace Designer.Tests.Utils
             return suffix == null ? nonSuffixName : $"{nonSuffixName[..^suffix.Length]}{suffix}";
         }
 
-        public static async Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
+        public static async Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
-            var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepsository);
+            var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepository);
 
             await CopyDirectory(sourceAppRepository, targetDirectory);
 
