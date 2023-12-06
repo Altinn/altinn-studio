@@ -179,7 +179,7 @@ describe('PolicyEditor', () => {
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
     await act(() => user.click(moreButton));
 
-    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    const deleteButton = screen.getByRole('menuitem', { name: textMock('general.delete') });
     await act(() => user.click(deleteButton));
 
     const modalTitleAfter = screen.getByRole('heading', {

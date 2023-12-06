@@ -1,36 +1,16 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from '@navikt/aksel-icons';
-import { DropdownMenu } from './DropdownMenu';
+import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
 import { Label } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
 export type ExpandablePolicyElementProps = {
-  /**
-   * The title to display on the element.
-   */
   title: string;
-  /**
-   * The React childrens to display inside it.
-   */
   children: ReactNode;
-  /**
-   * Optional flag for if the component is a card or an element
-   */
   isCard?: boolean;
-  /**
-   * Function to be executed when the element is to be removed
-   * @returns void
-   */
   handleRemoveElement: () => void;
-  /**
-   * Function to be executed when the element is duplicated
-   * @returns void
-   */
   handleCloneElement: () => void;
-  /**
-   * Optional flag for if the component has error
-   */
   hasError?: boolean;
 };
 
@@ -127,7 +107,7 @@ export const ExpandablePolicyElement = ({
             />
           )}
         </button>
-        <DropdownMenu
+        <PolicyEditorDropdownMenu
           isOpen={isDropdownOpen}
           handleClickMoreIcon={handleClickMoreButton}
           handleCloseMenu={() => setIsDropdownOpen(false)}

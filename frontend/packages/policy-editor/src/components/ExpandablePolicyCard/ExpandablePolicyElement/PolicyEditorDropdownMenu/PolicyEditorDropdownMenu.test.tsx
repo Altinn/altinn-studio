@@ -1,11 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DropdownMenu, DropdownMenuProps } from './DropdownMenu';
+import {
+  PolicyEditorDropdownMenu,
+  PolicyEditorDropdownMenuProps,
+} from './PolicyEditorDropdownMenu';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
-describe('DropdownMenu', () => {
+describe('PolicyEditorDropdownMenu', () => {
   afterEach(jest.clearAllMocks);
 
   const mockHandleClickMoreIcon = jest.fn();
@@ -13,7 +16,7 @@ describe('DropdownMenu', () => {
   const mockHandleClone = jest.fn();
   const mockHandleDelete = jest.fn();
 
-  const defaultProps: DropdownMenuProps = {
+  const defaultProps: PolicyEditorDropdownMenuProps = {
     isOpen: true,
     handleClickMoreIcon: mockHandleClickMoreIcon,
     handleCloseMenu: mockHandleCloseMenu,
@@ -23,7 +26,7 @@ describe('DropdownMenu', () => {
 
   it('calls handleClickMoreIcon when the menu icon is clicked', async () => {
     const user = userEvent.setup();
-    render(<DropdownMenu {...defaultProps} />);
+    render(<PolicyEditorDropdownMenu {...defaultProps} />);
 
     const menuButton = screen.getByRole('button', { name: textMock('policy_editor.more') });
     await act(() => user.click(menuButton));
@@ -32,7 +35,7 @@ describe('DropdownMenu', () => {
   });
 
   it('does not render the dropdown menu when isOpen is false', () => {
-    render(<DropdownMenu {...defaultProps} isOpen={false} />);
+    render(<PolicyEditorDropdownMenu {...defaultProps} isOpen={false} />);
 
     const dropdownMenu = screen.queryByRole('button', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
@@ -42,9 +45,9 @@ describe('DropdownMenu', () => {
 
   it('calls handleClone when the "Copy" button is clicked', async () => {
     const user = userEvent.setup();
-    render(<DropdownMenu {...defaultProps} />);
+    render(<PolicyEditorDropdownMenu {...defaultProps} />);
 
-    const copyButton = screen.getByRole('button', {
+    const copyButton = screen.getByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
     await act(() => user.click(copyButton));
@@ -54,9 +57,9 @@ describe('DropdownMenu', () => {
 
   it('calls handleDelete when the "Delete" button is clicked', async () => {
     const user = userEvent.setup();
-    render(<DropdownMenu {...defaultProps} />);
+    render(<PolicyEditorDropdownMenu {...defaultProps} />);
 
-    const deleteButton = screen.getByRole('button', {
+    const deleteButton = screen.getByRole('menuitem', {
       name: textMock('general.delete'),
     });
     await act(() => user.click(deleteButton));
