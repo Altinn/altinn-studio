@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import classes from './CanvasActionMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { CogIcon, EyeFillIcon } from '@altinn/icons';
+import { CogIcon, EyeFillIcon } from '@studio/icons';
 import { Button } from '@digdir/design-system-react';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 

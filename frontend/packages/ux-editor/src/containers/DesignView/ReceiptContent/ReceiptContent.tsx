@@ -2,10 +2,9 @@ import React, { ReactNode } from 'react';
 import classes from './ReceiptContent.module.css';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import { PageAccordion } from '../PageAccordion';
-import { RenderedFormContainer } from '../RenderedFormContainer';
-import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { Accordion, Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { FormTree } from '../FormTree';
 
 export type ReceiptContentProps = {
   /**
@@ -57,7 +56,7 @@ export const ReceiptContent = ({
     const receiptData = formLayoutData.find((d) => d.page === receiptName);
     if (receiptData === undefined) return null;
 
-    const { order, containers, components } = receiptData.data || {};
+    const layout = receiptData.data;
 
     return (
       <div className={classes.wrapper}>
@@ -69,13 +68,8 @@ export const ReceiptContent = ({
               onClick={onClickAccordion}
               pageIsReceipt
             >
-              <RenderedFormContainer
-                containerId={BASE_CONTAINER_ID}
-                formLayoutOrder={order}
-                formDesignerContainers={containers}
-                formDesignerComponents={components}
-              />
-            </PageAccordion>{' '}
+              <FormTree layout={layout} />
+            </PageAccordion>
           </Accordion>
         </div>
       </div>

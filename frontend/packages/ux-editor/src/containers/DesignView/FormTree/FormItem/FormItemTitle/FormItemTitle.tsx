@@ -1,7 +1,7 @@
 import React, { ReactNode, useCallback } from 'react';
 import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { TrashIcon } from '@altinn/icons';
+import { TrashIcon } from '@studio/icons';
 import classes from './FormItemTitle.module.css';
 import { FormComponent } from '../../../../../types/FormComponent';
 import { FormContainer } from '../../../../../types/FormContainer';

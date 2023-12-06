@@ -4,7 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from 'app-development/layout/AppShell';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { routerRoutes } from 'app-development/router/routes';
-import { NotFoundPage } from 'app-shared/components/notFound';
+import { StudioNotFoundPage } from '@studio/components';
 
 const BASE_PATH = '/:org/:app';
 
@@ -21,9 +21,9 @@ export const PageRoutes = () => {
           {routerRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={<route.subapp {...route.props} />} />
           ))}
-          <Route path='*' element={<NotFoundPage />} />
+          <Route path='*' element={<StudioNotFoundPage />} />
         </Route>
-        <Route path='*' element={<NotFoundPage />} />
+        <Route path='*' element={<StudioNotFoundPage />} />
       </Routes>
     </div>
   );

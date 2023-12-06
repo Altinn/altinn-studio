@@ -4,6 +4,9 @@ import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { PageLoading } from './components/PageLoading';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider } from './contexts/BpmnContext';
+import { ConfigPanel } from './components/ConfigPanel';
+
+import classes from './ProcessEditor.module.css';
 
 export type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
@@ -27,8 +30,11 @@ export const ProcessEditor = ({
   }
 
   return (
-    <BpmnContextProvider bpmnXml={bpmnXml}>
-      <Canvas onSave={onSave} appLibVersion={appLibVersion} />
+    <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
+      <div className={classes.container}>
+        <Canvas onSave={onSave} />
+        <ConfigPanel />
+      </div>
     </BpmnContextProvider>
   );
 };

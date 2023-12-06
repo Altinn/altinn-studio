@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { NavigationBarPage } from 'resourceadm/types/global';
 import classes from './ResourcePage.module.css';
@@ -53,8 +53,6 @@ export const ResourcePage = (): React.ReactNode => {
   // Handle the state of resource and policy errors
   const [showResourceErrors, setShowResourceErrors] = useState(false);
   const [showPolicyErrors, setShowPolicyErrors] = useState(false);
-  const [resourceErrorModalOpen, setResourceErrorModalOpen] = useState(false);
-  const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
 
   // Get the metadata for Gitea
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
@@ -81,6 +79,10 @@ export const ResourcePage = (): React.ReactNode => {
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
 
+  const resourceErrorModalRef = useRef<HTMLDialogElement>(null);
+  const policyErrorModalRef = useRef<HTMLDialogElement>(null);
+  const mergeConflictModalRef = useRef<HTMLDialogElement>(null);
+
   /**
    * If repostatus is not undefined, set the flags for if the repo has merge
    * conflict and if the repo is in sync
@@ -97,6 +99,13 @@ export const ResourcePage = (): React.ReactNode => {
   useEffect(() => {
     setCurrentPage(pageType as NavigationBarPage);
   }, [pageType]);
+
+  // Open the modal when there is a merge conflict
+  useEffect(() => {
+    if (hasMergeConflict && mergeConflictModalRef.current) {
+      mergeConflictModalRef.current.showModal();
+    }
+  }, [hasMergeConflict]);
 
   /**
    * Navigates to the selected page
@@ -116,7 +125,7 @@ export const ResourcePage = (): React.ReactNode => {
         } else {
           setShowResourceErrors(true);
           setNextPage(page);
-          setResourceErrorModalOpen(true);
+          resourceErrorModalRef.current?.showModal();
         }
       }
       // Validate Ppolicy and display errors + modal
@@ -130,7 +139,7 @@ export const ResourcePage = (): React.ReactNode => {
         } else {
           setShowPolicyErrors(true);
           setNextPage(page);
-          setPolicyErrorModalOpen(true);
+          policyErrorModalRef.current?.showModal();
         }
       }
       // Else navigate
@@ -145,8 +154,8 @@ export const ResourcePage = (): React.ReactNode => {
    */
   const handleNavigation = (newPage: NavigationBarPage) => {
     setCurrentPage(newPage);
-    setPolicyErrorModalOpen(false);
-    setResourceErrorModalOpen(false);
+    policyErrorModalRef.current?.close();
+    resourceErrorModalRef.current?.close();
     refetch();
     navigate(getResourcePageURL(selectedContext, repo, resourceId, newPage));
   };
@@ -291,34 +300,28 @@ export const ResourcePage = (): React.ReactNode => {
           )}
         </div>
       )}
-      {hasMergeConflict && (
-        <MergeConflictModal
-          isOpen={hasMergeConflict}
-          handleSolveMerge={refetch}
-          org={selectedContext}
-          repo={repo}
-        />
-      )}
-      {policyErrorModalOpen && (
-        <NavigationModal
-          isOpen={policyErrorModalOpen}
-          onClose={() => {
-            setPolicyErrorModalOpen(false);
-          }}
-          onNavigate={() => handleNavigation(nextPage)}
-          title={t('resourceadm.resource_navigation_modal_title_policy')}
-        />
-      )}
-      {resourceErrorModalOpen && (
-        <NavigationModal
-          isOpen={resourceErrorModalOpen}
-          onClose={() => {
-            setResourceErrorModalOpen(false);
-          }}
-          onNavigate={() => handleNavigation(nextPage)}
-          title={t('resourceadm.resource_navigation_modal_title_resource')}
-        />
-      )}
+      <MergeConflictModal
+        ref={mergeConflictModalRef}
+        handleSolveMerge={refetch}
+        org={selectedContext}
+        repo={repo}
+      />
+      <NavigationModal
+        ref={policyErrorModalRef}
+        onClose={() => {
+          policyErrorModalRef.current?.close();
+        }}
+        onNavigate={() => handleNavigation(nextPage)}
+        title={t('resourceadm.resource_navigation_modal_title_policy')}
+      />
+      <NavigationModal
+        ref={resourceErrorModalRef}
+        onClose={() => {
+          resourceErrorModalRef.current?.close();
+        }}
+        onNavigate={() => handleNavigation(nextPage)}
+        title={t('resourceadm.resource_navigation_modal_title_resource')}
+      />
     </div>
   );
 };

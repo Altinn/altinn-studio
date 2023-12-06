@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@altinn/icons';
+import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
 import { useText } from '../../../../ux-editor/src/hooks/index';
 import { Button, ButtonProps } from '@digdir/design-system-react';
 import classes from './InputActionWrapper.module.css';

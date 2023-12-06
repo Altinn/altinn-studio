@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Textfield } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
 import { useTranslation } from 'react-i18next';
-import { TrashIcon } from '@altinn/icons';
+import { TrashIcon } from '@studio/icons';
 
 export type EnumFieldProps = {
   path: string;

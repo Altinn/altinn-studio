@@ -12,7 +12,7 @@ import {
   CheckmarkCircleFillIcon,
   InformationSquareFillIcon,
   XMarkOctagonFillIcon,
-} from '@altinn/icons';
+} from '@studio/icons';
 
 export interface DeployDropdownProps {
   appDeployedVersion: string;
