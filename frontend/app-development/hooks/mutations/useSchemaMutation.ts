@@ -11,8 +11,8 @@ export const useSchemaMutation = () => {
   return useMutation({
     mutationFn: async (args: { modelPath: string; model: JsonSchema }) => {
       const { modelPath, model } = args;
-      await saveDatamodel(org, app, modelPath, model);
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], () => model);
+      await saveDatamodel(org, app, modelPath, model);
     },
   });
 };
