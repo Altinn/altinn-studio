@@ -424,7 +424,6 @@ export const AboutResourcePage = ({
       ) : (
         <div className={classes.pageWrapper}>{displayContent()}</div>
       )}
-      {translationType !== 'none' && displayRightTranslationBar()}
     </div>
   );
 };
