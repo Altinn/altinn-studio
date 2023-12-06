@@ -25,92 +25,73 @@ context('datamodel', () => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
-  it('Allows to add a datamodel, include an object with custom name and fields in it, and generate a C# model from it', () => {
+  it('Allows to add a datamodel, include an object with custom name and fields in it, generate a C# model from it, and then delete it', () => {
     cy.intercept('PUT', /\/datamodels\//).as('updateDatamodel');
 
+    // Add datamodel
     datamodel.getCreateNewButton().click();
     cy.findByRole('textbox').type('datamodel');
     cy.findByRole('button', { name: texts['schema_editor.create_model_confirm_button'] }).click();
-    cy.findByRole('button', { name: texts['schema_editor.add'] }).click();
-    cy.findByRole('menuitem', { name: texts['schema_editor.object'] })
-      .should('exist')
-      .click()
-      .then(() => {
-        datamodel.getProperty('name0').should('exist');
-        datamodel.getNameField().clear().type('test').blur();
-        cy.wait('@updateDatamodel');
-        datamodel.getNameField().invoke('val').should('eq', 'test');
-        datamodel.getProperty('test').should('exist').click();
-      });
 
-    const addFieldToTestObject = () =>
+    // Add object
+    cy.findByRole('button', { name: texts['schema_editor.add'] }).click();
+    cy.findByRole('menuitem', { name: texts['schema_editor.object'] }).should('exist').click();
+
+    // Rename the new object
+    datamodel.getProperty('name0').should('exist');
+    datamodel.getNameField().clear().type('test').blur();
+    datamodel.getNameField().invoke('val').should('eq', 'test');
+    datamodel.getProperty(/^test($| )/).should('exist');
+
+    const addFieldToTestObject = () => {
       datamodel
         .getProperty(/^test($| )/)
         .within(() =>
           cy
-            .findAllByRole('button', { name: texts['schema_editor.open_action_menu'] })
+            .findAllByRole('button', {name: texts['schema_editor.open_action_menu']})
             .first()
             .click(),
         );
+      cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
+        .should('exist')
+        .click()
+    };
 
     // Add text1
     addFieldToTestObject();
-    cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
-      .should('exist')
-      .click()
-      .then(() => {
-        datamodel.getProperty('name0').should('exist');
-        datamodel.getNameField().clear().type('text1').blur();
-        cy.wait('@updateDatamodel');
-        datamodel.getNameField().invoke('val').should('eq', 'text1');
-        datamodel.getProperty('text1').should('exist');
-      });
+    datamodel.getProperty('name0').should('exist');
+    datamodel.getNameField().clear().type('text1').blur();
+    datamodel.getNameField().invoke('val').should('eq', 'text1');
+    datamodel.getProperty('text1').should('exist');
 
     // Add text2
     addFieldToTestObject();
-    cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
-      .should('exist')
-      .click()
-      .then(() => {
-        datamodel.getProperty('name0').should('exist');
-        datamodel.getNameField().clear().type('text2').blur();
-        cy.wait('@updateDatamodel');
-        datamodel.getNameField().invoke('val').should('eq', 'text2');
-        datamodel.getProperty('text2').should('exist');
-      });
+    datamodel.getProperty('name0').should('exist');
+    datamodel.getNameField().clear().type('text2').blur();
+    datamodel.getNameField().invoke('val').should('eq', 'text2');
+    datamodel.getProperty('text2').should('exist');
 
     //Add number1
     addFieldToTestObject();
-    cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
-      .should('exist')
-      .click()
-      .then(() => {
-        datamodel.getProperty('name0').should('exist');
-        datamodel.getTypeField().click();
-        cy.findByRole('option', { name: texts['schema_editor.integer'] }).should('exist').click();
-        datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
-        datamodel.getNameField().clear().type('number1').blur();
-        cy.wait('@updateDatamodel');
-        datamodel.getProperty('number1').should('exist');
-      });
+    datamodel.getProperty('name0').should('exist');
+    datamodel.getTypeField().click();
+    cy.findByRole('option', { name: texts['schema_editor.integer'] }).should('exist').click();
+    datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
+    datamodel.getNameField().clear().type('number1').blur();
+    datamodel.getProperty('number1').should('exist');
+
+    // Ensure changes are saved
+    cy.wait('@updateDatamodel');
 
     // Generate model
     cy.findByRole('button', { name: texts['schema_editor.generate_model_files'] }).click();
     cy.findByRole('alert', { name: texts['schema_editor.model_generation_success'] }).should(
       'be.visible',
     );
-  });
 
-  it('edit a data model', () => {
-    datamodel.getProperty('property1').click();
-    datamodel.getNameField().clear().type('myProperty');
-
-    // Hack to ensure focus. Find out why we need to click twice and fix!
-    datamodel.getTypeField().click();
-    datamodel.getTypeField().click();
-
-    cy.findByRole('option', { name: texts['schema_editor.integer'] }).click();
-    datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
+    // Delete datamodel
+    cy.findByRole('button', { name: texts['schema_editor.delete_data_model'] }).click();
+    cy.findByRole('button', { name: texts['schema_editor.confirm_deletion'] }).click();
   });
 
   it('Allows to upload and then delete an XSD file', () => {

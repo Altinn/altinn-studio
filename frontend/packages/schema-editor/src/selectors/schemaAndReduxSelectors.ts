@@ -16,17 +16,23 @@ export type SchemaAndReduxSelector<R, S> = {
 
 export const selectedItemSelector: SchemaAndReduxSelector<string, UiSchemaNode> =  {
   reduxSelector: selectedIdSelector,
-  schemaSelector: (selectedId, schema) => selectedId ? schema.getNode(selectedId) : undefined
+  schemaSelector: (selectedId, schema) => selectedId && schema.hasNode(selectedId)
+    ? schema.getNode(selectedId)
+    : undefined
 };
 
 export const selectedPropertyParentSelector: SchemaAndReduxSelector<string, UiSchemaNode> = {
   reduxSelector: (state) => state.selectedPropertyNodeId,
-  schemaSelector: (selectedId, schema) => selectedId ? schema.getParentNode(selectedId): undefined
+  schemaSelector: (selectedId, schema) => selectedId && schema.hasNode(selectedId)
+    ? schema.getParentNode(selectedId)
+    : undefined
 };
 
 export const selectedDefinitionParentSelector: SchemaAndReduxSelector<string, UiSchemaNode> = {
   reduxSelector: (state) => state.selectedDefinitionNodeId,
-  schemaSelector: (selectedId, schema) => selectedId ? schema.getParentNode(selectedId) : undefined
+  schemaSelector: (selectedId, schema) => selectedId && schema.hasNode(selectedId)
+    ? schema.getParentNode(selectedId)
+    : undefined
 };
 
 
