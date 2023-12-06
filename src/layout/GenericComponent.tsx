@@ -14,14 +14,16 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { Triggers } from 'src/layout/common.generated';
-import { FormComponentContext, shouldComponentRenderLabel } from 'src/layout/index';
+import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
+import { shouldComponentRenderLabel } from 'src/layout/index';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { makeGetFocus } from 'src/selectors/getLayoutData';
 import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { ISingleFieldValidation } from 'src/features/formData/formDataTypes';
 import type { IGridStyling } from 'src/layout/common.generated';
-import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/layout/index';
+import type { IFormComponentContext } from 'src/layout/FormComponentContext';
+import type { IComponentProps, PropsFromGenericComponent } from 'src/layout/index';
 import type { CompInternal, CompTypes, ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
@@ -298,14 +300,14 @@ export function GenericComponent<Type extends CompTypes = CompTypes>({
 
   if (layoutComponent.directRender(componentProps) || overrideDisplay?.directRender) {
     return (
-      <FormComponentContext.Provider value={formComponentContext}>
+      <FormComponentContextProvider value={formComponentContext}>
         <RenderComponent {...componentProps} />
-      </FormComponentContext.Provider>
+      </FormComponentContextProvider>
     );
   }
 
   return (
-    <FormComponentContext.Provider value={formComponentContext}>
+    <FormComponentContextProvider value={formComponentContext}>
       <Grid
         data-componentbaseid={item.baseComponentId || item.id}
         data-componentid={item.id}
@@ -341,7 +343,7 @@ export function GenericComponent<Type extends CompTypes = CompTypes>({
           {showValidationMessages && renderValidationMessagesForComponent(filterValidationErrors(), id)}
         </Grid>
       </Grid>
-    </FormComponentContext.Provider>
+    </FormComponentContextProvider>
   );
 }
 

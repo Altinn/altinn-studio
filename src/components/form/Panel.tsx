@@ -1,10 +1,10 @@
-import React, { useContext } from 'react';
+import React from 'react';
 
 import { Panel as PanelDesignSystem, PanelVariant } from '@altinn/altinn-design-system';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
-import { FormComponentContext } from 'src/layout';
+import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { assertUnreachable } from 'src/types';
 import type { IPanelBase } from 'src/layout/common.generated';
 
@@ -41,7 +41,7 @@ export interface IPanelProps {
 }
 
 export const Panel = ({ children, variant, showIcon, title, showPointer }: IPanelProps) => {
-  const { grid, baseComponentId } = useContext(FormComponentContext);
+  const { grid, baseComponentId } = useFormComponentCtx() || {};
   const shouldHaveFullWidth = !grid && !baseComponentId;
 
   return (

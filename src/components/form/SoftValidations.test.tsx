@@ -4,11 +4,12 @@ import { screen } from '@testing-library/react';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { SoftValidations } from 'src/components/form/SoftValidations';
-import { FormComponentContext } from 'src/layout';
+import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ISoftValidationProps, SoftValidationVariant } from 'src/components/form/SoftValidations';
-import type { IFormComponentContext } from 'src/layout';
+import type { IFormComponentContext } from 'src/layout/FormComponentContext';
 import type { IRuntimeState } from 'src/types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const render = async (
   props: Partial<ISoftValidationProps> = {},
@@ -23,9 +24,16 @@ const render = async (
 
   await renderWithInstanceAndLayout({
     renderer: () => (
-      <FormComponentContext.Provider value={suppliedContext}>
+      <FormComponentContextProvider
+        value={{
+          baseComponentId: undefined,
+          id: 'some-id',
+          node: undefined as unknown as LayoutNode,
+          ...suppliedContext,
+        }}
+      >
         <SoftValidations {...allProps} />
-      </FormComponentContext.Provider>
+      </FormComponentContextProvider>
     ),
     reduxState: {
       ...getInitialStateMock(),

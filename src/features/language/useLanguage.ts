@@ -1,4 +1,4 @@
-import { Children, isValidElement, useContext, useMemo } from 'react';
+import { Children, isValidElement, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
@@ -8,7 +8,7 @@ import { useTextResources } from 'src/features/language/textResources/TextResour
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromCode } from 'src/language/languages';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
-import { FormComponentContext } from 'src/layout';
+import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
@@ -74,7 +74,7 @@ export type ValidLanguageKey = ObjectToDotNotation<FixedLanguageList>;
 export function useLanguage(node?: LayoutNode) {
   const textResources = useTextResources();
   const selectedAppLanguage = useCurrentLanguage();
-  const componentCtx = useContext(FormComponentContext);
+  const componentCtx = useFormComponentCtx();
   const nearestNode = node || componentCtx?.node;
   const formData = useAppSelector((state) => state.formData.formData);
   const applicationSettings = useAppSelector((state) => state.applicationSettings.applicationSettings);

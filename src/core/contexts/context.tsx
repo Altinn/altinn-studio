@@ -41,6 +41,7 @@ export function createContext<T>({ name, required, ...rest }: CreateContextProps
     innerValue: defaultValue,
     provided: false,
   });
+  Context.displayName = name;
 
   const useHasProvider = () => Boolean(React.useContext(Context).provided);
 

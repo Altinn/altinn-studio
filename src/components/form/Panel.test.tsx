@@ -4,11 +4,12 @@ import { screen } from '@testing-library/react';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getVariant, Panel, PanelVariant } from 'src/components/form/Panel';
-import { FormComponentContext } from 'src/layout';
+import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IPanelProps } from 'src/components/form/Panel';
-import type { IFormComponentContext } from 'src/layout';
+import type { IFormComponentContext } from 'src/layout/FormComponentContext';
 import type { IRuntimeState } from 'src/types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 describe('Panel', () => {
   it('should show icon when showIcon is true', async () => {
@@ -74,9 +75,16 @@ const render = async (
 
   await renderWithInstanceAndLayout({
     renderer: () => (
-      <FormComponentContext.Provider value={suppliedContext}>
+      <FormComponentContextProvider
+        value={{
+          baseComponentId: undefined,
+          node: undefined as unknown as LayoutNode,
+          id: 'some-id',
+          ...suppliedContext,
+        }}
+      >
         <Panel {...allProps} />
-      </FormComponentContext.Provider>
+      </FormComponentContextProvider>
     ),
     reduxState: {
       ...getInitialStateMock(),

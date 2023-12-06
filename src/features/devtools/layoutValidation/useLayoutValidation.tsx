@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { createContext } from 'src/core/contexts/context';
 import { dotNotationToPointer } from 'src/features/datamodel/notations';
 import { lookupBindingInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
 import { useCurrentDataModelSchema, useCurrentDataModelType } from 'src/features/datamodel/useBindingSchema';
@@ -125,9 +126,13 @@ function useDataModelBindingsValidation(props: LayoutValidationProps) {
   }, [layoutSetId, schema, layoutLoaded, dataType, nodes, logErrors]);
 }
 
-const Context = createContext<LayoutValidationErrors | undefined>(undefined);
+const { Provider, useCtx } = createContext<LayoutValidationErrors | undefined>({
+  name: 'LayoutValidation',
+  required: false,
+  default: undefined,
+});
 
-export const useLayoutValidation = () => useContext(Context);
+export const useLayoutValidation = () => useCtx();
 export const useLayoutValidationForPage = () => {
   const ctx = useLayoutValidation();
   const layoutSetId = useCurrentLayoutSetId() || 'default';
@@ -145,9 +150,9 @@ export function LayoutValidationProvider({ children }: PropsWithChildren) {
   const dataModelBindingsValidations = useDataModelBindingsValidation({ logErrors: true });
 
   if (!layoutSchemaValidations) {
-    return <Context.Provider value={undefined}>{children}</Context.Provider>;
+    return <Provider value={undefined}>{children}</Provider>;
   }
 
   const value = mergeValidationErrors(dataModelBindingsValidations, layoutSchemaValidations);
-  return <Context.Provider value={value}>{children}</Context.Provider>;
+  return <Provider value={value}>{children}</Provider>;
 }

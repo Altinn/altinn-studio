@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
+
+import { createContext } from 'src/core/contexts/context';
 
 type FocusableHTMLElement = HTMLElement &
   HTMLButtonElement &
@@ -15,19 +17,16 @@ interface Context {
   triggerFocus: FocusTrigger;
 }
 
-const RepeatingGroupsFocusContext = createContext<Context | null>(null);
+const { Provider, useCtx } = createContext<Context>({
+  name: 'RepeatingGroupsFocus',
+  required: false,
+  default: {
+    refSetter: () => undefined,
+    triggerFocus: () => undefined,
+  },
+});
 
-export function useRepeatingGroupsFocusContext(): Context {
-  const context = useContext(RepeatingGroupsFocusContext);
-  if (!context) {
-    return {
-      refSetter: () => undefined,
-      triggerFocus: () => undefined,
-    };
-  }
-
-  return context;
-}
+export const useRepeatingGroupsFocusContext = () => useCtx();
 
 export function RepeatingGroupsFocusProvider(props: { children: React.ReactNode }) {
   const elementRefs = useMemo(() => new Map<string, HTMLElement | null>(), []);
@@ -67,11 +66,7 @@ export function RepeatingGroupsFocusProvider(props: { children: React.ReactNode 
     }
   };
 
-  return (
-    <RepeatingGroupsFocusContext.Provider value={{ refSetter, triggerFocus }}>
-      {props.children}
-    </RepeatingGroupsFocusContext.Provider>
-  );
+  return <Provider value={{ refSetter, triggerFocus }}>{props.children}</Provider>;
 }
 
 function isFocusable(element: FocusableHTMLElement) {
