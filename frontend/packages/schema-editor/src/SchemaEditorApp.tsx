@@ -26,8 +26,10 @@ export function SchemaEditorApp({
   save,
 }: SchemaEditorAppProps) {
   const autoSaveTimeoutRef = useRef(undefined);
-  const initialNodes = useMemo(() => (jsonSchema ? buildUiSchema(jsonSchema) : []), [jsonSchema]);
-  const initialModel = SchemaModel.fromArray(initialNodes);
+  const initialModel = useMemo(() => {
+    const initialNodes = jsonSchema ? buildUiSchema(jsonSchema) : [];
+    return SchemaModel.fromArray(initialNodes);
+  }, [jsonSchema]);
   const [model, setModel] = useState<SchemaModel>(initialModel);
   const prevModelPathRef = useRef(modelPath);
   const prevModelRef = useRef(model);
