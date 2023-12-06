@@ -3,8 +3,7 @@
   --modal-min-height: 100px;
   --modal-max-height: 80vh;
   --modal-max-width: 80%;
-  --modal-position: 50%;
-  --modal-translate: calc(var(--modal-position) * -1);
+
   --heading-height: 60px;
   --modal-border-size: 1px;
   --modal-content-max-height: calc(var(--modal-max-height) - var(--heading-height)) -
@@ -16,25 +15,22 @@
   max-height: var(--modal-max-height);
   min-height: var(--modal-min-height);
   height: max-content;
-  border-radius: 20px;
-  position: absolute;
-  top: var(--modal-position);
-  left: var(--modal-position);
-  transform: translate(var(--modal-translate), var(--modal-translate));
-  padding: 0;
   padding-top: 20px;
-  background-color: var(--fds-semantic-background-default);
-  border: var(--modal-border-size) solid var(--fds-semantic-border-neutral-subtle);
 }
 
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: rgba(30, 43, 60, 0.5);
-  z-index: 1000;
+.header {
+  margin: 0;
+  padding: 0;
+}
+
+.content {
+  margin: 0;
+  padding: 0;
+}
+
+.footer {
+  margin: 0;
+  padding: 0;
 }
 
 .headingWrapper {
@@ -43,14 +39,4 @@
   position: sticky;
   top: 0;
   background-color: var(--fds-semantic-background-default);
-}
-
-.contentWrapper {
-  max-height: var(--modal-content-max-height);
-}
-
-.closeButtonWrapper {
-  position: absolute;
-  top: -0.5rem;
-  right: 0.5rem;
 }
