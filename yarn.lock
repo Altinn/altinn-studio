@@ -3839,6 +3839,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/pure-functions@workspace:frontend/libs/studio-pure-functions":
+  version: 0.0.0-use.local
+  resolution: "@studio/pure-functions@workspace:frontend/libs/studio-pure-functions"
+  dependencies:
+    "@types/jest": "npm:^29.5.5"
+    eslint: "npm:8.50.0"
+    jest: "npm:^29.7.0"
+    jest-environment-jsdom: "npm:^29.7.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:^5.2.2"
+  languageName: unknown
+  linkType: soft
+
 "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0":
   version: 8.0.0
   resolution: "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0"
