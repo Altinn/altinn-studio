@@ -1,1 +1,1 @@
-export { studioDummyExampleUtils } from './studioDummyExampleUtils';
+export * from './arrayUtils';
