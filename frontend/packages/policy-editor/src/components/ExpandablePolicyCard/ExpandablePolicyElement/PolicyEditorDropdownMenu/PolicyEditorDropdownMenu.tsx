@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import classes from './PolicyEditorDropdownMenu.module.css';
 import { Button, DropdownMenu } from '@digdir/design-system-react';
-import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@altinn/icons';
+import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 
 export type PolicyEditorDropdownMenuProps = {
