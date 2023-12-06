@@ -5,6 +5,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon } from '@navikt/aksel-icons';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import Slack from 'app-shared/icons/Slack.svg';
+import GitHub from 'app-shared/icons/GitHub.svg';
 
 export const Contact = () => {
   const { t } = useTranslation();
@@ -50,6 +51,20 @@ export const Contact = () => {
               </Paragraph>
               <Paragraph className={classes.link}>
                 <Trans i18nKey='contact.slack.link'>
+                  <Link> </Link>
+                </Trans>
+              </Paragraph>
+            </div>
+          </section>
+          <section className={classes.section}>
+            <GitHub />
+            <div className={classes.textContainer}>
+              <Heading level={2} size='xsmall' spacing>
+                {t('contact.github.issue.heading')}
+              </Heading>
+              <Paragraph spacing>{t('contact.github.issue.content')} </Paragraph>
+              <Paragraph className={classes.link}>
+                <Trans i18nKey='contact.github.link'>
                   <Link> </Link>
                 </Trans>
               </Paragraph>
