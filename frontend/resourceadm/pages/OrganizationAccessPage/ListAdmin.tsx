@@ -1,21 +1,27 @@
 import { Link, useParams } from 'react-router-dom';
-import { ListMembers, TestLister } from './listeTestData';
 import { Button, Heading } from '@digdir/design-system-react';
 import React, { useState } from 'react';
 import { OrganizationAccessPage } from './OrganizationAccessPage';
+import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
+import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
+import { useCreatePartyListMutation } from 'resourceadm/hooks/mutations/useCreatePartyListMutation';
 
 export const ListAdmin = (): React.ReactNode => {
-  const { org: selectedContext } = useParams();
+  const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const [selectedEnv, setSelectedEnv] = useState<string>('');
-  const [selectedListId, setSelectedListId] = useState<number>(0);
+  const [selectedListId, setSelectedListId] = useState<string>('');
+
+  const { data: envListData } = useGetPartyListsQuery(selectedContext, selectedEnv);
+  const { data: list } = useGetPartyListQuery(selectedContext, selectedListId, selectedEnv);
+  const { mutate: createPartyList } = useCreatePartyListMutation(selectedContext, selectedEnv);
 
   const envs = ['tt02', 'prod', 'at22', 'at23'];
 
   const onChangeEnv = (env: string) => {
     setSelectedEnv(env);
-    setSelectedListId(0);
+    setSelectedListId('');
   };
 
   return (
@@ -37,21 +43,24 @@ export const ListAdmin = (): React.ReactNode => {
       </div>
       {selectedEnv && (
         <div>
-          {selectedListId ? (
+          {!!list && (
             <OrganizationAccessPage
-              list={ListMembers.find((x) => x.id === selectedListId)}
-              onDeleted={() => setSelectedListId(0) /*and reload list*/}
+              org={selectedContext}
+              env={selectedEnv}
+              list={list}
+              onDeleted={() => setSelectedListId('') /*and reload list*/}
             />
-          ) : (
+          )}
+          {!selectedListId && !!envListData && (
             <>
-              {TestLister.filter((x) => x.env === selectedEnv).map((x) => {
+              {envListData.map((x) => {
                 return (
                   <Button variant='tertiary' onClick={() => setSelectedListId(x.id)} key={x.id}>
-                    {x.title}
+                    {x.name}
                   </Button>
                 );
               })}
-              <Button onClick={() => setSelectedListId(-1)}>Opprett ny liste</Button>
+              <Button onClick={() => setSelectedListId('NY')}>Opprett ny liste</Button>
             </>
           )}
         </div>

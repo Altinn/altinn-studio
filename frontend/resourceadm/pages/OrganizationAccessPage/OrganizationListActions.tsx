@@ -1,7 +1,7 @@
 import { Button, Chip, Heading, Select } from '@digdir/design-system-react';
 import React from 'react';
 import { FieldWrapper } from './FieldWrapper';
-import { ResourceList } from 'app-shared/types/ResourceAdm';
+import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
 
 const actionOptions = [
   {
@@ -23,11 +23,11 @@ const actionOptions = [
 ];
 
 interface OrganizationListActionsProps {
-  listItem: ResourceList;
+  listItem: PartyListResourceLink;
   listName: string;
   listOptions: { value: string; label: string }[];
-  onRemove: (listId: number) => void;
-  onChange: (listItem: ResourceList, diff: Partial<ResourceList>) => void;
+  onRemove: (listId: string) => void;
+  onChange: (listItem: PartyListResourceLink, diff: Partial<PartyListResourceLink>) => void;
 }
 
 export const OrganizationListActions = ({
@@ -69,7 +69,7 @@ export const OrganizationListActions = ({
                 disabled={!!listItem.listId}
                 onChange={(value: string) => {
                   onChange(listItem, {
-                    listId: parseInt(value),
+                    listId: value,
                   });
                 }}
               />

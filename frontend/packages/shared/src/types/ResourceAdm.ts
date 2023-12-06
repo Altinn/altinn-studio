@@ -104,28 +104,32 @@ export interface BrregOrganization {
   navn: string;
 }
 
-export interface ResourceRightsRegistryListMember {
+export interface PartyListMember {
   orgNr: string;
   orgName: string;
   isUnderenhet: boolean;
 }
 
-export interface ResourceRightsRegistryList {
+export interface PartyList {
   env: string;
-  id: number;
-  title: string;
+  id: string;
+  identifier: string;
+  name: string;
+  description?: string;
 }
 
-export interface ResourceRightsRegistryListWithMembers {
+export interface PartyListWithMembers {
   env: string;
-  id: number;
-  title: string;
-  members: ResourceRightsRegistryListMember[];
+  id: string;
+  identifier: string;
+  name: string;
+  description?: string;
+  members: PartyListMember[];
 }
 
-export interface ResourceList {
+export interface PartyListResourceLink {
   resourceId: string;
   env: string;
-  listId: number;
+  listId: string;
   actions: string[];
 }

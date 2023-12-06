@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { OrganizationAccessPage } from './OrganizationAccessPage';
 import { OrganizationListActions } from './OrganizationListActions';
 import { TestLister, ListConnections } from './listeTestData';
-import { ResourceList } from 'app-shared/types/ResourceAdm';
+import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
 
 interface OrganizationListPageProps {
   env: string;
@@ -22,7 +22,7 @@ export const OrganizationListPage = ({
     (x) => x.resourceId === resourceId && x.env === env,
   );
 
-  const [selectedLists, setSelectedLists] = useState<ResourceList[]>(connectedLists);
+  const [selectedLists, setSelectedLists] = useState<PartyListResourceLink[]>(connectedLists);
 
   const filterAvailableLists = () => {
     return TestLister.filter((z) => {
@@ -36,7 +36,7 @@ export const OrganizationListPage = ({
     });
   };
 
-  const handleSave = (listItem: ResourceList, diff: Partial<ResourceList>) => {
+  const handleSave = (listItem: PartyListResourceLink, diff: Partial<PartyListResourceLink>) => {
     const saveItem = { ...listItem, ...diff };
     // call service to save
     console.log('SAVE', saveItem);
@@ -44,12 +44,12 @@ export const OrganizationListPage = ({
     setSelectedLists((old) => old.map((y) => (y.listId === listItem.listId ? saveItem : y)));
   };
 
-  const handleDelete = (listItemId: number) => {
+  const handleDelete = (listItemId: string) => {
     setSelectedLists((old) => old.filter((y) => y.listId !== listItemId));
     console.log('DELETE', listItemId); // do not delete when listItemId is 0, just remove from state
   };
 
-  const handleAdd = (listItem: ResourceList) => {
+  const handleAdd = (listItem: PartyListResourceLink) => {
     console.log('ADD', listItem);
     setSelectedLists((old) => [...old, listItem]);
   };
@@ -61,9 +61,11 @@ export const OrganizationListPage = ({
           Tilbake
         </Button>
         <OrganizationAccessPage
+          env={env}
+          org='TODO org'
           list={{
             env: env,
-            id: 0,
+            id: '',
             title: 'Ny liste',
             members: [],
           }}
@@ -83,13 +85,13 @@ export const OrganizationListPage = ({
         return (
           <OrganizationListActions
             key={x.listId}
-            listName={TestLister.find((y) => y.id === x.listId)?.title}
+            listName='HEI' //{TestLister.find((y) => y.id === x.listId)?.title}
             listItem={x}
             listOptions={filterAvailableLists()}
-            onRemove={(listIdToRemove: number) => {
+            onRemove={(listIdToRemove: string) => {
               handleDelete(listIdToRemove);
             }}
-            onChange={(listItem: ResourceList, diff: Partial<ResourceList>) => {
+            onChange={(listItem: PartyListResourceLink, diff: Partial<PartyListResourceLink>) => {
               handleSave(listItem, diff);
             }}
           />
@@ -102,7 +104,7 @@ export const OrganizationListPage = ({
             handleAdd({
               resourceId: resourceId,
               env: env,
-              listId: 0,
+              listId: '',
               actions: [],
             })
           }

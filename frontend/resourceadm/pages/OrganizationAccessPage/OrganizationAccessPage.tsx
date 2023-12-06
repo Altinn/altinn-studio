@@ -19,14 +19,17 @@ import {
 import { useDebounce } from 'react-use';
 import {
   BrregOrganization,
-  ResourceRightsRegistryList,
-  ResourceRightsRegistryListMember,
-  ResourceRightsRegistryListWithMembers,
+  PartyList,
+  PartyListMember,
+  PartyListWithMembers,
 } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from './FieldWrapper';
+import { useEditPartyListMutation } from 'resourceadm/hooks/mutations/useEditPartyListMutation';
 
 interface OrganizationAccessPageProps {
-  list: ResourceRightsRegistryListWithMembers;
+  org: string;
+  env: string;
+  list: PartyListWithMembers;
   onDeleted: () => void;
 }
 
@@ -34,7 +37,7 @@ interface OrganizationAccessPageProps {
 const enhetsListe = (
   enheter: BrregOrganization[],
   erUnderenhet: boolean,
-  onSelectEnhet: (org: ResourceRightsRegistryListMember) => void,
+  onSelectEnhet: (org: PartyListMember) => void,
 ): React.ReactNode => {
   if (enheter.length === 0) {
     return <div>{erUnderenhet ? 'Fant ingen underenheter' : 'Fant ingen enheter'}</div>;
@@ -67,6 +70,8 @@ const enhetsListe = (
 };
 
 export const OrganizationAccessPage = ({
+  org,
+  env,
   list,
   onDeleted,
 }: OrganizationAccessPageProps): React.ReactNode => {
@@ -76,9 +81,10 @@ export const OrganizationAccessPage = ({
 
   const reg_enheter = list ? list.members : [];
   const [listItems, setListItems] =
-    useState<(ResourceRightsRegistryListMember & { isDeleted?: boolean })[]>(reg_enheter);
+    useState<(PartyListMember & { isDeleted?: boolean })[]>(reg_enheter);
 
-  const [listName, setListName] = useState<string>(list?.title || '');
+  const [listName, setListName] = useState<string>(list?.name || '');
+  const { mutate: editPartyList } = useEditPartyListMutation(org, list.id, env);
 
   const { data: enheterSearchData, isLoading: isLoadingEnheterSearch } =
     useEnhetsregisterOrganizationQuery(debouncedSearchText);
@@ -86,7 +92,7 @@ export const OrganizationAccessPage = ({
     useEnhetsregisterUnderOrganizationQuery(debouncedSearchText);
 
   // add member
-  const handleAddMember = (memberToAdd: ResourceRightsRegistryListMember): void => {
+  const handleAddMember = (memberToAdd: PartyListMember): void => {
     console.log('ADD member', memberToAdd);
     setListItems((old) => [...old, memberToAdd]);
   };
@@ -108,7 +114,8 @@ export const OrganizationAccessPage = ({
   };
 
   // change list name, and possibly other properties
-  const handleSave = (diff: Partial<ResourceRightsRegistryList>): void => {
+  const handleSave = (diff: Partial<PartyList>): void => {
+    editPartyList(diff);
     console.log('SAVE', { ...list, ...diff });
   };
 
@@ -125,7 +132,7 @@ export const OrganizationAccessPage = ({
           <Textfield
             value={listName}
             onChange={(event) => setListName(event.target.value)}
-            onBlur={(event) => handleSave({ title: event.target.value })}
+            onBlur={(event) => handleSave({ name: event.target.value })}
           />
         </FieldWrapper>
         <FieldWrapper
@@ -149,27 +156,27 @@ export const OrganizationAccessPage = ({
                   </td>
                 </tr>
               )}
-              {listItems.map((org) => {
+              {listItems.map((item) => {
                 return (
                   <TableRow
-                    key={org.orgNr}
-                    style={{ backgroundColor: org.isDeleted ? '#ccc' : undefined }}
+                    key={item.orgNr}
+                    style={{ backgroundColor: item.isDeleted ? '#ccc' : undefined }}
                   >
-                    <TableCell>{org.orgNr}</TableCell>
-                    <TableCell>{org.orgName}</TableCell>
-                    <TableCell>{org.isUnderenhet ? 'Underenhet' : 'Enhet'}</TableCell>
+                    <TableCell>{item.orgNr}</TableCell>
+                    <TableCell>{item.orgName || '<navn ikke funnet>'}</TableCell>
+                    <TableCell>{item.isUnderenhet ? 'Underenhet' : 'Enhet'}</TableCell>
                     <TableCell>
                       <Button
-                        color={org.isDeleted ? 'second' : 'danger'}
+                        color={item.isDeleted ? 'second' : 'danger'}
                         onClick={() =>
-                          org.isDeleted
-                            ? handleUndoRemoveMember(org.orgNr)
-                            : handleRemoveMember(org.orgNr)
+                          item.isDeleted
+                            ? handleUndoRemoveMember(item.orgNr)
+                            : handleRemoveMember(item.orgNr)
                         }
                         variant='secondary'
                         size='small'
                       >
-                        {org.isDeleted ? 'Angre fjern' : 'Fjern fra liste'}
+                        {item.isDeleted ? 'Angre fjern' : 'Fjern fra liste'}
                       </Button>
                     </TableCell>
                   </TableRow>

@@ -1,4 +1,4 @@
-import { del, get, post, put } from 'app-shared/utils/networking';
+import { del, get, post, put, patch } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
   copyAppPath,
@@ -30,6 +30,8 @@ import {
   appMetadataPath,
   serviceConfigPath,
   importResourceFromAltinn2Path,
+  partyListPath,
+  partyListsPath,
 } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
@@ -46,7 +48,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
 import type { Policy } from '@altinn/policy-editor';
-import type { NewResource, Resource } from 'app-shared/types/ResourceAdm';
+import type { NewResource, PartyList, Resource } from 'app-shared/types/ResourceAdm';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { AppConfig } from 'app-shared/types/AppConfig';
 
@@ -96,3 +98,5 @@ export const createResource = (org: string, payload: NewResource) => post(resour
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
 export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });
 export const importResourceFromAltinn2 = (org: string, environment: string, serviceCode: string, serviceEdition: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, serviceCode, serviceEdition));
+export const createPartyList = (org: string, environment: string, payload: Partial<PartyList>) => post<PartyList>(partyListsPath(org, environment), payload);
+export const updatePartyList = (org: string, listId: string, environment: string, payload: Partial<PartyList>) => patch<PartyList>(partyListPath(org, listId, environment), payload);
