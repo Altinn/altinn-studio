@@ -2,21 +2,17 @@ import { Alert, Heading, Link, Paragraph } from '@digdir/design-system-react';
 import classes from './VersionAlert.module.css';
 import React, { ReactNode } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
-
-export type VersionAlertProps = {
-  appLibVersion: string;
-};
+import { useBpmnContext } from '../../../contexts/BpmnContext';
 
 /**
  * @component
  *  Displays the alert informing the user that their version is too old
  *
- * @property {string}[appLibVersion] - The app-lib version the user has
- *
  * @returns {ReactNode} - The rendered component
  */
-export const VersionAlert = ({ appLibVersion }: VersionAlertProps): ReactNode => {
+export const VersionAlert = (): ReactNode => {
   const { t } = useTranslation();
+  const { appLibVersion } = useBpmnContext();
 
   return (
     <Alert severity='warning' className={classes.alert}>

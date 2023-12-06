@@ -1,8 +1,9 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render as rtlRender, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Canvas, CanvasProps } from './Canvas';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { BpmnContextProvider } from '../../contexts/BpmnContext';
 
 const mockOnSave = jest.fn();
 
@@ -11,7 +12,6 @@ const mockAppLibVersion7: string = '7.0.1';
 
 const defaultProps: CanvasProps = {
   onSave: mockOnSave,
-  appLibVersion: mockAppLibVersion8,
 };
 
 describe('Canvas', () => {
@@ -19,7 +19,7 @@ describe('Canvas', () => {
 
   it('hides actionMenu when version is 7 or older', async () => {
     const user = userEvent.setup();
-    render(<Canvas {...defaultProps} appLibVersion={mockAppLibVersion7} />);
+    render(mockAppLibVersion7);
 
     // Fix to remove act error
     await act(() => user.tab());
@@ -30,7 +30,7 @@ describe('Canvas', () => {
 
   it('shows actionMenu when version is 8 or newer', async () => {
     const user = userEvent.setup();
-    render(<Canvas {...defaultProps} />);
+    render(mockAppLibVersion8);
 
     // Fix to remove act error
     await act(() => user.tab());
@@ -38,4 +38,12 @@ describe('Canvas', () => {
     const editButton = screen.getByRole('button', { name: textMock('process_editor.edit_mode') });
     expect(editButton).toBeInTheDocument;
   });
+
+  const render = (appLibVersion: string) => {
+    return rtlRender(
+      <BpmnContextProvider bpmnXml={''} appLibVersion={appLibVersion}>
+        <Canvas {...defaultProps} />
+      </BpmnContextProvider>,
+    );
+  };
 });
