@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { NotFoundPage } from './NotFoundPage';
+import { StudioNotFoundPage } from './StudioNotFoundPage';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
-describe('NotFoundPage', () => {
+describe('StudioNotFoundPage', () => {
   it('renders correctly', () => {
-    render(<NotFoundPage />);
+    render(<StudioNotFoundPage />);
 
     const heading = screen.getByRole('heading', {
       name: textMock('not_found_page.heading'),
