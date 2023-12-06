@@ -14,6 +14,12 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 {
     public static class Compiler
     {
+        /// <summary>
+        /// Try to compile csharp class from generated csharp code as string
+        /// </summary>
+        /// <param name="csharpCode">Csharp code as string</param>
+        /// <remarks>Throws a custom compiler exception with corresponding diagnostics if compilation fails</remarks>
+        /// <returns>The corresponding assembly</returns>
         public static Assembly CompileToAssembly(string csharpCode)
         {
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(csharpCode));
@@ -25,7 +31,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.JsonPropertyAttribute).GetTypeInfo().Assembly.Location))
                 .AddSyntaxTrees(syntaxTree);
 
-            Assembly assembly = null;
+            Assembly assembly;
             using (var ms = new MemoryStream())
             {
                 EmitResult result = compilation.Emit(ms);
@@ -45,7 +51,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                         customErrorMessages.Add(diagnostic.GetMessage());
                     }
 
-                    throw new CsharpCompilationException($"// Compiler // CompileToAssembly // Csharp compilation failed with errors: {errors}", customErrorMessages);
+                    throw new CsharpCompilationException("Csharp compilation failed.", customErrorMessages);
                 }
                 ms.Seek(0, SeekOrigin.Begin);
                 assembly = Assembly.Load(ms.ToArray());

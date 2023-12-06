@@ -36,6 +36,8 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, 
 
     private const string MinimumValidJsonSchema = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"rootType\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
+    private const string JsonSchemaThatWillNotCompile = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
+
     public PutDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
     {
         TargetTestRepository = TestDataHelper.GenerateTestRepoName();
@@ -62,6 +64,35 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, 
         var response = await HttpClient.SendAsync(request);
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         await FilesWithCorrectNameAndContentShouldBeCreated(modelName);
+    }
+
+    [Theory]
+    [InlineData("testModel.schema.json", "ttd", "hvem-er-hvem", "testUser")]
+    public async Task InvalidInput_ShouldReturn_BadRequest_And_CustomErrorMessages(string modelPath, string org, string repo, string user)
+    {
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
+
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(JsonSchemaThatWillNotCompile, Encoding.UTF8, MediaTypeNames.Application.Json)
+        };
+
+        var response = await HttpClient.SendAsync(request);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var problemDetailsJson = await response.Content.ReadAsStringAsync();
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(problemDetailsJson);
+
+        problemDetails.Should().NotBeNull();
+        problemDetails.Extensions.Should().ContainKey("customErrorMessages");
+
+        var customErrorMessages = problemDetails.Extensions["customErrorMessages"];
+        customErrorMessages.Should().NotBeNull();
+        var customErrorMessagesElement = (JsonElement)customErrorMessages;
+        var firstErrorMessage = customErrorMessagesElement.EnumerateArray().FirstOrDefault().GetString();
+        firstErrorMessage.Should().Be("'root': member names cannot be the same as their enclosing type");
     }
 
     [Theory]

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -6,6 +7,7 @@ using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
@@ -110,7 +112,7 @@ namespace Designer.Tests.Services
                 // Act
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter, TestDataHelper.ModelMetadataToCsharpConverter);
                 var expectedSchemaUpdates = @"{""properties"":{""rootType1"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
-                await schemaModelService.UpdateSchema(editingContext, $"App/models/HvemErHvem_SERES.schema.json", expectedSchemaUpdates);
+                await schemaModelService.UpdateSchema(editingContext, "App/models/HvemErHvem_SERES.schema.json", expectedSchemaUpdates);
 
                 // Assert
                 var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, targetRepository, developer);
@@ -142,6 +144,36 @@ namespace Designer.Tests.Services
             {
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
+        }
+
+        [Fact]
+        public async Task UpdateSchema_InvalidJsonSchema_ShouldThrowException()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "hvem-er-hvem";
+            var developer = "testUser";
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+
+            var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+
+            ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory,
+                TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings,
+                TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter,
+                TestDataHelper.ModelMetadataToCsharpConverter);
+            var invalidSchema =
+                @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
+
+            var exception = await Assert.ThrowsAsync<CsharpCompilationException>(async () =>
+            {
+                await schemaModelService.UpdateSchema(editingContext, "App/models/HvemErHvem_SERES.schema.json", invalidSchema);
+            });
+
+            Assert.NotNull(exception.CustomErrorMessages);
+            Assert.Equal(new List<string>() { "'root': member names cannot be the same as their enclosing type" }, exception.CustomErrorMessages);
         }
 
         [Theory]
