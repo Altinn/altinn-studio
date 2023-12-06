@@ -5,7 +5,7 @@ import { Grid } from '@material-ui/core';
 import { Back, Delete as DeleteIcon, Next } from '@navikt/ds-icons';
 import cn from 'classnames';
 
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
@@ -83,7 +83,6 @@ function RepeatingGroupsEditContainerInternal({
     ...group.textResourceBindings,
     ...textsForRow,
   };
-  const { lang } = useLanguage();
 
   const nextDisplayedGroup = () => {
     const nextDisplayedIndex = group.rows.findIndex(
@@ -180,7 +179,7 @@ function RepeatingGroupsEditContainerInternal({
               onClick={removeClicked}
               data-testid='delete-button'
             >
-              {lang('general.delete')}
+              <Lang id={'general.delete'} />
             </Button>
           </Grid>
         </Grid>
@@ -219,7 +218,7 @@ function RepeatingGroupsEditContainerInternal({
                       color='second'
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex - 1)}
                     >
-                      {lang('general.back')}
+                      <Lang id={'general.back'} />
                     </Button>
                   </Grid>
                 )}
@@ -235,7 +234,7 @@ function RepeatingGroupsEditContainerInternal({
                       color='second'
                       onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex + 1)}
                     >
-                      {lang('general.next')}
+                      <Lang id={'general.next'} />
                     </Button>
                   </Grid>
                 )}
@@ -255,7 +254,7 @@ function RepeatingGroupsEditContainerInternal({
                   color='first'
                   size='small'
                 >
-                  {lang(texts?.save_and_next_button ? texts?.save_and_next_button : 'general.save_and_next')}
+                  <Lang id={texts?.save_and_next_button ? texts?.save_and_next_button : 'general.save_and_next'} />
                 </Button>
               </Grid>
             )}
@@ -268,7 +267,7 @@ function RepeatingGroupsEditContainerInternal({
                   color='first'
                   size='small'
                 >
-                  {lang(texts?.save_button ? texts?.save_button : 'general.save_and_close')}
+                  <Lang id={texts?.save_button ? texts?.save_button : 'general.save_and_close'} />
                 </Button>
               </Grid>
             )}

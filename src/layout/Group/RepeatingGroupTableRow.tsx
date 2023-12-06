@@ -7,13 +7,14 @@ import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
 import { useIsMobile } from 'src/hooks/useIsMobile';
+import { implementsDisplayData, useDisplayDataProps } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
-import { implementsDisplayData, useDisplayDataProps } from 'src/layout/index';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { AlertOnChangeProps } from 'src/hooks/useAlertOnChange';
@@ -92,7 +93,7 @@ export function RepeatingGroupTableRow({
   const { refSetter } = useRepeatingGroupsFocusContext();
 
   const langTools = useLanguage();
-  const { lang, langAsString } = langTools;
+  const { langAsString } = langTools;
   const id = node.item.id;
   const group = node.item;
   const row = group.rows[index];
@@ -199,7 +200,7 @@ export function RepeatingGroupTableRow({
                     key={n.item.id}
                   >
                     <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
-                      {lang(getTableTitle('textResourceBindings' in n.item ? n.item.textResourceBindings : {}))}:
+                      <Lang id={getTableTitle('textResourceBindings' in n.item ? n.item.textResourceBindings : {})} />:
                     </b>
                     <span className={classes.contentFormatting}>{displayData[i]}</span>
                     {i < length - 1 && <div style={{ height: 8 }} />}

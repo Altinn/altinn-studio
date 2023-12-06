@@ -57,20 +57,20 @@ export function getValidationMessage(
   langTools: IUseLanguage,
   params?: string[],
 ): string {
-  const { langAsString } = langTools;
+  const { langAsNonProcessedString } = langTools;
   if (issue.customTextKey) {
-    return langAsString(issue.customTextKey, params);
+    return langAsNonProcessedString(issue.customTextKey, params);
   }
 
   if (issue.source && issue.code) {
     const resource = validationTexts[issue.source]?.[issue.code];
     if (resource) {
-      return langAsString(resource, params);
+      return langAsNonProcessedString(resource, params);
     }
   }
 
   // Fallback to old behavior if source not set.
-  const legacyText = langAsString(issue.code, params);
+  const legacyText = langAsNonProcessedString(issue.code, params);
   if (legacyText !== issue.code) {
     return legacyText;
   }

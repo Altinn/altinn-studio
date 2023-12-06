@@ -3,7 +3,7 @@ import React from 'react';
 import { Map } from '@altinn/altinn-design-system';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { parseLocation } from 'src/layout/Map/MapComponent';
 import { markerIcon } from 'src/layout/Map/MapIcons';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -31,9 +31,6 @@ export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
   const layers = targetNode.item.layers;
   const formData = targetNode.def.useDisplayData(targetNode);
   const location = parseLocation(formData);
-  const { lang } = useLanguage();
-
-  const footerText = location ? lang('map_component.selectedLocation', [location.latitude, location.longitude]) : null;
 
   return (
     <Grid
@@ -51,14 +48,21 @@ export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
             markerLocation={location}
             markerIcon={markerIcon}
           />
-          <Typography className={classes.footer}>{footerText}</Typography>
+          <Typography className={classes.footer}>
+            {location && (
+              <Lang
+                id={'map_component.selectedLocation'}
+                params={[location.latitude, location.longitude]}
+              />
+            )}
+          </Typography>
         </>
       ) : (
         <Typography
           variant='body1'
           className={classes.emptyField}
         >
-          {lang('general.empty_summary')}
+          <Lang id={'general.empty_summary'} />
         </Typography>
       )}
     </Grid>

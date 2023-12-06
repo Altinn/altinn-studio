@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/desi
 import { Grid, Typography } from '@material-ui/core';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { LayoutStyle } from 'src/layout/common.generated';
@@ -29,7 +29,6 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
       disable: 'I have read the code and know that core functionality will be missing',
     },
   });
-  const { lang } = useLanguage();
 
   const id = node.item.id;
   const hasDescription = !!node?.item.textResourceBindings?.description;
@@ -50,7 +49,7 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
           style={{ width: '100%' }}
           id={titleId}
         >
-          {lang(node?.item.textResourceBindings?.title)}
+          <Lang id={node?.item.textResourceBindings?.title} />
         </Typography>
       )}
       {hasDescription && (
@@ -59,7 +58,7 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
           gutterBottom
           id={descriptionId}
         >
-          {lang(node?.item.textResourceBindings?.description)}
+          <Lang id={node?.item.textResourceBindings?.description} />
         </Typography>
       )}
     </Grid>
@@ -110,7 +109,9 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
             <TableHeader id={`likert-table-header-${id}`}>
               <TableRow>
                 {node?.item.textResourceBindings?.leftColumnHeader ? (
-                  <TableCell>{lang(node?.item.textResourceBindings?.leftColumnHeader)}</TableCell>
+                  <TableCell>
+                    <Lang id={node?.item.textResourceBindings?.leftColumnHeader} />
+                  </TableCell>
                 ) : (
                   <TableCell />
                 )}
@@ -122,7 +123,7 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
                       id={colLabelId}
                       className={classes.likertTableHeaderTop}
                     >
-                      {lang(option.label)}
+                      <Lang id={option.label} />
                     </TableCell>
                   );
                 })}

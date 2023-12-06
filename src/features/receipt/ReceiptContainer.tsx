@@ -9,6 +9,7 @@ import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSi
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppReceiver } from 'src/core/texts/appTexts';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParties } from 'src/features/party/PartiesProvider';
 import { CustomReceipt } from 'src/features/receipt/CustomReceipt';
@@ -89,7 +90,6 @@ export const ReceiptContainer = () => {
   const parties = useParties();
   const layouts = useAppSelector(layoutsSelector);
   const langTools = useLanguage();
-  const { lang } = langTools;
   const receiver = useAppReceiver();
 
   const origin = window.location.origin;
@@ -159,20 +159,20 @@ export const ReceiptContainer = () => {
             ) : (
               <ReceiptComponent
                 attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, langTools)}
-                body={lang('receipt.body')}
-                collapsibleTitle={lang('receipt.attachments')}
+                body={<Lang id={'receipt.body'} />}
+                collapsibleTitle={<Lang id={'receipt.attachments'} />}
                 instanceMetaDataObject={instanceMetaObject}
-                subtitle={lang('receipt.subtitle')}
+                subtitle={<Lang id={'receipt.subtitle'} />}
                 subtitleurl={returnUrlToArchive(origin) || undefined}
-                title={lang('receipt.title')}
-                titleSubmitted={lang('receipt.title_submitted')}
+                title={<Lang id={'receipt.title'} />}
+                titleSubmitted={<Lang id={'receipt.title_submitted'} />}
                 pdf={pdf}
               />
             ))}
           {applicationMetadata.autoDeleteOnProcessEnd && (
             <ReceiptComponentSimple
-              body={lang('receipt.body_simple')}
-              title={lang('receipt.title')}
+              body={<Lang id={'receipt.body_simple'} />}
+              title={<Lang id={'receipt.title'} />}
             />
           )}
           <ReadyForPrint />

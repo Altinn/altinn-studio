@@ -6,8 +6,8 @@ import type { RadioProps } from '@digdir/design-system-react';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import classes from 'src/components/form/RadioButton.module.css';
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
-import { getPlainTextFromNode } from 'src/utils/stringHelper';
 
 export interface IRadioButtonProps extends Omit<RadioProps, 'children'> {
   showAsCard?: boolean;
@@ -32,10 +32,11 @@ export const RadioButton = ({
   ...rest
 }: IRadioButtonProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const { elementAsString } = useLanguage();
   const Label = label ? (
     <div className={`${hideLabel ? 'sr-only' : ''} ${classes.radioLabelContainer}`}>
       {label}
-      {helpText ? <HelpText title={getPlainTextFromNode(helpText)}>{helpText}</HelpText> : null}
+      {helpText ? <HelpText title={elementAsString(helpText)}>{helpText}</HelpText> : null}
     </div>
   ) : null;
 

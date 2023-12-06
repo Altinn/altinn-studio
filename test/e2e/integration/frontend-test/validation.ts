@@ -330,10 +330,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.editContainer).should('be.visible');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 3);
-    cy.get(appFrontend.errorReport)
-      .findByText('Du må fylle ut 1.')
-      .should('have.text', 'Du må fylle ut 1. endre fra')
-      .click();
+    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1. endre fra').click();
     cy.get(appFrontend.group.row(2).currentValue).should('exist').and('be.focused');
     cy.get(appFrontend.group.row(2).currentValue).type('123');
 
@@ -460,7 +457,7 @@ describe('Validation', () => {
     cy.get(appFrontend.nextButton).click();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
-    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1.').click();
+    cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1. endre fra').click();
     cy.get(appFrontend.group.row(2).currentValue).should('be.focused');
     cy.get(appFrontend.group.editContainer).should('not.exist');
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();

@@ -6,11 +6,11 @@ import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import classes from 'src/components/form/Label.module.css';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
-import { getPlainTextFromNode } from 'src/utils/stringHelper';
+import { useLanguage } from 'src/features/language/useLanguage';
 import type { ILabelSettings } from 'src/layout/common.generated';
 
 export interface IFormLabelProps {
-  labelText: React.ReactNode;
+  label: React.ReactNode;
   id: string;
   required?: boolean;
   readOnly?: boolean;
@@ -18,8 +18,10 @@ export interface IFormLabelProps {
   helpText: React.ReactNode;
 }
 
-export function Label(props: IFormLabelProps) {
-  if (!props.labelText) {
+export function Label({ label, id, required, readOnly, labelSettings, helpText }: IFormLabelProps) {
+  const { elementAsString } = useLanguage();
+  const labelAsText = elementAsString(label);
+  if (!label || !labelAsText) {
     return null;
   }
 
@@ -32,27 +34,27 @@ export function Label(props: IFormLabelProps) {
       <Grid item={true}>
         <label
           className={classes.label}
-          htmlFor={props.id}
-          data-testid={`label-${props.id}`}
-          id={`label-${props.id}`}
+          htmlFor={id}
+          data-testid={`label-${id}`}
+          id={`label-${id}`}
         >
-          {props.labelText}
+          {label}
           <RequiredIndicator
-            required={props.required}
-            readOnly={props.readOnly}
+            required={required}
+            readOnly={readOnly}
           />
           <OptionalIndicator
-            labelSettings={props.labelSettings}
-            readOnly={props.readOnly}
-            required={props.required}
+            labelSettings={labelSettings}
+            readOnly={readOnly}
+            required={required}
           />
         </label>
       </Grid>
-      {props.helpText && (
+      {helpText && (
         <Grid item={true}>
           <HelpTextContainer
-            helpText={props.helpText}
-            title={getPlainTextFromNode(props.labelText)}
+            helpText={helpText}
+            title={labelAsText}
           />
         </Grid>
       )}

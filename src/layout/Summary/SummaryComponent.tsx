@@ -5,6 +5,7 @@ import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
@@ -31,7 +32,7 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
   const { id, grid } = summaryNode.item;
   const display = overrides?.display || summaryNode.item.display;
   const dispatch = useAppDispatch();
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const summaryPageName = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const summaryItem = summaryNode.item;
   const targetNode = useResolvedNode(overrides?.targetNode || summaryNode.item.componentRef || summaryNode.item.id);
@@ -119,7 +120,7 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
                     onClick={onChangeClick}
                     type='button'
                   >
-                    {lang('form_filler.summary_go_to_correct_page')}
+                    <Lang id={'form_filler.summary_go_to_correct_page'} />
                   </button>
                 )}
               </Grid>

@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { AltinnIcon } from 'src/components/AltinnIcon';
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
-import { getPlainTextFromNode } from 'src/utils/stringHelper';
+import { useLanguage } from 'src/features/language/useLanguage';
 import type { IDisplayAttachment } from 'src/types/shared';
 
 const useStyles = makeStyles(() => ({
@@ -45,6 +45,7 @@ export function AltinnCollapsibleAttachments({
 }: IAltinnCollapsibleAttachmentsProps) {
   const [open, setOpen] = React.useState(true);
   const classes = useStyles();
+  const { elementAsString } = useLanguage();
 
   function handleOpenClose() {
     setOpen(!open);
@@ -76,7 +77,7 @@ export function AltinnCollapsibleAttachments({
               />
             </ListItemIcon>
             <ListItemText
-              primary={`${getPlainTextFromNode(title)} ${attachmentCount}`}
+              primary={`${elementAsString(title)} ${attachmentCount}`}
               classes={{
                 root: cn(classes.listItemTextPadding),
                 primary: cn(classes.collapsedTitle),

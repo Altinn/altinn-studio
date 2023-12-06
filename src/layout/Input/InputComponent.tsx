@@ -8,7 +8,7 @@ import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { useRerender } from 'src/hooks/useReload';
 import { canBeParsedToDecimal } from 'src/utils/formattingUtils';
-import { createCharacterLimit } from 'src/utils/inputUtils';
+import { useCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IInputFormatting } from 'src/layout/Input/config.generated';
 
@@ -27,13 +27,14 @@ export function InputComponent({ node, isValid, formData, handleDataChange, over
     autocomplete,
     maxLength,
   } = node.item;
+  const characterLimit = useCharacterLimit(maxLength);
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,
     dataModelBindings?.simpleBinding,
     formData?.simpleBinding ?? '',
     saveWhileTyping,
   );
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IInputFormatting | undefined, value);
   const [inputKey, rerenderInput] = useRerender('input');
 
@@ -72,7 +73,7 @@ export function InputComponent({ node, isValid, formData, handleDataChange, over
           onBlur={onBlur}
           onChange={handleChange}
           onPaste={onPaste}
-          characterLimit={!readOnly && maxLength !== undefined ? createCharacterLimit(maxLength, lang) : undefined}
+          characterLimit={!readOnly ? characterLimit : undefined}
           readOnly={readOnly}
           isValid={isValid}
           required={required}

@@ -5,7 +5,7 @@ import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/DisplayGroupContainer.module.css';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
@@ -33,11 +33,7 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['size']
 };
 
 export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayoutNode }: IDisplayGroupContainer) {
-  const { lang, langAsString } = useLanguage();
   const container = groupNode.item;
-  const title = langAsString(container.textResourceBindings?.title);
-  const body = lang(container.textResourceBindings?.body);
-
   if (groupNode.isHidden()) {
     return null;
   }
@@ -60,20 +56,24 @@ export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayou
       data-testid='display-group-container'
       data-componentid={container.id}
     >
-      {(title || body) && (
+      {(container.textResourceBindings?.title || container.textResourceBindings?.body) && (
         <Grid
           item={true}
           xs={12}
         >
-          {title && (
+          {container.textResourceBindings?.title && (
             <Heading
               level={headingLevel}
               size={headingSize}
             >
-              {title}
+              <Lang id={container.textResourceBindings?.title} />
             </Heading>
           )}
-          {body && <p className={classes.groupBody}>{body}</p>}
+          {container.textResourceBindings?.body && (
+            <p className={classes.groupBody}>
+              <Lang id={container.textResourceBindings?.body} />
+            </p>
+          )}
         </Grid>
       )}
       <ConditionalWrapper

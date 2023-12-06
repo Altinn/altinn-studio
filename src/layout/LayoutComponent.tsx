@@ -300,7 +300,7 @@ export abstract class FormComponent<Type extends CompTypes>
     if (!('required' in node.item) || !node.item.required) {
       return [];
     }
-    const { langAsString } = langTools;
+    const { langAsNonProcessedString } = langTools;
 
     const formDataToValidate = { ...formData, ...overrideFormData };
     const validationObjects: IValidationObject[] = [];
@@ -315,8 +315,8 @@ export abstract class FormComponent<Type extends CompTypes>
         const fieldName = getFieldName(trb, langTools, bindingKey);
         const errorMessage =
           trb && 'requiredValidation' in trb && trb.requiredValidation
-            ? langAsString(trb?.requiredValidation, [fieldName])
-            : langAsString('form_filler.error_required', [fieldName]);
+            ? langAsNonProcessedString(trb?.requiredValidation, [fieldName])
+            : langAsNonProcessedString('form_filler.error_required', [fieldName]);
 
         validationObjects.push(buildValidationObject(node, 'errors', errorMessage, bindingKey));
       }

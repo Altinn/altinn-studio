@@ -4,7 +4,7 @@ import { Map } from '@altinn/altinn-design-system';
 import { makeStyles, Typography } from '@material-ui/core';
 import type { Location } from '@altinn/altinn-design-system';
 
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { markerIcon } from 'src/layout/Map/MapIcons';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -20,11 +20,6 @@ export function MapComponent({ formData, handleDataChange, isValid, node }: IMap
   const { readOnly, layers, centerLocation, zoom } = node.item;
   const classes = useStyles();
   const location = parseLocation(formData.simpleBinding);
-  const { lang } = useLanguage();
-
-  const footerText = location
-    ? lang('map_component.selectedLocation', [location.latitude, location.longitude])
-    : lang('map_component.noSelectedLocation');
 
   const handleMapClicked = ({ latitude, longitude }: Location) => {
     const fractionDigits = 6;
@@ -42,7 +37,16 @@ export function MapComponent({ formData, handleDataChange, isValid, node }: IMap
         onClick={handleMapClicked}
         markerIcon={markerIcon}
       />
-      <Typography className={classes.footer}>{footerText}</Typography>
+      <Typography className={classes.footer}>
+        {location ? (
+          <Lang
+            id={'map_component.selectedLocation'}
+            params={[location.latitude, location.longitude]}
+          />
+        ) : (
+          <Lang id={'map_component.noSelectedLocation'} />
+        )}
+      </Typography>
     </div>
   );
 }

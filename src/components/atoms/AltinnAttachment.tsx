@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, List } from '@digdir/design-system-react';
 
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
+import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { FileExtensionIcon } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
@@ -16,7 +17,7 @@ interface IAltinnAttachmentProps {
 }
 
 export function AltinnAttachment({ attachments, id, title }: IAltinnAttachmentProps) {
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const selectedLanguage = useCurrentLanguage();
 
   const filteredAndSortedAttachments = attachments
@@ -26,7 +27,7 @@ export function AltinnAttachment({ attachments, id, title }: IAltinnAttachmentPr
   return (
     <List
       id={id}
-      heading={lang(title)}
+      heading={<Lang id={title} />}
       data-testid='attachment-list'
       className={classes.attachmentList}
     >

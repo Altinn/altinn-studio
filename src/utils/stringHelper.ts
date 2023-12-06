@@ -1,6 +1,3 @@
-import { Children, isValidElement } from 'react';
-import type { ReactNode } from 'react';
-
 export const capitalizeName = (name: string) =>
   name
     .toLowerCase()
@@ -19,20 +16,6 @@ export const capitalizeName = (name: string) =>
     })
     .join(' ')
     .trim();
-
-export const getPlainTextFromNode = (node: ReactNode): string => {
-  if (typeof node === 'string') {
-    return node;
-  }
-  if (isValidElement(node)) {
-    let text = '';
-    Children.forEach(node.props.children, (child) => {
-      text += getPlainTextFromNode(child);
-    });
-    return text;
-  }
-  return '';
-};
 
 export function duplicateStringFilter(currentString: string, currentIndex: number, strings: string[]): boolean {
   for (let i = 0; i < currentIndex; i++) {

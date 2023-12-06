@@ -42,9 +42,10 @@ export class FileUpload extends FileUploadDef implements ComponentValidation {
     _overrideFormData?: IFormData,
   ): IValidationObject[] {
     if (!attachmentsValid(attachments, node.item)) {
-      const message = `${langTools.langAsString('form_filler.file_uploader_validation_error_file_number_1')} ${
+      const lang = langTools.langAsNonProcessedString;
+      const message = `${lang('form_filler.file_uploader_validation_error_file_number_1')} ${
         node.item.minNumberOfAttachments
-      } ${langTools.langAsString('form_filler.file_uploader_validation_error_file_number_2')}`;
+      } ${lang('form_filler.file_uploader_validation_error_file_number_2')}`;
       return [buildValidationObject(node, 'errors', message)];
     }
     return [];

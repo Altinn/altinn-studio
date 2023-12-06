@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
@@ -12,18 +12,14 @@ interface IProps {
   columnSettings: ITableColumnFormatting;
 }
 
-export const RepeatingGroupTableTitle = ({ node, columnSettings }: IProps) => {
-  const { lang } = useLanguage(node);
-
-  return (
-    <span
-      className={classes.contentFormatting}
-      style={getColumnStylesRepeatingGroups(node, columnSettings)}
-    >
-      {lang(getTableTitle('textResourceBindings' in node.item ? node.item.textResourceBindings : {}))}
-    </span>
-  );
-};
+export const RepeatingGroupTableTitle = ({ node, columnSettings }: IProps) => (
+  <span
+    className={classes.contentFormatting}
+    style={getColumnStylesRepeatingGroups(node, columnSettings)}
+  >
+    <Lang id={getTableTitle('textResourceBindings' in node.item ? node.item.textResourceBindings : {})} />
+  </span>
+);
 
 function getTableTitle(textResourceBindings: ITextResourceBindings) {
   if (!textResourceBindings) {

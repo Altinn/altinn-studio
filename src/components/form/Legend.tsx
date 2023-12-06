@@ -5,13 +5,13 @@ import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import classes from 'src/components/form/Legend.module.css';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { LayoutStyle } from 'src/layout/common.generated';
-import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { ILabelSettings } from 'src/layout/common.generated';
 
 export interface IFormLegendProps {
-  labelText: React.ReactNode;
-  descriptionText: React.ReactNode;
+  label: React.ReactNode;
+  description: React.ReactNode;
   required?: boolean;
   labelSettings?: ILabelSettings;
   helpText: React.ReactNode;
@@ -19,22 +19,25 @@ export interface IFormLegendProps {
   layout?: LayoutStyle;
 }
 
-export function Legend(props: IFormLegendProps) {
-  if (!props.labelText) {
+export function Legend({ label, required, labelSettings, id, helpText, description, layout }: IFormLegendProps) {
+  const { elementAsString } = useLanguage();
+  const labelAsText = elementAsString(label);
+  if (!label || !labelAsText) {
     return null;
   }
+
   const LabelText = (
     <>
-      {props.labelText}
-      <RequiredIndicator required={props.required} />
+      {label}
+      <RequiredIndicator required={required} />
       <OptionalIndicator
-        labelSettings={props.labelSettings}
-        required={props.required}
+        labelSettings={labelSettings}
+        required={required}
       />
     </>
   );
 
-  if (props.layout === LayoutStyle.Table) {
+  if (layout === LayoutStyle.Table) {
     return LabelText;
   }
 
@@ -42,17 +45,17 @@ export function Legend(props: IFormLegendProps) {
     <>
       <div className={classes.legendHelpTextContainer}>
         <legend>{LabelText}</legend>
-        {props.helpText && (
+        {helpText && (
           <HelpTextContainer
-            helpText={props.helpText}
-            title={getPlainTextFromNode(props.labelText)}
+            helpText={helpText}
+            title={labelAsText}
           />
         )}
       </div>
-      {props.descriptionText && (
+      {description && (
         <Description
-          description={props.descriptionText}
-          id={props.id}
+          description={description}
+          id={id}
         />
       )}
     </>

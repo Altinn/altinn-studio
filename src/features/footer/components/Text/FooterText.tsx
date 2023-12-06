@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import type { IFooterTextComponent } from 'src/features/footer/components/Text/types';
 
-export const FooterText = ({ title }: IFooterTextComponent) => {
-  const { lang } = useLanguage();
-
-  return <span>{lang(title)}</span>;
-};
+export const FooterText = ({ title }: IFooterTextComponent) => (
+  <span>
+    <Lang id={title} />
+  </span>
+);

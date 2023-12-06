@@ -62,17 +62,16 @@ export class Datepicker extends DatepickerDef implements ComponentValidation {
 
     const validations: IValidationObject[] = [];
     const date = moment(data, moment.ISO_8601);
+    const lang = langTools.langAsNonProcessedString;
 
     if (!date.isValid()) {
-      validations.push(
-        buildValidationObject(node, 'errors', langTools.langAsString('date_picker.invalid_date_message', [format])),
-      );
+      validations.push(buildValidationObject(node, 'errors', lang('date_picker.invalid_date_message', [format])));
     }
 
     if (date.isBefore(minDate)) {
-      validations.push(buildValidationObject(node, 'errors', langTools.langAsString('date_picker.min_date_exeeded')));
+      validations.push(buildValidationObject(node, 'errors', lang('date_picker.min_date_exeeded')));
     } else if (date.isAfter(maxDate)) {
-      validations.push(buildValidationObject(node, 'errors', langTools.langAsString('date_picker.max_date_exeeded')));
+      validations.push(buildValidationObject(node, 'errors', lang('date_picker.max_date_exeeded')));
     }
 
     return validations;

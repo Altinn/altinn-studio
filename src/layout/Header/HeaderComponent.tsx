@@ -4,8 +4,8 @@ import { Heading } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IHeaderProps = PropsFromGenericComponent<'Header'>;
@@ -44,7 +44,7 @@ function getHeaderProps(size?: string): HeadingProps {
 
 export const HeaderComponent = ({ node }: IHeaderProps) => {
   const { id, size, textResourceBindings } = node.item;
-  const { lang } = useLanguage();
+  const { langAsString } = useLanguage();
   return (
     <Grid
       container={true}
@@ -56,14 +56,14 @@ export const HeaderComponent = ({ node }: IHeaderProps) => {
           id={id}
           {...getHeaderProps(size)}
         >
-          {lang(textResourceBindings?.title)}
+          <Lang id={textResourceBindings?.title} />
         </Heading>
       </Grid>
       {textResourceBindings?.help && (
         <Grid item={true}>
           <HelpTextContainer
-            helpText={lang(textResourceBindings.help)}
-            title={getPlainTextFromNode(lang(textResourceBindings?.title))}
+            helpText={<Lang id={textResourceBindings.help} />}
+            title={langAsString(textResourceBindings?.title)}
           />
         </Grid>
       )}

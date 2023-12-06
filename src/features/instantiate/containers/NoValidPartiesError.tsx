@@ -1,12 +1,13 @@
 import React from 'react';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 export function NoValidPartiesError() {
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const appMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
 
   function getAllowedParties(): string {
@@ -43,50 +44,49 @@ export function NoValidPartiesError() {
     return returnString;
   }
 
-  function getCustomerService() {
-    return lang('instantiate.authorization_error_info_customer_service', [
-      langAsString('general.customer_service_phone_number'),
-    ]);
-  }
-
-  function getNoAccessError() {
-    return lang('party_selection.no_valid_selection_second_part', [appMetadata?.title.nb]);
-  }
-
-  function getAllowedPartiesError() {
-    return lang('party_selection.no_valid_selection_third_part', [getAllowedParties()]);
-  }
-
-  function createErrorTitle() {
-    // Add party type
-    return lang('party_selection.no_valid_selection_first_part', [getAllowedParties()]);
-  }
-
-  function createErrorContent() {
-    const errorNoAccess = getNoAccessError();
-    const errorProperAccess = getAllowedPartiesError();
-
-    // TODO: add url to language (more info)
-    const hostName = getHostname();
-    const errorMoreInfo = lang('instantiate.authorization_error_info_rights', [hostName]);
-    const errorCustomerService = getCustomerService();
-
-    return (
-      <>
-        <span>{errorNoAccess} </span>
-        <span>{errorProperAccess}</span>
-        <br />
-        <br />
-        <span>{errorMoreInfo} </span>
-        <span>{errorCustomerService}</span>
-      </>
-    );
-  }
-
   return (
     <InstantiationErrorPage
-      title={createErrorTitle()}
-      content={createErrorContent()}
+      title={
+        <Lang
+          id={'party_selection.no_valid_selection_first_part'}
+          params={[getAllowedParties()]}
+        />
+      }
+      content={
+        <>
+          <span>
+            <Lang
+              id={'party_selection.no_valid_selection_second_part'}
+              params={[appMetadata?.title.nb]}
+            />
+          </span>
+          <span>
+            <Lang
+              id={'party_selection.no_valid_selection_third_part'}
+              params={[getAllowedParties()]}
+            />
+          </span>
+          <br />
+          <br />
+          <span>
+            <Lang
+              id={'instantiate.authorization_error_info_rights'}
+              params={[getHostname()]}
+            />
+          </span>
+          <span>
+            <Lang
+              id={'instantiate.authorization_error_info_customer_service'}
+              params={[
+                <Lang
+                  key={0}
+                  id={'general.customer_service_phone_number'}
+                />,
+              ]}
+            />
+          </span>
+        </>
+      }
       statusCode={`${langAsString('party_selection.error_caption_prefix')} 403`}
     />
   );

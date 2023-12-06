@@ -8,6 +8,7 @@ import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopo
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsRemover } from 'src/features/attachments/AttachmentsContext';
 import { useAttachmentsMappedToFormDataProvider } from 'src/features/attachments/useAttachmentsMappedToFormData';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
@@ -26,7 +27,7 @@ export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpe
   const { alertOnDelete, type } = node.item;
   const hasTag = type === 'FileUploadWithTag';
   const showEditButton = hasTag && !editWindowIsOpen;
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const { index, setEditIndex, editIndex } = useFileTableRow();
   const removeAttachment = useAttachmentsRemover();
   const mappingTools = useAttachmentsMappedToFormDataProvider();
@@ -87,7 +88,7 @@ export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpe
         data-testid={`attachment-delete-${index}`}
         aria-label={langAsString(showEditButton ? 'general.edit_alt' : 'general.delete')}
       >
-        {!mobileView && lang(showEditButton ? 'general.edit_alt' : 'form_filler.file_uploader_list_delete')}
+        {!mobileView && <Lang id={showEditButton ? 'general.edit_alt' : 'form_filler.file_uploader_list_delete'} />}
       </Button>
     </ConditionalWrapper>
   );

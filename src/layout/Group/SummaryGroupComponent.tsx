@@ -3,6 +3,7 @@ import React from 'react';
 import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { CompCategory } from 'src/layout/common';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
@@ -35,7 +36,7 @@ export function SummaryGroupComponent({
 }: ISummaryGroupComponent) {
   const excludedChildren = summaryNode.item.excludedChildren;
   const display = overrides?.display || summaryNode.item.display;
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
 
   const inExcludedChildren = (n: LayoutNode) =>
     excludedChildren &&
@@ -48,7 +49,6 @@ export function SummaryGroupComponent({
     textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
   const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
-  const title = lang(summaryTitleTrb ?? titleTrb);
   const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
 
   const rowIndexes: (number | undefined)[] = [];
@@ -114,7 +114,7 @@ export function SummaryGroupComponent({
           <span
             className={cn(classes.label, groupHasErrors && !display?.hideValidationMessages && classes.labelWithError)}
           >
-            {title}
+            <Lang id={summaryTitleTrb ?? titleTrb} />
           </span>
 
           {!display?.hideChangeButton ? (
@@ -127,7 +127,9 @@ export function SummaryGroupComponent({
         </div>
         <div style={{ width: '100%' }}>
           {rowIndexes.length === 0 ? (
-            <span className={classes.emptyField}>{lang('general.empty_summary')}</span>
+            <span className={classes.emptyField}>
+              <Lang id={'general.empty_summary'} />
+            </span>
           ) : (
             rowIndexes.map((idx) => {
               const childSummaryComponents = targetNode
@@ -173,7 +175,7 @@ export function SummaryGroupComponent({
                 onClick={onChangeClick}
                 type='button'
               >
-                {lang('form_filler.summary_go_to_correct_page')}
+                <Lang id={'form_filler.summary_go_to_correct_page'} />
               </button>
             )}
           </div>

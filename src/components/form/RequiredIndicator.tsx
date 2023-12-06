@@ -1,16 +1,20 @@
 import React from 'react';
 
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 
 export interface IRequiredIndicatorProps {
   required?: boolean;
   readOnly?: boolean;
 }
 
-export const RequiredIndicator = ({ required, readOnly }: IRequiredIndicatorProps) => {
-  const { langAsString } = useLanguage();
-  if (required && !readOnly) {
-    return <span>{` ${langAsString('form_filler.required_label')}`}</span>;
-  }
-  return null;
-};
+export const RequiredIndicator = ({ required, readOnly }: IRequiredIndicatorProps) =>
+  required &&
+  !readOnly && (
+    <span>
+      {' '}
+      <Lang
+        id='form_filler.required_label'
+        parseHtmlAndMarkdown={false}
+      />
+    </span>
+  );

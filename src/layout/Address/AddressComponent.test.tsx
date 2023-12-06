@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
@@ -32,78 +32,7 @@ const render = async ({
   });
 };
 
-const getField = ({ method, regex }) =>
-  screen[method]('textbox', {
-    name: regex,
-  });
-
-const getAddressField = ({ useQuery = false, optional = false, required = false } = {}) => {
-  const method = useQuery ? 'queryByRole' : 'getByRole';
-  let regex;
-  if (required) {
-    regex = /^Gateadresse \*$/i;
-  } else if (optional) {
-    regex = /^Gateadresse \(Valgfri\)$/i;
-  } else {
-    regex = /^Gateadresse$/i;
-  }
-
-  return getField({ method, regex });
-};
-const getZipCodeField = ({ useQuery = false, optional = false, required = false } = {}) => {
-  const method = useQuery ? 'queryByRole' : 'getByRole';
-  let regex;
-  if (required) {
-    regex = /^Postnr \*$/i;
-  } else if (optional) {
-    regex = /^Postnr \(Valgfri\)$/i;
-  } else {
-    regex = /^Postnr$/i;
-  }
-
-  return getField({ method, regex });
-};
-
-const getGareOfField = ({ useQuery = false, optional = false, required = false } = {}) => {
-  const method = useQuery ? 'queryByRole' : 'getByRole';
-  let regex;
-  if (required) {
-    regex = /^C\/O eller annen tilleggsadresse \*$/i;
-  } else if (optional) {
-    regex = /^C\/O eller annen tilleggsadresse \(Valgfri\)$/i;
-  } else {
-    regex = /^C\/O eller annen tilleggsadresse$/i;
-  }
-
-  return getField({ method, regex });
-};
-
-const getHouseNumberField = ({ useQuery = false, optional = false, required = false } = {}) => {
-  const method = useQuery ? 'queryByRole' : 'getByRole';
-  let regex;
-  if (required) {
-    regex = /^Bolignummer \*$/i;
-  } else if (optional) {
-    regex = /^Bolignummer \(Valgfri\)$/i;
-  } else {
-    regex = /^Bolignummer$/i;
-  }
-
-  return getField({ method, regex });
-};
-
-const getPostPlaceField = () => getField({ method: 'getByRole', regex: /^Poststed$/i });
-
 describe('AddressComponent', () => {
-  jest.useFakeTimers();
-  const user = userEvent.setup({
-    advanceTimers: (time) => {
-      act(() => {
-        jest.advanceTimersByTime(time);
-      });
-    },
-  });
-
   it('should return simplified version when simplified is true', async () => {
     await render({
       component: {
@@ -111,12 +40,12 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(getAddressField()).toBeInTheDocument();
-    expect(getZipCodeField()).toBeInTheDocument();
-    expect(getPostPlaceField()).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
 
-    expect(getGareOfField({ useQuery: true })).not.toBeInTheDocument();
-    expect(getHouseNumberField({ useQuery: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Bolignummer' })).not.toBeInTheDocument();
   });
 
   it('should return complex version when simplified is false', async () => {
@@ -126,11 +55,11 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(getAddressField()).toBeInTheDocument();
-    expect(getZipCodeField()).toBeInTheDocument();
-    expect(getPostPlaceField()).toBeInTheDocument();
-    expect(getGareOfField()).toBeInTheDocument();
-    expect(getHouseNumberField()).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
   });
 
   it('should fire change event when user types into field, and field is blurred', async () => {
@@ -148,12 +77,9 @@ describe('AddressComponent', () => {
       },
     });
 
-    const address = getAddressField();
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.type(address, 'Slottsplassen 1');
-      await user.tab();
-    });
+    const address = screen.getByRole('textbox', { name: 'Gateadresse' });
+    await userEvent.type(address, 'Slottsplassen 1');
+    await userEvent.tab();
 
     expect(handleDataChange).toHaveBeenCalledWith('Slottsplassen 1', {
       key: 'address',
@@ -176,13 +102,10 @@ describe('AddressComponent', () => {
       },
     });
 
-    const address = getAddressField();
+    const address = screen.getByRole('textbox', { name: 'Gateadresse' });
 
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.type(address, 'Slottsplassen 1');
-      await user.tab();
-    });
+    await userEvent.type(address, 'Slottsplassen 1');
+    await userEvent.tab();
 
     expect(handleDataChange).not.toHaveBeenCalled();
   });
@@ -202,13 +125,10 @@ describe('AddressComponent', () => {
       },
     });
 
-    const field = getZipCodeField({ required: true });
+    const field = screen.getByRole('textbox', { name: 'Postnr *' });
 
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.type(field, '1');
-      await user.tab();
-    });
+    await userEvent.type(field, '1');
+    await userEvent.tab();
 
     const errorMessage = screen.getByText(/Postnummer er ugyldig\. Et postnummer består kun av 4 siffer\./i);
 
@@ -265,13 +185,10 @@ describe('AddressComponent', () => {
       },
     });
 
-    const field = getZipCodeField({ required: true });
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.clear(field);
-      await user.type(field, '0001');
-      await user.tab();
-    });
+    const field = screen.getByRole('textbox', { name: 'Postnr *' });
+    await userEvent.clear(field);
+    await userEvent.type(field, '0001');
+    await userEvent.tab();
 
     expect(handleDataChange).toHaveBeenCalledWith('0001', { key: 'zipCode' });
   });
@@ -292,13 +209,10 @@ describe('AddressComponent', () => {
     expect(screen.getByDisplayValue('0001')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Oslo')).toBeInTheDocument();
 
-    const field = getZipCodeField();
+    const field = screen.getByRole('textbox', { name: 'Postnr' });
 
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.clear(field);
-      await user.tab();
-    });
+    await userEvent.clear(field);
+    await userEvent.tab();
 
     expect(handleDataChange).toHaveBeenCalledWith('', { key: 'zipCode' });
     expect(handleDataChange).toHaveBeenCalledWith('', { key: 'postPlace' });
@@ -335,11 +249,11 @@ describe('AddressComponent', () => {
         simplified: false,
       },
     });
-    expect(getAddressField()).toBeInTheDocument();
-    expect(getZipCodeField()).toBeInTheDocument();
-    expect(getPostPlaceField()).toBeInTheDocument();
-    expect(getGareOfField()).toBeInTheDocument();
-    expect(getHouseNumberField()).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
   });
 
   it('should display required labels when required is true', async () => {
@@ -350,16 +264,18 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(getAddressField({ required: true })).toBeInTheDocument();
-    expect(getZipCodeField({ required: true })).toBeInTheDocument();
-    expect(getGareOfField({ required: true })).toBeInTheDocument();
-    expect(getHouseNumberField({ required: true })).toBeInTheDocument();
-    expect(getPostPlaceField()).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Bolignummer *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
 
-    expect(getAddressField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getZipCodeField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getGareOfField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getHouseNumberField({ useQuery: true, optional: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
   });
 
   it('should display optional labels when optionalIndicator is true', async () => {
@@ -372,16 +288,17 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(getAddressField({ useQuery: true })).not.toBeInTheDocument();
-    expect(getZipCodeField({ useQuery: true })).not.toBeInTheDocument();
-    expect(getGareOfField({ useQuery: true })).not.toBeInTheDocument();
-    expect(getHouseNumberField({ useQuery: true })).not.toBeInTheDocument();
-    expect(getPostPlaceField()).toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Gateadresse' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Postnr' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Bolignummer' })).not.toBeInTheDocument();
 
-    expect(getAddressField({ optional: true })).toBeInTheDocument();
-    expect(getZipCodeField({ optional: true })).toBeInTheDocument();
-    expect(getGareOfField({ optional: true })).toBeInTheDocument();
-    expect(getHouseNumberField({ optional: true })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
+
+    expect(screen.getByRole('textbox', { name: 'Gateadresse (Valgfri)' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr (Valgfri)' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Bolignummer (Valgfri)' })).toBeInTheDocument();
   });
 
   it('should not display optional labels by default', async () => {
@@ -391,16 +308,18 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(getAddressField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getZipCodeField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getGareOfField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getHouseNumberField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getPostPlaceField()).toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
 
-    expect(getAddressField()).toBeInTheDocument();
-    expect(getZipCodeField()).toBeInTheDocument();
-    expect(getGareOfField()).toBeInTheDocument();
-    expect(getHouseNumberField()).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
   });
 
   it('should not display optional labels when readonly is true', async () => {
@@ -411,16 +330,18 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(getAddressField()).toBeInTheDocument();
-    expect(getZipCodeField()).toBeInTheDocument();
-    expect(getGareOfField()).toBeInTheDocument();
-    expect(getHouseNumberField()).toBeInTheDocument();
-    expect(getPostPlaceField()).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
 
-    expect(getAddressField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getZipCodeField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getGareOfField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getHouseNumberField({ useQuery: true, optional: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
   });
 
   it('should not display optional labels when readonly is true, even when optionalIndicator is true', async () => {
@@ -434,16 +355,18 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(getAddressField()).toBeInTheDocument();
-    expect(getZipCodeField()).toBeInTheDocument();
-    expect(getGareOfField()).toBeInTheDocument();
-    expect(getHouseNumberField()).toBeInTheDocument();
-    expect(getPostPlaceField()).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
 
-    expect(getAddressField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getZipCodeField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getGareOfField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getHouseNumberField({ useQuery: true, optional: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
   });
 
   it('should not display optional labels when required is true, even when optionalIndicator is true', async () => {
@@ -454,15 +377,17 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(getAddressField({ required: true })).toBeInTheDocument();
-    expect(getZipCodeField({ required: true })).toBeInTheDocument();
-    expect(getGareOfField({ required: true })).toBeInTheDocument();
-    expect(getHouseNumberField({ required: true })).toBeInTheDocument();
-    expect(getPostPlaceField()).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Bolignummer *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
 
-    expect(getAddressField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getZipCodeField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getGareOfField({ useQuery: true, optional: true })).not.toBeInTheDocument();
-    expect(getHouseNumberField({ useQuery: true, optional: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
   });
 });

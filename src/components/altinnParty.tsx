@@ -5,6 +5,7 @@ import { Buldings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/a
 import cn from 'classnames';
 
 import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { IParty } from 'src/types/shared';
 
@@ -102,7 +103,7 @@ export interface IAltinnPartyProps {
 
 export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnPartyProps) {
   const classes = useStyles();
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
   const isOrg: boolean = party.orgNumber != null;
@@ -161,7 +162,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
               <Typography>
                 {party.childParties.length}
                 &nbsp;
-                {lang('party_selection.unit_type_subunit_plural')}
+                <Lang id={'party_selection.unit_type_subunit_plural'} />
               </Typography>
             </Grid>
           </Grid>
@@ -194,7 +195,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
                 <Typography className={`${classes.partyName}`}>{childParty.name}</Typography>
                 <Typography className={classes.partyInfo}>
                   &nbsp;
-                  {lang('party_selection.unit_org_number')}
+                  <Lang id={'party_selection.unit_org_number'} />
                   &nbsp;{childParty.orgNumber}
                 </Typography>
               </Grid>

@@ -3,7 +3,7 @@ import React from 'react';
 import { Button, LegacyPopover } from '@digdir/design-system-react';
 
 import classes from 'src/components/molecules/DeleteWarningPopover.module.css';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 
 export interface IDeleteWarningPopover {
   children: React.ReactNode;
@@ -26,7 +26,6 @@ export function DeleteWarningPopover({
   open,
   setOpen,
 }: IDeleteWarningPopover) {
-  const { lang } = useLanguage();
   return (
     <LegacyPopover
       variant='warning'
@@ -54,7 +53,7 @@ export function DeleteWarningPopover({
           color='second'
           onClick={onCancelClick}
         >
-          {lang('general.cancel')}
+          <Lang id={'general.cancel'} />
         </Button>
       </div>
     </LegacyPopover>

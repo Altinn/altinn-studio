@@ -1,10 +1,11 @@
 import React from 'react';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 
 export function ForbiddenError() {
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
 
   const createForbiddenErrorContent = (): JSX.Element => {
     const customerSupport = langAsString('instantiate.forbidden_action_error_customer_support', [
@@ -13,7 +14,7 @@ export function ForbiddenError() {
 
     return (
       <>
-        {lang('instantiate.forbidden_action_error_text')}
+        <Lang id={'instantiate.forbidden_action_error_text'} />
         <br />
         <br />
         {customerSupport}
@@ -23,7 +24,7 @@ export function ForbiddenError() {
 
   return (
     <InstantiationErrorPage
-      title={lang('instantiate.forbidden_action_error_title')}
+      title={<Lang id={'instantiate.forbidden_action_error_title'} />}
       content={createForbiddenErrorContent()}
       statusCode={langAsString('instantiate.forbidden_action_error_status')}
     />

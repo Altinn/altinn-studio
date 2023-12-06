@@ -4,11 +4,10 @@ import { Button } from '@digdir/design-system-react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 export const PrintButtonComponent = ({ node }: PropsFromGenericComponent<'PrintButton'>) => {
-  const { lang } = useLanguage();
   const { textResourceBindings } = node.item;
   const parentIsPage = node.parent instanceof LayoutPage;
 
@@ -20,7 +19,7 @@ export const PrintButtonComponent = ({ node }: PropsFromGenericComponent<'PrintB
       size='small'
       onClick={window.print}
     >
-      {lang(textResourceBindings?.title ?? 'general.print_button_text')}
+      <Lang id={textResourceBindings?.title ?? 'general.print_button_text'} />
     </Button>
   );
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { FileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRow';
 import { FileTableRowProvider } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
@@ -37,7 +37,6 @@ export function FileTable({
   validationsWithTag,
   setValidationsWithTag,
 }: FileTableProps): React.JSX.Element | null {
-  const { lang } = useLanguage();
   const { textResourceBindings, type } = node.item;
   const hasTag = type === 'FileUploadWithTag';
   const [editIndex, setEditIndex] = React.useState<number>(-1);
@@ -68,12 +67,28 @@ export function FileTable({
             className={classes.blueUnderline}
             id='altinn-file-list-row-header'
           >
-            <th>{lang('form_filler.file_uploader_list_header_name')}</th>
-            {!mobileView ? <th>{lang('form_filler.file_uploader_list_header_file_size')}</th> : null}
-            {hasTag ? <th>{lang(tagTitle)}</th> : null}
-            {!(hasTag && mobileView) ? <th>{lang('form_filler.file_uploader_list_header_status')}</th> : null}
             <th>
-              <p className='sr-only'>{lang('form_filler.file_uploader_list_header_delete_sr')}</p>
+              <Lang id={'form_filler.file_uploader_list_header_name'} />
+            </th>
+            {!mobileView && (
+              <th>
+                <Lang id={'form_filler.file_uploader_list_header_file_size'} />
+              </th>
+            )}
+            {hasTag && (
+              <th>
+                <Lang id={tagTitle} />
+              </th>
+            )}
+            {!(hasTag && mobileView) && (
+              <th>
+                <Lang id={'form_filler.file_uploader_list_header_status'} />
+              </th>
+            )}
+            <th>
+              <p className='sr-only'>
+                <Lang id={'form_filler.file_uploader_list_header_delete_sr'} />
+              </p>
             </th>
           </tr>
         </thead>

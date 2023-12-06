@@ -2,7 +2,7 @@ import React from 'react';
 
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
 import type { BaseButtonProps } from 'src/layout/Button/WrappedButton';
 
@@ -13,7 +13,6 @@ export const ConfirmButton = (props: IConfirmButtonProps) => {
   const { nodeId } = props;
   const disabled = !actions?.confirm;
   const { next, busyWithId: processNextBusyId } = useProcessNavigation() || {};
-  const { lang } = useLanguage();
 
   const handleConfirmClick = () => {
     if (!disabled && nodeId) {
@@ -29,7 +28,7 @@ export const ConfirmButton = (props: IConfirmButtonProps) => {
         onClick={handleConfirmClick}
         disabled={disabled}
       >
-        {lang('confirm.button_text')}
+        <Lang id={'confirm.button_text'} />
       </SubmitButton>
     </div>
   );

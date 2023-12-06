@@ -293,8 +293,7 @@ const renderBase = async ({
     });
   };
 
-  const children = renderer();
-  const utils = rtlRender(
+  const ProviderWrapper = ({ children }: PropsWithChildren) => (
     <Providers
       Router={router}
       queryClient={queryClient}
@@ -305,9 +304,14 @@ const renderBase = async ({
       store={store}
     >
       {children}
-    </Providers>,
-    renderOptions,
+    </Providers>
   );
+
+  const children = renderer();
+  const utils = rtlRender(children, {
+    ...renderOptions,
+    wrapper: ProviderWrapper,
+  });
 
   if (waitUntilLoaded) {
     // This may fail early if any of the providers fail to load, and will give you the provider/reason for failure

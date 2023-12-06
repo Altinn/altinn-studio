@@ -3,7 +3,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
 import cn from 'classnames';
 
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -44,7 +44,6 @@ export function RepeatingGroupTable({
   rowsAfter,
 }: IRepeatingGroupTableProps): JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
-  const { lang } = useLanguage();
 
   const id = node.item.id;
   const container = node.item;
@@ -210,12 +209,16 @@ export function RepeatingGroupTable({
               ))}
               {displayEditColumn && (
                 <TableCell style={{ padding: 0, paddingRight: '10px' }}>
-                  <span className={classes.visuallyHidden}>{lang('general.edit')}</span>
+                  <span className={classes.visuallyHidden}>
+                    <Lang id={'general.edit'} />
+                  </span>
                 </TableCell>
               )}
               {displayDeleteColumn && (
                 <TableCell style={{ padding: 0 }}>
-                  <span className={classes.visuallyHidden}>{lang('general.delete')}</span>
+                  <span className={classes.visuallyHidden}>
+                    <Lang id={'general.delete'} />
+                  </span>
                 </TableCell>
               )}
             </TableRow>

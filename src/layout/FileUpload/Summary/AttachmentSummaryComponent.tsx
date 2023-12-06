@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAllOptions } from 'src/features/options/useAllOptions';
 import classes from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent.module.css';
@@ -13,7 +14,7 @@ export interface IAttachmentSummaryComponent {
 
 export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryComponent) {
   const attachments = useUploaderSummaryData(targetNode);
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const component = targetNode.item;
   const allOptions = useAllOptions();
   const hasTag = component.type === 'FileUploadWithTag';
@@ -27,7 +28,9 @@ export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryCom
   return (
     <div data-testid={`${hasTag ? 'attachment-with-tag-summary' : 'attachment-summary-component'}`}>
       {attachments.length === 0 ? (
-        <div className={classes.emptyField}>{lang('general.empty_summary')}</div>
+        <div className={classes.emptyField}>
+          <Lang id={'general.empty_summary'} />
+        </div>
       ) : (
         attachments.map((attachment) => {
           const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;

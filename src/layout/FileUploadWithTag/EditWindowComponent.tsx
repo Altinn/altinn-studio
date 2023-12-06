@@ -7,6 +7,7 @@ import { CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsUpdater } from 'src/features/attachments/AttachmentsContext';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
@@ -44,7 +45,7 @@ export function EditWindowComponent({
   setValidationsWithTag,
 }: EditWindowProps): React.JSX.Element {
   const { textResourceBindings, readOnly } = node.item;
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const { setEditIndex } = useFileTableRow();
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
   const rawSelectedTag = uploadedAttachment?.data.tags ? uploadedAttachment.data.tags[0] : undefined;
@@ -136,7 +137,7 @@ export function EditWindowComponent({
           <div className={classes.iconButtonWrapper}>
             {attachment.uploaded && (
               <div style={{ marginLeft: '0.9375rem', marginRight: '0.9375rem' }}>
-                {!mobileView ? lang('form_filler.file_uploader_list_status_done') : undefined}
+                {!mobileView ? <Lang id='form_filler.file_uploader_list_status_done' /> : undefined}
                 <CheckmarkCircleFillIcon
                   role='img'
                   aria-hidden={!mobileView}
@@ -172,11 +173,12 @@ export function EditWindowComponent({
         className={classes.gap}
       >
         {textResourceBindings?.tagTitle && (
+          // eslint-disable-next-line jsx-a11y/label-has-associated-control
           <label
             className={classes.label}
             htmlFor={`attachment-tag-dropdown-${uniqueId}`}
           >
-            {lang(textResourceBindings?.tagTitle)}
+            <Lang id={textResourceBindings?.tagTitle} />
           </label>
         )}
         <Grid
@@ -221,7 +223,7 @@ export function EditWindowComponent({
                 id={`attachment-save-tag-button-${uniqueId}`}
                 disabled={saveIsDisabled}
               >
-                {lang('general.save')}
+                <Lang id={'general.save'} />
               </Button>
             )}
           </Grid>

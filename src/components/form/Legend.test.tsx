@@ -13,8 +13,8 @@ describe('Legend', () => {
   async function render(props: Partial<IFormLegendProps> = {}) {
     const defaultProps: IFormLegendProps = {
       id: 'label1',
-      labelText: 'label.text',
-      descriptionText: '',
+      label: 'label.text',
+      description: '',
       helpText: '',
       required: false,
       labelSettings: {},

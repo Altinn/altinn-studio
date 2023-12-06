@@ -24,6 +24,7 @@ import {
   useActiveInstances,
 } from 'src/features/instantiate/selection/ActiveInstancesProvider';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
@@ -56,7 +57,7 @@ function InstanceSelection() {
   const applicationMetadata = useApplicationMetadata();
   const instanceSelectionOptions = applicationMetadata?.onEntry?.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
-  const { lang, langAsString, language } = useLanguage();
+  const { langAsString, language } = useLanguage();
   const mobileView = useIsMobileOrTablet();
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiate = useInstantiation().instantiate;
@@ -86,7 +87,7 @@ function InstanceSelection() {
         level={3}
         className={classes.leftOffHeading}
       >
-        {lang('instance_selection.left_of')}
+        <Lang id={'instance_selection.left_of'} />
       </Heading>
       <Table id='instance-selection-mobile-table'>
         <TableBody>
@@ -151,8 +152,12 @@ function InstanceSelection() {
       <Table id='instance-selection-table'>
         <TableHeader id='instance-selection-table-header'>
           <TableRow>
-            <TableCell>{lang('instance_selection.last_changed')}</TableCell>
-            <TableCell>{lang('instance_selection.changed_by')}</TableCell>
+            <TableCell>
+              <Lang id={'instance_selection.last_changed'} />
+            </TableCell>
+            <TableCell>
+              <Lang id={'instance_selection.changed_by'} />
+            </TableCell>
             <TableCell />
           </TableRow>
         </TableHeader>
@@ -171,7 +176,7 @@ function InstanceSelection() {
                     iconPlacement='right'
                     onClick={(ev) => openInstance(instance.id, ev)}
                   >
-                    {lang('instance_selection.continue')}
+                    <Lang id={'instance_selection.continue'} />
                   </Button>
                 </div>
               </TableCell>
@@ -212,11 +217,13 @@ function InstanceSelection() {
             size='medium'
             id='instance-selection-header'
           >
-            {lang('instance_selection.header')}
+            <Lang id={'instance_selection.header'} />
           </Heading>
         </div>
         <div id='instance-selection-description'>
-          <Paragraph className={classes.descriptionParagraph}>{lang('instance_selection.description')}</Paragraph>
+          <Paragraph className={classes.descriptionParagraph}>
+            <Lang id={'instance_selection.description'} />
+          </Paragraph>
         </div>
 
         {mobileView && renderMobileTable()}
@@ -230,7 +237,7 @@ function InstanceSelection() {
             }}
             id='new-instance-button'
           >
-            {lang('instance_selection.new_instance')}
+            <Lang id={'instance_selection.new_instance'} />
           </Button>
         </div>
       </div>

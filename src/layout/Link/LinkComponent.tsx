@@ -4,6 +4,7 @@ import { Button } from '@digdir/design-system-react';
 
 import type { PropsFromGenericComponent } from '..';
 
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
@@ -20,7 +21,7 @@ export type ILinkComponent = PropsFromGenericComponent<'Link'>;
 
 export function LinkComponent({ node }: ILinkComponent) {
   const { id, style, openInNewTab, textResourceBindings } = node.item;
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const parentIsPage = node.parent instanceof LayoutPage;
 
   if (style === 'link') {
@@ -32,7 +33,7 @@ export function LinkComponent({ node }: ILinkComponent) {
           target={openInNewTab ? '_blank' : undefined}
           rel={openInNewTab ? 'noreferrer' : undefined}
         >
-          {lang(textResourceBindings?.title)}
+          <Lang id={textResourceBindings?.title} />
         </a>
       </div>
     );
@@ -48,7 +49,7 @@ export function LinkComponent({ node }: ILinkComponent) {
         size='small'
         onClick={() => window.open(langAsString(textResourceBindings?.target), openInNewTab ? '_blank' : '_self')}
       >
-        {lang(textResourceBindings?.title)}
+        <Lang id={textResourceBindings?.title} />
       </Button>
     );
   }

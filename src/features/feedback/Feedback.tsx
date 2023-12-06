@@ -4,10 +4,9 @@ import { Typography } from '@material-ui/core';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useLaxProcessData, useReFetchProcessData } from 'src/features/instance/ProcessContext';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 
 export function Feedback() {
-  const { lang } = useLanguage();
   const reFetchProcessData = useReFetchProcessData();
   const currentTask = useLaxProcessData()?.currentTask?.elementId;
 
@@ -19,8 +18,12 @@ export function Feedback() {
 
   return (
     <div id='FeedbackContainer'>
-      <Typography variant='body1'>{lang('feedback.title')}</Typography>
-      <Typography variant='body1'>{lang('feedback.body')}</Typography>
+      <Typography variant='body1'>
+        <Lang id={'feedback.title'} />
+      </Typography>
+      <Typography variant='body1'>
+        <Lang id={'feedback.body'} />
+      </Typography>
       <ReadyForPrint />
     </div>
   );

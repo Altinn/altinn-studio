@@ -6,6 +6,7 @@ import {
   AttachmentsMappedToFormDataProvider,
   useAttachmentsMappedToFormData,
 } from 'src/features/attachments/useAttachmentsMappedToFormData';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
@@ -55,7 +56,7 @@ export function FileUploadComponent({
 
   const hasTag = type === 'FileUploadWithTag';
   const langTools = useLanguage();
-  const { lang, langAsString } = langTools;
+  const { langAsString } = langTools;
 
   const { options } = useGetOptions({
     ...node.item,
@@ -103,7 +104,7 @@ export function FileUploadComponent({
         className={`${classes.fileUploadButton} ${classes.blueUnderline}`}
         onClick={() => setShowFileUpload(true)}
       >
-        {lang('form_filler.file_uploader_add_attachment')}
+        <Lang id={'form_filler.file_uploader_add_attachment'} />
       </button>
     );
   };

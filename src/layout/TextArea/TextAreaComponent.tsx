@@ -4,7 +4,7 @@ import { LegacyTextArea } from '@digdir/design-system-react';
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
-import { createCharacterLimit } from 'src/utils/inputUtils';
+import { useCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 import 'src/styles/shared.css';
@@ -12,8 +12,9 @@ import 'src/styles/shared.css';
 export type ITextAreaProps = PropsFromGenericComponent<'TextArea'>;
 
 export function TextAreaComponent({ node, formData, isValid, handleDataChange, overrideDisplay }: ITextAreaProps) {
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const { id, readOnly, textResourceBindings, dataModelBindings, saveWhileTyping, autocomplete, maxLength } = node.item;
+  const characterLimit = useCharacterLimit(maxLength);
   const suppliedValue = formData?.simpleBinding;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,
@@ -30,7 +31,7 @@ export function TextAreaComponent({ node, formData, isValid, handleDataChange, o
       onPaste={() => onPaste()}
       readOnly={readOnly}
       resize='vertical'
-      characterLimit={!readOnly && maxLength !== undefined ? createCharacterLimit(maxLength, lang) : undefined}
+      characterLimit={!readOnly ? characterLimit : undefined}
       isValid={isValid}
       value={value}
       data-testid={id}

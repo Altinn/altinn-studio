@@ -3,16 +3,16 @@ import React from 'react';
 import { Paragraph } from '@digdir/design-system-react';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Paragraph/ParagraphComponent.module.css';
-import { getPlainTextFromNode } from 'src/utils/stringHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IParagraphProps = PropsFromGenericComponent<'Paragraph'>;
 
 export function ParagraphComponent({ node }: IParagraphProps) {
   const { id, textResourceBindings } = node.item;
-  const { lang } = useLanguage();
+  const { lang, elementAsString } = useLanguage();
   const text = lang(textResourceBindings?.title);
 
   // The lang() function returns an object with a type property set to 'span'
@@ -26,12 +26,12 @@ export function ParagraphComponent({ node }: IParagraphProps) {
         id={id}
         data-testid={`paragraph-component-${id}`}
       >
-        {text}
+        <Lang id={textResourceBindings?.title} />
       </Paragraph>
       {textResourceBindings?.help && (
         <HelpTextContainer
-          helpText={lang(textResourceBindings.help)}
-          title={getPlainTextFromNode(text)}
+          helpText={<Lang id={textResourceBindings?.help} />}
+          title={elementAsString(text)}
         />
       )}
     </span>

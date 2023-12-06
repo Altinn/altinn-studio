@@ -29,7 +29,8 @@ export function getFileUploadComponentValidations(
   langTools: IUseLanguage,
   attachmentId?: string,
 ): IComponentValidations {
-  const { langAsString } = langTools;
+  const { langAsNonProcessedString } = langTools;
+  const lang = langAsNonProcessedString;
   const componentValidations: any = {
     simpleBinding: {
       errors: [],
@@ -37,18 +38,18 @@ export function getFileUploadComponentValidations(
     },
   };
   if (validationError === 'upload') {
-    componentValidations.simpleBinding.errors.push(langAsString('form_filler.file_uploader_validation_error_upload'));
+    componentValidations.simpleBinding.errors.push(lang('form_filler.file_uploader_validation_error_upload'));
   } else if (validationError === 'update') {
     if (attachmentId === undefined || attachmentId === '') {
-      componentValidations.simpleBinding.errors.push(langAsString('form_filler.file_uploader_validation_error_update'));
+      componentValidations.simpleBinding.errors.push(lang('form_filler.file_uploader_validation_error_update'));
     } else {
       componentValidations.simpleBinding.errors.push(
         // If validation has attachmentId, add to start of message and seperate using ASCII Universal Seperator
-        attachmentId + AsciiUnitSeparator + langAsString('form_filler.file_uploader_validation_error_update'),
+        attachmentId + AsciiUnitSeparator + lang('form_filler.file_uploader_validation_error_update'),
       );
     }
   } else if (validationError === 'delete') {
-    componentValidations.simpleBinding.errors.push(langAsString('form_filler.file_uploader_validation_error_delete'));
+    componentValidations.simpleBinding.errors.push(lang('form_filler.file_uploader_validation_error_delete'));
   }
   return componentValidations;
 }

@@ -10,7 +10,7 @@ import { FullWidthGroupWrapper } from 'src/components/form/FullWidthGroupWrapper
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { getVariant } from 'src/components/form/Panel';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { CustomIcon } from 'src/layout/Panel/CustomPanelIcon';
@@ -28,7 +28,6 @@ export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps
   const [open, setOpen] = useState<boolean>(!container?.panel?.groupReference);
   const hidden = node.isHidden();
   const textResourceBindings = node?.item.textResourceBindings;
-  const { lang } = useLanguage();
 
   const { iconUrl, iconAlt } = container?.panel || {};
   const fullWidth = !container?.baseComponentId;
@@ -73,14 +72,14 @@ export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps
               <Grid item>
                 <EditIconButton
                   id={`add-reference-button-${container.id}`}
-                  label={lang(textResourceBindings?.add_label)}
+                  label={<Lang id={textResourceBindings?.add_label} />}
                   onClick={handleOpen}
                 />
               </Grid>
             )}
             {open && (
               <Panel
-                title={lang(textResourceBindings?.title)}
+                title={<Lang id={textResourceBindings?.title} />}
                 renderIcon={
                   iconUrl
                     ? ({ size }) => (
@@ -107,7 +106,7 @@ export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps
                     item
                     xs={12}
                   >
-                    {lang(textResourceBindings?.body)}
+                    <Lang id={textResourceBindings?.body} />
                   </Grid>
 
                   {/*  // TODO: Add test case for filling out a new row in panel, not saving it, and midway through*/}
@@ -130,7 +129,7 @@ export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps
                           onClick={handleSave}
                           size='small'
                         >
-                          {lang('general.save')}
+                          <Lang id={'general.save'} />
                         </Button>
                       </Grid>
                     </>

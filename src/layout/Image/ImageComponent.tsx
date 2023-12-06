@@ -3,6 +3,7 @@ import React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -16,7 +17,7 @@ const useStyles = makeStyles({
 });
 
 export function ImageComponent({ node }: IImageProps) {
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const { id, image, textResourceBindings } = node.item;
   const classes = useStyles();
   const languageKey = useAppSelector((state) => state.profile.profile?.profileSettingPreference.language || 'nb');
@@ -72,7 +73,7 @@ export function ImageComponent({ node }: IImageProps) {
           className={classes.spacing}
         >
           <HelpTextContainer
-            helpText={lang(textResourceBindings.help)}
+            helpText={<Lang id={textResourceBindings.help} />}
             title={altText}
           />
         </Grid>

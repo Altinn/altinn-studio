@@ -2,64 +2,64 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 export function MissingRolesError() {
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const selectedParty = useCurrentParty();
-
-  function getErrorRights() {
-    return lang('instantiate.authorization_error_rights', [selectedParty?.name]);
-  }
-
-  function getCustomerService() {
-    return lang('instantiate.authorization_error_info_customer_service', [
-      langAsString('general.customer_service_phone_number'),
-    ]);
-  }
-
-  function getCheckRights(hostName: string) {
-    return lang('instantiate.authorization_error_check_rights', [hostName]);
-  }
-
-  function getErrorInfoRights(hostName: string) {
-    return lang('instantiate.authorization_error_info_rights', [hostName]);
-  }
-
-  function createErrorContent() {
-    const hostName = getHostname();
-
-    const errorRights = getErrorRights();
-    const errorChangeParty = <Link to='/party-selection/'>{lang('party_selection.change_party')}</Link>;
-    const errorAsk = lang('instantiate.authorization_error_ask');
-    const errorCheckRights = getCheckRights(hostName);
-    const errorMoreInfo = getErrorInfoRights(hostName);
-    const errorCustomerService = getCustomerService();
-
-    return (
-      <>
-        <span>
-          {errorRights} ({errorChangeParty}).{' '}
-        </span>
-        <br />
-        <br />
-        <span>{errorAsk} </span>
-        <br />
-        <span>{errorCheckRights}</span>
-        <br />
-        <br />
-        <span>{errorMoreInfo}</span>
-        <span>{errorCustomerService}</span>
-      </>
-    );
-  }
 
   return (
     <InstantiationErrorPage
-      title={lang('instantiate.authorization_error_main_title')}
-      content={createErrorContent()}
+      title={<Lang id={'instantiate.authorization_error_main_title'} />}
+      content={
+        <>
+          <span>
+            <Lang
+              id={'instantiate.authorization_error_rights'}
+              params={[selectedParty?.name]}
+            />{' '}
+            (
+            <Link to='/party-selection/'>
+              <Lang id={'party_selection.change_party'} />
+            </Link>
+            ).
+          </span>
+          <br />
+          <br />
+          <span>
+            <Lang id={'instantiate.authorization_error_ask'} />
+          </span>
+          <br />
+          <span>
+            <Lang
+              id={'instantiate.authorization_error_check_rights'}
+              params={[getHostname()]}
+            />
+          </span>
+          <br />
+          <br />
+          <span>
+            <Lang
+              id={'instantiate.authorization_error_info_rights'}
+              params={[getHostname()]}
+            />
+          </span>
+          <span>
+            <Lang
+              id={'instantiate.authorization_error_info_customer_service'}
+              params={[
+                <Lang
+                  key={0}
+                  id={'general.customer_service_phone_number'}
+                />,
+              ]}
+            />
+          </span>
+        </>
+      }
       statusCode={`${langAsString('party_selection.error_caption_prefix')} 403`}
     />
   );

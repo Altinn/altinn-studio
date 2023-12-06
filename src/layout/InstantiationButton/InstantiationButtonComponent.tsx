@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLanguage } from 'src/features/language/useLanguage';
+import { Lang } from 'src/features/language/Lang';
 import { InstantiationButton } from 'src/layout/InstantiationButton/InstantiationButton';
 import classes from 'src/layout/InstantiationButton/InstantiationButton.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -12,7 +12,6 @@ export type IInstantiationButtonComponentProvidedProps = IButtonProvidedProps;
 
 export function InstantiationButtonComponent({ node, ...componentProps }: IInstantiationButtonComponentReceivedProps) {
   const props: IInstantiationButtonComponentProvidedProps = { ...componentProps, ...node.item, node };
-  const { lang } = useLanguage();
 
   const parentIsPage = props.node.parent instanceof LayoutPage;
   return (
@@ -20,7 +19,9 @@ export function InstantiationButtonComponent({ node, ...componentProps }: IInsta
       className={classes.container}
       style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
     >
-      <InstantiationButton {...props}>{lang(node.item.textResourceBindings?.title)}</InstantiationButton>
+      <InstantiationButton {...props}>
+        <Lang id={node.item.textResourceBindings?.title} />
+      </InstantiationButton>
     </div>
   );
 }

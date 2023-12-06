@@ -4,6 +4,7 @@ import type { FileRejection } from 'react-dropzone';
 
 import { CloudUpIcon } from '@navikt/aksel-icons';
 
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/DropZone/DropzoneComponent.module.css';
 import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/DropZone/mapExtensionToAcceptMime';
@@ -64,7 +65,7 @@ export function DropzoneComponent({
   textResourceBindings,
 }: IDropzoneComponentProps): React.JSX.Element {
   const maxSizeLabelId = `file-upload-max-size-${id}`;
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   return (
     <div>
       <div
@@ -125,13 +126,13 @@ export function DropzoneComponent({
                   className={`${classes.fileUploadTextBold}`}
                 >
                   {isMobile ? (
-                    lang('form_filler.file_uploader_upload')
+                    <Lang id='form_filler.file_uploader_upload' />
                   ) : (
                     <>
-                      {langAsString('form_filler.file_uploader_drag')}
+                      <Lang id={'form_filler.file_uploader_drag'} />
                       <span className={`${classes.fileUploadTextBold} ${classes.blueUnderLine}`}>
                         {' '}
-                        {langAsString('form_filler.file_uploader_find')}
+                        <Lang id='form_filler.file_uploader_find' />
                       </span>
                     </>
                   )}
@@ -140,7 +141,7 @@ export function DropzoneComponent({
                   id={formatLabelId}
                   className={classes.fileUploadText}
                 >
-                  {langAsString('form_filler.file_uploader_valid_file_format')}
+                  <Lang id='form_filler.file_uploader_valid_file_format' />
                   {hasCustomFileEndings
                     ? ` ${validFileEndings}`
                     : ` ${langAsString('form_filler.file_upload_valid_file_format_all')}`}

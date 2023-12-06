@@ -4,6 +4,7 @@ import { LegacyTextField } from '@digdir/design-system-react';
 import axios from 'axios';
 
 import { Label } from 'src/components/form/Label';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
@@ -35,7 +36,7 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
   const cancelToken = axios.CancelToken;
   const source = cancelToken.source();
   const { id, required, readOnly, labelSettings, simplified, saveWhileTyping } = node.item;
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
 
   const bindings = 'dataModelBindings' in node.item ? node.item.dataModelBindings || {} : {};
 
@@ -255,7 +256,7 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
     >
       <div>
         <Label
-          labelText={lang('address_component.address')}
+          label={<Lang id={'address_component.address'} />}
           helpText={undefined}
           id={`address_address_${id}`}
           required={required}
@@ -281,7 +282,7 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
       {!simplified && (
         <div>
           <Label
-            labelText={lang('address_component.care_of')}
+            label={<Lang id={'address_component.care_of'} />}
             helpText={undefined}
             id={`address_care_of_${id}`}
             required={required}
@@ -307,7 +308,7 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
       <div className={classes.addressComponentPostplaceZipCode}>
         <div className={classes.addressComponentZipCode}>
           <Label
-            labelText={lang('address_component.zip_code')}
+            label={<Lang id={'address_component.zip_code'} />}
             helpText={undefined}
             id={`address_zip_code_${id}`}
             required={required}
@@ -335,7 +336,7 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
 
         <div className={classes.addressComponentPostplace}>
           <Label
-            labelText={lang('address_component.post_place')}
+            label={<Lang id={'address_component.post_place'} />}
             helpText={undefined}
             id={`address_post_place_${id}`}
             required={required}
@@ -362,14 +363,16 @@ export function AddressComponent({ formData, handleDataChange, componentValidati
       {!simplified && (
         <div>
           <Label
-            labelText={lang('address_component.house_number')}
+            label={<Lang id={'address_component.house_number'} />}
             helpText={undefined}
             id={`address_house_number_${id}`}
             required={required}
             readOnly={readOnly}
             labelSettings={labelSettings}
           />
-          <p>{lang('address_component.house_number_helper')}</p>
+          <p>
+            <Lang id={'address_component.house_number_helper'} />
+          </p>
           <div className={classes.addressComponentSmallInputs}>
             <LegacyTextField
               id={`address_house_number_${id}`}

@@ -6,6 +6,7 @@ import cn from 'classnames';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
@@ -27,7 +28,7 @@ export const CheckboxContainerComponent = ({
 }: ICheckboxContainerProps) => {
   const { id, layout, readOnly, textResourceBindings, dataModelBindings, required, labelSettings, alertOnChange } =
     node.item;
-  const { lang, langAsString } = useLanguage();
+  const { langAsString } = useLanguage();
   const {
     value: _value,
     setValue,
@@ -62,14 +63,16 @@ export const CheckboxContainerComponent = ({
 
   const labelTextGroup = (
     <span className={classes.checkBoxLabelContainer}>
-      {lang(node.item.textResourceBindings?.title)}
+      <Lang id={node.item.textResourceBindings?.title} />
       <RequiredIndicator required={required} />
       <OptionalIndicator
         labelSettings={labelSettings}
         required={required}
       />
       {textResourceBindings?.help && (
-        <HelpText title={langAsString(textResourceBindings?.help)}>{lang(textResourceBindings?.help)}</HelpText>
+        <HelpText title={langAsString(textResourceBindings?.help)}>
+          <Lang id={textResourceBindings?.help} />
+        </HelpText>
       )}
     </span>
   );
@@ -92,7 +95,7 @@ export const CheckboxContainerComponent = ({
       <Checkbox.Group
         className={cn({ [classes.horizontal]: horizontal }, classes.checkboxGroup)}
         legend={labelTextGroup}
-        description={lang(textResourceBindings?.description)}
+        description={<Lang id={textResourceBindings?.description} />}
         disabled={readOnly}
         hideLegend={overrideDisplay?.renderLegend === false}
         error={!isValid}

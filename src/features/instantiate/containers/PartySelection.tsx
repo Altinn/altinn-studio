@@ -8,6 +8,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { AltinnParty } from 'src/components/altinnParty';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentParty, useParties, useSetCurrentParty } from 'src/features/party/PartiesProvider';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
@@ -81,7 +82,7 @@ export const PartySelection = () => {
   const appMetadata = useApplicationMetadata();
 
   const appPromptForPartyOverride = appMetadata.promptForParty;
-  const { langAsString, lang } = useLanguage();
+  const { langAsString } = useLanguage();
 
   const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
@@ -312,11 +313,13 @@ export const PartySelection = () => {
               {langAsString('party_selection.why_seeing_this')}
             </Typography>
             <Typography variant='body1'>
-              {lang(
-                appPromptForPartyOverride === 'always'
-                  ? 'party_selection.seeing_this_override'
-                  : 'party_selection.seeing_this_preference',
-              )}
+              <Lang
+                id={
+                  appPromptForPartyOverride === 'always'
+                    ? 'party_selection.seeing_this_override'
+                    : 'party_selection.seeing_this_preference'
+                }
+              />
             </Typography>
           </Grid>
         )}
