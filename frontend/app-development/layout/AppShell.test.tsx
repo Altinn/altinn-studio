@@ -61,7 +61,7 @@ describe('App', () => {
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
   });
 
-  it('renders "NotFoundPage" when repoStatus has error', async () => {
+  it('renders "StudioNotFoundPage" when repoStatus has error', async () => {
     render({
       getRepoStatus: () => Promise.reject({ message: 'Not found', response: { status: 404 } }),
     });
