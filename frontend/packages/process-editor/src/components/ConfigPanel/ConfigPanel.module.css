@@ -1,0 +1,9 @@
+.configPanel {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  flex: 1;
+  overflow-y: scroll;
+}
+
+.content {
+  padding: 1.5rem;
+}
