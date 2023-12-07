@@ -161,6 +161,9 @@ export function nn(): FixedLanguageList {
       value: 'Verdi',
       version: 'Versjon',
       wait_for_attachments: 'Vent litt, vi prosesserer vedlegg',
+      part_of_form_completed: 'Denne delen av skjemaet er ikkje tilgjengeleg. Du kan ikkje gjere endringar her no',
+      invalid_task_id: 'Denne delen av skjemaet finst ikkje.',
+      navigate_to_current_process: 'Gå til rett prosesstrinn',
     },
     group: {
       row_error: 'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',

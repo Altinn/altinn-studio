@@ -3,14 +3,10 @@ import React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 import cn from 'classnames';
 
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsMobile } from 'src/hooks/useIsMobile';
-import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
-import { reducePageValidations } from 'src/types';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 const useStyles = makeStyles((theme) => ({
@@ -109,31 +105,25 @@ const NavigationButton = React.forwardRef(
 NavigationButton.displayName = 'NavigationButton';
 
 export const NavigationBarComponent = ({ node }: INavigationBar) => {
-  const { triggers, compact } = node.item;
+  const { compact } = node.item;
   const classes = useStyles();
-  const dispatch = useAppDispatch();
-  const pageIds = useAppSelector(selectLayoutOrder);
-  const pageTriggers = useAppSelector((state) => state.formLayout.uiConfig.pageTriggers);
-  const pageOrPropTriggers = triggers || pageTriggers;
-  const currentPageId = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const [showMenu, setShowMenu] = React.useState(false);
   const isMobile = useIsMobile() || compact === true;
   const { langAsString } = useLanguage();
+  const { navigateToPage, currentPageId, order } = useNavigatePage();
 
   const firstPageLink = React.useRef<HTMLButtonElement>();
 
   const handleNavigationClick = (pageId: string) => {
+    setShowMenu(false);
     if (pageId === currentPageId) {
-      return setShowMenu(false);
+      return;
     }
 
-    const runValidations = reducePageValidations(pageOrPropTriggers);
-    dispatch(
-      FormLayoutActions.updateCurrentView({
-        newView: pageId,
-        runValidations,
-      }),
-    );
+    /**
+     * TODO(1508): Need to run validations
+     */
+    navigateToPage(pageId);
   };
 
   const shouldShowMenu = !isMobile || showMenu;
@@ -149,7 +139,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
     }
   }, [showMenu]);
 
-  if (!pageIds) {
+  if (!order) {
     return null;
   }
 
@@ -174,7 +164,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
           >
             <span className={classes.dropdownMenuContent}>
               <span>
-                {pageIds.indexOf(currentPageId) + 1}/{pageIds.length} <Lang id={currentPageId} />
+                {order.indexOf(currentPageId) + 1}/{order.length} <Lang id={currentPageId} />
               </span>
               <i className={cn('ai ai-arrow-down', classes.dropdownIcon)} />
             </span>
@@ -188,7 +178,7 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
               [classes.menuCompact]: isMobile,
             })}
           >
-            {pageIds.map((pageId, index) => (
+            {order.map((pageId, index) => (
               <li
                 key={pageId}
                 className={classes.containerBase}

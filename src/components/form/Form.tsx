@@ -8,6 +8,7 @@ import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getFieldName } from 'src/utils/formComponentUtils';
 import { extractBottomButtons, hasRequiredFields } from 'src/utils/formLayout';
@@ -15,24 +16,18 @@ import { useExprContext } from 'src/utils/layout/ExprContext';
 import { getFormHasErrors, missingFieldsInLayoutValidations } from 'src/utils/validation/validation';
 
 export function Form() {
-  const nodes = useExprContext();
   const langTools = useLanguage();
+  const { currentPageId } = useNavigatePage();
   const validations = useAppSelector((state) => state.formValidations.validations);
-  const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
-  const page = nodes?.current();
-  const pageKey = page?.top.myKey;
+  const nodes = useExprContext();
 
-  const [mainNodes, errorReportNodes] = React.useMemo(() => {
-    if (!page) {
-      return [[], []];
-    }
-    return hasErrors ? extractBottomButtons(page) : [page.children(), []];
-  }, [page, hasErrors]);
+  const page = nodes?.all?.()?.[currentPageId];
+  const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
 
   const requiredFieldsMissing = React.useMemo(() => {
-    if (validations && pageKey && validations[pageKey]) {
+    if (validations && validations[currentPageId]) {
       const requiredValidationTextResources: string[] = [];
-      page.flat(true).forEach((node) => {
+      page?.flat(true).forEach((node) => {
         const trb = node.item.textResourceBindings;
         const fieldName = getFieldName(trb, langTools);
         if ('required' in node.item && node.item.required && trb && 'requiredValidation' in trb) {
@@ -40,15 +35,18 @@ export function Form() {
         }
       });
 
-      return missingFieldsInLayoutValidations(validations[pageKey], requiredValidationTextResources, langTools);
+      return missingFieldsInLayoutValidations(validations[currentPageId], requiredValidationTextResources, langTools);
     }
 
     return false;
-  }, [validations, pageKey, page, langTools]);
+  }, [validations, currentPageId, page, langTools]);
 
-  if (!page) {
-    return null;
-  }
+  const [mainNodes, errorReportNodes] = React.useMemo(() => {
+    if (!page) {
+      return [[], []];
+    }
+    return hasErrors ? extractBottomButtons(page) : [page.children(), []];
+  }, [page, hasErrors]);
 
   return (
     <>
@@ -63,7 +61,7 @@ export function Form() {
         spacing={3}
         alignItems='flex-start'
       >
-        {mainNodes.map((n) => (
+        {mainNodes?.map((n) => (
           <GenericComponent
             key={n.item.id}
             node={n}

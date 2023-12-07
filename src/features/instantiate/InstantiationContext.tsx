@@ -72,11 +72,11 @@ export function InstantiationProvider({ children }: React.PropsWithChildren) {
   // Redirect to the instance page when instantiation completes
   useEffect(() => {
     if (instantiate.data?.id) {
-      navigate(`instance/${instantiate.data.id}`);
+      navigate(`/instance/${instantiate.data.id}`);
       setBusyWithId(undefined);
     }
     if (instantiateWithPrefill.data?.id) {
-      navigate(`instance/${instantiateWithPrefill.data.id}`);
+      navigate(`/instance/${instantiateWithPrefill.data.id}`);
       setBusyWithId(undefined);
     }
   }, [instantiate.data?.id, instantiateWithPrefill.data?.id, navigate]);

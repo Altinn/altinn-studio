@@ -18,7 +18,9 @@ import type { CompGroupExternal } from 'src/layout/Group/config.generated';
 import type { IRepeatingGroups } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
-export function* repGroupDeleteRowSaga({ payload: { groupId, index } }: PayloadAction<IRepGroupDelRow>): SagaIterator {
+export function* repGroupDeleteRowSaga({
+  payload: { groupId, index, currentPageId },
+}: PayloadAction<IRepGroupDelRow>): SagaIterator {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
     const repeatingGroups = formLayoutState.uiConfig.repeatingGroups;
@@ -29,7 +31,10 @@ export function* repGroupDeleteRowSaga({ payload: { groupId, index } }: PayloadA
     if (!layouts) {
       throw new Error('Layouts not set');
     }
-    const currentLayout = layouts[formLayoutState.uiConfig.currentView];
+    if (!currentPageId) {
+      throw new Error('No current page id set');
+    }
+    const currentLayout = layouts[currentPageId];
     if (!currentLayout) {
       throw new Error('Current layout not set');
     }

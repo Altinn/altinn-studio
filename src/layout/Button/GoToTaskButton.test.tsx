@@ -7,7 +7,11 @@ import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Button'>> = {}) => {
+const render = async ({
+  component,
+  genericProps,
+  queries,
+}: Partial<RenderGenericComponentTestProps<'Button'>> = {}) => {
   const { store } = await renderGenericComponentTest({
     type: 'Button',
     renderer: (props) => <ButtonComponent {...props} />,
@@ -21,6 +25,7 @@ const render = async ({ component, genericProps }: Partial<RenderGenericComponen
     genericProps,
     queries: {
       fetchProcessNextSteps: () => Promise.resolve(['a', 'b']),
+      ...queries,
     },
   });
 

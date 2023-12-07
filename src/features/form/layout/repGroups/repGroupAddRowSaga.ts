@@ -10,7 +10,9 @@ import type { IRepGroupAddRow } from 'src/features/form/layout/formLayoutTypes';
 import type { CompGroupExternal } from 'src/layout/Group/config.generated';
 import type { IRepeatingGroups } from 'src/types';
 
-export function* repGroupAddRowSaga({ payload: { groupId } }: PayloadAction<IRepGroupAddRow>): SagaIterator {
+export function* repGroupAddRowSaga({
+  payload: { groupId, currentPageId },
+}: PayloadAction<IRepGroupAddRow>): SagaIterator {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
     const repeatingGroups = formLayoutState.uiConfig.repeatingGroups;
@@ -21,7 +23,10 @@ export function* repGroupAddRowSaga({ payload: { groupId } }: PayloadAction<IRep
     if (!layouts) {
       throw new Error('Layouts not set');
     }
-    const currentLayout = layouts[formLayoutState.uiConfig.currentView];
+    if (!currentPageId) {
+      throw new Error('Current page not set');
+    }
+    const currentLayout = layouts[currentPageId];
     if (!currentLayout) {
       throw new Error('Current layout not set');
     }

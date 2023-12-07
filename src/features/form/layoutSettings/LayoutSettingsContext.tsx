@@ -4,18 +4,20 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { useCurrentLayoutSetId } from 'src/features/form/layout/useCurrentLayoutSetId';
+import { useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 function useLayoutSettingsQuery() {
   const { fetchLayoutSettings } = useAppQueries();
-  const layoutSetId = useCurrentLayoutSetId();
+  const layoutSetId = useLayoutSetId();
   const dispatch = useAppDispatch();
 
+  const queryId = layoutSetId;
+
   return useQuery({
-    queryKey: ['layoutSettings', layoutSetId],
-    queryFn: () => fetchLayoutSettings(layoutSetId),
+    queryKey: ['layoutSettings', queryId],
+    queryFn: () => fetchLayoutSettings(queryId),
     onSuccess: (settings) => {
       dispatch(FormLayoutActions.fetchSettingsFulfilled({ settings }));
     },

@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
-import { Confirm } from 'src/features/confirm/containers/Confirm';
+import { Confirm } from 'src/features/processEnd/confirm/containers/Confirm';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('Confirm', () => {

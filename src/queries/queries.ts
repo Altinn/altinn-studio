@@ -158,7 +158,7 @@ export const fetchFooterLayout = (): Promise<IFooterLayout> => httpGet(getFooter
 
 export const fetchLayoutSets = (): Promise<ILayoutSets> => httpGet(getLayoutSetsUrl());
 
-export const fetchLayouts = (layoutSetId: string | undefined): Promise<ILayoutCollection | ILayoutFileExternal> =>
+export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection | ILayoutFileExternal> =>
   httpGet(getLayoutsUrl(layoutSetId));
 
 export const fetchLayoutSettings = (layoutSetId: string | undefined): Promise<ILayoutSettings> =>

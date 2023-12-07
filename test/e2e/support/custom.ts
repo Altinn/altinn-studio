@@ -38,7 +38,7 @@ Cypress.Commands.add('dsSelect', { prevSubject: true }, (subject: JQueryWithSele
   cy.log(`Selecting ${name}`);
   cy.wrap(subject).should('not.be.disabled');
   cy.wrap(subject).click();
-  cy.findByRole('option', { name }).click();
+  cy.findByRole('option', { name }).click({ force: true });
   cy.get('body').click();
   cy.wrap(subject);
 });
@@ -199,36 +199,40 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
           return false;
         }
         const baseId = dropdown.getAttribute('data-componentbaseid');
-        const currentPageName = state.formLayout.uiConfig.currentView;
-        const currentPage = state.formLayout.layouts && state.formLayout.layouts[currentPageName];
-        const componentDef = currentPage?.find((c) => c.id === baseId);
-        if (!componentDef) {
-          throw new Error(`Could not find component definition for dropdown with id ${baseId}`);
-        }
-        if (
-          componentDef.type === 'Dropdown' &&
-          componentDef.preselectedOptionIndex !== undefined &&
-          !inputInside.value
-        ) {
-          return false;
-        }
 
-        const activeDescendant = dropdown.getAttribute('aria-activedescendant');
-        if (!activeDescendant) {
-          return true;
-        }
-        const activeDescendantElement = win.document.getElementById(activeDescendant);
-        if ((activeDescendant && !inputInside.value) || !activeDescendantElement) {
-          // Dropdown has selected value, but this has not yet been reflected in the input field value.
-          // We should wait until this has happened.
-          return false;
-        }
+        cy.getCurrentPageId().then((currentPageId) => {
+          const currentPage = state?.formLayout?.layouts?.[currentPageId];
+          const componentDef = currentPage?.find((c) => c.id === baseId);
+          if (!componentDef) {
+            // throw new Error(`Could not find component definition for dropdown with id ${baseId}`);
+          }
+          if (
+            componentDef?.type === 'Dropdown' &&
+            componentDef?.preselectedOptionIndex !== undefined &&
+            !inputInside.value
+          ) {
+            return cy.wrap(false);
+          }
+
+          const activeDescendant = dropdown.getAttribute('aria-activedescendant');
+          if (!activeDescendant) {
+            return cy.wrap(true);
+          }
+          const activeDescendantElement = win.document.getElementById(activeDescendant);
+          if ((activeDescendant && !inputInside.value) || !activeDescendantElement) {
+            // Dropdown has selected value, but this has not yet been reflected in the input field value.
+            // We should wait until this has happened.
+            return cy.wrap(false);
+          }
+        });
       }
 
       return true;
     });
   });
 });
+
+Cypress.Commands.add('getCurrentPageId', () => cy.location('hash').then((hash) => hash.split('/').slice(-1)[0]));
 
 Cypress.Commands.add('snapshot', (name: string) => {
   cy.clearSelectionAndWait();

@@ -3,18 +3,16 @@ import React from 'react';
 import { CircularProgress } from '@altinn/altinn-design-system';
 
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 
 export const Progress = () => {
-  const currentPageId = useAppSelector((state) => state.formLayout.uiConfig.currentView);
-  const pageIds = useAppSelector(selectLayoutOrder);
+  const { currentPageId, order } = useNavigatePage();
   const { langAsString } = useLanguage();
 
-  const currentPageIndex = pageIds?.findIndex((page) => page === currentPageId) || 0;
+  const currentPageIndex = order?.findIndex((page) => page === currentPageId) || 0;
   const currentPageNum = currentPageIndex + 1;
 
-  const numberOfPages = pageIds?.length || 0;
+  const numberOfPages = order?.length || 0;
   const labelText = `${currentPageNum}/${numberOfPages}`;
   const value = numberOfPages ? (currentPageNum / numberOfPages) * 100 : 0;
 

@@ -8,6 +8,7 @@ import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { staticUseLanguageFromState, useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
@@ -22,7 +23,7 @@ import type { LayoutPages } from 'src/utils/layout/LayoutPages';
  */
 function resolvedNodesInLayouts(
   layouts: ILayouts | null,
-  currentLayout: string,
+  currentView: string | undefined,
   repeatingGroups: IRepeatingGroups | null,
   dataSources: HierarchyDataSources,
 ) {
@@ -31,7 +32,7 @@ function resolvedNodesInLayouts(
   const layoutsCopy: ILayouts = layouts ? structuredClone(layouts) : {};
   const unresolved = generateEntireHierarchy(
     layoutsCopy,
-    currentLayout,
+    currentView,
     repeatingGroups,
     dataSources,
     getLayoutComponentObject,
@@ -118,7 +119,7 @@ function innerResolvedLayoutsFromState(
   repeatingGroups: IRepeatingGroups | null,
   dataSources: HierarchyDataSources,
 ): LayoutPages | undefined {
-  if (!layouts || !currentView || !repeatingGroups) {
+  if (!layouts || !repeatingGroups) {
     return undefined;
   }
 
@@ -149,7 +150,8 @@ function useResolvedExpressions() {
   const hiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
   const validations = useAppSelector((state) => state.formValidations.validations);
   const layouts = useAppSelector((state) => state.formLayout.layouts);
-  const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
+  const { pageKey } = useNavigationParams();
+  const currentView = pageKey;
   const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
   const devTools = useAppSelector((state) => state.devTools);
   const langTools = useLanguage();

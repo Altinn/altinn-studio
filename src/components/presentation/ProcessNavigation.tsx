@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ConfirmButton } from 'src/features/confirm/components/ConfirmButton';
+import { ConfirmButton } from 'src/features/processEnd/confirm/components/ConfirmButton';
 
 export const ProcessNavigation = () => (
   <div className={'process-navigation'}>

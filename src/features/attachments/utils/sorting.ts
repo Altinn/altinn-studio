@@ -15,12 +15,12 @@ export function mergeAndSort(...args: IAttachments[]) {
   }
 
   // Sort all attachments by name
-  for (const nodeId in Object.keys(result)) {
+  Object.keys(result).forEach((nodeId) => {
     const attachments = result[nodeId];
     if (attachments) {
       attachments.sort(sortAttachmentsByName);
     }
-  }
+  });
 
   return result;
 }

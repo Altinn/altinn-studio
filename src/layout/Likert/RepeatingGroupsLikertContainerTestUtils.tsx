@@ -224,6 +224,7 @@ export const render = async ({
   const { store } = await renderWithInstanceAndLayout({
     renderer: () => <ContainerTester id={mockLikertContainer.id} />,
     reduxState,
+    initialPage: 'Task_1/FormLayout',
     queries: {
       fetchOptions: () => Promise.resolve({ data: mockOptions, headers: {} } as AxiosResponse<IOption[], any>),
       fetchTextResources: () => Promise.resolve(createTextResource(mockQuestions, extraTextResources)),

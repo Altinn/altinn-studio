@@ -1,44 +1,33 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
 
 import { Chip, Fieldset, Select } from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useExprContext } from 'src/utils/layout/ExprContext';
 
 export const DevNavigationButtons = () => {
-  const { currentView, pageOrderConfig } = useAppSelector((state) => state.formLayout.uiConfig);
+  const { navigateToPage, currentPageId } = useNavigatePage();
+  const { hidden } = usePageNavigationContext();
+  const { orderWithHidden } = useUiConfigContext();
   const ctx = useExprContext();
-  const dispatch = useDispatch();
-  const order = pageOrderConfig?.order ?? [];
+  const order = orderWithHidden ?? [];
   const allPages = ctx?.allPageKeys() || [];
 
   function handleChange(newView: string) {
-    dispatch(FormLayoutActions.updateCurrentView({ newView, allowNavigationToHidden: true }));
+    navigateToPage(newView);
   }
 
   function isHidden(page: string) {
-    return pageOrderConfig?.hidden.includes(page);
-  }
-
-  function isHiddenLegacy(page: string) {
-    // Checks if not in order
-    return !order.includes(page);
-  }
-
-  function isHiddenAny(page: string) {
-    return isHidden(page) || isHiddenLegacy(page);
+    return hidden.includes(page);
   }
 
   function hiddenText(page: string) {
     if (isHidden(page)) {
       return 'Denne siden er skjult for brukeren (via dynamikk)';
-    }
-    if (isHiddenLegacy(page)) {
-      return 'Denne siden er skjult for brukeren (via sporvalg)';
     }
     return '';
   }
@@ -75,10 +64,10 @@ export const DevNavigationButtons = () => {
           {orderedPages.map((page) => (
             <Chip.Toggle
               key={page}
-              className={isHiddenAny(page) ? classes.hiddenPage : undefined}
+              className={isHidden(page) ? classes.hiddenPage : undefined}
               title={hiddenText(page)}
               onClick={() => handleChange(page)}
-              selected={currentView == page}
+              selected={currentPageId == page}
             >
               {page}
             </Chip.Toggle>
@@ -87,14 +76,14 @@ export const DevNavigationButtons = () => {
       </div>
       <div className={cn(classes.dropdown, { [classes.responsiveDropdown]: !compactView })}>
         <Select
-          value={currentView}
+          value={currentPageId}
           options={
             order?.map((page) => ({
               value: page,
               label: page,
               formattedLabel: (
                 <span
-                  className={isHiddenAny(page) ? classes.hiddenPage : classes.visiblePage}
+                  className={isHidden(page) ? classes.hiddenPage : classes.visiblePage}
                   title={hiddenText(page)}
                 >
                   {page}

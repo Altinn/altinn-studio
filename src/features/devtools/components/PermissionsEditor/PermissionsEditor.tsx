@@ -6,7 +6,7 @@ import { Checkbox } from '@digdir/design-system-react';
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { useLaxProcessData, useSetProcessData } from 'src/features/instance/ProcessContext';
-import type { ITask } from 'src/types/shared';
+import type { IProcess, ITask } from 'src/types/shared';
 
 export const PermissionsEditor = () => {
   // TODO: Fix this editor, as the process data is in a context _inside_ the DevTools context, so we cannot reach it
@@ -14,22 +14,20 @@ export const PermissionsEditor = () => {
   const { write, actions } = useLaxProcessData()?.currentTask || {};
   const dispatch = useDispatch();
   const setProcessData = useSetProcessData();
+  const processData = useLaxProcessData();
 
   function handleChange(mutator: (obj: ITask) => ITask) {
-    setProcessData &&
-      setProcessData((processData) => {
-        const currentTask = processData?.currentTask;
-        if (currentTask) {
-          return {
-            ...processData,
-            currentTask: {
-              ...processData.currentTask,
-              ...mutator(currentTask),
-            },
-          };
-        }
-      });
-
+    if (!processData) {
+      return;
+    }
+    const newProcessData: IProcess = { ...processData };
+    if (processData?.currentTask) {
+      newProcessData.currentTask = {
+        ...processData?.currentTask,
+        ...mutator(processData?.currentTask),
+      };
+    }
+    setProcessData?.(newProcessData);
     dispatch(FormLayoutActions.updateLayouts({}));
   }
 

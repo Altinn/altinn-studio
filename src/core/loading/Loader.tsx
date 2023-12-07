@@ -15,6 +15,7 @@ export const Loader = ({ reason, details }: LoaderProps) => (
   <PresentationComponent
     header={<Lang id='instantiate.starting' />}
     type={ProcessTaskType.Unknown}
+    renderNavBar={false}
   >
     <AltinnContentLoader
       width='100%'

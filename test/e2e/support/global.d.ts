@@ -203,6 +203,7 @@ declare global {
 
       getSummary(label: string): Chainable<Element>;
       testPdf(callback: () => void, returnToForm: boolean = false): Chainable<null>;
+      getCurrentPageId(): Chainable<string>;
     }
   }
 }

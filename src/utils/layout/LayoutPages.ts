@@ -72,7 +72,6 @@ export class LayoutPages<
     if (!this.currentView) {
       return undefined;
     }
-
     const current = this.findLayout(this.currentView);
     if (current) {
       return current;

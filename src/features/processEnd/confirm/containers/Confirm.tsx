@@ -3,9 +3,9 @@ import React from 'react';
 import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIconReceipt';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { useAppName } from 'src/core/texts/appTexts';
-import { ConfirmPage } from 'src/features/confirm/containers/ConfirmPage';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useParties } from 'src/features/party/PartiesProvider';
+import { ConfirmPage } from 'src/features/processEnd/confirm/containers/ConfirmPage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 
 export const Confirm = () => {

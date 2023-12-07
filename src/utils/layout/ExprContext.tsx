@@ -7,9 +7,9 @@ import {
   shouldUpdate,
 } from 'src/features/form/dynamics/conditionalRenderingSagas';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { selectPageOrderConfig } from 'src/selectors/getLayoutOrder';
 import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
 import { _private, selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
@@ -88,11 +88,11 @@ export function useResolvedNode<T>(selector: string | undefined | T | LayoutNode
  */
 function useLegacyHiddenComponents(resolvedNodes: LayoutPages | undefined) {
   const _currentHiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
-  const pageOrderConfig = useAppSelector(selectPageOrderConfig);
   const formData = useAppSelector((state) => state.formData.formData);
   const rules = useAppSelector((state) => state.formDynamics.conditionalRendering);
   const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
   const dataSources = useAppSelector(selectDataSourcesFromState);
+  const { setHiddenPages, hidden, hiddenExpr } = usePageNavigationContext();
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -100,15 +100,11 @@ function useLegacyHiddenComponents(resolvedNodes: LayoutPages | undefined) {
       return;
     }
 
-    const currentHiddenLayouts = new Set(pageOrderConfig.hidden);
-    const futureHiddenLayouts = runExpressionsForLayouts(resolvedNodes, pageOrderConfig.hiddenExpr, dataSources);
+    const currentHiddenLayouts = new Set<string>(hidden);
+    const futureHiddenLayouts = runExpressionsForLayouts(resolvedNodes, hiddenExpr, dataSources);
 
     if (shouldUpdate(currentHiddenLayouts, futureHiddenLayouts)) {
-      dispatch(
-        FormLayoutActions.updateHiddenLayouts({
-          hiddenLayouts: [...futureHiddenLayouts.values()],
-        }),
-      );
+      setHiddenPages([...futureHiddenLayouts.values()]);
     }
 
     const currentHiddenFields = new Set(_currentHiddenFields);
@@ -151,7 +147,8 @@ function useLegacyHiddenComponents(resolvedNodes: LayoutPages | undefined) {
     repeatingGroups,
     resolvedNodes,
     rules,
-    pageOrderConfig.hidden,
-    pageOrderConfig.hiddenExpr,
+    hidden,
+    hiddenExpr,
+    setHiddenPages,
   ]);
 }

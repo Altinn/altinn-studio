@@ -6,11 +6,6 @@ import { initRepeatingGroupsSaga } from 'src/features/form/layout/repGroups/init
 import { repGroupAddRowSaga } from 'src/features/form/layout/repGroups/repGroupAddRowSaga';
 import { repGroupDeleteRowSaga } from 'src/features/form/layout/repGroups/repGroupDeleteRowSaga';
 import { updateRepeatingGroupEditIndexSaga } from 'src/features/form/layout/repGroups/updateRepeatingGroupEditIndexSaga';
-import {
-  findAndMoveToNextVisibleLayout,
-  moveToNextPageSaga,
-  updateCurrentViewSaga,
-} from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type * as LayoutTypes from 'src/features/form/layout/formLayoutTypes';
@@ -41,7 +36,6 @@ export const initialState: ILayoutState = {
     },
     pageTriggers: [],
     keepScrollPos: undefined,
-    expandedWidth: false,
     excludePageFromPdf: null,
     excludeComponentFromPdf: null,
     pdfLayoutName: undefined,
@@ -88,7 +82,6 @@ export const formLayoutSlice = () => {
           },
         }),
         fetchSettingsFulfilled: mkAction<LayoutTypes.IFetchLayoutSettingsFulfilled>({
-          takeEvery: findAndMoveToNextVisibleLayout,
           reducer: (state, action) => {
             const { settings } = action.payload;
             state.uiConfig.receiptLayoutName = settings?.receiptLayoutName;
@@ -97,58 +90,12 @@ export const formLayoutSlice = () => {
               const order = settings.pages.order;
               if (order) {
                 state.uiConfig.pageOrderConfig.order = order;
-                if (state.uiConfig.currentViewCacheKey) {
-                  let currentView: string;
-                  const lastVisitedPage = localStorage.getItem(state.uiConfig.currentViewCacheKey);
-                  if (lastVisitedPage && order.includes(lastVisitedPage)) {
-                    currentView = lastVisitedPage;
-                  } else {
-                    currentView = order[0];
-                  }
-                  state.uiConfig.currentView = currentView;
-                } else {
-                  state.uiConfig.currentView = order[0];
-                }
               }
             }
-            state.uiConfig.showExpandWidthButton = settings?.pages.showExpandWidthButton;
-            state.uiConfig.expandedWidth = settings?.pages.showExpandWidthButton ? state.uiConfig.expandedWidth : false;
 
             state.uiConfig.pdfLayoutName = settings?.pages.pdfLayoutName;
             state.uiConfig.excludeComponentFromPdf = settings?.components?.excludeFromPdf ?? [];
             state.uiConfig.excludePageFromPdf = settings?.pages?.excludeFromPdf ?? [];
-          },
-        }),
-        setCurrentViewCacheKey: mkAction<LayoutTypes.ISetCurrentViewCacheKey>({
-          reducer: (state, action) => {
-            const { key } = action.payload;
-            state.uiConfig.currentViewCacheKey = key;
-          },
-        }),
-        updateCurrentView: mkAction<LayoutTypes.IUpdateCurrentView>({
-          takeEvery: updateCurrentViewSaga,
-        }),
-        updateCurrentViewFulfilled: mkAction<LayoutTypes.IUpdateCurrentViewFulfilled>({
-          takeEvery: (action) => {
-            if (!action.payload.focusComponentId) {
-              window.scrollTo({ top: 0 });
-            }
-          },
-          reducer: (state, action) => {
-            state.uiConfig.currentView = action.payload.newView;
-            state.uiConfig.returnToView = action.payload.returnToView;
-            state.uiConfig.keepScrollPos = undefined;
-            state.uiConfig.focus = action.payload.focusComponentId;
-          },
-        }),
-        updateCurrentViewRejected: mkAction<LayoutTypes.IUpdateCurrentViewRejected>({
-          reducer: (state, action) => {
-            state.uiConfig.keepScrollPos = action.payload.keepScrollPos;
-          },
-        }),
-        updateFocus: mkAction<LayoutTypes.IUpdateFocus>({
-          reducer: (state, action) => {
-            state.uiConfig.focus = action.payload.focusComponentId;
           },
         }),
         updateHiddenComponents: mkAction<LayoutTypes.IUpdateHiddenComponents>({
@@ -158,11 +105,11 @@ export const formLayoutSlice = () => {
             state.uiConfig.hiddenFields = componentsToHide;
           },
         }),
-        repGroupAddRow: mkAction<{ groupId: string }>({
+        repGroupAddRow: mkAction<LayoutTypes.IRepGroupAddRow>({
           takeEvery: repGroupAddRowSaga,
         }),
         repGroupAddRowFulfilled: genericSetRepeatingGroups,
-        repGroupDeleteRow: mkAction<{ groupId: string; index: number }>({
+        repGroupDeleteRow: mkAction<LayoutTypes.IRepGroupDelRow>({
           takeEvery: repGroupDeleteRowSaga,
           reducer: (state, { payload: { groupId, index } }) => {
             state.uiConfig.repeatingGroups = state.uiConfig.repeatingGroups || {};
@@ -211,21 +158,7 @@ export const formLayoutSlice = () => {
             }
           },
         }),
-        moveToNextPage: mkAction<LayoutTypes.IMoveToNextPage>({
-          takeEvery: moveToNextPageSaga,
-        }),
-        /**
-         * This action (setPageOrder) is used by the e2e-tests
-         * in summary.ts. It is not used in the application.
-         */
-        setPageOrder: mkAction<{ order: string[] }>({
-          reducer: (state, action) => {
-            const { order } = action.payload;
-            state.uiConfig.pageOrderConfig.order = order;
-          },
-        }),
         updateHiddenLayouts: mkAction<LayoutTypes.IHiddenLayoutsUpdate>({
-          takeEvery: findAndMoveToNextVisibleLayout,
           reducer: (state, action) => {
             state.uiConfig.pageOrderConfig.hidden = action.payload.hiddenLayouts;
           },
@@ -250,11 +183,6 @@ export const formLayoutSlice = () => {
             state.layouts = { ...state.layouts, ...action.payload };
           },
         }),
-        toggleExpandedWidth: mkAction<void>({
-          reducer: (state) => {
-            state.uiConfig.expandedWidth = !state.uiConfig.expandedWidth;
-          },
-        }),
       },
     };
   });
@@ -270,17 +198,8 @@ const updateCommonPageSettings = (
     'hideCloseButton' | 'showLanguageSelector' | 'showProgress' | 'triggers' | 'autoSaveBehavior'
   >,
 ) => {
-  const {
-    hideCloseButton = state.uiConfig.hideCloseButton,
-    showLanguageSelector = state.uiConfig.showLanguageSelector,
-    autoSaveBehavior = state.uiConfig.autoSaveBehavior,
-    showProgress = state.uiConfig.showProgress,
-    triggers = state.uiConfig.pageTriggers,
-  } = page;
+  const { autoSaveBehavior = state.uiConfig.autoSaveBehavior, triggers = state.uiConfig.pageTriggers } = page;
 
-  state.uiConfig.hideCloseButton = hideCloseButton;
-  state.uiConfig.showLanguageSelector = showLanguageSelector;
-  state.uiConfig.showProgress = showProgress;
   state.uiConfig.pageTriggers = triggers;
   state.uiConfig.autoSaveBehavior = autoSaveBehavior;
 };

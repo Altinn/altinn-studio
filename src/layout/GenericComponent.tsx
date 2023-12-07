@@ -7,17 +7,17 @@ import classNames from 'classnames';
 import { Description } from 'src/components/form/Description';
 import { Label } from 'src/components/form/Label';
 import { Legend } from 'src/components/form/Legend';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import { Triggers } from 'src/layout/common.generated';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { shouldComponentRenderLabel } from 'src/layout/index';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import { makeGetFocus } from 'src/selectors/getLayoutData';
 import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { ISingleFieldValidation } from 'src/features/formData/formDataTypes';
@@ -111,16 +111,17 @@ export function GenericComponent<Type extends CompTypes = CompTypes>({
   const dispatch = useAppDispatch();
   const classes = useStyles();
   const gridRef = React.useRef<HTMLDivElement>(null);
-  const GetFocusSelector = makeGetFocus();
   const hasValidationMessages = node.hasValidationMessages('any');
   const hidden = node.isHidden();
   const { langAsNonProcessedString } = useLanguage(node);
+  const { focusId, setFocusId } = usePageNavigationContext();
 
   const formData = node.getFormData() as IComponentFormData<Type>;
-  const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
+  const { pageKey } = useNavigationParams();
+  const currentView = pageKey ?? '';
   const isValid = !node.hasValidationMessages('errors');
 
-  const shouldFocus = useAppSelector((state) => GetFocusSelector(state, { id }));
+  const shouldFocus = id === focusId;
   const componentValidations = useAppSelector(
     (state) => state.formValidations.validations[currentView]?.[id],
     shallowEqual,
@@ -139,7 +140,7 @@ export function GenericComponent<Type extends CompTypes = CompTypes>({
     const updatedErrors = componentErrors.filter((error: string) => error !== errorMessageMaxLength);
 
     return {
-      ...componentValidations.simpleBinding,
+      ...componentValidations?.simpleBinding,
       errors: updatedErrors,
     };
   };
@@ -165,9 +166,9 @@ export function GenericComponent<Type extends CompTypes = CompTypes>({
       if (maybeInput) {
         maybeInput.focus();
       }
-      dispatch(FormLayoutActions.updateFocus({ focusComponentId: null }));
+      setFocusId(undefined);
     }
-  }, [shouldFocus, hidden, dispatch]);
+  }, [shouldFocus, hidden, dispatch, setFocusId]);
 
   if (hidden) {
     return null;

@@ -5,7 +5,7 @@ import 'core-js';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { HashRouter } from 'react-router-dom';
+import { createHashRouter, RouterProvider } from 'react-router-dom';
 
 import 'src/features/toggles';
 import 'src/features/logging';
@@ -23,6 +23,7 @@ import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/Ap
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
+import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
@@ -38,6 +39,13 @@ import { ExprContextWrapper } from 'src/utils/layout/ExprContext';
 import 'src/index.css';
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
 
+const router = createHashRouter([
+  {
+    path: '*',
+    element: <Root />,
+  },
+]);
+
 document.addEventListener('DOMContentLoaded', () => {
   const { store, sagaMiddleware } = setupStore();
   initSagas(sagaMiddleware);
@@ -48,43 +56,49 @@ document.addEventListener('DOMContentLoaded', () => {
     <AppQueriesProvider {...queries}>
       <Provider store={store}>
         <ErrorBoundary>
-          <HashRouter>
-            <AppWrapper>
-              <LanguageProvider>
-                <ThemeWrapper>
-                  <InstantiationProvider>
-                    <ExprContextWrapper>
-                      <ApplicationMetadataProvider>
-                        <OrgsProvider>
-                          <ApplicationSettingsProvider>
-                            <LayoutSetsProvider>
-                              <FooterLayoutProvider>
-                                <ProfileProvider>
-                                  <PartyProvider>
-                                    <TextResourcesProvider>
-                                      <KeepAliveProvider>
-                                        <WindowTitleProvider>
-                                          <DevTools>
-                                            <App />
-                                          </DevTools>
-                                        </WindowTitleProvider>
-                                      </KeepAliveProvider>
-                                    </TextResourcesProvider>
-                                  </PartyProvider>
-                                </ProfileProvider>
-                              </FooterLayoutProvider>
-                            </LayoutSetsProvider>
-                          </ApplicationSettingsProvider>
-                        </OrgsProvider>
-                      </ApplicationMetadataProvider>
-                    </ExprContextWrapper>
-                  </InstantiationProvider>
-                </ThemeWrapper>
-              </LanguageProvider>
-            </AppWrapper>
-          </HashRouter>
+          <AppWrapper>
+            <LanguageProvider>
+              <ThemeWrapper>
+                <RouterProvider router={router} />
+              </ThemeWrapper>
+            </LanguageProvider>
+          </AppWrapper>
         </ErrorBoundary>
       </Provider>
     </AppQueriesProvider>,
   );
 });
+
+function Root() {
+  return (
+    <InstantiationProvider>
+      <PageNavigationProvider>
+        <ExprContextWrapper>
+          <ApplicationMetadataProvider>
+            <OrgsProvider>
+              <ApplicationSettingsProvider>
+                <LayoutSetsProvider>
+                  <FooterLayoutProvider>
+                    <ProfileProvider>
+                      <PartyProvider>
+                        <TextResourcesProvider>
+                          <KeepAliveProvider>
+                            <WindowTitleProvider>
+                              <DevTools>
+                                <App />
+                              </DevTools>
+                            </WindowTitleProvider>
+                          </KeepAliveProvider>
+                        </TextResourcesProvider>
+                      </PartyProvider>
+                    </ProfileProvider>
+                  </FooterLayoutProvider>
+                </LayoutSetsProvider>
+              </ApplicationSettingsProvider>
+            </OrgsProvider>
+          </ApplicationMetadataProvider>
+        </ExprContextWrapper>
+      </PageNavigationProvider>
+    </InstantiationProvider>
+  );
+}

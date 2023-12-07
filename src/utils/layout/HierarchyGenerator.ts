@@ -423,7 +423,7 @@ export function generateHierarchy(
 
 export function generateEntireHierarchy(
   layouts: ILayouts,
-  currentView: string,
+  currentView: string | undefined,
   repeatingGroups: IRepeatingGroups | null,
   dataSources: HierarchyDataSources,
   getLayoutComponentObject: DefGetter,
@@ -431,5 +431,5 @@ export function generateEntireHierarchy(
   const generator = new HierarchyGenerator(layouts, repeatingGroups, dataSources, getLayoutComponentObject);
   generator.run();
 
-  return new LayoutPages(currentView as keyof typeof generator.pages, generator.pages);
+  return new LayoutPages(currentView as keyof typeof generator.pages | undefined, generator.pages);
 }

@@ -408,12 +408,6 @@ describe('Frontend urlHelper.ts', () => {
   });
 
   describe('getLayoutsUrl', () => {
-    it('should return default when no parameter is passed', () => {
-      const result = getLayoutsUrl(undefined);
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/resource/FormLayout.json');
-    });
-
     it('should return layout as passed argument', () => {
       const result = getLayoutsUrl('custom-layout.json');
 

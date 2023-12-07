@@ -6,41 +6,69 @@ import cn from 'classnames';
 
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
 import classes from 'src/components/presentation/NavBar.module.css';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useCurrentParty } from 'src/features/party/PartiesProvider';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { PresentationType, ProcessTaskType } from 'src/types';
+import { httpGet } from 'src/utils/network/networking';
+import { getRedirectUrl } from 'src/utils/urls/appUrlHelper';
+import { returnUrlFromQueryParameter, returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
 
 export interface INavBarProps {
-  handleClose: () => void;
-  handleBack: (e: any) => void;
-  showBackArrow?: boolean;
+  type: PresentationType | ProcessTaskType;
 }
 
 const expandIconStyle = { transform: 'rotate(45deg)' };
 
-export const NavBar = (props: INavBarProps) => {
-  const dispatch = useAppDispatch();
+export const NavBar = ({ type }: INavBarProps) => {
   const { langAsString } = useLanguage();
-  const { hideCloseButton, showLanguageSelector, showExpandWidthButton, expandedWidth } = useAppSelector(
-    (state) => state.formLayout.uiConfig,
-  );
+  const { navigateToPage, previous } = useNavigatePage();
 
-  const handleExpand = () => {
-    dispatch(FormLayoutActions.toggleExpandedWidth());
+  const { returnToView } = usePageNavigationContext();
+  const party = useCurrentParty();
+  const { hideCloseButton, showLanguageSelector, showExpandWidthButton, expandedWidth, toggleExpandedWidth } =
+    useUiConfigContext();
+
+  const handleBackArrowButton = () => {
+    if (returnToView) {
+      navigateToPage(returnToView);
+    } else if (previous !== undefined && (type === ProcessTaskType.Data || type === PresentationType.Stateless)) {
+      navigateToPage(previous);
+    }
   };
 
+  const handleModalCloseButton = () => {
+    const queryParameterReturnUrl = returnUrlFromQueryParameter();
+    const messageBoxUrl = returnUrlToMessagebox(window.location.origin, party?.partyId);
+    if (!queryParameterReturnUrl && messageBoxUrl) {
+      window.location.assign(messageBoxUrl);
+      return;
+    }
+
+    if (queryParameterReturnUrl) {
+      httpGet(getRedirectUrl(queryParameterReturnUrl))
+        .then((response) => response)
+        .catch(() => messageBoxUrl)
+        .then((returnUrl) => {
+          window.location.assign(returnUrl);
+        });
+    }
+  };
+
+  const showBackArrow = !!previous && (type === ProcessTaskType.Data || type === PresentationType.Stateless);
   return (
     <nav
       className={classes.nav}
       aria-label={langAsString('navigation.main')}
     >
       <div>
-        {props.showBackArrow && (
+        {showBackArrow && (
           <Button
             data-testid='form-back-button'
             className={classes.buttonMargin}
-            onClick={props.handleBack}
+            onClick={handleBackArrowButton}
             variant='tertiary'
             color='second'
             size='small'
@@ -49,7 +77,6 @@ export const NavBar = (props: INavBarProps) => {
           />
         )}
       </div>
-
       <div className={classes.wrapper}>
         {showLanguageSelector && <LanguageSelector />}
 
@@ -57,7 +84,7 @@ export const NavBar = (props: INavBarProps) => {
           <Button
             data-testid='form-expand-button'
             className={cn(classes.buttonMargin, { [classes.hideExpandButtonMaxWidth]: !expandedWidth })}
-            onClick={handleExpand}
+            onClick={toggleExpandedWidth}
             variant='tertiary'
             color='second'
             size='small'
@@ -77,12 +104,11 @@ export const NavBar = (props: INavBarProps) => {
             }
           />
         )}
-
         {!hideCloseButton && (
           <Button
             data-testid='form-close-button'
             className={classes.buttonMargin}
-            onClick={props.handleClose}
+            onClick={handleModalCloseButton}
             variant='tertiary'
             color='second'
             size='small'

@@ -7,6 +7,7 @@ import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IRuntimeState } from 'src/types';
 import type { IInstance, IParty } from 'src/types/shared';
@@ -107,6 +108,7 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
   return await renderWithInstanceAndLayout({
     renderer: () => <ReceiptContainer />,
     reduxState,
+    router: PageNavigationRouter(),
     queries: {
       fetchFormData: () => Promise.resolve({}),
     },

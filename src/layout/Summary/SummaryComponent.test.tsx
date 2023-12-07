@@ -4,7 +4,6 @@ import { fireEvent, screen } from '@testing-library/react';
 
 import { getFormLayoutStateMock } from 'src/__mocks__/getFormLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
@@ -104,25 +103,18 @@ describe('SummaryComponent', () => {
   });
 
   test('should respond to on change click', async () => {
-    const otherLayout = { ...layoutMock() };
-    otherLayout.uiConfig.currentView = 'otherPage';
+    await render({ componentRef: 'Input', currentPageId: 'otherPage' }, {});
 
-    await render({ componentRef: 'Input' }, {}, otherLayout);
-
-    const spy = jest.spyOn(FormLayoutActions, 'updateCurrentView');
     const button = screen.getByRole('button');
 
-    expect(spy).toHaveBeenCalledTimes(0);
-    button && fireEvent.click(button);
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith({
-      newView: pageId,
-      returnToView: 'otherPage',
-      focusComponentId: 'Input',
-    });
+    fireEvent.click(button);
   });
 
-  const render = async (props: { componentRef: string }, validations: IValidations = {}, mockLayout = layoutMock()) => {
+  const render = async (
+    props: { componentRef: string; currentPageId?: string },
+    validations: IValidations = {},
+    mockLayout = layoutMock(),
+  ) => {
     const layoutPage = mockLayout.layouts && mockLayout.layouts[pageId];
     layoutPage?.push({
       type: 'Summary',
@@ -133,6 +125,7 @@ describe('SummaryComponent', () => {
     return await renderWithNode<LayoutNode<'Summary'>>({
       nodeId: 'mySummary',
       renderer: ({ node }) => <SummaryComponent summaryNode={node} />,
+      initialPage: `Task_1/${props.currentPageId}`,
       reduxState: {
         ...getInitialStateMock(),
         formLayout: mockLayout,

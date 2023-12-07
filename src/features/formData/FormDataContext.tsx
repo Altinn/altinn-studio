@@ -14,12 +14,13 @@ import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { FormDataActions } from 'src/features/formData/formDataSlice';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
-import { useLaxProcessData, useRealTaskType } from 'src/features/instance/ProcessContext';
+import { useLaxProcessData, useRealTaskType, useTaskType } from 'src/features/instance/ProcessContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
 import { flattenObject } from 'src/utils/databindings';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
@@ -35,7 +36,8 @@ const { Provider } = createContext({
 });
 
 export const FormDataProvider = ({ children }) => {
-  const taskType = useRealTaskType();
+  const { taskId } = useNavigationParams();
+  const taskType = useTaskType(taskId);
   const isDataTask = taskType === ProcessTaskType.Data;
   const isInfoTask =
     taskType === ProcessTaskType.Confirm ||
@@ -43,7 +45,7 @@ export const FormDataProvider = ({ children }) => {
     taskType === ProcessTaskType.Archived;
 
   const queryFormData = useFormDataQuery(isDataTask);
-  const queryInfoFormData = useInfoFormDataQuery(isInfoTask);
+  const queryInfoFormData = useInfoFormDataQuery(isInfoTask, taskId);
   const { error, isLoading } = isDataTask
     ? queryFormData
     : isInfoTask
@@ -115,6 +117,7 @@ function useFormDataQuery(enabled: boolean) {
   }
 
   const { fetchFormData } = useAppQueries();
+
   const out = useQuery({
     queryKey: ['fetchFormData', url, currentTaskId],
     queryFn: async () => flattenObject(await fetchFormData(url!, options)),
@@ -144,7 +147,7 @@ function useFormDataQuery(enabled: boolean) {
   return out;
 }
 
-function useInfoFormDataQuery(enabled: boolean) {
+function useInfoFormDataQuery(enabled: boolean, currentTaskId?: string) {
   const { fetchFormData } = useAppQueries();
   const appMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
   const textResources = useAppSelector((state) => state.textResources.resourceMap);
@@ -169,7 +172,7 @@ function useInfoFormDataQuery(enabled: boolean) {
   }
 
   return useQuery<IFormData, HttpClientError>({
-    queryKey: ['fetchFormData', urlsToFetch],
+    queryKey: ['fetchInfoFormData', urlsToFetch, currentTaskId],
     queryFn: async () => {
       const out: IFormData = {};
       const promises = urlsToFetch.map((url) => fetchFormData(url));

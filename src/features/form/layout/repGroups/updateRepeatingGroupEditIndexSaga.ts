@@ -24,7 +24,7 @@ import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { BackendValidationIssue } from 'src/utils/validation/types';
 
 export function* updateRepeatingGroupEditIndexSaga({
-  payload: { group, index, validate, shouldAddRow },
+  payload: { group, index, validate, shouldAddRow, currentPageId },
 }: PayloadAction<IUpdateRepeatingGroupsEditIndex>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
@@ -98,7 +98,7 @@ export function* updateRepeatingGroupEditIndexSaga({
 
       if (!containsErrors(rowValidations)) {
         if (shouldAddRow) {
-          yield put(FormLayoutActions.repGroupAddRow({ groupId: group }));
+          yield put(FormLayoutActions.repGroupAddRow({ groupId: group, currentPageId }));
         }
         yield put(
           FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({
@@ -116,7 +116,7 @@ export function* updateRepeatingGroupEditIndexSaga({
       }
     } else {
       if (shouldAddRow) {
-        yield put(FormLayoutActions.repGroupAddRow({ groupId: group }));
+        yield put(FormLayoutActions.repGroupAddRow({ groupId: group, currentPageId }));
       }
       yield put(
         FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({

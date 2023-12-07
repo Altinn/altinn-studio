@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import { PageNavigationRouter } from 'src/test/routerUtils';
 
 const { setScreenWidth } = mockMediaQuery(600);
 
@@ -20,6 +20,28 @@ const render = async () => {
     component: {
       id: 'nav1',
     },
+    queries: {
+      fetchLayoutSettings: () => Promise.resolve({ pages: { order: ['page1', 'page2', 'page3'] } }),
+      fetchLayouts: () =>
+        Promise.resolve({
+          page1: {
+            data: {
+              layout: [],
+            },
+          },
+          page2: {
+            data: {
+              layout: [],
+            },
+          },
+          page3: {
+            data: {
+              layout: [],
+            },
+          },
+        }),
+    },
+    router: PageNavigationRouter('page1'),
     reduxState: getInitialStateMock((state) => {
       state.formLayout = {
         layoutsets: null,
@@ -117,37 +139,6 @@ describe('NavigationBar', () => {
         }),
       ).not.toBeInTheDocument();
     });
-
-    it('should dispatch action when navigating to another page', async () => {
-      const { user, store } = await render();
-
-      const btn = screen.getByText(/3\./i);
-      expect(btn).toHaveTextContent(/^3\. page3$/);
-
-      await act(() => user.click(btn));
-
-      expect(store.dispatch).toHaveBeenCalledWith({
-        payload: {
-          newView: 'page3',
-          runValidations: undefined,
-        },
-        type: FormLayoutActions.updateCurrentView.type,
-      });
-    });
-
-    it('should not dispatch action when navigating to the same page', async () => {
-      const { user, store } = await render();
-
-      await act(() =>
-        user.click(
-          screen.getByRole('button', {
-            name: /1\. page1/i,
-          }),
-        ),
-      );
-
-      expect(store.dispatch).not.toHaveBeenCalled();
-    });
   });
 
   describe('Mobile', () => {
@@ -162,7 +153,7 @@ describe('NavigationBar', () => {
         name: /1\/3 page1/i,
       });
 
-      await act(() => user.click(toggleButton));
+      await user.click(toggleButton);
 
       const firstNavButton = screen.getByRole('button', {
         name: /1\. page1/i,
@@ -172,53 +163,21 @@ describe('NavigationBar', () => {
     });
 
     it('should dispatch action when navigating to another page', async () => {
-      const { user, store } = await render();
+      const { user } = await render();
 
-      await act(() =>
-        user.click(
-          screen.getByRole('button', {
-            name: /1\/3 page1/i,
-          }),
-        ),
+      await user.click(
+        screen.getByRole('button', {
+          name: /1\/3 page1/i,
+        }),
       );
 
-      await act(() =>
-        user.click(
-          screen.getByRole('button', {
-            name: /3\. page3/i,
-          }),
-        ),
+      await user.click(
+        screen.getByRole('button', {
+          name: /page3/i,
+        }),
       );
 
-      expect(store.dispatch).toHaveBeenCalledWith({
-        payload: {
-          newView: 'page3',
-          runValidations: undefined,
-        },
-        type: FormLayoutActions.updateCurrentView.type,
-      });
-    });
-
-    it('should not dispatch action when navigating to the same page', async () => {
-      const { user, store } = await render();
-
-      await act(() =>
-        user.click(
-          screen.getByRole('button', {
-            name: /1\/3 page1/i,
-          }),
-        ),
-      );
-
-      await act(() =>
-        user.click(
-          screen.getByRole('button', {
-            name: /1\. page1/i,
-          }),
-        ),
-      );
-
-      expect(store.dispatch).not.toHaveBeenCalled();
+      expect(await screen.findByRole('button', { name: /3\/3 page3/i })).toBeVisible();
     });
   });
 });

@@ -26,14 +26,12 @@ import {
   validationContextFromState,
 } from 'src/utils/validation/validationHelpers';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
-import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IFormData } from 'src/features/formData';
 import type { ISaveAction, IUpdateFormData } from 'src/features/formData/formDataTypes';
-import type { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
+import type { IRuntimeState, IUiConfig } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { BackendValidationIssue } from 'src/utils/validation/types';
 
-const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const getApplicationMetaData = (store: IRuntimeState) => store.applicationMetadata?.applicationMetadata;
 const selectUiConfig = (state: IRuntimeState) => state.formLayout.uiConfig;
 
@@ -69,7 +67,6 @@ function* submitComplete(state: IRuntimeState, resolvedNodes: LayoutPages): Saga
     : undefined;
 
   // update validation state
-  const layoutState: ILayoutState = yield select(LayoutSelector);
   const validationObjects = mapValidationIssues(
     serverValidations ?? [],
     resolvedNodes,
@@ -84,12 +81,6 @@ function* submitComplete(state: IRuntimeState, resolvedNodes: LayoutPages): Saga
   if (containsErrors(validationObjects)) {
     // we have validation errors or warnings that should be shown, do not submit
     return yield put(FormDataActions.submitRejected());
-  }
-
-  if (layoutState.uiConfig.currentViewCacheKey) {
-    // Reset cache for current page when ending process task
-    localStorage.removeItem(layoutState.uiConfig.currentViewCacheKey);
-    yield put(FormLayoutActions.setCurrentViewCacheKey({ key: undefined }));
   }
 
   // Data has no validation errors, we complete the current step

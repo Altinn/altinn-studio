@@ -58,7 +58,7 @@ export function validateLayoutSet(layoutSetId: string, layouts: ILayouts, valida
     out[layoutSetId][layoutName] = {};
     for (const component of layout || []) {
       const def = getLayoutComponentObject(component.type);
-      const errors = def.validateLayoutConfing(component as any, validate);
+      const errors = def?.validateLayoutConfing(component as any, validate);
 
       out[layoutSetId][layoutName][component.id] = [];
 

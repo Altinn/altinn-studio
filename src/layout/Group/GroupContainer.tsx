@@ -12,6 +12,7 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import { Triggers } from 'src/layout/common.generated';
 import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
@@ -38,6 +39,8 @@ const getValidationMethod = (node: LayoutNodeForGroup<CompGroupRepeatingInternal
 
 export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
   const dispatch = useAppDispatch();
+  const { pageKey } = useNavigationParams();
+
   const { triggerFocus } = useRepeatingGroupsFocusContext();
   const resolvedTextBindings = node.item.textResourceBindings;
   const id = node.item.id;
@@ -94,7 +97,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
 
   const addNewRowToGroup = useCallback((): void => {
     if (!edit?.alwaysShowAddButton || edit?.mode === 'showAll') {
-      dispatch(FormLayoutActions.repGroupAddRow({ groupId: id }));
+      dispatch(FormLayoutActions.repGroupAddRow({ groupId: id, currentPageId: pageKey }));
     }
 
     if (edit?.mode !== 'showAll' && edit?.mode !== 'onlyTable') {
@@ -104,11 +107,12 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
           index: repeatingGroupIndex + 1,
           validate: edit?.alwaysShowAddButton && repeatingGroupIndex > -1 ? getValidationMethod(node) : undefined,
           shouldAddRow: !!edit?.alwaysShowAddButton,
+          currentPageId: pageKey,
         }),
       );
       setMultiPageIndex(0);
     }
-  }, [dispatch, edit?.alwaysShowAddButton, edit?.mode, id, node, repeatingGroupIndex, setMultiPageIndex]);
+  }, [dispatch, edit?.alwaysShowAddButton, edit?.mode, id, node, repeatingGroupIndex, setMultiPageIndex, pageKey]);
 
   const handleOnAddButtonClick = (): void => {
     addNewRowToGroup();
@@ -139,7 +143,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
   const handleOnRemoveClick = async (index: number) => {
     const attachmentDeletionSuccessful = await onBeforeRowDeletion(index);
     if (attachmentDeletionSuccessful) {
-      dispatch(FormLayoutActions.repGroupDeleteRow({ groupId: id, index }));
+      dispatch(FormLayoutActions.repGroupDeleteRow({ groupId: id, index, currentPageId: pageKey }));
     } else {
       dispatch(FormLayoutActions.repGroupDeleteRowCancelled({ groupId: id, index }));
     }
@@ -151,6 +155,7 @@ export function GroupContainer({ node }: IGroupProps): JSX.Element | null {
         group: id,
         index,
         validate: index === -1 || forceValidation ? getValidationMethod(node) : undefined,
+        currentPageId: pageKey,
       }),
     );
     if (edit?.multiPage && index > -1) {

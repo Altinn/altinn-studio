@@ -7,7 +7,8 @@ import axios from 'axios';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import { mockWindowWithSearch } from 'src/test/mockWindow';
+import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { HttpStatusCodes } from 'src/utils/network/networking';
@@ -42,21 +43,14 @@ const stateWithErrorsAndWarnings = getInitialStateMock({
 describe('Presentation', () => {
   it('should change window.location.href to query parameter returnUrl if valid URL', async () => {
     const returnUrl = 'foo';
+    const { mockAssign, clearWindow } = mockWindowWithSearch({ search: `?returnUrl=${returnUrl}` });
 
     (axios.get as jest.Mock).mockResolvedValue({
       data: returnUrl,
       status: HttpStatusCodes.Ok,
     });
 
-    Object.defineProperty(window, 'location', {
-      value: {
-        ...window,
-        search: `?returnUrl=${returnUrl}`,
-      },
-      writable: true,
-    });
-
-    await render({ type: ProcessTaskType.Data });
+    await render({ type: ProcessTaskType.Data }, undefined, returnUrl);
 
     expect(window.location.href).not.toEqual(returnUrl);
 
@@ -65,26 +59,20 @@ describe('Presentation', () => {
     });
     await user.click(closeButton);
 
-    expect(window.location.href).toEqual(returnUrl);
+    expect(mockAssign).toHaveBeenCalledWith(returnUrl);
 
     await flushPromises();
+    clearWindow();
   });
 
   it('should change window.location.href to default messagebox url if query parameter returnUrl is not valid', async () => {
     const origin = 'https://local.altinn.cloud';
     const returnUrl = 'https://altinn.cloud.no';
+    const { mockAssign, clearWindow } = mockWindowWithSearch({ search: `?returnUrl=${returnUrl}`, origin });
     (axios.get as jest.Mock).mockRejectedValue({
       data: 'Error',
       status: HttpStatusCodes.BadRequest,
     });
-    Object.defineProperty(window, 'location', {
-      value: {
-        ...window,
-        origin,
-        search: `?returnUrl=${returnUrl}`,
-      },
-      writable: true,
-    });
 
     await render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
 
@@ -95,20 +83,15 @@ describe('Presentation', () => {
     });
     await user.click(closeButton);
 
-    expect(window.location.href).toEqual(returnUrlToMessagebox(origin, getPartyMock().partyId));
+    expect(mockAssign).toHaveBeenCalledWith(returnUrlToMessagebox(origin, getPartyMock().partyId));
 
     await flushPromises();
+    clearWindow();
   });
 
   it('should change window.location.href to default messagebox url if query parameter returnUrl is not found', async () => {
     const origin = 'https://local.altinn.cloud';
-    Object.defineProperty(window, 'location', {
-      value: {
-        ...window,
-        origin,
-      },
-      writable: true,
-    });
+    const { mockAssign, clearWindow } = mockWindowWithSearch({ origin });
 
     await render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
 
@@ -119,9 +102,10 @@ describe('Presentation', () => {
     });
     await user.click(closeButton);
 
-    expect(window.location.href).toEqual(returnUrlToMessagebox(origin, getPartyMock().partyId));
+    expect(mockAssign).toHaveBeenCalledWith(returnUrlToMessagebox(origin, getPartyMock().partyId));
 
     await flushPromises();
+    clearWindow();
   });
 
   it('should render children', async () => {
@@ -150,15 +134,20 @@ describe('Presentation', () => {
   });
 });
 
-const render = async (props: Partial<IPresentationProvidedProps> = {}, reduxState?: IRuntimeState) => {
+const render = async (
+  props: Partial<IPresentationProvidedProps> = {},
+  reduxState?: IRuntimeState,
+  returnUrl?: string,
+) => {
   const allProps = {
     header: 'Header text',
     type: ProcessTaskType.Unknown,
     ...props,
   };
 
-  await renderWithoutInstanceAndLayout({
+  await renderWithInstanceAndLayout({
     renderer: () => <PresentationComponent {...allProps} />,
+    initialPage: `Task_1/1?returnUrl=${returnUrl}`,
     reduxState,
   });
 };

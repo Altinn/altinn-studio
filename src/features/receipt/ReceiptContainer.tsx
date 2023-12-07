@@ -126,6 +126,12 @@ export const ReceiptContainer = () => {
     }
   }, [instance, applicationMetadata]);
 
+  // React.useEffect(() => {
+  //   if (!process?.ended) {
+  //     navigateToPage(PageKeys.Confirmation);
+  //   }
+  // }, [process?.ended, navigateToPage]);
+
   const requirementMissing = !attachments
     ? 'attachments'
     : !applicationMetadata

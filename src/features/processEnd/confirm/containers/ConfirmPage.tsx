@@ -3,9 +3,9 @@ import React from 'react';
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ProcessNavigation } from 'src/components/presentation/ProcessNavigation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { returnConfirmSummaryObject } from 'src/features/confirm/helpers/returnConfirmSummaryObject';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { returnConfirmSummaryObject } from 'src/features/processEnd/confirm/helpers/returnConfirmSummaryObject';
 import {
   filterDisplayAttachments,
   filterDisplayPdfAttachments,
