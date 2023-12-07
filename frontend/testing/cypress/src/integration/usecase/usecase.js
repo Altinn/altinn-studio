@@ -2,7 +2,7 @@
 /// <reference types="../../support" />
 
 import * as texts from '@altinn-studio/language/src/nb.json';
-import { administration } from '../../selectors/administration';
+import { overview } from '../../selectors/overview';
 import { deploy } from '../../selectors/deploy';
 import { designer } from '../../selectors/designer';
 import { gitea } from '../../selectors/gitea';
@@ -32,7 +32,7 @@ context(
       cy.studioLogin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
       cy.visit('/');
       cy.searchAndOpenApp(Cypress.env('deployAppName'));
-      administration.getHeader().should('be.visible');
+      overview.getHeader(Cypress.env('deployAppName')).should('be.visible');
     });
 
     it('Navigation', () => {
@@ -40,10 +40,7 @@ context(
       cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
 
       // About app page
-      administration
-        .getAppNameField()
-        .invoke('val')
-        .should('contain', Cypress.env('deployAppName'));
+      overview.getHeader(Cypress.env('deployAppName')).should('be.visible');
 
       // Forms editor
       header.getCreateLink().click();

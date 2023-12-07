@@ -33,6 +33,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
         [Theory]
         [InlineData("ttd", "empty-app", "testUser", "8.0.0", "start-data-confirmation-end.bpmn")]
+        [InlineData("ttd", "empty-app", "testUser", "8.0.0-preview.11", "start-data-confirmation-end.bpmn")]
         public async Task SaveProcessDefinitionFromTemplate_ShouldReturnOk_AndSaveTemplate(string org, string app, string developer, string version, string templateName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
