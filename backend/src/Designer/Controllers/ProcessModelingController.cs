@@ -73,5 +73,14 @@ namespace Altinn.Studio.Designer.Controllers
             Stream processDefinitionStream = _processModelingService.GetProcessDefinitionStream(editingContext);
             return new FileStreamResult(processDefinitionStream, MediaTypeNames.Text.Plain);
         }
+
+        [HttpPut("tasks/{taskId}/{taskName}")]
+        public async Task<FileStreamResult> UpdateProcessTaskName(string org, string repo, string taskId, string taskName, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+            using Stream updatedProcessDefinitionStream = await _processModelingService.UpdateProcessTaskNameAsync(editingContext, taskId, taskName, cancellationToken);
+            return new FileStreamResult(updatedProcessDefinitionStream, MediaTypeNames.Text.Plain);
+        }
     }
 }
