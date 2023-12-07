@@ -16,7 +16,7 @@ namespace Designer.Tests.Helpers
         {
             string testTemplateCsProjPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet", "App", "App.csproj");
 
-            bool result = PackageVersionHelper.TryGetPackageVersionFromCsprojFile(testTemplateCsProjPath, packageName, out Version version);
+            bool result = PackageVersionHelper.TryGetPackageVersionFromCsprojFile(testTemplateCsProjPath, packageName, out var version);
 
             result.Should().Be(expectedResult);
 
