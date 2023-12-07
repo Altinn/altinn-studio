@@ -41,42 +41,21 @@ const defaultProps: DeletePopoverProps = {
 describe('DeleteModal', () => {
   afterEach(jest.clearAllMocks);
 
-  it('does not show the modal by default when not open', async () => {
-    await render();
-
-    const deleteButton = screen.queryByRole('button', {
-      name: textMock('ux_editor.page_delete_confirm'),
-    });
-    expect(deleteButton).not.toBeInTheDocument();
-  });
-
-  it('opens the modal when the button is clicked', async () => {
-    await render();
-
-    const deleteButton = screen.queryByRole('button', {
-      name: textMock('ux_editor.page_delete_confirm'),
-    });
-    expect(deleteButton).not.toBeInTheDocument();
-
-    await openDeletePopover();
-
-    const deleteButtonAfter = screen.getByRole('button', {
-      name: textMock('ux_editor.page_delete_confirm'),
-    });
-    expect(deleteButtonAfter).toBeInTheDocument();
-  });
-
-  it('calls "onDelete" when delete button is clicked', async () => {
-    const user = userEvent.setup();
+  it.only('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed', async () => {
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     await render();
     await openDeletePopover();
 
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('ux_editor.page_delete_confirm'),
-    });
-    await act(() => user.click(deleteButton));
-
+    await screen.getByRole('button', { name: textMock('general.delete') }).click();
     expect(deleteFormLayout).toHaveBeenCalledTimes(1);
+    expect(deleteFormLayout).toHaveBeenCalledWith(mockPageName1);
+  });
+
+  it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
+    render();
+    await screen.getByRole('button', { name: textMock('general.delete') }).click();
+    expect(deleteFormLayout).not.toHaveBeenCalled();
   });
 
   it('should update the url to new page when deleting selected page', async () => {

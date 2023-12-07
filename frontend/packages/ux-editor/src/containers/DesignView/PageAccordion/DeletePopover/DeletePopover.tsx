@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import classes from './DeletePopover.module.css';
-import { Button, Paragraph } from '@digdir/design-system-react';
+import React, { useCallback } from 'react';
+import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import { useSearchParams } from 'react-router-dom';
@@ -9,7 +8,6 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import { firstAvailableLayout } from '../../../../utils/formLayoutsUtils';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
-import { AltinnConfirmDialog } from 'app-shared/components';
 
 export type DeletePopoverProps = {
   pageName: string;
@@ -34,43 +32,25 @@ export const DeletePopover = ({ pageName }: DeletePopoverProps): JSX.Element => 
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const layoutOrder = formLayoutSettings?.pages.order;
 
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const handleConfirmDelete = useCallback(() => {
+    if (confirm(t('ux_editor.page_delete_text'))) {
+      deleteLayout(pageName);
 
-  const handleConfirmDelete = () => {
-    deleteLayout(pageName);
-
-    if (selectedLayout === pageName) {
-      const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
-      setSearchParams({ layout: layoutToSelect });
+      if (selectedLayout === pageName) {
+        const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
+        setSearchParams({ layout: layoutToSelect });
+      }
     }
-  };
-
-  const handleClose = () => setIsOpen((prevState) => !prevState);
+  }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
 
   return (
-    <AltinnConfirmDialog
-      open={isOpen}
-      confirmText={t('ux_editor.page_delete_confirm')}
-      onConfirm={handleConfirmDelete}
-      onClose={handleClose}
-      trigger={
-        <Button
-          color='danger'
-          icon={<TrashIcon />}
-          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-            event.stopPropagation();
-            setIsOpen((prevState) => !prevState);
-          }}
-          title={t('general.delete')}
-          variant='tertiary'
-          size='small'
-        />
-      }
-    >
-      <div className={classes.popoverContent}>
-        <Paragraph size='small'>{t('ux_editor.page_delete_text')}</Paragraph>
-        <Paragraph size='small'>{t('ux_editor.page_delete_information')}</Paragraph>
-      </div>
-    </AltinnConfirmDialog>
+    <Button
+      color='danger'
+      icon={<TrashIcon />}
+      onClick={handleConfirmDelete}
+      title={t('general.delete')}
+      variant='tertiary'
+      size='small'
+    />
   );
 };
