@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { Administration } from './Administration';
+import { Overview } from './Overview';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { queriesMock } from 'app-development/test/mocks';
@@ -14,7 +14,7 @@ const title = 'test';
 // Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
 const realConsole = console;
 
-describe('Administration', () => {
+describe('Overview', () => {
   beforeEach(() => {
     global.console = {
       ...console,
@@ -50,7 +50,7 @@ describe('Administration', () => {
       getAppConfig: () => Promise.reject(),
       getOrgList: () => Promise.reject(),
     });
-    expect(await screen.findByText(textMock('administration.fetch_title_error_message')));
+    expect(await screen.findByText(textMock('overview.fetch_title_error_message')));
   });
 
   it('should display AppLogs if environments exist', async () => {
@@ -109,7 +109,7 @@ describe('Administration', () => {
       ),
     });
     expect(
-      await screen.findByRole('heading', { name: textMock('administration.activity') }),
+      await screen.findByRole('heading', { name: textMock('overview.activity') }),
     ).toBeInTheDocument();
   });
 
@@ -123,13 +123,13 @@ describe('Administration', () => {
       ),
     });
     expect(
-      screen.queryByRole('heading', { name: textMock('administration.activity') }),
+      screen.queryByRole('heading', { name: textMock('overview.activity') }),
     ).not.toBeInTheDocument();
   });
 });
 
 const render = (queries = {}) => {
-  return renderWithProviders(<Administration />, {
+  return renderWithProviders(<Overview />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     queries: {
       ...queriesMock,

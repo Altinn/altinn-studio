@@ -36,7 +36,7 @@ describe('AppLogs', () => {
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
-    expect(screen.getByText(textMock('administration.app_logs_error'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.app_logs_error'))).toBeInTheDocument();
   });
 
   it('shows list of deployments', async () => {
@@ -124,11 +124,11 @@ describe('AppLogs', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
     expect(
-      screen.getByRole('heading', { name: textMock('administration.activity') }),
+      screen.getByRole('heading', { name: textMock('overview.activity') }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        textMock('administration.app_logs_title', {
+        textMock('overview.app_logs_title', {
           tagName: '2',
           environment: textMock('general.production_environment'),
           envName: 'PRODUCTION',
@@ -136,9 +136,7 @@ describe('AppLogs', () => {
       ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
-        textMock('administration.app_logs_title', { tagName: '1', envName: 'TT02' }),
-      ),
+      screen.getByText(textMock('overview.app_logs_title', { tagName: '1', envName: 'TT02' })),
     ).toBeInTheDocument();
   });
 
@@ -209,8 +207,8 @@ describe('AppLogs', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
     expect(
-      screen.getByRole('heading', { name: textMock('administration.activity') }),
+      screen.getByRole('heading', { name: textMock('overview.activity') }),
     ).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.no_activity'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.no_activity'))).toBeInTheDocument();
   });
 });

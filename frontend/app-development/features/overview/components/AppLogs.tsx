@@ -29,7 +29,7 @@ export const AppLogs = () => {
   if (isPendingDeploys || envIsPending) return <StudioSpinner />;
 
   if (deploysHasError || envIsError)
-    return <Alert severity='danger'>{t('administration.app_logs_error')}</Alert>;
+    return <Alert severity='danger'>{t('overview.app_logs_error')}</Alert>;
 
   const succeededDeployments = appDeployments.filter(
     (deployment: IDeployment) =>
@@ -51,7 +51,7 @@ export const AppLogs = () => {
   return (
     <div className={classes.appLogs}>
       <Heading level={2} size='xxsmall' className={classes.appLogsTitle}>
-        {t('administration.activity')}
+        {t('overview.activity')}
       </Heading>
       <ul className={classes.logs}>
         {hasSucceededDeployments ? (
@@ -62,14 +62,14 @@ export const AppLogs = () => {
             return (
               <li key={appDeployment.tagName}>
                 <div className={classes.logTitle}>
-                  {t('administration.app_logs_title', {
+                  {t('overview.app_logs_title', {
                     tagName: appDeployment.tagName,
                     environment: keyToTranslationMap[environmentType],
                     envName: appDeployment.envName?.toUpperCase() || '',
                   })}
                 </div>
                 <div>
-                  {t('administration.app_logs_created', {
+                  {t('overview.app_logs_created', {
                     createdBy: appDeployment.createdBy,
                     createdDateTime: formatDateTime(appDeployment.created),
                   })}
@@ -78,7 +78,7 @@ export const AppLogs = () => {
             );
           })
         ) : (
-          <li>{t('administration.no_activity')}</li>
+          <li>{t('overview.no_activity')}</li>
         )}
       </ul>
     </div>
