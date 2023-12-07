@@ -227,7 +227,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             foreach (string csprojFile in csprojFiles)
             {
-                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api", out var version))
+                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api", out SemanticVersion version))
                 {
                     return version;
                 }

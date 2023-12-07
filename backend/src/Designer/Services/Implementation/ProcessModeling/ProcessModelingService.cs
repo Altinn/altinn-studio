@@ -87,7 +87,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             return processStream;
         }
 
-        private IEnumerable<string> EnumerateTemplateResources(Version version)
+        private IEnumerable<string> EnumerateTemplateResources(SemanticVersion version)
         {
             return typeof(ProcessModelingService).Assembly.GetManifestResourceNames()
                 .Where(resourceName => resourceName.Contains(TemplatesFolderIdentifier(version)));
