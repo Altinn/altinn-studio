@@ -37,8 +37,8 @@ namespace Designer.Tests.Services
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-process", "testUser", "Task_1", "NewTaskName", "Utfylling")]
-        public async void UpdateProcessTaskNameAsync_GivenTaskIdAndTaskName_UpdatesTaskName(string org, string repo, string developer,  string taskId, string newTaskName, string oldTaskName)
+        [InlineData("ttd", "app-with-process", "testUser", "Task_1", "NewTaskName")]
+        public async void UpdateProcessTaskNameAsync_GivenTaskIdAndTaskName_UpdatesTaskName(string org, string repo, string developer,  string taskId, string newTaskName)
         {
             // Arrange
             string targetRepository = TestDataHelper.GenerateTestRepoName();

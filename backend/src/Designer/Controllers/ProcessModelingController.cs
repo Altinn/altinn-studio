@@ -75,12 +75,25 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut("tasks/{taskId}/{taskName}")]
-        public async Task<FileStreamResult> UpdateProcessTaskName(string org, string repo, string taskId, string taskName, CancellationToken cancellationToken)
+        public async Task<ActionResult> UpdateProcessTaskName(string org, string repo, string taskId, string taskName, CancellationToken cancellationToken)
         {
+            Guard.AssertArgumentNotNull(taskId, nameof(taskId));
+            Guard.AssertArgumentNotNull(taskName, nameof(taskName));
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            using Stream updatedProcessDefinitionStream = await _processModelingService.UpdateProcessTaskNameAsync(editingContext, taskId, taskName, cancellationToken);
-            return new FileStreamResult(updatedProcessDefinitionStream, MediaTypeNames.Text.Plain);
+            try
+            {
+                Stream updatedProcessDefinitionStream = await _processModelingService.UpdateProcessTaskNameAsync(editingContext, taskId, taskName, cancellationToken);
+                return new FileStreamResult(updatedProcessDefinitionStream, MediaTypeNames.Text.Plain);
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest("Could not deserialize process definition.");
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest("Could not find task with given id.");
+            }
         }
     }
 }
