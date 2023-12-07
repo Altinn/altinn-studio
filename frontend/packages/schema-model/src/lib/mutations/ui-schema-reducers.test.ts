@@ -43,17 +43,13 @@ import {
   stringNodeMock,
   uiSchemaMock,
   simpleParentNodeMock,
-  simpleArrayMock, referenceNodeMock, unusedDefinitionMock,
+  simpleArrayMock,
+  referenceNodeMock,
+  unusedDefinitionMock,
 } from '../../../test/uiSchemaMock';
 import { getChildNodesByFieldPointer } from '../selectors';
 import { expect } from '@jest/globals';
-import {
-  CombinationKind,
-  FieldType,
-  Keyword,
-  ObjectKind,
-  StrRestrictionKey,
-} from '../../types';
+import { CombinationKind, FieldType, Keyword, ObjectKind, StrRestrictionKey } from '../../types';
 import { ROOT_POINTER } from '../constants';
 import { getPointers } from '../mappers/getPointers';
 import { substringAfterLast, substringBeforeLast } from 'app-shared/utils/stringUtils';
@@ -109,8 +105,8 @@ describe('ui-schema-reducers', () => {
   describe('deleteEnumValue', () => {
     it('Deletes the given enum value from the given node', () => {
       const path = enumNodeMock.pointer;
-      const value = enumNodeMock.enum[0];
-      const args: DeleteEnumValueArgs = { path, value };
+      const index = 0;
+      const args: DeleteEnumValueArgs = { path, index };
       result = deleteEnumValue(createNewModelMock(), args);
       const updatedNode = result.getNode(path) as FieldNode;
       expect(updatedNode.enum).toEqual(enumNodeMock.enum.slice(1));

@@ -6,18 +6,16 @@ import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 
 export type EnumFieldProps = {
-  path: string;
   value: string;
   readOnly?: boolean;
   isValid?: boolean;
   onChange: (value: string, oldValue?: string) => void;
-  onDelete?: (path: string, key: string) => void;
+  onDelete: () => void;
   onEnterKeyPress?: () => void;
   baseId: string;
 };
 
 export const EnumField = ({
-  path,
   value,
   readOnly,
   isValid,
@@ -58,18 +56,16 @@ export const EnumField = ({
         onKeyDown={onKeyDown}
         error={!isValid}
       />
-      {onDelete && (
-        <Button
-          title={t('schema_editor.delete_field')}
-          aria-label={t('schema_editor.delete_field')}
-          className={classes.delete}
-          icon={<TrashIcon aria-hidden />}
-          id={`${baseId}-delete-${value}`}
-          onClick={() => onDelete?.(path, value)}
-          color='danger'
-          variant='tertiary'
-        />
-      )}
+      <Button
+        title={t('schema_editor.delete_field')}
+        aria-label={t('schema_editor.delete_field')}
+        className={classes.delete}
+        icon={<TrashIcon aria-hidden />}
+        id={`${baseId}-delete-${value}`}
+        onClick={() => onDelete()}
+        color='danger'
+        variant='tertiary'
+      />
     </div>
   );
 };

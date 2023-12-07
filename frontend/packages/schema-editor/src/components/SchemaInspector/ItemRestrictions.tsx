@@ -36,12 +36,7 @@ export type ItemRestrictionsProps = {
 };
 
 export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
-  const {
-    pointer,
-    isRequired,
-    isArray,
-    restrictions,
-  } = schemaNode;
+  const { pointer, isRequired, isArray, restrictions } = schemaNode;
   const { schemaModel, save } = useSchemaEditorAppContext();
 
   const [enumError, setEnumError] = useState<string>(null);
@@ -70,10 +65,10 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
     }
   };
 
-  const onDeleteEnumClick = (path: string, value: string) =>
-    save(deleteEnumValue(schemaModel, { path, value }));
+  const onDeleteEnumClick = (path: string, index: number) =>
+    save(deleteEnumValue(schemaModel, { path, index }));
 
-  const dispatchAddEnum = () => save(addEnumValue(schemaModel, { path: pointer, value: 'value' }));
+  const dispatchAddEnum = () => save(addEnumValue(schemaModel, { path: pointer, value: '' }));
 
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -109,47 +104,45 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
           [FieldType.String]: <StringRestrictions {...restrictionProps} />,
         }[schemaNode.fieldType]}
       {isArray && <ArrayRestrictions {...restrictionProps} />}
-      {isField(schemaNode) && [FieldType.String, FieldType.Integer, FieldType.Number].includes(schemaNode.fieldType) && (
-        <>
-          <Divider marginless />
-          <Fieldset legend={t('schema_editor.enum_legend')}>
-            {!schemaNode.enum?.length && (
-              <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
-            )}
-            {enumError !== null && (
-              <ErrorMessage>
-                <p>{t('schema_editor.enum_error_duplicate')}</p>
-              </ErrorMessage>
-            )}
-            {schemaNode.enum?.map((value: string, index) => (
-              <EnumField
-                key={`add-enum-field-${index}`}
-                onChange={onChangeEnumValue}
-                onDelete={onDeleteEnumClick}
-                onEnterKeyPress={dispatchAddEnum}
-                path={pointer}
-                value={value}
-                isValid={enumError !== value}
-                baseId={makeDomFriendlyID(pointer)}
-              />
-            ))}
-            <div className={classes.addEnumButton}>
-              <Button
-                aria-label={t('schema_editor.add_enum')}
-                color='second'
-                fullWidth
-                icon={<PlusIcon />}
-                id='add-enum-button'
-                onClick={onAddEnumButtonClick}
-                size='small'
-                variant='secondary'
-              >
-                {t('schema_editor.add_enum')}
-              </Button>
-            </div>
-          </Fieldset>
-        </>
-      )}
+      {isField(schemaNode) &&
+        [FieldType.String, FieldType.Integer, FieldType.Number].includes(schemaNode.fieldType) && (
+          <>
+            <Divider marginless />
+            <Fieldset legend={t('schema_editor.enum_legend')}>
+              {!schemaNode.enum?.length && (
+                <p className={classes.emptyEnumMessage}>{t('schema_editor.enum_empty')}</p>
+              )}
+              {enumError !== null && (
+                <ErrorMessage>{t('schema_editor.enum_error_duplicate')}</ErrorMessage>
+              )}
+              {schemaNode.enum?.map((value: string, index) => (
+                <EnumField
+                  key={`add-enum-field-${index}`}
+                  onChange={onChangeEnumValue}
+                  onDelete={() => onDeleteEnumClick(pointer, index)}
+                  onEnterKeyPress={dispatchAddEnum}
+                  value={value}
+                  isValid={enumError !== value}
+                  baseId={makeDomFriendlyID(pointer)}
+                />
+              ))}
+              <div className={classes.addEnumButton}>
+                <Button
+                  aria-label={t('schema_editor.add_enum')}
+                  color='second'
+                  fullWidth
+                  icon={<PlusIcon />}
+                  id='add-enum-button'
+                  onClick={onAddEnumButtonClick}
+                  size='small'
+                  variant='secondary'
+                >
+                  {t('schema_editor.add_enum')}
+                </Button>
+              </div>
+            </Fieldset>
+          </>
+        )}
     </>
   );
 };

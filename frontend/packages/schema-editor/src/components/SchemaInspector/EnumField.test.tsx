@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { EnumField, EnumFieldProps } from './EnumField';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
-const mockPath: string = 'mockPath';
 const mockValue: string = 'test';
 const mockBaseId: string = 'id123';
 const mockId: string = `${mockBaseId}-enum-${mockValue}`;
@@ -14,11 +13,11 @@ const mockOnDelete = jest.fn();
 const mockOnEnterKeyPress = jest.fn();
 
 const defaultProps: EnumFieldProps = {
-  path: mockPath,
   value: mockValue,
   readOnly: false,
   isValid: true,
   onChange: mockOnChange,
+  onDelete: mockOnDelete,
   onEnterKeyPress: mockOnEnterKeyPress,
   baseId: mockBaseId,
 };
@@ -51,15 +50,6 @@ describe('EnumField', () => {
     expect(textFieldAfter).toHaveValue(updatedValue);
   });
 
-  it('hides delete button when onDelete is not present', () => {
-    render(<EnumField {...defaultProps} />);
-
-    const deleteButton = screen.queryByRole('button', {
-      name: textMock('schema_editor.delete_field'),
-    });
-    expect(deleteButton).not.toBeInTheDocument();
-  });
-
   it('calls onDelete when delete button is clicked', async () => {
     const user = userEvent.setup();
     render(<EnumField {...defaultProps} onDelete={mockOnDelete} />);
@@ -72,7 +62,6 @@ describe('EnumField', () => {
     await act(() => user.click(deleteButton));
 
     expect(mockOnDelete).toHaveBeenCalledTimes(1);
-    expect(mockOnDelete).toHaveBeenCalledWith(mockPath, mockValue);
   });
 
   it('calls onEnterKeyPress when "Enter" key is pressed', async () => {

@@ -8,6 +8,7 @@ import {
   moveArrayItem,
   prepend,
   removeDuplicates,
+  removeItemByIndex,
   removeItemByValue,
   replaceByPredicate,
   replaceItemsByValue,
@@ -57,6 +58,15 @@ describe('arrayUtils', () => {
       expect(removeItemByValue(['a', 'b', 'c'], 'd')).toEqual(['a', 'b', 'c']);
       expect(removeItemByValue([], 'a')).toEqual([]);
       expect(removeItemByValue(['a', 'b', 'c', 'b', 'a'], 'b')).toEqual(['a', 'c', 'a']);
+    });
+  });
+
+  describe('removeItemByIndex', () => {
+    it('Deletes item from array by value', () => {
+      expect(removeItemByIndex([1, 2, 3], 1)).toEqual([1, 3]);
+      expect(removeItemByIndex(['a', 'b', 'c'], 1)).toEqual(['a', 'c']);
+      expect(removeItemByIndex(['a', 'b', 'c'], 3)).toEqual(['a', 'b', 'c']);
+      expect(removeItemByIndex([], 1)).toEqual([]);
     });
   });
 
