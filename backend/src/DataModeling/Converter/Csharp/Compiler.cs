@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -42,12 +41,9 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                         diagnostic.IsWarningAsError ||
                         diagnostic.Severity == DiagnosticSeverity.Error);
 
-                    var errors = new StringBuilder();
                     List<string> customErrorMessages = new();
                     foreach (Diagnostic diagnostic in failures)
                     {
-                        string errorMessage = $"{diagnostic.Id}: {diagnostic.GetMessage()}";
-                        errors.AppendLine(errorMessage);
                         customErrorMessages.Add(diagnostic.GetMessage());
                     }
 
