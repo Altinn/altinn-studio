@@ -4,7 +4,6 @@ import { Button, Textfield, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import { Trans } from 'react-i18next';
 
 type RemoveChangesModalProps = {
   onClose: () => void;
@@ -45,11 +44,7 @@ export const RemoveChangesModal = forwardRef<HTMLDialogElement, RemoveChangesMod
         title={t('settings_modal.local_changes_tab_delete_modal_title')}
       >
         <Paragraph size='small'>
-          <Trans
-            i18nKey={'settings_modal.local_changes_tab_delete_modal_text'}
-            values={{ repositoryName: repo }}
-            components={{ bold: <strong /> }}
-          />
+          {t('settings_modal.local_changes_tab_delete_modal_text')}
         </Paragraph>
         <div className={classes.textFieldWrapper}>
           <Textfield
