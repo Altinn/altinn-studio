@@ -683,7 +683,8 @@
         "id": "testing-custom-button",
         "actions": [
           {
-            "name": "fill"
+            "name": "fill",
+            "type": "UserAction"
           }
         ],
         "type": "CustomButton",
@@ -715,10 +716,11 @@
         }
       },
       {
-        "id": "testing-custom-button",
+        "id": "testing-custom-button-2",
         "actions": [
           {
             "name": "$navigateToPage",
+            "type": "FrontendAction",
             "metadata": {
               "page": "grid"
             }
