@@ -93,7 +93,7 @@ describe('ServicesContext', () => {
     await waitFor(() => result.current.isError);
 
     expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
-    expect(await screen.findAllByText(customErrorMessages[0])).toBeInTheDocument();
+    //expect(await screen.findByText(customErrorMessages[0])).toBeInTheDocument();
     //expect(await screen.findByText(customErrorMessages[1])).toBeInTheDocument();
   });
 

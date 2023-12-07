@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { MetadataOption } from '../../../types/MetadataOption';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
@@ -15,9 +16,9 @@ export const SchemaEditorWithToolbar = ({
   createPathOption,
   datamodels,
 }: SchemaEditorWithToolbarProps) => {
-
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
+  const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
 
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
   const modelName = selectedOption?.label;
@@ -31,7 +32,17 @@ export const SchemaEditorWithToolbar = ({
         selectedOption={selectedOption}
         setCreateNewOpen={setCreateNewOpen}
         setSelectedOption={setSelectedOption}
+        onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
+          setSchemaGenerationErrorMessages(errorMessages)
+        }
       />
+      {schemaGenerationErrorMessages.length > 0 && (
+        <SchemaGenerationErrorsPanel
+          showSchemaGenerationErrors={schemaGenerationErrorMessages.length > 0}
+          onCloseErrorsPanel={() => setSchemaGenerationErrorMessages([])}
+          schemaGenerationErrorMessages={schemaGenerationErrorMessages}
+        />
+      )}
       <main className={classes.main}>
         {!datamodels.length && <LandingPagePanel openCreateNew={() => setCreateNewOpen(true)} />}
         {modelPath && (
