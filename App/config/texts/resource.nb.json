@@ -355,6 +355,14 @@
     {
       "id": "reasons.other",
       "value": "Annen begrunnelse "
+    },
+    {
+      "id": "TestCustomButtonInput.title",
+      "value": "Her kan man skrive input"
+    },
+    {
+      "id": "TestCustomButtonReadOnlyInput.title",
+      "value": "Denne oppdateres av custom button"
     }
   ]
 }

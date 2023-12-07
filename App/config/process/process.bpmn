@@ -19,6 +19,9 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>data</altinn:taskType>
+          <altinn:actions>
+            <altinn:action type="userAction">fill</altinn:action>
+          </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>

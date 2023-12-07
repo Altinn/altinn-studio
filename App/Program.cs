@@ -1,3 +1,4 @@
+using Altinn.App.Actions;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features;
@@ -31,6 +32,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IDataListProvider, ListCases>();
     services.AddTransient<IPageOrder, PageOrder>();
     services.AddTransient<IAppMetadata, CustomMetaData>();
+    services.AddTransient<IUserAction, FillAction>();
     services.AddMimeTypeValidation();
 }
 

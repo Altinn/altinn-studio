@@ -75,6 +75,16 @@ namespace Altinn.App.Models
         [JsonProperty("GridData")]
         [JsonPropertyName("GridData")]
         public GridData? GridData { get; set; }
+        
+        [XmlElement("TestCustomButtonInput")]
+        [JsonProperty("TestCustomButtonInput")]
+        [JsonPropertyName("TestCustomButtonInput")]
+        public string TestCustomButtonInput { get; set; }
+        
+        [XmlElement("TestCustomButtonReadOnlyInput")]
+        [JsonProperty("TestCustomButtonReadOnlyInput")]
+        [JsonPropertyName("TestCustomButtonReadOnlyInput")]
+        public string TestCustomButtonReadOnlyInput { get; set; }
 
     }
 

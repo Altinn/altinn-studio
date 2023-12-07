@@ -680,6 +680,56 @@
         "renderAsSummary": true
       },
       {
+        "id": "testing-custom-button",
+        "actions": [
+          {
+            "name": "fill"
+          }
+        ],
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "label": "Fyll ut skjema"
+        }
+      },
+      {
+        "id": "Input-P4VNaX",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "TestCustomButtonInput"
+        },
+        "required": true,
+        "readOnly": false,
+        "textResourceBindings": {
+          "title": "TestCustomButtonInput.title"
+        }
+      },
+      {
+        "id": "Input-P4VNaW",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "TestCustomButtonReadOnlyInput"
+        },
+        "readOnly": true,
+        "textResourceBindings": {
+          "title": "TestCustomButtonReadOnlyInput.title"
+        }
+      },
+      {
+        "id": "testing-custom-button",
+        "actions": [
+          {
+            "name": "$navigateToPage",
+            "metadata": {
+              "page": "grid"
+            }
+          }
+        ],
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "label": "Trigger frontend actions"
+        }
+      },
+      {
         "id": "button-group1",
         "type": "ButtonGroup",
         "children": ["printBtn", "toSummary"]

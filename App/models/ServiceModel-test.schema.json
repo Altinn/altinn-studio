@@ -356,6 +356,12 @@
     },
     "PersonFornavnAnnetBegrunnelse-datadef-34948": {
       "$ref": "#/definitions/PersonFornavnAnnetBegrunnelse-datadef-34948"
+    },
+    "TestCustomButtonInput": {
+      "type": "string"
+    },
+    "TestCustomButtonReadOnlyInput": {
+      "type": "string"
     }
   },
   "definitions": {
