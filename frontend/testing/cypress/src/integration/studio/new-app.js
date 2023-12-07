@@ -2,7 +2,7 @@
 /// <reference types="../../support" />
 
 import * as texts from '../../../../../language/src/nb.json';
-import { administration } from '../../selectors/administration';
+import { overview } from '../../selectors/overview';
 import { dashboard } from '../../selectors/dashboard';
 import { gitea } from '../../selectors/gitea';
 
@@ -32,7 +32,7 @@ context('New App', () => {
     // Create an app
     const appName = 'my-existing-app';
     cy.createApp(Cypress.env('autoTestUser'), appName);
-    administration.getHeader().should('be.visible');
+    overview.getHeader(appName).should('be.visible');
 
     // Return to dashboard
     cy.visit(`/dashboard`);
@@ -61,7 +61,7 @@ context('New App', () => {
   it('is possible to create an app and delete it', () => {
     const appName = 'new-app';
     cy.createApp(Cypress.env('autoTestUser'), appName);
-    administration.getHeader().should('be.visible');
+    overview.getHeader(appName).should('be.visible');
     cy.visit(`/repos/${Cypress.env('autoTestUser')}/${appName}/settings`);
     gitea.getDeleteButton().should('be.visible').click();
     gitea.getDeleteRepositoryNameField().should('be.visible').type(appName);

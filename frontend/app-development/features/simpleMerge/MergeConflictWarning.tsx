@@ -3,8 +3,8 @@ import classes from './MergeConflictWarning.module.css';
 import { Button } from '@digdir/design-system-react';
 import { Download } from '@navikt/ds-icons';
 import { ButtonContainer } from 'app-shared/primitives';
-import { DownloadRepoModal } from '../administration/components/DownloadRepoModal';
-import { ResetRepoModal } from '../administration/components/ResetRepoModal';
+import { DownloadRepoModal } from './DownloadRepoModal';
+import { ResetRepoModal } from './ResetRepoModal';
 import { useTranslation } from 'react-i18next';
 
 interface MergeConflictWarningProps {

@@ -1,11 +1,9 @@
 import { SubApp } from '../../packages/ux-editor/src/SubApp';
-import { Administration } from '../features/administration/components/Administration';
-import { LegacyAdministration } from '../features/administration/components/LegacyAdministration';
+import { Overview } from '../features/overview/components/Overview';
 import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { DeployPage } from '../features/appPublish/pages/deployPage';
 import { ProcessEditor } from 'app-development/features/processEditor';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 interface IRouteProps {
@@ -34,7 +32,7 @@ export const routerRoutes: RouterRoute[] = [
   },
   {
     path: RoutePaths.Overview,
-    subapp: shouldDisplayFeature('newAdministration') ? Administration : LegacyAdministration,
+    subapp: Overview,
   },
   {
     path: RoutePaths.Datamodel,

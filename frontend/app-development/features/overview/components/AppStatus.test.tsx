@@ -36,7 +36,7 @@ describe('AppStatus', () => {
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
-    expect(screen.getByText(textMock('administration.app_status_error'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.app_status_error'))).toBeInTheDocument();
   });
 
   it('shows production when environment is production', async () => {
@@ -107,8 +107,8 @@ describe('AppStatus', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.success'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.last_published'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.success'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.last_published'))).toBeInTheDocument();
   });
 
   it('shows no app alert when application not deployed', async () => {
@@ -123,8 +123,8 @@ describe('AppStatus', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.no_app'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.go_to_publish'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.no_app'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.go_to_publish'))).toBeInTheDocument();
   });
 
   it('shows unavailable alert when application not reachable', async () => {
@@ -156,7 +156,7 @@ describe('AppStatus', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.unavailable'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.go_to_build_log'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.unavailable'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.go_to_build_log'))).toBeInTheDocument();
   });
 });

@@ -21,6 +21,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "empty-app", "testUser", "7.4.0", "Templates/AppCsprojTemplate.txt")]
+        [InlineData("ttd", "empty-app", "testUser", "8.0.0-preview.11", "Templates/AppCsprojTemplate.txt")]
         public async Task GetAppLibVersion_GivenCsProjFile_ShouldReturnOK(string org, string app, string developer, string version, string csprojTemplate)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();

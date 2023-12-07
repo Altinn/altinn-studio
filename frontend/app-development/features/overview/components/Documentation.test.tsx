@@ -20,11 +20,11 @@ describe('Documentation', () => {
     });
 
     expect(
-      screen.getByRole('heading', { name: textMock('administration.documentation.title') }),
+      screen.getByRole('heading', { name: textMock('overview.documentation.title') }),
     ).toBeInTheDocument();
-    expect(screen.getByText(textMock('administration.documentation.content'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.documentation.content'))).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: textMock('administration.documentation.link') }),
+      screen.getByRole('link', { name: textMock('overview.documentation.link') }),
     ).toBeInTheDocument();
   });
 });

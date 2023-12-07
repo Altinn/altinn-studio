@@ -5,9 +5,9 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
 
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import * as testids from '../../../../testing/testids';
+import * as testids from '../../../testing/testids';
 
 const user = userEvent.setup();
 
@@ -18,10 +18,10 @@ const resetModalButton = 'Reset repository';
 const resetModalCancel = 'Cancel';
 
 const texts = {
-  'administration.reset_repo_confirm_heading': resetModalHeading,
-  'administration.reset_repo_confirm_info': resetModalConfirmInfo,
-  'administration.reset_repo_confirm_repo_name': resetModalConfirmRepoName,
-  'administration.reset_repo_button': resetModalButton,
+  'overview.reset_repo_confirm_heading': resetModalHeading,
+  'overview.reset_repo_confirm_info': resetModalConfirmInfo,
+  'overview.reset_repo_confirm_repo_name': resetModalConfirmRepoName,
+  'overview.reset_repo_button': resetModalButton,
   'general.cancel': resetModalCancel,
 };
 
@@ -59,7 +59,8 @@ describe('ResetRepoModal', () => {
       repositoryName: mockRepoName,
       org: 'testOrg',
     };
-    return renderWithMockStore({}, queries)(<ResetRepoModal {...defaultProps} {...props} />)};
+    return renderWithMockStore({}, queries)(<ResetRepoModal {...defaultProps} {...props} />);
+  };
 
   it('renders the component', () => {
     render();
@@ -112,6 +113,6 @@ describe('ResetRepoModal', () => {
     const repoNameInput = screen.getByLabelText(resetModalConfirmRepoName);
     await act(() => user.type(repoNameInput, mockRepoName));
     await act(() => user.click(screen.getByRole('button', { name: resetModalButton })));
-    expect(await screen.findByText('administration.reset_repo_completed')).toBeInTheDocument();
+    expect(await screen.findByText('overview.reset_repo_completed')).toBeInTheDocument();
   });
 });
