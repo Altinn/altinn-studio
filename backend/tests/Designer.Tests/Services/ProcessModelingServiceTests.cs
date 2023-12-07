@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Xml.Serialization;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Utils;
 using FluentAssertions;
 using Moq;
 using SharedResources.Tests;
@@ -27,6 +33,34 @@ namespace Designer.Tests.Services
             foreach (string expectedTemplate in expectedTemplates)
             {
                 result.Should().Contain(expectedTemplate);
+            }
+        }
+
+        [Theory]
+        [InlineData("ttd", "app-with-process", "testUser", "Task_1", "NewTaskName", "Utfylling")]
+        public async void UpdateProcessTaskNameAsync_GivenTaskIdAndTaskName_UpdatesTaskName(string org, string repo, string developer,  string taskId, string newTaskName, string oldTaskName)
+        {
+            // Arrange
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+            await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
+
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                IProcessModelingService processModelingService = new ProcessModelingService(altinnGitRepositoryFactory);
+
+                // Act
+                using Stream result = await processModelingService.UpdateProcessTaskNameAsync(editingContext, taskId, newTaskName);
+                XmlSerializer serializer = new(typeof(Definitions));
+                Definitions definitions = (Definitions)serializer.Deserialize(result);
+
+                // Assert
+                definitions.Process.Tasks.First(t => t.Id == taskId).Name.Should().Be(newTaskName);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
         }
 
