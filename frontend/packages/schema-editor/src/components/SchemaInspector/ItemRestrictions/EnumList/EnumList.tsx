@@ -10,7 +10,7 @@ import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { removeEmptyStrings, removeItemByIndex, replaceByIndex } from 'app-shared/utils/arrayUtils';
 
-type EnumListProps = {
+export type EnumListProps = {
   schemaNode: FieldNode;
 };
 
