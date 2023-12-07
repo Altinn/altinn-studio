@@ -153,3 +153,16 @@ export const generateUniqueStringWithNumber = (array: string[], prefix: string =
   }
   return uniqueString;
 };
+
+/** Removes empty strings from a string array */
+export const removeEmptyStrings = (array: string[]): string[] => removeItemByValue(array, '');
+
+/** Replaces an element in an array with a new value */
+export const replaceByIndex = <T>(array: T[], index: number, newValue: T): T[] => {
+  if (index < 0 || index >= array.length) return array;
+
+  const newArray = [...array];
+  newArray[index] = newValue;
+
+  return newArray;
+};

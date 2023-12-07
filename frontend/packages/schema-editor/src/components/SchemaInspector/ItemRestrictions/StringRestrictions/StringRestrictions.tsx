@@ -14,7 +14,7 @@ import {
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
-import { makeDomFriendlyID } from '../../../utils/ui-schema-utils';
+import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import type { StringRestrictionsReducerAction } from './StringRestrictionsReducer';
 import {
   stringRestrictionsReducer,

@@ -8,8 +8,10 @@ import {
   moveArrayItem,
   prepend,
   removeDuplicates,
+  removeEmptyStrings,
   removeItemByIndex,
   removeItemByValue,
+  replaceByIndex,
   replaceByPredicate,
   replaceItemsByValue,
   swapArrayElements,
@@ -195,6 +197,31 @@ describe('arrayUtils', () => {
     it('Returns number only when the prefix is empty', () => {
       const array = ['0', '1', '2'];
       expect(generateUniqueStringWithNumber(array)).toBe('3');
+    });
+  });
+
+  describe('removeEmptyStrings', () => {
+    it('Removes empty strings from an array', () => {
+      const array = ['0', '1', '', '2', ''];
+      expect(removeEmptyStrings(array)).toEqual(['0', '1', '2']);
+    });
+  });
+
+  describe('replaceByIndex', () => {
+    it('Replaces element in array with new value', () => {
+      const array1 = ['0', '1', '2'];
+      expect(replaceByIndex(array1, 0, '1')).toEqual(['1', '1', '2']);
+
+      const array2 = [0, 1, 2];
+      expect(replaceByIndex(array2, 1, 2)).toEqual([0, 2, 2]);
+
+      const array3 = [true, false, true];
+      expect(replaceByIndex(array3, 2, false)).toEqual([true, false, false]);
+    });
+
+    it('Returns intial array if index is invalid', () => {
+      const array = [0, 1, 2];
+      expect(replaceByIndex(array, 4, 2)).toEqual(array);
     });
   });
 });

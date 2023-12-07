@@ -2,11 +2,11 @@ import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EnumField, EnumFieldProps } from './EnumField';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 
 const mockValue: string = 'test';
-const mockBaseId: string = 'id123';
-const mockId: string = `${mockBaseId}-enum-${mockValue}`;
+const mockIndex: number = 0;
+const mockId: string = `${mockIndex}-enum-${mockValue}`;
 
 const mockOnChange = jest.fn();
 const mockOnDelete = jest.fn();
@@ -19,7 +19,7 @@ const defaultProps: EnumFieldProps = {
   onChange: mockOnChange,
   onDelete: mockOnDelete,
   onEnterKeyPress: mockOnEnterKeyPress,
-  baseId: mockBaseId,
+  index: mockIndex,
 };
 
 describe('EnumField', () => {
@@ -42,7 +42,7 @@ describe('EnumField', () => {
     const updatedValue: string = `${mockValue}${newValue}`;
 
     expect(mockOnChange).toHaveBeenCalledTimes(1);
-    expect(mockOnChange).toHaveBeenCalledWith(updatedValue, mockValue);
+    expect(mockOnChange).toHaveBeenCalledWith(updatedValue);
 
     const textFieldAfter = screen.getByLabelText(
       textMock('schema_editor.textfield_label', { id: mockId }),

@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { NumberRestrictions } from './NumberRestrictions';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { IntRestrictionKey } from '@altinn/schema-model';
 
@@ -112,7 +112,7 @@ describe('NumberRestrictions component', () => {
     };
 
     await waitFor(() =>
-      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions)
+      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions),
     );
   });
 
@@ -141,7 +141,7 @@ describe('NumberRestrictions component', () => {
     };
 
     await waitFor(() =>
-      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions)
+      expect(onChangeRestrictions).toHaveBeenCalledWith('', expectedRestrictions),
     );
   });
 });

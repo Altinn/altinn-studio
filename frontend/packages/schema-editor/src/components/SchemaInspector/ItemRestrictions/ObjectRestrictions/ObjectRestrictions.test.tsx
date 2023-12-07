@@ -12,7 +12,7 @@ test('ObjectRestrictions should redner correctly', async () => {
       readonly={false}
       restrictions={[]}
       onChangeRestrictions={() => undefined}
-    />
+    />,
   );
   expect(screen.queryAllByRole('textbox')).toHaveLength(0);
 });

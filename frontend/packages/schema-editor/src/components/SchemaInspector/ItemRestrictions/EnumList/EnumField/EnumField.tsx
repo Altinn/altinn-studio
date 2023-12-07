@@ -9,10 +9,10 @@ export type EnumFieldProps = {
   value: string;
   readOnly?: boolean;
   isValid?: boolean;
-  onChange: (value: string, oldValue?: string) => void;
+  onChange: (value: string) => void;
   onDelete: () => void;
   onEnterKeyPress?: () => void;
-  baseId: string;
+  index: number;
 };
 
 export const EnumField = ({
@@ -22,7 +22,7 @@ export const EnumField = ({
   onChange,
   onDelete,
   onEnterKeyPress,
-  baseId,
+  index,
 }: EnumFieldProps) => {
   const [inputValue, setInputValue] = useState(value);
   useEffect(() => {
@@ -31,7 +31,7 @@ export const EnumField = ({
   const { t } = useTranslation();
 
   const onBlur = () => {
-    onChange(inputValue, value);
+    onChange(inputValue);
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -42,7 +42,7 @@ export const EnumField = ({
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
-  const label = t('schema_editor.textfield_label', { id: `${baseId}-enum-${value}` });
+  const label = t('schema_editor.textfield_label', { id: `${index}-enum-${value}` });
 
   return (
     <div className={classes.root}>
@@ -61,7 +61,7 @@ export const EnumField = ({
         aria-label={t('schema_editor.delete_field')}
         className={classes.delete}
         icon={<TrashIcon aria-hidden />}
-        id={`${baseId}-delete-${value}`}
+        id={`${index}-delete-${value}`}
         onClick={() => onDelete()}
         color='danger'
         variant='tertiary'

@@ -3,45 +3,8 @@ import { isField, isReference, splitPointerInBaseAndName } from '../utils';
 import { convertPropToType } from './convert-node';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { castRestrictionType } from '../restrictions';
-import { removeItemByIndex, swapArrayElements } from 'app-shared/utils/arrayUtils';
+import { swapArrayElements } from 'app-shared/utils/arrayUtils';
 import { changeNameInPointer } from '../pointerUtils';
-import { SchemaModel } from '../SchemaModel';
-
-export type AddEnumValueArgs = {
-  path: string;
-  value: string;
-  oldValue?: string;
-};
-export const addEnumValue: UiSchemaReducer<AddEnumValueArgs> = (
-  uiSchema: SchemaModel,
-  { path, value, oldValue },
-) => {
-  const newSchema = uiSchema.deepClone();
-  const node = newSchema.getNode(path);
-  if (isField(node)) {
-    node.enum = node.enum ?? [];
-    if (oldValue === null || oldValue === undefined) node.enum.push(value);
-    if (node.enum.includes(oldValue)) node.enum[node.enum.indexOf(oldValue)] = value;
-    if (!node.enum.includes(value)) node.enum.push(value);
-    return newSchema;
-  }
-};
-
-export type DeleteEnumValueArgs = {
-  path: string;
-  index: number;
-};
-export const deleteEnumValue: UiSchemaReducer<DeleteEnumValueArgs> = (
-  uiSchema: SchemaModel,
-  { path, index },
-) => {
-  const newSchema = uiSchema.deepClone();
-  const enumItem = newSchema.getNode(path);
-  if (isField(enumItem)) {
-    enumItem.enum = removeItemByIndex(enumItem.enum, index);
-  }
-  return newSchema;
-};
 
 export const promoteProperty: UiSchemaReducer<string> = (uiSchema, path) => {
   const newSchema = uiSchema.deepClone();

@@ -1,8 +1,6 @@
 import {
   addCombinationItem,
-  addEnumValue,
   changeChildrenOrder,
-  deleteEnumValue,
   deleteNode,
   promoteProperty,
   setCombinationType,
@@ -20,9 +18,7 @@ import {
 } from './ui-schema-reducers';
 import type {
   AddCombinationItemArgs,
-  AddEnumValueArgs,
   ChangeChildrenOrderArgs,
-  DeleteEnumValueArgs,
   SetCombinationTypeArgs,
   SetDescriptionArgs,
   SetPropertyNameArgs,
@@ -35,7 +31,6 @@ import type {
 import {
   allOfNodeMock,
   arrayNodeMock,
-  enumNodeMock,
   numberNodeMock,
   optionalNodeMock,
   parentNodeMock,
@@ -72,45 +67,6 @@ describe('ui-schema-reducers', () => {
   afterEach(() => {
     validateTestUiSchema(result.asArray());
     jest.clearAllMocks();
-  });
-
-  describe('addEnumValue', () => {
-    const { pointer } = enumNodeMock;
-    const value = 'val4';
-
-    it('Adds an enum value to the given node if oldValue is not given', () => {
-      const args: AddEnumValueArgs = { path: pointer, value };
-      result = addEnumValue(createNewModelMock(), args);
-      const updatedNode = result.getNode(pointer) as FieldNode;
-      expect(updatedNode.enum).toEqual([...enumNodeMock.enum, value]);
-    });
-
-    it('Adds an enum value to the given node if oldValue does not exist', () => {
-      const oldValue = 'val5';
-      const args: AddEnumValueArgs = { path: pointer, value, oldValue };
-      result = addEnumValue(createNewModelMock(), args);
-      const updatedNode = result.getNode(pointer) as FieldNode;
-      expect(updatedNode.enum).toEqual([...enumNodeMock.enum, value]);
-    });
-
-    it('Replaces oldValue if it exists', () => {
-      const oldValue = enumNodeMock.enum[0];
-      const args: AddEnumValueArgs = { path: pointer, value, oldValue };
-      result = addEnumValue(createNewModelMock(), args);
-      const updatedNode = result.getNode(pointer) as FieldNode;
-      expect(updatedNode.enum).toEqual([value, ...enumNodeMock.enum.slice(1)]);
-    });
-  });
-
-  describe('deleteEnumValue', () => {
-    it('Deletes the given enum value from the given node', () => {
-      const path = enumNodeMock.pointer;
-      const index = 0;
-      const args: DeleteEnumValueArgs = { path, index };
-      result = deleteEnumValue(createNewModelMock(), args);
-      const updatedNode = result.getNode(path) as FieldNode;
-      expect(updatedNode.enum).toEqual(enumNodeMock.enum.slice(1));
-    });
   });
 
   describe('promoteProperty', () => {
