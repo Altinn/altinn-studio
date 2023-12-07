@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
         [Theory]
         [InlineData("ttd", "app-with-process", "testUser", "Does_not_exist", "NewTaskName")]
-        public async Task InvalidTaskId_ShouldReturnBadRequest(string org, string app, string developer,  string taskId, string taskName)
+        public async Task InvalidTaskId_ShouldReturnBadRequest(string org, string app, string developer, string taskId, string taskName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
