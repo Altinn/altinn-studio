@@ -15,7 +15,7 @@ export const useGetPartyListsQuery = (org: string, env: string): UseQueryResult<
   const { getPartyLists } = useServicesContext();
 
   return useQuery<PartyList[]>({
-    queryKey: [QueryKey.PartyLists, org, env],
+    queryKey: [QueryKey.PartyLists, env],
     queryFn: () => getPartyLists(org, env),
     enabled: !!org && !!env,
   });

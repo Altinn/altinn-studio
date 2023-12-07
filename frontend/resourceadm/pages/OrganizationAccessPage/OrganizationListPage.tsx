@@ -2,7 +2,7 @@ import { Button, Heading } from '@digdir/design-system-react';
 import React, { useState } from 'react';
 import { OrganizationAccessPage } from './OrganizationAccessPage';
 import { OrganizationListActions } from './OrganizationListActions';
-import { TestLister, ListConnections } from './listeTestData';
+import { ListConnections } from './listeTestData';
 import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
 
 interface OrganizationListPageProps {
@@ -25,15 +25,17 @@ export const OrganizationListPage = ({
   const [selectedLists, setSelectedLists] = useState<PartyListResourceLink[]>(connectedLists);
 
   const filterAvailableLists = () => {
-    return TestLister.filter((z) => {
-      const usedLists = selectedLists.map((x) => x.listId);
-      return z.env === env && usedLists.indexOf(z.id) === -1;
-    }).map((z) => {
-      return {
-        value: `${z.id}`,
-        label: z.title,
-      };
-    });
+    return []
+      .filter((z) => {
+        const usedLists = selectedLists.map((x) => x.listId);
+        return z.env === env && usedLists.indexOf(z.id) === -1;
+      })
+      .map((z) => {
+        return {
+          value: `${z.id}`,
+          label: z.title,
+        };
+      });
   };
 
   const handleSave = (listItem: PartyListResourceLink, diff: Partial<PartyListResourceLink>) => {
@@ -60,17 +62,7 @@ export const OrganizationListPage = ({
         <Button size='small' variant='tertiary' onClick={() => setIsCreatingList(false)}>
           Tilbake
         </Button>
-        <OrganizationAccessPage
-          env={env}
-          org='TODO org'
-          list={{
-            env: env,
-            id: '',
-            title: 'Ny liste',
-            members: [],
-          }}
-          onDeleted={() => setIsCreatingList(false)}
-        />
+        <div>Her må det komme inn funksjonalitet for å lage nye lister</div>
       </div>
     );
   }

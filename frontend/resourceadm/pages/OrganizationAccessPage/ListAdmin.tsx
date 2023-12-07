@@ -2,9 +2,8 @@ import { Link, useParams } from 'react-router-dom';
 import { Button, Heading } from '@digdir/design-system-react';
 import React, { useState } from 'react';
 import { OrganizationAccessPage } from './OrganizationAccessPage';
-import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
 import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
-import { useCreatePartyListMutation } from 'resourceadm/hooks/mutations/useCreatePartyListMutation';
+import { ListAdminEnv } from './ListAdminEnv';
 
 export const ListAdmin = (): React.ReactNode => {
   const { selectedContext } = useParams();
@@ -13,9 +12,7 @@ export const ListAdmin = (): React.ReactNode => {
   const [selectedEnv, setSelectedEnv] = useState<string>('');
   const [selectedListId, setSelectedListId] = useState<string>('');
 
-  const { data: envListData } = useGetPartyListsQuery(selectedContext, selectedEnv);
   const { data: list } = useGetPartyListQuery(selectedContext, selectedListId, selectedEnv);
-  const { mutate: createPartyList } = useCreatePartyListMutation(selectedContext, selectedEnv);
 
   const envs = ['tt02', 'prod', 'at22', 'at23'];
 
@@ -41,29 +38,20 @@ export const ListAdmin = (): React.ReactNode => {
           );
         })}
       </div>
-      {selectedEnv && (
-        <div>
-          {!!list && (
-            <OrganizationAccessPage
-              org={selectedContext}
-              env={selectedEnv}
-              list={list}
-              onDeleted={() => setSelectedListId('') /*and reload list*/}
-            />
-          )}
-          {!selectedListId && !!envListData && (
-            <>
-              {envListData.map((x) => {
-                return (
-                  <Button variant='tertiary' onClick={() => setSelectedListId(x.id)} key={x.id}>
-                    {x.name}
-                  </Button>
-                );
-              })}
-              <Button onClick={() => setSelectedListId('NY')}>Opprett ny liste</Button>
-            </>
-          )}
-        </div>
+      {selectedEnv && !selectedListId && (
+        <ListAdminEnv
+          org={selectedContext}
+          env={selectedEnv}
+          onSelectList={(identifier: string) => setSelectedListId(identifier)}
+        />
+      )}
+      {!!list && (
+        <OrganizationAccessPage
+          org={selectedContext}
+          env={selectedEnv}
+          list={list}
+          onDeleted={() => setSelectedListId('') /*and reload list, if not automatically*/}
+        />
       )}
     </div>
   );

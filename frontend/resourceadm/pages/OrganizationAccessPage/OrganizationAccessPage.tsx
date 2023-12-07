@@ -1,30 +1,24 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import classes from './OrganizationAccessPage.module.css';
 import {
   Alert,
   Button,
-  Heading,
-  Spinner,
   Table,
   TableRow,
   TableCell,
   TableHeader,
   TableBody,
   Textfield,
+  Modal,
 } from '@digdir/design-system-react';
-import {
-  useEnhetsregisterOrganizationQuery,
-  useEnhetsregisterUnderOrganizationQuery,
-} from 'resourceadm/hooks/queries/useEnhetsregisterOrganizationQuery';
-import { useDebounce } from 'react-use';
-import {
-  BrregOrganization,
-  PartyList,
-  PartyListMember,
-  PartyListWithMembers,
-} from 'app-shared/types/ResourceAdm';
+import { PartyList, PartyListMember, PartyListWithMembers } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from './FieldWrapper';
 import { useEditPartyListMutation } from 'resourceadm/hooks/mutations/useEditPartyListMutation';
+import { useRemovePartyListMemberMutation } from 'resourceadm/hooks/mutations/useRemovePartyListMemberMutation';
+import { useAddPartyListMemberMutation } from 'resourceadm/hooks/mutations/useAddPartyListMemberMutation';
+import { createReplacePatch } from './jsonPatchUtils';
+import { useDeletePartyListMutation } from 'resourceadm/hooks/mutations/useDeletePartyListMutation';
+import { OrganizationAutocomplete } from './OrganizationAutocomplete';
 
 interface OrganizationAccessPageProps {
   org: string;
@@ -33,73 +27,35 @@ interface OrganizationAccessPageProps {
   onDeleted: () => void;
 }
 
-// TODO: filtrer/disable enheter som allerede finnes
-const enhetsListe = (
-  enheter: BrregOrganization[],
-  erUnderenhet: boolean,
-  onSelectEnhet: (org: PartyListMember) => void,
-): React.ReactNode => {
-  if (enheter.length === 0) {
-    return <div>{erUnderenhet ? 'Fant ingen underenheter' : 'Fant ingen enheter'}</div>;
-  }
-  return (
-    <>
-      <Heading level={2} size='medium'>
-        {erUnderenhet ? 'Underenheter' : 'Enheter'}
-      </Heading>
-      {enheter.map((org) => {
-        return (
-          <Button
-            key={org.organisasjonsnummer}
-            size='small'
-            variant='tertiary'
-            onClick={() => {
-              onSelectEnhet({
-                orgNr: org.organisasjonsnummer,
-                orgName: org.navn,
-                isUnderenhet: erUnderenhet,
-              });
-            }}
-          >
-            {`${org.organisasjonsnummer} - ${org.navn}`}
-          </Button>
-        );
-      })}
-    </>
-  );
-};
-
 export const OrganizationAccessPage = ({
   org,
   env,
   list,
   onDeleted,
 }: OrganizationAccessPageProps): React.ReactNode => {
-  const [searchText, setSearchText] = useState<string>('');
-  const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
-  useDebounce(() => setDebouncedSearchText(searchText), 500, [searchText]);
+  const deleteWarningModalRef = useRef<HTMLDialogElement>(null);
+  const [listItems, setListItems] = useState<(PartyListMember & { isDeleted?: boolean })[]>(
+    list.members,
+  );
+  const [listName, setListName] = useState<string>(list.name || '');
+  const [listDescription, setListDescription] = useState<string>(list.description || '');
 
-  const reg_enheter = list ? list.members : [];
-  const [listItems, setListItems] =
-    useState<(PartyListMember & { isDeleted?: boolean })[]>(reg_enheter);
-
-  const [listName, setListName] = useState<string>(list?.name || '');
-  const { mutate: editPartyList } = useEditPartyListMutation(org, list.id, env);
-
-  const { data: enheterSearchData, isLoading: isLoadingEnheterSearch } =
-    useEnhetsregisterOrganizationQuery(debouncedSearchText);
-  const { data: underenheterSearchData, isLoading: isLoadingUnderenheterSearch } =
-    useEnhetsregisterUnderOrganizationQuery(debouncedSearchText);
+  const { mutate: editPartyList } = useEditPartyListMutation(org, list.identifier, env);
+  const { mutate: deletePartyList } = useDeletePartyListMutation(org, list.identifier, env);
+  const { mutate: removeListMember } = useRemovePartyListMemberMutation(org, list.identifier, env);
+  const { mutate: addListMember } = useAddPartyListMemberMutation(org, list.identifier, env);
 
   // add member
   const handleAddMember = (memberToAdd: PartyListMember): void => {
     console.log('ADD member', memberToAdd);
+    addListMember(memberToAdd.orgNr);
     setListItems((old) => [...old, memberToAdd]);
   };
 
   // remove member
   const handleRemoveMember = (memberIdToRemove: string): void => {
     console.log('DELETE member', memberIdToRemove);
+    removeListMember(memberIdToRemove);
     setListItems((old) =>
       old.map((x) => (x.orgNr === memberIdToRemove ? { ...x, isDeleted: true } : x)),
     );
@@ -108,31 +64,59 @@ export const OrganizationAccessPage = ({
   // undo remove member
   const handleUndoRemoveMember = (memberIdToUndoRemove: string): void => {
     console.log('ADD member', memberIdToUndoRemove);
+    addListMember(memberIdToUndoRemove);
     setListItems((old) =>
       old.map((x) => (x.orgNr === memberIdToUndoRemove ? { ...x, isDeleted: false } : x)),
     );
   };
 
-  // change list name, and possibly other properties
+  // change list name, description and possibly other properties
   const handleSave = (diff: Partial<PartyList>): void => {
-    editPartyList(diff);
     console.log('SAVE', { ...list, ...diff });
+    editPartyList(createReplacePatch<Partial<PartyList>>(diff));
   };
 
   // slett, må gjøres utenfor? Evt ha en back-funksjon
   const handleDelete = (): void => {
     console.log('DELETE', list.id);
-    onDeleted();
+    deletePartyList(undefined, {
+      onSuccess: () => onDeleted(),
+      onError: (error: any) => {
+        // TODO
+      },
+    });
   };
 
   return (
     <div className={classes.pageWrapper}>
+      <Modal ref={deleteWarningModalRef} onClose={() => deleteWarningModalRef.current?.close()}>
+        <Modal.Header>Bekreft sletting av liste</Modal.Header>
+        <Modal.Content>Vil du slette denne listen?</Modal.Content>
+        <Modal.Footer>
+          <Button color='danger' onClick={() => handleDelete()}>
+            Slett liste
+          </Button>
+          <Button variant='tertiary' onClick={() => deleteWarningModalRef.current?.close()}>
+            Avbryt
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        <FieldWrapper label='Listenavn' description='Gi listen et beskrivende navn'>
+        <FieldWrapper
+          label='Listenavn'
+          description='Gi listen et beskrivende navn, f.eks "Godkjente banker"'
+        >
           <Textfield
             value={listName}
             onChange={(event) => setListName(event.target.value)}
             onBlur={(event) => handleSave({ name: event.target.value })}
+          />
+        </FieldWrapper>
+        <FieldWrapper label='Beskrivelse' description='Her kan du beskrive listen'>
+          <Textfield
+            value={listDescription}
+            onChange={(event) => setListDescription(event.target.value)}
+            onBlur={(event) => handleSave({ description: event.target.value })}
           />
         </FieldWrapper>
         <FieldWrapper
@@ -184,35 +168,7 @@ export const OrganizationAccessPage = ({
               })}
               <TableRow>
                 <TableCell colSpan={100}>
-                  <div>
-                    <Textfield
-                      value={searchText}
-                      placeholder='søk etter enhet'
-                      onChange={(event) => {
-                        setSearchText(event.target.value);
-                      }}
-                    />
-                    {(isLoadingEnheterSearch || isLoadingUnderenheterSearch) &&
-                      debouncedSearchText && (
-                        <Spinner size='xlarge' variant='interaction' title='Laster...' />
-                      )}
-                    {debouncedSearchText.length > 0 &&
-                      !isLoadingEnheterSearch &&
-                      !isLoadingUnderenheterSearch && (
-                        <div>
-                          {enhetsListe(
-                            enheterSearchData?._embedded?.enheter || [],
-                            false,
-                            handleAddMember,
-                          )}
-                          {enhetsListe(
-                            underenheterSearchData?._embedded?.underenheter || [],
-                            true,
-                            handleAddMember,
-                          )}
-                        </div>
-                      )}
-                  </div>
+                  <OrganizationAutocomplete handleAddMember={handleAddMember} />
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -220,7 +176,11 @@ export const OrganizationAccessPage = ({
         </FieldWrapper>
       </div>
       <div style={{ marginTop: '1rem' }}>
-        <Button variant='secondary' color='danger' onClick={handleDelete}>
+        <Button
+          variant='secondary'
+          color='danger'
+          onClick={() => deleteWarningModalRef.current?.showModal()}
+        >
           Slett liste
         </Button>
       </div>

@@ -138,8 +138,9 @@ export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${or
 export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}?env=${env}`; // Get
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
-export const partyListsPath = (org, env) => `${basePath}/${org}/resources/partylist/?env=${env}`; // Get
-export const partyListPath = (org, listId, env) => `${basePath}/${org}/resources/partylist/${listId}?env=${env}`; // Get
+export const partyListsPath = (org, env) => `${basePath}/${org}/resources/partylist/?env=${env}`; // Get, Post
+export const partyListPath = (org, listId, env) => `${basePath}/${org}/resources/partylist/${listId}?env=${env}`; // Get, Patch, Delete
+export const partyListMemberPath = (org, listId, orgnr, env) => `${basePath}/${org}/resources/partylist/${listId}/members/${orgnr}?env=${env}`; // Post, Delete
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;
