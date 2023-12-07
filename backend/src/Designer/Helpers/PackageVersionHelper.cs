@@ -1,12 +1,13 @@
 ﻿using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Helpers
 {
     public static class PackageVersionHelper
     {
-        public static bool TryGetPackageVersionFromCsprojFile(string csprojFilePath, string packageName, out System.Version version)
+        public static bool TryGetPackageVersionFromCsprojFile(string csprojFilePath, string packageName, out SemanticVersion version)
         {
             version = null;
             var doc = XDocument.Load(csprojFilePath);
@@ -26,8 +27,7 @@ namespace Altinn.Studio.Designer.Helpers
                 return false;
             }
 
-            version = System.Version.Parse(versionString);
-            return true;
+            return SemanticVersion.TryParse(versionString, out version);
         }
     }
 }

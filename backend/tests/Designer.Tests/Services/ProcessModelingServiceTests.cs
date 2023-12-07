@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Moq;
+using NuGet.Versioning;
 using SharedResources.Tests;
 using Xunit;
 
@@ -22,7 +23,7 @@ namespace Designer.Tests.Services
         [MemberData(nameof(TemplatesTestData))]
         public void GetProcessDefinitionTemplates_GivenVersion_ReturnsListOfTemplates(string versionString, params string[] expectedTemplates)
         {
-            Version version = Version.Parse(versionString);
+            SemanticVersion version = SemanticVersion.Parse(versionString);
 
             IProcessModelingService processModelingService = new ProcessModelingService(new Mock<IAltinnGitRepositoryFactory>().Object);
 

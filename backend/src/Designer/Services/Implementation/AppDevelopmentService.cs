@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -218,7 +219,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Version GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext)
+        public SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
@@ -226,7 +227,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             foreach (string csprojFile in csprojFiles)
             {
-                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api", out Version version))
+                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api", out SemanticVersion version))
                 {
                     return version;
                 }
