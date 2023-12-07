@@ -666,7 +666,7 @@
   "process_editor.unknown_heading_error_message": "Obs, noe gikk galt!",
   "process_editor.unknown_paragraph_error_message": "En feil oppstod ved innlasting av BPMN-prosessen. Undersøk at filen er på et gyldig BPMN-format.",
   "process_editor.unsaved_changes": "Du har {{ count }} ulagrede endringer",
-  "process_editor.unsaved_changes_confirmation_message": "Du har ulagrede endringer. Er du sikker på at du vil forlate siden uten å lagre?",
+  "process_editor.unsaved_changes_confirmation_message": "Du har ulagrede endringer. Vil du forlate siden uten å lagre?",
   "process_editor.view_mode": "Visningsmodus",
   "receipt.attachments": "Vedlegg",
   "receipt.body": "Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten.",

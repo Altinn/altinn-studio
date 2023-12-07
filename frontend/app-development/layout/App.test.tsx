@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppShell } from './AppShell';
+import { App } from './App';
 import type { IUserState } from '../sharedResources/user/userSlice';
 import { screen } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -14,7 +14,7 @@ jest.mock('../../language/src/en.json', jest.fn());
 // Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
 const realConsole = console;
 const render = async (remainingMinutes: number = 40) => {
-  renderWithProviders(<AppShell />, {
+  renderWithProviders(<App />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
     queries: { ...queriesMock },
     preloadedState: {
@@ -27,7 +27,7 @@ const render = async (remainingMinutes: number = 40) => {
   });
 };
 
-describe('AppShell', () => {
+describe('App', () => {
   beforeEach(() => {
     global.console = {
       ...console,

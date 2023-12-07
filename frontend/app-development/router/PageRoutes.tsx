@@ -6,7 +6,7 @@ import {
   Navigate,
   Route,
 } from 'react-router-dom';
-import { AppShell } from 'app-development/layout/AppShell';
+import { App } from 'app-development/layout/App';
 import { PageLayout } from 'app-development/layout/PageLayout';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { routerRoutes } from 'app-development/router/routes';
@@ -17,7 +17,7 @@ const BASE_PATH = '/:org/:app';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path='/' element={<AppShell />}>
+    <Route path='/' element={<App />}>
       <Route path={BASE_PATH} element={<PageLayout />}>
         {/* Redirects from /:org/:app to child route /overview */}
         <Route path={RoutePaths.Root} element={<Navigate to={RoutePaths.Overview} />} />

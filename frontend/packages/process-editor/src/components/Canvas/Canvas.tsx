@@ -39,7 +39,7 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
   };
 
   useConfirmationDialogOnPageLeave(
-    !!numberOfUnsavedChanges,
+    Boolean(numberOfUnsavedChanges),
     t('process_editor.unsaved_changes_confirmation_message'),
   );
 

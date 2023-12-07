@@ -7,9 +7,9 @@ import {
   keepAliveSession,
   signOutUser,
 } from '../sharedResources/user/userSlice';
-import './AppShell.css';
+import './App.css';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
-import classes from './AppShell.module.css';
+import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
@@ -42,7 +42,7 @@ i18next.use(initReactI18next).init({
   },
 });
 
-export function AppShell() {
+export function App() {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const org = match?.params?.org ?? '';
