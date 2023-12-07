@@ -7,7 +7,9 @@
   margin-bottom: 5px;
 }
 
-.idBox {
+.idText {
+  font-size: 12px;
+  font-weight: 600;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -19,11 +21,6 @@
   margin-right: 10px;
 }
 
-.idText {
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .editButtonWrapper {
   margin-left: 20px;
 }
@@ -31,19 +28,10 @@
 .editFieldWrapper {
   display: flex;
   align-items: center;
-  height: 40px;
 }
 
 .buttonWrapper {
   display: flex;
-}
-
-.stopEditingButton {
-  margin-left: 10px;
-}
-
-.resourceIdError {
-  display: flex;
-  align-items: center;
-  height: 40px;
+  align-self: flex-start;
+  margin-left: 0.5rem;
 }
