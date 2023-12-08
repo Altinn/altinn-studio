@@ -411,3 +411,7 @@ stats.csv
 .vscode/settings.json
 .vscode/tasks.json
 .vscode/launch.json
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

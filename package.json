@@ -21,6 +21,7 @@
   "devDependencies": {
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
+    "@playwright/test": "^1.40.1",
     "@redux-saga/is": "1.1.3",
     "@redux-saga/symbols": "1.1.3",
     "@svgr/webpack": "8.1.0",
@@ -33,6 +34,7 @@
     "@types/css-modules": "1.0.4",
     "@types/jest": "29.5.7",
     "@types/lodash-es": "4.17.10",
+    "@types/node": "^20.10.3",
     "@types/react": "18.2.34",
     "@types/react-dom": "18.2.14",
     "@types/react-redux": "7.1.28",
