@@ -3,6 +3,7 @@ using System.CommandLine.Invocation;
 using System.Reflection;
 using altinn_app_cli.v7Tov8.AppSettingsRewriter;
 using altinn_app_cli.v7Tov8.CodeRewriters;
+using altinn_app_cli.v7Tov8.DockerfileRewriters;
 using altinn_app_cli.v7Tov8.ProcessRewriter;
 using altinn_app_cli.v7Tov8.ProjectChecks;
 using altinn_app_cli.v7Tov8.ProjectRewriters;
@@ -21,8 +22,10 @@ class Program
         var projectFileOption = new Option<string>(name: "--project", description: "The project file to read relative to --folder", getDefaultValue: () => "App/App.csproj");
         var processFileOption = new Option<string>(name: "--process", description: "The process file to read relative to --folder", getDefaultValue: () => "App/config/process/process.bpmn");
         var appSettingsFolderOption = new Option<string>(name: "--appsettings-folder", description: "The folder where the appsettings.*.json files are located", getDefaultValue: () => "App");
-        var targetVersionOption = new Option<string>(name: "--target-version", description: "The target version to upgrade to", getDefaultValue: () => "8.0.0-preview.10");
+        var targetVersionOption = new Option<string>(name: "--target-version", description: "The target version to upgrade to", getDefaultValue: () => "8.0.0-preview.11");
+        var targetFrameworkOption = new Option<string>(name: "--target-framework", description: "The target dotnet framework version to upgrade to", getDefaultValue: () => "net8.0");
         var skipCsprojUpgradeOption = new Option<bool>(name: "--skip-csproj-upgrade", description: "Skip csproj file upgrade", getDefaultValue: () => false);
+        var skipDockerUpgradeOption = new Option<bool>(name: "--skip-dockerfile-upgrade", description: "Skip Dockerfile upgrade", getDefaultValue: () => false);
         var skipCodeUpgradeOption = new Option<bool>(name: "--skip-code-upgrade", description: "Skip code upgrade", getDefaultValue: () => false);
         var skipProcessUpgradeOption = new Option<bool>(name: "--skip-process-upgrade", description: "Skip process file upgrade", getDefaultValue: () => false);
         var skipAppSettingsUpgradeOption = new Option<bool>(name: "--skip-appsettings-upgrade", description: "Skip appsettings file upgrade", getDefaultValue: () => false);
@@ -34,7 +37,9 @@ class Program
             processFileOption,
             appSettingsFolderOption,
             targetVersionOption,
+            targetFrameworkOption,
             skipCsprojUpgradeOption,
+            skipDockerUpgradeOption,
             skipCodeUpgradeOption,
             skipProcessUpgradeOption,
             skipAppSettingsUpgradeOption,
@@ -51,10 +56,12 @@ class Program
                 var processFile = context.ParseResult.GetValueForOption(processFileOption)!;
                 var appSettingsFolder = context.ParseResult.GetValueForOption(appSettingsFolderOption)!;
                 var targetVersion = context.ParseResult.GetValueForOption(targetVersionOption)!;
-                var skipCodeUpgrade = context.ParseResult.GetValueForOption(skipCodeUpgradeOption)!;
-                var skipProcessUpgrade = context.ParseResult.GetValueForOption(skipProcessUpgradeOption)!;
-                var skipCsprojUpgrade = context.ParseResult.GetValueForOption(skipCsprojUpgradeOption)!;
-                var skipAppSettingsUpgrade = context.ParseResult.GetValueForOption(skipAppSettingsUpgradeOption)!;
+                var targetFramework = context.ParseResult.GetValueForOption(targetFrameworkOption)!;
+                var skipCodeUpgrade = context.ParseResult.GetValueForOption(skipCodeUpgradeOption);
+                var skipProcessUpgrade = context.ParseResult.GetValueForOption(skipProcessUpgradeOption);
+                var skipCsprojUpgrade = context.ParseResult.GetValueForOption(skipCsprojUpgradeOption);
+                var skipDockerUpgrade = context.ParseResult.GetValueForOption(skipDockerUpgradeOption);
+                var skipAppSettingsUpgrade = context.ParseResult.GetValueForOption(skipAppSettingsUpgradeOption);
 
                 if (projectFolder == "CurrentDirectory")
                 {
@@ -97,14 +104,19 @@ class Program
                     return;
                 }
 
-                if (!skipCsprojUpgrade)
-                {
-                    returnCode = await UpgradeNugetVersions(projectFile, targetVersion);
-                }
-
-                if (!skipCodeUpgrade && returnCode == 0)
+                if (!skipCodeUpgrade)
                 {
                     returnCode = await UpgradeCode(projectFile);
+                }
+                
+                if (!skipCsprojUpgrade && returnCode == 0)
+                {
+                    returnCode = await UpgradeProjectFile(projectFile, targetVersion, targetFramework);
+                }
+                
+                if (!skipDockerUpgrade && returnCode == 0)
+                {
+                    returnCode = await UpgradeDockerfile(Path.Combine(projectFolder, "Dockerfile"), targetFramework);
                 }
 
                 if (!skipProcessUpgrade && returnCode == 0)
@@ -137,7 +149,7 @@ class Program
         return returnCode;
     }
 
-    static async Task<int> UpgradeNugetVersions(string projectFile, string targetVersion)
+    static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
     {
         if (!File.Exists(projectFile))
         {
@@ -146,9 +158,23 @@ class Program
         }
 
         Console.WriteLine("Trying to upgrade nuget versions in project file");
-        var rewriter = new ProjectFileRewriter(projectFile, targetVersion);
+        var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
         await rewriter.Upgrade();
         Console.WriteLine("Nuget versions upgraded");
+        return 0;
+    }
+
+    static async Task<int> UpgradeDockerfile(string dockerFile, string targetFramework)
+    {
+        if (!File.Exists(dockerFile))
+        {
+            Console.WriteLine($"Dockerfile {dockerFile} does not exist. Please supply location of project with --dockerfile [path/to/Dockerfile]");
+            return 1;
+        }
+        Console.WriteLine("Trying to upgrade dockerfile");
+        var rewriter = new DockerfileRewriter(dockerFile, targetFramework);
+        await rewriter.Upgrade();
+        Console.WriteLine("Dockerfile upgraded");
         return 0;
     }
 
