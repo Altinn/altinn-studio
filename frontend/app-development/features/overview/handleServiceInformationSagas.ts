@@ -22,7 +22,7 @@ export function* handleFetchServiceSaga({
     yield put(
       HandleServiceInformationActions.fetchServiceFulfilled({
         repository: result,
-      })
+      }),
     );
   } catch (error) {
     yield put(HandleServiceInformationActions.fetchServiceRejected({ error }));
@@ -42,7 +42,7 @@ export function* handleFetchServiceNameSaga({
     yield put(
       HandleServiceInformationActions.fetchServiceNameFulfilled({
         serviceName: serviceName || '',
-      })
+      }),
     );
   } catch (error) {
     yield put(HandleServiceInformationActions.fetchServiceNameRejected({ error }));
@@ -61,7 +61,7 @@ export function* handleSaveServiceNameSaga({
     yield put(
       HandleServiceInformationActions.saveServiceNameFulfilled({
         newServiceName,
-      })
+      }),
     );
   } catch (error) {
     yield put(HandleServiceInformationActions.saveServiceNameRejected({ error }));
@@ -87,7 +87,7 @@ export function* handleFetchInitialCommitSaga({
 export function* watchHandleFetchInitialCommitSaga(): SagaIterator {
   yield takeLatest(
     HandleServiceInformationActions.fetchInitialCommit,
-    handleFetchInitialCommitSaga
+    handleFetchInitialCommitSaga,
   );
 }
 
@@ -100,7 +100,7 @@ export function* handleFetchServiceConfigSaga({
     yield put(
       HandleServiceInformationActions.fetchServiceConfigFulfilled({
         serviceConfig: serviceConfig || null,
-      })
+      }),
     );
   } catch (error) {
     yield put(HandleServiceInformationActions.fetchInitialCommitRejected({ error }));
@@ -110,7 +110,7 @@ export function* handleFetchServiceConfigSaga({
 export function* watchHandleFetchServiceConfigSaga(): SagaIterator {
   yield takeLatest(
     HandleServiceInformationActions.fetchServiceConfig,
-    handleFetchServiceConfigSaga
+    handleFetchServiceConfigSaga,
   );
 }
 
@@ -128,7 +128,7 @@ export function* handleSaveServiceConfigSaga({
         newServiceDescription,
         newServiceId,
         newServiceName,
-      })
+      }),
     );
     window.postMessage(postMessages.filesAreSaved, window.location.href);
   } catch (error) {

@@ -69,7 +69,7 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
     return (
       <Alert severity='danger'>
         <Trans
-          i18nKey={'administration.app_status_error'}
+          i18nKey={'overview.app_status_error'}
           values={{
             envName,
           }}
@@ -83,10 +83,10 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
         envType={envType}
         envName={envName}
         severity='success'
-        content={t('administration.success')}
+        content={t('overview.success')}
         footer={
           <Trans
-            i18nKey={'administration.last_published'}
+            i18nKey={'overview.last_published'}
             values={{
               lastPublishedDate: formatDateTime(deploymentInEnv?.created),
             }}
@@ -102,9 +102,9 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
         envType={envType}
         envName={envName}
         severity='info'
-        content={t('administration.no_app')}
+        content={t('overview.no_app')}
         footer={
-          <Trans i18nKey='administration.go_to_publish'>
+          <Trans i18nKey='overview.go_to_publish'>
             <a href={publishPath(org, app)} />
           </Trans>
         }
@@ -118,9 +118,9 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
         envType={envType}
         envName={envName}
         severity='warning'
-        content={t('administration.unavailable')}
+        content={t('overview.unavailable')}
         footer={
-          <Trans i18nKey='administration.go_to_build_log'>
+          <Trans i18nKey='overview.go_to_build_log'>
             <a href={getReleaseBuildPipelineLink(deploymentInEnv?.build.id)} />
           </Trans>
         }

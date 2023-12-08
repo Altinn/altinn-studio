@@ -1,12 +1,16 @@
-﻿using System;
+#nullable enable
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
 {
@@ -18,10 +22,10 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
-        private string TemplatesFolderIdentifier(Version version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
+        private string TemplatesFolderIdentifier(SemanticVersion version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetProcessDefinitionTemplates(Version version)
+        public IEnumerable<string> GetProcessDefinitionTemplates(SemanticVersion version)
         {
             return EnumerateTemplateResources(version)
                 .Select(
@@ -29,7 +33,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
         }
 
         /// <inheritdoc/>
-        public async Task SaveProcessDefinitionFromTemplateAsync(AltinnRepoEditingContext altinnRepoEditingContext, string templateName, Version version, CancellationToken cancellationToken = default)
+        public async Task SaveProcessDefinitionFromTemplateAsync(AltinnRepoEditingContext altinnRepoEditingContext, string templateName, SemanticVersion version, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -52,13 +56,44 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             return altinnAppGitRepository.GetProcessDefinitionFile();
         }
 
-        private IEnumerable<string> EnumerateTemplateResources(Version version)
+        public async Task<Stream> UpdateProcessTaskNameAsync(AltinnRepoEditingContext altinnRepoEditingContext, string taskId, string taskName, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            XmlSerializer serializer = new(typeof(Definitions));
+            Definitions? definitions;
+            using (Stream processDefinitionStream = GetProcessDefinitionStream(altinnRepoEditingContext))
+            {
+                definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
+            }
+
+            if (definitions == null)
+            {
+                throw new InvalidOperationException("Could not deserialize process definition.");
+            }
+
+            ProcessTask? processTask = (definitions.Process.Tasks?.FirstOrDefault(t => t.Id == taskId)) ?? throw new ArgumentException($"Could not find task with id {taskId}.");
+            processTask.Name = taskName;
+
+            Stream processStream = new MemoryStream();
+            serializer.Serialize(processStream, definitions);
+
+            // Reset stream position to beginning after serialization
+            processStream.Seek(0, SeekOrigin.Begin);
+            await altinnAppGitRepository.SaveProcessDefinitionFileAsync(processStream, cancellationToken);
+
+            // Reset stream position to beginning after saving
+            processStream.Seek(0, SeekOrigin.Begin);
+            return processStream;
+        }
+
+        private IEnumerable<string> EnumerateTemplateResources(SemanticVersion version)
         {
             return typeof(ProcessModelingService).Assembly.GetManifestResourceNames()
                 .Where(resourceName => resourceName.Contains(TemplatesFolderIdentifier(version)));
         }
 
-        private Stream GetTemplateStream(Version version, string templateName)
+        private Stream GetTemplateStream(SemanticVersion version, string templateName)
         {
             var templates = EnumerateTemplateResources(version).ToList();
             if (!templates.Exists(template => template.EndsWith(templateName)))
