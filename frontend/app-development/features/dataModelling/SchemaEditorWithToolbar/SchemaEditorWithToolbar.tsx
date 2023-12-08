@@ -38,7 +38,6 @@ export const SchemaEditorWithToolbar = ({
       />
       {schemaGenerationErrorMessages.length > 0 && (
         <SchemaGenerationErrorsPanel
-          showSchemaGenerationErrors={schemaGenerationErrorMessages.length > 0}
           onCloseErrorsPanel={() => setSchemaGenerationErrorMessages([])}
           schemaGenerationErrorMessages={schemaGenerationErrorMessages}
         />

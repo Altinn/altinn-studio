@@ -5,8 +5,20 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-const customErrorMessages = ['a specific error message'];
+const unknownErrorCode = 'unknownErrorCode';
+// Mocks:
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+    i18n: {
+      exists: (key: string) =>
+        key !== `api_errors.${unknownErrorCode}` ? textMock(key) : undefined,
+    },
+  }),
+  Trans: ({ i18nKey }: { i18nKey: any }) => textMock(i18nKey),
+}));
 
 const wrapper = ({
   children,
@@ -79,30 +91,12 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
   });
 
-  it('displays a list of custom error messages if API returns an error code and the corresponding custom error messages', async () => {
-    const { result } = renderHook(
-      () =>
-        useQuery({
-          queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(400, 'DM_01', customErrorMessages)),
-          retry: false,
-        }),
-      { wrapper },
-    );
-
-    await waitFor(() => result.current.isError);
-
-    expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
-    //expect(await screen.findByText(customErrorMessages[0])).toBeInTheDocument();
-    //expect(await screen.findByText(customErrorMessages[1])).toBeInTheDocument();
-  });
-
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
     const { result } = renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(500, 'DM_02')),
+          queryFn: () => Promise.reject(createApiErrorMock(500, unknownErrorCode)),
           retry: false,
         }),
       { wrapper },
