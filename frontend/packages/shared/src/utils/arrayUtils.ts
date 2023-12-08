@@ -1,11 +1,4 @@
 /**
- * Removes duplicates from an array.
- * @param array The array of interest.
- * @returns The array without duplicates.
- */
-export const removeDuplicates = <T>(array: T[]): T[] => [...new Set(array)];
-
-/**
  * Adds an item to the beginning of an array..
  * @param array The array of interest.
  * @param item The item to prepend.

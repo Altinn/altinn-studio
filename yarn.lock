@@ -3839,7 +3839,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/pure-functions@workspace:frontend/libs/studio-pure-functions":
+"@studio/pure-functions@workspace:^, @studio/pure-functions@workspace:frontend/libs/studio-pure-functions":
   version: 0.0.0-use.local
   resolution: "@studio/pure-functions@workspace:frontend/libs/studio-pure-functions"
   dependencies:
@@ -5729,6 +5729,7 @@ __metadata:
     "@mui/material": "npm:5.14.16"
     "@reduxjs/toolkit": "npm:1.9.7"
     "@studio/icons": "workspace:^"
+    "@studio/pure-functions": "workspace:^"
     axios: "npm:1.6.0"
     classnames: "npm:2.3.2"
     cross-env: "npm:7.0.3"
