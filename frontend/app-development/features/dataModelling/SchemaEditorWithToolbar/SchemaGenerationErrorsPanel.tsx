@@ -16,40 +16,42 @@ export const SchemaGenerationErrorsPanel = ({
   const { t } = useTranslation();
 
   return (
-    <Alert severity='danger' className={classes.errorPanel}>
-      <div>
-        <Paragraph>{t('api_errors.DM_01')}</Paragraph>
-        <ul>
-          {schemaGenerationErrorMessages?.map((errorMessage, index) => {
-            return (
-              <li key={index}>
-                <ErrorMessage>
-                  {errorMessage.includes(
-                    'member names cannot be the same as their enclosing type',
-                  ) ? (
-                    <Trans
-                      i18nKey={'api_errors.DM_CsharpCompiler_NameCollision'}
-                      values={{ nodeName: errorMessage.match(/'([^']+)':/)?.[1] }}
-                      components={{ bold: <strong /> }}
-                    />
-                  ) : (
-                    <>{errorMessage}</>
-                  )}
-                </ErrorMessage>
-              </li>
-            );
-          })}
-        </ul>
+    <Alert severity='danger'>
+      <div className={classes.errorPanel}>
+        <div>
+          <Paragraph>{t('api_errors.DM_01')}</Paragraph>
+          <ul>
+            {schemaGenerationErrorMessages?.map((errorMessage, index) => {
+              return (
+                <li key={index}>
+                  <ErrorMessage>
+                    {errorMessage.includes(
+                      'member names cannot be the same as their enclosing type',
+                    ) ? (
+                      <Trans
+                        i18nKey={'api_errors.DM_CsharpCompiler_NameCollision'}
+                        values={{ nodeName: errorMessage.match(/'([^']+)':/)?.[1] }}
+                        components={{ bold: <strong /> }}
+                      />
+                    ) : (
+                      <>{errorMessage}</>
+                    )}
+                  </ErrorMessage>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+        <Button
+          color='danger'
+          open={schemaGenerationErrorMessages.length > 0}
+          onClick={onCloseErrorsPanel}
+          variant='tertiary'
+          icon={<XMarkIcon />}
+        >
+          {t('general.close')}
+        </Button>
       </div>
-      <Button
-        color='danger'
-        open={schemaGenerationErrorMessages.length > 0}
-        onClick={onCloseErrorsPanel}
-        variant='tertiary'
-        icon={<XMarkIcon />}
-      >
-        {t('general.close')}
-      </Button>
     </Alert>
   );
 };
