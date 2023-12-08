@@ -1,10 +1,5 @@
 import React from 'react';
-import { IconProps } from '../../types/IconProps';
-
-/**
- * @param {SvgTemplateProps} props the SvgTemplate props
- * @returns {JSX.Element} template for svg icons
- */
+import { IconProps } from '../types';
 
 type SvgTemplateProps = IconProps & { children: React.ReactNode };
 export const SvgTemplate = ({ title, children, ...rest }: SvgTemplateProps): JSX.Element => {
