@@ -283,7 +283,7 @@ public class AuthorizationServiceTests
             new AltinnAction("read"),
             new AltinnAction("write"),
             new AltinnAction("brew-coffee"),
-            new AltinnAction("drink-coffee", ActionType.UserAction),
+            new AltinnAction("drink-coffee", ActionType.ServerAction),
         };
         var actionsStrings = new List<string>() { "read", "write", "brew-coffee", "drink-coffee" };
 
@@ -325,7 +325,7 @@ public class AuthorizationServiceTests
             new UserAction()
             {
                 Id = "drink-coffee",
-                ActionType = ActionType.UserAction,
+                ActionType = ActionType.ServerAction,
                 Authorized = false
             }
         };

@@ -16,10 +16,10 @@ public class UserActionResponse
     public Dictionary<string, object?>? UpdatedDataModels { get; set; }
     
     /// <summary>
-    /// Actions frontend should perform after action has been performed backend
+    /// Actions the client should perform after action has been performed backend
     /// </summary>
-    [JsonPropertyName("frontendActions")]
-    public List<FrontendAction>? FrontendActions { get; set; }
+    [JsonPropertyName("clientActions")]
+    public List<ClientAction>? ClientActions { get; set; }
     
     /// <summary>
     /// Validation issues that occured when processing action

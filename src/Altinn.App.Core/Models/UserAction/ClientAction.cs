@@ -3,9 +3,9 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Models.UserAction;
 
 /// <summary>
-/// Defines an action that should be performed by frontend
+/// Defines an action that should be performed by the client
 /// </summary>
-public class FrontendAction
+public class ClientAction
 {
     /// <summary>
     /// Name of the action
@@ -20,12 +20,12 @@ public class FrontendAction
     public Dictionary<string, object>? Metadata { get; set; }
     
     /// <summary>
-    /// Creates a nextPage frontend action
+    /// Creates a nextPage client action
     /// </summary>
     /// <returns></returns>
-    public static FrontendAction NextPage()
+    public static ClientAction NextPage()
     {
-        var frontendAction = new FrontendAction()
+        var frontendAction = new ClientAction()
         {
             Name = "nextPage"
         };

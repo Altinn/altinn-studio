@@ -62,9 +62,9 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         [XmlEnum("processAction")]
         ProcessAction,
         /// <summary>
-        /// The action is a user action
+        /// The action is a generic server action
         /// </summary>
-        [XmlEnum("userAction")]
-        UserAction
+        [XmlEnum("serverAction")]
+        ServerAction
     }
 }

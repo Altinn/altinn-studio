@@ -115,14 +115,14 @@ public class ActionsController : ControllerBase
         {
             return new BadRequestObjectResult(new UserActionResponse()
             {
-                FrontendActions = result.FrontendActions,
+                ClientActions = result.ClientActions,
                 Error = result.Error
             });
         }
 
         return new OkObjectResult(new UserActionResponse()
         {
-            FrontendActions = result.FrontendActions,
+            ClientActions = result.ClientActions,
             UpdatedDataModels = result.UpdatedDataModels
         });
     }

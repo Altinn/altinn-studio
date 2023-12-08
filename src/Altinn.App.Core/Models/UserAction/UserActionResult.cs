@@ -20,9 +20,9 @@ public class UserActionResult
     public Dictionary<string, object?>? UpdatedDataModels { get; set; } 
     
     /// <summary>
-    /// Actions for the frontend to perform after the user action has been handled
+    /// Actions for the client to perform after the user action has been handled
     /// </summary>
-    public List<FrontendAction>? FrontendActions { get; set; }
+    public List<ClientAction>? ClientActions { get; set; }
     
     /// <summary>
     /// Validation issues that should be displayed to the user
@@ -32,14 +32,14 @@ public class UserActionResult
     /// <summary>
     /// Creates a success result
     /// </summary>
-    /// <param name="frontendActions"></param>
+    /// <param name="clientActions"></param>
     /// <returns></returns>
-    public static UserActionResult SuccessResult(List<FrontendAction>? frontendActions = null)
+    public static UserActionResult SuccessResult(List<ClientAction>? clientActions = null)
     {
         var userActionResult = new UserActionResult
         {
             Success = true,
-            FrontendActions = frontendActions
+            ClientActions = clientActions
         };
         return userActionResult;
     }
@@ -48,14 +48,14 @@ public class UserActionResult
     /// Creates a failure result
     /// </summary>
     /// <param name="error"></param>
-    /// <param name="frontendActions"></param>
+    /// <param name="clientActions"></param>
     /// <returns></returns>
-    public static UserActionResult FailureResult(ActionError error, List<FrontendAction>? frontendActions = null)
+    public static UserActionResult FailureResult(ActionError error, List<ClientAction>? clientActions = null)
     {
         return new UserActionResult
         {
             Success = false,
-            FrontendActions = frontendActions,
+            ClientActions = clientActions,
             Error = error
         };
     }

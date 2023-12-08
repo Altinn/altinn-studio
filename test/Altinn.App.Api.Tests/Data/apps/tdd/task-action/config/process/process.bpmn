@@ -12,7 +12,7 @@
           <altinn:taskType>data</altinn:taskType>
           <altinn:actions>
             <altinn:action>complete</altinn:action>
-            <altinn:action type="userAction">lookup</altinn:action>
+            <altinn:action type="serverAction">lookup</altinn:action>
           </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
