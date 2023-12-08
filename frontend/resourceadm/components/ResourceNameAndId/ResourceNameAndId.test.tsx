@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { ResourceNameAndId, ResourceNameAndIdProps } from './ResourceNameAndId';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
@@ -107,9 +107,9 @@ describe('ResourceNameAndId', () => {
     expect(screen.getByText(mockResourceIdInitial)).toBeInTheDocument();
   });
 
-  it('displays error message when conflictErrorMessage is set', async () => {
+  it('displays error message when conflictErrorMessage is set', () => {
     render(<ResourceNameAndId {...defaultProps} conflictErrorMessage={'conflict!'} />);
     const errorMessageEl = screen.getByText('conflict!');
-    await waitFor(() => expect(errorMessageEl).toBeInTheDocument());
+    expect(errorMessageEl).toBeInTheDocument();
   });
 });
