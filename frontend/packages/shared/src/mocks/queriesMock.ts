@@ -98,4 +98,5 @@ export const queriesMock: ServicesContextProps = {
   deletePartyList: jest.fn(),
   addPartyListMember: jest.fn(),
   removePartyListMember: jest.fn(),
+  getResourcePartyLists: jest.fn(),
 };

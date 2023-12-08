@@ -1,8 +1,11 @@
-import { Button, Heading } from '@digdir/design-system-react';
-import React, { useState } from 'react';
+import { Alert, Button, Heading, Label, NativeSelect } from '@digdir/design-system-react';
+import React, { useEffect, useState } from 'react';
 import { ResourcePartyListActions } from './ResourcePartyListActions';
-import { ListConnections } from './listeTestData';
 import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
+import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
+import { useParams } from 'react-router-dom';
+import { StudioSpinner } from '@studio/components';
+import { useGetResourcePartyListsQuery } from 'resourceadm/hooks/queries/useGetResourcePartyLists';
 
 interface ResourcePartyListsProps {
   env: string;
@@ -15,26 +18,34 @@ export const ResourcePartyLists = ({
   resourceId,
   onBack,
 }: ResourcePartyListsProps): React.ReactNode => {
+  const { selectedContext } = useParams();
   const [isCreatingList, setIsCreatingList] = useState<boolean>(false);
+  const [selectedAddList, setSelectedAddList] = useState<string>('');
+  const [selectedLists, setSelectedLists] = useState<PartyListResourceLink[]>([]);
 
-  const connectedLists = ListConnections.filter(
-    (x) => x.resourceId === resourceId && x.env === env,
-  );
+  // TODO loading: load all lists for environment, load connected lists for resource
+  const {
+    data: envListData,
+    isLoading: isLoadingEnvListData,
+    error: envListDataError,
+  } = useGetPartyListsQuery(selectedContext, env);
+  const {
+    data: connectedLists,
+    isLoading: isLoadingConnectedLists,
+    error: connectedListsError,
+  } = useGetResourcePartyListsQuery(selectedContext, resourceId, env);
 
-  const [selectedLists, setSelectedLists] = useState<PartyListResourceLink[]>(connectedLists);
+  useEffect(() => {
+    if (connectedLists) {
+      setSelectedLists(connectedLists);
+    }
+  }, [connectedLists]);
 
   const filterAvailableLists = () => {
-    return []
-      .filter((z) => {
-        const usedLists = selectedLists.map((x) => x.listId);
-        return z.env === env && usedLists.indexOf(z.id) === -1;
-      })
-      .map((z) => {
-        return {
-          value: `${z.id}`,
-          label: z.title,
-        };
-      });
+    return envListData.filter((z) => {
+      const usedLists = selectedLists.map((x) => x.partyListIdentifier);
+      return usedLists.indexOf(z.identifier) === -1;
+    });
   };
 
   const handleSave = (listItem: PartyListResourceLink, diff: Partial<PartyListResourceLink>) => {
@@ -42,11 +53,13 @@ export const ResourcePartyLists = ({
     // call service to save
     console.log('SAVE', saveItem);
     // update state
-    setSelectedLists((old) => old.map((y) => (y.listId === listItem.listId ? saveItem : y)));
+    setSelectedLists((old) =>
+      old.map((y) => (y.partyListIdentifier === listItem.partyListIdentifier ? saveItem : y)),
+    );
   };
 
   const handleDelete = (listItemId: string) => {
-    setSelectedLists((old) => old.filter((y) => y.listId !== listItemId));
+    setSelectedLists((old) => old.filter((y) => y.partyListIdentifier !== listItemId));
     console.log('DELETE', listItemId); // do not delete when listItemId is 0, just remove from state
   };
 
@@ -66,6 +79,14 @@ export const ResourcePartyLists = ({
     );
   }
 
+  if (isLoadingEnvListData || isLoadingConnectedLists) {
+    return <StudioSpinner />;
+  }
+
+  if (envListDataError || connectedListsError) {
+    return <Alert severity='danger'>Kunne ikke laste lister</Alert>;
+  }
+
   return (
     <div style={{ width: '100%', margin: '1rem' }}>
       <Button variant='tertiary' onClick={onBack}>
@@ -75,10 +96,8 @@ export const ResourcePartyLists = ({
       {selectedLists.map((x) => {
         return (
           <ResourcePartyListActions
-            key={x.listId}
-            listName='HEI' //{TestLister.find((y) => y.id === x.listId)?.title}
+            key={x.partyListIdentifier}
             listItem={x}
-            listOptions={filterAvailableLists()}
             onRemove={(listIdToRemove: string) => {
               handleDelete(listIdToRemove);
             }}
@@ -88,19 +107,38 @@ export const ResourcePartyLists = ({
           />
         );
       })}
-      <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem', marginTop: '1rem' }}>
-        <Button
-          disabled={selectedLists.some((x) => !x.listId)}
-          onClick={() =>
-            handleAdd({
-              resourceId: resourceId,
-              env: env,
-              listId: '',
-              actions: [],
-            })
-          }
+      <Label size='small' htmlFor='addlist'>
+        Legg til liste
+      </Label>
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+        <NativeSelect
+          id='addlist'
+          style={{ width: '20rem' }}
+          value={selectedAddList}
+          onChange={(event) => setSelectedAddList(event.target.value)}
         >
-          Legg til liste
+          <option value=''>{'<velg liste>'}</option>
+          {filterAvailableLists().map((x) => {
+            return (
+              <option key={x.identifier} value={x.identifier}>
+                {x.name}
+              </option>
+            );
+          })}
+        </NativeSelect>
+        <Button
+          disabled={!selectedAddList}
+          onClick={() => {
+            setSelectedAddList('');
+            handleAdd({
+              resourceIdentifier: resourceId,
+              partyListName: envListData.find((list) => list.identifier === selectedAddList).name,
+              partyListIdentifier: selectedAddList,
+              actions: [],
+            });
+          }}
+        >
+          Legg til
         </Button>
         <Button variant='secondary' onClick={() => setIsCreatingList(true)}>
           Opprett ny liste

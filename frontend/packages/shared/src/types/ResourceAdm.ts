@@ -128,8 +128,8 @@ export interface PartyListWithMembers {
 }
 
 export interface PartyListResourceLink {
-  resourceId: string;
-  env: string;
-  listId: string;
+  resourceIdentifier: string;
+  partyListName: string;
+  partyListIdentifier: string;
   actions: string[];
 }

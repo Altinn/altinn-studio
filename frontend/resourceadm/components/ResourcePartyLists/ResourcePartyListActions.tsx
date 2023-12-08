@@ -1,4 +1,4 @@
-import { Button, Chip, Heading, Select } from '@digdir/design-system-react';
+import { Button, Card, Chip, Divider, Heading, Select } from '@digdir/design-system-react';
 import React from 'react';
 import { FieldWrapper } from '../FieldWrapper/FieldWrapper';
 import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
@@ -24,68 +24,38 @@ const actionOptions = [
 
 interface ResourcePartyListActionsProps {
   listItem: PartyListResourceLink;
-  listName: string;
-  listOptions: { value: string; label: string }[];
   onRemove: (listId: string) => void;
   onChange: (listItem: PartyListResourceLink, diff: Partial<PartyListResourceLink>) => void;
 }
 
 export const ResourcePartyListActions = ({
   listItem,
-  listName,
-  listOptions,
   onRemove,
   onChange,
 }: ResourcePartyListActionsProps): React.ReactNode => {
   return (
-    <div
-      style={{
-        marginBottom: '4rem',
-        borderRadius: '8px',
-        maxWidth: '50%',
-        border: '2px solid #ddd',
-      }}
-    >
-      <div
+    <Card style={{ margin: '1rem 0', maxWidth: '40rem' }}>
+      <Card.Header
         style={{
           display: 'flex',
           flexDirection: 'row',
-          gap: '1rem',
-          alignItems: 'flex-end',
-          padding: '1rem 1.5rem',
-          borderBottom: '2px solid #ddd',
+          justifyContent: 'space-between',
         }}
       >
-        <div style={{ flex: 1 }}>
-          <FieldWrapper label='Liste'>
-            {listItem.listId ? (
-              <Heading level={2} size='small'>
-                {listName}
-              </Heading>
-            ) : (
-              <Select
-                options={listOptions}
-                value={`${listItem.listId}`}
-                disabled={!!listItem.listId}
-                onChange={(value: string) => {
-                  onChange(listItem, {
-                    listId: value,
-                  });
-                }}
-              />
-            )}
-          </FieldWrapper>
-        </div>
+        <Heading level={2} size='small'>
+          {listItem.partyListName}
+        </Heading>
         <Button
           color='danger'
           size='small'
           variant='secondary'
-          onClick={() => onRemove(listItem.listId)}
+          onClick={() => onRemove(listItem.partyListIdentifier)}
         >
           Fjern fra ressurs
         </Button>
-      </div>
-      <div style={{ padding: '1rem 1.5rem' }}>
+      </Card.Header>
+      <Divider color='subtle' />
+      <Card.Content style={{ padding: '1rem 1.5rem' }}>
         <FieldWrapper
           label='Rettigheter'
           description='Legg til hvilke rettigheter som kreves for å bruke denne ressursen'
@@ -114,7 +84,7 @@ export const ResourcePartyListActions = ({
             })}
           </div>
         </FieldWrapper>
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 };

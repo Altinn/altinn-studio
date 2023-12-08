@@ -11,7 +11,7 @@ import {
   Modal,
 } from '@digdir/design-system-react';
 import { PartyList, PartyListMember, PartyListWithMembers } from 'app-shared/types/ResourceAdm';
-import { FieldWrapper } from '../../components/FieldWrapper/FieldWrapper';
+import { FieldWrapper } from '../FieldWrapper/FieldWrapper';
 import { useEditPartyListMutation } from 'resourceadm/hooks/mutations/useEditPartyListMutation';
 import { useRemovePartyListMemberMutation } from 'resourceadm/hooks/mutations/useRemovePartyListMemberMutation';
 import { useAddPartyListMemberMutation } from 'resourceadm/hooks/mutations/useAddPartyListMemberMutation';

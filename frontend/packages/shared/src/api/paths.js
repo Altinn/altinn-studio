@@ -141,6 +141,7 @@ export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdit
 export const partyListsPath = (org, env) => `${basePath}/${org}/resources/partylist/?env=${env}`; // Get, Post
 export const partyListPath = (org, listId, env) => `${basePath}/${org}/resources/partylist/${listId}?env=${env}`; // Get, Patch, Delete
 export const partyListMemberPath = (org, listId, orgnr, env) => `${basePath}/${org}/resources/partylist/${listId}/members/${orgnr}?env=${env}`; // Post, Delete
+export const resourcePartyListsPath = (org, resourceId, env) => `${basePath}/${org}/resources/${resourceId}/partylists/?env=${env}`; // Get
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;

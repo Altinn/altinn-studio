@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { Button, Heading } from '@digdir/design-system-react';
 import React, { useState } from 'react';
-import { PartyListDetail } from './PartyListDetail';
+import { PartyListDetail } from '../../components/PartyListDetails/PartyListDetail';
 import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
 import { ListAdminEnv } from './ListAdminEnv';
 

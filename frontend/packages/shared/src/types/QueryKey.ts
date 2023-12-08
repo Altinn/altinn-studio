@@ -56,6 +56,7 @@ export enum QueryKey {
   ImportAltinn2Resource = 'ImportAltinn2Resource',
   PartyLists = 'PartyLists',
   PartyList = 'PartyList',
+  ResourcePartyLists = 'ResourcePartyLists',
   EnhetsregisterOrgenhetSearch = 'EnhetsregisterOrgenhetSearch',
   EnhetsregisterUnderenhetSearch = 'EnhetsregisterUnderenhetSearch',
 }
