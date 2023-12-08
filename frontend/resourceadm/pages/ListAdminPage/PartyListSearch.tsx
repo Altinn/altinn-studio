@@ -7,7 +7,7 @@ import {
   useEnhetsregisterUnderOrganizationQuery,
 } from 'resourceadm/hooks/queries/useEnhetsregisterOrganizationQuery';
 
-interface OrganizationAutocompleteProps {
+interface PartyListSearchProps {
   handleAddMember: (org: PartyListMember) => void;
 }
 
@@ -47,9 +47,7 @@ const enhetsListe = (
   );
 };
 
-export const OrganizationAutocomplete = ({
-  handleAddMember,
-}: OrganizationAutocompleteProps): React.ReactNode => {
+export const PartyListSearch = ({ handleAddMember }: PartyListSearchProps): React.ReactNode => {
   const [searchText, setSearchText] = useState<string>('');
   const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   useDebounce(() => setDebouncedSearchText(searchText), 500, [searchText]);

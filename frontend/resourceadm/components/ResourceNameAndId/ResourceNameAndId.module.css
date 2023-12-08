@@ -1,6 +1,12 @@
+.resourceNameAndId {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
 .textfieldWrapper {
   width: 80%;
-  padding-bottom: 1.5rem;
 }
 
 .idText {

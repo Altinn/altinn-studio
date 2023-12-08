@@ -1,5 +1,4 @@
 import React, { useRef, useState } from 'react';
-import classes from './OrganizationAccessPage.module.css';
 import {
   Alert,
   Button,
@@ -12,27 +11,27 @@ import {
   Modal,
 } from '@digdir/design-system-react';
 import { PartyList, PartyListMember, PartyListWithMembers } from 'app-shared/types/ResourceAdm';
-import { FieldWrapper } from './FieldWrapper';
+import { FieldWrapper } from '../../components/FieldWrapper/FieldWrapper';
 import { useEditPartyListMutation } from 'resourceadm/hooks/mutations/useEditPartyListMutation';
 import { useRemovePartyListMemberMutation } from 'resourceadm/hooks/mutations/useRemovePartyListMemberMutation';
 import { useAddPartyListMemberMutation } from 'resourceadm/hooks/mutations/useAddPartyListMemberMutation';
-import { createReplacePatch } from './jsonPatchUtils';
+import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
 import { useDeletePartyListMutation } from 'resourceadm/hooks/mutations/useDeletePartyListMutation';
-import { OrganizationAutocomplete } from './OrganizationAutocomplete';
+import { PartyListSearch } from './PartyListSearch';
 
-interface OrganizationAccessPageProps {
+interface PartyListDetailProps {
   org: string;
   env: string;
   list: PartyListWithMembers;
   onDeleted: () => void;
 }
 
-export const OrganizationAccessPage = ({
+export const PartyListDetail = ({
   org,
   env,
   list,
   onDeleted,
-}: OrganizationAccessPageProps): React.ReactNode => {
+}: PartyListDetailProps): React.ReactNode => {
   const deleteWarningModalRef = useRef<HTMLDialogElement>(null);
   const [listItems, setListItems] = useState<(PartyListMember & { isDeleted?: boolean })[]>(
     list.members,
@@ -88,7 +87,7 @@ export const OrganizationAccessPage = ({
   };
 
   return (
-    <div className={classes.pageWrapper}>
+    <div>
       <Modal ref={deleteWarningModalRef} onClose={() => deleteWarningModalRef.current?.close()}>
         <Modal.Header>Bekreft sletting av liste</Modal.Header>
         <Modal.Content>Vil du slette denne listen?</Modal.Content>
@@ -168,7 +167,7 @@ export const OrganizationAccessPage = ({
               })}
               <TableRow>
                 <TableCell colSpan={100}>
-                  <OrganizationAutocomplete handleAddMember={handleAddMember} />
+                  <PartyListSearch handleAddMember={handleAddMember} />
                 </TableCell>
               </TableRow>
             </TableBody>

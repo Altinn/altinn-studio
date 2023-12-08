@@ -1,6 +1,6 @@
 import { Button, Chip, Heading, Select } from '@digdir/design-system-react';
 import React from 'react';
-import { FieldWrapper } from './FieldWrapper';
+import { FieldWrapper } from '../FieldWrapper/FieldWrapper';
 import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
 
 const actionOptions = [
@@ -22,7 +22,7 @@ const actionOptions = [
   },
 ];
 
-interface OrganizationListActionsProps {
+interface ResourcePartyListActionsProps {
   listItem: PartyListResourceLink;
   listName: string;
   listOptions: { value: string; label: string }[];
@@ -30,13 +30,13 @@ interface OrganizationListActionsProps {
   onChange: (listItem: PartyListResourceLink, diff: Partial<PartyListResourceLink>) => void;
 }
 
-export const OrganizationListActions = ({
+export const ResourcePartyListActions = ({
   listItem,
   listName,
   listOptions,
   onRemove,
   onChange,
-}: OrganizationListActionsProps): React.ReactNode => {
+}: ResourcePartyListActionsProps): React.ReactNode => {
   return (
     <div
       style={{

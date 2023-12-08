@@ -1,11 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
 import { Button, Heading } from '@digdir/design-system-react';
 import React, { useState } from 'react';
-import { OrganizationAccessPage } from './OrganizationAccessPage';
+import { PartyListDetail } from './PartyListDetail';
 import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
 import { ListAdminEnv } from './ListAdminEnv';
 
-export const ListAdmin = (): React.ReactNode => {
+export const ListAdminPage = (): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -46,7 +46,7 @@ export const ListAdmin = (): React.ReactNode => {
         />
       )}
       {!!list && (
-        <OrganizationAccessPage
+        <PartyListDetail
           org={selectedContext}
           env={selectedEnv}
           list={list}

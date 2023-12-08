@@ -52,7 +52,7 @@ import type { Policy } from '@altinn/policy-editor';
 import type { NewResource, PartyList, Resource } from 'app-shared/types/ResourceAdm';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { AppConfig } from 'app-shared/types/AppConfig';
-import { JsonPatch } from 'resourceadm/pages/OrganizationAccessPage/jsonPatchUtils';
+import { JsonPatch } from 'resourceadm/utils/jsonPatchUtils/jsonPatchUtils';
 
 const headers = {
   Accept: 'application/json',

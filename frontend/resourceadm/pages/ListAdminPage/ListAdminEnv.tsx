@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { StudioSpinner } from '@studio/components';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
 import { Button } from '@digdir/design-system-react';
-import { CreatePartyListModal } from './CreatePartyListModal';
+import { NewPartyListModal } from '../../components/NewPartyListModal/NewPartyListModal';
 
 interface ListAdminEnvProps {
   org: string;
@@ -17,7 +17,7 @@ export const ListAdminEnv = ({ org, env, onSelectList }: ListAdminEnvProps): Rea
 
   return (
     <div>
-      <CreatePartyListModal
+      <NewPartyListModal
         ref={createPartyListModalRef}
         org={org}
         env={env}

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { JsonPatch } from 'resourceadm/pages/OrganizationAccessPage/jsonPatchUtils';
+import { JsonPatch } from 'resourceadm/utils/jsonPatchUtils/jsonPatchUtils';
 
 /**
  * Mutation to edit an existing resource.

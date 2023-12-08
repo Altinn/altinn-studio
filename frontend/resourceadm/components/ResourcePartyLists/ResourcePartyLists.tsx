@@ -1,21 +1,20 @@
 import { Button, Heading } from '@digdir/design-system-react';
 import React, { useState } from 'react';
-import { OrganizationAccessPage } from './OrganizationAccessPage';
-import { OrganizationListActions } from './OrganizationListActions';
+import { ResourcePartyListActions } from './ResourcePartyListActions';
 import { ListConnections } from './listeTestData';
 import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
 
-interface OrganizationListPageProps {
+interface ResourcePartyListsProps {
   env: string;
   resourceId: string;
   onBack: () => void;
 }
 
-export const OrganizationListPage = ({
+export const ResourcePartyLists = ({
   env,
   resourceId,
   onBack,
-}: OrganizationListPageProps): React.ReactNode => {
+}: ResourcePartyListsProps): React.ReactNode => {
   const [isCreatingList, setIsCreatingList] = useState<boolean>(false);
 
   const connectedLists = ListConnections.filter(
@@ -75,7 +74,7 @@ export const OrganizationListPage = ({
       <Heading level={1} size='large'>{`Konfigurer RRR for ${resourceId} - ${env}`}</Heading>
       {selectedLists.map((x) => {
         return (
-          <OrganizationListActions
+          <ResourcePartyListActions
             key={x.listId}
             listName='HEI' //{TestLister.find((y) => y.id === x.listId)?.title}
             listItem={x}

@@ -5,14 +5,14 @@ import { Button } from '@digdir/design-system-react';
 import { ResourceNameAndId } from 'resourceadm/components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
-interface CreatePartyListModalProps {
+interface NewPartyListModalProps {
   org: string;
   env: string;
   onClose: () => void;
   onPartyListCreated: (identifier: string) => void;
 }
 
-export const CreatePartyListModal = forwardRef<HTMLDialogElement, CreatePartyListModalProps>(
+export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModalProps>(
   ({ org, env, onClose, onPartyListCreated }, ref): JSX.Element => {
     const [id, setId] = useState<string>('');
     const [name, setName] = useState<string>('');
@@ -83,4 +83,4 @@ export const CreatePartyListModal = forwardRef<HTMLDialogElement, CreatePartyLis
   },
 );
 
-CreatePartyListModal.displayName = 'CreatePartyListModal';
+NewPartyListModal.displayName = 'NewPartyListModal';

@@ -13,7 +13,7 @@ import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
 import { SearchField } from '@altinn/altinn-design-system';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import { ListAdmin } from 'resourceadm/pages/OrganizationAccessPage/ListAdmin';
+import { ListAdminPage } from 'resourceadm/pages/ListAdminPage/ListAdminPage';
 import { useTranslation } from 'react-i18next';
 
 export const App = (): JSX.Element => {
@@ -60,7 +60,7 @@ export const App = (): JSX.Element => {
         <Routes>
           <Route element={<PageLayout />}>
             <Route path={basePath} element={<ResourceDashboardPage />} />
-            <Route path={`${basePath}/listadmin/`} element={<ListAdmin />} />
+            <Route path={`${basePath}/listadmin/`} element={<ListAdminPage />} />
             <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
             <Route path='/' element={<ErrorPage />} />
             <Route path='/:selectedContext' element={<RedirectPage />} />
