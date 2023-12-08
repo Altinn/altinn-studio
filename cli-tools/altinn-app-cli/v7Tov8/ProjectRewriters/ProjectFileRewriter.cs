@@ -9,13 +9,15 @@ public class ProjectFileRewriter
     private XDocument doc;
     private readonly string projectFilePath;
     private readonly string targetVersion;
+    private readonly string targetFramework;
 
-    public ProjectFileRewriter(string projectFilePath, string targetVersion = "8.0.0")
+    public ProjectFileRewriter(string projectFilePath, string targetVersion = "8.0.0", string targetFramework = "net8.0")
     {
         this.projectFilePath = projectFilePath;
         this.targetVersion = targetVersion;
         var xmlString = File.ReadAllText(projectFilePath);
         doc = XDocument.Parse(xmlString);
+        this.targetFramework = targetFramework;
     }
 
     public async Task Upgrade()
@@ -26,8 +28,10 @@ public class ProjectFileRewriter
         {
             altinnAppCoreElements.ForEach(c => c.Attribute("Version")?.SetValue(targetVersion));
             altinnAppApiElements.ForEach(a => a.Attribute("Version")?.SetValue(targetVersion));
-            await Save();
         }
+        
+        GetTargetFrameworkElement()?.ForEach(t => t.SetValue(targetFramework));
+        await Save();
     }
 
     private List<XElement>? GetAltinnAppCoreElement()
@@ -39,6 +43,11 @@ public class ProjectFileRewriter
     {
         return doc.Root?.Elements("ItemGroup").Elements("PackageReference").Where(x => x.Attribute("Include")?.Value == "Altinn.App.Api").ToList();
     }
+    
+    private List<XElement>? GetTargetFrameworkElement()
+    {
+        return doc.Root?.Elements("PropertyGroup").Elements("TargetFramework").ToList();
+    }
 
     private async Task Save()
     {
@@ -49,5 +58,6 @@ public class ProjectFileRewriter
         xws.Encoding = Encoding.UTF8;
         await using XmlWriter xw = XmlWriter.Create(projectFilePath, xws);
         await doc.WriteToAsync(xw, CancellationToken.None);
+        await xw.FlushAsync();
     }
 }
