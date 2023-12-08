@@ -18,7 +18,7 @@ export const Navigation = () => {
   return (
     <div className={classes.navigation}>
       <Heading level={2} size='xxsmall'>
-        {t('administration.navigation_title')}
+        {t('overview.navigation_title')}
       </Heading>
       <div className={classes.links}>
         {menuItems.map((menuItem) => {

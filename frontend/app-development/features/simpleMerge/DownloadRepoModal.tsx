@@ -31,18 +31,18 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
         }}
       >
         <div className={classes.modalContainer}>
-          <h2>{t('administration.download_repo_heading')}</h2>
+          <h2>{t('overview.download_repo_heading')}</h2>
           <p>
-            <Trans i18nKey={'administration.download_repo_info'} />
+            <Trans i18nKey={'overview.download_repo_info'} />
           </p>
           <p>
             <a href={repoDownloadPath(props.org, props.app)}>
-              {t('administration.download_repo_changes')}
+              {t('overview.download_repo_changes')}
             </a>
           </p>
           <p>
             <a href={repoDownloadPath(props.org, props.app, true)}>
-              {t('administration.download_repo_full')}
+              {t('overview.download_repo_full')}
             </a>
           </p>
           <div className={classes.buttonContainer}>

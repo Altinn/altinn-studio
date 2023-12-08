@@ -49,7 +49,7 @@ describe('News', () => {
     };
     render(newsList);
 
-    await screen.findByText(textMock('administration.fetch_news_loading_message'));
+    await screen.findByText(textMock('overview.fetch_news_loading_message'));
   });
 
   it('error message is shown when content fails to load', async () => {
@@ -66,7 +66,7 @@ describe('News', () => {
       getNewsList: jest.fn().mockImplementation(() => Promise.reject()),
     });
 
-    await screen.findByText(textMock('administration.fetch_news_error_message'));
+    await screen.findByText(textMock('overview.fetch_news_error_message'));
   });
 });
 
