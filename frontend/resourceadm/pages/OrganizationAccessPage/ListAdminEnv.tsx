@@ -21,7 +21,11 @@ export const ListAdminEnv = ({ org, env, onSelectList }: ListAdminEnvProps): Rea
         ref={createPartyListModalRef}
         org={org}
         env={env}
-        onPartyListCreated={(identifier: string) => onSelectList(identifier)}
+        onClose={() => createPartyListModalRef.current?.close()}
+        onPartyListCreated={(identifier: string) => {
+          createPartyListModalRef.current?.close();
+          onSelectList(identifier);
+        }}
       />
       {isLoadingEnvListData && <StudioSpinner />}
       {!!envListData && (
@@ -37,11 +41,9 @@ export const ListAdminEnv = ({ org, env, onSelectList }: ListAdminEnvProps): Rea
               </Button>
             );
           })}
-          <Button onClick={() => createPartyListModalRef.current?.showModal()}>
-            Opprett ny liste
-          </Button>
         </>
       )}
+      <Button onClick={() => createPartyListModalRef.current?.showModal()}>Opprett ny liste</Button>
     </div>
   );
 };

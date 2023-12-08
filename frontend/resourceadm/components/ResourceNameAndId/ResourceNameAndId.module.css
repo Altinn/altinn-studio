@@ -1,10 +1,6 @@
 .textfieldWrapper {
   width: 80%;
-}
-
-.label {
-  margin-top: 20px;
-  margin-bottom: 5px;
+  padding-bottom: 1.5rem;
 }
 
 .idText {

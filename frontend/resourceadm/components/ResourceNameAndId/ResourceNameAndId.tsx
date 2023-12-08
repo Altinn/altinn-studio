@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import classes from './ResourceNameAndId.module.css';
-import { Button, Textfield, Paragraph, Label } from '@digdir/design-system-react';
+import { Button, Textfield, Paragraph } from '@digdir/design-system-react';
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
+import { FieldWrapper } from 'resourceadm/pages/OrganizationAccessPage/FieldWrapper';
 
 export type ResourceNameAndIdProps = {
   idLabel: string;
@@ -105,10 +106,7 @@ export const ResourceNameAndId = ({
    */
   const displayIdTextOrInput = () => {
     return (
-      <>
-        <Label className={classes.label} size='small' htmlFor='resourceIdInputId'>
-          {idLabel}
-        </Label>
+      <FieldWrapper label={idLabel} fieldId='resourceIdInputId'>
         {editIdFieldOpen ? (
           <div className={classes.editFieldWrapper}>
             <div className={classes.textfieldWrapper}>
@@ -166,22 +164,21 @@ export const ResourceNameAndId = ({
             </div>
           </div>
         )}
-      </>
+      </FieldWrapper>
     );
   };
 
   return (
     <div className={classes.resourceNameAndId}>
-      <Label className={classes.label} size='small' htmlFor='resourceNameInputId'>
-        {titleLabel}
-      </Label>
       <div className={classes.textfieldWrapper}>
-        <Textfield
-          value={title}
-          onChange={(e) => handleEditTitle(e.target.value)}
-          id='resourceNameInputId'
-          size='small'
-        />
+        <FieldWrapper label={titleLabel} fieldId='resourceNameInputId'>
+          <Textfield
+            value={title}
+            onChange={(e) => handleEditTitle(e.target.value)}
+            id='resourceNameInputId'
+            size='small'
+          />
+        </FieldWrapper>
       </div>
       {displayIdTextOrInput()}
     </div>
