@@ -62,6 +62,36 @@ describe('EnumList', () => {
     expect(mockSaveDataModel).toHaveBeenCalledTimes(1);
   });
 
+  it('handles deleting an enum value correctly', async () => {
+    const user = userEvent.setup();
+    renderItemRestrictions({ schemaNode: { ...fieldNode1Mock, enum: mockEnums } });
+
+    const allDeleteButtons = screen.getAllByRole('button', {
+      name: textMock('schema_editor.delete_field'),
+    });
+    expect(allDeleteButtons.length).toBe(3);
+
+    const enumLabelB = screen.getByLabelText(
+      textMock('schema_editor.textfield_label', { id: mockIdB }),
+    );
+    expect(enumLabelB).toBeInTheDocument();
+
+    const [, deleteEnumButtonB] = screen.getAllByRole('button', {
+      name: textMock('schema_editor.delete_field'),
+    });
+    await act(() => user.click(deleteEnumButtonB));
+
+    const allDeleteButtonsAfter = screen.getAllByRole('button', {
+      name: textMock('schema_editor.delete_field'),
+    });
+    expect(allDeleteButtonsAfter.length).toBe(2);
+
+    const enumLabelBAfter = screen.queryByLabelText(
+      textMock('schema_editor.textfield_label', { id: mockIdB }),
+    );
+    expect(enumLabelBAfter).not.toBeInTheDocument();
+  });
+
   it('displays error message when two or more enums have the same value', async () => {
     const user = userEvent.setup();
     renderItemRestrictions({ schemaNode: { ...fieldNode1Mock, enum: mockEnums } });
