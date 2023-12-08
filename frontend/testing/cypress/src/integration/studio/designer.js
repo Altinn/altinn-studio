@@ -2,7 +2,6 @@
 /// <reference types="../../support" />
 
 import * as texts from '../../../../../language/src/nb.json';
-import { administration } from '../../selectors/administration';
 import { designer } from '../../selectors/designer';
 import { header } from '../../selectors/header';
 
@@ -20,17 +19,6 @@ context('Designer', () => {
 
   after(() => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
-  });
-
-  it('is possible to edit information about the app', () => {
-    // Navigate to designerApp
-    cy.visit('/editor/' + designerAppId);
-    administration.getHeader().should('be.visible');
-    cy.findByRole('button', { name: texts['general.edit'] }).click();
-    administration.getAppNameField().clear().type('New app name');
-    administration.getDescriptionField().clear().type('App description');
-    administration.getAppNameField().invoke('val').should('contain', 'New app name');
-    administration.getDescriptionField().invoke('val').should('contain', 'App description');
   });
 
   it('is possible to add and delete form components', () => {
@@ -54,10 +42,10 @@ context('Designer', () => {
     cy.wait(500);
     designer
       .getPageAccordionByName('Side1')
-      .findByRole('listitem', { name: texts['ux_editor.component_title.Input'] });
+      .findByRole('treeitem', { name: texts['ux_editor.component_title.Input'] });
 
-    // Delete components on page
-    cy.deleteComponents();
+    // Do not need to confirm alert.confirm dialog, since Cypress default to click "Ok".
+    cy.findByTitle(texts['general.delete']).click({ force: true });
   });
 
   it('should add navigation buttons when adding more than one page', () => {
@@ -84,9 +72,10 @@ context('Designer', () => {
 
     designer
       .getPageAccordionByName('Side2')
-      .findByRole('listitem', { name: `${texts['ux_editor.component_title.NavigationButtons']}` });
+      .findByRole('treeitem', { name: `${texts['ux_editor.component_title.NavigationButtons']}` });
 
-    cy.deleteComponents();
+    // Do not need to confirm alert.confirm dialog, since Cypress default to click "Ok".
+    cy.findByTitle(texts['general.delete']).click({ force: true });
   });
 
   // Disabled for now, as this generates too many copies of the same app

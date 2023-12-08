@@ -3,8 +3,7 @@ import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { NotFoundPage } from 'app-shared/components/notFound';
-import { StudioCenter, StudioPageSpinner } from '@studio/components';
+import { StudioCenter, StudioPageSpinner, StudioNotFoundPage } from '@studio/components';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
 
 /**
@@ -33,7 +32,7 @@ export const AppShell = (): React.ReactNode => {
 
   const renderPages = () => {
     if (repoStatusError?.response?.status === ServerCodes.NotFound) {
-      return <NotFoundPage />;
+      return <StudioNotFoundPage />;
     }
     if (repoStatus?.hasMergeConflict) {
       return <MergeConflictWarning org={org} app={app} />;

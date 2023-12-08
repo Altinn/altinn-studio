@@ -2,7 +2,6 @@ import React from 'react';
 import { FormLayout, FormLayoutProps } from './FormLayout';
 import { layoutMock } from '../../testing/layoutMock';
 import { screen } from '@testing-library/react';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { renderWithMockStore } from '../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
@@ -15,15 +14,9 @@ const defaultProps: FormLayoutProps = {
 };
 
 describe('FormLayout', () => {
-  it('Does not display a tree view component by default', () => {
+  it('Does display a tree view component', () => {
     render();
-    expect(screen.queryByRole('tree')).not.toBeInTheDocument();
-  });
-
-  it('Displays the tree view version of the layout when the formTree feature flag is enabled', () => {
-    typedLocalStorage.setItem('featureFlags', ['formTree']);
-    render();
-    expect(screen.getByRole('tree')).toBeInTheDocument();
+    expect(screen.getByRole('tree'));
   });
 
   it('Displays warning about multi page groups when the layout has such groups', () => {
