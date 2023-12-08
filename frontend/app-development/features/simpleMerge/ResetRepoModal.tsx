@@ -5,7 +5,7 @@ import { Button, Textfield } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
-import * as testids from '../../../../testing/testids';
+import * as testids from '../../../testing/testids';
 import { toast } from 'react-toastify';
 import { Trans } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -38,7 +38,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
     setCanDelete(false);
     repoResetMutation.mutate(undefined, {
       onSuccess: () => {
-        toast.success(t('administration.reset_repo_completed'));
+        toast.success(t('overview.reset_repo_completed'));
         queryClient.removeQueries();
         onCloseWrapper();
       },
@@ -73,16 +73,16 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
         }}
       >
         <div className={classes.modalContainer}>
-          <h2>{t('administration.reset_repo_confirm_heading')}</h2>
+          <h2>{t('overview.reset_repo_confirm_heading')}</h2>
           <div>
             <Trans
-              i18nKey={'administration.reset_repo_confirm_info'}
+              i18nKey={'overview.reset_repo_confirm_info'}
               values={{ repositoryName: props.repositoryName }}
               components={{ bold: <strong /> }}
             />
           </div>
           <label htmlFor='delete-repo-name'>
-            <div>{t('administration.reset_repo_confirm_repo_name')}</div>
+            <div>{t('overview.reset_repo_confirm_repo_name')}</div>
           </label>
           <Textfield
             id='delete-repo-name'
@@ -101,7 +101,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                 variant='secondary'
                 size='small'
               >
-                {t('administration.reset_repo_button')}
+                {t('overview.reset_repo_button')}
               </Button>
               <Button color='second' onClick={onCloseWrapper} variant='secondary' size='small'>
                 {t('general.cancel')}

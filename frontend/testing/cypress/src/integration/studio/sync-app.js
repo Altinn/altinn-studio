@@ -2,8 +2,8 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import { administration } from '../../selectors/administration';
 import { header } from '../../selectors/header';
+import { settings } from '../../selectors/settings';
 
 context('Sync app and deploy', () => {
   before(() => {
@@ -31,9 +31,9 @@ context('Sync app and deploy', () => {
   it('is possible to sync changes', () => {
     cy.searchAndOpenApp(Cypress.env('designerAppName'));
     // Make some changes
-    cy.findByRole('button', { name: 'Endre' }).click();
-    administration.getAppNameField().should('be.enabled').clear().type(Date.now());
-    administration.getDescriptionField().click();
+    header.getSettingsButton().click();
+    settings.getAppNameField().should('be.enabled').clear().type(Date.now());
+    settings.getCloseButton().click();
     // Sync app changes
     header.getShareChangesButton().click();
     header.getDescribeChangesField().should('be.visible').clear().type('automation');

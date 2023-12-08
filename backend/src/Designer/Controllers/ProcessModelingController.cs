@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -56,14 +57,14 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet("templates/{appVersion}")]
-        public IEnumerable<string> GetTemplates(string org, string repo, Version appVersion)
+        public IEnumerable<string> GetTemplates(string org, string repo, SemanticVersion appVersion)
         {
             Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
             return _processModelingService.GetProcessDefinitionTemplates(appVersion);
         }
 
         [HttpPut("templates/{appVersion}/{templateName}")]
-        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo, Version appVersion, string templateName, CancellationToken cancellationToken)
+        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo, SemanticVersion appVersion, string templateName, CancellationToken cancellationToken)
         {
             Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

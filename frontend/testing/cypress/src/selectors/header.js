@@ -5,7 +5,8 @@ const getMenuItem = (name) => cy.findByRole('menuitem', { name });
 
 export const header = {
   getAvatar: () => cy.findByAltText(texts['shared.header_button_alt']),
-  getCreateLink: () => cy.findByRole('link', { name: texts['top_menu.create'] }),
+  getCreateLink: () =>
+    cy.get('#altinn-header-container').findByRole('link', { name: texts['top_menu.create'] }),
   getDatamodelLink: () => cy.findByRole('link', { name: texts['top_menu.datamodel'] }),
   getDeployButton: () => cy.findByRole('button', { name: texts['top_menu.deploy'] }),
   getDescribeChangesField: () =>
@@ -25,4 +26,5 @@ export const header = {
   getTextEditorLink: () => cy.findByRole('link', { name: texts['top_menu.texts'] }),
   getValidateChangesButton: () =>
     cy.findByRole('button', { name: texts['general.validate_changes'] }),
+  getSettingsButton: () => cy.findByRole('button', { name: texts['settings_modal.heading'] }),
 };

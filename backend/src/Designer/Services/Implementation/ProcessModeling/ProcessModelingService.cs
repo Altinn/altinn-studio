@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +10,7 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
 {
@@ -21,10 +22,10 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
-        private string TemplatesFolderIdentifier(Version version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
+        private string TemplatesFolderIdentifier(SemanticVersion version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
 
         /// <inheritdoc/>
-        public IEnumerable<string> GetProcessDefinitionTemplates(Version version)
+        public IEnumerable<string> GetProcessDefinitionTemplates(SemanticVersion version)
         {
             return EnumerateTemplateResources(version)
                 .Select(
@@ -32,7 +33,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
         }
 
         /// <inheritdoc/>
-        public async Task SaveProcessDefinitionFromTemplateAsync(AltinnRepoEditingContext altinnRepoEditingContext, string templateName, Version version, CancellationToken cancellationToken = default)
+        public async Task SaveProcessDefinitionFromTemplateAsync(AltinnRepoEditingContext altinnRepoEditingContext, string templateName, SemanticVersion version, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -86,13 +87,13 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             return processStream;
         }
 
-        private IEnumerable<string> EnumerateTemplateResources(Version version)
+        private IEnumerable<string> EnumerateTemplateResources(SemanticVersion version)
         {
             return typeof(ProcessModelingService).Assembly.GetManifestResourceNames()
                 .Where(resourceName => resourceName.Contains(TemplatesFolderIdentifier(version)));
         }
 
-        private Stream GetTemplateStream(Version version, string templateName)
+        private Stream GetTemplateStream(SemanticVersion version, string templateName)
         {
             var templates = EnumerateTemplateResources(version).ToList();
             if (!templates.Exists(template => template.EndsWith(templateName)))

@@ -7,7 +7,6 @@ const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerApp
 const orgAppId = `${Cypress.env('orgUserName')}/${Cypress.env('designerAppName')}`;
 
 const FeatureFlagEnum = Object.freeze({
-  NewAdministrationPage: 'newAdministration',
   ProcessEditor: 'processEditor',
 });
 
@@ -36,33 +35,27 @@ context('Designer', () => {
   });
 
   it('loads the overview page when navigating to app for user with no environments', () => {
-    // Ensure feature flag is toggled
-    // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11495)
-    cy.visitWithFeatureFlag('/editor/' + designerAppId, FeatureFlagEnum.NewAdministrationPage);
+    cy.visit('/editor/' + designerAppId);
     cy.findByText(Cypress.env('designerAppName')).should('be.visible');
     cy.findByText(texts['app_publish.no_env_title']).should('be.visible');
-    cy.findByText(texts['administration.navigation_title']).should('be.visible');
-    cy.findByText(texts['administration.documentation.title']).should('be.visible');
-    cy.findByText(texts['administration.news_title']).should('be.visible');
+    cy.findByText(texts['overview.navigation_title']).should('be.visible');
+    cy.findByText(texts['overview.documentation.title']).should('be.visible');
+    cy.findByText(texts['overview.news_title']).should('be.visible');
   });
 
   it('loads the overview page when navigating to app for org with environments', () => {
-    // Ensure feature flag is toggled
-    // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11495)
-    cy.visitWithFeatureFlag('/editor/' + orgAppId, FeatureFlagEnum.NewAdministrationPage);
+    cy.visit('/editor/' + orgAppId);
     cy.findByText(Cypress.env('designerAppName')).should('be.visible');
     cy.findByRole('heading', { name: 'tt02' }).should('be.visible');
-    cy.findByText(texts['administration.activity']).should('be.visible');
-    cy.findByText(texts['administration.navigation_title']).should('be.visible');
-    cy.findByText(texts['administration.documentation.title']).should('be.visible');
-    cy.findByText(texts['administration.news_title']).should('be.visible');
+    cy.findByText(texts['overview.activity']).should('be.visible');
+    cy.findByText(texts['overview.navigation_title']).should('be.visible');
+    cy.findByText(texts['overview.documentation.title']).should('be.visible');
+    cy.findByText(texts['overview.news_title']).should('be.visible');
   });
 
   it('should be possible to navigate to the forms builder from overview page', () => {
-    // Ensure feature flag is toggled
-    // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11495)
-    cy.visitWithFeatureFlag('/editor/' + designerAppId, FeatureFlagEnum.NewAdministrationPage);
-    const navigationContainer = cy.findByText(texts['administration.navigation_title']).parent();
+    cy.visit('/editor/' + designerAppId);
+    const navigationContainer = cy.findByText(texts['overview.navigation_title']).parent();
     navigationContainer
       .findByRole('link', { name: texts['top_menu.create'] })
       .should('be.visible')
@@ -72,10 +65,8 @@ context('Designer', () => {
   });
 
   it('should be possible to navigate to the data model editor from overview page', () => {
-    // Ensure feature flag is toggled
-    // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11495)
-    cy.visitWithFeatureFlag('/editor/' + designerAppId, FeatureFlagEnum.NewAdministrationPage);
-    const navigationContainer = cy.findByText(texts['administration.navigation_title']).parent();
+    cy.visit('/editor/' + designerAppId);
+    const navigationContainer = cy.findByText(texts['overview.navigation_title']).parent();
     navigationContainer
       .findByRole('link', { name: texts['top_menu.datamodel'] })
       .should('be.visible')
@@ -84,10 +75,8 @@ context('Designer', () => {
   });
 
   it('should be possible to navigate to the text editor from overview page', () => {
-    // Ensure feature flag is toggled
-    // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11495)
-    cy.visitWithFeatureFlag('/editor/' + designerAppId, FeatureFlagEnum.NewAdministrationPage);
-    const navigationContainer = cy.findByText(texts['administration.navigation_title']).parent();
+    cy.visit('/editor/' + designerAppId);
+    const navigationContainer = cy.findByText(texts['overview.navigation_title']).parent();
     navigationContainer
       .findByRole('link', { name: texts['top_menu.texts'] })
       .should('be.visible')
@@ -97,14 +86,11 @@ context('Designer', () => {
   });
 
   it('should be possible to navigate to the process editor from overview page', () => {
-    // Ensure feature flag is toggled BOTH for new administration AND process editor
-    // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11495)
-    cy.visitWithFeatureFlag(
-      '/editor/' + designerAppId,
-      `${FeatureFlagEnum.NewAdministrationPage},${FeatureFlagEnum.ProcessEditor}`,
-    );
+    // Ensure feature flag is toggled for process editor
+    // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11506)
+    cy.visitWithFeatureFlag('/editor/' + designerAppId, `${FeatureFlagEnum.ProcessEditor}`);
 
-    const navigationContainer = cy.findByText(texts['administration.navigation_title']).parent();
+    const navigationContainer = cy.findByText(texts['overview.navigation_title']).parent();
     navigationContainer
       .findByRole('link', { name: `${texts['top_menu.process-editor']} ${texts['general.beta']}` })
       .should('be.visible')

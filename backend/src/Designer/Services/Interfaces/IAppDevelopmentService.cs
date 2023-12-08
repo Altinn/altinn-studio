@@ -133,6 +133,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <returns>A <see cref="System.Version"/> holding the version of the app-lib used in app.</returns>
-        public System.Version GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext);
+        public NuGet.Versioning.SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext);
     }
 }

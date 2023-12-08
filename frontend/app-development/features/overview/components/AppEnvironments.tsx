@@ -28,7 +28,7 @@ export const AppEnvironments = () => {
   if (envIsPending || orgsIsPending) return <StudioSpinner />;
 
   if (envIsError || orgsIsError)
-    return <Alert severity='danger'>{t('administration.app_environments_error')}</Alert>;
+    return <Alert severity='danger'>{t('overview.app_environments_error')}</Alert>;
 
   const selectedOrg = orgs.orgs[org];
   const hasNoEnvironments = !(selectedOrg?.environments?.length ?? 0);

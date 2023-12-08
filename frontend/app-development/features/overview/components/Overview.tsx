@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from './Administration.module.css';
+import classes from './Overview.module.css';
 import { useAppConfigQuery, useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Heading, Link } from '@digdir/design-system-react';
@@ -13,7 +13,7 @@ import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import { StudioCenter, StudioSpinner } from '@studio/components';
 
-export const Administration = () => {
+export const Overview = () => {
   const { org, app } = useStudioUrlParams();
   const {
     data: orgs,
@@ -32,7 +32,7 @@ export const Administration = () => {
   const { t } = useTranslation();
 
   if (isAppConfigError || isOrgsError) {
-    toast.error(t('administration.fetch_title_error_message'));
+    toast.error(t('overview.fetch_title_error_message'));
   }
 
   if (isPendingAppConfig || isPendingOrgs) {
