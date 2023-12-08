@@ -33,6 +33,7 @@ import {
   partyListPath,
   partyListsPath,
   partyListMemberPath,
+  resourcePartyListPath,
 } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
@@ -103,5 +104,8 @@ export const importResourceFromAltinn2 = (org: string, environment: string, serv
 export const createPartyList = (org: string, environment: string, payload: Partial<PartyList>) => post<PartyList>(partyListsPath(org, environment), payload);
 export const updatePartyList = (org: string, listId: string, environment: string, payload: JsonPatch[]) => patch<PartyList>(partyListPath(org, listId, environment), payload);
 export const deletePartyList = (org: string, listId: string, environment: string) => del(partyListPath(org, listId, environment));
-export const addPartyListMember = (org: string, listId: string, orgnr: string, environment: string) => post<string>(partyListMemberPath(org, listId, orgnr, environment));
-export const removePartyListMember = (org: string, listId: string, orgnr: string, environment: string) => del<string>(partyListMemberPath(org, listId, orgnr, environment));
+export const addPartyListMember = (org: string, listId: string, orgnr: string, environment: string) => post(partyListMemberPath(org, listId, orgnr, environment));
+export const removePartyListMember = (org: string, listId: string, orgnr: string, environment: string) => del(partyListMemberPath(org, listId, orgnr, environment));
+export const addResourcePartyList = (org: string, resourceId: string, listId: string, environment: string) => post(resourcePartyListPath(org, resourceId, listId, environment));
+export const removeResourcePartyList = (org: string, resourceId: string, listId: string, environment: string) => del(resourcePartyListPath(org, resourceId, listId, environment));
+export const editResourcePartyList = (org: string, resourceId: string, listId: string, environment: string, payload: string[]) => patch(resourcePartyListPath(org, resourceId, listId, environment), payload);

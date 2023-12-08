@@ -6,6 +6,9 @@ import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyList
 import { useParams } from 'react-router-dom';
 import { StudioSpinner } from '@studio/components';
 import { useGetResourcePartyListsQuery } from 'resourceadm/hooks/queries/useGetResourcePartyLists';
+import { useEditResourcePartyListMutation } from 'resourceadm/hooks/mutations/useEditResourcePartyListMutation';
+import { useAddResourcePartyListMutation } from 'resourceadm/hooks/mutations/useAddResourcePartyListMutation';
+import { useRemoveResourcePartyListMutation } from 'resourceadm/hooks/mutations/useRemoveResourcePartyListMutation';
 
 interface ResourcePartyListsProps {
   env: string;
@@ -34,6 +37,21 @@ export const ResourcePartyLists = ({
     isLoading: isLoadingConnectedLists,
     error: connectedListsError,
   } = useGetResourcePartyListsQuery(selectedContext, resourceId, env);
+  const { mutate: editResourcePartyList } = useEditResourcePartyListMutation(
+    selectedContext,
+    resourceId,
+    env,
+  );
+  const { mutate: addResourcePartyList } = useAddResourcePartyListMutation(
+    selectedContext,
+    resourceId,
+    env,
+  );
+  const { mutate: removeResourcePartyList } = useRemoveResourcePartyListMutation(
+    selectedContext,
+    resourceId,
+    env,
+  );
 
   useEffect(() => {
     if (connectedLists) {
@@ -52,6 +70,7 @@ export const ResourcePartyLists = ({
     const saveItem = { ...listItem, ...diff };
     // call service to save
     console.log('SAVE', saveItem);
+    editResourcePartyList({ listId: listItem.partyListIdentifier, actions: diff.actions });
     // update state
     setSelectedLists((old) =>
       old.map((y) => (y.partyListIdentifier === listItem.partyListIdentifier ? saveItem : y)),
@@ -60,11 +79,13 @@ export const ResourcePartyLists = ({
 
   const handleDelete = (listItemId: string) => {
     setSelectedLists((old) => old.filter((y) => y.partyListIdentifier !== listItemId));
+    removeResourcePartyList(listItemId);
     console.log('DELETE', listItemId); // do not delete when listItemId is 0, just remove from state
   };
 
   const handleAdd = (listItem: PartyListResourceLink) => {
     console.log('ADD', listItem);
+    addResourcePartyList(listItem.partyListIdentifier);
     setSelectedLists((old) => [...old, listItem]);
   };
 
