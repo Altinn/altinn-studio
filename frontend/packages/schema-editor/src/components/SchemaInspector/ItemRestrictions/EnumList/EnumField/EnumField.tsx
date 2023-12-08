@@ -42,7 +42,7 @@ export const EnumField = ({
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
-  const label = t('schema_editor.textfield_label', { id: `${index}-enum-${value}` });
+  const label = t('schema_editor.enum_value', { index });
 
   return (
     <div className={classes.root}>
@@ -61,7 +61,6 @@ export const EnumField = ({
         aria-label={t('schema_editor.delete_field')}
         className={classes.delete}
         icon={<TrashIcon aria-hidden />}
-        id={`${index}-delete-${value}`}
         onClick={() => onDelete()}
         color='danger'
         variant='tertiary'

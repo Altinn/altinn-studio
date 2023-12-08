@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 import { isField, isReference, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
 import { FieldType } from '@altinn/schema-model';
 import { setRequired, setRestriction, setRestrictions } from '@altinn/schema-model';
@@ -27,11 +27,12 @@ export type ItemRestrictionsProps = {
 };
 
 export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
+  const { t } = useTranslation();
   const { pointer, isRequired, isArray, restrictions } = schemaNode;
   const { schemaModel, save } = useSchemaEditorAppContext();
 
-  const handleRequiredChanged = (e: any) => {
-    const { checked } = e.target;
+  const handleRequiredChanged = (event: ChangeEvent<HTMLInputElement>) => {
+    const { checked } = event.target;
     if (checked !== isRequired) {
       save(setRequired(schemaModel, { path: pointer, required: checked }));
     }
@@ -43,7 +44,6 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const onChangeRestrictions = (path: string, changedRestrictions: KeyValuePairs) =>
     save(setRestrictions(schemaModel, { path, restrictions: changedRestrictions }));
 
-  const { t } = useTranslation();
   const restrictionProps: RestrictionItemProps = {
     restrictions: restrictions ?? {},
     readonly: isReference(schemaNode),
@@ -58,7 +58,6 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
           className={classes.switch}
           size='small'
           checked={isRequired}
-          name='checkedRequired'
           onChange={handleRequiredChanged}
         >
           {t('schema_editor.required')}
