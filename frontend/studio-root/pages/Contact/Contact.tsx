@@ -60,11 +60,11 @@ export const Contact = () => {
             <GitHub />
             <div className={classes.textContainer}>
               <Heading level={2} size='xsmall' spacing>
-                {t('contact.github.issue.heading')}
+                {t('contact.github_issue.heading')}
               </Heading>
-              <Paragraph spacing>{t('contact.github.issue.content')} </Paragraph>
+              <Paragraph spacing>{t('contact.github_issue.content')} </Paragraph>
               <Paragraph className={classes.link}>
-                <Trans i18nKey='contact.github.link'>
+                <Trans i18nKey='contact.github_issue.link'>
                   <Link> </Link>
                 </Trans>
               </Paragraph>

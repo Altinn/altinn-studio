@@ -23,9 +23,9 @@ describe('Contact', () => {
     expect(screen.getByText(textMock('contact.slack.link'))).toBeInTheDocument();
 
     expect(
-      screen.getByRole('heading', { name: textMock('contact.github.issue.heading') }),
+      screen.getByRole('heading', { name: textMock('contact.github_issue.heading') }),
     ).toBeInTheDocument();
-    expect(screen.getByText(textMock('contact.github.issue.content'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('contact.github.link'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('contact.github_issue.content'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('contact.github_issue.link'))).toBeInTheDocument();
   });
 });
