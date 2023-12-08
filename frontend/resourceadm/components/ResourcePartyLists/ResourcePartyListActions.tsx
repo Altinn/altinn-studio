@@ -1,4 +1,4 @@
-import { Button, Card, Chip, Divider, Heading, Select } from '@digdir/design-system-react';
+import { Button, Card, Chip, Heading, Select } from '@digdir/design-system-react';
 import React from 'react';
 import { FieldWrapper } from '../FieldWrapper/FieldWrapper';
 import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
@@ -40,9 +40,10 @@ export const ResourcePartyListActions = ({
           display: 'flex',
           flexDirection: 'row',
           justifyContent: 'space-between',
+          backgroundColor: '#e1e1e1',
         }}
       >
-        <Heading level={2} size='small'>
+        <Heading level={2} size='small' spacing>
           {listItem.partyListName}
         </Heading>
         <Button
@@ -54,7 +55,6 @@ export const ResourcePartyListActions = ({
           Fjern fra ressurs
         </Button>
       </Card.Header>
-      <Divider color='subtle' />
       <Card.Content style={{ padding: '1rem 1.5rem' }}>
         <FieldWrapper
           label='Rettigheter'
