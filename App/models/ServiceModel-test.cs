@@ -79,12 +79,12 @@ namespace Altinn.App.Models
         [XmlElement("TestCustomButtonInput")]
         [JsonProperty("TestCustomButtonInput")]
         [JsonPropertyName("TestCustomButtonInput")]
-        public string TestCustomButtonInput { get; set; }
+        public string? TestCustomButtonInput { get; set; }
         
         [XmlElement("TestCustomButtonReadOnlyInput")]
         [JsonProperty("TestCustomButtonReadOnlyInput")]
         [JsonPropertyName("TestCustomButtonReadOnlyInput")]
-        public string TestCustomButtonReadOnlyInput { get; set; }
+        public string? TestCustomButtonReadOnlyInput { get; set; }
 
     }
 
