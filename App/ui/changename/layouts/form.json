@@ -684,7 +684,7 @@
         "actions": [
           {
             "name": "fill",
-            "type": "UserAction"
+            "type": "ServerAction"
           }
         ],
         "type": "CustomButton",
@@ -698,7 +698,6 @@
         "dataModelBindings": {
           "simpleBinding": "TestCustomButtonInput"
         },
-        "required": true,
         "readOnly": false,
         "textResourceBindings": {
           "title": "TestCustomButtonInput.title"
@@ -719,8 +718,8 @@
         "id": "testing-custom-button-2",
         "actions": [
           {
-            "name": "$navigateToPage",
-            "type": "FrontendAction",
+            "name": "navigateToPage",
+            "type": "ClientAction",
             "metadata": {
               "page": "grid"
             }
