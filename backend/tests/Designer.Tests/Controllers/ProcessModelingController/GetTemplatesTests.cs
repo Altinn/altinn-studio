@@ -19,6 +19,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
         [Theory]
         [InlineData("ttd", "empty-app", "8.0.0", "start-data-confirmation-end.bpmn", "start-data-confirmation-feedback-end.bpmn", "start-data-end.bpmn", "start-data-signing-end.bpmn")]
+        [InlineData("ttd", "empty-app", "8.0.0-preview.11", "start-data-confirmation-end.bpmn", "start-data-confirmation-feedback-end.bpmn", "start-data-end.bpmn", "start-data-signing-end.bpmn")]
         [InlineData("ttd", "empty-app", "7.4.0", "start-data-confirmation-end.bpmn", "start-data-data-data-end.bpmn", "start-data-end.bpmn")]
         [InlineData("ttd", "empty-app", "6.1.0")]
         public async Task GetTemplates_ShouldReturnOK(string org, string app, string version, params string[] expectedTemplates)

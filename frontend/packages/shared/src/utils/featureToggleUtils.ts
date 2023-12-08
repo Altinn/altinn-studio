@@ -9,7 +9,6 @@ export type SupportedFeatureFlags =
   | 'expressions'
   | 'processEditor'
   | 'configureLayoutSet'
-  | 'newAdministration'
   | 'shouldOverrideAppLibCheck';
 
 /*

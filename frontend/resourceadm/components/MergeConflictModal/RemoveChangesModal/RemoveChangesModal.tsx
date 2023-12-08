@@ -4,7 +4,6 @@ import { Button, Textfield, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import { Trans } from 'react-i18next';
 
 type RemoveChangesModalProps = {
   onClose: () => void;
@@ -39,13 +38,13 @@ export const RemoveChangesModal = forwardRef<HTMLDialogElement, RemoveChangesMod
     };
 
     return (
-      <Modal ref={ref} onClose={onClose} title={t('administration.reset_repo_confirm_heading')}>
+      <Modal
+        ref={ref}
+        onClose={onClose}
+        title={t('settings_modal.local_changes_tab_delete_modal_title')}
+      >
         <Paragraph size='small'>
-          <Trans
-            i18nKey={'administration.reset_repo_confirm_info'}
-            values={{ repositoryName: repo }}
-            components={{ bold: <strong /> }}
-          />
+          {t('settings_modal.local_changes_tab_delete_modal_text')}
         </Paragraph>
         <div className={classes.textFieldWrapper}>
           <Textfield
@@ -67,7 +66,7 @@ export const RemoveChangesModal = forwardRef<HTMLDialogElement, RemoveChangesMod
             variant='secondary'
             size='small'
           >
-            {t('administration.reset_repo_button')}
+            {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
           </Button>
           <Button color='second' onClick={handleClose} variant='secondary' size='small'>
             {t('general.cancel')}
