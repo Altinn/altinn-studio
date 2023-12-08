@@ -9,12 +9,6 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 const mockEnums: string[] = ['a', 'b', 'c'];
 
-const mockIdA: string = `${0}-enum-${'a'}`;
-const mockIdB: string = `${1}-enum-${'b'}`;
-const mockIdC: string = `${2}-enum-${'c'}`;
-const mockIdNew: string = `${0}-enum-${''}`;
-const mockIdNewWithOtherEnums: string = `${3}-enum-${''}`;
-
 const defaultProps: EnumListProps = {
   schemaNode: fieldNode1Mock,
 };
@@ -34,17 +28,11 @@ describe('EnumList', () => {
 
     expect(screen.queryByText(textMock('schema_editor.enum_empty'))).not.toBeInTheDocument();
 
-    const enumLabelA = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockIdA }),
-    );
+    const enumLabelA = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 0 }));
     expect(enumLabelA).toBeInTheDocument();
-    const enumLabelB = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockIdB }),
-    );
+    const enumLabelB = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 1 }));
     expect(enumLabelB).toBeInTheDocument();
-    const enumLabelC = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockIdC }),
-    );
+    const enumLabelC = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 2 }));
     expect(enumLabelC).toBeInTheDocument();
   });
 
@@ -55,9 +43,7 @@ describe('EnumList', () => {
     const addEnumButton = screen.getByRole('button', { name: textMock('schema_editor.add_enum') });
     await act(() => user.click(addEnumButton));
 
-    const enumLabel = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockIdNew }),
-    );
+    const enumLabel = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 0 }));
     expect(enumLabel).toBeInTheDocument();
     expect(mockSaveDataModel).toHaveBeenCalledTimes(1);
   });
@@ -71,11 +57,6 @@ describe('EnumList', () => {
     });
     expect(allDeleteButtons.length).toBe(3);
 
-    const enumLabelB = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockIdB }),
-    );
-    expect(enumLabelB).toBeInTheDocument();
-
     const [, deleteEnumButtonB] = screen.getAllByRole('button', {
       name: textMock('schema_editor.delete_field'),
     });
@@ -85,11 +66,6 @@ describe('EnumList', () => {
       name: textMock('schema_editor.delete_field'),
     });
     expect(allDeleteButtonsAfter.length).toBe(2);
-
-    const enumLabelBAfter = screen.queryByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockIdB }),
-    );
-    expect(enumLabelBAfter).not.toBeInTheDocument();
   });
 
   it('displays error message when two or more enums have the same value', async () => {
@@ -99,9 +75,7 @@ describe('EnumList', () => {
     const addEnumButton = screen.getByRole('button', { name: textMock('schema_editor.add_enum') });
     await act(() => user.click(addEnumButton));
 
-    const newEnumInput = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockIdNewWithOtherEnums }),
-    );
+    const newEnumInput = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 3 }));
 
     await act(() => user.type(newEnumInput, 'a'));
     await act(() => user.tab());

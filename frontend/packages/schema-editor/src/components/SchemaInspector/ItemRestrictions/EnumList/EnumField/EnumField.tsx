@@ -30,13 +30,11 @@ export const EnumField = ({
   }, [value]);
   const { t } = useTranslation();
 
-  const onBlur = () => {
-    onChange(inputValue);
-  };
-
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     event.stopPropagation();
-    setInputValue(event.target.value);
+    const newValue: string = event.target.value;
+    setInputValue(newValue);
+    onChange(newValue);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
@@ -52,7 +50,6 @@ export const EnumField = ({
         disabled={readOnly}
         value={inputValue}
         onChange={handleChange}
-        onBlur={onBlur}
         onKeyDown={onKeyDown}
         error={!isValid}
       />

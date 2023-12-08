@@ -6,7 +6,6 @@ import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 
 const mockValue: string = 'test';
 const mockIndex: number = 0;
-const mockId: string = `${mockIndex}-enum-${mockValue}`;
 
 const mockOnChange = jest.fn();
 const mockOnDelete = jest.fn();
@@ -30,7 +29,7 @@ describe('EnumField', () => {
     render(<EnumField {...defaultProps} />);
 
     const textField = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockId }),
+      textMock('schema_editor.enum_value', { index: mockIndex }),
     );
     expect(textField).toHaveValue(mockValue);
 
@@ -45,7 +44,7 @@ describe('EnumField', () => {
     expect(mockOnChange).toHaveBeenCalledWith(updatedValue);
 
     const textFieldAfter = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockId }),
+      textMock('schema_editor.enum_value', { index: mockIndex }),
     );
     expect(textFieldAfter).toHaveValue(updatedValue);
   });
@@ -69,7 +68,7 @@ describe('EnumField', () => {
     render(<EnumField {...defaultProps} />);
 
     const textField = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockId }),
+      textMock('schema_editor.enum_value', { index: mockIndex }),
     );
 
     const newValue: string = '1';
