@@ -48,7 +48,7 @@ public class FillAction : IUserAction
 
         if (data.TestCustomButtonInput == "Generate frontend actions")
         {
-            return UserActionResult.SuccessResult(new List<FrontendAction>() { FrontendAction.NextPage() });
+            return UserActionResult.SuccessResult(new List<ClientAction>() { ClientAction.NextPage() });
         }
 
         data.TestCustomButtonReadOnlyInput = "Her kommer det data fra backend";
@@ -56,7 +56,7 @@ public class FillAction : IUserAction
             applicationMetadata.AppIdentifier.Org, applicationMetadata.AppIdentifier.App,
             instanceIdentifier.InstanceOwnerPartyId,
             new Guid(dataId));
-        var userActionResult = UserActionResult.SuccessResult(new List<FrontendAction>());
+        var userActionResult = UserActionResult.SuccessResult(new List<ClientAction>());
         userActionResult.AddUpdatedDataModel(dataId, data);
         return userActionResult;
     }
