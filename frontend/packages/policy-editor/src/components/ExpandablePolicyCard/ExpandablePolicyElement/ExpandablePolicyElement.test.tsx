@@ -76,7 +76,7 @@ describe('ExpandablePolicyElement', () => {
     });
     await act(() => user.click(moreButton));
 
-    const deleteOption = screen.getByRole('button', { name: textMock('general.delete') });
+    const deleteOption = screen.getByRole('menuitem', { name: textMock('general.delete') });
     await act(() => user.click(deleteOption));
 
     expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1);
@@ -91,7 +91,7 @@ describe('ExpandablePolicyElement', () => {
     });
     await act(() => user.click(moreButton));
 
-    const cloneOption = screen.getByRole('button', {
+    const cloneOption = screen.getByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
     await act(() => user.click(cloneOption));

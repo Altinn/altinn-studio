@@ -8,7 +8,7 @@ import {
   watchHandleFetchServiceSaga,
   watchHandleSaveServiceConfigSaga,
   watchHandleSaveServiceNameSaga,
-} from '../features/administration/handleServiceInformationSagas';
+} from '../features/overview/handleServiceInformationSagas';
 import { appDeploymentSagas } from '../sharedResources/appDeployment/appDeploymentSagas';
 import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
 import { appReleaseSagas } from '../sharedResources/appRelease/appReleaseSagas';

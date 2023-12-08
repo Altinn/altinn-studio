@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -56,14 +57,14 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet("templates/{appVersion}")]
-        public IEnumerable<string> GetTemplates(string org, string repo, Version appVersion)
+        public IEnumerable<string> GetTemplates(string org, string repo, SemanticVersion appVersion)
         {
             Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
             return _processModelingService.GetProcessDefinitionTemplates(appVersion);
         }
 
         [HttpPut("templates/{appVersion}/{templateName}")]
-        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo, Version appVersion, string templateName, CancellationToken cancellationToken)
+        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo, SemanticVersion appVersion, string templateName, CancellationToken cancellationToken)
         {
             Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -72,6 +73,28 @@ namespace Altinn.Studio.Designer.Controllers
 
             Stream processDefinitionStream = _processModelingService.GetProcessDefinitionStream(editingContext);
             return new FileStreamResult(processDefinitionStream, MediaTypeNames.Text.Plain);
+        }
+
+        [HttpPut("tasks/{taskId}/{taskName}")]
+        public async Task<ActionResult> UpdateProcessTaskName(string org, string repo, string taskId, string taskName, CancellationToken cancellationToken)
+        {
+            Guard.AssertArgumentNotNull(taskId, nameof(taskId));
+            Guard.AssertArgumentNotNull(taskName, nameof(taskName));
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+            try
+            {
+                Stream updatedProcessDefinitionStream = await _processModelingService.UpdateProcessTaskNameAsync(editingContext, taskId, taskName, cancellationToken);
+                return new FileStreamResult(updatedProcessDefinitionStream, MediaTypeNames.Text.Plain);
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest("Could not deserialize process definition.");
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest("Could not find task with given id.");
+            }
         }
     }
 }

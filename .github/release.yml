@@ -6,7 +6,7 @@ changelog:
       - skip-releasenotes
       - area/resource-registry
   categories:
-    - title: Apps editor 🛠
+    - title: Forms editor 🛠
       labels:
         - area/ui-editor
       exclude:
@@ -21,6 +21,12 @@ changelog:
     - title: Text editor 💬
       labels:
         - area/text-editor
+      exclude:
+        labels:
+          - kind/bug
+    - title: Process editor ⏺→◻️→⏺
+      labels:
+        - area/process
       exclude:
         labels:
           - kind/bug

@@ -41,6 +41,11 @@ area/text-editor:
   - 'frontend/packages/text-editor/**'
   - 'frontend/app-development/features/textEditor/**/*'
 
+area/process:
+  - 'frontend/app-development/features/processEditor/**/*'
+  - 'frontend/packages/process-editor/**/*'
+  - 'backend/src/Designer/**/*ProcessesModeling*.cs'
+
 area/ui-editor:
   - 'frontend/packages/ux-editor/**/*'
 
