@@ -9,6 +9,8 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 const mockEnums: string[] = ['a', 'b', 'c'];
 
+const mockSchemaModel: SchemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
+
 const defaultProps: EnumListProps = {
   schemaNode: fieldNode1Mock,
 };
@@ -18,44 +20,52 @@ describe('EnumList', () => {
   afterAll(jest.clearAllMocks);
 
   it('renders the description about enum being empty when there is no enums on the field node', () => {
-    renderItemRestrictions();
+    renderEnumList();
 
     expect(screen.getByText(textMock('schema_editor.enum_empty'))).toBeInTheDocument();
   });
 
   it('renders EnumList component with existing enum values', () => {
-    renderItemRestrictions({ schemaNode: { ...fieldNode1Mock, enum: mockEnums } });
+    renderEnumList({ schemaNode: { ...fieldNode1Mock, enum: mockEnums } });
 
     expect(screen.queryByText(textMock('schema_editor.enum_empty'))).not.toBeInTheDocument();
 
-    const enumLabelA = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 0 }));
+    const enumLabelA = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: 0 }),
+    });
     expect(enumLabelA).toBeInTheDocument();
-    const enumLabelB = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 1 }));
+    const enumLabelB = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: 1 }),
+    });
     expect(enumLabelB).toBeInTheDocument();
-    const enumLabelC = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 2 }));
+    const enumLabelC = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: 2 }),
+    });
     expect(enumLabelC).toBeInTheDocument();
   });
 
   it('handles adding a new enum value', async () => {
     const user = userEvent.setup();
-    renderItemRestrictions();
+    renderEnumList();
 
     const addEnumButton = screen.getByRole('button', { name: textMock('schema_editor.add_enum') });
     await act(() => user.click(addEnumButton));
 
-    const enumLabel = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 0 }));
+    const enumLabel = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: 0 }),
+    });
     expect(enumLabel).toBeInTheDocument();
     expect(mockSaveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('handles deleting an enum value correctly', async () => {
     const user = userEvent.setup();
-    renderItemRestrictions({ schemaNode: { ...fieldNode1Mock, enum: mockEnums } });
+    renderEnumList({ schemaNode: { ...fieldNode1Mock, enum: mockEnums } });
 
     const allDeleteButtons = screen.getAllByRole('button', {
       name: textMock('schema_editor.delete_field'),
     });
-    expect(allDeleteButtons.length).toBe(3);
+    expect(allDeleteButtons).toHaveLength(3);
 
     const [, deleteEnumButtonB] = screen.getAllByRole('button', {
       name: textMock('schema_editor.delete_field'),
@@ -65,30 +75,45 @@ describe('EnumList', () => {
     const allDeleteButtonsAfter = screen.getAllByRole('button', {
       name: textMock('schema_editor.delete_field'),
     });
-    expect(allDeleteButtonsAfter.length).toBe(2);
+    expect(allDeleteButtonsAfter).toHaveLength(2);
   });
 
   it('displays error message when two or more enums have the same value', async () => {
     const user = userEvent.setup();
-    renderItemRestrictions({ schemaNode: { ...fieldNode1Mock, enum: mockEnums } });
+    const mockSchemaNode = { schemaNode: { ...fieldNode1Mock, enum: mockEnums } };
+    renderEnumList(mockSchemaNode);
 
     const addEnumButton = screen.getByRole('button', { name: textMock('schema_editor.add_enum') });
     await act(() => user.click(addEnumButton));
 
-    const newEnumInput = screen.getByLabelText(textMock('schema_editor.enum_value', { index: 3 }));
+    const newEnumInput = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: 3 }),
+    });
 
     await act(() => user.type(newEnumInput, 'a'));
     await act(() => user.tab());
 
     const errorMessage = screen.getByText(textMock('schema_editor.enum_error_duplicate'));
     expect(errorMessage).toBeInTheDocument();
+    /*expect(mockSaveDataModel).toHaveBeenCalledTimes(1);
+    expect(mockSaveDataModel).toHaveBeenCalledWith(mockSchemaNode);
+
+    await act(() => user.type(newEnumInput, 'aa'));
+    await act(() => user.tab());
+
+    const updatedEnums: string[] = ['a', 'b', 'c', 'aa'];
+
+    const errorMessageAfter = screen.queryByText(textMock('schema_editor.enum_error_duplicate'));
+    expect(errorMessageAfter).not.toBeInTheDocument();
+    expect(mockSaveDataModel).toHaveBeenCalledTimes(1);
+    expect(mockSaveDataModel).toHaveBeenCalledWith({ mockSchemaNode, enum: updatedEnums });*/
   });
 });
 
-const renderItemRestrictions = (props?: Partial<EnumListProps>) =>
+const renderEnumList = (props?: Partial<EnumListProps>) =>
   renderWithProviders({
     appContextProps: {
-      schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
+      schemaModel: mockSchemaModel,
       save: mockSaveDataModel,
     },
   })(<EnumList {...defaultProps} {...props} />);

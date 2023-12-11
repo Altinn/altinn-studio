@@ -28,9 +28,9 @@ describe('EnumField', () => {
     const user = userEvent.setup();
     render(<EnumField {...defaultProps} />);
 
-    const textField = screen.getByLabelText(
-      textMock('schema_editor.enum_value', { index: mockIndex }),
-    );
+    const textField = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: mockIndex }),
+    });
     expect(textField).toHaveValue(mockValue);
 
     const newValue: string = '1';
@@ -43,9 +43,9 @@ describe('EnumField', () => {
     expect(mockOnChange).toHaveBeenCalledTimes(1);
     expect(mockOnChange).toHaveBeenCalledWith(updatedValue);
 
-    const textFieldAfter = screen.getByLabelText(
-      textMock('schema_editor.enum_value', { index: mockIndex }),
-    );
+    const textFieldAfter = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: mockIndex }),
+    });
     expect(textFieldAfter).toHaveValue(updatedValue);
   });
 
@@ -67,9 +67,9 @@ describe('EnumField', () => {
     const user = userEvent.setup();
     render(<EnumField {...defaultProps} />);
 
-    const textField = screen.getByLabelText(
-      textMock('schema_editor.enum_value', { index: mockIndex }),
-    );
+    const textField = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: mockIndex }),
+    });
 
     const newValue: string = '1';
 
