@@ -5,6 +5,7 @@ import { VersionAlert } from './VersionAlert';
 import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { useBpmnContext } from '../../contexts/BpmnContext';
+import { ConfirmationTask, DataTask, PaymentTask, FeedbackTask, SignTask } from '@studio/icons';
 
 /**
  * @component
@@ -19,6 +20,11 @@ export const ConfigPanel = (): JSX.Element => {
     <div className={classes.configPanel}>
       {!isEditAllowed && <VersionAlert />}
       <div className={classes.content}>
+        <ConfirmationTask />
+        <DataTask />
+        <PaymentTask />
+        <FeedbackTask />
+        <SignTask />
         <Heading level={2} size='xsmall'>
           {t('process_editor.configuration_panel_heading')}
         </Heading>
