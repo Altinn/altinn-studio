@@ -1,5 +1,5 @@
 ﻿import { test as setup } from '@playwright/test';
-import { LoginPage } from "./Pages/LoginPage";
+import { LoginPage } from "../pages/LoginPage";
 
 
 setup('authenticate user', async ({page}) => {

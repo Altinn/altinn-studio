@@ -1,0 +1,12 @@
+{
+  "name": "playwright-studio",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "yarn@4.0.2",
+  "devDependencies": {
+    "@playwright/test": "^1.40.1"
+  },
+  "scripts": {
+    "test:all": "playwright test --config ./playwright.config.ts"
+  }
+}
