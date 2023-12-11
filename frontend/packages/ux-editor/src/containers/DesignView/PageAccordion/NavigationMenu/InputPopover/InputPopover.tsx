@@ -61,7 +61,7 @@ export const InputPopover = ({
   const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !errorMessage && oldName !== newName) {
       saveNewName(newName);
-      onClose();
+      handleClose();
     }
   };
 
