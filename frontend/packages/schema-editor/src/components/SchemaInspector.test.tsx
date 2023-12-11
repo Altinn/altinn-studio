@@ -6,12 +6,7 @@ import { dataMock } from '../mockData';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FieldNode, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import {
-  buildUiSchema,
-  FieldType,
-  SchemaModel,
-  validateTestUiSchema,
-} from '@altinn/schema-model';
+import { buildUiSchema, FieldType, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { getSavedModel } from '../../test/test-utils';
@@ -35,8 +30,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 const mockUiSchema = buildUiSchema(dataMock);
 const model = SchemaModel.fromArray(mockUiSchema);
-const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
-  model.getNode(selectedId);
+const getMockSchemaByPath = (selectedId: string): UiSchemaNode => model.getNode(selectedId);
 
 const texts = {
   'schema_editor.maxLength': 'Maksimal lengde',
@@ -181,6 +175,6 @@ describe('SchemaInspector', () => {
     await act(() => user.click(screen.queryAllByRole('tab')[1]));
     await act(() => user.click(screen.getByDisplayValue(enumValue)));
     await act(() => user.keyboard('{Enter}'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDatamodel).not.toHaveBeenCalled();
   });
 });
