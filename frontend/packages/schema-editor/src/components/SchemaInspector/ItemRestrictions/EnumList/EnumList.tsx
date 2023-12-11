@@ -36,7 +36,7 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
 
   const handleAddEnum = () => {
     const newEnumList = [...enumList, ''];
-    update(newEnumList);
+    setEnumList(newEnumList);
   };
 
   const update = (newEnumList: string[]) => {
