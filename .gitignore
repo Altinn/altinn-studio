@@ -412,7 +412,7 @@ stats.csv
 .vscode/tasks.json
 .vscode/launch.json
 /test-results/
-/playwright-report/
 /blob-report/
 /playwright/.cache/
+/frontend/testing/playwright/playwright-report
 .playwright/
