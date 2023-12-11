@@ -84,7 +84,7 @@
   "contact.email.link": "<0 href=\"mailto:servicedesk@altinn.no\">servicedesk@altinn.no</0>",
   "contact.fetch_app_error_message": "Kunne ikke laste inn tittelen for denne appen. Prøv igjen senere.",
   "contact.github_issue.content": "Dersom du har behov for funksjonalitet eller ser feil og mangler som må fikses, kan du rapportere det inn til oss ved å opprette en sak i Github.",
-  "contact.github_issue.heading": "Raporter feieler og mangler til oss.",
+  "contact.github_issue.heading": "Rapporter feil og mangler til oss",
   "contact.github_issue.link": "<0 href=\"https://github.com/Altinn/altinn-studio/issues/new/choose\">Opprett sak i Github</0>",
   "contact.slack.content": "Dersom du har spørsmål om hvordan du bygger en applikasjon, kan du snakke direkte med utviklingsteamet i Altinn Studio på Slack. De kan hjelpe deg med:",
   "contact.slack.content_list": "<0>å bygge applikasjonene slik du ønsker</0><0>svare på spørsmål og veilede</0><0>ta imot innspill på ny funksjonalitet</0>",
