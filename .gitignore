@@ -415,3 +415,4 @@ stats.csv
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+.playwright/
