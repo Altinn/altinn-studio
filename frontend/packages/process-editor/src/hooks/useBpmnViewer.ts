@@ -14,15 +14,14 @@ const bpmnViewerErrorMap: Record<string, BpmnViewerError> = {
 type UseBpmnViewerResult = {
   canvasRef: MutableRefObject<HTMLDivElement>;
   bpmnViewerError: BpmnViewerError | undefined;
-  bpmnDetails: BpmnDetails | undefined;
 };
 
 export const useBpmnViewer = (): UseBpmnViewerResult => {
-  const { bpmnXml } = useBpmnContext();
+  const { bpmnXml, setBpmnDetails } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [bpmnViewerError, setBpmnViewerError] = useState<BpmnViewerError | undefined>(undefined);
 
-  const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(undefined);
+  // const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(undefined);
 
   useEffect(() => {
     if (!canvasRef.current) {
@@ -63,5 +62,5 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
     initializeViewer();
   }, [bpmnXml, setBpmnDetails]);
 
-  return { canvasRef, bpmnViewerError, bpmnDetails };
+  return { canvasRef, bpmnViewerError };
 };
