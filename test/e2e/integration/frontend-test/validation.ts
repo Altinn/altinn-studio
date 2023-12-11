@@ -724,4 +724,13 @@ describe('Validation', () => {
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
   });
+
+  it('should navigate and scroll to the component in question ', () => {
+    cy.goto('changename');
+    cy.gotoNavPage('grid');
+    cy.get(appFrontend.sendinButton).click();
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 4);
+    cy.findByText('Du må fylle ut dato for navneendring').click();
+    cy.findByLabelText(/Når vil du at navnendringen skal skje?/).isWithinViewport();
+  });
 });

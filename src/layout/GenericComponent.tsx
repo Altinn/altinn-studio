@@ -157,7 +157,7 @@ export function GenericComponent<Type extends CompTypes = CompTypes>({
 
   React.useLayoutEffect(() => {
     if (!hidden && shouldFocus && gridRef.current) {
-      gridRef.current.scrollIntoView();
+      requestAnimationFrame(() => gridRef.current?.scrollIntoView());
 
       const maybeInput = gridRef.current.querySelector('input,textarea,select') as
         | HTMLSelectElement

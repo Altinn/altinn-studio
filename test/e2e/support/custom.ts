@@ -81,6 +81,23 @@ Cypress.Commands.add('numberFormatClear', { prevSubject: true }, (subject: JQuer
   cy.wrap(subject).type(`${moveToStart}${del}`);
 });
 
+Cypress.Commands.add('isWithinViewport', { prevSubject: true }, (subject) => {
+  const bottom = Cypress.$(cy.state('window')).height();
+  const right = Cypress.$(cy.state('window')).width();
+  const rect = subject[0].getBoundingClientRect();
+
+  if (!right || !bottom) {
+    return subject;
+  }
+
+  expect(rect.top).to.be.at.least(0);
+  expect(rect.bottom).to.be.lessThan(bottom);
+  expect(rect.left).to.be.at.least(0);
+  expect(rect.right).to.be.lessThan(right);
+
+  return subject;
+});
+
 interface KnownViolation extends Pick<axe.Result, 'id'> {
   spec: string;
   test: string;
