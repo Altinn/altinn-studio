@@ -106,7 +106,7 @@
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
     "typecheck": "yarn workspaces foreach -A run typecheck",
-    "playwright-e2e": "playwright test"
+    "playwright-e2e": "playwright test --config ./frontend/testing/playwright/playwright.config.ts"
   },
   "syncpack": {
     "semverRange": ""

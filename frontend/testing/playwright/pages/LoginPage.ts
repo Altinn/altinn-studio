@@ -9,7 +9,7 @@ export class LoginPage extends BasePage {
     }
 
     public async goToAltinnLoginPage(): Promise<void> {
-        await this._page.goto(this.loginPage);
+        await this._page.goto(this.altinnLoginPage);
     }
 
     public async goToGiteaLoginPage(): Promise<void> {
