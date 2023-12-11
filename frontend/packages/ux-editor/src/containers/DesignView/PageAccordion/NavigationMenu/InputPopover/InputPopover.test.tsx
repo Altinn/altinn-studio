@@ -46,6 +46,23 @@ describe('InputPopover', () => {
     expect(inputAfter).toBeInTheDocument();
   });
 
+  it('saves the new name on Enter key press', async () => {
+    const user = userEvent.setup();
+    render(<InputPopover {...defaultProps} />);
+
+    await openDropdownMenuItem();
+
+    const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
+    expect(input).toHaveValue(mockOldName);
+
+    await act(() => user.type(input, mockNewValue));
+    await act(() => user.keyboard('{Enter}'));
+
+    expect(mockSaveNewName).toHaveBeenCalledTimes(1);
+    expect(mockSaveNewName).toHaveBeenCalledWith(mockNewName);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
   it('calls the "saveNewName" function when the confirm button is clicked', async () => {
     const user = userEvent.setup();
     render(<InputPopover {...defaultProps} />);

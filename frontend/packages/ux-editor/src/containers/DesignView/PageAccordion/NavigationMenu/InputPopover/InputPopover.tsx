@@ -1,4 +1,4 @@
-import React, { ReactNode, ChangeEvent, useState, useRef } from 'react';
+import React, { ReactNode, ChangeEvent, useState, useRef, KeyboardEvent } from 'react';
 import classes from './InputPopover.module.css';
 import {
   Button,
@@ -58,9 +58,16 @@ export const InputPopover = ({
     setNewName(newNameCandidate);
   };
 
+  const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && !errorMessage && oldName !== newName) {
+      saveNewName(newName);
+      onClose();
+    }
+  };
+
   const handleClose = () => {
     onClose();
-    setIsEditDialogOpen((v) => !v);
+    setIsEditDialogOpen(false);
   };
 
   return (
@@ -81,6 +88,7 @@ export const InputPopover = ({
             label={t('ux_editor.input_popover_label')}
             size='small'
             onChange={handleOnChange}
+            onKeyDown={handleKeyPress}
             value={newName}
             error={errorMessage !== null}
           />
