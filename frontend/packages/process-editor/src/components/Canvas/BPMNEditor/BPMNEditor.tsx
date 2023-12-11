@@ -2,6 +2,8 @@ import React, { ReactNode } from 'react';
 import classes from './BPMNEditor.module.css';
 import { useBpmnEditor } from '../../../hooks/useBpmnEditor';
 
+import './BPMNEditor.css'; // used to override bpmn-js styles
+
 /**
  * @component
  *  Displays the editor canvas in the ProcessEditor
