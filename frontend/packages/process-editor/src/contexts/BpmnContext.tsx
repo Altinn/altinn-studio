@@ -50,6 +50,11 @@ export const BpmnContextProvider = ({
       throw new Error('Modeler not initialized');
     }
     try {
+      // SOMETHING GOES WRONG HERE
+      // Happens when deleting a task before and a task after
+      // But if I continue and add another after, it works for the new one.
+      // Issue is that when removing an element, ALL tasks get the extensionElements removed
+      console.log('bpmnXml on save', bpmnXml);
       const { xml } = await modelerRef.current.saveXML({ format: true });
       setNumberOfUnsavedChanges(0);
       return xml;

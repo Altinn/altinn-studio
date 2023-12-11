@@ -1,4 +1,4 @@
-export type BpmnTaskType = 'data' | 'confirmation' | 'feedback' | 'signing';
+import { BpmnTaskType } from './BpmnTaskType';
 
 export interface BpmnDetails {
   id: string;

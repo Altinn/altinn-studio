@@ -37,10 +37,12 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
     events.forEach((event) => {
       eventBus.on(event, (e: any) => {
         const businessObject = e?.element?.businessObject;
-        const isTask = businessObject.$type === BPMN_TASK_KEY;
+        console.log(e.element);
+        const isTask = businessObject?.$type === BPMN_TASK_KEY;
         const bpmnId = businessObject?.id;
         const bpmnName = businessObject?.name;
-        const bpmnTaskType = businessObject?.extensionElements?.values[0]?.$children[0]?.$body;
+        const bpmnTaskType =
+          businessObject?.extensionElements?.values[0]?.$children[0]?.$body ?? '';
 
         // If the bpmn element clicked is anything else than a task, set it to null
         const bpmnDetails: BpmnDetails = isTask
