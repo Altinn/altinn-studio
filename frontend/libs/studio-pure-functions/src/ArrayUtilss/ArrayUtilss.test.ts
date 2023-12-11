@@ -1,4 +1,4 @@
-import { ArrayUtils } from './ArrayUtils';
+import { ArrayUtils } from './ArrayUtilss';
 
 describe('ArrayUtils', () => {
   describe('removeDuplicates', () => {
