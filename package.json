@@ -11,8 +11,10 @@
     "@navikt/aksel-icons": "5.9.2",
     "@tanstack/react-query": "5.4.3",
     "@tanstack/react-query-devtools": "5.8.1",
+    "@types/dotenv": "^8.2.0",
     "ajv": "8.12.0",
     "ajv-formats": "2.1.1",
+    "dotenv": "^16.3.1",
     "react-error-boundary": "^4.0.11",
     "react-i18next": "13.3.1",
     "react-router-dom": "6.18.0",
@@ -103,7 +105,8 @@
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
-    "typecheck": "yarn workspaces foreach -A run typecheck"
+    "typecheck": "yarn workspaces foreach -A run typecheck",
+    "playwright-e2e": "playwright test"
   },
   "syncpack": {
     "semverRange": ""

@@ -2,23 +2,23 @@ name: Playwright Tests
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-node@v3
       with:
         node-version: 18
     - name: Install dependencies
-      run: npm install -g yarn && yarn
+      run: yarn
     - name: Install Playwright Browsers
       run: yarn playwright install --with-deps
     - name: Run Playwright tests
-      run: yarn playwright test
+      run: yarn playwright-e2e
+      env:
+        PLAYWRIGHT_TEST_BASE_URL: "https://dev.altinn.studio"
     - uses: actions/upload-artifact@v3
       if: always()
       with:
