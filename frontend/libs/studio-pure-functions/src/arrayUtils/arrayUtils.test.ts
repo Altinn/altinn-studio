@@ -1,6 +1,6 @@
-import { ArrayUtils } from './arrayUtils';
+import { ArrayUtils } from './ArrayUtils';
 
-describe('arrayUtils', () => {
+describe('ArrayUtils', () => {
   describe('removeDuplicates', () => {
     it('Removes duplicates', () => {
       expect(ArrayUtils.removeDuplicates([1, 1, 2, 3, 3])).toEqual([1, 2, 3]);
