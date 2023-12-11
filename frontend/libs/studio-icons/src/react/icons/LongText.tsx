@@ -1,13 +1,7 @@
 import React from 'react';
-import { IconProps } from '../../types/IconProps';
-import { SvgTemplate } from '../SvgTemplate';
+import { IconProps } from '../types';
+import { SvgTemplate } from './SvgTemplate';
 
-/**
- * @param {IconProps} props the icon props
- * @returns {JSX.Element} the icon as a react component
- * @example
- * import { LongText } from '@studio/icons';
- */
 export const LongText = (props: IconProps): JSX.Element => {
   return (
     <SvgTemplate {...props}>
