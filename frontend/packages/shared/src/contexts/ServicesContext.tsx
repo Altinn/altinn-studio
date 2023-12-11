@@ -59,8 +59,7 @@ const handleError = (
     const errorMessageKey = `api_errors.${errorCode}`;
 
     if (i18n.exists(errorMessageKey)) {
-      const mainErrorMessage = t(errorMessageKey);
-      toast.error(mainErrorMessage, { toastId: errorMessageKey });
+      toast.error(t(errorMessageKey), { toastId: errorMessageKey });
       return;
     }
   }

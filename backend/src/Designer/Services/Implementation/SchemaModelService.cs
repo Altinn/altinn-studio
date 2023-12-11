@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Xml.Schema;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
@@ -287,7 +286,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)
         {
             string csharpClasses = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
-            Compiler.CompileToAssembly(csharpClasses);
             await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaName);
         }
 

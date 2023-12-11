@@ -47,7 +47,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 .Append(string.Concat(classes.Values))
                 .AppendLine("}");
 
-            return writer.ToString();
+            string cSharpClasses = writer.ToString();
+
+            Compiler.CompileToAssembly(cSharpClasses);
+
+            return cSharpClasses;
         }
 
         /// <summary>
