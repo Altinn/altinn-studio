@@ -16,11 +16,8 @@ export const ConfigPanel = (): JSX.Element => {
   const { t } = useTranslation();
   const { isEditAllowed, bpmnDetails } = useBpmnContext();
 
-  console.log('bpmnDetails', bpmnDetails);
-
   return (
     <div className={classes.configPanel}>
-      {/*<p>---- {JSON.stringify(bpmnDetails)}</p>*/}
       {!isEditAllowed && <VersionAlert />}
       <div className={classes.content}>
         <Heading level={2} size='xsmall'>
@@ -35,6 +32,7 @@ export const ConfigPanel = (): JSX.Element => {
           </Paragraph>
         </Alert>
       </div>
+      {bpmnDetails !== null && <p>{JSON.stringify(bpmnDetails)}</p>}
     </div>
   );
 };

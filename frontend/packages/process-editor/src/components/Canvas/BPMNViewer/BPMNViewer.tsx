@@ -12,8 +12,6 @@ import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
 export const BPMNViewer = (): JSX.Element => {
   const { canvasRef, bpmnViewerError } = useBpmnViewer();
 
-  //console.log('bpmnDetails', bpmnDetails);
-
   return (
     <>
       {bpmnViewerError !== undefined && <BPMNViewerErrorAlert bpmnViewerError={bpmnViewerError} />}

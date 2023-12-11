@@ -4,6 +4,8 @@ import { useBpmnContext } from '../contexts/BpmnContext';
 import type { BpmnViewerError } from '../types/BpmnViewerError';
 import type { BpmnDetails } from '../types/BpmnDetails';
 
+const BPMN_TASK_KEY: string = 'bpmn:Task';
+
 // Wrapper around bpmn-js to Reactify it
 
 const bpmnViewerErrorMap: Record<string, BpmnViewerError> = {
@@ -21,8 +23,6 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [bpmnViewerError, setBpmnViewerError] = useState<BpmnViewerError | undefined>(undefined);
 
-  // const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(undefined);
-
   useEffect(() => {
     if (!canvasRef.current) {
       console.log('Canvas reference is not yet available in the DOM.');
@@ -37,16 +37,19 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
     events.forEach((event) => {
       eventBus.on(event, (e: any) => {
         const businessObject = e?.element?.businessObject;
+        const isTask = businessObject.$type === BPMN_TASK_KEY;
         const bpmnId = businessObject?.id;
         const bpmnName = businessObject?.name;
         const bpmnTaskType = businessObject?.extensionElements?.values[0]?.$children[0]?.$body;
 
-        const bpmnDetails: BpmnDetails = {
-          id: bpmnId,
-          name: bpmnName,
-          type: bpmnTaskType,
-        };
-        // TODO - Not being set properly
+        // If the bpmn element clicked is anything else than a task, set it to null
+        const bpmnDetails: BpmnDetails = isTask
+          ? {
+              id: bpmnId,
+              name: bpmnName,
+              type: bpmnTaskType,
+            }
+          : null;
         setBpmnDetails(bpmnDetails);
       });
     });
