@@ -64,7 +64,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
-import type { PartyList, PartyListResourceLink, PartyListWithMembers, Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
+import type { PartyList, PartyListResourceLink, Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -124,7 +124,7 @@ export const getValidatePolicy = (org: string, repo: string, id: string) => get<
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
 export const getAltinn2LinkServices = (org: string, environment: string) => get<Altinn2LinkService[]>(altinn2LinkServicesPath(org, environment));
 export const getPartyLists = (org: string, environment: string) => get<PartyList[]>(partyListsPath(org, environment));
-export const getPartyList = (org: string, listId: string, environment: string) => get<PartyListWithMembers>(partyListPath(org, listId, environment));
+export const getPartyList = (org: string, listId: string, environment: string) => get<PartyList>(partyListPath(org, listId, environment));
 export const getResourcePartyLists = (org: string, resourceId: string, environment: string) => get<PartyListResourceLink[]>(resourcePartyListsPath(org, resourceId, environment));
 
 // ProcessEditor

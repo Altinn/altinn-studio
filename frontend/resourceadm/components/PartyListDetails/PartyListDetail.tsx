@@ -10,7 +10,7 @@ import {
   Textfield,
   Modal,
 } from '@digdir/design-system-react';
-import { PartyList, PartyListMember, PartyListWithMembers } from 'app-shared/types/ResourceAdm';
+import { PartyList, PartyListMember } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper/FieldWrapper';
 import { useEditPartyListMutation } from 'resourceadm/hooks/mutations/useEditPartyListMutation';
 import { useRemovePartyListMemberMutation } from 'resourceadm/hooks/mutations/useRemovePartyListMemberMutation';
@@ -22,7 +22,7 @@ import { PartyListSearch } from './PartyListSearch';
 interface PartyListDetailProps {
   org: string;
   env: string;
-  list: PartyListWithMembers;
+  list: PartyList;
   onDeleted: () => void;
 }
 
@@ -77,7 +77,7 @@ export const PartyListDetail = ({
 
   // slett, må gjøres utenfor? Evt ha en back-funksjon
   const handleDelete = (): void => {
-    console.log('DELETE', list.id);
+    console.log('DELETE', list.identifier);
     deletePartyList(undefined, {
       onSuccess: () => onDeleted(),
       onError: (error: any) => {
@@ -100,7 +100,15 @@ export const PartyListDetail = ({
           </Button>
         </Modal.Footer>
       </Modal>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2rem',
+          maxWidth: '50rem',
+          margin: '2rem 0',
+        }}
+      >
         <FieldWrapper
           label='Listenavn'
           description='Gi listen et beskrivende navn, f.eks "Godkjente banker"'

@@ -112,19 +112,10 @@ export interface PartyListMember {
 
 export interface PartyList {
   env: string;
-  id: string;
   identifier: string;
   name: string;
   description?: string;
-}
-
-export interface PartyListWithMembers {
-  env: string;
-  id: string;
-  identifier: string;
-  name: string;
-  description?: string;
-  members: PartyListMember[];
+  members?: PartyListMember[];
 }
 
 export interface PartyListResourceLink {

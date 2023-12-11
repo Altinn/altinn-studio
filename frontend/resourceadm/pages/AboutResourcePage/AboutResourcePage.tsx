@@ -33,7 +33,7 @@ import {
   ResourceDropdown,
 } from 'resourceadm/components/ResourcePageInputs';
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
-import { ResourcePartyLists } from '../../components/ResourcePartyLists/ResourcePartyLists';
+import { SimpleResourcePartyLists } from '../../components/ResourcePartyLists/SimpleResourcePartyLists';
 
 /**
  * Initial value for languages with empty fields
@@ -416,7 +416,7 @@ export const AboutResourcePage = ({
   return (
     <div className={classes.wrapper} id={id} role='tabpanel'>
       {listEditEnv ? (
-        <ResourcePartyLists
+        <SimpleResourcePartyLists
           env={listEditEnv}
           resourceId={resourceId}
           onBack={() => setListEditEnv('')}

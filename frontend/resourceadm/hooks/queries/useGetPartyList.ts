@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { PartyListWithMembers } from 'app-shared/types/ResourceAdm';
+import type { PartyList } from 'app-shared/types/ResourceAdm';
 
 /**
  * Query to get a party list with members
@@ -16,10 +16,10 @@ export const useGetPartyListQuery = (
   org: string,
   listId: string,
   env: string,
-): UseQueryResult<PartyListWithMembers> => {
+): UseQueryResult<PartyList> => {
   const { getPartyList } = useServicesContext();
 
-  return useQuery<PartyListWithMembers>({
+  return useQuery<PartyList>({
     queryKey: [QueryKey.PartyList, listId, env],
     queryFn: () => getPartyList(org, listId, env),
     enabled: !!org && !!listId && !!env,
