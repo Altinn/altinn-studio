@@ -1,1 +1,0 @@
-export { SvgTemplate } from './SvgTemplate';

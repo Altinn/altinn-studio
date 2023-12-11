@@ -1,1 +1,0 @@
-export { Likert } from './Likert';
