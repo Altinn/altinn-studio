@@ -689,7 +689,7 @@
         ],
         "type": "CustomButton",
         "textResourceBindings": {
-          "label": "Fyll ut skjema"
+          "title": "Fyll ut skjema"
         }
       },
       {
@@ -727,7 +727,7 @@
         ],
         "type": "CustomButton",
         "textResourceBindings": {
-          "label": "Trigger frontend actions"
+          "title": "Trigger frontend actions"
         }
       },
       {
