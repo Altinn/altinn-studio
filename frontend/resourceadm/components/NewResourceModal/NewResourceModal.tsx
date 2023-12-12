@@ -1,7 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import classes from './NewResourceModal.module.css';
-import { Button, Paragraph } from '@digdir/design-system-react';
-import { Modal } from '../Modal';
+import { Button, Paragraph, Modal } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -73,46 +72,46 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
     };
 
     return (
-      <Modal
-        ref={ref}
-        onClose={handleClose}
-        title={t('resourceadm.dashboard_create_modal_title')}
-        contentClassName={classes.contentWidth}
-      >
-        <Paragraph size='small'>
-          {t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
-        </Paragraph>
-        <ResourceNameAndId
-          idLabel={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
-          titleLabel={t('resourceadm.dashboard_resource_name_and_id_resource_name')}
-          id={id}
-          title={title}
-          onIdChange={(newId: string) => {
-            setResourceIdExists(false);
-            setId(newId);
-          }}
-          onTitleChange={(newTitle: string) => setTitle(newTitle)}
-          conflictErrorMessage={
-            resourceIdExists ? t('resourceadm.dashboard_resource_name_and_id_error') : ''
-          }
-        />
-        <div className={classes.buttonWrapper}>
-          <div className={classes.closeButton}>
-            <Button onClick={onClose} color='first' variant='tertiary' size='small'>
-              {t('general.cancel')}
+      <Modal ref={ref} onClose={handleClose}>
+        <Modal.Header>{t('resourceadm.dashboard_create_modal_title')}</Modal.Header>
+        <Modal.Content>
+          <Paragraph size='small'>
+            {t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
+          </Paragraph>
+          <ResourceNameAndId
+            idLabel={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+            titleLabel={t('resourceadm.dashboard_resource_name_and_id_resource_name')}
+            id={id}
+            title={title}
+            onIdChange={(newId: string) => {
+              setResourceIdExists(false);
+              setId(newId);
+            }}
+            onTitleChange={(newTitle: string) => setTitle(newTitle)}
+            conflictErrorMessage={
+              resourceIdExists ? t('resourceadm.dashboard_resource_name_and_id_error') : ''
+            }
+          />
+        </Modal.Content>
+        <Modal.Footer>
+          <div className={classes.buttonWrapper}>
+            <div className={classes.closeButton}>
+              <Button onClick={onClose} color='first' variant='tertiary' size='small'>
+                {t('general.cancel')}
+              </Button>
+            </div>
+            <Button
+              onClick={() =>
+                !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
+              }
+              color='first'
+              aria-disabled={id.length === 0 || title.length === 0}
+              size='small'
+            >
+              {t('resourceadm.dashboard_create_modal_create_button')}
             </Button>
           </div>
-          <Button
-            onClick={() =>
-              !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
-            }
-            color='first'
-            aria-disabled={id.length === 0 || title.length === 0}
-            size='small'
-          >
-            {t('resourceadm.dashboard_create_modal_create_button')}
-          </Button>
-        </div>
+        </Modal.Footer>
       </Modal>
     );
   },
