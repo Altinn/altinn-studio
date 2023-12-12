@@ -43,6 +43,7 @@ export const BpmnContextProvider = ({
 
   const isEditAllowed =
     supportsProcessEditor(appLibVersion) || shouldDisplayFeature('shouldOverrideAppLibCheck');
+
   const modelerRef = useRef<Modeler | null>(null);
 
   const getUpdatedXml = async (): Promise<string> => {

@@ -1,11 +1,9 @@
 import React from 'react';
 
 import classes from './ConfigPanel.module.css';
-import { VersionAlert } from './VersionAlert';
 import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { useBpmnContext } from '../../contexts/BpmnContext';
-import {} from '@studio/icons';
 import { ConfigIcon } from './ConfigIcon';
 
 /**
@@ -16,12 +14,11 @@ import { ConfigIcon } from './ConfigIcon';
  */
 export const ConfigPanel = (): JSX.Element => {
   const { t } = useTranslation();
-  const { isEditAllowed, bpmnDetails } = useBpmnContext();
+  const { bpmnDetails } = useBpmnContext();
 
   console.log('bpmnDetails', bpmnDetails);
   return (
     <div className={classes.configPanel}>
-      {!isEditAllowed && <VersionAlert />}
       <div className={classes.content}>
         <div className={classes.headerWrapper}>
           {bpmnDetails && <ConfigIcon taskType={bpmnDetails.type} />}
