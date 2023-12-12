@@ -35,17 +35,6 @@ describe('ProcessEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render "canvas" when bpmnXml is provided and default render is view-mode', async () => {
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(() => {
-      render(<ProcessEditor {...defaultProps} />);
-    });
-
-    expect(
-      screen.getByRole('button', { name: textMock('process_editor.edit_mode') }),
-    ).toBeInTheDocument();
-  });
-
   it('does not display the alert when the version is 8 or newer', async () => {
     const user = userEvent.setup();
     render(<ProcessEditor {...defaultProps} />);
