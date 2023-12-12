@@ -36,6 +36,9 @@ export function nn(): FixedLanguageList {
       sender: 'Aktør',
       title: 'Sjå over svara dine før du sender inn',
     },
+    custom_actions: {
+      general_error: 'Noko gjekk gale med denne handlinga. Prøv igjen seinare.',
+    },
     date_picker: {
       invalid_date_message: 'Ugyldig datoformat. Bruk formatet {0}.',
       cancel_label: 'Avbryt',

@@ -114,6 +114,7 @@ const makeMutationMocks = (): MockedMutations => ({
   doInstantiateWithPrefill: promiseMock<AppMutations['doInstantiateWithPrefill']>(),
   doProcessNext: promiseMock<AppMutations['doProcessNext']>(),
   doSetCurrentParty: promiseMock<AppMutations['doSetCurrentParty']>(),
+  doPerformAction: promiseMock<AppMutations['doPerformAction']>(),
 });
 
 const makeDefaultQueryMocks = (state: IRuntimeState): MockableQueries => ({

@@ -13,6 +13,7 @@ import {
   dataElementUrl,
   fileTagUrl,
   fileUploadUrl,
+  getActionsUrl,
   getActiveInstancesUrl,
   getCreateInstancesUrl,
   getCustomValidationConfigUrl,
@@ -43,6 +44,7 @@ import type { Instantiation } from 'src/features/instantiate/InstantiationContex
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { ILayoutFileExternal, IOption } from 'src/layout/common.generated';
+import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ILayoutSets, ILayoutSettings, ISimpleInstance } from 'src/types';
 import type {
@@ -120,6 +122,14 @@ export const doAttachmentAddTag = async (dataGuid: string, tagToAdd: string): Pr
     throw new Error('Failed to add tag to attachment');
   }
 
+  return response.data;
+};
+
+export const doPerformAction = async (partyId: string, dataGuid: string, data: any): Promise<ActionResult> => {
+  const response = await httpPost(getActionsUrl(partyId, dataGuid), undefined, data);
+  if (response.status !== 200) {
+    throw new Error('Failed to perform action');
+  }
   return response.data;
 };
 

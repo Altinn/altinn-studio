@@ -38,6 +38,8 @@ export const fileTagUrl = (dataGuid: string, tag: string | undefined) => {
 export const dataElementUrl = (dataGuid: string) => `${appPath}/instances/${window.instanceId}/data/${dataGuid}`;
 
 export const getProcessStateUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process`;
+export const getActionsUrl = (partyId: string, instanceId: string) =>
+  `${appPath}/instances/${partyId}/${instanceId}/actions`;
 
 export const getCreateInstancesUrl = (partyId: string) => `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
 

@@ -197,6 +197,14 @@ export interface ISelfLinks {
   platform: string;
 }
 
+type ProcessActionIds = 'read' | 'write' | 'complete';
+
+export interface IUserAction {
+  id: ProcessActionIds | string;
+  authorized: boolean;
+  type: 'ProcessAction' | 'ServerAction';
+}
+
 export type ITask = {
   flow: number;
   started: string;
@@ -209,6 +217,7 @@ export type ITask = {
   read?: boolean | null;
   write?: boolean | null;
   actions?: IProcessActions | null;
+  userActions?: IUserAction[];
 };
 
 export type IProcessActions = {

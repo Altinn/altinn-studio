@@ -34,6 +34,9 @@ export function en() {
       sender: 'Party',
       title: 'Check your responses before submitting',
     },
+    custom_actions: {
+      general_error: 'Something went wrong with this action. Please try again later.',
+    },
     date_picker: {
       invalid_date_message: 'Invalid date format. Use the format {0}.',
       cancel_label: 'Cancel',

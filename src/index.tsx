@@ -6,6 +6,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
+import { Slide, ToastContainer } from 'react-toastify';
 
 import 'src/features/toggles';
 import 'src/features/logging';
@@ -36,6 +37,7 @@ import { initSagas } from 'src/redux/sagas';
 import { setupStore } from 'src/redux/store';
 import { ExprContextWrapper } from 'src/utils/layout/ExprContext';
 
+import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
 
@@ -86,6 +88,12 @@ function Root() {
                             <WindowTitleProvider>
                               <DevTools>
                                 <App />
+                                <ToastContainer
+                                  position='top-center'
+                                  theme='colored'
+                                  transition={Slide}
+                                  draggable={false}
+                                />
                               </DevTools>
                             </WindowTitleProvider>
                           </KeepAliveProvider>

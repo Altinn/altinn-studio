@@ -109,6 +109,9 @@ export const useNavigatePage = () => {
       if (!page) {
         return;
       }
+      if (!order.includes(page)) {
+        return;
+      }
       setFocusId(options?.focusComponentId);
       if (options?.returnToView) {
         setReturnToView(options.returnToView);
@@ -179,6 +182,56 @@ export const useNavigatePage = () => {
     [processTasks],
   );
 
+  const getCurrentPageIndex = () => {
+    const location = window.location.href;
+    const _currentPageId = location.split('/').slice(-1)[0];
+    return order?.indexOf(_currentPageId) ?? undefined;
+  };
+
+  const getNextPage = () => {
+    const currentPageIndex = getCurrentPageIndex();
+    const nextPageIndex = currentPageIndex !== undefined ? currentPageIndex + 1 : undefined;
+
+    if (nextPageIndex === undefined) {
+      return undefined;
+    }
+    return order?.[nextPageIndex];
+  };
+
+  const getPreviousPage = () => {
+    const currentPageIndex = getCurrentPageIndex();
+    const nextPageIndex = currentPageIndex !== undefined ? currentPageIndex - 1 : undefined;
+
+    if (nextPageIndex === undefined) {
+      return undefined;
+    }
+    return order?.[nextPageIndex];
+  };
+
+  /**
+   * This function fetch the next page index on function
+   * invocation and then navigates to the next page. This is
+   * to be able to chain multiple ClientActions together.
+   */
+  const navigateToNextPage = () => {
+    const nextPage = getNextPage();
+    if (nextPage) {
+      navigateToPage(nextPage);
+    }
+  };
+  /**
+   * This function fetches the previous page index on
+   * function invocation and then navigates to the previous
+   * page. This is to be able to chain multiple ClientActions
+   * together.
+   */
+  const navigateToPreviousPage = () => {
+    const previousPage = getPreviousPage();
+    if (previousPage) {
+      navigateToPage(previousPage);
+    }
+  };
+
   return {
     navigateToPage,
     navigateToTask,
@@ -193,5 +246,7 @@ export const useNavigatePage = () => {
     currentPageId,
     taskId,
     previous,
+    navigateToNextPage,
+    navigateToPreviousPage,
   };
 };
