@@ -48,6 +48,7 @@ const config = {
     '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
     '^@studio/icons': path.join(__dirname, 'libs/studio-icons/src/$1'),
     '^@studio/components': path.join(__dirname, 'libs/studio-components/src/$1'),
+    '^@studio/pure-functions': path.join(__dirname, 'libs/studio-pure-functions/src/$1'),
   },
   testRegex: '(\\.(test|spec))\\.(ts|tsx)$',
   moduleFileExtensions: ['ts', 'tsx', 'js'],
