@@ -15,6 +15,15 @@ export const SchemaGenerationErrorsPanel = ({
 }: SchemaGenerationErrorsPanelProps) => {
   const { t } = useTranslation();
 
+  const API_ERROR_MESSAGE_COMPILER_NAME_COLLISION =
+    'member names cannot be the same as their enclosing type';
+
+  const isKnownErrorMessage = (errorMessage: string): boolean =>
+    errorMessage.includes(API_ERROR_MESSAGE_COMPILER_NAME_COLLISION);
+
+  const extractNodeNameFromError = (errorMessage: string): string =>
+    errorMessage.match(/'([^']+)':/)?.[1];
+
   return (
     <Alert severity='danger'>
       <div className={classes.errorPanel}>
@@ -23,18 +32,16 @@ export const SchemaGenerationErrorsPanel = ({
           <ul>
             {schemaGenerationErrorMessages?.map((errorMessage, index) => {
               return (
-                <li key={index}>
+                <li key={`${errorMessage}-${index}`}>
                   <ErrorMessage>
-                    {errorMessage.includes(
-                      'member names cannot be the same as their enclosing type',
-                    ) ? (
+                    {isKnownErrorMessage(errorMessage) ? (
                       <Trans
                         i18nKey={'api_errors.DM_CsharpCompiler_NameCollision'}
-                        values={{ nodeName: errorMessage.match(/'([^']+)':/)?.[1] }}
+                        values={{ nodeName: extractNodeNameFromError(errorMessage) }}
                         components={{ bold: <strong /> }}
                       />
                     ) : (
-                      <>{errorMessage}</>
+                      errorMessage
                     )}
                   </ErrorMessage>
                 </li>
@@ -44,10 +51,9 @@ export const SchemaGenerationErrorsPanel = ({
         </div>
         <Button
           color='danger'
-          open={schemaGenerationErrorMessages.length > 0}
           onClick={onCloseErrorsPanel}
           variant='tertiary'
-          icon={<XMarkIcon />}
+          icon={<XMarkIcon aria-hidden />}
         >
           {t('general.close')}
         </Button>

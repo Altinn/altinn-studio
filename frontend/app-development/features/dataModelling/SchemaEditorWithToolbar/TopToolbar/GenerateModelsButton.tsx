@@ -25,14 +25,13 @@ export const GenerateModelsButton = ({
     mutate(data, {
       onSuccess: () => {
         toast.success(t('schema_editor.datamodel_generation_success_message'));
+        onSetSchemaGenerationErrorMessages([]);
       },
       onError: (error) => {
         const errorMessages = error?.response?.data?.customErrorMessages;
-        console.log(errorMessages);
-        if (!errorMessages) {
-          return;
+        if (errorMessages) {
+          onSetSchemaGenerationErrorMessages(errorMessages);
         }
-        onSetSchemaGenerationErrorMessages(errorMessages);
       },
     });
   };
