@@ -23,6 +23,7 @@ jobs:
       run: yarn playwright-e2e
       env:
         PLAYWRIGHT_TEST_BASE_URL: "https://dev.altinn.studio"
+        CI: true
     - uses: actions/upload-artifact@v3
       if: always()
       with:
