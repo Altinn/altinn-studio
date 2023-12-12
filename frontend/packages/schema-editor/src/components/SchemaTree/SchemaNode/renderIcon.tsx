@@ -1,11 +1,10 @@
 import React, { ReactElement } from 'react';
-import {FieldType, ObjectKind, SchemaModel} from '@altinn/schema-model';
+import { FieldType, ObjectKind, SchemaModel } from '@altinn/schema-model';
 import {
   Boolean,
   Combination,
   LinkIcon,
   Number,
-  ObjectIcon,
   QuestionmarkIcon,
   String,
 } from '@studio/icons';
@@ -32,7 +31,7 @@ const renderFieldIcon = (fieldType: FieldType): ReactElement => {
     case FieldType.Number:
       return <Number />;
     case FieldType.Object:
-      return <ObjectIcon />;
+      return null;
     case FieldType.String:
       return <String />;
     default:

@@ -1,5 +1,5 @@
-import {ItemPosition} from 'app-shared/types/dndTypes';
-import {ROOT_POINTER, SchemaModel, UiSchemaNode} from '../../../../schema-model';
+import { ItemPosition } from 'app-shared/types/dndTypes';
+import { ROOT_POINTER, SchemaModel, UiSchemaNode } from '../../../../schema-model';
 
 // This is necessary because the root node's children list contains both properties and definitions, but only properties are visible in the tree.
 // TODO: Remove this function when properties and definitions are in separate lists: https://github.com/Altinn/altinn-studio/issues/11824

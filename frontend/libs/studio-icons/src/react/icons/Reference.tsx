@@ -24,7 +24,7 @@ export const Reference = (props: IconProps): JSX.Element => (
         L 19.0777 18.2815
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -46,7 +46,7 @@ export const Reference = (props: IconProps): JSX.Element => (
         L 17.0389 11.6019
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
   </SvgTemplate>
 );

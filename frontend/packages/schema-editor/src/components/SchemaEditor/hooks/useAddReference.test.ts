@@ -9,10 +9,11 @@ import {
   parentNodeMock,
   uiSchemaNodesMock
 } from '../../../../test/mocks/uiSchemaMock';
-import {SchemaEditorAppContextProps} from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
-import {renderHookWithProviders} from '../../../../test/renderHookWithProviders';
-import {HandleAdd, ItemPosition} from 'app-shared/types/dndTypes';
-import {useAddReference} from '@altinn/schema-editor/components/SchemaEditor/hooks/useAddReference';
+import { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import { renderHookWithProviders } from '../../../../test/renderHookWithProviders';
+import { HandleAdd, ItemPosition } from 'app-shared/types/dndTypes';
+import { useAddReference } from '@altinn/schema-editor/components/SchemaEditor/hooks/useAddReference';
+import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
 
 describe('useAddReference', () => {
   const setup = () => {
@@ -21,19 +22,19 @@ describe('useAddReference', () => {
     const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, save };
     const { result } = renderHookWithProviders({ appContextProps })(useAddReference);
     const add: HandleAdd<string> = result.current;
-    return { add, schemaModel, save };
+    return { add, save };
   };
 
   it('Adds a reference to the given position', () => {
-    const { add, schemaModel, save } = setup();
+    const { add, save } = setup();
     const nameOfDefinition = extractNameFromPointer(definitionNodeMock.pointer);
     const pointerOfParent = parentNodeMock.pointer;
     const indexInNewParent = 1;
     const target: ItemPosition = { parentId: pointerOfParent, index: indexInNewParent };
     add(nameOfDefinition, target);
     expect(save).toHaveBeenCalledTimes(1);
-    expect(save).toHaveBeenCalledWith(schemaModel);
-    const childrenOfNewParent = schemaModel.getChildNodes(pointerOfParent);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const childrenOfNewParent = savedModel.getChildNodes(pointerOfParent);
     const addedChild = childrenOfNewParent[indexInNewParent];
     expect(isReference(addedChild)).toBe(true);
     const addedReferenceNode = addedChild as ReferenceNode;

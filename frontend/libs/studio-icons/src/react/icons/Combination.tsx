@@ -77,7 +77,7 @@ export const Combination = (props: IconProps): JSX.Element => (
         H 6
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
   </SvgTemplate>
 );

@@ -9,7 +9,7 @@ import {
   isFieldOrCombination,
   isNodeValidParent,
   isProperty,
-  isReference
+  isReference,
 } from './utils';
 import {
   generateUniqueStringWithNumber,
@@ -21,12 +21,17 @@ import { ROOT_POINTER } from './constants';
 import { ReferenceNode } from '../types/ReferenceNode';
 import { deepCopy } from 'app-shared/pure';
 import { replaceStart } from 'app-shared/utils/stringUtils';
-import { createDefinitionPointer, createPropertyPointer, extractNameFromPointer } from './pointerUtils';
+import {
+  createDefinitionPointer,
+  createPropertyPointer,
+  extractNameFromPointer,
+} from './pointerUtils';
 import {
   defaultCombinationNode,
   defaultFieldNode,
   defaultReferenceNode,
 } from '../config/default-nodes';
+import { convertPropToType } from './mutations/convert-node';
 
 export class SchemaModel {
   private readonly nodeMap: NodeMap;
@@ -38,6 +43,10 @@ export class SchemaModel {
   public static fromArray(nodes: UiSchemaNodes): SchemaModel {
     const map: NodeMap = new Map(nodes.map((node) => [node.pointer, node]));
     return new SchemaModel(map);
+  }
+
+  public getNodeMap(): NodeMap {
+    return this.nodeMap;
   }
 
   public deepClone(): SchemaModel {
@@ -86,10 +95,8 @@ export class SchemaModel {
   }
 
   public getChildNodes(pointer: string): UiSchemaNodes {
-    const node = this.getNode(pointer);
-    return isReference(node)
-      ? this.getChildNodes(node.reference)
-      : this.getDirectChildNodes(node);
+    const node = this.getFinalNode(pointer);
+    return this.getDirectChildNodes(node);
   }
 
   private getDirectChildNodes(node: FieldNode | CombinationNode): UiSchemaNodes {
@@ -100,28 +107,54 @@ export class SchemaModel {
     return this.getNode(node.reference);
   }
 
-  public addCombination = (name: string, target: NodePosition = defaultNodePosition, combinationType: CombinationKind = CombinationKind.AnyOf): CombinationNode => {
+  public getFinalNode(pointer): FieldNode | CombinationNode {
+    const node = this.getNode(pointer);
+    return isReference(node) ? this.getFinalNode(node.reference) : node;
+  }
+
+  public doesNodeHaveChildWithName(nodePointer: string, name: string): boolean {
+    const node = this.getNode(nodePointer);
+    const children = this.getChildNodes(nodePointer);
+    return children.some((child) => extractNameFromPointer(child.pointer) === name);
+  }
+
+  public addCombination = (
+    name: string,
+    target: NodePosition = defaultNodePosition,
+    combinationType: CombinationKind = CombinationKind.AnyOf,
+  ): CombinationNode => {
     const newNode: CombinationNode = { ...defaultCombinationNode, combinationType };
     return this.addNode<CombinationNode>(name, newNode, target);
-  }
+  };
 
-  public addReference = (name: string, reference: string, target: NodePosition = defaultNodePosition): ReferenceNode => {
+  public addReference = (
+    name: string,
+    reference: string,
+    target: NodePosition = defaultNodePosition,
+  ): ReferenceNode => {
     const referencePointer = createDefinitionPointer(reference);
-    if (!this.hasNode(referencePointer)) throw new Error(`There is no definition named ${reference}.`);
+    if (!this.hasNode(referencePointer))
+      throw new Error(`There is no definition named ${reference}.`);
     const newNode: ReferenceNode = { ...defaultReferenceNode, reference: referencePointer };
     return this.addNode<ReferenceNode>(name, newNode, target);
-  }
+  };
 
-  public addField = (name: string, fieldType: FieldType = FieldType.String, target: NodePosition = defaultNodePosition): FieldNode => {
+  public addField = (
+    name: string,
+    fieldType: FieldType = FieldType.String,
+    target: NodePosition = defaultNodePosition,
+  ): FieldNode => {
     const newNode: FieldNode = { ...defaultFieldNode, fieldType };
     return this.addNode<FieldNode>(name, newNode, target);
-  }
+  };
 
-  private addNode<T extends UiSchemaNode>(name: string, node: T, target: NodePosition): T {
-    const pointer = this.createChildPointer(target.parentPointer, name);
+  protected addNode<T extends UiSchemaNode>(name: string, node: T, target: NodePosition): T {
+    const finalParent = this.getFinalNode(target.parentPointer);
+    const finalTarget = { ...target, parentPointer: finalParent.pointer };
+    const pointer = this.createChildPointer(finalTarget.parentPointer, name);
     if (this.nodeMap.has(pointer)) throw new Error(`Node with pointer ${pointer} already exists.`);
     const newNode = { ...node, pointer, implicitType: false };
-    this.addChildPointer(target, pointer);
+    this.addChildPointer(finalTarget, pointer);
     this.nodeMap.set(pointer, newNode);
     return newNode;
   }
@@ -142,7 +175,7 @@ export class SchemaModel {
     return this.addType<FieldNode>(name, { ...defaultFieldNode, fieldType });
   };
 
-  private addType<T extends FieldNode | CombinationNode>(name: string, node: T): T {
+  protected addType<T extends FieldNode | CombinationNode>(name: string, node: T): T {
     const pointer = createDefinitionPointer(name);
     if (this.nodeMap.has(pointer)) throw new Error(`Node with pointer ${pointer} already exists.`);
     const newNode = { ...node, pointer };
@@ -154,9 +187,16 @@ export class SchemaModel {
 
   public moveNode(pointer: string, target: NodePosition): SchemaModel {
     const nodeName = extractNameFromPointer(pointer);
-    const newPointer = this.createChildPointer(target.parentPointer, nodeName);
+    const finalParent = this.getFinalNode(target.parentPointer);
+    const finalTarget = { ...target, parentPointer: finalParent.pointer };
+    if (this.doesNodeHaveChildWithName(finalTarget.parentPointer, nodeName)) {
+      throw new Error(
+        `Cannot move node to ${finalTarget.parentPointer} because a child with name ${nodeName} already exists.`,
+      );
+    }
+    const newPointer = this.createChildPointer(finalTarget.parentPointer, nodeName);
     this.removeNodeFromParent(pointer);
-    this.addChildPointer(target, newPointer);
+    this.addChildPointer(finalTarget, newPointer);
     this.changePointer(pointer, newPointer);
     return this;
   }
@@ -164,7 +204,7 @@ export class SchemaModel {
   private removeNodeFromParent = (pointer: string): void => {
     const parent = this.getParentNode(pointer);
     parent.children = removeItemByValue(parent.children, pointer);
-  }
+  };
 
   public getParentNode(pointer: string): FieldNode | CombinationNode | undefined {
     const isParent = (node: UiSchemaNode): node is FieldNode | CombinationNode =>
@@ -246,7 +286,8 @@ export class SchemaModel {
 
   public deleteNode(pointer: string): SchemaModel {
     if (pointer === ROOT_POINTER) throw new Error('It is not possible to delete the root node.');
-    if (this.isDefinitionInUse(pointer)) throw new Error('Cannot delete a definition that is in use.');
+    if (this.isDefinitionInUse(pointer))
+      throw new Error('Cannot delete a definition that is in use.');
     this.deleteChildren(pointer);
     this.removeNodeFromParent(pointer);
     this.nodeMap.delete(pointer);
@@ -324,6 +365,14 @@ export class SchemaModel {
     const parent = this.getParentNode(pointer);
     return !!parent && isCombination(parent);
   }
+
+  public convertToDefinition(pointer: string): SchemaModel {
+    // TODO: Make this method independent of convertPropToType: https://github.com/Altinn/altinn-studio/issues/11841
+    const newModel = convertPropToType(this.deepClone(), pointer);
+    this.nodeMap.clear();
+    newModel.getNodeMap().forEach((node) => this.nodeMap.set(node.pointer, node));
+    return this;
+  }
 }
 
-const defaultNodePosition: NodePosition = { parentPointer: ROOT_POINTER, index: -1 };
+const defaultNodePosition: NodePosition = {parentPointer: ROOT_POINTER, index: -1};

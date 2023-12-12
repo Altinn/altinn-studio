@@ -14,7 +14,7 @@ export const Element = (props: IconProps): JSX.Element => (
         H 6
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       d='
@@ -24,7 +24,7 @@ export const Element = (props: IconProps): JSX.Element => (
         H 21
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
   </SvgTemplate>
 );

@@ -1,35 +1,21 @@
-import type { ChangeEvent } from 'react';
 import React from 'react';
 import { ActionMenu } from '../common/ActionMenu';
 import classes from './ModelsPanel.module.css';
 import { IconImage } from '../common/Icon';
-import { SchemaTreeView } from '../TreeView/SchemaTreeView';
 import { setSelectedAndFocusedNode } from '../../features/editor/schemaEditorSlice';
-import type { UiSchemaNodes } from '@altinn/schema-model';
-import { FieldType, ObjectKind, } from '@altinn/schema-model';
-import { useDispatch, useSelector } from 'react-redux';
-import type { SchemaState } from '../../types';
+import { FieldType, ObjectKind } from '@altinn/schema-model';
+import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
-import {SchemaTree} from '@altinn/schema-editor/components/SchemaTree';
-import {useSchemaEditorAppContext} from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { SchemaTree } from '@altinn/schema-editor/components/SchemaTree';
+import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 
-export type ModelsPanelProps = {
-  expandedPropNodes: string[];
-  setExpandedPropNodes: (nodes: string[]) => void;
-  properties: UiSchemaNodes;
-};
-export const ModelsPanel = ({
-  expandedPropNodes,
-  setExpandedPropNodes,
-  properties,
-}: ModelsPanelProps) => {
+export const ModelsPanel = () => {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
-  const selectedPropertyNodeId = useSelector((state: SchemaState) => state.selectedPropertyNodeId);
   const addProperty = useAddProperty();
-  const { schemaModel } = useSchemaEditorAppContext();
+  const savableSchema = useSavableSchemaModel();
 
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newPointer = addProperty(objectKind, fieldType);
@@ -38,8 +24,6 @@ export const ModelsPanel = ({
     }
   };
 
-  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
-    setExpandedPropNodes(nodeIds);
   return (
     <>
       <ActionMenu
@@ -83,14 +67,9 @@ export const ModelsPanel = ({
         ]}
         openButtonText={t('add')}
       />
-      <SchemaTreeView
-        expanded={expandedPropNodes}
-        items={properties}
-        onNodeToggle={handlePropertiesNodeExpanded}
-        selectedPointer={selectedPropertyNodeId}
-        isPropertiesView={true}
-      />
-      <SchemaTree schema={schemaModel}/>
+      <div>
+        <SchemaTree savableSchemaModel={savableSchema} />
+      </div>
     </>
   );
 };

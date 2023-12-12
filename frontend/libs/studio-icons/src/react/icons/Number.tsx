@@ -14,7 +14,7 @@ export const Number = (props: IconProps): JSX.Element => (
         L 13.4566 30.1851
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -26,7 +26,7 @@ export const Number = (props: IconProps): JSX.Element => (
         L 22.4126 30.1851
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -38,7 +38,7 @@ export const Number = (props: IconProps): JSX.Element => (
         L 6.10856 15.409
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -50,7 +50,7 @@ export const Number = (props: IconProps): JSX.Element => (
         L 5.98844 23.4082
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
   </SvgTemplate>
 );

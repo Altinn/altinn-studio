@@ -6,7 +6,7 @@ import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
-import { SchemaEditor } from '@altinn/schema-editor/components/SchemaEditor/SchemaEditor';
+import { SchemaEditor } from '@altinn/schema-editor/components/SchemaEditor';
 
 export interface SelectedSchemaEditorProps {
   datamodels: DatamodelMetadata[];

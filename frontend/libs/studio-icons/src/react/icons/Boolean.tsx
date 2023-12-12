@@ -15,7 +15,7 @@ export const Boolean = (props: IconProps): JSX.Element => (
         L 18 6
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -34,7 +34,7 @@ export const Boolean = (props: IconProps): JSX.Element => (
         C 24.6274 30 30 24.6274 30 18
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
   </SvgTemplate>
 );

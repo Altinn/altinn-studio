@@ -32,7 +32,7 @@
 
 .childItemList {
   --icon-width: 1em;
-  --icon-left-spacing: calc(var(--vertical-line-width) + var(--fds-spacing-2));
+  --icon-left-spacing: calc(var(--vertical-line-width) + var(--fds-spacing-3));
   --vertical-line-center: calc(var(--icon-left-spacing) + var(--icon-width) / 2);
   --vertical-line-left-spacing: calc(var(--vertical-line-center) - var(--vertical-line-width) / 2);
 

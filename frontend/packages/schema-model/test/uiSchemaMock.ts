@@ -24,6 +24,7 @@ const allOfNodeChildPointer = '#/properties/allOfNode/allOf/someNode';
 const referenceNodePointer = '#/properties/test/anyOf/referenceNode';
 const subParentNodePointer = '#/properties/test/anyOf/subParent';
 const subSubNodePointer = '#/properties/test/anyOf/subParent/properties/subSubNode';
+const nodeWithSameNameAsStringNodePointer = '#/properties/stringNode';
 
 const simpleParentNodePointer = '#/properties/simpleParent';
 const simpleChildNodePointer = '#/properties/simpleParent/properties/simpleChild';
@@ -36,6 +37,8 @@ const defNodeWithChildrenGrandchildPointer = '#/$defs/parentDef/properties/child
 const referenceToObjectNodePointer = '#/properties/referenceToParent';
 
 const unusedDefinitionPointer = '#/$defs/unusedDef';
+const unusedDefinitionWithSameNameAsExistingObjectPointer = '#/$defs/test';
+const referenceDefinitionPointer = '#/$defs/referenceDef';
 
 export const nodeMockBase: UiSchemaNode = {
   objectKind: ObjectKind.Field,
@@ -65,6 +68,9 @@ export const rootNodeMock: FieldNode = {
     defNodeWithChildrenPointer,
     referenceToObjectNodePointer,
     unusedDefinitionPointer,
+    unusedDefinitionWithSameNameAsExistingObjectPointer,
+    referenceDefinitionPointer,
+    nodeWithSameNameAsStringNodePointer,
   ],
 };
 
@@ -215,6 +221,23 @@ export const unusedDefinitionMock: UiSchemaNode = {
   pointer: unusedDefinitionPointer,
 };
 
+export const unusedDefinitionWithSameNameAsExistingObjectMock: UiSchemaNode = {
+  ...nodeMockBase,
+  pointer: unusedDefinitionWithSameNameAsExistingObjectPointer,
+};
+
+export const referenceDefinitionMock: ReferenceNode = {
+  ...defaultReferenceNode,
+  pointer: referenceDefinitionPointer,
+  reference: defNodePointer,
+};
+
+export const nodeWithSameNameAsStringNodeMock: FieldNode = {
+  ...nodeMockBase,
+  pointer: nodeWithSameNameAsStringNodePointer,
+  fieldType: FieldType.String,
+};
+
 export const uiSchemaMock: UiSchemaNodes = [
   rootNodeMock,
   parentNodeMock,
@@ -239,4 +262,7 @@ export const uiSchemaMock: UiSchemaNodes = [
   defNodeWithChildrenGrandchildMock,
   referenceToObjectNodeMock,
   unusedDefinitionMock,
+  unusedDefinitionWithSameNameAsExistingObjectMock,
+  referenceDefinitionMock,
+  nodeWithSameNameAsStringNodeMock,
 ];

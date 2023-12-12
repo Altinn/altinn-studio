@@ -22,7 +22,7 @@ export const Definition = (props: IconProps): JSX.Element => (
         C 6 26.1716 6.67157 25.5 7.5 25.5
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -42,7 +42,7 @@ export const Definition = (props: IconProps): JSX.Element => (
         C 16.5 26.1716 17.1716 25.5 18 25.5
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -62,7 +62,7 @@ export const Definition = (props: IconProps): JSX.Element => (
         C 27 26.1716 27.6716 25.5 28.5 25.5
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
   </SvgTemplate>
 );

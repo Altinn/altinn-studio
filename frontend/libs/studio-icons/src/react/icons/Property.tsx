@@ -14,7 +14,7 @@ export const Property = (props: IconProps): JSX.Element => (
         H 30
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -26,7 +26,7 @@ export const Property = (props: IconProps): JSX.Element => (
         H 30
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -38,7 +38,7 @@ export const Property = (props: IconProps): JSX.Element => (
         H 30
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -50,7 +50,7 @@ export const Property = (props: IconProps): JSX.Element => (
         H 9
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -62,7 +62,7 @@ export const Property = (props: IconProps): JSX.Element => (
         H 9
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
     <path
       fillRule='evenodd'
@@ -74,7 +74,7 @@ export const Property = (props: IconProps): JSX.Element => (
         H 9
         Z
       '
-      fill='#0062BA'
+      fill='currentColor'
     />
   </SvgTemplate>
 );

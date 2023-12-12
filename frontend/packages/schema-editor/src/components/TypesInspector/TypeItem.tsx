@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import * as testids from '../../../../../testing/testids';
 import { useDispatch } from 'react-redux';
 import { setSelectedId } from '../../features/editor/schemaEditorSlice';
-import {DragAndDropTree} from 'app-shared/components/DragAndDropTree';
+import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;
