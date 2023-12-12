@@ -7,8 +7,8 @@ export const altinnCustomTasks = {
   },
   types: [
     {
-      name: 'taskExtension',
-      superClass: ['bpmn:ExtensionElements'],
+      name: 'TaskExtension',
+      superClass: ['Element'],
       properties: [
         {
           name: 'taskType',
