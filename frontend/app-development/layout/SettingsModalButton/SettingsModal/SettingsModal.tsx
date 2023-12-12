@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import classes from './SettingsModal.module.css';
 import { Heading } from '@digdir/design-system-react';
 import {
@@ -22,6 +22,7 @@ import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
 
 export type SettingsModalProps = {
+  isOpen: boolean;
   onClose: () => void;
   org: string;
   app: string;
@@ -31,111 +32,118 @@ export type SettingsModalProps = {
  * @component
  *    Displays the settings modal.
  *
- * @property {function}[onClose] - Function to execute on close
+ * @property {boolean}[isOpen] - Flag for if the modal is open
+ * @property {function}[onClose] - Function to be executed on close
  * @property {string}[org] - The org
  * @property {string}[app] - The app
  *
- * @returns {JSX.Element} - The rendered component
+ * @returns {ReactNode} - The rendered component
  */
-export const SettingsModal = forwardRef<HTMLDialogElement, SettingsModalProps>(
-  ({ onClose, org, app }, ref): JSX.Element => {
-    const { t } = useTranslation();
+export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps): ReactNode => {
+  const { t } = useTranslation();
 
-    const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
+  const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
 
-    /**
-     * Ids for the navigation tabs
-     */
-    const aboutTabId: SettingsModalTab = 'about';
-    const setupTabId: SettingsModalTab = 'setup';
-    const policyTabId: SettingsModalTab = 'policy';
-    const localChangesTabId: SettingsModalTab = 'localChanges';
-    const accessControlTabId: SettingsModalTab = 'accessControl';
+  /**
+   * Ids for the navigation tabs
+   */
+  const aboutTabId: SettingsModalTab = 'about';
+  const setupTabId: SettingsModalTab = 'setup';
+  const policyTabId: SettingsModalTab = 'policy';
+  const localChangesTabId: SettingsModalTab = 'localChanges';
+  const accessControlTabId: SettingsModalTab = 'accessControl';
 
-    const leftNavigationTabs: LeftNavigationTab[] = [
-      createNavigationTab(
-        <InformationSquareIcon className={classes.icon} />,
-        aboutTabId,
-        () => changeTabTo(aboutTabId),
-        currentTab,
-      ),
-      createNavigationTab(
-        <SidebarBothIcon className={classes.icon} />,
-        setupTabId,
-        () => changeTabTo(setupTabId),
-        currentTab,
-      ),
-      createNavigationTab(
-        <ShieldLockIcon className={classes.icon} />,
-        policyTabId,
-        () => changeTabTo(policyTabId),
-        currentTab,
-      ),
-      createNavigationTab(
-        <PersonSuitIcon className={classes.icon} />,
-        accessControlTabId,
-        () => changeTabTo(accessControlTabId),
-        currentTab,
-      ),
-      createNavigationTab(
-        <MonitorIcon className={classes.icon} />,
-        localChangesTabId,
-        () => changeTabTo(localChangesTabId),
-        currentTab,
-      ),
-    ];
+  /**
+   * The tabs to display in the navigation bar
+   */
+  const leftNavigationTabs: LeftNavigationTab[] = [
+    createNavigationTab(
+      <InformationSquareIcon className={classes.icon} />,
+      aboutTabId,
+      () => changeTabTo(aboutTabId),
+      currentTab,
+    ),
+    createNavigationTab(
+      <SidebarBothIcon className={classes.icon} />,
+      setupTabId,
+      () => changeTabTo(setupTabId),
+      currentTab,
+    ),
+    createNavigationTab(
+      <ShieldLockIcon className={classes.icon} />,
+      policyTabId,
+      () => changeTabTo(policyTabId),
+      currentTab,
+    ),
+    createNavigationTab(
+      <PersonSuitIcon className={classes.icon} />,
+      accessControlTabId,
+      () => changeTabTo(accessControlTabId),
+      currentTab,
+    ),
+    createNavigationTab(
+      <MonitorIcon className={classes.icon} />,
+      localChangesTabId,
+      () => changeTabTo(localChangesTabId),
+      currentTab,
+    ),
+  ];
 
-    const changeTabTo = (tabId: SettingsModalTab) => {
-      setCurrentTab(tabId);
-    };
+  /**
+   * Changes the active tab
+   * @param tabId
+   */
+  const changeTabTo = (tabId: SettingsModalTab) => {
+    setCurrentTab(tabId);
+  };
 
-    const displayTabs = () => {
-      switch (currentTab) {
-        case 'about': {
-          return <AboutTab org={org} app={app} />;
-        }
-        case 'setup': {
-          return <SetupTab org={org} app={app} />;
-        }
-        case 'policy': {
-          return <PolicyTab org={org} app={app} />;
-        }
-        case 'accessControl': {
-          return <AccessControlTab org={org} app={app} />;
-        }
-        case 'localChanges': {
-          return <LocalChangesTab org={org} app={app} />;
-        }
+  /**
+   * Displays the currently selected tab and its content
+   * @returns
+   */
+  const displayTabs = () => {
+    switch (currentTab) {
+      case 'about': {
+        return <AboutTab org={org} app={app} />;
       }
-    };
+      case 'setup': {
+        return <SetupTab org={org} app={app} />;
+      }
+      case 'policy': {
+        return <PolicyTab org={org} app={app} />;
+      }
+      case 'accessControl': {
+        return <AccessControlTab org={org} app={app} />;
+      }
+      case 'localChanges': {
+        return <LocalChangesTab org={org} app={app} />;
+      }
+    }
+  };
 
-    return (
-      <StudioModal
-        ref={ref}
-        onClose={onClose}
-        header={
-          <div className={classes.headingWrapper}>
-            <CogIcon className={classes.icon} />
-            <Heading level={1} size='medium'>
-              {t('settings_modal.heading')}
-            </Heading>
-          </div>
-        }
-        content={
-          <div className={classes.modalContent}>
-            <div className={classes.leftNavWrapper}>
-              <LeftNavigationBar
-                tabs={leftNavigationTabs}
-                className={classes.leftNavigationBar}
-                selectedTab={currentTab}
-              />
-            </div>
-            {displayTabs()}
-          </div>
-        }
-      />
-    );
-  },
-);
-
-SettingsModal.displayName = 'SettingsModal';
+  return (
+    <StudioModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <div className={classes.headingWrapper}>
+          <CogIcon className={classes.icon} />
+          <Heading level={1} size='medium'>
+            {t('settings_modal.heading')}
+          </Heading>
+        </div>
+      }
+    >
+      <div className={classes.modalContent}>
+        <div className={classes.leftNavWrapper}>
+          <LeftNavigationBar
+            tabs={leftNavigationTabs}
+            className={classes.leftNavigationBar}
+            selectedTab={currentTab}
+          />
+        </div>
+        {displayTabs()}
+      </div>
+    </StudioModal>
+  );
+};
