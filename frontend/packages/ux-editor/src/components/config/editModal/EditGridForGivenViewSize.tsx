@@ -43,7 +43,6 @@ export const EditGridForGivenViewSize = ({
     }
   };
 
-  debugger;
   return (
     <>
       <Paragraph size='small'>{t('ux_editor.modal_properties_grid')}</Paragraph>

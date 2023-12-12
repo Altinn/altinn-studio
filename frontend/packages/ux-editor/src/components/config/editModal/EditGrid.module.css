@@ -1,6 +1,11 @@
-.toggleGroupContainer {
-  display: flex;
-  justify-content: center;
-  flex: 1;
-  margin: 1rem;
+.gridContainer {
+  background-color: white;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.viewSizesContainer {
+  display: grid;
+  justify-content: space-between;
+  grid-template-columns: 1fr auto;
 }

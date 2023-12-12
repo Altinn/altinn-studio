@@ -39,7 +39,6 @@ export const StudioSlider = ({
             ))}
           </datalist>
         </div>
-
         <div className={disabled ? classes.disabledSliderValue : classes.currentSliderValue}>
           {sliderValue}
         </div>
