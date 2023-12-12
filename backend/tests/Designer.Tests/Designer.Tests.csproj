@@ -24,7 +24,6 @@
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" />
     <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
