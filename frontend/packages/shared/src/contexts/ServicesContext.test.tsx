@@ -3,25 +3,21 @@ import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import { ServicesContextProps, ServicesContextProvider } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-const texts = {
-  'api_errors.DM_01': 'DM_01 error message',
-  'api_errors.GT_01': 'Deling av endringer mislyktes. Vennligst prøv igjen.',
-  'general.error_message': 'Something went wrong',
-  'general.try_again': 'Try again',
-};
-
+const unknownErrorCode = 'unknownErrorCode';
 // Mocks:
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    ...mockUseTranslation(texts),
+    t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
     i18n: {
-      exists: (key: string) => texts[key] !== undefined,
+      exists: (key: string) =>
+        key !== `api_errors.${unknownErrorCode}` ? textMock(key) : undefined,
     },
   }),
-  Trans: ({ i18nKey }: { i18nKey: any }) => texts[i18nKey],
+  Trans: ({ i18nKey }: { i18nKey: any }) => textMock(i18nKey),
 }));
 
 const wrapper = ({
@@ -76,7 +72,7 @@ describe('ServicesContext', () => {
       { wrapper },
     );
     await waitFor(() => result.current.isError);
-    expect(await screen.findByText(texts['api_errors.GT_01'])).toBeInTheDocument();
+    expect(await screen.findByText(textMock('api_errors.GT_01'))).toBeInTheDocument();
   });
 
   it('displays a specific error message if API returns an error code and the error messages does exist', async () => {
@@ -92,7 +88,7 @@ describe('ServicesContext', () => {
 
     await waitFor(() => result.current.isError);
 
-    expect(await screen.findByText(texts['api_errors.DM_01'])).toBeInTheDocument();
+    expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
@@ -100,7 +96,7 @@ describe('ServicesContext', () => {
       () =>
         useQuery({
           queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(500, 'DM_02')),
+          queryFn: () => Promise.reject(createApiErrorMock(500, unknownErrorCode)),
           retry: false,
         }),
       { wrapper },
@@ -108,7 +104,7 @@ describe('ServicesContext', () => {
 
     await waitFor(() => result.current.isError);
 
-    expect(await screen.findByText(texts['general.error_message'])).toBeInTheDocument();
+    expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
   });
 
   it('displays a default error message if an API call fails', async () => {
@@ -119,7 +115,7 @@ describe('ServicesContext', () => {
 
     await waitFor(() => result.current.isError);
 
-    expect(await screen.findByText(texts['general.error_message'])).toBeInTheDocument();
+    expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
   });
 
   it('displays a default error message if a component throws an error while rendering', () => {
@@ -130,8 +126,8 @@ describe('ServicesContext', () => {
     };
     render(<ErrorComponent />, { wrapper });
 
-    expect(screen.getByText(texts['general.error_message'])).toBeInTheDocument();
-    expect(screen.getByText(texts['general.try_again'])).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.error_message'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.try_again'))).toBeInTheDocument();
     expect(mockConsoleError).toHaveBeenCalled();
   });
 });

@@ -25,8 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+      <PackageReference Include="Basic.Reference.Assemblies" />
       <PackageReference Include="JsonSchema.Net" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+      <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
