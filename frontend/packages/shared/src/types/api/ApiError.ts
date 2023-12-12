@@ -5,4 +5,5 @@ export interface ApiError {
   title?: string;
   type?: string;
   errorCode?: string;
-};
+  customErrorMessages?: string[];
+}

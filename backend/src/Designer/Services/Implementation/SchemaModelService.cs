@@ -285,8 +285,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)
         {
-            string classes = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
-            await altinnAppGitRepository.SaveCSharpClasses(classes, schemaName);
+            string csharpClasses = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
+            await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaName);
         }
 
         private static async Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string typeName)

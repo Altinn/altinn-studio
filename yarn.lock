@@ -3839,6 +3839,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/pure-functions@workspace:^, @studio/pure-functions@workspace:frontend/libs/studio-pure-functions":
+  version: 0.0.0-use.local
+  resolution: "@studio/pure-functions@workspace:frontend/libs/studio-pure-functions"
+  dependencies:
+    "@types/jest": "npm:^29.5.5"
+    eslint: "npm:8.50.0"
+    jest: "npm:^29.7.0"
+    jest-environment-jsdom: "npm:^29.7.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:^5.2.2"
+  languageName: unknown
+  linkType: soft
+
 "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0":
   version: 8.0.0
   resolution: "@svgr/babel-plugin-add-jsx-attribute@npm:8.0.0"
@@ -5716,6 +5729,7 @@ __metadata:
     "@mui/material": "npm:5.14.16"
     "@reduxjs/toolkit": "npm:1.9.7"
     "@studio/icons": "workspace:^"
+    "@studio/pure-functions": "workspace:^"
     axios: "npm:1.6.0"
     classnames: "npm:2.3.2"
     cross-env: "npm:7.0.3"

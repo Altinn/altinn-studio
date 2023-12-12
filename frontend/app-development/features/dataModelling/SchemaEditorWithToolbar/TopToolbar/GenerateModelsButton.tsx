@@ -8,17 +8,30 @@ import { toast } from 'react-toastify';
 
 export interface GenerateModelsButtonProps {
   modelPath: string;
+  onSetSchemaGenerationErrorMessages: (errorMessages: string[]) => void;
 }
 
-export const GenerateModelsButton = ({ modelPath }: GenerateModelsButtonProps) => {
+export const GenerateModelsButton = ({
+  modelPath,
+  onSetSchemaGenerationErrorMessages,
+}: GenerateModelsButtonProps) => {
   const { data } = useSchemaQuery(modelPath);
-  const { mutate, isPending } = useGenerateModelsMutation(modelPath);
+  const { mutate, isPending } = useGenerateModelsMutation(modelPath, {
+    hideDefaultError: (error) => error?.response?.data?.customErrorMessages ?? false,
+  });
   const { t } = useTranslation();
 
   const handleGenerateButtonClick = () => {
     mutate(data, {
       onSuccess: () => {
         toast.success(t('schema_editor.datamodel_generation_success_message'));
+        onSetSchemaGenerationErrorMessages([]);
+      },
+      onError: (error) => {
+        const errorMessages = error?.response?.data?.customErrorMessages;
+        if (errorMessages) {
+          onSetSchemaGenerationErrorMessages(errorMessages);
+        }
       },
     });
   };
