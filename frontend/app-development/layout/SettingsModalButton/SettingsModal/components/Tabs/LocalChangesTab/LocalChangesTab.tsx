@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { ReactNode, useState } from 'react';
 import classes from './LocalChangesTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
@@ -23,25 +23,23 @@ export type LocalChangesTabProps = {
  * @property {string}[org] - The org
  * @property {string}[app] - The app
  *
- * @returns {JSX.Element} - The rendered component
+ * @returns {ReactNode} - The rendered component
  */
-export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): JSX.Element => {
+export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode => {
   const { t } = useTranslation();
 
   const { mutate: deleteLocalChanges } = useResetRepositoryMutation(org, app);
 
-  const modalRef = useRef<HTMLDialogElement>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const handleDelete = () => {
     deleteLocalChanges(undefined, {
       onSuccess: () => {
-        modalRef.current?.close();
+        setDeleteModalOpen(false);
         toast.success(t('settings_modal.local_changes_tab_deleted_success'));
       },
     });
   };
-
-  const handleCloseModal = () => modalRef.current?.close();
 
   return (
     <TabContent>
@@ -68,12 +66,12 @@ export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): JSX.Element
           color='danger'
           icon={<TrashIcon />}
           text={t('settings_modal.local_changes_tab_delete_button')}
-          action={{ type: 'button', onClick: () => modalRef.current?.showModal() }}
+          action={{ type: 'button', onClick: () => setDeleteModalOpen(true) }}
         />
       </div>
       <DeleteModal
-        ref={modalRef}
-        onClose={handleCloseModal}
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
         onDelete={handleDelete}
         appName={app}
       />
