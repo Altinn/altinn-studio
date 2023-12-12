@@ -8,8 +8,9 @@ import {
   StrRestrictionKey,
 } from '../../types';
 import { getCombinationKind, getObjectKind, isField } from '../utils';
-import { removeDuplicates, arrayIntersection } from 'app-shared/utils/arrayUtils';
+import { arrayIntersection } from 'app-shared/utils/arrayUtils';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export const isCompundFieldType = (schemaNodeType: string | string[]) =>
   Array.isArray(schemaNodeType) && schemaNodeType.length === 2;
@@ -19,7 +20,10 @@ export const findUiFieldType = (schemaNode: KeyValuePairs) => {
   const keys = Object.keys(schemaNode);
   if (typeof schemaNode.properties === 'object') {
     return FieldType.Object;
-  } else if (typeof schemaNode.type === 'string' && [ObjectKind.Field, ObjectKind.Reference].includes(objectKind)) {
+  } else if (
+    typeof schemaNode.type === 'string' &&
+    [ObjectKind.Field, ObjectKind.Reference].includes(objectKind)
+  ) {
     return schemaNode.type;
   } else if (objectKind === ObjectKind.Combination) {
     const kind = getCombinationKind(schemaNode);
@@ -42,7 +46,7 @@ export const findUiFieldType = (schemaNode: KeyValuePairs) => {
   }
 };
 export const findEnumFieldType = (nodeEnum: any[]) => {
-  const checks = removeDuplicates(nodeEnum.map((x: any) => typeof x));
+  const checks = ArrayUtils.removeDuplicates(nodeEnum.map((x: any) => typeof x));
   if (checks.length === 1 && checks[0] === 'string') {
     return FieldType.String;
   }
