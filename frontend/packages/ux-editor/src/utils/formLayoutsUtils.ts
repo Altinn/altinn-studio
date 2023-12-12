@@ -10,7 +10,7 @@ import { generateComponentId } from './generateId';
 import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
-import { removeDuplicates } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';
 
 /**
@@ -57,7 +57,7 @@ export const addOrRemoveNavigationButtons = async (
     }
   }
   currentLayoutName && layoutsToUpdate.push(currentLayoutName); // Always update the current layout if it is set
-  layoutsToUpdate = removeDuplicates(layoutsToUpdate); // Remove duplicates so that callback is only called once for each layout
+  layoutsToUpdate = ArrayUtils.removeDuplicates(layoutsToUpdate); // Remove duplicates so that callback is only called once for each layout
   await Promise.all(layoutsToUpdate.map((name) => callback(name, allLayouts[name])));
   return allLayouts;
 };
