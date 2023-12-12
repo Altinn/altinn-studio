@@ -1,0 +1,6 @@
+.toggleGroupContainer {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+  margin: 1rem;
+}

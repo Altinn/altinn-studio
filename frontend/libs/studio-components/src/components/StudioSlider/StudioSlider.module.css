@@ -1,0 +1,64 @@
+.sliderContainer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.range {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+
+.disabledSliderValue,
+.currentSliderValue {
+  font-size: 2rem;
+  min-width: 2.5rem;
+}
+
+.disabledSliderValue {
+  color: var(--fds-semantic-text-neutral-subtle);
+}
+
+.currentSliderValue {
+  color: var(--fds-semantic-text-action-default);
+}
+
+datalist {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+datalist option {
+  min-width: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+input[type='range'] {
+  /*  ...  */
+  /*  slider progress trick  */
+  overflow: hidden;
+  border-radius: 3rem;
+  width: 100%;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  cursor: pointer;
+  border-radius: 1rem;
+  border: 0.1rem solid var(--primary-color-700);
+  background-color: white;
+}
+
+/* Thumb: webkit */
+input[type='range']::-webkit-slider-thumb {
+  border-radius: 50%;
+  border: 0.8rem solid pink;
+  box-shadow: -25.6rem 0 0 25rem var(--primary-color-700);
+}
