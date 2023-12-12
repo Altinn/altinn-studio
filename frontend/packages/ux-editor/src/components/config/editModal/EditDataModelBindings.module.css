@@ -20,6 +20,11 @@
   padding-block: 0.75rem;
 }
 
+.linkedDatamodelIcon {
+  height: var(--fds-sizing-4);
+  width: var(--fds-sizing-4);
+}
+
 .selectedOption {
   gap: var(--fds-spacing-1);
   word-break: break-word;
