@@ -172,9 +172,20 @@ describe('SchemaInspector', () => {
     const testUiSchema: UiSchemaNodes = [rootNode, item];
     validateTestUiSchema(testUiSchema);
     renderSchemaInspector(testUiSchema, item);
-    await act(() => user.click(screen.queryAllByRole('tab')[1]));
-    await act(() => user.click(screen.getByDisplayValue(enumValue)));
+
+    const enumField = screen.getAllByRole('textbox', {
+      name: 'schema_editor.enum_value',
+    });
+    expect(enumField).toHaveLength(item.enum.length);
+
+    await act(() => user.click(enumField[0]));
     await act(() => user.keyboard('{Enter}'));
+
+    const enumFieldAfter = screen.getAllByRole('textbox', {
+      name: 'schema_editor.enum_value',
+    });
+    expect(enumFieldAfter).toHaveLength(item.enum.length + 1);
+
     expect(saveDatamodel).not.toHaveBeenCalled();
   });
 });
