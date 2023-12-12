@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ImportResourceModal, ImportResourceModalProps } from './ImportResourceModal';
@@ -9,8 +9,6 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-
-const mockButtonText: string = 'Mock Button';
 
 const mockAltinn2LinkService: Altinn2LinkService = {
   externalServiceCode: 'code1',
@@ -27,6 +25,7 @@ const getAltinn2LinkServices = jest
   .mockImplementation(() => Promise.resolve(mockAltinn2LinkServices));
 
 const defaultProps: ImportResourceModalProps = {
+  isOpen: true,
   onClose: mockOnClose,
 };
 
@@ -35,7 +34,7 @@ describe('ImportResourceModal', () => {
 
   it('selects environment and service, then checks if import button exists', async () => {
     const user = userEvent.setup();
-    await renderAndOpenModal();
+    render();
 
     const importButtonText = textMock('resourceadm.dashboard_import_modal_import_button');
     const importButton = screen.queryByRole('button', { name: importButtonText });
@@ -66,7 +65,7 @@ describe('ImportResourceModal', () => {
 
   it('calls onClose function when close button is clicked', async () => {
     const user = userEvent.setup();
-    await renderAndOpenModal();
+    render();
 
     const closeButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await act(() => user.click(closeButton));
@@ -75,7 +74,7 @@ describe('ImportResourceModal', () => {
   });
 
   it('should be closed by default', () => {
-    render();
+    render({ isOpen: false });
 
     const closeButton = screen.queryByRole('button', { name: textMock('general.cancel') });
     expect(closeButton).not.toBeInTheDocument();
@@ -83,7 +82,7 @@ describe('ImportResourceModal', () => {
 
   it('calls import resource from Altinn 2 when import is clicked', async () => {
     const user = userEvent.setup();
-    await renderAndOpenModal();
+    render();
 
     const [, environmentSelect] = screen.getAllByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
@@ -118,27 +117,8 @@ const render = (props: Partial<ImportResourceModalProps> = {}) => {
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <TestComponentWithButton {...defaultProps} {...props} />
+        <ImportResourceModal {...defaultProps} {...props} />
       </ServicesContextProvider>
     </MemoryRouter>,
-  );
-};
-
-const renderAndOpenModal = async (props: Partial<ImportResourceModalProps> = {}) => {
-  const user = userEvent.setup();
-  render(props);
-
-  const openModalButton = screen.getByRole('button', { name: mockButtonText });
-  await act(() => user.click(openModalButton));
-};
-
-const TestComponentWithButton = (props: Partial<ImportResourceModalProps> = {}) => {
-  const modalRef = useRef<HTMLDialogElement>(null);
-
-  return (
-    <>
-      <button onClick={() => modalRef.current?.showModal()}>{mockButtonText}</button>
-      <ImportResourceModal ref={modalRef} {...defaultProps} {...props} />
-    </>
   );
 };
