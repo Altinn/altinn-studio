@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner, Heading } from '@digdir/design-system-react';
@@ -24,6 +24,7 @@ import { getReposLabel } from 'dashboard/utils/repoUtils';
 export const ResourceDashboardPage = (): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
+  const createResourceModalRef = useRef<HTMLDialogElement>(null);
   const { data: organizations } = useOrganizationsQuery();
 
   const { t } = useTranslation();
@@ -33,7 +34,6 @@ export const ResourceDashboardPage = (): React.ReactNode => {
   const [searchValue, setSearchValue] = useState('');
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
-  const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Get metadata with queries
@@ -126,7 +126,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
             color='second'
             icon={<PlusCircleIcon />}
             iconPlacement='right'
-            onClick={() => setNewResourceModalOpen(true)}
+            onClick={() => createResourceModalRef.current?.showModal()}
             size='medium'
           >
             <strong>{t('resourceadm.dashboard_create_resource')}</strong>
@@ -144,8 +144,8 @@ export const ResourceDashboardPage = (): React.ReactNode => {
         />
       )}
       <NewResourceModal
-        isOpen={newResourceModalOpen}
-        onClose={() => setNewResourceModalOpen(false)}
+        ref={createResourceModalRef}
+        onClose={() => createResourceModalRef.current?.close()}
       />
       <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
     </div>
