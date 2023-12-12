@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Button,
@@ -23,16 +24,17 @@ interface PartyListDetailProps {
   org: string;
   env: string;
   list: PartyList;
-  onDeleted: () => void;
+  backUrl: string;
 }
 
 export const PartyListDetail = ({
   org,
   env,
   list,
-  onDeleted,
+  backUrl,
 }: PartyListDetailProps): React.ReactNode => {
   const deleteWarningModalRef = useRef<HTMLDialogElement>(null);
+  const navigate = useNavigate();
   const [listItems, setListItems] = useState<(PartyListMember & { isDeleted?: boolean })[]>(
     list.members,
   );
@@ -79,7 +81,7 @@ export const PartyListDetail = ({
   const handleDelete = (): void => {
     console.log('DELETE', list.identifier);
     deletePartyList(undefined, {
-      onSuccess: () => onDeleted(),
+      onSuccess: () => navigate(backUrl),
       onError: (error: any) => {
         // TODO
       },
@@ -87,7 +89,7 @@ export const PartyListDetail = ({
   };
 
   return (
-    <div>
+    <div style={{ margin: '1rem' }}>
       <Modal ref={deleteWarningModalRef} onClose={() => deleteWarningModalRef.current?.close()}>
         <Modal.Header>Bekreft sletting av liste</Modal.Header>
         <Modal.Content>Vil du slette denne listen?</Modal.Content>
@@ -109,6 +111,7 @@ export const PartyListDetail = ({
           margin: '2rem 0',
         }}
       >
+        <Link to={backUrl}>Tilbake</Link>
         <FieldWrapper
           label='Listenavn'
           description='Gi listen et beskrivende navn, f.eks "Godkjente banker"'

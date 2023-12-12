@@ -1,14 +1,16 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Alert, Button, Heading, Label, NativeSelect } from '@digdir/design-system-react';
-import React, { useEffect, useState } from 'react';
 import { ResourcePartyListActions } from './ResourcePartyListActions';
 import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
-import { useParams } from 'react-router-dom';
 import { StudioSpinner } from '@studio/components';
 import { useGetResourcePartyListsQuery } from 'resourceadm/hooks/queries/useGetResourcePartyLists';
 import { useEditResourcePartyListMutation } from 'resourceadm/hooks/mutations/useEditResourcePartyListMutation';
 import { useAddResourcePartyListMutation } from 'resourceadm/hooks/mutations/useAddResourcePartyListMutation';
 import { useRemoveResourcePartyListMutation } from 'resourceadm/hooks/mutations/useRemoveResourcePartyListMutation';
+import { NewPartyListModal } from '../NewPartyListModal/NewPartyListModal';
+import { getPartyListPageUrl } from 'resourceadm/utils/urlUtils/urlUtils';
 
 interface ResourcePartyListsProps {
   env: string;
@@ -22,7 +24,11 @@ export const ResourcePartyLists = ({
   onBack,
 }: ResourcePartyListsProps): React.ReactNode => {
   const { selectedContext } = useParams();
-  const [isCreatingList, setIsCreatingList] = useState<boolean>(false);
+  const repo = `${selectedContext}-resources`;
+  const navigate = useNavigate();
+
+  const createPartyListModalRef = useRef<HTMLDialogElement>(null);
+
   const [selectedAddList, setSelectedAddList] = useState<string>('');
   const [selectedLists, setSelectedLists] = useState<PartyListResourceLink[]>([]);
 
@@ -89,17 +95,6 @@ export const ResourcePartyLists = ({
     setSelectedLists((old) => [...old, listItem]);
   };
 
-  if (isCreatingList) {
-    return (
-      <div>
-        <Button size='small' variant='tertiary' onClick={() => setIsCreatingList(false)}>
-          Tilbake
-        </Button>
-        <div>Her må det komme inn funksjonalitet for å lage nye lister</div>
-      </div>
-    );
-  }
-
   if (isLoadingEnvListData || isLoadingConnectedLists) {
     return <StudioSpinner />;
   }
@@ -110,6 +105,16 @@ export const ResourcePartyLists = ({
 
   return (
     <div style={{ width: '100%', margin: '1rem' }}>
+      <NewPartyListModal
+        ref={createPartyListModalRef}
+        org={selectedContext}
+        env={env}
+        onClose={() => createPartyListModalRef.current?.close()}
+        onPartyListCreated={(identifier: string) => {
+          createPartyListModalRef.current?.close();
+          navigate(getPartyListPageUrl(selectedContext, repo, env, identifier));
+        }}
+      />
       <Button variant='tertiary' onClick={onBack}>
         Tilbake
       </Button>
@@ -161,7 +166,7 @@ export const ResourcePartyLists = ({
         >
           Legg til
         </Button>
-        <Button variant='secondary' onClick={() => setIsCreatingList(true)}>
+        <Button variant='secondary' onClick={() => createPartyListModalRef.current?.showModal()}>
           Opprett ny liste
         </Button>
       </div>

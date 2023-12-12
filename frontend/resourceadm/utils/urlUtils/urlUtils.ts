@@ -29,7 +29,16 @@ export const getResourcePageURL = (
   organisation: string,
   repo: string,
   resourceId: string,
-  resourcePage: NavigationBarPage
+  resourcePage: NavigationBarPage,
 ): string => {
   return `/${organisation}/${repo}/resource/${resourceId}/${resourcePage}`;
+};
+
+export const getPartyListPageUrl = (
+  organisation: string,
+  repo: string,
+  environment: string,
+  listIdentifier: string = '',
+): string => {
+  return `/${organisation}/${repo}/listadmin/${environment}/${listIdentifier}`;
 };

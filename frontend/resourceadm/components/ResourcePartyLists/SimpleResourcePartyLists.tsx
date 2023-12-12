@@ -1,25 +1,28 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Alert, Button, Checkbox, Heading } from '@digdir/design-system-react';
-import React, { useEffect, useState } from 'react';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
-import { useParams } from 'react-router-dom';
 import { StudioSpinner } from '@studio/components';
 import { useGetResourcePartyListsQuery } from 'resourceadm/hooks/queries/useGetResourcePartyLists';
 import { useAddResourcePartyListMutation } from 'resourceadm/hooks/mutations/useAddResourcePartyListMutation';
 import { useRemoveResourcePartyListMutation } from 'resourceadm/hooks/mutations/useRemoveResourcePartyListMutation';
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { NewPartyListModal } from '../NewPartyListModal/NewPartyListModal';
 
 interface SimpleResourcePartyListsProps {
   env: string;
   resourceId: string;
-  onBack: () => void;
 }
 
 export const SimpleResourcePartyLists = ({
   env,
   resourceId,
-  onBack,
 }: SimpleResourcePartyListsProps): React.ReactNode => {
   const { selectedContext } = useParams();
-  const [isCreatingList, setIsCreatingList] = useState<boolean>(false);
+  const repo = `${selectedContext}-resources`;
+  const navigate = useNavigate();
+  const createPartyListModalRef = useRef<HTMLDialogElement>(null);
+
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
 
   const {
@@ -61,17 +64,6 @@ export const SimpleResourcePartyLists = ({
     setSelectedLists((old) => [...old, listItemId]);
   };
 
-  if (isCreatingList) {
-    return (
-      <div>
-        <Button size='small' variant='tertiary' onClick={() => setIsCreatingList(false)}>
-          Tilbake
-        </Button>
-        <div>Her må det komme inn funksjonalitet for å lage nye lister</div>
-      </div>
-    );
-  }
-
   if (isLoadingEnvListData || isLoadingConnectedLists) {
     return <StudioSpinner />;
   }
@@ -90,9 +82,24 @@ export const SimpleResourcePartyLists = ({
         margin: '1rem',
       }}
     >
-      <Button variant='tertiary' size='small' onClick={onBack}>
-        Tilbake
-      </Button>
+      <NewPartyListModal
+        ref={createPartyListModalRef}
+        org={selectedContext}
+        env={env}
+        onClose={() => createPartyListModalRef.current?.close()}
+        onPartyListCreated={(identifier: string) => {
+          createPartyListModalRef.current?.close();
+          navigate(
+            `${getResourcePageURL(
+              selectedContext,
+              repo,
+              resourceId,
+              'partylists',
+            )}/${env}/${identifier}`,
+          );
+        }}
+      />
+      <Link to={getResourcePageURL(selectedContext, repo, resourceId, 'about')}>Tilbake</Link>
       <Heading level={1} size='large'>{`Konfigurer RRR for ${resourceId} - ${env}`}</Heading>
       <Checkbox.Group
         legend='Velg hvilke lister som skal ha tilgang til ressursen'
@@ -111,13 +118,26 @@ export const SimpleResourcePartyLists = ({
       >
         {envListData.map((list) => {
           return (
-            <Checkbox key={list.identifier} value={list.identifier}>
-              {list.name}
-            </Checkbox>
+            <div
+              key={list.identifier}
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem' }}
+            >
+              <Checkbox value={list.identifier}>{list.name}</Checkbox>
+              <Link
+                to={`${getResourcePageURL(
+                  selectedContext,
+                  repo,
+                  resourceId,
+                  'partylists',
+                )}/${env}/${list.identifier}`}
+              >
+                (endre)
+              </Link>
+            </div>
           );
         })}
       </Checkbox.Group>
-      <Button variant='secondary' onClick={() => setIsCreatingList(true)}>
+      <Button variant='secondary' onClick={() => createPartyListModalRef.current?.showModal()}>
         Opprett ny liste
       </Button>
     </div>

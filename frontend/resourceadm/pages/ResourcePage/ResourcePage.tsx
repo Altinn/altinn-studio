@@ -28,6 +28,9 @@ import {
 } from '@navikt/aksel-icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
+import { SimpleResourcePartyLists } from 'resourceadm/components/ResourcePartyLists/SimpleResourcePartyLists';
+import { PartyListDetail } from 'resourceadm/components/PartyListDetails/PartyListDetail';
+import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
 
 /**
  * @component
@@ -40,7 +43,7 @@ export const ResourcePage = (): React.ReactNode => {
 
   const navigate = useNavigate();
 
-  const { pageType, resourceId, selectedContext } = useParams();
+  const { pageType, resourceId, selectedContext, env, listId } = useParams();
   const repo = `${selectedContext}-resources`;
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
@@ -70,11 +73,14 @@ export const ResourcePage = (): React.ReactNode => {
     repo,
     resourceId,
   );
+
   const {
     data: resourceData,
     refetch: refetchResource,
     isPending: resourcePending,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
+
+  const { data: partyList } = useGetPartyListQuery(selectedContext, listId, env);
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
@@ -296,6 +302,22 @@ export const ResourcePage = (): React.ReactNode => {
             <MigrationPage
               navigateToPageWithError={navigateToPageWithError}
               id='page-content-migration'
+            />
+          )}
+          {currentPage === 'partylists' && env && !listId && (
+            <SimpleResourcePartyLists env={env} resourceId={resourceId} />
+          )}
+          {currentPage === 'partylists' && env && partyList && (
+            <PartyListDetail
+              org={selectedContext}
+              env={env}
+              list={partyList}
+              backUrl={`${getResourcePageURL(
+                selectedContext,
+                repo,
+                resourceId,
+                'partylists',
+              )}/${env}`}
             />
           )}
         </div>

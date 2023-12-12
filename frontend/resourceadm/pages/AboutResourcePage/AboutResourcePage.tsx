@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { Button, Heading } from '@digdir/design-system-react';
-import { useParams } from 'react-router-dom';
+import { Heading } from '@digdir/design-system-react';
+import { Link, useParams } from 'react-router-dom';
 import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
   SupportedLanguageKey,
@@ -33,7 +33,7 @@ import {
   ResourceDropdown,
 } from 'resourceadm/components/ResourcePageInputs';
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
-import { SimpleResourcePartyLists } from '../../components/ResourcePartyLists/SimpleResourcePartyLists';
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 
 /**
  * Initial value for languages with empty fields
@@ -66,7 +66,8 @@ export const AboutResourcePage = ({
 }: AboutResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { resourceId } = useParams();
+  const { selectedContext, resourceId } = useParams();
+  const repo = `${selectedContext}-resources`;
 
   /**
    * Resource type options
@@ -116,8 +117,6 @@ export const AboutResourcePage = ({
   const [hasRightDescriptionError, setHasRightDescriptionError] = useState(
     resourceData.delegable ? getResourcePageTextfieldError(resourceData.rightDescription) : false,
   );
-
-  const [listEditEnv, setListEditEnv] = useState<string>('');
 
   /**
    * Function that saves the resource to backend
@@ -395,18 +394,20 @@ export const AboutResourcePage = ({
         />
         {resourceData.limitedByRRR && (
           <div>
-            <Button variant='tertiary' onClick={() => setListEditEnv('tt02')}>
-              Administrer RRR i TT-02
-            </Button>
-            <Button variant='tertiary' onClick={() => setListEditEnv('prod')}>
-              Administrer RRR i Prod
-            </Button>
-            <Button variant='tertiary' onClick={() => setListEditEnv('at22')}>
-              Administrer RRR i AT22
-            </Button>
-            <Button variant='tertiary' onClick={() => setListEditEnv('at23')}>
-              Administrer RRR i AT23
-            </Button>
+            {['tt02', 'prod', 'at22', 'at23'].map((env) => {
+              return (
+                <div key={env}>
+                  <Link
+                    to={`${getResourcePageURL(
+                      selectedContext,
+                      repo,
+                      resourceId,
+                      'partylists',
+                    )}/${env}/`}
+                  >{`Administrer RRR i ${env}`}</Link>
+                </div>
+              );
+            })}
           </div>
         )}
       </>
@@ -415,15 +416,7 @@ export const AboutResourcePage = ({
 
   return (
     <div className={classes.wrapper} id={id} role='tabpanel'>
-      {listEditEnv ? (
-        <SimpleResourcePartyLists
-          env={listEditEnv}
-          resourceId={resourceId}
-          onBack={() => setListEditEnv('')}
-        />
-      ) : (
-        <div className={classes.pageWrapper}>{displayContent()}</div>
-      )}
+      <div className={classes.pageWrapper}>{displayContent()}</div>
     </div>
   );
 };

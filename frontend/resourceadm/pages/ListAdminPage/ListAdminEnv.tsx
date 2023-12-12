@@ -1,48 +1,45 @@
 import React, { useRef } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { StudioSpinner } from '@studio/components';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
 import { Button } from '@digdir/design-system-react';
 import { NewPartyListModal } from '../../components/NewPartyListModal/NewPartyListModal';
+import { getPartyListPageUrl } from 'resourceadm/utils/urlUtils/urlUtils';
 
-interface ListAdminEnvProps {
-  org: string;
-  env: string;
-  onSelectList: (identifier: string) => void;
-}
+export const ListAdminEnv = (): React.ReactNode => {
+  const { selectedContext, env } = useParams();
+  const repo = `${selectedContext}-resources`;
+  const { data: envListData, isLoading: isLoadingEnvListData } = useGetPartyListsQuery(
+    selectedContext,
+    env,
+  );
 
-export const ListAdminEnv = ({ org, env, onSelectList }: ListAdminEnvProps): React.ReactNode => {
-  const { data: envListData, isLoading: isLoadingEnvListData } = useGetPartyListsQuery(org, env);
-
+  const navigate = useNavigate();
   const createPartyListModalRef = useRef<HTMLDialogElement>(null);
 
   return (
     <div>
       <NewPartyListModal
         ref={createPartyListModalRef}
-        org={org}
+        org={selectedContext}
         env={env}
         onClose={() => createPartyListModalRef.current?.close()}
         onPartyListCreated={(identifier: string) => {
           createPartyListModalRef.current?.close();
-          onSelectList(identifier);
+          navigate(getPartyListPageUrl(selectedContext, repo, env, identifier));
         }}
       />
       {isLoadingEnvListData && <StudioSpinner />}
-      {!!envListData && (
-        <>
-          {envListData.map((x) => {
-            return (
-              <Button
-                key={x.identifier}
-                variant='tertiary'
-                onClick={() => onSelectList(x.identifier)}
-              >
+      {!!envListData &&
+        envListData.map((x) => {
+          return (
+            <div key={x.identifier}>
+              <Link to={getPartyListPageUrl(selectedContext, repo, env, x.identifier)}>
                 {x.name}
-              </Button>
-            );
-          })}
-        </>
-      )}
+              </Link>
+            </div>
+          );
+        })}
       <Button onClick={() => createPartyListModalRef.current?.showModal()}>Opprett ny liste</Button>
     </div>
   );
