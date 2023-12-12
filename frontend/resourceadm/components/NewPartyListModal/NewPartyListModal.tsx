@@ -1,7 +1,7 @@
 import React, { useState, forwardRef } from 'react';
-import { StudioModal, StudioSpinner } from '@studio/components';
+import { StudioSpinner } from '@studio/components';
 import { useCreatePartyListMutation } from 'resourceadm/hooks/mutations/useCreatePartyListMutation';
-import { Button } from '@digdir/design-system-react';
+import { Button, Modal, Paragraph } from '@digdir/design-system-react';
 import { ResourceNameAndId } from 'resourceadm/components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
@@ -34,9 +34,7 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
       };
 
       createPartyList(newPartyList, {
-        onSuccess: () => {
-          onPartyListCreated(newId);
-        },
+        onSuccess: () => onPartyListCreated(newId),
         onError: (error: any) => {
           if (error.response.status === ServerCodes.Conflict) {
             setErrorMessage('En liste med denne id-en finnes fra før');
@@ -46,13 +44,15 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
     };
 
     return (
-      <StudioModal
-        ref={ref}
-        onClose={onClose}
-        header={'Ny liste'}
-        style={{ padding: '1.5rem', width: '35rem' }}
-        content={
-          <div style={{ paddingBottom: '1rem' }}>
+      <Modal ref={ref} onClose={onClose}>
+        <Modal.Header>{`Lag ny liste i ${env}`}</Modal.Header>
+        <Modal.Content>
+          <div>
+            <Paragraph size='small'>
+              Velg navn og id for listen. Navnet er for intern bruk, og id er foreslått basert på
+              navnet du skriver men kan redigeres om du ønsker en annen. Navn kan endres senere,
+              mens id kan ikke endres.
+            </Paragraph>
             <ResourceNameAndId
               idLabel='Liste id'
               titleLabel='Listenavn'
@@ -64,21 +64,19 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
             />
             {isCreatingPartyList && <StudioSpinner />}
           </div>
-        }
-        footer={
-          <>
-            <Button
-              aria-disabled={id.length === 0 || name.length === 0 || isCreatingPartyList}
-              onClick={() => handleCreateNewPartyList(id, name)}
-            >
-              Opprett liste
-            </Button>
-            <Button variant='tertiary' onClick={() => onClose()}>
-              Avbryt
-            </Button>
-          </>
-        }
-      />
+        </Modal.Content>
+        <Modal.Footer>
+          <Button
+            aria-disabled={id.length === 0 || name.length === 0 || isCreatingPartyList}
+            onClick={() => handleCreateNewPartyList(id, name)}
+          >
+            Opprett liste
+          </Button>
+          <Button variant='tertiary' onClick={() => onClose()}>
+            Avbryt
+          </Button>
+        </Modal.Footer>
+      </Modal>
     );
   },
 );

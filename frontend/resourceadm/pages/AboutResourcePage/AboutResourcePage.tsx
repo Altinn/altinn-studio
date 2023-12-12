@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { Heading } from '@digdir/design-system-react';
+import { Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import { Link, useParams } from 'react-router-dom';
 import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
@@ -397,14 +397,15 @@ export const AboutResourcePage = ({
             {['tt02', 'prod', 'at22', 'at23'].map((env) => {
               return (
                 <div key={env}>
-                  <Link
+                  <DigdirLink
+                    as={Link}
                     to={`${getResourcePageURL(
                       selectedContext,
                       repo,
                       resourceId,
                       'partylists',
                     )}/${env}/`}
-                  >{`Administrer RRR i ${env}`}</Link>
+                  >{`Administrer RRR i ${env}`}</DigdirLink>
                 </div>
               );
             })}

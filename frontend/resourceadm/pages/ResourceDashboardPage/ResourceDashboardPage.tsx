@@ -12,7 +12,7 @@ import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal'
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from 'resourceadm/utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 
 /**
@@ -80,7 +80,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
       return (
         <>
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
-          <div style={{ width: '100%' }}>
+          <div>
             <Heading size='xsmall' level={2}>
               {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
             </Heading>
@@ -112,7 +112,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
             color='second'
             icon={<TasklistIcon />}
             iconPlacement='right'
-            to={`/${selectedContext}/${repo}/listadmin`}
+            to={`${getResourceDashboardURL(selectedContext, repo)}/listadmin`}
             size='medium'
           >
             <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>

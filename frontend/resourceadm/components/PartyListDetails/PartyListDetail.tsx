@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Alert,
   Button,
@@ -10,6 +10,8 @@ import {
   TableBody,
   Textfield,
   Modal,
+  Heading,
+  Link as DigdirLink,
 } from '@digdir/design-system-react';
 import { PartyList, PartyListMember } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper/FieldWrapper';
@@ -89,7 +91,7 @@ export const PartyListDetail = ({
   };
 
   return (
-    <div style={{ margin: '1rem' }}>
+    <div>
       <Modal ref={deleteWarningModalRef} onClose={() => deleteWarningModalRef.current?.close()}>
         <Modal.Header>Bekreft sletting av liste</Modal.Header>
         <Modal.Content>Vil du slette denne listen?</Modal.Content>
@@ -108,10 +110,17 @@ export const PartyListDetail = ({
           flexDirection: 'column',
           gap: '2rem',
           maxWidth: '50rem',
-          margin: '2rem 0',
+          margin: '2rem 1rem',
         }}
       >
-        <Link to={backUrl}>Tilbake</Link>
+        <div>
+          <DigdirLink to={backUrl} as={Link}>
+            Tilbake
+          </DigdirLink>
+        </div>
+        <Heading level={1} size='large'>
+          Administrer liste
+        </Heading>
         <FieldWrapper
           label='Listenavn'
           description='Gi listen et beskrivende navn, f.eks "Godkjente banker"'
@@ -184,15 +193,15 @@ export const PartyListDetail = ({
             </TableBody>
           </Table>
         </FieldWrapper>
-      </div>
-      <div style={{ marginTop: '1rem' }}>
-        <Button
-          variant='secondary'
-          color='danger'
-          onClick={() => deleteWarningModalRef.current?.showModal()}
-        >
-          Slett liste
-        </Button>
+        <div>
+          <Button
+            variant='secondary'
+            color='danger'
+            onClick={() => deleteWarningModalRef.current?.showModal()}
+          >
+            Slett liste
+          </Button>
+        </div>
       </div>
     </div>
   );

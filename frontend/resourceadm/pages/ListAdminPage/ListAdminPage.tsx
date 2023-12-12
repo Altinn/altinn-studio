@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Button, Heading } from '@digdir/design-system-react';
+import { Button, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import { ListAdminEnv } from './ListAdminEnv';
-import { getPartyListPageUrl } from 'resourceadm/utils/urlUtils/urlUtils';
+import { getPartyListPageUrl, getResourceDashboardURL } from 'resourceadm/utils/urlUtils/urlUtils';
 
 export const ListAdminPage = (): React.ReactNode => {
   const { selectedContext, env: selectedEnv } = useParams();
@@ -12,7 +12,9 @@ export const ListAdminPage = (): React.ReactNode => {
 
   return (
     <div style={{ margin: '1rem' }}>
-      <Link to={`/${selectedContext}/${repo}/`}>Tilbake til dashboard</Link>
+      <DigdirLink as={Link} to={getResourceDashboardURL(selectedContext, repo)}>
+        Tilbake til dashboard
+      </DigdirLink>
       <Heading level={1} size='large'>
         Administrer lister
       </Heading>

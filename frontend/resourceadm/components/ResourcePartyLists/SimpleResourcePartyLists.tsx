@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { Alert, Button, Checkbox, Heading } from '@digdir/design-system-react';
+import { Alert, Button, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
 import { StudioSpinner } from '@studio/components';
 import { useGetResourcePartyListsQuery } from 'resourceadm/hooks/queries/useGetResourcePartyLists';
@@ -99,7 +99,9 @@ export const SimpleResourcePartyLists = ({
           );
         }}
       />
-      <Link to={getResourcePageURL(selectedContext, repo, resourceId, 'about')}>Tilbake</Link>
+      <DigdirLink as={Link} to={getResourcePageURL(selectedContext, repo, resourceId, 'about')}>
+        Tilbake
+      </DigdirLink>
       <Heading level={1} size='large'>{`Konfigurer RRR for ${resourceId} - ${env}`}</Heading>
       <Checkbox.Group
         legend='Velg hvilke lister som skal ha tilgang til ressursen'
@@ -123,7 +125,8 @@ export const SimpleResourcePartyLists = ({
               style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem' }}
             >
               <Checkbox value={list.identifier}>{list.name}</Checkbox>
-              <Link
+              <DigdirLink
+                as={Link}
                 to={`${getResourcePageURL(
                   selectedContext,
                   repo,
@@ -132,7 +135,7 @@ export const SimpleResourcePartyLists = ({
                 )}/${env}/${list.identifier}`}
               >
                 (endre)
-              </Link>
+              </DigdirLink>
             </div>
           );
         })}
