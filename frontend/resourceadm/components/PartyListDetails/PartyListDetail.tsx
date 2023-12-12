@@ -178,7 +178,7 @@ export const PartyListDetail = ({
               })}
               <TableRow>
                 <TableCell colSpan={100}>
-                  <PartyListSearch handleAddMember={handleAddMember} />
+                  <PartyListSearch existingMembers={listItems} handleAddMember={handleAddMember} />
                 </TableCell>
               </TableRow>
             </TableBody>

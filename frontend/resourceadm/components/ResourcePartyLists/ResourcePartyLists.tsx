@@ -32,7 +32,6 @@ export const ResourcePartyLists = ({
   const [selectedAddList, setSelectedAddList] = useState<string>('');
   const [selectedLists, setSelectedLists] = useState<PartyListResourceLink[]>([]);
 
-  // TODO loading: load all lists for environment, load connected lists for resource
   const {
     data: envListData,
     isLoading: isLoadingEnvListData,

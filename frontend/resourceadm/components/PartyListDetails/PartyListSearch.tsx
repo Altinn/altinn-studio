@@ -8,46 +8,14 @@ import {
 } from 'resourceadm/hooks/queries/useEnhetsregisterOrganizationQuery';
 
 interface PartyListSearchProps {
+  existingMembers: PartyListMember[];
   handleAddMember: (org: PartyListMember) => void;
 }
 
-// TODO: filtrer/disable enheter som allerede finnes
-const enhetsListe = (
-  enheter: BrregOrganization[],
-  erUnderenhet: boolean,
-  onSelectEnhet: (org: PartyListMember) => void,
-): React.ReactNode => {
-  if (enheter.length === 0) {
-    return <div>{erUnderenhet ? 'Fant ingen underenheter' : 'Fant ingen enheter'}</div>;
-  }
-  return (
-    <>
-      <Heading level={2} size='medium'>
-        {erUnderenhet ? 'Underenheter' : 'Enheter'}
-      </Heading>
-      {enheter.map((org) => {
-        return (
-          <Button
-            key={org.organisasjonsnummer}
-            size='small'
-            variant='tertiary'
-            onClick={() => {
-              onSelectEnhet({
-                orgNr: org.organisasjonsnummer,
-                orgName: org.navn,
-                isUnderenhet: erUnderenhet,
-              });
-            }}
-          >
-            {`${org.organisasjonsnummer} - ${org.navn}`}
-          </Button>
-        );
-      })}
-    </>
-  );
-};
-
-export const PartyListSearch = ({ handleAddMember }: PartyListSearchProps): React.ReactNode => {
+export const PartyListSearch = ({
+  existingMembers,
+  handleAddMember,
+}: PartyListSearchProps): React.ReactNode => {
   const [searchText, setSearchText] = useState<string>('');
   const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   useDebounce(() => setDebouncedSearchText(searchText), 500, [searchText]);
@@ -56,6 +24,41 @@ export const PartyListSearch = ({ handleAddMember }: PartyListSearchProps): Reac
     useEnhetsregisterOrganizationQuery(debouncedSearchText);
   const { data: underenheterSearchData, isLoading: isLoadingUnderenheterSearch } =
     useEnhetsregisterUnderOrganizationQuery(debouncedSearchText);
+
+  const renderEnhetsliste = (
+    enheter: BrregOrganization[],
+    erUnderenhet: boolean,
+  ): React.ReactNode => {
+    if (enheter.length === 0) {
+      return <div>{erUnderenhet ? 'Fant ingen underenheter' : 'Fant ingen enheter'}</div>;
+    }
+    return (
+      <>
+        <Heading level={2} size='medium'>
+          {erUnderenhet ? 'Underenheter' : 'Enheter'}
+        </Heading>
+        {enheter.map((org) => {
+          return (
+            <Button
+              key={org.organisasjonsnummer}
+              size='small'
+              variant='tertiary'
+              disabled={existingMembers.some((x) => x.orgNr === org.organisasjonsnummer)}
+              onClick={() => {
+                handleAddMember({
+                  orgNr: org.organisasjonsnummer,
+                  orgName: org.navn,
+                  isUnderenhet: erUnderenhet,
+                });
+              }}
+            >
+              {`${org.organisasjonsnummer} - ${org.navn}`}
+            </Button>
+          );
+        })}
+      </>
+    );
+  };
 
   return (
     <div>
@@ -73,12 +76,8 @@ export const PartyListSearch = ({ handleAddMember }: PartyListSearchProps): Reac
         !isLoadingEnheterSearch &&
         !isLoadingUnderenheterSearch && (
           <div>
-            {enhetsListe(enheterSearchData?._embedded?.enheter || [], false, handleAddMember)}
-            {enhetsListe(
-              underenheterSearchData?._embedded?.underenheter || [],
-              true,
-              handleAddMember,
-            )}
+            {renderEnhetsliste(enheterSearchData?._embedded?.enheter || [], false)}
+            {renderEnhetsliste(underenheterSearchData?._embedded?.underenheter || [], true)}
           </div>
         )}
     </div>
