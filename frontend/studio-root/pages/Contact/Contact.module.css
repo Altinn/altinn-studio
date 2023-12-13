@@ -40,10 +40,15 @@
   justify-content: center;
   height: 60px;
   width: 60px;
+  box-sizing: border-box;
 }
 
-.icon {
+.emailIcon {
   font-size: 2.5rem;
+}
+
+.githubIcon {
+  padding: 10px;
 }
 
 .textContainer {
