@@ -32,6 +32,7 @@ const texts = {
 };
 const setCreateNewOpen = jest.fn();
 const setSelectedOption = jest.fn();
+const onSetSchemaGenerationErrorMessages = jest.fn();
 const selectedOption: MetadataOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: TopToolbarProps = {
   createNewOpen: false,
@@ -39,6 +40,7 @@ const defaultProps: TopToolbarProps = {
   selectedOption,
   setCreateNewOpen,
   setSelectedOption,
+  onSetSchemaGenerationErrorMessages,
 };
 const org = 'org';
 const app = 'app';
@@ -51,7 +53,10 @@ const renderToolbar = (
 ) => {
   const TopToolbarWithInitData = () => {
     const queryClient = useQueryClient();
-    queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], buildJsonSchema(uiSchemaNodesMock));
+    queryClient.setQueryData(
+      [QueryKey.JsonSchema, org, app, modelPath],
+      buildJsonSchema(uiSchemaNodesMock),
+    );
     return <TopToolbar {...defaultProps} {...props} />;
   };
 
@@ -97,9 +102,12 @@ describe('TopToolbar', () => {
   });
 
   it('Shows error message when the "generate" button is clicked and a schema error is provided', async () => {
-    renderToolbar({}, {
-      generateModels: jest.fn().mockImplementation(() => Promise.reject()),
-    });
+    renderToolbar(
+      {},
+      {
+        generateModels: jest.fn().mockImplementation(() => Promise.reject()),
+      },
+    );
     await act(() => user.click(screen.getByRole('button', { name: generateText })));
     expect(await screen.findByRole('alert')).toHaveTextContent(generalErrorMessage);
   });

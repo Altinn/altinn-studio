@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Microsoft.Build.Framework;
 
 namespace Altinn.Studio.Designer.Services.Models;
 

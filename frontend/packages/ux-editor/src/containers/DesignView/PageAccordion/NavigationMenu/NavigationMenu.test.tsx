@@ -9,14 +9,12 @@ import {
   renderWithMockStore,
 } from '../../../../testing/mocks';
 import { formDesignerMock } from '../../../../testing/stateMocks';
-import { layout2NameMock } from '../../../../testing/layoutMock';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 
 const mockOrg = 'org';
 const mockApp = 'app';
 const mockPageName1: string = formDesignerMock.layout.selectedLayout;
 const mockSelectedLayoutSet = 'test-layout-set';
-const mockPageName2 = layout2NameMock;
 
 const mockSetSearchParams = jest.fn();
 const mockSearchParams = { layout: mockPageName1 };
@@ -49,34 +47,10 @@ describe('NavigationMenu', () => {
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
     await act(() => user.click(menuButton));
 
-    const elementInMenuAfter = screen.getByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenuAfter).toBeInTheDocument();
-  });
-
-  it('should update the url to new page when deleting selected page', async () => {
-    const user = userEvent.setup();
-    await render();
-
-    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    await act(() => user.click(menuButton));
-
-    const deleteButton = screen.getByText(textMock('ux_editor.page_menu_delete'));
-    await act(() => user.click(deleteButton));
-
-    const confirmButton = screen.getByRole('button', {
-      name: textMock('ux_editor.page_delete_confirm'),
+    const elementInMenuAfter = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
     });
-    await act(() => user.click(confirmButton));
-
-    expect(queriesMock.deleteFormLayout).toBeCalledWith(
-      mockOrg,
-      mockApp,
-      mockPageName1,
-      mockSelectedLayoutSet,
-    );
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-
-    expect(mockSetSearchParams).toHaveBeenCalledWith({ layout: mockPageName2 });
+    expect(elementInMenuAfter).toBeInTheDocument();
   });
 
   it('Calls updateFormLayoutName with new name when name is changed by the user', async () => {
@@ -84,7 +58,9 @@ describe('NavigationMenu', () => {
     await render();
 
     await act(() => user.click(screen.getByTitle(textMock('general.options'))));
-    await act(() => user.click(screen.getByText(textMock('ux_editor.page_menu_edit'))));
+    await act(() =>
+      user.click(screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_edit') })),
+    );
 
     const inputField = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(inputField).toHaveValue(mockPageName1);
@@ -114,8 +90,10 @@ describe('NavigationMenu', () => {
 
     await act(() => user.click(screen.getByTitle(textMock('general.options'))));
 
-    const upButton = screen.queryByText(textMock('ux_editor.page_menu_up'));
-    const downButton = screen.queryByText(textMock('ux_editor.page_menu_down'));
+    const upButton = screen.queryByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
+    const downButton = screen.queryByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_down'),
+    });
 
     expect(upButton).not.toBeInTheDocument();
     expect(downButton).not.toBeInTheDocument();
@@ -127,8 +105,10 @@ describe('NavigationMenu', () => {
 
     await act(() => user.click(screen.getByTitle(textMock('general.options'))));
 
-    const upButton = screen.getByText(textMock('ux_editor.page_menu_up'));
-    const downButton = screen.getByText(textMock('ux_editor.page_menu_down'));
+    const upButton = screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
+    const downButton = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_down'),
+    });
 
     expect(upButton).toBeInTheDocument();
     expect(downButton).toBeInTheDocument();

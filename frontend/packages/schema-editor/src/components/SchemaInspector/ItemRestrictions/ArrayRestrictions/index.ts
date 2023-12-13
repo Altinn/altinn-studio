@@ -1,0 +1,1 @@
+export { ArrayRestrictions } from './ArrayRestrictions';
