@@ -41,7 +41,7 @@
 
   <ItemGroup Label="Packages used for testing">
     <PackageReference Update="FluentAssertions" Version="6.12.0" />
-    <PackageReference Update="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.25" />
+    <PackageReference Update="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <!-- Do not upgrade Moq version from 4.18.4 -->
     <PackageReference Update="Moq" Version="4.18.4" />
