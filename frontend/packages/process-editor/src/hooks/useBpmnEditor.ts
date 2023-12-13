@@ -38,7 +38,6 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
     events.forEach((event) => {
       eventBus.on(event, (e: any) => {
-        console.log(e?.element?.businessObject);
         const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
         setBpmnDetails(bpmnDetails);
       });
