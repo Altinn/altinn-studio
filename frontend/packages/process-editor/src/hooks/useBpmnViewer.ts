@@ -38,21 +38,21 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
       eventBus.on(event, (e: any) => {
         const businessObject = e?.element?.businessObject;
         console.log(e.element);
-        const isTask = businessObject?.$type === BPMN_TASK_KEY;
+        // const isTask = businessObject?.$type === BPMN_TASK_KEY;
+
+        const bpmnType = businessObject?.$type;
         const bpmnId = businessObject?.id;
         const bpmnName = businessObject?.name;
         const bpmnTaskType =
-          businessObject?.extensionElements?.values[0]?.$children[0]?.$body ?? '';
+          businessObject?.extensionElements?.values[0]?.$children[0]?.$body ?? null;
 
-        // If the bpmn element clicked is anything else than a task, set it to null
-        const bpmnDetails: BpmnDetails = isTask
-          ? {
-              id: bpmnId,
-              name: bpmnName,
-              taskType: bpmnTaskType,
-              type: '',
-            }
-          : null;
+        const bpmnDetails: BpmnDetails = {
+          id: bpmnId,
+          name: bpmnName,
+          taskType: bpmnTaskType,
+          type: bpmnType,
+        };
+
         setBpmnDetails(bpmnDetails);
       });
     });

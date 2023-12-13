@@ -2,10 +2,12 @@ import React from 'react';
 
 import classes from './ConfigPanel.module.css';
 import { useTranslation } from 'react-i18next';
-import { Divider, Heading, HelpText, Label, Paragraph } from '@digdir/design-system-react';
+import { Divider, Heading, HelpText, Paragraph } from '@digdir/design-system-react';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { ConfigIcon } from './ConfigIcon';
-import { BpmnTaskType } from '../../types/BpmnTaskType';
+import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
+import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../utils/configPanelUtils';
+import { ConfigDetailsRow } from './ConfigDetailsRow';
 
 /**
  * @component
@@ -17,20 +19,18 @@ export const ConfigPanel = (): JSX.Element => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
 
-  console.log('bpmnDetails', bpmnDetails);
+  const configTitle = t(getConfigTitleKey(bpmnDetails?.taskType));
+  const configHeaderHelpText = t(getConfigTitleHelpTextKey(bpmnDetails?.taskType));
 
-  const configTitle = t(getConfigTitle(bpmnDetails?.taskType ?? null));
-
-  const configHeaderHelpText = t(getConfigTitleHelpText(bpmnDetails?.taskType));
-
-  return (
-    <div className={classes.configPanel}>
-      {bpmnDetails === null ? (
+  const displayContent = () => {
+    if (bpmnDetails === null || bpmnDetails.type === BpmnTypeEnum.Process) {
+      return (
         <Paragraph className={classes.configPanelNotSelectedText} size='small'>
-          {configTitle}
+          {t('process_editor.configuration_panel_no_task')}
         </Paragraph>
-      ) : (
-        // TODO - Maybe move below to own component
+      );
+    } else if (bpmnDetails.type === BpmnTypeEnum.Task) {
+      return (
         <>
           <div className={classes.headerWrapper}>
             <div className={classes.headerTextAndIconWrapper}>
@@ -43,63 +43,31 @@ export const ConfigPanel = (): JSX.Element => {
               size='medium'
               title={t('process_editor.configuration_panel_header_help_text_title')}
             >
-              {configHeaderHelpText}
+              <Paragraph size='small'>{configHeaderHelpText}</Paragraph>
             </HelpText>
           </div>
           <Divider />
-          <div
-            style={{ marginInline: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
-          >
-            {/* TODO - Make smaller component of this reusable thing - ADD TRANS */}
-            <LabelAndParagraph label='ID:' text={bpmnDetails.id} />
-            <LabelAndParagraph label='Navn:' text={bpmnDetails.name} />
+          <div className={classes.configDetailsRowWrapper}>
+            <ConfigDetailsRow
+              title={t('process_editor.configuration_panel_id_label')}
+              text={bpmnDetails.id}
+            />
+            <ConfigDetailsRow
+              title={t('process_editor.configuration_panel_name_label')}
+              text={bpmnDetails.name}
+            />
           </div>
           <Divider />
-          <p>BPMN DETAILS - {JSON.stringify(bpmnDetails)}</p>
         </>
-      )}
-    </div>
-  );
-};
+      );
+    } else {
+      return (
+        <Paragraph className={classes.configPanelNotSelectedText} size='small'>
+          {t('process_editor.configuration_panel_element_not_supported')}
+        </Paragraph>
+      );
+    }
+  };
 
-type LabelAndParagraphProps = {
-  label: string;
-  text: string;
-};
-const LabelAndParagraph = ({ label, text }: LabelAndParagraphProps): JSX.Element => (
-  <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-    <Label as='p' size='small'>
-      {label}
-    </Label>
-    <Paragraph size='small'>{text}</Paragraph>
-  </div>
-);
-
-// TODO move this:
-const getConfigTitle = (taskType: BpmnTaskType | null) => {
-  switch (taskType) {
-    case 'data':
-      return 'process_editor.configuration_panel_data_task';
-    case 'confirmation':
-      return 'process_editor.configuration_panel_confirmation_task';
-    case 'feedback':
-      return 'process_editor.configuration_panel_feedback_task';
-    case 'signing':
-      return 'process_editor.configuration_panel_signing_task';
-    default:
-      return 'process_editor.configuration_panel_no_task';
-  }
-};
-
-const getConfigTitleHelpText = (taskType: BpmnTaskType) => {
-  switch (taskType) {
-    case 'data':
-      return 'process_editor.configuration_panel_header_help_text_data';
-    case 'confirmation':
-      return 'process_editor.configuration_panel_header_help_text_confirmation';
-    case 'feedback':
-      return 'process_editor.configuration_panel_header_help_text_feedback';
-    case 'signing':
-      return 'process_editor.configuration_panel_header_help_text_signing';
-  }
+  return <div className={classes.configPanel}>{displayContent()}</div>;
 };

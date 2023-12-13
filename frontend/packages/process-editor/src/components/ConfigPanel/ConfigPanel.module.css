@@ -25,3 +25,10 @@
   align-items: center;
   gap: 1rem;
 }
+
+.configDetailsRowWrapper {
+  display: flex;
+  flex-direction: column;
+  margin-inline: var(--margin-inline);
+  gap: 1rem;
+}
