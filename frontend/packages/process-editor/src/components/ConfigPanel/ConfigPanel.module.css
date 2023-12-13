@@ -1,9 +1,27 @@
 .configPanel {
+  --margin-inline: 1rem;
+
   background-color: var(--fds-semantic-surface-neutral-subtle);
   flex: 1;
   overflow-y: scroll;
+  border-left: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
-.content {
-  padding: 1.5rem;
+.configPanelNotSelectedText {
+  margin-inline: var(--margin-inline);
+  margin-top: 1rem;
+}
+
+.headerWrapper {
+  display: flex;
+  align-items: center;
+  margin-inline: var(--margin-inline);
+  margin-top: 1rem;
+  justify-content: space-between;
+}
+
+.headerTextAndIconWrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }

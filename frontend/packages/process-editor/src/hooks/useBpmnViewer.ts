@@ -49,7 +49,8 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
           ? {
               id: bpmnId,
               name: bpmnName,
-              type: bpmnTaskType,
+              taskType: bpmnTaskType,
+              type: '',
             }
           : null;
         setBpmnDetails(bpmnDetails);

@@ -1,4 +1,5 @@
 import React from 'react';
+import classes from './ConfigIcon.module.css';
 import { BpmnTaskType } from '../../../types/BpmnTaskType';
 import { ConfirmationTask, DataTask, FeedbackTask, SignTask } from '@studio/icons';
 
@@ -9,12 +10,12 @@ export type ConfigIconProps = {
 export const ConfigIcon = ({ taskType }: ConfigIconProps): JSX.Element => {
   switch (taskType) {
     case 'data':
-      return <DataTask />;
+      return <DataTask className={classes.icon} />;
     case 'confirmation':
-      return <ConfirmationTask />;
+      return <ConfirmationTask className={classes.icon} />;
     case 'feedback':
-      return <FeedbackTask />;
+      return <FeedbackTask className={classes.icon} />;
     case 'signing':
-      return <SignTask />;
+      return <SignTask className={classes.icon} />;
   }
 };
