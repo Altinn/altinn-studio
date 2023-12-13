@@ -37,7 +37,7 @@ public class ApiTestBase
             builder.ConfigureServices(services => services.Configure<AppSettings>(appSettingSection));
             builder.ConfigureTestServices(services => OverrideServicesForAllTests(services));
             builder.ConfigureTestServices(OverrideServicesForThisTest);
-        }).CreateClient();
+        }).CreateClient(new WebApplicationFactoryClientOptions() { AllowAutoRedirect = false });
 
         return client;
     }

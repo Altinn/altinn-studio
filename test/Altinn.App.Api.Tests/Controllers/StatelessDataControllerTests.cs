@@ -40,7 +40,7 @@ public class StatelessDataControllerTests
         var pdpMock = new Mock<IPDP>();
         ILogger<DataController> logger = new NullLogger<DataController>();
         var statelessDataController = new StatelessDataController(logger, altinnAppModelMock.Object, appResourcesMock.Object,
-            dataProcessorMock.Object, prefillMock.Object, registerMock.Object, pdpMock.Object);
+             prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
 
         string dataType = null!; // this is what we're testing
 
@@ -70,7 +70,7 @@ public class StatelessDataControllerTests
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
         var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-            dataProcessorMock.Object, prefillMock.Object, registerMock.Object, pdpMock.Object);
+             prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
 
 
         // Act
@@ -175,7 +175,7 @@ public class StatelessDataControllerTests
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
         var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-            dataProcessorMock.Object, prefillMock.Object, registerMock.Object, pdpMock.Object);
+            prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
 
         // Act
         appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
@@ -206,7 +206,7 @@ public class StatelessDataControllerTests
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
         var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-            dataProcessorMock.Object, prefillMock.Object, registerMock.Object, pdpMock.Object);
+            prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
         statelessDataController.ControllerContext = new ControllerContext();
         statelessDataController.ControllerContext.HttpContext = new DefaultHttpContext();
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(new List<ClaimsIdentity>()
@@ -246,7 +246,7 @@ public class StatelessDataControllerTests
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
         var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-            dataProcessorMock.Object, prefillMock.Object, registerMock.Object, pdpMock.Object);
+            prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
         statelessDataController.ControllerContext = new ControllerContext();
         statelessDataController.ControllerContext.HttpContext = new DefaultHttpContext();
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(new List<ClaimsIdentity>()
@@ -304,7 +304,7 @@ public class StatelessDataControllerTests
         var classRef = typeof(DummyModel).FullName!;
         ILogger<DataController> logger = new NullLogger<DataController>();
         var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-            dataProcessorMock.Object, prefillMock.Object, registerMock.Object, pdpMock.Object);
+            prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
         statelessDataController.ControllerContext = new ControllerContext();
         statelessDataController.ControllerContext.HttpContext = new DefaultHttpContext();
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(new List<ClaimsIdentity>()

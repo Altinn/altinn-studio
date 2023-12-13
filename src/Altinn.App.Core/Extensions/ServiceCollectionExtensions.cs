@@ -147,7 +147,6 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
             services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
             services.TryAddTransient<IInstanceValidator, NullInstanceValidator>();
-            services.TryAddTransient<IDataProcessor, NullDataProcessor>();
             services.TryAddTransient<IAppModel, DefaultAppModel>();
             services.TryAddTransient<DataListsFactory>();
             services.TryAddTransient<InstanceDataListsFactory>();

@@ -33,7 +33,7 @@ namespace Altinn.App.Api.Controllers
         private readonly ILogger<DataController> _logger;
         private readonly IAppModel _appModel;
         private readonly IAppResources _appResourcesService;
-        private readonly IDataProcessor _dataProcessor;
+        private readonly IEnumerable<IDataProcessor> _dataProcessors;
         private readonly IPrefill _prefillService;
         private readonly IAltinnPartyClient _altinnPartyClientClient;
         private readonly IPDP _pdp;
@@ -45,21 +45,21 @@ namespace Altinn.App.Api.Controllers
         private const string OrgPrefix = "org";
 
         /// <summary>
-        /// The stateless data controller is responsible for creating and updating stateles data elements.
+        /// The stateless data controller is responsible for creating and updating stateless data elements.
         /// </summary>
         public StatelessDataController(
             ILogger<DataController> logger,
             IAppModel appModel,
             IAppResources appResourcesService,
-            IDataProcessor dataProcessor,
             IPrefill prefillService,
             IAltinnPartyClient altinnPartyClientClient,
-            IPDP pdp)
+            IPDP pdp,
+            IEnumerable<IDataProcessor> dataProcessors)
         {
             _logger = logger;
             _appModel = appModel;
             _appResourcesService = appResourcesService;
-            _dataProcessor = dataProcessor;
+            _dataProcessors = dataProcessors;
             _prefillService = prefillService;
             _altinnPartyClientClient = altinnPartyClientClient;
             _pdp = pdp;
@@ -115,10 +115,22 @@ namespace Altinn.App.Api.Controllers
             // runs prefill from repo configuration if config exists
             await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
-            Instance virutalInstance = new Instance() { InstanceOwner = owner };
-            await _dataProcessor.ProcessDataRead(virutalInstance, null, appModel);
+            Instance virtualInstance = new Instance() { InstanceOwner = owner };
+            await ProcessAllDataWrite(virtualInstance, appModel);
 
             return Ok(appModel);
+        }
+
+        private async Task ProcessAllDataWrite(Instance virtualInstance, object appModel)
+        {
+            foreach (var dataProcessor in _dataProcessors)
+            {
+                _logger.LogInformation(
+                    "ProcessDataRead for {modelType} using {dataProcesor}", 
+                    appModel.GetType().Name,
+                    dataProcessor.GetType().Name);
+                await dataProcessor.ProcessDataRead(virtualInstance, null, appModel);
+            }
         }
 
         /// <summary>
@@ -148,10 +160,8 @@ namespace Altinn.App.Api.Controllers
             }
 
             object appModel = _appModel.Create(classRef);
-
-            var virutalInstance = new Instance();
-
-            await _dataProcessor.ProcessDataRead(virutalInstance, null, appModel);
+            var virtualInstance = new Instance();
+            await ProcessAllDataWrite(virtualInstance, appModel);
 
             return Ok(appModel);
         }
@@ -203,18 +213,24 @@ namespace Altinn.App.Api.Controllers
             }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-            object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+            ModelDeserializerResult deserializerResult = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
-            if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
+            if (deserializerResult.HasError)
             {
-                return BadRequest(deserializer.Error);
+                return BadRequest(deserializerResult.Error);
             }
+
+            object appModel = deserializerResult.Model;
 
             // runs prefill from repo configuration if config exists
             await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
-            Instance virutalInstance = new Instance() { InstanceOwner = owner };
-            await _dataProcessor.ProcessDataRead(virutalInstance, null, appModel);
+            Instance virtualInstance = new Instance() { InstanceOwner = owner };
+            foreach (var dataProcessor in _dataProcessors)
+            {
+                _logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", appModel.GetType().Name, dataProcessor.GetType().Name);
+                await dataProcessor.ProcessDataRead(virtualInstance, null, appModel);
+            }
 
             return Ok(appModel);
         }
@@ -246,25 +262,30 @@ namespace Altinn.App.Api.Controllers
             }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-            object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+            ModelDeserializerResult deserializerResult = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
-            if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
+            if (deserializerResult.HasError)
             {
-                return BadRequest(deserializer.Error);
+                return BadRequest(deserializerResult.Error);
             }
 
-            Instance virutalInstance = new Instance();
-            await _dataProcessor.ProcessDataRead(virutalInstance, null, appModel);
+            Instance virtualInstance = new Instance();
+            var appModel = deserializerResult.Model;
+            foreach (var dataProcessor in _dataProcessors)
+            {
+                _logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", appModel.GetType().Name, dataProcessor.GetType().Name);
+                await dataProcessor.ProcessDataRead(virtualInstance, null, appModel);
+            }
 
-            return Ok(appModel);
+            return Ok(deserializerResult.Model);
         }
 
-        private async Task<InstanceOwner?> GetInstanceOwner(string partyFromHeader)
+        private async Task<InstanceOwner?> GetInstanceOwner(string? partyFromHeader)
         {
             // Use the party id of the logged in user, if no party id is given in the header
-            // Not sure if this is really used anywhere. It doesn't seem usefull, as you'd
+            // Not sure if this is really used anywhere. It doesn't seem useful, as you'd
             // always want to create an instance based on the selected party, not the person
-            // you happend to log in as.
+            // you happened to log in as.
             if (partyFromHeader is null)
             {
                 var partyId = Request.HttpContext.User.GetPartyIdAsInt();

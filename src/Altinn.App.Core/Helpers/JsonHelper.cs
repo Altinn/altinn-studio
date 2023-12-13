@@ -16,33 +16,31 @@ namespace Altinn.App.Core.Helpers
         /// <summary>
         /// Run DataProcessWrite returning the dictionary of the changed fields.
         /// </summary>
-        public static async Task<Dictionary<string, object?>?> ProcessDataWriteWithDiff(Instance instance, Guid dataGuid, object serviceModel, IDataProcessor dataProcessor, ILogger logger)
+        public static async Task<Dictionary<string, object?>?> ProcessDataWriteWithDiff(Instance instance, Guid dataGuid, object serviceModel, IEnumerable<IDataProcessor> dataProcessors, Dictionary<string, string?>? changedFields, ILogger logger)
         {
-            string serviceModelJsonString = System.Text.Json.JsonSerializer.Serialize(serviceModel);
-
-            bool changedByCalculation = await dataProcessor.ProcessDataWrite(instance, dataGuid, serviceModel);
-
-            Dictionary<string, object?>? changedFields = null;
-            if (changedByCalculation)
+            if (!dataProcessors.Any())
             {
-                string updatedServiceModelString = System.Text.Json.JsonSerializer.Serialize(serviceModel);
-                try
-                {
-                    changedFields = FindChangedFields(serviceModelJsonString, updatedServiceModelString);
-                }
-                catch (Exception e)
-                {
-                    logger.LogError(e, "Unable to determine changed fields");
-                }
+                return null;
             }
 
-            // TODO: Consider not bothering frontend with an empty changes list
-            // if(changedFields?.Count == 0)
-            // {
-            //     return null;
-            // }
+            string serviceModelJsonString = System.Text.Json.JsonSerializer.Serialize(serviceModel);
+            foreach (var dataProcessor in dataProcessors)
+            {
+                logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", serviceModel.GetType().Name, dataProcessor.GetType().Name);
+                await dataProcessor.ProcessDataWrite(instance, dataGuid, serviceModel, changedFields);
+            }
 
-            return changedFields;
+            string updatedServiceModelString = System.Text.Json.JsonSerializer.Serialize(serviceModel);
+            try
+            {
+                var changed = FindChangedFields(serviceModelJsonString, updatedServiceModelString);
+                return changed.Count == 0 ? null : changed;
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Unable to determine changed fields");
+                return null;
+            }
         }
 
         /// <summary>

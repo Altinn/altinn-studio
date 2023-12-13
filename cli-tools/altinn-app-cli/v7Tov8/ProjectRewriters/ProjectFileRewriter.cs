@@ -23,15 +23,39 @@ public class ProjectFileRewriter
     public async Task Upgrade()
     {
         var altinnAppCoreElements = GetAltinnAppCoreElement();
+        altinnAppCoreElements?.ForEach(c => c.Attribute("Version")?.SetValue(targetVersion));
+
         var altinnAppApiElements = GetAltinnAppApiElement();
-        if (altinnAppCoreElements != null && altinnAppApiElements != null)
-        {
-            altinnAppCoreElements.ForEach(c => c.Attribute("Version")?.SetValue(targetVersion));
-            altinnAppApiElements.ForEach(a => a.Attribute("Version")?.SetValue(targetVersion));
-        }
-        
+        altinnAppApiElements?.ForEach(a => a.Attribute("Version")?.SetValue(targetVersion));
+
+        IgnoreWarnings("1591", "1998"); // Require xml doc and await in async methods
+
         GetTargetFrameworkElement()?.ForEach(t => t.SetValue(targetFramework));
+
         await Save();
+    }
+
+    private void IgnoreWarnings(params string[] warnings)
+    {
+        var noWarn = doc.Root?.Elements("PropertyGroup").Elements("NoWarn").ToList();
+        switch (noWarn?.Count)
+        {
+            case 0:
+                doc.Root?.Elements("PropertyGroup").First().Add(new XElement("NoWarn", "$(NoWarn);" + string.Join(';', warnings)));
+                break;
+
+            case 1:
+                var valueElement = noWarn.First();
+                foreach (var warning in warnings)
+                {
+                    if (!valueElement.Value.Contains(warning))
+                    {
+                        valueElement.SetValue($"{valueElement.Value};{warning}");
+                    }
+                }
+
+                break;
+        }
     }
 
     private List<XElement>? GetAltinnAppCoreElement()
