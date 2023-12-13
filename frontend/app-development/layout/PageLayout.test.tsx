@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppShell } from './AppShell';
+import { PageLayout } from './PageLayout';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
@@ -43,7 +43,7 @@ jest.mock('react-router-dom', () => ({
 // Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
 const realConsole = console;
 
-describe('App', () => {
+describe('PageLayout', () => {
   beforeEach(() => {
     global.console = {
       ...console,
@@ -112,7 +112,7 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
     ...queries,
   };
 
-  renderWithProviders(<AppShell />, {
+  renderWithProviders(<PageLayout />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
     queries: allQueries,
   });

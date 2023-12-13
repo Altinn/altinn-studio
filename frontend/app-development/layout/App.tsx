@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import postMessages from 'app-shared/utils/postMessages';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { HandleServiceInformationActions } from './features/overview/handleServiceInformationSlice';
+import { HandleServiceInformationActions } from '../features/overview/handleServiceInformationSlice';
 import {
   fetchRemainingSession,
   keepAliveSession,
   signOutUser,
-} from './sharedResources/user/userSlice';
+} from '../sharedResources/user/userSlice';
 import './App.css';
-import { matchPath, useLocation } from 'react-router-dom';
+import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import classes from './App.module.css';
-import { useAppDispatch, useAppSelector } from './hooks';
+import { useAppDispatch, useAppSelector } from '../hooks';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
 import {
@@ -21,12 +21,11 @@ import {
 } from 'app-shared/api/paths';
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
-import nb from '../language/src/nb.json';
-import en from '../language/src/en.json';
+import nb from '../../language/src/nb.json';
+import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import * as testids from '../testing/testids';
-import { PageRoutes } from './router/PageRoutes';
+import * as testids from '../../testing/testids';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -158,7 +157,7 @@ export function App() {
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
       <div data-testid={testids.appContentWrapper}>
-        <PageRoutes />
+        <Outlet />
       </div>
     </div>
   );

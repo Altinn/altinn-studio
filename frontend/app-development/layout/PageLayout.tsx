@@ -9,7 +9,7 @@ import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarni
 /**
  * Displays the layout for the app development pages
  */
-export const AppShell = (): React.ReactNode => {
+export const PageLayout = (): React.ReactNode => {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
