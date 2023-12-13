@@ -106,7 +106,7 @@ const setRestriction = (state: StringRestricionsReducerState, action: SetRestric
 
 export const stringRestrictionsReducer = (
   state: StringRestricionsReducerState,
-  action: StringRestrictionsReducerAction
+  action: StringRestrictionsReducerAction,
 ) => {
   switch (action.type) {
     case StringRestrictionsReducerActionType.setMinIncl:

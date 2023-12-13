@@ -2,10 +2,10 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import type { ItemRestrictionsProps } from './ItemRestrictions';
 import { ItemRestrictions } from './ItemRestrictions';
-import { renderWithProviders } from '../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
-import { fieldNode1Mock, uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
-import { SchemaModel } from '../../../../schema-model';
+import { fieldNode1Mock, uiSchemaNodesMock } from '../../../../test/mocks/uiSchemaMock';
+import { SchemaModel } from '../../../../../schema-model';
 
 const user = userEvent.setup();
 

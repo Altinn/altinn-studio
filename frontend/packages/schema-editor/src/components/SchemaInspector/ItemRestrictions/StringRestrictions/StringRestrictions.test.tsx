@@ -4,7 +4,7 @@ import { StringRestrictions } from './StringRestrictions';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import userEvent from '@testing-library/user-event';
-import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data
 const texts = {
@@ -52,10 +52,7 @@ const defaultProps: RestrictionItemProps = {
 };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const user = userEvent.setup();
 
@@ -85,11 +82,11 @@ describe('StringRestrictions', () => {
     await act(() => user.click(select));
     Object.values(StringFormat).forEach((format) => {
       expect(
-        screen.getByRole('option', { name: texts[`schema_editor.format_${format}`] })
+        screen.getByRole('option', { name: texts[`schema_editor.format_${format}`] }),
       ).toHaveAttribute('value', format);
     });
     expect(
-      screen.getByRole('option', { name: texts['schema_editor.format_none'] })
+      screen.getByRole('option', { name: texts['schema_editor.format_none'] }),
     ).toHaveAttribute('value', '');
   });
 
@@ -98,7 +95,7 @@ describe('StringRestrictions', () => {
     const select = screen.getByRole('combobox', { name: texts[`schema_editor.format`] });
     await act(() => user.click(select));
     expect(
-      screen.getByRole('option', { name: texts['schema_editor.format_none'] })
+      screen.getByRole('option', { name: texts['schema_editor.format_none'] }),
     ).toHaveAttribute('aria-selected', 'true');
   });
 
@@ -112,22 +109,26 @@ describe('StringRestrictions', () => {
     const { rerender } = renderStringRestrictions();
     const formatSelect = await getFormatSelect();
     await act(() => user.click(formatSelect));
-    await act(() => user.click(
-      screen.getByRole('option', { name: texts[`schema_editor.format_${StringFormat.Date}`] })
-    ));
+    await act(() =>
+      user.click(
+        screen.getByRole('option', { name: texts[`schema_editor.format_${StringFormat.Date}`] }),
+      ),
+    );
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKey.format]: StringFormat.Date })
+      expect.objectContaining({ [StrRestrictionKey.format]: StringFormat.Date }),
     );
     onChangeRestrictions.mockReset();
     rerender(<StringRestrictions {...defaultProps} />);
     await act(() => user.click(formatSelect));
-    await act(() => user.click(screen.getByRole('option', { name: texts[`schema_editor.format_none`] })));
+    await act(() =>
+      user.click(screen.getByRole('option', { name: texts[`schema_editor.format_none`] })),
+    );
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKey.format]: '' })
+      expect.objectContaining({ [StrRestrictionKey.format]: '' }),
     );
   });
 
@@ -137,7 +138,7 @@ describe('StringRestrictions', () => {
       expect(screen.getByLabelText(texts['schema_editor.format_date_after_incl'])).toBeTruthy();
       expect(screen.getByLabelText(texts['schema_editor.format_date_before_incl'])).toBeTruthy();
       expect(screen.getAllByLabelText(texts['schema_editor.format_date_inclusive'])).toHaveLength(
-        2
+        2,
       );
       unmount();
     });
@@ -211,22 +212,26 @@ describe('StringRestrictions', () => {
   test('onChangeRestrictions is called with correct arguments when "earliest" field is changed', async () => {
     renderStringRestrictions({ restrictions: { format: StringFormat.Date } });
     const input = '2';
-    await act(() => user.type(screen.getByLabelText(texts['schema_editor.format_date_after_incl']), input));
+    await act(() =>
+      user.type(screen.getByLabelText(texts['schema_editor.format_date_after_incl']), input),
+    );
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKey.formatMinimum]: input })
+      expect.objectContaining({ [StrRestrictionKey.formatMinimum]: input }),
     );
   });
 
   test('onChangeRestrictions is called with correct arguments when "latest" field is changed', async () => {
     renderStringRestrictions({ restrictions: { format: StringFormat.Date } });
     const input = '2';
-    await act(() => user.type(screen.getByLabelText(texts['schema_editor.format_date_before_incl']), input));
+    await act(() =>
+      user.type(screen.getByLabelText(texts['schema_editor.format_date_before_incl']), input),
+    );
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKey.formatMaximum]: input })
+      expect.objectContaining({ [StrRestrictionKey.formatMaximum]: input }),
     );
   });
 
@@ -241,7 +246,7 @@ describe('StringRestrictions', () => {
       expect.objectContaining({
         formatMinimum: undefined,
         formatExclusiveMinimum: formatMinimum,
-      })
+      }),
     );
   });
 
@@ -256,7 +261,7 @@ describe('StringRestrictions', () => {
       expect.objectContaining({
         formatMaximum: undefined,
         formatExclusiveMaximum: formatMaximum,
-      })
+      }),
     );
   });
 
@@ -271,7 +276,7 @@ describe('StringRestrictions', () => {
       expect.objectContaining({
         formatMinimum: formatExclusiveMinimum,
         formatExclusiveMinimum: undefined,
-      })
+      }),
     );
   });
 
@@ -286,7 +291,7 @@ describe('StringRestrictions', () => {
       expect.objectContaining({
         formatMaximum: formatExclusiveMaximum,
         formatExclusiveMaximum: undefined,
-      })
+      }),
     );
   });
 
@@ -303,7 +308,7 @@ describe('StringRestrictions', () => {
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKey.minLength]: '12' })
+      expect.objectContaining({ [StrRestrictionKey.minLength]: '12' }),
     );
   });
 
@@ -320,7 +325,7 @@ describe('StringRestrictions', () => {
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
-      expect.objectContaining({ [StrRestrictionKey.maxLength]: '144' })
+      expect.objectContaining({ [StrRestrictionKey.maxLength]: '144' }),
     );
   });
 
@@ -339,7 +344,8 @@ describe('StringRestrictions', () => {
   });
 });
 
-const getFormatSelect = () => screen.findByRole('combobox', { name: texts['schema_editor.format'] });
+const getFormatSelect = () =>
+  screen.findByRole('combobox', { name: texts['schema_editor.format'] });
 const getInclusiveCheckboxes = () =>
   screen.getAllByLabelText(texts['schema_editor.format_date_inclusive']);
 const getMinimumInclusiveCheckbox = () => getInclusiveCheckboxes()[0];

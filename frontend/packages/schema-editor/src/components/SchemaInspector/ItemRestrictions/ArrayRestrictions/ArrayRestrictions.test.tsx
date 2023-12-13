@@ -4,7 +4,7 @@ import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrayRestrictions } from './ArrayRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const onChangeRestrictionValueMock = jest.fn();
@@ -48,8 +48,8 @@ describe('ArrayRestrictions', () => {
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
         ArrRestrictionKey.minItems,
-        '12'
-      )
+        '12',
+      ),
     );
   });
 
@@ -67,8 +67,8 @@ describe('ArrayRestrictions', () => {
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
         ArrRestrictionKey.maxItems,
-        '12'
-      )
+        '12',
+      ),
     );
   });
 
@@ -81,15 +81,15 @@ describe('ArrayRestrictions', () => {
     };
     render(props);
     const uniqueItems = screen.getByLabelText(
-      textMock('schema_editor.' + ArrRestrictionKey.uniqueItems)
+      textMock('schema_editor.' + ArrRestrictionKey.uniqueItems),
     );
     await act(() => user.click(uniqueItems));
     await waitFor(() =>
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
         ArrRestrictionKey.uniqueItems,
-        true
-      )
+        true,
+      ),
     );
   });
 });

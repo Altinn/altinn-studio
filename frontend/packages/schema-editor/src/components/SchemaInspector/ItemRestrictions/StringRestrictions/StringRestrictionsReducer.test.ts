@@ -31,11 +31,11 @@ const changeCallback = jest.fn();
 
 const dispatchAction = (
   action: StringRestrictionsReducerAction,
-  state?: Partial<StringRestricionsReducerState>
+  state?: Partial<StringRestricionsReducerState>,
 ) =>
   stringRestrictionsReducer(
     { ...defaultState, restrictions: { ...defaultRestrictions }, ...state },
-    action
+    action,
   );
 
 describe('stringRestrictionsReducer', () => {
@@ -52,7 +52,7 @@ describe('stringRestrictionsReducer', () => {
       expect(state.restrictions.format).toEqual(StringFormat.DateTime);
       expect(changeCallback).toHaveBeenCalledTimes(1);
       expect(changeCallback).toHaveBeenCalledWith(
-        expect.objectContaining({ format: StringFormat.DateTime })
+        expect.objectContaining({ format: StringFormat.DateTime }),
       );
     });
   });
@@ -79,7 +79,7 @@ describe('stringRestrictionsReducer', () => {
           formatExclusiveMinimum: minDate,
           formatMaximum: maxDate,
           formatExclusiveMaximum: undefined,
-        })
+        }),
       );
     });
 
@@ -95,7 +95,7 @@ describe('stringRestrictionsReducer', () => {
           value: true,
           changeCallback,
         },
-        { earliestIsInclusive: false, restrictions: initialRestrictions }
+        { earliestIsInclusive: false, restrictions: initialRestrictions },
       );
       expect(state.earliestIsInclusive).toBe(true);
       expect(state.earliest).toBe(minDate);
@@ -110,7 +110,7 @@ describe('stringRestrictionsReducer', () => {
           formatExclusiveMinimum: undefined,
           formatMaximum: maxDate,
           formatExclusiveMaximum: undefined,
-        })
+        }),
       );
     });
   });
@@ -133,7 +133,7 @@ describe('stringRestrictionsReducer', () => {
           formatExclusiveMinimum: undefined,
           formatMaximum: undefined,
           formatExclusiveMaximum: maxDate,
-        })
+        }),
       );
     });
 
@@ -145,7 +145,7 @@ describe('stringRestrictionsReducer', () => {
       };
       const state = dispatchAction(
         { type, value: true, changeCallback },
-        { latestIsInclusive: false, restrictions: initialRestrictions }
+        { latestIsInclusive: false, restrictions: initialRestrictions },
       );
       expect(state.latestIsInclusive).toBe(true);
       expect(state.latest).toBe(maxDate);
@@ -160,7 +160,7 @@ describe('stringRestrictionsReducer', () => {
           formatExclusiveMinimum: undefined,
           formatMaximum: maxDate,
           formatExclusiveMaximum: undefined,
-        })
+        }),
       );
     });
   });
@@ -184,7 +184,7 @@ describe('stringRestrictionsReducer', () => {
           formatExclusiveMinimum: undefined,
           formatMaximum: maxDate,
           formatExclusiveMaximum: undefined,
-        })
+        }),
       );
     });
 
@@ -197,7 +197,7 @@ describe('stringRestrictionsReducer', () => {
       const value = '2020-02-02';
       const state = dispatchAction(
         { type, value, changeCallback },
-        { earliestIsInclusive: false, restrictions: initialRestrictions }
+        { earliestIsInclusive: false, restrictions: initialRestrictions },
       );
       expect(state.earliestIsInclusive).toBe(false);
       expect(state.earliest).toBe(value);
@@ -212,7 +212,7 @@ describe('stringRestrictionsReducer', () => {
           formatExclusiveMinimum: value,
           formatMaximum: maxDate,
           formatExclusiveMaximum: undefined,
-        })
+        }),
       );
     });
   });
@@ -236,7 +236,7 @@ describe('stringRestrictionsReducer', () => {
           formatExclusiveMinimum: undefined,
           formatMaximum: value,
           formatExclusiveMaximum: undefined,
-        })
+        }),
       );
     });
 
@@ -249,7 +249,7 @@ describe('stringRestrictionsReducer', () => {
       const value = '2020-02-02';
       const state = dispatchAction(
         { type, value, changeCallback },
-        { latestIsInclusive: false, restrictions: initialRestrictions }
+        { latestIsInclusive: false, restrictions: initialRestrictions },
       );
       expect(state.latestIsInclusive).toBe(false);
       expect(state.latest).toBe(value);
@@ -264,7 +264,7 @@ describe('stringRestrictionsReducer', () => {
           formatExclusiveMinimum: undefined,
           formatMaximum: undefined,
           formatExclusiveMaximum: value,
-        })
+        }),
       );
     });
   });

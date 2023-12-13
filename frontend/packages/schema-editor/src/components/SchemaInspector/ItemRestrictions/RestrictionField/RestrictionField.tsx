@@ -1,7 +1,7 @@
 import type { BaseSyntheticEvent, ChangeEvent } from 'react';
 import React from 'react';
 import { Textfield } from '@digdir/design-system-react';
-import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
+import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 
 export interface IRestrictionFieldProps {
   className?: string;

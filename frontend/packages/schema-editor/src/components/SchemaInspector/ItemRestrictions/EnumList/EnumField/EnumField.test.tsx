@@ -2,25 +2,23 @@ import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EnumField, EnumFieldProps } from './EnumField';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 
-const mockPath: string = 'mockPath';
 const mockValue: string = 'test';
-const mockBaseId: string = 'id123';
-const mockId: string = `${mockBaseId}-enum-${mockValue}`;
+const mockIndex: number = 0;
 
 const mockOnChange = jest.fn();
 const mockOnDelete = jest.fn();
 const mockOnEnterKeyPress = jest.fn();
 
 const defaultProps: EnumFieldProps = {
-  path: mockPath,
   value: mockValue,
   readOnly: false,
   isValid: true,
   onChange: mockOnChange,
+  onDelete: mockOnDelete,
   onEnterKeyPress: mockOnEnterKeyPress,
-  baseId: mockBaseId,
+  index: mockIndex,
 };
 
 describe('EnumField', () => {
@@ -30,9 +28,9 @@ describe('EnumField', () => {
     const user = userEvent.setup();
     render(<EnumField {...defaultProps} />);
 
-    const textField = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockId }),
-    );
+    const textField = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: mockIndex }),
+    });
     expect(textField).toHaveValue(mockValue);
 
     const newValue: string = '1';
@@ -43,21 +41,12 @@ describe('EnumField', () => {
     const updatedValue: string = `${mockValue}${newValue}`;
 
     expect(mockOnChange).toHaveBeenCalledTimes(1);
-    expect(mockOnChange).toHaveBeenCalledWith(updatedValue, mockValue);
+    expect(mockOnChange).toHaveBeenCalledWith(updatedValue);
 
-    const textFieldAfter = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockId }),
-    );
-    expect(textFieldAfter).toHaveValue(updatedValue);
-  });
-
-  it('hides delete button when onDelete is not present', () => {
-    render(<EnumField {...defaultProps} />);
-
-    const deleteButton = screen.queryByRole('button', {
-      name: textMock('schema_editor.delete_field'),
+    const textFieldAfter = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: mockIndex }),
     });
-    expect(deleteButton).not.toBeInTheDocument();
+    expect(textFieldAfter).toHaveValue(updatedValue);
   });
 
   it('calls onDelete when delete button is clicked', async () => {
@@ -72,16 +61,15 @@ describe('EnumField', () => {
     await act(() => user.click(deleteButton));
 
     expect(mockOnDelete).toHaveBeenCalledTimes(1);
-    expect(mockOnDelete).toHaveBeenCalledWith(mockPath, mockValue);
   });
 
   it('calls onEnterKeyPress when "Enter" key is pressed', async () => {
     const user = userEvent.setup();
     render(<EnumField {...defaultProps} />);
 
-    const textField = screen.getByLabelText(
-      textMock('schema_editor.textfield_label', { id: mockId }),
-    );
+    const textField = screen.getByRole('textbox', {
+      name: textMock('schema_editor.enum_value', { index: mockIndex }),
+    });
 
     const newValue: string = '1';
 
