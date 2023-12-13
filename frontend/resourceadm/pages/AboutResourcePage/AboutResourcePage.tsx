@@ -34,6 +34,7 @@ import {
 } from 'resourceadm/components/ResourcePageInputs';
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 /**
  * Initial value for languages with empty fields
@@ -382,34 +383,40 @@ export const AboutResourcePage = ({
           descriptionId='isVisibleSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
-        <ResourceSwitchInput
-          label='Begrenset av RRR'
-          description='Velg om ressursen skal være begrenset av RRR-instillinger'
-          value={resourceData.limitedByRRR ?? false}
-          onFocus={() => setTranslationType('none')}
-          onBlur={(isChecked: boolean) => handleSave({ ...resourceData, limitedByRRR: isChecked })}
-          id='limitedByRRRSwitch'
-          descriptionId='limitedByRRRSwitchSwitchDescription'
-          toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
-        />
-        {resourceData.limitedByRRR && (
-          <div>
-            {['tt02', 'prod', 'at22', 'at23'].map((env) => {
-              return (
-                <div key={env}>
-                  <DigdirLink
-                    as={Link}
-                    to={`${getResourcePageURL(
-                      selectedContext,
-                      repo,
-                      resourceId,
-                      'partylists',
-                    )}/${env}/`}
-                  >{`Administrer RRR i ${env}`}</DigdirLink>
-                </div>
-              );
-            })}
-          </div>
+        {shouldDisplayFeature('resourcePartyLists') && (
+          <>
+            <ResourceSwitchInput
+              label='Begrenset av RRR'
+              description='Velg om ressursen skal være begrenset av RRR-instillinger'
+              value={resourceData.limitedByRRR ?? false}
+              onFocus={() => setTranslationType('none')}
+              onBlur={(isChecked: boolean) =>
+                handleSave({ ...resourceData, limitedByRRR: isChecked })
+              }
+              id='limitedByRRRSwitch'
+              descriptionId='limitedByRRRSwitchSwitchDescription'
+              toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
+            />
+            {resourceData.limitedByRRR && (
+              <div>
+                {['tt02', 'prod', 'at22', 'at23'].map((env) => {
+                  return (
+                    <div key={env}>
+                      <DigdirLink
+                        as={Link}
+                        to={`${getResourcePageURL(
+                          selectedContext,
+                          repo,
+                          resourceId,
+                          'partylists',
+                        )}/${env}/`}
+                      >{`Administrer RRR i ${env}`}</DigdirLink>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </>
     );

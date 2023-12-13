@@ -14,6 +14,7 @@ import { filterTableData } from 'resourceadm/utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 /**
  * @component
@@ -98,18 +99,23 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           })}
         </Heading>
         <div className={classes.topRightWrapper}>
-          <Button
-            as={Link}
-            variant='tertiary'
-            color='second'
-            icon={<TasklistIcon />}
-            iconPlacement='right'
-            to={`${getResourceDashboardURL(selectedContext, repo)}/listadmin`}
-            size='medium'
-          >
-            <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
-          </Button>
-          <div className={classes.verticalDivider} />
+          {shouldDisplayFeature('resourcePartyLists') && (
+            <>
+              <Button
+                as={Link}
+                variant='tertiary'
+                color='second'
+                icon={<TasklistIcon />}
+                iconPlacement='right'
+                to={`${getResourceDashboardURL(selectedContext, repo)}/listadmin`}
+                size='medium'
+              >
+                <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+              </Button>
+              <div className={classes.verticalDivider} />
+            </>
+          )}
+
           <Button
             variant='tertiary'
             color='second'
