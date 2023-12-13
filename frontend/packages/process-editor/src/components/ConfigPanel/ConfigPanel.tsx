@@ -19,6 +19,8 @@ export const ConfigPanel = (): JSX.Element => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
 
+  console.log('bpmnDetails', bpmnDetails);
+
   const configTitle = t(getConfigTitleKey(bpmnDetails?.taskType));
   const configHeaderHelpText = t(getConfigTitleHelpTextKey(bpmnDetails?.taskType));
 

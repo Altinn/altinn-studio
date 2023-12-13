@@ -2,9 +2,7 @@ import { MutableRefObject, useRef, useEffect, useState } from 'react';
 import BpmnJS from 'bpmn-js/dist/bpmn-navigated-viewer.development.js';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import type { BpmnViewerError } from '../types/BpmnViewerError';
-import type { BpmnDetails } from '../types/BpmnDetails';
-
-const BPMN_TASK_KEY: string = 'bpmn:Task';
+import { getBpmnViewerDetailsFromBusinessObject } from '../utils/hookUtils';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -36,23 +34,7 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
 
     events.forEach((event) => {
       eventBus.on(event, (e: any) => {
-        const businessObject = e?.element?.businessObject;
-        console.log(e.element);
-        // const isTask = businessObject?.$type === BPMN_TASK_KEY;
-
-        const bpmnType = businessObject?.$type;
-        const bpmnId = businessObject?.id;
-        const bpmnName = businessObject?.name;
-        const bpmnTaskType =
-          businessObject?.extensionElements?.values[0]?.$children[0]?.$body ?? null;
-
-        const bpmnDetails: BpmnDetails = {
-          id: bpmnId,
-          name: bpmnName,
-          taskType: bpmnTaskType,
-          type: bpmnType,
-        };
-
+        const bpmnDetails = getBpmnViewerDetailsFromBusinessObject(e?.element?.businessObject);
         setBpmnDetails(bpmnDetails);
       });
     });
