@@ -5,24 +5,22 @@ networks:
     external: false
 
 services:
-  localtest_loadbalancer:
+  local.altinn.cloud:
     container_name: localtest-loadbalancer
     image: nginx:alpine-perl
     restart: always
     networks:
       - altinntestlocal_network
     ports:
-      - "${ALTINN3LOCAL_PORT:-80}:80"
+      - "${ALTINN3LOCAL_PORT:-8080}:80"
     environment:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
       - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
-      - INTERNAL_DOMAIN=host.docker.internal
+      - INTERNAL_DOMAIN=host.containers.internal
       - ALTINN3LOCAL_PORT=${ALTINN3LOCAL_PORT:-80}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     volumes:
       - ./loadbalancer/templates:/etc/nginx/templates/:ro
       - ./loadbalancer/www:/www/:ro
@@ -37,8 +35,6 @@ services:
       - altinntestlocal_network
     ports:
      - "5070:5070"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
   altinn_pdf_service:
     container_name: altinn-pdf-service
     image: browserless/chrome:1-puppeteer-19.2.2
@@ -47,8 +43,6 @@ services:
       - altinntestlocal_network
     ports:
       - "5300:3000"
-    extra_hosts:
-      - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
 
   altinn_localtest:
     container_name: localtest
@@ -61,15 +55,13 @@ services:
     build:
       context: .
     environment:
-      - DOTNET_ENVIRONMENT=Docker
+      - DOTNET_ENVIRONMENT=Podman
       - ASPNETCORE_URLS=http://*:5101/
       - GeneralSettings__BaseUrl=http://${TEST_DOMAIN:-local.altinn.cloud}:${ALTINN3LOCAL_PORT:-80}
       - GeneralSettings__HostName=${TEST_DOMAIN:-local.altinn.cloud}
     volumes:
       - ./testdata:/testdata
       - ${ALTINN3LOCALSTORAGE_PATH:-AltinnPlatformLocal}:/AltinnPlatformLocal
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 volumes:
   AltinnPlatformLocal:
