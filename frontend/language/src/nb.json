@@ -255,6 +255,7 @@
   "general.date": "Dato",
   "general.date_time_format": "{{date}} kl. {{time}}",
   "general.delete": "Slett",
+  "general.delete_item": "Slett {{item}}",
   "general.details": "Detaljer",
   "general.disabled": "Deaktivert",
   "general.edit": "Endre",
