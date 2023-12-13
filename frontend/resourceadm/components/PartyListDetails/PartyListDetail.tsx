@@ -13,6 +13,7 @@ import {
   Heading,
   Link as DigdirLink,
 } from '@digdir/design-system-react';
+import classes from './PartyListDetail.module.css';
 import { PartyList, PartyListMember } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper/FieldWrapper';
 import { useEditPartyListMutation } from 'resourceadm/hooks/mutations/useEditPartyListMutation';
@@ -91,7 +92,7 @@ export const PartyListDetail = ({
   };
 
   return (
-    <div>
+    <div className={classes.partyListDetailWrapper}>
       <Modal ref={deleteWarningModalRef} onClose={() => deleteWarningModalRef.current?.close()}>
         <Modal.Header>Bekreft sletting av liste</Modal.Header>
         <Modal.Content>Vil du slette denne listen?</Modal.Content>
@@ -104,104 +105,92 @@ export const PartyListDetail = ({
           </Button>
         </Modal.Footer>
       </Modal>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '2rem',
-          maxWidth: '50rem',
-          margin: '2rem 1rem',
-        }}
+
+      <div>
+        <DigdirLink to={backUrl} as={Link}>
+          Tilbake
+        </DigdirLink>
+      </div>
+      <Heading level={1} size='large'>
+        Administrer liste
+      </Heading>
+      <FieldWrapper
+        label='Listenavn'
+        description='Gi listen et beskrivende navn, f.eks "Godkjente banker"'
       >
-        <div>
-          <DigdirLink to={backUrl} as={Link}>
-            Tilbake
-          </DigdirLink>
-        </div>
-        <Heading level={1} size='large'>
-          Administrer liste
-        </Heading>
-        <FieldWrapper
-          label='Listenavn'
-          description='Gi listen et beskrivende navn, f.eks "Godkjente banker"'
+        <Textfield
+          value={listName}
+          onChange={(event) => setListName(event.target.value)}
+          onBlur={(event) => handleSave({ name: event.target.value })}
+        />
+      </FieldWrapper>
+      <FieldWrapper label='Beskrivelse' description='Her kan du beskrive listen'>
+        <Textfield
+          value={listDescription}
+          onChange={(event) => setListDescription(event.target.value)}
+          onBlur={(event) => handleSave({ description: event.target.value })}
+        />
+      </FieldWrapper>
+      <FieldWrapper
+        label='Enheter i listen'
+        description='Enheter i denne listen vil ha tilgang til ressursen'
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableCell>Orgnr</TableCell>
+              <TableCell>Navn</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {listItems.length === 0 && (
+              <tr>
+                <td colSpan={100}>
+                  <Alert severity='info'>Listen inneholder ingen enheter</Alert>
+                </td>
+              </tr>
+            )}
+            {listItems.map((item) => {
+              return (
+                <TableRow key={item.orgNr} className={item.isDeleted ? classes.memberDeleted : ''}>
+                  <TableCell>{item.orgNr}</TableCell>
+                  <TableCell>{item.orgName || '<navn ikke funnet>'}</TableCell>
+                  <TableCell>{item.isUnderenhet ? 'Underenhet' : 'Enhet'}</TableCell>
+                  <TableCell>
+                    <Button
+                      color={item.isDeleted ? 'second' : 'danger'}
+                      onClick={() =>
+                        item.isDeleted
+                          ? handleUndoRemoveMember(item.orgNr)
+                          : handleRemoveMember(item.orgNr)
+                      }
+                      variant='secondary'
+                      size='small'
+                    >
+                      {item.isDeleted ? 'Angre fjern' : 'Fjern fra liste'}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            <TableRow>
+              <TableCell colSpan={100}>
+                <PartyListSearch existingMembers={listItems} handleAddMember={handleAddMember} />
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </FieldWrapper>
+      <div>
+        <Button
+          variant='secondary'
+          color='danger'
+          onClick={() => deleteWarningModalRef.current?.showModal()}
         >
-          <Textfield
-            value={listName}
-            onChange={(event) => setListName(event.target.value)}
-            onBlur={(event) => handleSave({ name: event.target.value })}
-          />
-        </FieldWrapper>
-        <FieldWrapper label='Beskrivelse' description='Her kan du beskrive listen'>
-          <Textfield
-            value={listDescription}
-            onChange={(event) => setListDescription(event.target.value)}
-            onBlur={(event) => handleSave({ description: event.target.value })}
-          />
-        </FieldWrapper>
-        <FieldWrapper
-          label='Enheter i listen'
-          description='Enheter i denne listen vil ha tilgang til ressursen'
-        >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableCell>Orgnr</TableCell>
-                <TableCell>Navn</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {listItems.length === 0 && (
-                <tr>
-                  <td colSpan={100}>
-                    <Alert severity='info'>Listen inneholder ingen enheter</Alert>
-                  </td>
-                </tr>
-              )}
-              {listItems.map((item) => {
-                return (
-                  <TableRow
-                    key={item.orgNr}
-                    style={{ backgroundColor: item.isDeleted ? '#ccc' : undefined }}
-                  >
-                    <TableCell>{item.orgNr}</TableCell>
-                    <TableCell>{item.orgName || '<navn ikke funnet>'}</TableCell>
-                    <TableCell>{item.isUnderenhet ? 'Underenhet' : 'Enhet'}</TableCell>
-                    <TableCell>
-                      <Button
-                        color={item.isDeleted ? 'second' : 'danger'}
-                        onClick={() =>
-                          item.isDeleted
-                            ? handleUndoRemoveMember(item.orgNr)
-                            : handleRemoveMember(item.orgNr)
-                        }
-                        variant='secondary'
-                        size='small'
-                      >
-                        {item.isDeleted ? 'Angre fjern' : 'Fjern fra liste'}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              <TableRow>
-                <TableCell colSpan={100}>
-                  <PartyListSearch existingMembers={listItems} handleAddMember={handleAddMember} />
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </FieldWrapper>
-        <div>
-          <Button
-            variant='secondary'
-            color='danger'
-            onClick={() => deleteWarningModalRef.current?.showModal()}
-          >
-            Slett liste
-          </Button>
-        </div>
+          Slett liste
+        </Button>
       </div>
     </div>
   );

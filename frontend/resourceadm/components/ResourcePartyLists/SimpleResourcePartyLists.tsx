@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Alert, Button, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import classes from './SimpleResourcePartyLists.module.css';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
 import { StudioSpinner } from '@studio/components';
 import { useGetResourcePartyListsQuery } from 'resourceadm/hooks/queries/useGetResourcePartyLists';
@@ -73,15 +74,7 @@ export const SimpleResourcePartyLists = ({
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: '1rem',
-        margin: '1rem',
-      }}
-    >
+    <div className={classes.simpleResourcePartyListsWrapper}>
       <NewPartyListModal
         ref={createPartyListModalRef}
         org={selectedContext}
@@ -120,10 +113,7 @@ export const SimpleResourcePartyLists = ({
       >
         {envListData.map((list) => {
           return (
-            <div
-              key={list.identifier}
-              style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem' }}
-            >
+            <div key={list.identifier} className={classes.listCheckboxWrapper}>
               <Checkbox value={list.identifier}>{list.name}</Checkbox>
               <DigdirLink
                 as={Link}
