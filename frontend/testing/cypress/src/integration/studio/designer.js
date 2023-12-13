@@ -45,7 +45,7 @@ context('Designer', () => {
       .findByRole('treeitem', { name: texts['ux_editor.component_title.Input'] });
 
     // Do not need to confirm alert.confirm dialog, since Cypress default to click "Ok".
-    cy.findByTitle(texts['general.delete']).click({ force: true });
+    cy.findByTitle(texts['general.delete_item'].replace('{{item}}', 'Side1')).click({ force: true });
   });
 
   it('should add navigation buttons when adding more than one page', () => {
@@ -68,8 +68,6 @@ context('Designer', () => {
     cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
     cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
 
-    cy.findByRole('button', { name: 'Side2' }).click();
-
     designer
       .getPageAccordionByName('Side2')
       .findByRole('treeitem', { name: `${texts['ux_editor.component_title.NavigationButtons']}` });
@@ -77,16 +75,4 @@ context('Designer', () => {
     // Do not need to confirm alert.confirm dialog, since Cypress default to click "Ok".
     cy.findByTitle(texts['general.delete']).click({ force: true });
   });
-
-  // Disabled for now, as this generates too many copies of the same app
-  // it('is possible to delete local changes of an app ', () => {
-  //   cy.searchAndOpenApp(Cypress.env('designerAppName'));
-  //   cy.intercept('GET', '**/layout-settings').as('getLayoutSettings');
-  //   cy.get(designer.appMenu['edit']).click();
-  //   cy.wait('@getLayoutSettings');
-  //   cy.get("button[aria-label='Legg til ny side']").click();
-  //   cy.get(designer.formComponents.longAnswer).parents(designer.draggable).trigger('dragstart');
-  //   cy.get(designer.dragToArea).trigger('drop');
-  //   cy.deleteLocalChanges(Cypress.env('designerApp'));
-  // });
 });

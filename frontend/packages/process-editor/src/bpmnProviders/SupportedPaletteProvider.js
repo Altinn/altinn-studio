@@ -20,7 +20,7 @@ class SupportedPaletteProvider {
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
-            bpmnFactory.create('altinn:taskExtension', {
+            bpmnFactory.create('altinn:TaskExtension', {
               taskType: taskType,
             }),
           ],
@@ -42,7 +42,7 @@ class SupportedPaletteProvider {
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
-            bpmnFactory.create('altinn:taskExtension', {
+            bpmnFactory.create('altinn:TaskExtension', {
               taskType: taskType,
               actions: bpmnFactory.create('altinn:Actions', {
                 action: ['sign', 'reject'],

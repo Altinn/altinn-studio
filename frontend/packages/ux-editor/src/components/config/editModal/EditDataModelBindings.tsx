@@ -7,7 +7,7 @@ import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { LinkIcon } from '@studio/icons';
-import { Button, Paragraph } from '@digdir/design-system-react';
+import { Button } from '@digdir/design-system-react';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
 
@@ -104,7 +104,11 @@ export const EditDataModelBindings = ({
                 helpText={helpText}
               />
             ) : (
-              selectedOption && <SelectedOption selectedOption={selectedOption} />
+              selectedOption && (
+                <span className={classes.selectedOption}>
+                  <SelectedOption selectedOption={selectedOption} />
+                </span>
+              )
             )}
           </div>
         </InputActionWrapper>
@@ -116,8 +120,8 @@ export const EditDataModelBindings = ({
 const SelectedOption = ({ selectedOption }: { selectedOption: string }) => {
   return (
     <div className={classes.linkedDatamodelContainer}>
-      <LinkIcon />
-      <Paragraph className={classes.selectedOption}>{selectedOption}</Paragraph>
+      <LinkIcon className={classes.linkedDatamodelIcon} />
+      {selectedOption}
     </div>
   );
 };

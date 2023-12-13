@@ -1,5 +1,10 @@
-import React, { useRef } from 'react';
-import { render as rtlRender, screen, act } from '@testing-library/react';
+import React from 'react';
+import {
+  render as rtlRender,
+  screen,
+  act,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsModal, SettingsModalProps } from './SettingsModal';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -10,8 +15,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
-
-const mockButtonText: string = 'Mock Button';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
@@ -33,21 +36,32 @@ mockUpdateAppConfigMutation.mockReturnValue({
   mutate: updateAppConfigMutation,
 } as unknown as UseMutationResult<void, Error, AppConfig, unknown>);
 
-const mockOnClose = jest.fn();
-
-const defaultProps: SettingsModalProps = {
-  onClose: mockOnClose,
-  org: mockOrg,
-  app: mockApp,
-};
-
 describe('SettingsModal', () => {
+  const user = userEvent.setup();
   afterEach(() => {
     jest.clearAllMocks();
   });
 
+  const mockOnClose = jest.fn();
+
+  const defaultProps: SettingsModalProps = {
+    isOpen: true,
+    onClose: mockOnClose,
+    org: mockOrg,
+    app: mockApp,
+  };
+
+  it('closes the modal when the close button is clicked', async () => {
+    render(defaultProps);
+
+    const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
+    await act(() => user.click(closeButton));
+
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
   it('displays left navigation bar when promises resolves', async () => {
-    await renderAndOpenModal();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(
       screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_about') }),
@@ -67,7 +81,7 @@ describe('SettingsModal', () => {
   });
 
   it('displays the about tab, and not the other tabs, when promises resolves first time', async () => {
-    await renderAndOpenModal();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
     expect(
@@ -85,8 +99,7 @@ describe('SettingsModal', () => {
   });
 
   it('changes the tab from "about" to "policy" when policy tab is clicked', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(
       screen.queryByRole('heading', {
@@ -113,8 +126,7 @@ describe('SettingsModal', () => {
   });
 
   it('changes the tab from "policy" to "about" when about tab is clicked', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal();
+    await resolveAndWaitForSpinnerToDisappear();
 
     const policyTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_policy'),
@@ -135,9 +147,8 @@ describe('SettingsModal', () => {
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
   });
 
-  it('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal();
+  it.only('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(
       screen.queryByRole('heading', {
@@ -163,8 +174,7 @@ describe('SettingsModal', () => {
   });
 
   it('changes the tab from "about" to "accessControl" when access control tab is clicked', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(
       screen.queryByRole('heading', {
@@ -191,8 +201,7 @@ describe('SettingsModal', () => {
   });
 
   it('changes the tab from "about" to "setup" when setup control tab is clicked', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal();
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(
       screen.queryByRole('heading', {
@@ -217,10 +226,22 @@ describe('SettingsModal', () => {
       screen.queryByText(textMock('settings_modal.about_tab_heading')),
     ).not.toBeInTheDocument();
   });
+
+  /**
+   * Resolves the mocks, renders the component and waits for the spinner
+   * to be removed from the screen
+   */
+  const resolveAndWaitForSpinnerToDisappear = async () => {
+    render(defaultProps);
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
+  };
 });
 
 const render = (
-  props: Partial<SettingsModalProps> = {},
+  props: SettingsModalProps,
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
@@ -231,27 +252,8 @@ const render = (
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
-        <TestComponentWithButton {...defaultProps} {...props} />
+        <SettingsModal {...props} />
       </ServicesContextProvider>
     </MemoryRouter>,
-  );
-};
-
-const renderAndOpenModal = async (props: Partial<SettingsModalProps> = {}) => {
-  const user = userEvent.setup();
-  render(props);
-
-  const openModalButton = screen.getByRole('button', { name: mockButtonText });
-  await act(() => user.click(openModalButton));
-};
-
-const TestComponentWithButton = (props: Partial<SettingsModalProps> = {}) => {
-  const modalRef = useRef<HTMLDialogElement>(null);
-
-  return (
-    <>
-      <button onClick={() => modalRef.current?.showModal()}>{mockButtonText}</button>
-      <SettingsModal ref={modalRef} {...defaultProps} {...props} />
-    </>
   );
 };

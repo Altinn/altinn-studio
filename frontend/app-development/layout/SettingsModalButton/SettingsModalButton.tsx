@@ -1,17 +1,23 @@
-import React, { ReactNode, useRef } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { Button } from '@digdir/design-system-react';
 import { CogIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
 
 export type SettingsModalButtonProps = {
+  /**
+   * The org
+   */
   org: string;
+  /**
+   * The app
+   */
   app: string;
 };
 
 /**
  * @component
- *    Displays a button to open the Settings modal and the Settings modal
+ *    Displays a button to open the Settings modal
  *
  * @property {string}[org] - The org
  * @property {string}[app] - The app
@@ -20,13 +26,12 @@ export type SettingsModalButtonProps = {
  */
 export const SettingsModalButton = ({ org, app }: SettingsModalButtonProps): ReactNode => {
   const { t } = useTranslation();
-
-  const modalRef = useRef<HTMLDialogElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
       <Button
-        onClick={() => modalRef.current?.showModal()}
+        onClick={() => setIsOpen(true)}
         size='small'
         variant='tertiary'
         color='inverted'
@@ -34,7 +39,12 @@ export const SettingsModalButton = ({ org, app }: SettingsModalButtonProps): Rea
       >
         {t('settings_modal.heading')}
       </Button>
-      <SettingsModal ref={modalRef} onClose={() => modalRef.current?.close()} org={org} app={app} />
+      {
+        // Done to prevent API calls to be executed before the modal is open
+        isOpen && (
+          <SettingsModal isOpen={isOpen} onClose={() => setIsOpen(false)} org={org} app={app} />
+        )
+      }
     </>
   );
 };

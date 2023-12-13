@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type {
   PolicyAction,
@@ -57,7 +57,6 @@ export const PolicyEditor = ({
   usageType,
 }: PolicyEditorProps): React.ReactNode => {
   const { t } = useTranslation();
-  const modalRef = useRef<HTMLDialogElement>(null);
 
   // TODO - Find out how this should be set. Issue: #10880
   const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
@@ -68,6 +67,8 @@ export const PolicyEditor = ({
 
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated
   const [lastRuleId, setLastRuleId] = useState((policy?.rules?.length ?? 0) + 1);
+
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
 
   // To keep track of which rule to delete
   const [ruleIdToDelete, setRuleIdToDelete] = useState('0');
@@ -89,7 +90,7 @@ export const PolicyEditor = ({
           resourceType={resourceType}
           handleCloneRule={() => handleCloneRule(i)}
           handleDeleteRule={() => {
-            modalRef.current?.showModal();
+            setVerificationModalOpen(true);
             setRuleIdToDelete(pr.ruleId);
           }}
           showErrors={
@@ -167,7 +168,7 @@ export const PolicyEditor = ({
     setPolicyRules(updatedRules);
 
     // Reset
-    modalRef.current?.close();
+    setVerificationModalOpen(false);
     setRuleIdToDelete('0');
 
     handleSavePolicy(updatedRules);
@@ -215,8 +216,8 @@ export const PolicyEditor = ({
         <CardButton buttonText={t('policy_editor.card_button_text')} onClick={handleAddCardClick} />
       </div>
       <VerificationModal
-        ref={modalRef}
-        onClose={() => modalRef.current?.close()}
+        isOpen={verificationModalOpen}
+        onClose={() => setVerificationModalOpen(false)}
         text={t('policy_editor.verification_modal_text')}
         closeButtonText={t('policy_editor.verification_modal_close_button')}
         actionButtonText={t('policy_editor.verification_modal_action_button')}

@@ -7,7 +7,7 @@ import { DeleteWrapper } from './DeleteWrapper';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
 import {
   CreateDatamodelMutationArgs,
-  useCreateDatamodelMutation
+  useCreateDatamodelMutation,
 } from '../../../../hooks/mutations/useCreateDatamodelMutation';
 import { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
@@ -21,6 +21,7 @@ export interface TopToolbarProps {
   selectedOption?: MetadataOption;
   setCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
+  onSetSchemaGenerationErrorMessages: (errorMessages: string[]) => void;
 }
 
 export function TopToolbar({
@@ -30,6 +31,7 @@ export function TopToolbar({
   selectedOption,
   setCreateNewOpen,
   setSelectedOption,
+  onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
@@ -55,17 +57,24 @@ export function TopToolbar({
         handleCreateSchema={handleCreateSchema}
         createPathOption={createPathOption}
       />
-      <XSDUpload disabled={false}/>
+      <XSDUpload disabled={false} />
       <SchemaSelect
         datamodels={datamodels}
         disabled={false}
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}
       />
-      <DeleteWrapper selectedOption={selectedOption}/>
+      <DeleteWrapper selectedOption={selectedOption} />
       <div className={classes.right}>
         <div className={classes.generateButtonWrapper}>
-          {modelPath && <GenerateModelsButton modelPath={modelPath}/>}
+          {modelPath && (
+            <GenerateModelsButton
+              modelPath={modelPath}
+              onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
+                onSetSchemaGenerationErrorMessages(errorMessages)
+              }
+            />
+          )}
         </div>
       </div>
     </section>
