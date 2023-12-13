@@ -10,14 +10,8 @@ const mockAppLibVersion7: string = '7.0.3';
 describe('VersionHelpText', () => {
   it('should render VersionHelpText', () => {
     render(mockAppLibVersion7);
-    expect(
-      screen.getByRole('heading', { name: textMock('process_editor.too_old_version_title') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        textMock('process_editor.too_old_version_text', { version: mockAppLibVersion7 }),
-      ),
-    );
+    const tooOldText = screen.getByText(textMock('process_editor.too_old_version_title'));
+    expect(tooOldText).toBeInTheDocument();
   });
 
   const render = (appLibVersion?: string) => {

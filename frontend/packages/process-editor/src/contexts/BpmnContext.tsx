@@ -4,7 +4,7 @@ import Modeler from 'bpmn-js/lib/Modeler';
 import React, { MutableRefObject, createContext, useContext, useRef, useState } from 'react';
 import { BpmnDetails } from '../types/BpmnDetails';
 
-type BpmnContextProps = {
+export type BpmnContextProps = {
   bpmnXml: string;
   modelerRef?: MutableRefObject<Modeler>;
   numberOfUnsavedChanges: number;

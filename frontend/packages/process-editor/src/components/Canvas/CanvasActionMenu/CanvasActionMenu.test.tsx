@@ -1,24 +1,27 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render as rtlRender, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CanvasActionMenu, CanvasActionMenuProps } from './CanvasActionMenu';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { BpmnContextProvider } from '../../../contexts/BpmnContext';
+
+const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
+
+const mockAppLibVersion7: string = '7.0.0';
+const mockAppLibVersion8: string = '8.0.0';
 
 const mockOnSave = jest.fn();
-const mockToggleViewModus = jest.fn();
 
 const defaultProps: CanvasActionMenuProps = {
-  isEditorView: false,
   onSave: mockOnSave,
-  toggleViewModus: mockToggleViewModus,
 };
 
 describe('CanvasActionMenu', () => {
   afterEach(jest.clearAllMocks);
 
-  it('hides the save button when the user is not in editor view', async () => {
+  it('hides the save button when the version is too old', async () => {
     const user = userEvent.setup();
-    render(<CanvasActionMenu {...defaultProps} />);
+    render(mockAppLibVersion7);
 
     // Fix to remove act error
     await act(() => user.tab());
@@ -29,29 +32,19 @@ describe('CanvasActionMenu', () => {
 
   it('calls "onSave" when the user is in edit more and clicks save button', async () => {
     const user = userEvent.setup();
-    render(<CanvasActionMenu {...defaultProps} isEditorView />);
+    render();
 
     const editButton = screen.getByRole('button', { name: textMock('process_editor.save') });
     await act(() => user.click(editButton));
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
-
-  it('calls "toggleViewModus" when the user clicks toggle button', async () => {
-    const user = userEvent.setup();
-    render(<CanvasActionMenu {...defaultProps} />);
-
-    const toggleButtonView = screen.queryByRole('button', {
-      name: textMock('process_editor.view_mode'),
-    });
-    const toggleButtonEdit = screen.getByRole('button', {
-      name: textMock('process_editor.edit_mode'),
-    });
-
-    expect(toggleButtonView).not.toBeInTheDocument();
-    expect(toggleButtonEdit).toBeInTheDocument();
-
-    await act(() => user.click(toggleButtonEdit));
-    expect(mockToggleViewModus).toHaveBeenCalledTimes(1);
-  });
 });
+
+const render = (appLibVersion?: string) => {
+  return rtlRender(
+    <BpmnContextProvider bpmnXml={mockBPMNXML} appLibVersion={appLibVersion || mockAppLibVersion8}>
+      <CanvasActionMenu {...defaultProps} />
+    </BpmnContextProvider>,
+  );
+};

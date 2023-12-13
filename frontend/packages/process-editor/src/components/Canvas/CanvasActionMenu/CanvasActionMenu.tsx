@@ -24,7 +24,7 @@ export const CanvasActionMenu = ({ onSave }: CanvasActionMenuProps): ReactNode =
   return (
     <span className={classes.canvasMenuContainer}>
       <div>{!isEditAllowed && <VersionHelpText />}</div>
-      {numberOfUnsavedChanges > 0 && (
+      {isEditAllowed && numberOfUnsavedChanges > 0 && (
         <Paragraph className={classes.unsavedChanges}>
           {t('process_editor.unsaved_changes', { count: numberOfUnsavedChanges })}
         </Paragraph>

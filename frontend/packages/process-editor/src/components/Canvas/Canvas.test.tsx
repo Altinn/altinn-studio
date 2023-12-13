@@ -24,7 +24,7 @@ describe('Canvas', () => {
     // Fix to remove act error
     await act(() => user.tab());
 
-    const editButton = screen.queryByRole('button', { name: textMock('process_editor.edit_mode') });
+    const editButton = screen.queryByRole('button', { name: textMock('process_editor.save') });
     expect(editButton).not.toBeInTheDocument;
   });
 
@@ -35,7 +35,7 @@ describe('Canvas', () => {
     // Fix to remove act error
     await act(() => user.tab());
 
-    const editButton = screen.getByRole('button', { name: textMock('process_editor.edit_mode') });
+    const editButton = screen.getByRole('button', { name: textMock('process_editor.save') });
     expect(editButton).toBeInTheDocument;
   });
 

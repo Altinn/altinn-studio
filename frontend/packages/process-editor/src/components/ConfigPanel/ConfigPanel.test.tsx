@@ -2,7 +2,7 @@ import React from 'react';
 import { ConfigPanel } from './ConfigPanel';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { BpmnContextProvider } from '../../contexts/BpmnContext';
+import { BpmnContext, BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 
@@ -20,24 +20,64 @@ const mockBpmnDetails: BpmnDetails = {
   type: BpmnTypeEnum.Task,
 };
 
+const mockBpmnContextValue: BpmnContextProps = {
+  bpmnXml: mockBPMNXML,
+  appLibVersion: mockAppLibVersion8,
+  numberOfUnsavedChanges: 0,
+  setNumberOfUnsavedChanges: jest.fn(),
+  getUpdatedXml: jest.fn(),
+  isEditAllowed: true,
+  bpmnDetails: mockBpmnDetails,
+  setBpmnDetails: jest.fn(),
+};
+
 describe('ConfigPanel', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render without crashing', () => {
-    render('1.0.0');
+    render({ appLibVersion: mockAppLibVersion7, bpmnDetails: null, isEditAllowed: false });
     expect(
-      screen.getByRole('heading', { name: textMock('process_editor.configuration_panel_heading') }),
+      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
     ).toBeInTheDocument();
   });
 
-  it('should display the message about selecting a task when no task is selected', () => {});
+  it('should display the message about selecting a task when bpmnDetails is "null"', () => {
+    render({ bpmnDetails: null });
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
+    ).toBeInTheDocument();
+  });
 
-  it('should the details about the task when ', () => {
-    jest.mock('../../contexts/BpmnContext', () => ({
-      bpmnDetails: mockBpmnDetails,
-    }));
+  it('should display the message about selecting a task when bpmnDetails.type is "Process"', () => {
+    render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Process } });
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
+    ).toBeInTheDocument();
+  });
 
-    render(mockAppLibVersion8);
+  it('should display the message about selected element not being supported when bpmnDetails.type "SequenceFlow"', () => {
+    render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.SequenceFlow } });
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_element_not_supported')),
+    ).toBeInTheDocument();
+  });
+
+  it('should display the message about selected element not being supported when bpmnDetails.type "StartEvent"', () => {
+    render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.StartEvent } });
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_element_not_supported')),
+    ).toBeInTheDocument();
+  });
+
+  it('should display the message about selected element not being supported when bpmnDetails.type "EndEvent"', () => {
+    render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.EndEvent } });
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_element_not_supported')),
+    ).toBeInTheDocument();
+  });
+
+  it('should the details about the selected task when a "data" task is selected', () => {
+    render();
 
     expect(
       screen.getByRole('heading', {
@@ -45,16 +85,58 @@ describe('ConfigPanel', () => {
         level: 2,
       }),
     ).toBeInTheDocument();
+
+    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
+    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
   });
 
-  const render = (appLibVersion?: string) => {
-    return rtlRender(
-      <BpmnContextProvider
-        bpmnXml={mockBPMNXML}
-        appLibVersion={appLibVersion || mockAppLibVersion7}
-      >
-        <ConfigPanel />
-      </BpmnContextProvider>,
-    );
-  };
+  it('should the details about the selected task when a "confirmation" task is selected', () => {
+    render({ bpmnDetails: { ...mockBpmnDetails, taskType: 'confirmation' } });
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('process_editor.configuration_panel_confirmation_task'),
+        level: 2,
+      }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
+    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
+  });
+
+  it('should the details about the selected task when a "feedback" task is selected', () => {
+    render({ bpmnDetails: { ...mockBpmnDetails, taskType: 'feedback' } });
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('process_editor.configuration_panel_feedback_task'),
+        level: 2,
+      }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
+    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
+  });
+
+  it('should the details about the selected task when a "signing" task is selected', () => {
+    render({ bpmnDetails: { ...mockBpmnDetails, taskType: 'signing' } });
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('process_editor.configuration_panel_signing_task'),
+        level: 2,
+      }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
+    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
+  });
 });
+
+const render = (rootContextProps: Partial<BpmnContextProps> = {}) => {
+  return rtlRender(
+    <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
+      <ConfigPanel />
+    </BpmnContext.Provider>,
+  );
+};
