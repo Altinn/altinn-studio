@@ -6,14 +6,16 @@ import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { formDesignerMock } from '../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
+import { layout2NameMock } from '../../../testing/layoutMock';
 
 const mockOrg = 'org';
 const mockApp = 'app';
-const mockPageName: string = formDesignerMock.layout.selectedLayout;
+const mockPageName1: string = formDesignerMock.layout.selectedLayout;
 const mockSelectedLayoutSet = 'test-layout-set';
+const mockPageName2 = layout2NameMock;
 
 const mockSetSearchParams = jest.fn();
-const mockSearchParams = { layout: mockPageName };
+const mockSearchParams = { layout: mockPageName1 };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
@@ -25,6 +27,11 @@ jest.mock('react-router-dom', () => ({
   },
 }));
 
+const mockDeleteFormLayout = jest.fn();
+jest.mock('./useDeleteLayout', () => ({
+  useDeleteLayout: () => mockDeleteFormLayout,
+}));
+
 const mockChildren: ReactNode = (
   <div>
     <button>Test</button>
@@ -33,7 +40,7 @@ const mockChildren: ReactNode = (
 const mockOnClick = jest.fn();
 
 const defaultProps: PageAccordionProps = {
-  pageName: mockPageName,
+  pageName: mockPageName1,
   children: mockChildren,
   isOpen: false,
   onClick: mockOnClick,
@@ -46,7 +53,7 @@ describe('PageAccordion', () => {
     const user = userEvent.setup();
     await render();
 
-    const accordionButton = screen.getByRole('button', { name: mockPageName });
+    const accordionButton = screen.getByRole('button', { name: mockPageName1 });
     await act(() => user.click(accordionButton));
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
@@ -64,6 +71,23 @@ describe('PageAccordion', () => {
 
     const elementInMenuAfter = screen.getByText(textMock('ux_editor.page_menu_up'));
     expect(elementInMenuAfter).toBeInTheDocument();
+  });
+
+  it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed, and updates the url correctly', async () => {
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    await render();
+
+    await screen.getByRole('button', { name: textMock('general.delete') }).click();
+    expect(mockDeleteFormLayout).toHaveBeenCalledTimes(1);
+    expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1);
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ layout: mockPageName2 });
+  });
+
+  it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
+    await render();
+    await screen.getByRole('button', { name: textMock('general.delete') }).click();
+    expect(mockDeleteFormLayout).not.toHaveBeenCalled();
   });
 });
 
