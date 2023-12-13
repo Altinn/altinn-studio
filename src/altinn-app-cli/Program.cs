@@ -1,4 +1,4 @@
-﻿using System.CommandLine;
+using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Reflection;
 using altinn_app_cli.v7Tov8.AppSettingsRewriter;
@@ -206,11 +206,19 @@ class Program
             {
                 await File.WriteAllTextAsync(sourceTree.FilePath, newSource.ToFullString());
             }
+
             UsingRewriter usingRewriter = new();
             var newUsingSource = usingRewriter.Visit(newSource);
             if (newUsingSource != newSource)
             {
                 await File.WriteAllTextAsync(sourceTree.FilePath, newUsingSource.ToFullString());
+            }
+
+            DataProcessorRewriter dataProcessorRewriter = new(sm);
+            var dataProcessorSource = dataProcessorRewriter.Visit(newUsingSource);
+            if (dataProcessorSource != newUsingSource)
+            {
+                await File.WriteAllTextAsync(sourceTree.FilePath, dataProcessorSource.ToFullString());
             }
         }
 
