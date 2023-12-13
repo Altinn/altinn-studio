@@ -23,7 +23,7 @@ export const BpmnContext = createContext<BpmnContextProps>({
   appLibVersion: '',
 });
 
-type BpmnContextProviderProps = {
+export type BpmnContextProviderProps = {
   children: React.ReactNode;
   bpmnXml: string | undefined | null;
   appLibVersion: string;
