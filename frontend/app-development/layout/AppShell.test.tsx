@@ -13,9 +13,6 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 const mockOrg: string = 'org';
 const mockApp: string = 'app';
 
-const getRepoStatus = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getUser = jest.fn().mockImplementation(() => Promise.resolve({}));
-
 const mockRepoStatus: RepoStatus = {
   aheadBy: 0,
   behindBy: 0,
@@ -40,18 +37,8 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
-// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
-const realConsole = console;
-
 describe('App', () => {
-  beforeEach(() => {
-    global.console = {
-      ...console,
-      error: jest.fn(),
-    };
-  });
   afterEach(() => {
-    global.console = realConsole;
     jest.clearAllMocks();
   });
 
@@ -97,18 +84,17 @@ describe('App', () => {
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
-  getRepoStatus.mockImplementation(() => Promise.resolve(mockRepoStatus));
-  getUser.mockImplementation(() => Promise.resolve(mockUser));
-
-  render(queries);
+  render({
+    ...queries,
+    getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(mockRepoStatus)),
+    getUser: jest.fn().mockImplementation(() => Promise.resolve(mockUser)),
+  });
   await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 };
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getRepoStatus,
-    getUser,
     ...queries,
   };
 

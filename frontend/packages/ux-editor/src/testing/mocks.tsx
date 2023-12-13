@@ -39,7 +39,7 @@ export const optionListIdsMock: string[] = ['test-1', 'test-2'];
 export const queriesMock: ServicesContextProps = {
   ...allQueriesMock,
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  addLayoutSet: jest.fn(),
+  addLayoutSet: jest.fn().mockImplementation(() => Promise.resolve({})),
   configureLayoutSet: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
@@ -50,7 +50,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getInstanceIdForPreview: jest.fn(),
+  getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve({})),
   getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve(layoutSchema)),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
   getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve(numberFormatSchema)),
