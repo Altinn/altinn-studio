@@ -1,13 +1,14 @@
 import React from 'react';
-import classes from './ConfigSection.module.css';
+import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { Divider, Heading, HelpText, Paragraph } from '@digdir/design-system-react';
 import { ConfigIcon } from './ConfigIcon';
 import { ConfigDetailsRow } from './ConfigDetailsRow';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
+import { ConfigSectionWrapper } from './ConfigSectionWrapper';
 
-export const ConfigSection = () => {
+export const ConfigContent = (): JSX.Element => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
 
@@ -31,7 +32,7 @@ export const ConfigSection = () => {
         </HelpText>
       </div>
       <Divider />
-      <div className={classes.configDetailsRowWrapper}>
+      <ConfigSectionWrapper>
         <ConfigDetailsRow
           title={t('process_editor.configuration_panel_id_label')}
           text={bpmnDetails.id}
@@ -40,8 +41,7 @@ export const ConfigSection = () => {
           title={t('process_editor.configuration_panel_name_label')}
           text={bpmnDetails.name}
         />
-      </div>
-      <Divider />
+      </ConfigSectionWrapper>
     </>
   );
 };

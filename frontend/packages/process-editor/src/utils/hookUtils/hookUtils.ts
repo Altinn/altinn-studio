@@ -40,12 +40,15 @@ export const getBpmnEditorDetailsFromBusinessObject = (
 
   const extensionElements = businessObject?.extensionElements;
   const values = extensionElements?.values;
-  const taskType = values ? values[0].taskType : null;
+  const taskTypeFromV8 = values ? values[0].taskType : null;
+
+  const bpmnAttrs = businessObject.$attrs;
+  const taskTypeFromV7 = bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
 
   const bpmnDetails: BpmnDetails = {
     id: bpmnId,
     name: bpmnName,
-    taskType,
+    taskType: taskTypeFromV8 || taskTypeFromV7,
     type: bpmnType,
   };
   return bpmnDetails;

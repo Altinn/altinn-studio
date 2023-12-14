@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
-import { ConfigSection } from './ConfigSection';
+import { ConfigContent } from './ConfigContent';
 
 /**
  * @component
@@ -25,7 +25,7 @@ export const ConfigPanel = (): JSX.Element => {
         </Paragraph>
       );
     } else if (bpmnDetails.type === BpmnTypeEnum.Task) {
-      return <ConfigSection />;
+      return <ConfigContent />;
     } else {
       return (
         <Paragraph className={classes.configPanelParagraph} size='small'>

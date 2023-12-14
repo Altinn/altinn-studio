@@ -6,6 +6,9 @@ export interface BpmnBusinessObjectEditor {
   id: string;
   name?: string;
   extensionElements?: BpmnExtensionElementsEditor;
+  $attrs?: {
+    'altinn:tasktype': BpmnTaskType;
+  };
 }
 
 export interface BpmnExtensionElementsEditor {

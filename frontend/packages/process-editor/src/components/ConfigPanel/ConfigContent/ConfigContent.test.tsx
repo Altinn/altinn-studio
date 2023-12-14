@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConfigSection } from './ConfigSection';
+import { ConfigContent } from './ConfigContent';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { BpmnContext, BpmnContextProps } from '../../../contexts/BpmnContext';
@@ -30,7 +30,7 @@ const mockBpmnContextValue: BpmnContextProps = {
   setBpmnDetails: jest.fn(),
 };
 
-describe('ConfigSection', () => {
+describe('ConfigContent', () => {
   afterEach(jest.clearAllMocks);
 
   it('should display the details about the selected task when a "data" task is selected', () => {
@@ -93,7 +93,7 @@ describe('ConfigSection', () => {
 const render = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return rtlRender(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <ConfigSection />
+      <ConfigContent />
     </BpmnContext.Provider>,
   );
 };
