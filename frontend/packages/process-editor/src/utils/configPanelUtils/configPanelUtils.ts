@@ -1,9 +1,10 @@
 import { BpmnTaskType } from '../../types/BpmnTaskType';
 
 /**
- * Returns the title to show in the config panel when a task is selected
- * @param taskType the task type of the bpmn
- * @returns the correct title key
+ * Returns the title to show in the config panel when a task is selected.
+ * @param taskType the task type of the bpmn.
+ * @returns the correct title key.
+ *
  */
 export const getConfigTitleKey = (taskType: BpmnTaskType) => {
   switch (taskType) {
