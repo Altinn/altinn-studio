@@ -10,19 +10,17 @@ import type { BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEdi
 export const getBpmnViewerDetailsFromBusinessObject = (
   businessObject: BpmnBusinessObjectViewer,
 ): BpmnDetails => {
+  console.log('businessobject', businessObject);
   const bpmnType = businessObject?.$type;
   const bpmnId = businessObject?.id;
   const bpmnName = businessObject?.name;
-
-  const extensionElements = businessObject?.extensionElements;
-  const values = extensionElements?.values;
-  const $children = values ? values[0].$children : null;
-  const $body = $children ? $children[0].$body : null;
+  const bpmnAttrs = businessObject?.$attrs;
+  const bpmnTasktype = bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
 
   const bpmnDetails: BpmnDetails = {
     id: bpmnId,
     name: bpmnName,
-    taskType: $body,
+    taskType: bpmnTasktype,
     type: bpmnType,
   };
   return bpmnDetails;

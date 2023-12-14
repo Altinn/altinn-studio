@@ -657,7 +657,7 @@
   "process_editor.not_found_process_error_message": "Det finnes ingen prosess definert innenfor BPMN, Du kan verifisere om prosessen finnes i BPMN-filen.",
   "process_editor.not_found_process_heading": "Ingen tilgjengelig prosess",
   "process_editor.save": "Lagre",
-  "process_editor.too_old_version_helptext_content": "Applikasjonen din har versjon {{ version }} av app-lib-pakken. \nVersjonen er for gammel for å kunne redigere denne modellen.\nDu kan se på prosessen, men vi anbefaler at du oppgraderer til versjon 8 eller nyere.",
+  "process_editor.too_old_version_helptext_content": "Applikasjonen din har versjon {{ version }} av app-lib-pakken. \nVersjonen er for gammel for å kunne redigere denne modellen.\nDu kan se på prosessen og konfigurere oppsett tilknyttet prosessen, men vi anbefaler at du oppgraderer til versjon 8 eller nyere.",
   "process_editor.too_old_version_helptext_title": "Du kan ikke redigere prosessen",
   "process_editor.too_old_version_title": "Du kan ikke redigere denne prosessen",
   "process_editor.unknown_heading_error_message": "Obs, noe gikk galt!",

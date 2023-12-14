@@ -1,8 +1,5 @@
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
-import {
-  BpmnBusinessObjectViewer,
-  BpmnExtensionElementsViewer,
-} from '../../types/BpmnBusinessObjectViewer';
+import { BpmnBusinessObjectViewer } from '../../types/BpmnBusinessObjectViewer';
 import {
   BpmnBusinessObjectEditor,
   BpmnExtensionElementsEditor,
@@ -23,19 +20,13 @@ describe('hookUtils', () => {
     const mockName: string = 'mockName';
     const mockTaskTypeData: BpmnTaskType = 'data';
 
-    const mockBpmnExtensionElements: BpmnExtensionElementsViewer = {
-      values: [
-        {
-          $children: [{ $body: mockTaskTypeData, $type: 'altinn:taskType' }],
-        },
-      ],
-    };
-
     const mockBpmnBusinessObject: BpmnBusinessObjectViewer = {
       $type: mockTypeTask,
       id: mockId,
       name: mockName,
-      extensionElements: mockBpmnExtensionElements,
+      $attrs: {
+        'altinn:tasktype': mockTaskTypeData,
+      },
     };
 
     it('returns the BpmnDetails with correct values', () => {
@@ -47,25 +38,10 @@ describe('hookUtils', () => {
       expect(bpmnDetails.taskType).toEqual(mockTaskTypeData);
     });
 
-    it('returns taskType with value "null" when etensionElements are not present', () => {
+    it('returns taskType with value "null" when $attrs are not present', () => {
       const bpmnBusinessObject: BpmnBusinessObjectViewer = {
         ...mockBpmnBusinessObject,
-        extensionElements: undefined,
-      };
-      const bpmnDetails: BpmnDetails = getBpmnViewerDetailsFromBusinessObject(bpmnBusinessObject);
-      expect(bpmnDetails.id).toEqual(mockId);
-      expect(bpmnDetails.name).toEqual(mockName);
-      expect(bpmnDetails.type).toEqual(mockTypeTask);
-      expect(bpmnDetails.taskType).toBeNull();
-    });
-
-    it('returns taskType with value "null" when etensionElements.values are not present', () => {
-      const bpmnBusinessObject: BpmnBusinessObjectViewer = {
-        ...mockBpmnBusinessObject,
-        extensionElements: {
-          ...mockBpmnExtensionElements,
-          values: undefined,
-        },
+        $attrs: undefined,
       };
       const bpmnDetails: BpmnDetails = getBpmnViewerDetailsFromBusinessObject(bpmnBusinessObject);
       expect(bpmnDetails.id).toEqual(mockId);
