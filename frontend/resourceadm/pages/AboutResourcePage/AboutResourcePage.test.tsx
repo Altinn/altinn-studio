@@ -257,8 +257,11 @@ describe('AboutResourcePage', () => {
     expect(inputAfter).toBeChecked();
   });
 
-  it('displays errors for the required translation fields when showAllErrors are true', () => {
-    render(<AboutResourcePage {...defaultProps} showAllErrors resourceData={mockResource2} />);
+  it('displays errors for the required translation fields when showAllErrors are true', async () => {
+    // eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(() =>
+      render(<AboutResourcePage {...defaultProps} showAllErrors resourceData={mockResource2} />),
+    );
 
     expect(
       screen.getByText(textMock('resourceadm.about_resource_resource_type_error')),
@@ -292,13 +295,16 @@ describe('AboutResourcePage', () => {
     ).toBeInTheDocument();
   });
 
-  it('does not display error message for rights description when delegable is false', () => {
-    render(
-      <AboutResourcePage
-        {...defaultProps}
-        showAllErrors
-        resourceData={{ ...mockResource2, delegable: false }}
-      />,
+  it('does not display error message for rights description when delegable is false', async () => {
+    // eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(() =>
+      render(
+        <AboutResourcePage
+          {...defaultProps}
+          showAllErrors
+          resourceData={{ ...mockResource2, delegable: false }}
+        />,
+      ),
     );
 
     expect(
