@@ -17,6 +17,7 @@
   "api_errors.DM_CsharpCompiler_NameCollision": "Navnet <bold>{{nodeName}}</bold> er i bruk på et element som har et overordnet element med samme navn. Gi et av disse elementene et annet navn.",
   "api_errors.GT_01": "Deling av endringer mislyktes. Vennligst prøv igjen.",
   "api_errors.ResourceNotFound": "Fant ikke en fil applikasjonen din prøvde å få tak i.",
+  "api_errors.Unauthorized": "Handlingen du prøver å utføre krever rettigheter du ikke har. Du blir nå logget ut.",
   "app_create_release.application_builds_based_on": "Applikasjonen bygges basert på",
   "app_create_release.build_version": "Bygg versjon",
   "app_create_release.check_status": "Sjekker status på applikasjonen din...",
