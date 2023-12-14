@@ -1,11 +1,10 @@
-﻿type SupportedRoutes = 'altinnLoginPage' | 'dashboard' | 'dashboardCreateApp' | 'editorOverview';
+﻿import { Environment, StudioEnvironment } from './StudioEnvironment';
+
+type SupportedRoutes = 'altinnLoginPage' | 'dashboard' | 'dashboardCreateApp' | 'editorOverview';
 
 type RouterRoutes = Record<SupportedRoutes, string>;
 
-export class Routes {
-  private readonly _org: string = '';
-  private readonly _app: string = '';
-
+export class RouterRoute extends StudioEnvironment {
   private readonly routerRoutes: RouterRoutes = {
     altinnLoginPage: '/',
     dashboard: '/dashboard',
@@ -13,13 +12,12 @@ export class Routes {
     editorOverview: `/editor/{{org}}/{{app}}/overview`,
   };
 
-  constructor(org?: string, app?: string) {
-    this._org = org;
-    this._app = app;
+  constructor(environment: Environment) {
+    super(environment);
   }
 
   public getRoute(route: SupportedRoutes): string {
-    const routerRoute = this.routerRoutes[route];
+    const routerRoute: string = this.routerRoutes[route];
 
     if (this.includesOrgAndApp(routerRoute)) {
       return this.replaceOrgAndMap(routerRoute);
@@ -29,7 +27,7 @@ export class Routes {
   }
 
   private replaceOrgAndMap(route: string): string {
-    return route.replace('{{org}}', this._org).replace('{{app}}', this._app);
+    return route.replace('{{org}}', this.org).replace('{{app}}', this.app);
   }
 
   private includesOrgAndApp(route: string): boolean {

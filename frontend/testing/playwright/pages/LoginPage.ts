@@ -9,7 +9,7 @@ export class LoginPage extends BasePage {
   }
 
   public async goToAltinnLoginPage(): Promise<void> {
-    await this._page.goto(this.routerRoutes.altinnLoginPage);
+    await this._page.goto(this.getRoute('altinnLoginPage'));
   }
 
   public async goToGiteaLoginPage(): Promise<void> {
@@ -29,7 +29,7 @@ export class LoginPage extends BasePage {
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {
-    return this._page.waitForURL(this.routerRoutes.dashboard);
+    return this._page.waitForURL(this.getRoute('dashboard'));
   }
 
   public async addSessionToSharableStorage() {

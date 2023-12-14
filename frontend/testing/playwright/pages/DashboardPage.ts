@@ -2,8 +2,8 @@
 import { Page } from '@playwright/test';
 
 export class DashboardPage extends BasePage {
-  constructor(page: Page, org: string, app: string) {
-    super(page, org, app);
+  constructor(page: Page) {
+    super(page);
   }
 
   public async goToDashboard(): Promise<void> {
