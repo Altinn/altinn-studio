@@ -1,11 +1,10 @@
 .gridContainer {
   background-color: white;
   border-radius: 0.5rem;
-  padding: 1rem;
+  padding-right: 0.5rem;
 }
 
-.viewSizesContainer {
-  display: grid;
-  justify-content: space-between;
-  grid-template-columns: 1fr auto;
+.viewSizesTabs {
+  margin-left: 1rem;
+  margin-top: 0.5rem;
 }

@@ -4,6 +4,8 @@ import { useText } from '../../../hooks';
 import { StudioSlider } from '@studio/components';
 import { Paragraph, Switch } from '@digdir/design-system-react';
 import { ViewSizeForGridProp } from './EditGrid';
+import { PadlockLockedFillIcon } from '@navikt/aksel-icons';
+import classes from './EditGridForGivenViewSize.module.css';
 
 export interface EditGridForGivenViewSizeProps extends IGenericEditComponent {
   viewSize: ViewSizeForGridProp;
@@ -45,7 +47,11 @@ export const EditGridForGivenViewSize = ({
 
   return (
     <>
-      <Paragraph size='small'>{t('ux_editor.modal_properties_grid')}</Paragraph>
+      <div className={classes.lockIcon}>
+        {useDefaultGridSize && <PadlockLockedFillIcon fontSize='1.5rem' />}
+        <Paragraph size='small'>{t('ux_editor.modal_properties_grid')}</Paragraph>
+      </div>
+
       <StudioSlider
         disabled={useDefaultGridSize}
         sliderValue={viewSize === ViewSizeForGridProp.S ? component.grid?.xs : component.grid?.md}

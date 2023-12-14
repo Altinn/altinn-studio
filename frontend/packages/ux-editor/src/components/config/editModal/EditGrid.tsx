@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
-import { Chip } from '@digdir/design-system-react';
+import { Tabs } from '@digdir/design-system-react';
 import { FormField } from '../../FormField';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
-import { PadlockLockedFillIcon } from '@navikt/aksel-icons';
+import { LaptopIcon, MobileSmallIcon } from '@navikt/aksel-icons';
 
 export enum ViewSizeForGridProp {
   S = 'xs',
   M = 'md',
 }
+
+const getIconForViewSize = (viewSize: ViewSizeForGridProp): ReactNode => {
+  const iconMapping = {
+    [ViewSizeForGridProp.S]: <MobileSmallIcon />,
+    [ViewSizeForGridProp.M]: <LaptopIcon />,
+  };
+
+  // Return the icon based on the viewSize
+  return iconMapping[viewSize] || null; // Default to null if viewSize is not found
+};
 
 export const EditGrid = ({ handleComponentChange, component }: IGenericEditComponent) => {
   const getDefaultViewSize = (): ViewSizeForGridProp => {
@@ -35,35 +45,34 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
       propertyPath={component.propertyPath}
       componentType={component.type}
       helpText={t('ux_editor.modal_properties_grid_help')}
-      renderField={({ fieldProps }) => (
-        <>
-          <div className={classes.viewSizesContainer}>
-            <Chip.Group size='small'>
-              <Chip.Toggle
-                selected={viewSizeForGridProp === ViewSizeForGridProp.S}
-                onClick={() => setViewSizeForGridProp(ViewSizeForGridProp.S)}
-              >
-                {t('ux_editor.modal_properties_grid_size_xs')}
-              </Chip.Toggle>
-              <Chip.Toggle
-                selected={viewSizeForGridProp === ViewSizeForGridProp.M}
-                onClick={() => setViewSizeForGridProp(ViewSizeForGridProp.M)}
-              >
-                {t('ux_editor.modal_properties_grid_size_md')}
-              </Chip.Toggle>
-            </Chip.Group>
-            {!gridIsSetForViewSize(viewSizeForGridProp) && (
-              <PadlockLockedFillIcon fontSize='1.5rem' />
-            )}
-          </div>
-          <EditGridForGivenViewSize
-            {...fieldProps}
-            viewSize={viewSizeForGridProp}
-            useDefaultGridSize={!gridIsSetForViewSize(viewSizeForGridProp)}
-            handleComponentChange={handleComponentChange}
-            component={component}
-          />
-        </>
+      renderField={() => (
+        <Tabs
+          defaultValue={viewSizeForGridProp}
+          onChange={(viewSize: ViewSizeForGridProp) => setViewSizeForGridProp(viewSize)}
+          size='small'
+        >
+          <Tabs.List className={classes.viewSizesTabs}>
+            {Object.values(ViewSizeForGridProp).map((viewSize) => {
+              return (
+                <Tabs.Tab key={viewSize} value={viewSize} icon={getIconForViewSize(viewSize)}>
+                  {t(`ux_editor.modal_properties_grid_size_${viewSize}`)}
+                </Tabs.Tab>
+              );
+            })}
+          </Tabs.List>
+          {Object.values(ViewSizeForGridProp).map((viewSize) => {
+            return (
+              <Tabs.Content key={viewSize} value={viewSize}>
+                <EditGridForGivenViewSize
+                  viewSize={viewSize}
+                  useDefaultGridSize={!gridIsSetForViewSize(viewSize)}
+                  handleComponentChange={handleComponentChange}
+                  component={component}
+                />
+              </Tabs.Content>
+            );
+          })}
+        </Tabs>
       )}
     />
   );
