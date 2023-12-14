@@ -25,6 +25,7 @@ describe('FormComponentConfig', () => {
       });
 
       [
+        'grid',
         'readOnly',
         'required',
         'hidden',

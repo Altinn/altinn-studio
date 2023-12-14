@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { StudioSlider } from '@studio/components';
@@ -19,6 +19,7 @@ export const EditGridForGivenViewSize = ({
   component,
 }: EditGridForGivenViewSizeProps) => {
   const t = useText();
+  const [useDefault, setUseDefault] = useState<boolean>(useDefaultGridSize);
 
   const DEFAULT_GRID_VALUE = '12';
 
@@ -35,29 +36,30 @@ export const EditGridForGivenViewSize = ({
 
   const handleSwitchChange = () => {
     // call function to mutate component on new ref
-    if (useDefaultGridSize) {
+    if (useDefault) {
       handleSliderChange(DEFAULT_GRID_VALUE);
     } else {
       if (viewSize === ViewSizeForGridProp.S) delete component.grid?.xs;
       if (viewSize === ViewSizeForGridProp.M) delete component.grid?.md;
-      if (component.grid?.keys?.length === 0) delete component.grid;
+      if (Object.keys(component.grid).length === 0) delete component.grid;
       handleComponentChange(component);
     }
+    setUseDefault(!useDefault);
   };
 
   return (
     <>
       <div className={classes.lockIcon}>
-        {useDefaultGridSize && <PadlockLockedFillIcon fontSize='1.5rem' />}
+        {useDefault && <PadlockLockedFillIcon title='lockIcon' fontSize='1.5rem' />}
         <Paragraph size='small'>{t('ux_editor.modal_properties_grid')}</Paragraph>
       </div>
 
       <StudioSlider
-        disabled={useDefaultGridSize}
+        disabled={useDefault}
         sliderValue={viewSize === ViewSizeForGridProp.S ? component.grid?.xs : component.grid?.md}
         handleSliderChange={(newValue) => handleSliderChange(newValue)}
       />
-      <Switch checked={useDefaultGridSize} onChange={handleSwitchChange} size='small'>
+      <Switch checked={useDefault} onChange={handleSwitchChange} size='small'>
         {t('ux_editor.modal_properties_grid_use_default')}
       </Switch>
     </>

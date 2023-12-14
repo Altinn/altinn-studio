@@ -3,7 +3,7 @@ import classes from './StudioSlider.module.css';
 
 type StudioSliderProps = {
   disabled?: boolean;
-  sliderValue: string;
+  sliderValue?: string;
   handleSliderChange: (newValue: string) => void;
 };
 
