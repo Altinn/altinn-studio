@@ -10,12 +10,22 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockButtonText: string = 'Mock Button';
+const org = 'orgname';
 
 const mockOnClose = jest.fn();
 
 const defaultProps: NewResourceModalProps = {
   onClose: mockOnClose,
 };
+
+const mockedNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockedNavigate,
+  useParams: () => {
+    return { selectedContext: org };
+  },
+}));
 
 const user = userEvent.setup();
 
@@ -60,9 +70,21 @@ describe('NewResourceModal', () => {
     expect(createButton).toHaveAttribute('aria-disabled', 'false');
   });
 
-  test('should show error message on resource id conflict', async () => {});
+  test('should navigate after creating new resource', async () => {
+    await renderAndOpenModal();
 
-  test('should navigate after creating new resource', async () => {});
+    const titleInput = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
+    );
+    await act(() => user.type(titleInput, 'test'));
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('resourceadm.dashboard_create_modal_create_button'),
+    });
+
+    await act(() => user.click(createButton));
+    expect(mockedNavigate).toHaveBeenCalledWith(`/${org}/${org}-resources/resource/test/about`);
+  });
 });
 
 const render = (props: Partial<NewResourceModalProps> = {}) => {
