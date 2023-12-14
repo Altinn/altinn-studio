@@ -1,0 +1,20 @@
+.headerWrapper {
+  display: flex;
+  align-items: center;
+  margin-inline: var(--margin-inline);
+  margin-top: 1rem;
+  justify-content: space-between;
+}
+
+.headerTextAndIconWrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.configDetailsRowWrapper {
+  display: flex;
+  flex-direction: column;
+  margin-inline: var(--margin-inline);
+  gap: 1rem;
+}

@@ -27,7 +27,7 @@ export const VersionHelpText = (): JSX.Element => {
         </Paragraph>
         <Paragraph size='small' spacing>
           <Trans i18nKey={t('process_editor.help_text_and_links')}>
-            Trenger du hjelp til å oppgradere, kan du{' '}
+            gagag Trenger du hjelp til å oppgradere, kan du{' '}
             <Link href='/contact'>ta kontakte med oss</Link>.
           </Trans>
         </Paragraph>
