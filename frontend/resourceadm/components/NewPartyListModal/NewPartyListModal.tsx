@@ -23,6 +23,8 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
       env,
     );
 
+    const isSaveButtonDisabled = !id.trim().length || !name.trim().length || isCreatingPartyList;
+
     const handleCreateNewPartyList = (newId: string, newName: string) => {
       setErrorMessage('');
       const newPartyList = {
@@ -37,7 +39,7 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
         onSuccess: () => onPartyListCreated(newId),
         onError: (error: any) => {
           if (error.response.status === ServerCodes.Conflict) {
-            setErrorMessage('En liste med denne id-en finnes fra før');
+            setErrorMessage('En enhetsliste med denne id-en finnes fra før');
           }
         },
       });
@@ -45,7 +47,7 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
 
     return (
       <Modal ref={ref} onClose={onClose}>
-        <Modal.Header>{`Lag ny liste i ${env}`}</Modal.Header>
+        <Modal.Header>{`Lag ny enhetsliste i ${env.toUpperCase()}`}</Modal.Header>
         <Modal.Content>
           <div>
             <Paragraph size='small'>
@@ -67,10 +69,14 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
         </Modal.Content>
         <Modal.Footer>
           <Button
-            aria-disabled={id.length === 0 || name.length === 0 || isCreatingPartyList}
-            onClick={() => handleCreateNewPartyList(id, name)}
+            aria-disabled={isSaveButtonDisabled}
+            onClick={() => {
+              if (!isSaveButtonDisabled) {
+                handleCreateNewPartyList(id, name);
+              }
+            }}
           >
-            Opprett liste
+            Opprett enhetsliste
           </Button>
           <Button variant='tertiary' onClick={() => onClose()}>
             Avbryt

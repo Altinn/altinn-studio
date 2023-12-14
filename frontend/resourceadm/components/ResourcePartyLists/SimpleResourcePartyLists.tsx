@@ -9,15 +9,16 @@ import { useAddResourcePartyListMutation } from 'resourceadm/hooks/mutations/use
 import { useRemoveResourcePartyListMutation } from 'resourceadm/hooks/mutations/useRemoveResourcePartyListMutation';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { NewPartyListModal } from '../NewPartyListModal/NewPartyListModal';
+import { Resource } from 'app-shared/types/ResourceAdm';
 
 interface SimpleResourcePartyListsProps {
   env: string;
-  resourceId: string;
+  resourceData: Resource;
 }
 
 export const SimpleResourcePartyLists = ({
   env,
-  resourceId,
+  resourceData,
 }: SimpleResourcePartyListsProps): React.ReactNode => {
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
@@ -35,15 +36,15 @@ export const SimpleResourcePartyLists = ({
     data: connectedLists,
     isLoading: isLoadingConnectedLists,
     error: connectedListsError,
-  } = useGetResourcePartyListsQuery(selectedContext, resourceId, env);
+  } = useGetResourcePartyListsQuery(selectedContext, resourceData.identifier, env);
   const { mutate: addResourcePartyList } = useAddResourcePartyListMutation(
     selectedContext,
-    resourceId,
+    resourceData.identifier,
     env,
   );
   const { mutate: removeResourcePartyList } = useRemoveResourcePartyListMutation(
     selectedContext,
-    resourceId,
+    resourceData.identifier,
     env,
   );
 
@@ -70,7 +71,7 @@ export const SimpleResourcePartyLists = ({
   }
 
   if (envListDataError || connectedListsError) {
-    return <Alert severity='danger'>Kunne ikke laste lister</Alert>;
+    return <Alert severity='danger'>Kunne ikke laste enhetslister</Alert>;
   }
 
   return (
@@ -86,18 +87,24 @@ export const SimpleResourcePartyLists = ({
             `${getResourcePageURL(
               selectedContext,
               repo,
-              resourceId,
+              resourceData.identifier,
               'partylists',
             )}/${env}/${identifier}`,
           );
         }}
       />
-      <DigdirLink as={Link} to={getResourcePageURL(selectedContext, repo, resourceId, 'about')}>
+      <DigdirLink
+        as={Link}
+        to={getResourcePageURL(selectedContext, repo, resourceData.identifier, 'about')}
+      >
         Tilbake
       </DigdirLink>
-      <Heading level={1} size='large'>{`Konfigurer RRR for ${resourceId} - ${env}`}</Heading>
+      <Heading
+        level={1}
+        size='large'
+      >{`Ressurseierstyrt rettighetsregister for ${resourceData.title.nb} - ${env}`}</Heading>
       <Checkbox.Group
-        legend='Velg hvilke lister som skal ha tilgang til ressursen'
+        legend='Alle enheter og underenheter i valgte liste(r) kan bruke ressursen'
         size='small'
         onChange={(newValues: string[]) => {
           if (selectedLists.length < newValues.length) {
@@ -120,7 +127,7 @@ export const SimpleResourcePartyLists = ({
                 to={`${getResourcePageURL(
                   selectedContext,
                   repo,
-                  resourceId,
+                  resourceData.identifier,
                   'partylists',
                 )}/${env}/${list.identifier}`}
               >
@@ -131,7 +138,7 @@ export const SimpleResourcePartyLists = ({
         })}
       </Checkbox.Group>
       <Button variant='secondary' onClick={() => createPartyListModalRef.current?.showModal()}>
-        Opprett ny liste
+        Opprett ny enhetsliste
       </Button>
     </div>
   );

@@ -386,8 +386,8 @@ export const AboutResourcePage = ({
         {shouldDisplayFeature('resourcePartyLists') && (
           <>
             <ResourceSwitchInput
-              label='Begrenset av RRR'
-              description='Velg om ressursen skal være begrenset av RRR-instillinger'
+              label={t('resourceadm.about_resource_limited_by_rrr_label')}
+              description={t('resourceadm.about_resource_limited_by_rrr_description')}
               value={resourceData.limitedByRRR ?? false}
               onFocus={() => setTranslationType('none')}
               onBlur={(isChecked: boolean) =>
@@ -410,7 +410,7 @@ export const AboutResourcePage = ({
                           resourceId,
                           'partylists',
                         )}/${env}/`}
-                      >{`Administrer RRR i ${env}`}</DigdirLink>
+                      >{`Administrer ressurseierstyrt rettighetsregister i ${env}`}</DigdirLink>
                     </div>
                   );
                 })}

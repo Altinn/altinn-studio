@@ -3,9 +3,7 @@
 }
 
 .environmentSelectorWrapper {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
+  display: inline-flex;
 }
 
 .environmentLinkWrapper {

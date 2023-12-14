@@ -1,6 +1,12 @@
 import React, { useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { Button, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import {
+  Button,
+  Heading,
+  Link as DigdirLink,
+  Paragraph,
+  ToggleGroup,
+} from '@digdir/design-system-react';
 import { StudioSpinner } from '@studio/components';
 import classes from './ListAdminPage.module.css';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
@@ -27,19 +33,22 @@ export const ListAdminPage = (): React.ReactNode => {
         Tilbake til dashboard
       </DigdirLink>
       <Heading level={1} size='large'>
-        Administrer lister
+        Administrer enhetslister i ressurseierstyrt rettighetsregister
       </Heading>
+      <Paragraph size='small'>Velg miljø:</Paragraph>
       <div className={classes.environmentSelectorWrapper}>
-        {envs.map((environment) => {
-          return (
-            <Button
-              key={environment}
-              variant={selectedEnv === environment ? 'primary' : 'secondary'}
-              as={Link}
-              to={getPartyListPageUrl(selectedContext, repo, environment)}
-            >{`Lister i ${environment}`}</Button>
-          );
-        })}
+        <ToggleGroup
+          onChange={(newValue) => navigate(getPartyListPageUrl(selectedContext, repo, newValue))}
+          value={selectedEnv}
+        >
+          {envs.map((environment) => {
+            return (
+              <ToggleGroup.Item key={environment} value={environment}>
+                {environment.toUpperCase()}
+              </ToggleGroup.Item>
+            );
+          })}
+        </ToggleGroup>
       </div>
       {selectedEnv && (
         <div className={classes.environmentLinkWrapper}>
@@ -68,7 +77,7 @@ export const ListAdminPage = (): React.ReactNode => {
               );
             })}
           <Button variant='secondary' onClick={() => createPartyListModalRef.current?.showModal()}>
-            Opprett ny liste
+            Opprett ny enhetsliste
           </Button>
         </div>
       )}

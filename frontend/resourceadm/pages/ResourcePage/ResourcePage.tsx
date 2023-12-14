@@ -296,7 +296,7 @@ export const ResourcePage = (): React.ReactNode => {
             />
           )}
           {currentPage === 'partylists' && env && !listId && (
-            <SimpleResourcePartyLists env={env} resourceId={resourceId} />
+            <SimpleResourcePartyLists env={env} resourceData={resourceData} />
           )}
           {currentPage === 'partylists' && env && partyList && (
             <PartyListDetail

@@ -112,28 +112,45 @@ export const PartyListDetail = ({
         </DigdirLink>
       </div>
       <Heading level={1} size='large'>
-        Administrer liste
+        Administrer enhetsliste
       </Heading>
       <FieldWrapper
+        label='Liste-id'
+        description='Liste-id brukes for å identifisere listen, og kan ikke endres'
+      >
+        <Textfield value={list.identifier} disabled />
+      </FieldWrapper>
+      <FieldWrapper
+        fieldId='listname'
         label='Listenavn'
         description='Gi listen et beskrivende navn, f.eks "Godkjente banker"'
+        ariaDescriptionId='listname-description'
       >
         <Textfield
+          id='listname'
+          aria-describedby='listname-description'
           value={listName}
           onChange={(event) => setListName(event.target.value)}
           onBlur={(event) => handleSave({ name: event.target.value })}
         />
       </FieldWrapper>
-      <FieldWrapper label='Beskrivelse' description='Her kan du beskrive listen'>
+      <FieldWrapper
+        fieldId='listdescription'
+        label='Beskrivelse'
+        description='Her kan du beskrive listen'
+        ariaDescriptionId='listdescription-description'
+      >
         <Textfield
+          id='listdescription'
+          aria-describedby='listdescription-description'
           value={listDescription}
           onChange={(event) => setListDescription(event.target.value)}
           onBlur={(event) => handleSave({ description: event.target.value })}
         />
       </FieldWrapper>
       <FieldWrapper
-        label='Enheter i listen'
-        description='Enheter i denne listen vil ha tilgang til ressursen'
+        label='Registrerte enheter'
+        description='Enheter i denne listen kan bruke ressursen'
       >
         <Table>
           <TableHeader>

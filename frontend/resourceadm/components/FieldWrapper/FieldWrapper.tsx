@@ -6,12 +6,14 @@ interface FieldWrapperProps {
   description?: string;
   children: React.ReactNode;
   fieldId?: string;
+  ariaDescriptionId?: string;
 }
 
 export const FieldWrapper = ({
   label,
   description,
   fieldId,
+  ariaDescriptionId,
   children,
 }: FieldWrapperProps): React.ReactNode => {
   return (
@@ -20,7 +22,7 @@ export const FieldWrapper = ({
         {label}
       </Label>
       {description && (
-        <Paragraph short size='small'>
+        <Paragraph id={ariaDescriptionId} short size='small'>
           {description}
         </Paragraph>
       )}
