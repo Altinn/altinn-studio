@@ -76,9 +76,9 @@ export const PageAccordion = ({
           <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
           <Button
             color='danger'
-            icon={<TrashIcon />}
+            icon={<TrashIcon aria-hidden />}
             onClick={handleConfirmDelete}
-            title={t('general.delete')}
+            title={t('general.delete_item', { item: pageName })}
             variant='tertiary'
             size='small'
           />

@@ -20,6 +20,8 @@ jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }: { i18nKey: any }) => textMock(i18nKey),
 }));
 
+jest.useFakeTimers();
+
 const wrapper = ({
   children,
   queries = {},
@@ -35,12 +37,11 @@ const wrapper = ({
 };
 
 describe('ServicesContext', () => {
-  it('logs the user out when the session is invalid or expired', async () => {
+  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-
+    jest.spyOn(global, 'setTimeout');
     const logout = jest.fn().mockImplementation(() => Promise.resolve());
-
-    const { result } = renderHook(
+    renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
@@ -53,10 +54,12 @@ describe('ServicesContext', () => {
         },
       },
     );
+    expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
+    jest.runAllTimers();
+    await waitFor(() => {
+      expect(logout).toHaveBeenCalledTimes(1);
+    });
 
-    await waitFor(() => result.current.isError);
-
-    expect(logout).toHaveBeenCalledTimes(1);
     expect(mockConsoleError).toHaveBeenCalled();
   });
 
@@ -92,7 +95,7 @@ describe('ServicesContext', () => {
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
-    const { result } = renderHook(
+    const {} = renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
@@ -101,8 +104,6 @@ describe('ServicesContext', () => {
         }),
       { wrapper },
     );
-
-    await waitFor(() => result.current.isError);
 
     expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
   });
