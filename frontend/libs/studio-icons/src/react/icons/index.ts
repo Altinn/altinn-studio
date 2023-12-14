@@ -1,11 +1,16 @@
 export { Accordion } from './Accordion';
 export { Checkbox } from './Checkbox';
+export { ConfirmationTask } from './ConfirmationTask';
+export { DataTask } from './DataTask';
+export { FeedbackTask } from './FeedbackTask';
 export { Group } from './Group';
 export { Likert } from './Likert';
 export { LongText } from './LongText';
 export { NavBar } from './NavBar';
+export { PaymentTask } from './PaymentTask';
 export { RadioButton } from './RadioButton';
 export { Select } from './Select';
 export { ShortText } from './ShortText';
+export { SignTask } from './SignTask';
 export { Paragraph } from './Paragraph';
 export { Title } from './Title';
