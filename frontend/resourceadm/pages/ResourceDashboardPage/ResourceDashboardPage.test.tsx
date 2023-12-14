@@ -185,7 +185,7 @@ describe('ResourceDashBoardPage', () => {
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_create_modal_title'),
-        level: 1,
+        level: 2,
       }),
     ).toBeInTheDocument();
   });
