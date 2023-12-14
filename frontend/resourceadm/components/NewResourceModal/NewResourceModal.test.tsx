@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NewResourceModal, NewResourceModalProps } from './NewResourceModal';
@@ -9,23 +9,27 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
-describe('NewResourceModal', () => {
-  const mockOnClose = jest.fn();
+const mockButtonText: string = 'Mock Button';
 
-  const defaultProps: NewResourceModalProps = {
-    isOpen: true,
-    onClose: mockOnClose,
-  };
+const mockOnClose = jest.fn();
+
+const defaultProps: NewResourceModalProps = {
+  onClose: mockOnClose,
+};
+
+const user = userEvent.setup();
+
+describe('NewResourceModal', () => {
+  afterEach(jest.clearAllMocks);
 
   it('should be closed by default', () => {
-    render({ isOpen: false, onClose: () => {} });
+    render();
     const closeButton = screen.queryByRole('button', { name: textMock('general.cancel') });
     expect(closeButton).not.toBeInTheDocument();
   });
 
   it('calls onClose function when close button is clicked', async () => {
-    const user = userEvent.setup();
-    render(defaultProps);
+    await renderAndOpenModal();
 
     const closeButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await act(() => user.click(closeButton));
@@ -33,8 +37,8 @@ describe('NewResourceModal', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  test('that create button should be disabled until the form is valid', () => {
-    render(defaultProps);
+  test('that create button should be disabled until the form is valid', async () => {
+    await renderAndOpenModal();
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
@@ -43,8 +47,7 @@ describe('NewResourceModal', () => {
   });
 
   test('that create button should be enabled when the form is valid', async () => {
-    const user = userEvent.setup();
-    render(defaultProps);
+    await renderAndOpenModal();
 
     const titleInput = screen.getByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
@@ -56,14 +59,36 @@ describe('NewResourceModal', () => {
     });
     expect(createButton).toHaveAttribute('aria-disabled', 'false');
   });
+
+  test('should show error message on resource id conflict', async () => {});
+
+  test('should navigate after creating new resource', async () => {});
 });
 
-const render = (props: NewResourceModalProps) => {
+const render = (props: Partial<NewResourceModalProps> = {}) => {
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-        <NewResourceModal {...props} />
+        <TestComponentWithButton {...defaultProps} {...props} />
       </ServicesContextProvider>
     </MemoryRouter>,
+  );
+};
+
+const renderAndOpenModal = async (props: Partial<NewResourceModalProps> = {}) => {
+  render(props);
+
+  const openModalButton = screen.getByRole('button', { name: mockButtonText });
+  await act(() => user.click(openModalButton));
+};
+
+const TestComponentWithButton = (props: Partial<NewResourceModalProps> = {}) => {
+  const modalRef = useRef<HTMLDialogElement>(null);
+
+  return (
+    <>
+      <button onClick={() => modalRef.current?.showModal()}>{mockButtonText}</button>
+      <NewResourceModal ref={modalRef} {...defaultProps} {...props} />
+    </>
   );
 };
