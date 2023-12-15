@@ -1,20 +1,17 @@
 import React from 'react';
-import {
-  extractNameFromPointer,
-  ReferenceNode,
-} from '@altinn/schema-model';
+import { extractNameFromPointer, ReferenceNode } from '@altinn/schema-model';
 import { Button } from '@digdir/design-system-react';
-import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
 import { navigateToType } from '@altinn/schema-editor/features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import classes from './ReferenceButton.module.css';
+import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 
 export interface ReferenceButtonProps {
-  savableModel: SavableSchemaModel;
   node: ReferenceNode;
 }
 
-export const ReferenceButton = ({ savableModel, node }: ReferenceButtonProps) => {
+export const ReferenceButton = ({ node }: ReferenceButtonProps) => {
+  const savableModel = useSavableSchemaModel();
   const dispatch = useDispatch();
 
   const referredNode = savableModel.getReferredNode(node);

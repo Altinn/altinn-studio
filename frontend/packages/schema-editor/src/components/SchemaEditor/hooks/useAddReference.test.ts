@@ -6,7 +6,7 @@ import {
 } from '../../../../../schema-model';
 import {
   definitionNodeMock,
-  parentNodeMock,
+  combinationNodeMock,
   uiSchemaNodesMock
 } from '../../../../test/mocks/uiSchemaMock';
 import { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
@@ -28,7 +28,7 @@ describe('useAddReference', () => {
   it('Adds a reference to the given position', () => {
     const { add, save } = setup();
     const nameOfDefinition = extractNameFromPointer(definitionNodeMock.pointer);
-    const pointerOfParent = parentNodeMock.pointer;
+    const pointerOfParent = combinationNodeMock.pointer;
     const indexInNewParent = 1;
     const target: ItemPosition = { parentId: pointerOfParent, index: indexInNewParent };
     add(nameOfDefinition, target);

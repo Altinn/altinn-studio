@@ -2,16 +2,16 @@ import React from 'react';
 import { SvgTemplate } from './SvgTemplate';
 import { IconProps } from '../types';
 
-export const Number = (props: IconProps): JSX.Element => (
+export const PropertyIcon = (props: IconProps): JSX.Element => (
   <SvgTemplate viewBox='0 0 36 36' {...props}>
     <path
       fillRule='evenodd'
       clipRule='evenodd'
       d='
-        M 10.4795 29.8148
-        L 13.4646 5.81476
-        L 16.4417 6.18505
-        L 13.4566 30.1851
+        M 30 10.5
+        H 12
+        V 7.5
+        H 30
         Z
       '
       fill='currentColor'
@@ -20,10 +20,10 @@ export const Number = (props: IconProps): JSX.Element => (
       fillRule='evenodd'
       clipRule='evenodd'
       d='
-        M 19.4355 29.8148
-        L 22.4207 5.81476
-        L 25.3978 6.18505
-        L 22.4126 30.1851
+        M 30 19.5
+        H 12
+        V 16.5
+        H 30
         Z
       '
       fill='currentColor'
@@ -32,10 +32,10 @@ export const Number = (props: IconProps): JSX.Element => (
       fillRule='evenodd'
       clipRule='evenodd'
       d='
-        M 6.13124 12.4091
-        L 30.0117 12.5915
-        L 29.989 15.5914
-        L 6.10856 15.409
+        M 30 28.5
+        H 12
+        V 25.5
+        H 30
         Z
       '
       fill='currentColor'
@@ -44,10 +44,34 @@ export const Number = (props: IconProps): JSX.Element => (
       fillRule='evenodd'
       clipRule='evenodd'
       d='
-        M 6.01112 20.4083
-        L 29.8916 20.5906
-        L 29.8689 23.5905
-        L 5.98844 23.4082
+        M 9 10.5
+        H 6
+        V 7.5
+        H 9
+        Z
+      '
+      fill='currentColor'
+    />
+    <path
+      fillRule='evenodd'
+      clipRule='evenodd'
+      d='
+        M 9 19.5
+        H 6
+        V 16.5
+        H 9
+        Z
+      '
+      fill='currentColor'
+    />
+    <path
+      fillRule='evenodd'
+      clipRule='evenodd'
+      d='
+        M 9 28.5
+        H 6
+        V 25.5
+        H 9
         Z
       '
       fill='currentColor'

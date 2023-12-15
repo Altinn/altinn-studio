@@ -1,5 +1,6 @@
 import {
-  CombinationKind, CombinationNode,
+  CombinationKind,
+  CombinationNode,
   FieldNode,
   FieldType,
   ObjectKind,
@@ -7,14 +8,16 @@ import {
   UiSchemaNodes,
 } from '@altinn/schema-model';
 
-const parentNodePointer = '#/properties/test';
+const combinationNodePointer = '#/properties/test';
 const fieldNode1Pointer = '#/properties/test/anyOf/0';
 const fieldNode2Pointer = '#/properties/test/anyOf/1';
 const nodeWithCustomPropsPointer = '#/properties/test2';
 const toggableNodePointer = '#/properties/toggable';
-const secondParentNodePointer = '#/properties/parent2';
-const secondParentChildPointer = '#/properties/parent2/properties/someNode';
+const objectNodePointer = '#/properties/parent2';
+const objectChildPointer = '#/properties/parent2/properties/someNode';
 const definitionNodePointer = '#/$defs/def1';
+const childOfDefinitionNodePointer = '#/$defs/def1/properties/childOfDef1';
+const nodeWithSameNameAsObjectChildPointer = '#/properties/someNode';
 
 export const nodeMockBase: FieldNode = {
   objectKind: ObjectKind.Field,
@@ -35,19 +38,20 @@ export const rootNodeMock: FieldNode = {
   fieldType: FieldType.Object,
   pointer: ROOT_POINTER,
   children: [
-    parentNodePointer,
+    combinationNodePointer,
     toggableNodePointer,
     nodeWithCustomPropsPointer,
-    secondParentNodePointer,
+    objectNodePointer,
     definitionNodePointer,
+    nodeWithSameNameAsObjectChildPointer,
   ],
 };
 
-export const parentNodeMock: CombinationNode = {
+export const combinationNodeMock: CombinationNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Combination,
   combinationType: CombinationKind.AnyOf,
-  pointer: parentNodePointer,
+  pointer: combinationNodePointer,
   children: [fieldNode1Pointer, fieldNode2Pointer],
 };
 
@@ -75,31 +79,45 @@ export const nodeWithCustomPropsMock: FieldNode = {
   },
 };
 
-export const secondParentNodeMock: FieldNode = {
+export const objectNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: secondParentNodePointer,
+  pointer: objectNodePointer,
   fieldType: FieldType.Object,
-  children: [secondParentChildPointer],
+  children: [objectChildPointer],
 };
 
-export const secondParentChildMock: FieldNode = {
+export const objectChildMock: FieldNode = {
   ...nodeMockBase,
-  pointer: secondParentChildPointer,
+  pointer: objectChildPointer,
 };
 
 export const definitionNodeMock: FieldNode = {
   ...nodeMockBase,
   pointer: definitionNodePointer,
+  fieldType: FieldType.Object,
+  children: [childOfDefinitionNodePointer],
+};
+
+export const childOfDefinitionNodeMock: FieldNode = {
+  ...nodeMockBase,
+  pointer: childOfDefinitionNodePointer,
+};
+
+export const nodeWithSameNameAsObjectChildMock: FieldNode = {
+  ...nodeMockBase,
+  pointer: nodeWithSameNameAsObjectChildPointer,
 };
 
 export const uiSchemaNodesMock: UiSchemaNodes = [
   rootNodeMock,
-  parentNodeMock,
+  combinationNodeMock,
   fieldNode1Mock,
   fieldNode2Mock,
   nodeWithCustomPropsMock,
   toggableNodeMock,
-  secondParentNodeMock,
-  secondParentChildMock,
+  objectNodeMock,
+  objectChildMock,
   definitionNodeMock,
+  childOfDefinitionNodeMock,
+  nodeWithSameNameAsObjectChildMock,
 ];

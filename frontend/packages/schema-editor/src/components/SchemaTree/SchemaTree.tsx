@@ -3,17 +3,17 @@ import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { renderSchemaNodeList } from './renderSchemaNodeList';
 import { setSelectedId } from '@altinn/schema-editor/features/editor/schemaEditorSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
 import { selectedIdSelector } from '@altinn/schema-editor/selectors/reduxSelectors';
 import { useTranslation } from 'react-i18next';
 import { SchemaNode } from '@altinn/schema-editor/components/SchemaTree/SchemaNode';
+import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 
 export interface SchemaTreeProps {
-  savableSchemaModel: SavableSchemaModel;
   pointer?: string;
 }
 
-export const SchemaTree = ({ savableSchemaModel, pointer }: SchemaTreeProps) => {
+export const SchemaTree = ({ pointer }: SchemaTreeProps) => {
+  const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const handleSelect = (pointerToSelect: string) =>
@@ -25,11 +25,7 @@ export const SchemaTree = ({ savableSchemaModel, pointer }: SchemaTreeProps) => 
       onSelect={handleSelect}
       selectedId={selectedPointer}
     >
-      {pointer ? (
-        <SchemaNode pointer={pointer} savableModel={savableSchemaModel} />
-      ) : (
-        renderSchemaNodeList(savableSchemaModel, pointer)
-      )}
+      {pointer ? <SchemaNode pointer={pointer} /> : renderSchemaNodeList(savableModel, pointer)}
     </DragAndDropTree.Root>
   );
 };

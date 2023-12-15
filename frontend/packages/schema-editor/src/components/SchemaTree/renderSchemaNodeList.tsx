@@ -7,7 +7,7 @@ export const renderSchemaNodeList = (schema: SavableSchemaModel, parentPointer?:
   return properties.length ? (
     <>
       {properties.map(({ pointer }) => (
-        <SchemaNode key={pointer} pointer={pointer} savableModel={schema} />
+        <SchemaNode key={pointer} pointer={pointer} />
       ))}
     </>
   ) : null;

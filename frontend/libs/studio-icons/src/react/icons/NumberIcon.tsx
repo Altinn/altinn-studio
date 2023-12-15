@@ -2,16 +2,16 @@ import React from 'react';
 import { SvgTemplate } from './SvgTemplate';
 import { IconProps } from '../types';
 
-export const String = (props: IconProps): JSX.Element => (
+export const NumberIcon = (props: IconProps): JSX.Element => (
   <SvgTemplate viewBox='0 0 36 36' {...props}>
     <path
       fillRule='evenodd'
       clipRule='evenodd'
       d='
-        M 7.5 6
-        V 15
-        H 4.5
-        V 6
+        M 10.4795 29.8148
+        L 13.4646 5.81476
+        L 16.4417 6.18505
+        L 13.4566 30.1851
         Z
       '
       fill='currentColor'
@@ -20,10 +20,10 @@ export const String = (props: IconProps): JSX.Element => (
       fillRule='evenodd'
       clipRule='evenodd'
       d='
-        M 25.5 6
-        V 15
-        H 22.5
-        V 6
+        M 19.4355 29.8148
+        L 22.4207 5.81476
+        L 25.3978 6.18505
+        L 22.4126 30.1851
         Z
       '
       fill='currentColor'
@@ -32,10 +32,10 @@ export const String = (props: IconProps): JSX.Element => (
       fillRule='evenodd'
       clipRule='evenodd'
       d='
-        M 13.5 6
-        V 15
-        H 10.5
-        V 6
+        M 6.13124 12.4091
+        L 30.0117 12.5915
+        L 29.989 15.5914
+        L 6.10856 15.409
         Z
       '
       fill='currentColor'
@@ -44,10 +44,10 @@ export const String = (props: IconProps): JSX.Element => (
       fillRule='evenodd'
       clipRule='evenodd'
       d='
-        M 31.5 6
-        V 15
-        H 28.5
-        V 6
+        M 6.01112 20.4083
+        L 29.8916 20.5906
+        L 29.8689 23.5905
+        L 5.98844 23.4082
         Z
       '
       fill='currentColor'

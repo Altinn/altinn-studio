@@ -14,6 +14,7 @@ import {
 import {
   generateUniqueStringWithNumber,
   insertArrayElementAtPos,
+  moveArrayItem,
   removeItemByValue,
   replaceItemsByValue,
 } from 'app-shared/utils/arrayUtils';
@@ -82,6 +83,11 @@ export class SchemaModel {
     return this.hasNode(pointer);
   }
 
+  public getDefinition(name: string): UiSchemaNode {
+    const pointer = createDefinitionPointer(name);
+    return this.getNode(pointer);
+  }
+
   public getDefinitions(): UiSchemaNodes {
     return this.getRootChildren().filter(isDefinition);
   }
@@ -112,14 +118,18 @@ export class SchemaModel {
     return isReference(node) ? this.getFinalNode(node.reference) : node;
   }
 
+  public getIndexOfChildNode(pointer: string): number {
+    const parent = this.getParentNode(pointer);
+    return parent.children.indexOf(pointer);
+  }
+
   public doesNodeHaveChildWithName(nodePointer: string, name: string): boolean {
-    const node = this.getNode(nodePointer);
     const children = this.getChildNodes(nodePointer);
     return children.some((child) => extractNameFromPointer(child.pointer) === name);
   }
 
   public addCombination = (
-    name: string,
+    name?: string,
     target: NodePosition = defaultNodePosition,
     combinationType: CombinationKind = CombinationKind.AnyOf,
   ): CombinationNode => {
@@ -128,7 +138,7 @@ export class SchemaModel {
   };
 
   public addReference = (
-    name: string,
+    name: string | undefined,
     reference: string,
     target: NodePosition = defaultNodePosition,
   ): ReferenceNode => {
@@ -140,7 +150,7 @@ export class SchemaModel {
   };
 
   public addField = (
-    name: string,
+    name?: string,
     fieldType: FieldType = FieldType.String,
     target: NodePosition = defaultNodePosition,
   ): FieldNode => {
@@ -148,15 +158,64 @@ export class SchemaModel {
     return this.addNode<FieldNode>(name, newNode, target);
   };
 
-  protected addNode<T extends UiSchemaNode>(name: string, node: T, target: NodePosition): T {
+  protected addNode<T extends UiSchemaNode>(
+    name: string | undefined,
+    node: T,
+    target: NodePosition,
+  ): T {
     const finalParent = this.getFinalNode(target.parentPointer);
-    const finalTarget = { ...target, parentPointer: finalParent.pointer };
-    const pointer = this.createChildPointer(finalTarget.parentPointer, name);
-    if (this.nodeMap.has(pointer)) throw new Error(`Node with pointer ${pointer} already exists.`);
+    if (isCombination(finalParent)) {
+      return this.addNodeToCombination(node, finalParent, target.index);
+    } else {
+      if (!name) throw new Error('Name is required when adding a node to an object.');
+      return this.addNodeToObject(name, node, finalParent, target.index);
+    }
+  }
+
+  private addNodeToCombination<T extends UiSchemaNode>(
+    node: T,
+    parentNode: CombinationNode,
+    index: number,
+  ): T {
+    const finalIndex = index < 0 ? parentNode.children.length : index;
+    const name = finalIndex.toString();
+    const pointer = createPropertyPointer(parentNode, name);
+    this.unshiftCombinationChildren(parentNode, finalIndex);
+    const target: NodePosition = { parentPointer: parentNode.pointer, index };
+    return this.addNodeToParentAndNodeMap(node, pointer, target);
+  }
+
+  private unshiftCombinationChildren = (node: CombinationNode, fromIndex: number): void => {
+    if (fromIndex < 0) return;
+    const { children } = node;
+    for (let i = children.length; i > fromIndex; i--) {
+      const newName = i.toString();
+      const newPointer = createPropertyPointer(node, newName);
+      this.changePointer(children[i - 1], newPointer);
+    }
+  };
+
+  private addNodeToParentAndNodeMap<T extends UiSchemaNode>(
+    node: T,
+    pointer: string,
+    target: NodePosition,
+  ): T {
     const newNode = { ...node, pointer, implicitType: false };
-    this.addChildPointer(finalTarget, pointer);
+    this.addChildPointer(target, pointer);
     this.nodeMap.set(pointer, newNode);
     return newNode;
+  }
+
+  private addNodeToObject<T extends UiSchemaNode>(
+    name: string,
+    node: T,
+    parent: FieldNode,
+    index: number,
+  ): T {
+    const target = { index, parentPointer: parent.pointer };
+    const pointer = this.createChildPointer(target.parentPointer, name);
+    if (this.nodeMap.has(pointer)) throw new Error(`Node with pointer ${pointer} already exists.`);
+    return this.addNodeToParentAndNodeMap(node, pointer, target);
   }
 
   public createChildPointer = (pointer: string, childName: string): string => {
@@ -186,20 +245,106 @@ export class SchemaModel {
   }
 
   public moveNode(pointer: string, target: NodePosition): SchemaModel {
-    const nodeName = extractNameFromPointer(pointer);
+    const currentParentPointer = this.getParentNode(pointer).pointer;
     const finalParent = this.getFinalNode(target.parentPointer);
-    const finalTarget = { ...target, parentPointer: finalParent.pointer };
-    if (this.doesNodeHaveChildWithName(finalTarget.parentPointer, nodeName)) {
-      throw new Error(
-        `Cannot move node to ${finalTarget.parentPointer} because a child with name ${nodeName} already exists.`,
-      );
-    }
-    const newPointer = this.createChildPointer(finalTarget.parentPointer, nodeName);
-    this.removeNodeFromParent(pointer);
-    this.addChildPointer(finalTarget, newPointer);
-    this.changePointer(pointer, newPointer);
+    isCombination(finalParent)
+      ? this.moveNodeToCombination(pointer, finalParent, target.index)
+      : this.moveNodeToObject(pointer, finalParent, target.index);
+    const oldParent = this.getNode(currentParentPointer);
+    if (isCombination(oldParent)) this.synchronizeCombinationChildPointers(oldParent);
     return this;
   }
+
+  private moveNodeToCombination = (
+    pointer: string,
+    parent: CombinationNode,
+    index: number,
+  ): SchemaModel => {
+    const finalIndex = index < 0 ? parent.children.length - 1 : index;
+    const currentParent = this.getParentNode(pointer);
+    if (currentParent.pointer === parent.pointer) {
+      const fromIndex = this.getIndexOfChildNode(pointer);
+      return this.moveNodeWithinCombination(parent, fromIndex, finalIndex);
+    } else {
+      return this.moveNodeToCombinationFromAnotherParent(pointer, parent, finalIndex);
+    }
+  };
+
+  private moveNodeWithinCombination = (
+    parent: CombinationNode,
+    fromIndex: number,
+    toIndex: number,
+  ): SchemaModel => {
+    parent.children = moveArrayItem(parent.children, fromIndex, toIndex);
+    this.synchronizeCombinationChildPointers(parent);
+    return this;
+  };
+
+  /** Updates the pointers of the children of the given combination node so that their names correspond to their index. */
+  private synchronizeCombinationChildPointers = (parent: CombinationNode): SchemaModel => {
+    const { children } = parent;
+    const temporaryUniquePointers: string[] = [];
+    children.forEach((childPointer, index) => {
+      const newPointer = createPropertyPointer(parent, 'tmp' + index.toString());
+      this.changePointer(childPointer, newPointer);
+      temporaryUniquePointers.push(newPointer);
+    });
+    temporaryUniquePointers.forEach((childPointer, index) => {
+      const newPointer = createPropertyPointer(parent, index.toString());
+      this.changePointer(childPointer, newPointer);
+    });
+    return this;
+  };
+
+  private moveNodeToCombinationFromAnotherParent = (
+    pointer: string,
+    parent: CombinationNode,
+    index: number,
+  ): SchemaModel => {
+    const name = index.toString();
+    const newPointer = createPropertyPointer(parent, name);
+    this.unshiftCombinationChildren(parent, index);
+    const target: NodePosition = { parentPointer: parent.pointer, index };
+    this.removeNodeFromParent(pointer);
+    this.addChildPointer(target, newPointer);
+    this.changePointer(pointer, newPointer);
+    return this;
+  };
+
+  private moveNodeToObject = (pointer: string, parent: FieldNode, index: number): SchemaModel => {
+    const currentParent = this.getParentNode(pointer);
+    return currentParent.pointer === parent.pointer
+      ? this.moveNodeWithinObject(pointer, parent, index)
+      : this.moveNodeToObjectFromAnotherParent(pointer, parent, index);
+  };
+
+  private moveNodeWithinObject = (
+    pointer: string,
+    parent: FieldNode,
+    newIndex: number,
+  ): SchemaModel => {
+    const currentIndex = this.getIndexOfChildNode(pointer);
+    parent.children = moveArrayItem(parent.children, currentIndex, newIndex);
+    return this;
+  };
+
+  private moveNodeToObjectFromAnotherParent = (
+    pointer: string,
+    parent: FieldNode,
+    index: number,
+  ): SchemaModel => {
+    const nodeName = extractNameFromPointer(pointer);
+    if (this.doesNodeHaveChildWithName(parent.pointer, nodeName)) {
+      throw new Error(
+        `Cannot move node to ${parent.pointer} because a child with name ${nodeName} already exists.`,
+      );
+    }
+    const newPointer = this.createChildPointer(parent.pointer, nodeName);
+    this.removeNodeFromParent(pointer);
+    this.addChildPointer({ parentPointer: parent.pointer, index }, newPointer);
+    this.changePointer(pointer, newPointer);
+    return this;
+  };
 
   private removeNodeFromParent = (pointer: string): void => {
     const parent = this.getParentNode(pointer);
@@ -288,6 +433,10 @@ export class SchemaModel {
     if (pointer === ROOT_POINTER) throw new Error('It is not possible to delete the root node.');
     if (this.isDefinitionInUse(pointer))
       throw new Error('Cannot delete a definition that is in use.');
+    return this.deleteNodeWithChildrenRecursively(pointer);
+  }
+
+  private deleteNodeWithChildrenRecursively(pointer: string): SchemaModel {
     this.deleteChildren(pointer);
     this.removeNodeFromParent(pointer);
     this.nodeMap.delete(pointer);
@@ -314,7 +463,7 @@ export class SchemaModel {
     const node = this.getNode(pointer);
     if (isFieldOrCombination(node) && isNodeValidParent(node)) {
       node.children.forEach((childPointer) => {
-        this.deleteNode(childPointer);
+        this.deleteNodeWithChildrenRecursively(childPointer);
       });
     }
   }

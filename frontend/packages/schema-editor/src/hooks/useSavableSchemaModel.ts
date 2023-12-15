@@ -1,5 +1,5 @@
-import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
+import { useSchemaEditorAppContext } from './useSchemaEditorAppContext';
+import { SavableSchemaModel } from '../classes/SavableSchemaModel';
 
 export const useSavableSchemaModel = () => {
   const { schemaModel, save } = useSchemaEditorAppContext();

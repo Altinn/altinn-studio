@@ -1,5 +1,10 @@
 import React, { ReactElement, ReactNode } from 'react';
-import { extractNameFromPointer, isNodeValidParent, isReference } from '@altinn/schema-model';
+import {
+  extractNameFromPointer,
+  isNodeValidParent,
+  isReference,
+  UiSchemaNode,
+} from '@altinn/schema-model';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { renderSchemaNodeList } from '../renderSchemaNodeList';
 import { renderIcon } from './renderIcon';
@@ -9,23 +14,24 @@ import { ReferenceButton } from '@altinn/schema-editor/components/SchemaTree/Sch
 import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
+import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 
 export interface SchemaNodeProps {
   pointer: string;
-  savableModel: SavableSchemaModel;
 }
 
-export const SchemaNode = ({ pointer, savableModel }: SchemaNodeProps): ReactElement => {
+export const SchemaNode = ({ pointer }: SchemaNodeProps): ReactElement => {
+  const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
   const node = savableModel.getNode(pointer);
   return (
     <DragAndDropTree.Item
+      emptyMessage={t('schema_editor.empty_node')}
+      expandable={isNodeValidParent(node)}
       icon={renderIcon(savableModel, pointer)}
       label={extractNameFromPointer(pointer)}
       labelWrapper={labelWrapper(savableModel, pointer)}
       nodeId={pointer}
-      expandable={isNodeValidParent(node)}
-      emptyMessage={t('schema_editor.empty_node')}
     >
       {renderSchemaNodeList(savableModel, pointer)}
     </DragAndDropTree.Item>
@@ -35,27 +41,23 @@ export const SchemaNode = ({ pointer, savableModel }: SchemaNodeProps): ReactEle
 const labelWrapper = (schemaModel: SavableSchemaModel, pointer: string) => {
   const LabelWrapper = (label: ReactNode) => {
     const node = schemaModel.getNode(pointer);
-    const { isArray } = node;
-    const isParentNode = isNodeValidParent(node);
-    const className = cn(
-      classes.schemaNodeLabel,
-      isArray && classes.isArray,
-      isParentNode && classes.isParent,
-    );
+    const className = createWrapperClassNames(node);
 
     return (
       <div className={className}>
         <div className={classes.nodeName}>{label}</div>
-        {isReference(node) && <ReferenceButton savableModel={schemaModel} node={node} />}
-        <ActionButtons
-          className={classes.actionButtons}
-          savableModel={schemaModel}
-          pointer={pointer}
-        />
+        {isReference(node) && <ReferenceButton node={node} />}
+        <ActionButtons className={classes.actionButtons} pointer={pointer} />
       </div>
     );
   };
 
   LabelWrapper.displayName = 'LabelWrapper';
   return LabelWrapper;
+};
+
+const createWrapperClassNames = (node: UiSchemaNode): string => {
+  const { isArray } = node;
+  const isParentNode = isNodeValidParent(node);
+  return cn(classes.schemaNodeLabel, isArray && classes.isArray, isParentNode && classes.isParent);
 };

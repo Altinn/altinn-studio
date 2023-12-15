@@ -10,13 +10,14 @@ import {
 } from '../../../../../schema-model';
 import {
   fieldNode1Mock,
-  secondParentNodeMock,
+  nodeWithSameNameAsObjectChildMock,
+  objectNodeMock,
+  rootNodeMock,
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
 import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
 
 describe('useMoveProperty', () => {
-
   const setup = () => {
     const save = jest.fn();
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
@@ -29,7 +30,7 @@ describe('useMoveProperty', () => {
   it('Moves a property to the given position', () => {
     const { move, save } = setup();
     const pointerOfNodeToMove = fieldNode1Mock.pointer;
-    const pointerOfNewParent = secondParentNodeMock.pointer;
+    const pointerOfNewParent = objectNodeMock.pointer;
     const indexInNewParent = 1;
     const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
     move(pointerOfNodeToMove, target);
@@ -43,7 +44,7 @@ describe('useMoveProperty', () => {
     validateTestUiSchema(savedModel.asArray());
   });
 
-  it('Moves a property to the given position when it is the root', () => {
+  it('Moves a property to the given position when it is on the root', () => {
     const { move, save } = setup();
     const pointerOfNodeToMove = fieldNode1Mock.pointer;
     const indexInNewParent = 1;
@@ -59,7 +60,7 @@ describe('useMoveProperty', () => {
     validateTestUiSchema(savedModel.asArray());
   });
 
-  it('Moves a property to the given position when it is the root and the target index is 0', () => {
+  it('Moves a property to the given position when it is on the root and the target index is 0', () => {
     const { move, save } = setup();
     const pointerOfNodeToMove = fieldNode1Mock.pointer;
     const target: ItemPosition = { parentId: ROOT_POINTER, index: 0 };
@@ -72,5 +73,32 @@ describe('useMoveProperty', () => {
     const nameOfAddedChild = extractNameFromPointer(addedRootChild.pointer);
     expect(nameOfAddedChild).toEqual(nameOfMovedNode);
     validateTestUiSchema(savedModel.asArray());
+  });
+
+  it('Moves a property to the given position when it is on the root and the target index is equal to the number of root properties', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = fieldNode1Mock.pointer;
+    const index = rootNodeMock.children.length;
+    const target: ItemPosition = { parentId: ROOT_POINTER, index };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const rootChildren = savedModel.getRootChildren();
+    const addedRootChild = rootChildren[index];
+    const nameOfMovedNode = extractNameFromPointer(pointerOfNodeToMove);
+    const nameOfAddedChild = extractNameFromPointer(addedRootChild.pointer);
+    expect(nameOfAddedChild).toEqual(nameOfMovedNode);
+    validateTestUiSchema(savedModel.asArray());
+  });
+
+  it('Does not move the property when there is already a property with the same name in the target parent', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = nodeWithSameNameAsObjectChildMock.pointer;
+    const pointerOfNewParent = objectNodeMock.pointer;
+    const indexInNewParent = 0;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(0);
   });
 });

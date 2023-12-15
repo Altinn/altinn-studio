@@ -1,4 +1,3 @@
-import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
@@ -6,14 +5,15 @@ import { isCombination, ObjectKind } from '../../../../../../schema-model';
 import { ActionButton } from './ActionButton';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { DropdownMenu } from '@digdir/design-system-react';
-import { Combination, Property, Reference } from '@studio/icons';
+import { CombinationIcon, PropertyIcon, ReferenceIcon } from '@studio/icons';
+import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 
 interface AddPropertyMenuProps {
   pointer: string;
-  savableModel: SavableSchemaModel;
 }
 
-export const AddPropertyMenu = ({ pointer, savableModel }: AddPropertyMenuProps) => {
+export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
+  const savableModel = useSavableSchemaModel();
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const { t } = useTranslation();
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
@@ -51,15 +51,15 @@ export const AddPropertyMenu = ({ pointer, savableModel }: AddPropertyMenuProps)
         <DropdownMenu.Group>
           {!isCombination(node) && (
             <>
-              <DropdownMenu.Item onClick={addField} icon={<Property />}>
+              <DropdownMenu.Item onClick={addField} icon={<PropertyIcon />}>
                 {t('schema_editor.add_field')}
               </DropdownMenu.Item>
-              <DropdownMenu.Item onClick={addCombination} icon={<Combination />}>
+              <DropdownMenu.Item onClick={addCombination} icon={<CombinationIcon />}>
                 {t('schema_editor.add_combination')}
               </DropdownMenu.Item>
             </>
           )}
-          <DropdownMenu.Item onClick={addReference} icon={<Reference />}>
+          <DropdownMenu.Item onClick={addReference} icon={<ReferenceIcon />}>
             {t('schema_editor.add_reference')}
           </DropdownMenu.Item>
         </DropdownMenu.Group>

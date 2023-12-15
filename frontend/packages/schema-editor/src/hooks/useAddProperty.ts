@@ -15,7 +15,7 @@ export const useAddProperty = () => {
     const name = savableModel.generateUniqueChildName(parentPointer, 'name');
     switch (objectKind) {
       case ObjectKind.Reference:
-        return addReference(name);
+        return addReference(name, target);
       case ObjectKind.Field:
         return addField(name, target, fieldType);
       case ObjectKind.Combination:
@@ -23,11 +23,11 @@ export const useAddProperty = () => {
     }
   };
 
-  const addReference = (name: string): string | undefined => {
+  const addReference = (name: string, target: NodePosition): string | undefined => {
     const reference = prompt(t('schema_editor.add_reference.prompt'));
     if (!reference) return undefined;
     if (savableModel.hasDefinition(reference)) {
-      const { pointer } = savableModel.addReference(name, reference);
+      const { pointer } = savableModel.addReference(name, reference, target);
       return pointer;
     } else {
       alert(t('schema_editor.add_reference.type_does_not_exist', { reference }));

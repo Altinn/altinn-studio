@@ -8,14 +8,12 @@ import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { SchemaTree } from '@altinn/schema-editor/components/SchemaTree';
-import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 
 export const ModelsPanel = () => {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
   const addProperty = useAddProperty();
-  const savableSchema = useSavableSchemaModel();
 
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newPointer = addProperty(objectKind, fieldType);
@@ -68,7 +66,7 @@ export const ModelsPanel = () => {
         openButtonText={t('add')}
       />
       <div>
-        <SchemaTree savableSchemaModel={savableSchema} />
+        <SchemaTree />
       </div>
     </>
   );

@@ -33,7 +33,7 @@ export class SavableSchemaModel extends SchemaModel {
     return newNode;
   }
 
-  public deleteNodeAndSave(pointer: string): SavableSchemaModel {
+  public deleteNode(pointer: string): SavableSchemaModel {
     super.deleteNode(pointer);
     return this.save();
   }
@@ -45,6 +45,11 @@ export class SavableSchemaModel extends SchemaModel {
 
   public moveNode(pointer: string, target: NodePosition): SavableSchemaModel {
     super.moveNode(pointer, target);
+    return this.save();
+  }
+
+  public updateNode(pointer: string, newNode: UiSchemaNode): SavableSchemaModel {
+    super.updateNode(pointer, newNode);
     return this.save();
   }
 }

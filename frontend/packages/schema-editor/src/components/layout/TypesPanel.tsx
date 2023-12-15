@@ -14,13 +14,11 @@ import { IconImage } from '../common/Icon';
 import { isCombination } from '@altinn/schema-model';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { SchemaTree } from '@altinn/schema-editor/components/SchemaTree';
-import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 
 export type TypesPanelProps = {
   uiSchemaNode: UiSchemaNode;
 };
 export const TypesPanel = ({ uiSchemaNode }: TypesPanelProps) => {
-  const savableSchemaModel = useSavableSchemaModel();
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
@@ -79,7 +77,7 @@ export const TypesPanel = ({ uiSchemaNode }: TypesPanelProps) => {
         ]}
         openButtonText={t('add')}
       />
-      <SchemaTree savableSchemaModel={savableSchemaModel} pointer={uiSchemaNode.pointer} />
+      <SchemaTree pointer={uiSchemaNode.pointer} />
     </>
   );
 };

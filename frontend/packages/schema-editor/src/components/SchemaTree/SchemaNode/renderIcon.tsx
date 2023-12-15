@@ -1,21 +1,19 @@
 import React, { ReactElement } from 'react';
 import { FieldType, ObjectKind, SchemaModel } from '@altinn/schema-model';
 import {
-  Boolean,
-  Combination,
+  BooleanIcon,
+  CombinationIcon,
   LinkIcon,
-  Number,
+  NumberIcon,
   QuestionmarkIcon,
-  String,
+  StringIcon,
 } from '@studio/icons';
 
 export const renderIcon = (schemaModel: SchemaModel, pointer: string): ReactElement => {
   const node = schemaModel.getNode(pointer);
-  const children = schemaModel.getChildNodes(pointer);
-  if (children.length) return null;
   switch (node.objectKind) {
     case ObjectKind.Combination:
-      return <Combination />;
+      return <CombinationIcon />;
     case ObjectKind.Reference:
       return <LinkIcon />;
     case ObjectKind.Field:
@@ -26,14 +24,14 @@ export const renderIcon = (schemaModel: SchemaModel, pointer: string): ReactElem
 const renderFieldIcon = (fieldType: FieldType): ReactElement => {
   switch (fieldType) {
     case FieldType.Boolean:
-      return <Boolean />;
+      return <BooleanIcon />;
     case FieldType.Integer:
     case FieldType.Number:
-      return <Number />;
+      return <NumberIcon />;
     case FieldType.Object:
       return null;
     case FieldType.String:
-      return <String />;
+      return <StringIcon />;
     default:
       return <QuestionmarkIcon />;
   }
