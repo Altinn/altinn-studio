@@ -53,6 +53,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
       selectedEditorTab: 'definitions',
     },
     appContextProps: {
+      selectedTypePointer: '',
       schemaModel,
       save: saveDatamodel,
       setSelectedTypePointer,
@@ -74,9 +75,7 @@ describe('SchemaInspector', () => {
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
     const tablist = screen.getByRole('tablist');
     expect(tablist).toBeDefined();
-    const tabpanel = screen.getByRole('tabpanel');
-    expect(tabpanel).toBeDefined();
-    expect(screen.getAllByRole('tab')).toHaveLength(1);
+    expect(screen.getAllByRole('tab')).toHaveLength(2);
     const textboxes = screen.getAllByRole('textbox');
 
     for (const textbox of textboxes) {
