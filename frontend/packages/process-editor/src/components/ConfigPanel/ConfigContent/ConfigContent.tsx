@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
-import { Divider, Heading, HelpText, Paragraph } from '@digdir/design-system-react';
+import { Divider, Heading, HelpText, Paragraph, Select } from '@digdir/design-system-react';
 import { ConfigIcon } from './ConfigIcon';
 import { ConfigDetailsRow } from './ConfigDetailsRow';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
@@ -42,6 +42,25 @@ export const ConfigContent = (): JSX.Element => {
           text={bpmnDetails.name}
         />
       </ConfigSectionWrapper>
+      <ConfigSectionWrapper>
+        {/*
+          IF Datamodel exists, show drop down with models
+          ELSE show LINK to Datamodel page
+        */}
+        <Select
+          label={t('process_editor.select_datamodel_label')}
+          options={[]}
+          onChange={() => {}}
+          value={''}
+        />
+      </ConfigSectionWrapper>
     </>
   );
 };
+
+/**
+ *           options={authLevelOptionKeysAsDisplayStrings}
+          onChange={(authLevel: RequiredAuthLevel) => onSave(authLevel)}
+          value={requiredAuthenticationLevelEndUser}
+          inputId={SELECT_AUTH_LEVEL_ID}
+ */

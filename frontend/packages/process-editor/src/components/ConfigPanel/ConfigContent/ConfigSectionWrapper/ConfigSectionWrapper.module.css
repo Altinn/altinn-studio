@@ -3,4 +3,6 @@
   flex-direction: column;
   margin-inline: 1rem;
   gap: 1rem;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
 }
