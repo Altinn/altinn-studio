@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import 'bpmn-js/dist/assets/diagram-js.css';
@@ -27,12 +27,8 @@ export type CanvasProps = {
  */
 export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
   const { getUpdatedXml, isEditAllowed, numberOfUnsavedChanges } = useBpmnContext();
-  const [isEditorView, setIsEditorView] = useState(false);
-  const { t } = useTranslation();
 
-  const toggleViewModus = (): void => {
-    setIsEditorView((prevIsEditorView) => !prevIsEditorView);
-  };
+  const { t } = useTranslation();
 
   const handleOnSave = async (): Promise<void> => {
     onSave(await getUpdatedXml());
@@ -45,14 +41,8 @@ export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
 
   return (
     <div className={classes.container}>
-      {isEditAllowed && (
-        <CanvasActionMenu
-          onSave={handleOnSave}
-          toggleViewModus={toggleViewModus}
-          isEditorView={isEditorView}
-        />
-      )}
-      <div className={classes.wrapper}>{isEditorView ? <BPMNEditor /> : <BPMNViewer />}</div>
+      <CanvasActionMenu onSave={handleOnSave} />
+      <div className={classes.wrapper}>{isEditAllowed ? <BPMNEditor /> : <BPMNViewer />}</div>
     </div>
   );
 };
