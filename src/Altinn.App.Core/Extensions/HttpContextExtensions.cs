@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Extensions
         public static StreamContent CreateContentStream(this HttpRequest request)
         {
             StreamContent content = new StreamContent(request.Body);
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType!);
 
             if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
             {

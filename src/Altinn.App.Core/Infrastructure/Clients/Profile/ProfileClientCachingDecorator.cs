@@ -32,11 +32,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
         }
 
         /// <inheritdoc/>
-        public async Task<UserProfile> GetUserProfile(int userId)
+        public async Task<UserProfile?> GetUserProfile(int userId)
         {
             string uniqueCacheKey = "User_UserId_" + userId;
 
-            if (_memoryCache.TryGetValue(uniqueCacheKey, out UserProfile user))
+            if (_memoryCache.TryGetValue(uniqueCacheKey, out UserProfile? user))
             {
                 return user;
             }

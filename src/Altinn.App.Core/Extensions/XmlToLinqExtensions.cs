@@ -27,7 +27,7 @@ namespace Altinn.App.Core.Extensions
         /// </returns>
         public static XElement AddAttribute(this XElement element, string attributeName, object value)
         {
-            element.Add(new XAttribute(attributeName, value.ToString()));
+            element.Add(new XAttribute(attributeName, value.ToString()!));
             return element;
         }
 
