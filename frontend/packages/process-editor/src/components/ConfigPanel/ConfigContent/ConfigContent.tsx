@@ -1,12 +1,13 @@
 import React from 'react';
 import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
-import { Divider, Heading, HelpText, Paragraph, Select } from '@digdir/design-system-react';
+import { Divider, Heading, HelpText, Link, Paragraph, Select } from '@digdir/design-system-react';
 import { ConfigIcon } from './ConfigIcon';
 import { ConfigDetailsRow } from './ConfigDetailsRow';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { ConfigSectionWrapper } from './ConfigSectionWrapper';
+import { LinkIcon } from '@studio/icons';
 
 export const ConfigContent = (): JSX.Element => {
   const { t } = useTranslation();
@@ -47,12 +48,20 @@ export const ConfigContent = (): JSX.Element => {
           IF Datamodel exists, show drop down with models
           ELSE show LINK to Datamodel page
         */}
-        <Select
-          label={t('process_editor.select_datamodel_label')}
-          options={[]}
-          onChange={() => {}}
-          value={''}
-        />
+        {1 === 2 ? (
+          <Select
+            label={t('process_editor.select_datamodel_label')}
+            options={[]}
+            onChange={() => {}}
+            value={''}
+          />
+        ) : (
+          <div className={classes.datamodelLinkWrapper}>
+            <LinkIcon className={classes.linkIcon} />
+            {/* TODO - FIX href */}
+            <Link href={'/datamodel'}>{t('process_editor.create_new_datamodel_link')}</Link>
+          </div>
+        )}
       </ConfigSectionWrapper>
     </>
   );

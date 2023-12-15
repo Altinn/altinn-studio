@@ -11,3 +11,14 @@
   align-items: center;
   gap: 1rem;
 }
+
+.datamodelLinkWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.linkIcon {
+  color: var(--fds-semantic-text-action-default);
+  font-size: 1.25rem;
+}
