@@ -1,0 +1,38 @@
+.container {
+  --toolbar-height: 80px;
+  --subtoolbar-height: 60px;
+  --header-border-bottom-width: 1px;
+  --header-height: calc(
+    var(--toolbar-height) + var(--subtoolbar-height) + var(--header-border-bottom-width)
+  );
+  --left-menu-width: 68px;
+
+  background: var(--fds-semantic-background-default);
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@media screen and (max-width: 600px) {
+  .container {
+    --header-height: calc(var(--toolbar-height) + var(--header-border-bottom-width));
+  }
+}
+
+.contentWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.mergeConflictApp {
+  height: 100%;
+  width: 100%;
+}
+
+.appSpinner {
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+}

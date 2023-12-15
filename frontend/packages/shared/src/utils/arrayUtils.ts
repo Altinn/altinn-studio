@@ -1,11 +1,4 @@
 /**
- * Removes duplicates from an array.
- * @param array The array of interest.
- * @returns The array without duplicates.
- */
-export const removeDuplicates = <T>(array: T[]): T[] => [...new Set(array)];
-
-/**
  * Adds an item to the beginning of an array..
  * @param array The array of interest.
  * @param item The item to prepend.
@@ -39,6 +32,15 @@ export const replaceLastItem = <T>(array: T[], replaceWith: T): T[] => {
  */
 export const removeItemByValue = <T>(array: T[], value: T): T[] =>
   array.filter((item) => item !== value);
+
+/**
+ * Removes item from array by index.
+ * @param array Array to delete item from.
+ * @param indexToRemove Index of element to remove.
+ * @returns Array without the element at the given index.
+ */
+export const removeItemByIndex = <T>(array: T[], indexToRemove: number): T[] =>
+  array.filter((_, index) => index !== indexToRemove);
 
 /**
  * Checks if all items in the given array are unique.
@@ -143,4 +145,17 @@ export const generateUniqueStringWithNumber = (array: string[], prefix: string =
     uniqueString = prefix + i;
   }
   return uniqueString;
+};
+
+/** Removes empty strings from a string array */
+export const removeEmptyStrings = (array: string[]): string[] => removeItemByValue(array, '');
+
+/** Replaces an element in an array with a new value */
+export const replaceByIndex = <T>(array: T[], index: number, newValue: T): T[] => {
+  if (index < 0 || index >= array.length) return array;
+
+  const newArray = [...array];
+  newArray[index] = newValue;
+
+  return newArray;
 };
