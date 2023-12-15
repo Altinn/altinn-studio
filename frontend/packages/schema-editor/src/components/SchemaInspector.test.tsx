@@ -53,7 +53,6 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
       selectedEditorTab: 'definitions',
     },
     appContextProps: {
-      selectedTypePointer: '',
       schemaModel,
       save: saveDatamodel,
       setSelectedTypePointer,
