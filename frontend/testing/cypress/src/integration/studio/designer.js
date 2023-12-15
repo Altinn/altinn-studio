@@ -45,7 +45,9 @@ context('Designer', () => {
       .findByRole('treeitem', { name: texts['ux_editor.component_title.Input'] });
 
     // Do not need to confirm alert.confirm dialog, since Cypress default to click "Ok".
-    cy.findByTitle(texts['general.delete_item'].replace('{{item}}', 'Side1')).click({ force: true });
+    cy.findByTitle(texts['general.delete_item'].replace('{{item}}', 'Side1')).click({
+      force: true,
+    });
   });
 
   it('should add navigation buttons when adding more than one page', () => {

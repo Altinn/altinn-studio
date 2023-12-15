@@ -23,7 +23,7 @@ export const ProcessEditor = () => {
       { bpmnXml: xml },
       {
         onSuccess: () => {
-          toast.success('Bpmn saved successfully');
+          toast.success(t('process_editor.saved_successfully'));
         },
       },
     );

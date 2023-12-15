@@ -1,14 +1,13 @@
 import React from 'react';
-import { ConfigPanel } from './ConfigPanel';
+import { ConfigContent } from './ConfigContent';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { BpmnContext, BpmnContextProps } from '../../contexts/BpmnContext';
-import { BpmnDetails } from '../../types/BpmnDetails';
-import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { BpmnContext, BpmnContextProps } from '../../../contexts/BpmnContext';
+import { BpmnDetails } from '../../../types/BpmnDetails';
+import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
-const mockAppLibVersion7: string = '7.0.3';
 
 const mockId: string = 'testId';
 const mockName: string = 'testName';
@@ -31,50 +30,8 @@ const mockBpmnContextValue: BpmnContextProps = {
   setBpmnDetails: jest.fn(),
 };
 
-describe('ConfigPanel', () => {
+describe('ConfigContent', () => {
   afterEach(jest.clearAllMocks);
-
-  it('should render without crashing', () => {
-    render({ appLibVersion: mockAppLibVersion7, bpmnDetails: null, isEditAllowed: false });
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
-    ).toBeInTheDocument();
-  });
-
-  it('should display the message about selecting a task when bpmnDetails is "null"', () => {
-    render({ bpmnDetails: null });
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
-    ).toBeInTheDocument();
-  });
-
-  it('should display the message about selecting a task when bpmnDetails.type is "Process"', () => {
-    render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Process } });
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
-    ).toBeInTheDocument();
-  });
-
-  it('should display the message about selected element not being supported when bpmnDetails.type "SequenceFlow"', () => {
-    render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.SequenceFlow } });
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_element_not_supported')),
-    ).toBeInTheDocument();
-  });
-
-  it('should display the message about selected element not being supported when bpmnDetails.type "StartEvent"', () => {
-    render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.StartEvent } });
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_element_not_supported')),
-    ).toBeInTheDocument();
-  });
-
-  it('should display the message about selected element not being supported when bpmnDetails.type "EndEvent"', () => {
-    render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.EndEvent } });
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_element_not_supported')),
-    ).toBeInTheDocument();
-  });
 
   it('should display the details about the selected task when a "data" task is selected', () => {
     render();
@@ -136,7 +93,7 @@ describe('ConfigPanel', () => {
 const render = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return rtlRender(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <ConfigPanel />
+      <ConfigContent />
     </BpmnContext.Provider>,
   );
 };
