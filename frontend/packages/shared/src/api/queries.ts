@@ -64,7 +64,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
-import type { PartyList, PartyListResourceLink, Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
+import type { BrregOrganizationResult, BrregUnderOrganizationResult, PartyList, PartyListResourceLink, Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -126,6 +126,8 @@ export const getAltinn2LinkServices = (org: string, environment: string) => get<
 export const getPartyLists = (org: string, environment: string) => get<PartyList[]>(partyListsPath(org, environment));
 export const getPartyList = (org: string, listId: string, environment: string) => get<PartyList>(partyListPath(org, listId, environment));
 export const getResourcePartyLists = (org: string, resourceId: string, environment: string) => get<PartyListResourceLink[]>(resourcePartyListsPath(org, resourceId, environment));
+export const getEnheter = (url: string) => get<BrregOrganizationResult>(url);
+export const getUnderenheter = (url: string) => get<BrregUnderOrganizationResult>(url);
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get(processEditorPath(org, app));

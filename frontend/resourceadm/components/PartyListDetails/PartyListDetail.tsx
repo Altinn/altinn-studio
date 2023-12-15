@@ -23,7 +23,7 @@ import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
 import { useDeletePartyListMutation } from 'resourceadm/hooks/mutations/useDeletePartyListMutation';
 import { PartyListSearch } from './PartyListSearch';
 
-interface PartyListDetailProps {
+export interface PartyListDetailProps {
   org: string;
   env: string;
   list: PartyList;
@@ -91,21 +91,24 @@ export const PartyListDetail = ({
     });
   };
 
+  const closeModal = (): void => {
+    deleteWarningModalRef.current?.close();
+  };
+
   return (
     <div className={classes.partyListDetailWrapper}>
-      <Modal ref={deleteWarningModalRef} onClose={() => deleteWarningModalRef.current?.close()}>
+      <Modal ref={deleteWarningModalRef} onClose={closeModal}>
         <Modal.Header>Bekreft sletting av liste</Modal.Header>
         <Modal.Content>Vil du slette denne listen?</Modal.Content>
         <Modal.Footer>
           <Button color='danger' onClick={() => handleDelete()}>
             Slett liste
           </Button>
-          <Button variant='tertiary' onClick={() => deleteWarningModalRef.current?.close()}>
+          <Button variant='tertiary' onClick={closeModal}>
             Avbryt
           </Button>
         </Modal.Footer>
       </Modal>
-
       <div>
         <DigdirLink to={backUrl} as={Link}>
           Tilbake

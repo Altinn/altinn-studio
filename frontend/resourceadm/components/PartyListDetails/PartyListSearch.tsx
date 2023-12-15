@@ -63,11 +63,10 @@ export const PartyListSearch = ({
   return (
     <div>
       <Textfield
+        data-testid='enhet-search'
         value={searchText}
         placeholder='søk etter enhet'
-        onChange={(event) => {
-          setSearchText(event.target.value);
-        }}
+        onChange={(event) => setSearchText(event.target.value)}
       />
       {(isLoadingEnheterSearch || isLoadingUnderenheterSearch) && debouncedSearchText && (
         <Spinner size='xlarge' variant='interaction' title='Laster...' />
