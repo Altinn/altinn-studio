@@ -105,7 +105,7 @@ const addReleaseAndDeployTestDataToDb = async () =>
 const script = async () => {
   const env = ensureDotEnv();
   await dnsIsOk('studio.localhost');
-  await dnsIsOk('host.docker.internal');
+  // await dnsIsOk('host.docker.internal');
   await startingDockerCompose();
   await waitFor('http://studio.localhost/repos/');
   await createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
