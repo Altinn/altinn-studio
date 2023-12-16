@@ -105,7 +105,7 @@ const addReleaseAndDeployTestDataToDb = async () =>
 const script = async () => {
   const env = ensureDotEnv();
   await dnsIsOk('studio.localhost');
-  if(!env.IGNORE_DOCKER_DNS_LOOKUP){
+  if (!(env.IGNORE_DOCKER_DNS_LOOKUP === 'true')){
     await dnsIsOk('host.docker.internal');
   }
   await startingDockerCompose();

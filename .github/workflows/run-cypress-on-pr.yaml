@@ -36,6 +36,7 @@ jobs:
           echo GITEA_ORG_USER=ttd >> .env
           echo POSTGRES_PASSWORD=kyeDIG@eip >> .env
           echo COMMIT= >> .env
+          echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
       - name: Build all images
         run: |
