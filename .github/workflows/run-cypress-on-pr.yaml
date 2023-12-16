@@ -60,6 +60,7 @@ jobs:
 
       - name: Run cypress tests
         run: |
+          curl http://studio.localhost/
           docker ps
           echo here should be the cypress tests command
 
