@@ -65,7 +65,7 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
-          install: false
+          install: true
           working-directory: frontend/testing/cypress
           env: environment=local
           spec: src/integration/studio/*.js
