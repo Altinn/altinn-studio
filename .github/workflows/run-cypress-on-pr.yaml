@@ -46,6 +46,10 @@ jobs:
         with:
           cache: 'yarn'
 
+      - name: Print hosts file
+        run: |
+          cat /etc/hosts
+
       - name: Run setup.js script
         run: |
           node ./development/setup.js
