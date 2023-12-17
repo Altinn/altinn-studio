@@ -48,18 +48,18 @@ describe('ProcessEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render "canvas" when bpmnXml is provided and default render is view-mode', async () => {
+  it('should render "canvas" when bpmnXml is provided and default render is edit-mode', async () => {
     // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(() => {
       render();
     });
 
     expect(
-      screen.getByRole('button', { name: textMock('process_editor.edit_mode') }),
+      screen.getByRole('button', { name: textMock('process_editor.save') }),
     ).toBeInTheDocument();
   });
 
-  it('does not display the alert when the version is 8 or newer', async () => {
+  it('does not display the information about too old version when the version is 8 or newer', async () => {
     const user = userEvent.setup();
     render();
 
@@ -80,10 +80,7 @@ describe('ProcessEditor', () => {
     // Fix to remove act error
     await act(() => user.tab());
 
-    const alertHeader = screen.getByRole('heading', {
-      name: textMock('process_editor.too_old_version_title'),
-      level: 1,
-    });
-    expect(alertHeader).toBeInTheDocument();
+    const tooOldText = screen.getByText(textMock('process_editor.too_old_version_title'));
+    expect(tooOldText).toBeInTheDocument();
   });
 });
