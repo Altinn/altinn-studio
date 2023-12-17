@@ -6,7 +6,6 @@ import { textMock } from '../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 
@@ -108,8 +107,7 @@ describe('ImportResourceModal', () => {
 });
 
 const render = (props: Partial<ImportResourceModalProps> = {}) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
+  const allQueries: Partial<ServicesContextProps> = {
     getAltinn2LinkServices,
     importResourceFromAltinn2,
   };

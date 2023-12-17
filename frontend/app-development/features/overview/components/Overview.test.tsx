@@ -3,7 +3,6 @@ import { screen } from '@testing-library/react';
 import { Overview } from './Overview';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { queriesMock } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 // Test data
@@ -121,9 +120,6 @@ describe('Overview', () => {
 const render = (queries = {}) => {
   return renderWithProviders(<Overview />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
-    queries: {
-      ...queriesMock,
-      ...queries,
-    },
+    queries,
   });
 };

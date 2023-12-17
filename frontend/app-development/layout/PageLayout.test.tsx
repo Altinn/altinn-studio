@@ -4,7 +4,6 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
 import { textMock } from '../../testing/mocks/i18nMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
 import { User } from 'app-shared/types/User';
@@ -93,13 +92,8 @@ const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesCont
 };
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
   renderWithProviders(<PageLayout />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
-    queries: allQueries,
+    queries,
   });
 };

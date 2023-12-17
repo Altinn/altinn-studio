@@ -6,7 +6,6 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import * as testids from '../../../../../../testing/testids';
 
@@ -57,8 +56,7 @@ const getRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(okRepoS
 const getRepoPull = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
 const commitAndPushChanges = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
 
-const defaultQueries: ServicesContextProps = {
-  ...queriesMock,
+const defaultQueries: Partial<ServicesContextProps> = {
   getRepoMetadata,
   getRepoStatus,
   getRepoPull,
@@ -103,7 +101,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     await act(() => user.click(shareButton));
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
     expect(
-      await screen.findByText(textMock('sync_header.describe_and_validate'))
+      await screen.findByText(textMock('sync_header.describe_and_validate')),
     ).toBeInTheDocument();
   });
 
@@ -134,7 +132,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     await act(() => user.click(shareButton));
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
     expect(
-      await screen.findByText(textMock('sync_header.describe_and_validate'))
+      await screen.findByText(textMock('sync_header.describe_and_validate')),
     ).toBeInTheDocument();
   });
 
@@ -153,8 +151,8 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
     await act(() =>
       user.click(
-        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') })
-      )
+        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
+      ),
     );
     await waitFor(() => expect(commitAndPushChanges).toHaveBeenCalledTimes(1));
   });
@@ -177,8 +175,8 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
     await act(() =>
       user.click(
-        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') })
-      )
+        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
+      ),
     );
     await waitFor(() => expect(mockCommitAndPushChanges).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(mockConsoleError).toHaveBeenCalledTimes(1));
@@ -207,22 +205,22 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
     await act(() =>
       user.click(
-        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') })
-      )
+        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
+      ),
     );
     expect(mockConsoleError).toHaveBeenCalled();
     expect(
-      await screen.findByText(textMock('sync_header.merge_conflict_occured'))
+      await screen.findByText(textMock('sync_header.merge_conflict_occured')),
     ).toBeInTheDocument();
   });
 });
 
 const render = (
   props: Partial<IVersionControlButtonsProps> = {},
-  queries: Partial<ServicesContextProps> = {}
+  queries: Partial<ServicesContextProps> = {},
 ) =>
   renderRtl(
     <ServicesContextProvider {...{ ...defaultQueries, ...queries }} client={queryClientMock}>
       <VersionControlButtons {...{ ...defaultProps, ...props }} />
-    </ServicesContextProvider>
+    </ServicesContextProvider>,
   );

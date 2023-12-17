@@ -3,7 +3,6 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AppEnvironments } from './AppEnvironments';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { queriesMock } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 // Test data
@@ -13,10 +12,7 @@ const app = 'app';
 const render = (queries = {}) => {
   return renderWithProviders(<AppEnvironments />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
-    queries: {
-      ...queriesMock,
-      ...queries,
-    },
+    queries,
   });
 };
 

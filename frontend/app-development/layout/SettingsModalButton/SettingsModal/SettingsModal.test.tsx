@@ -11,7 +11,6 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
@@ -245,13 +244,9 @@ const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
   return rtlRender(
     <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
+      <ServicesContextProvider {...queries} client={queryClient}>
         <SettingsModal {...props} />
       </ServicesContextProvider>
     </MemoryRouter>,

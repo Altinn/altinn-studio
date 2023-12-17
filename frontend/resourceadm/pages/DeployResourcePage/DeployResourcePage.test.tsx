@@ -8,7 +8,6 @@ import {
 import { DeployResourcePage, DeployResourcePageProps } from './DeployResourcePage';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
@@ -410,7 +409,6 @@ const render = (
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
-    ...queriesMock,
     getRepoStatus,
     getResourcePublishStatus,
     getValidatePolicy,

@@ -12,7 +12,6 @@ import userEvent from '@testing-library/user-event';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockSelectedContext: string = 'selectedContext';
 const mockEnv: string = 'env1';
@@ -130,7 +129,6 @@ const render = (
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
-    ...queriesMock,
     getAltinn2LinkServices,
     ...queries,
   };

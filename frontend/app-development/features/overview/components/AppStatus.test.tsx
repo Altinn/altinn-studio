@@ -3,7 +3,6 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AppStatus } from './AppStatus';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { queriesMock } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 // Test data
@@ -15,10 +14,7 @@ const envTypeTest = 'test';
 const render = (queries = {}, envName = envNameTest, envType = envTypeTest) => {
   return renderWithProviders(<AppStatus envName={envName} envType={envType} />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
-    queries: {
-      ...queriesMock,
-      ...queries,
-    },
+    queries,
   });
 };
 
