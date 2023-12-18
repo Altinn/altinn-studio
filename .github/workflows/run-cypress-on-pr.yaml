@@ -54,10 +54,6 @@ jobs:
         run: |
           node ./development/setup.js
 
-      - name: Wait 30 seconds
-        run: |
-          sleep 30s
-
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
