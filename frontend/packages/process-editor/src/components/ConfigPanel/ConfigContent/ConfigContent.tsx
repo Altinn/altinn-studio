@@ -1,28 +1,46 @@
 import React from 'react';
 import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
+import { LinkIcon } from '@studio/icons';
 import { Divider, Heading, HelpText, Link, Paragraph, Select } from '@digdir/design-system-react';
+import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { ConfigIcon } from './ConfigIcon';
 import { ConfigDetailsRow } from './ConfigDetailsRow';
-import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
-import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { ConfigSectionWrapper } from './ConfigSectionWrapper';
-import { LinkIcon } from '@studio/icons';
-import { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
+import {
+  getConfigTitleKey,
+  getConfigTitleHelpTextKey,
+  getSelectedDataTypes,
+  getApplicationMetadataWithUpdatedDataTypes,
+  getValidDataTypeIdsAndTaskIds,
+} from '../../../utils/configPanelUtils';
+import { useBpmnContext } from '../../../contexts/BpmnContext';
+import { DataTypeIdAndTaskId } from '../../../types/DataTypeIdAndTaskId';
 
 export const ConfigContent = (): JSX.Element => {
   const { t } = useTranslation();
-  const { bpmnDetails, applicationMetadata } = useBpmnContext();
+  const { bpmnDetails, applicationMetadata, updateApplicationMetadata } = useBpmnContext();
 
-  console.log('applicationMetadata', applicationMetadata);
-
-  const allDataTypes: string[] = getValidDataTypeIds(applicationMetadata);
-  console.log('allDataTypes', allDataTypes);
+  const allDataTypes: DataTypeIdAndTaskId[] = getValidDataTypeIdsAndTaskIds(applicationMetadata);
   const showCreateDatamodelLink: boolean = allDataTypes.length === 0;
-  // TODO useState for selected and not selected
 
+  const dataTypeOptions = allDataTypes.map((data) => ({
+    value: data.dataTypeId,
+    label: data.dataTypeId,
+  }));
+
+  const dataTypeValues = getSelectedDataTypes(bpmnDetails.id, allDataTypes);
   const configTitle = t(getConfigTitleKey(bpmnDetails?.taskType));
   const configHeaderHelpText = t(getConfigTitleHelpTextKey(bpmnDetails?.taskType));
+
+  const updateDataTasksInApplicationMetadata = (taskIds: string[]) => {
+    const updatedApplicationMetadata: ApplicationMetadata =
+      getApplicationMetadataWithUpdatedDataTypes(applicationMetadata, bpmnDetails.id, taskIds);
+
+    // TODO - Handle when remove
+
+    updateApplicationMetadata(updatedApplicationMetadata);
+  };
 
   return (
     <>
@@ -52,10 +70,6 @@ export const ConfigContent = (): JSX.Element => {
         />
       </ConfigSectionWrapper>
       <ConfigSectionWrapper>
-        {/*
-          IF Datamodel exists, show drop down with models
-          ELSE show LINK to Datamodel page
-        */}
         {showCreateDatamodelLink ? (
           <div className={classes.datamodelLinkWrapper}>
             <LinkIcon className={classes.linkIcon} />
@@ -65,9 +79,9 @@ export const ConfigContent = (): JSX.Element => {
         ) : (
           <Select
             label={t('process_editor.select_datamodel_label')}
-            options={[]}
-            onChange={() => {}}
-            value={[]}
+            options={dataTypeOptions}
+            onChange={updateDataTasksInApplicationMetadata}
+            value={dataTypeValues}
             multiple
           />
         )}
@@ -75,22 +89,3 @@ export const ConfigContent = (): JSX.Element => {
     </>
   );
 };
-// TODO move
-const getValidDataTypeIds = (applicationMetadata: ApplicationMetadata): string[] => {
-  if (!applicationMetadata.dataTypes) return [];
-
-  const dataTypesWithoutRefDataAsPdf: DataTypeElement[] = filterOutRefDataAsPdf(
-    applicationMetadata.dataTypes,
-  );
-
-  if (dataTypesWithoutRefDataAsPdf.length === 0) return [];
-
-  return mapDataTypesToDataTypeIds(dataTypesWithoutRefDataAsPdf);
-};
-
-const filterOutRefDataAsPdf = (dataTypes: DataTypeElement[]): DataTypeElement[] => {
-  return dataTypes.filter((dataType: DataTypeElement) => dataType.id !== 'ref-data-as-pdf');
-};
-
-const mapDataTypesToDataTypeIds = (dataTypes: DataTypeElement[]): string[] =>
-  dataTypes.map((dataType: DataTypeElement) => dataType.id);
