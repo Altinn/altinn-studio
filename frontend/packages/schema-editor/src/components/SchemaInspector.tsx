@@ -17,9 +17,7 @@ export const SchemaInspector = () => {
   if (!selectedItem) {
     return (
       <div>
-        <p className={classes.noItem} id='no-item-paragraph'>
-          {t('schema_editor.no_item_selected')}
-        </p>
+        <p className={classes.noItem}>{t('schema_editor.no_item_selected')}</p>
         <Divider />
       </div>
     );

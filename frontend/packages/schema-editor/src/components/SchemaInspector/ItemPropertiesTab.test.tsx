@@ -44,7 +44,7 @@ describe('ItemPropertiesTab', () => {
     expect(screen.getByText(textMock('combination_inline_object_disclaimer'))).toBeDefined();
   });
 
-  it('should render explanation message if no node is root pointer', () => {
+  it('should render explanation message if the selected item is a root node', () => {
     const rootNode: FieldNode = {
       ...rootNodeMock,
       pointer: '#', // root pointer
