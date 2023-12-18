@@ -1,4 +1,5 @@
-import { queriesMock, formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { AddLayoutMutationArgs, useAddLayoutMutation } from './useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';

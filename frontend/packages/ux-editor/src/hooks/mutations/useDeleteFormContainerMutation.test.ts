@@ -1,4 +1,5 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
@@ -22,18 +23,19 @@ describe('useDeleteFormContainerMutation', () => {
       selectedLayoutSet,
       expect.objectContaining({
         data: expect.objectContaining({
-          layout: expect.not.arrayContaining([
-            expect.objectContaining({ id })
-          ])
-        })
-      })
+          layout: expect.not.arrayContaining([expect.objectContaining({ id })]),
+        }),
+      }),
     );
   });
 });
 
-
 const renderDeleteFormContainerMutation = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() =>
+    useFormLayoutsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  return  renderHookWithMockStore()(() => useDeleteFormContainerMutation(org, app, selectedLayoutSet)).renderHookResult;
-}
+  return renderHookWithMockStore()(() =>
+    useDeleteFormContainerMutation(org, app, selectedLayoutSet),
+  ).renderHookResult;
+};

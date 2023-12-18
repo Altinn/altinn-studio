@@ -7,7 +7,7 @@ import { FormContextProvider } from '../FormContext';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
-import { queriesMock } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';

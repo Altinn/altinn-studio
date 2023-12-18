@@ -1,7 +1,11 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
-import { UpdateLayoutOrderMutationArgs, useUpdateLayoutOrderMutation } from './useUpdateLayoutOrderMutation';
+import {
+  UpdateLayoutOrderMutationArgs,
+  useUpdateLayoutOrderMutation,
+} from './useUpdateLayoutOrderMutation';
 import { layout1NameMock, layout2NameMock } from '../../testing/layoutMock';
 
 // Test data:
@@ -15,13 +19,13 @@ describe('useUpdateLayoutOrderMutation', () => {
   it('Moves layout down when direction is set to "down"', async () => {
     await renderAndWaitForData();
 
-    const updateLayoutOrderResult = renderHookWithMockStore()(() => useUpdateLayoutOrderMutation(org, app, selectedLayoutSet))
-      .renderHookResult
-      .result;
+    const updateLayoutOrderResult = renderHookWithMockStore()(() =>
+      useUpdateLayoutOrderMutation(org, app, selectedLayoutSet),
+    ).renderHookResult.result;
 
     const args: UpdateLayoutOrderMutationArgs = {
       layoutName: layout1NameMock,
-      direction: 'down'
+      direction: 'down',
     };
     await updateLayoutOrderResult.current.mutateAsync(args);
 
@@ -32,22 +36,22 @@ describe('useUpdateLayoutOrderMutation', () => {
       selectedLayoutSet,
       expect.objectContaining({
         pages: expect.objectContaining({
-          order: [layout2NameMock, layout1NameMock]
-        })
-      })
+          order: [layout2NameMock, layout1NameMock],
+        }),
+      }),
     );
   });
 
   it('Moves layout up when direction is set to "up"', async () => {
     await renderAndWaitForData();
 
-    const updateLayoutOrderResult = renderHookWithMockStore()(() => useUpdateLayoutOrderMutation(org, app, selectedLayoutSet))
-      .renderHookResult
-      .result;
+    const updateLayoutOrderResult = renderHookWithMockStore()(() =>
+      useUpdateLayoutOrderMutation(org, app, selectedLayoutSet),
+    ).renderHookResult.result;
 
     const args: UpdateLayoutOrderMutationArgs = {
       layoutName: layout2NameMock,
-      direction: 'up'
+      direction: 'up',
     };
     await updateLayoutOrderResult.current.mutateAsync(args);
 
@@ -58,14 +62,16 @@ describe('useUpdateLayoutOrderMutation', () => {
       selectedLayoutSet,
       expect.objectContaining({
         pages: expect.objectContaining({
-          order: [layout2NameMock, layout1NameMock]
-        })
-      })
+          order: [layout2NameMock, layout1NameMock],
+        }),
+      }),
     );
   });
 });
 
 const renderAndWaitForData = async () => {
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

@@ -1,4 +1,5 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useRuleModelQuery } from './useRuleModelQuery';
 import {
@@ -42,39 +43,41 @@ describe('useRuleModelQuery', () => {
         name: rule1Name,
         inputs: {
           [rule1Input1Name]: rule1Input1Label,
-          [rule1Input2Name]: rule1Input2Label
+          [rule1Input2Name]: rule1Input2Label,
         },
-        type: 'rule'
+        type: 'rule',
       },
       {
         name: rule2Name,
         inputs: {
           [rule2Input1Name]: rule2Input1Label,
-          [rule2Input2Name]: rule2Input2Label
+          [rule2Input2Name]: rule2Input2Label,
         },
-        type: 'rule'
+        type: 'rule',
       },
       {
         name: condition1Name,
         inputs: { [condition1Input1Name]: condition1Input1Label },
-        type: 'condition'
+        type: 'condition',
       },
       {
         name: condition2Name,
         inputs: { [condition2Input1Name]: condition2Input1Label },
-        type: 'condition'
+        type: 'condition',
       },
       {
         name: condition3Name,
         inputs: { [condition3Input1Name]: condition3Input1Label },
-        type: 'condition'
-      }
+        type: 'condition',
+      },
     ]);
   });
 });
 
 const renderAndWaitForSuccess = async () => {
-  const { renderHookResult } = renderHookWithMockStore()(() => useRuleModelQuery(org, app, selectedLayoutSet));
+  const { renderHookResult } = renderHookWithMockStore()(() =>
+    useRuleModelQuery(org, app, selectedLayoutSet),
+  );
   await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
   return renderHookResult;
 };

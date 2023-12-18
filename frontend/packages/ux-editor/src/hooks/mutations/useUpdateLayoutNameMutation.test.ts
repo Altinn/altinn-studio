@@ -1,8 +1,12 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
-import { UpdateLayoutNameMutationArgs, useUpdateLayoutNameMutation } from './useUpdateLayoutNameMutation';
+import {
+  UpdateLayoutNameMutationArgs,
+  useUpdateLayoutNameMutation,
+} from './useUpdateLayoutNameMutation';
 import { layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:
@@ -19,20 +23,30 @@ describe('useUpdateLayoutNameMutation', () => {
   it('Updates layout name', async () => {
     await renderAndWaitForData();
 
-    const updateLayoutNameResult = renderHookWithMockStore()(() => useUpdateLayoutNameMutation(org, app, selectedLayoutSet))
-      .renderHookResult
-      .result;
+    const updateLayoutNameResult = renderHookWithMockStore()(() =>
+      useUpdateLayoutNameMutation(org, app, selectedLayoutSet),
+    ).renderHookResult.result;
 
     await updateLayoutNameResult.current.mutateAsync(args);
 
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(org, app, oldName, newName, selectedLayoutSet);
+    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(
+      org,
+      app,
+      oldName,
+      newName,
+      selectedLayoutSet,
+    );
   });
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore()(() =>
+    useFormLayoutsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore()(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
-}
+};
