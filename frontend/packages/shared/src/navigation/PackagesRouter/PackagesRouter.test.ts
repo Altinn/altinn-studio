@@ -5,13 +5,6 @@ const mockApp: string = 'app';
 
 describe('PackagesRouter', () => {
   describe('constructor', () => {
-    it('should initialize app and org properties', () => {
-      const packagesRouter = new PackagesRouter({ org: mockOrg, app: mockApp });
-
-      expect(packagesRouter['app']).toEqual(mockApp);
-      expect(packagesRouter['org']).toEqual(mockOrg);
-    });
-
     it('should default to empty strings if app and org are not provided', () => {
       const routerWithoutParams = new PackagesRouter({});
       expect(routerWithoutParams['app']).toEqual('');
@@ -20,7 +13,7 @@ describe('PackagesRouter', () => {
   });
 
   describe('navigateToPackage', () => {
-    it('should navigate to the correct URL without subUrl', () => {
+    it('should navigate to the correct "editor/overview page when the location parameter is set to "editorOverview"', () => {
       const packagesRouter = new PackagesRouter({ org: mockOrg, app: mockApp });
       const expectedUrl = `/editor/${mockOrg}/${mockApp}/overview`;
 
@@ -36,11 +29,11 @@ describe('PackagesRouter', () => {
       expect(assignMock).toHaveBeenCalledWith(expectedUrl);
     });
 
-    it('should navigate to the correct URL with subUrl', () => {
+    it('should navigate to the correct URL and include queryParams', () => {
       const packagesRouter = new PackagesRouter({ org: mockOrg, app: mockApp });
 
-      const mockSubUrl = '?layout=123';
-      const expectedUrl = `/editor/${mockOrg}/${mockApp}/ui-editor${mockSubUrl}`;
+      const mockQueryParams = '?layout=123';
+      const expectedUrl = `/editor/${mockOrg}/${mockApp}/ui-editor${mockQueryParams}`;
 
       const assignMock = jest.fn();
       Object.defineProperty(window, 'location', {
@@ -48,7 +41,7 @@ describe('PackagesRouter', () => {
         writable: true,
       });
 
-      packagesRouter.navigateToPackage('editorUiEditor', mockSubUrl);
+      packagesRouter.navigateToPackage('editorUiEditor', mockQueryParams);
 
       expect(assignMock).toHaveBeenCalledWith(expectedUrl);
     });
