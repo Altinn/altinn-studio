@@ -83,6 +83,7 @@ export const ConfigContent = (): JSX.Element => {
             </Link>
           </div>
         ) : (
+          /* TODO - Replace with Combobox when published - Issue: ____ */
           <Select
             label={t('process_editor.select_datamodel_label')}
             options={dataTypeOptions}

@@ -104,6 +104,8 @@ export const getApplicationMetadataWithUpdatedDataTypes = (
   applicationMetadata.dataTypes.forEach((dataType: DataTypeElement, i: number) => {
     if (selectedTaskIds.includes(dataType.id)) {
       copied.dataTypes[i].taskId = bpmnTaskId;
+    } else {
+      copied.dataTypes[i].taskId = null;
     }
   });
   return copied;
