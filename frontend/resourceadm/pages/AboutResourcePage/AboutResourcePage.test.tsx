@@ -1,4 +1,5 @@
 import React from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import { AboutResourcePageProps, AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
@@ -14,6 +15,7 @@ import {
   getMissingInputLanguageString,
   mapKeywordsArrayToString,
 } from 'resourceadm/utils/resourceUtils/resourceUtils';
+import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 
 const mockContactPoint: ResourceContactPoint = {
   category: 'test',
@@ -316,5 +318,22 @@ describe('AboutResourcePage', () => {
         ),
       ),
     ).not.toBeInTheDocument();
+  });
+
+  it('should display party list links when RRR is enabled', () => {
+    addFeatureFlagToLocalStorage('resourcePartyLists');
+
+    render(
+      <MemoryRouter>
+        <AboutResourcePage
+          {...defaultProps}
+          resourceData={{ ...mockResource2, limitedByRRR: true }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_edit_rrr', { env: 'TT02' })),
+    ).toBeInTheDocument();
   });
 });
