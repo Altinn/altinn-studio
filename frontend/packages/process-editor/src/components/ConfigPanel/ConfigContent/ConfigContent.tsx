@@ -16,10 +16,15 @@ import {
 } from '../../../utils/configPanelUtils';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { DataTypeIdAndTaskId } from '../../../types/DataTypeIdAndTaskId';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const ConfigContent = (): JSX.Element => {
   const { t } = useTranslation();
   const { bpmnDetails, applicationMetadata, updateApplicationMetadata } = useBpmnContext();
+  const { org, app } = useStudioUrlParams();
+
+  const packagesRouter = new PackagesRouter({ org, app });
 
   const allDataTypes: DataTypeIdAndTaskId[] = getValidDataTypeIdsAndTaskIds(applicationMetadata);
   const showCreateDatamodelLink: boolean = allDataTypes.length === 0;
@@ -73,8 +78,9 @@ export const ConfigContent = (): JSX.Element => {
         {showCreateDatamodelLink ? (
           <div className={classes.datamodelLinkWrapper}>
             <LinkIcon className={classes.linkIcon} />
-            {/* TODO - FIX href */}
-            <Link href={'/datamodel'}>{t('process_editor.create_new_datamodel_link')}</Link>
+            <Link href={packagesRouter.getPackageNavigationUrl('editorDatamodel')}>
+              {t('process_editor.create_new_datamodel_link')}
+            </Link>
           </div>
         ) : (
           <Select

@@ -7,6 +7,7 @@ type PackagesRoute =
   | 'dashboard'
   | 'editorOverview'
   | 'editorUiEditor'
+  | 'editorDatamodel'
   | 'preview'
   | 'editorPublish';
 
@@ -14,6 +15,7 @@ const packagesRoutes: Record<PackagesRoute, string> = {
   dashboard: '/dashboard',
   editorOverview: '/editor/{{org}}/{{app}}/overview',
   editorUiEditor: '/editor/{{org}}/{{app}}/ui-editor',
+  editorDatamodel: '/editor/{{org}}/{{app}}/datamodel',
   editorPublish: '/editor/{{org}}/{{app}}/deploy',
   preview: '/preview/{{org}}/{{app}}',
 };
