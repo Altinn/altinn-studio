@@ -10,7 +10,7 @@ type PackagesRoute =
   | 'preview'
   | 'editorPublish';
 
-const packagesRoutes = {
+const packagesRoutes: Record<PackagesRoute, string> = {
   dashboard: '/dashboard',
   editorOverview: '/editor/{{org}}/{{app}}/overview',
   editorUiEditor: '/editor/{{org}}/{{app}}/ui-editor',
@@ -27,8 +27,8 @@ export class PackagesRouter {
     this.org = this.paramsOptions.org ?? '';
   }
 
-  public navigateToPackage(packageRoute: PackagesRoute, subUrl?: string): void {
-    window.location.assign(`${this.getPackageNavigationUrl(packageRoute)}${subUrl ? subUrl : ''}`);
+  public navigateToPackage(packageRoute: PackagesRoute, queryParams?: string): void {
+    window.location.assign(`${this.getPackageNavigationUrl(packageRoute)}${queryParams ?? ''}`);
   }
 
   public getPackageNavigationUrl(packageRoute: PackagesRoute): string {
