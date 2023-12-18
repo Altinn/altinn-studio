@@ -942,7 +942,7 @@
   "schema_editor.add": "Legg til",
   "schema_editor.add_combination": "Legg til kombinasjon",
   "schema_editor.add_element": "Legg til element",
-  "schema_editor.add_enum": "Legg til gyldig verdi",
+  "schema_editor.add_enum": "Legg til ny verdi",
   "schema_editor.add_field": "Legg til felt",
   "schema_editor.add_property": "Legg til felt",
   "schema_editor.add_reference": "Legg til referanse",
