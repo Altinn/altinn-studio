@@ -67,7 +67,7 @@ export const SimpleResourcePartyLists = ({
   };
 
   if (isLoadingEnvListData || isLoadingConnectedLists) {
-    return <StudioSpinner />;
+    return <StudioSpinner spinnerText='Laster...' />;
   }
 
   if (envListDataError || connectedListsError) {

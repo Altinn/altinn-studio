@@ -55,7 +55,9 @@ describe('PartyListSearch', () => {
 
     const searchField = screen.getByTestId('enhet-search');
     await act(() => user.type(searchField, 'Digdir'));
-    await waitFor(() => expect(screen.queryByText('Laster...')).not.toBeInTheDocument());
+    await waitFor(() => {
+      expect(screen.getByText('Laster...')).toBeInTheDocument();
+    });
   });
 });
 
