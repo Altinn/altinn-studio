@@ -98,6 +98,7 @@ export const getUser = () => get<User>(userCurrentPath());
 export const getWidgetSettings = (owner: string, app: string) => get<WidgetSettingsResponse | null>(widgetSettingsPath(owner, app));
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
+export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
 
 export const getExpressionSchema = () => get<string[]>(expressionSchemaUrl());
 export const getLayoutSchema = () => get<string[]>(layoutSchemaUrl());
@@ -108,7 +109,6 @@ export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchema
 // Settings modal
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
 export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
-export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
 
 // Resourceadm
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));

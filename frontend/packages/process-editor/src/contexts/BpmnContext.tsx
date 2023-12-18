@@ -3,6 +3,7 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import Modeler from 'bpmn-js/lib/Modeler';
 import React, { MutableRefObject, createContext, useContext, useRef, useState } from 'react';
 import { BpmnDetails } from '../types/BpmnDetails';
+import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 export type BpmnContextProps = {
   bpmnXml: string;
@@ -14,6 +15,8 @@ export type BpmnContextProps = {
   appLibVersion: string;
   bpmnDetails: BpmnDetails;
   setBpmnDetails: React.Dispatch<React.SetStateAction<BpmnDetails>>;
+  applicationMetadata: ApplicationMetadata;
+  updateApplicationMetadata: (applicationMetadata: ApplicationMetadata) => void;
 };
 
 export const BpmnContext = createContext<BpmnContextProps>({
@@ -26,17 +29,24 @@ export const BpmnContext = createContext<BpmnContextProps>({
   appLibVersion: '',
   bpmnDetails: null,
   setBpmnDetails: () => {},
+  applicationMetadata: null,
+  updateApplicationMetadata: () => {},
 });
 
 export type BpmnContextProviderProps = {
   children: React.ReactNode;
   bpmnXml: string | undefined | null;
   appLibVersion: string;
+  applicationMetadata: ApplicationMetadata;
+  updateApplicationMetadata: (applicationMetadata: ApplicationMetadata) => void;
 };
+
 export const BpmnContextProvider = ({
   bpmnXml,
   children,
   appLibVersion,
+  applicationMetadata,
+  updateApplicationMetadata,
 }: BpmnContextProviderProps) => {
   const [numberOfUnsavedChanges, setNumberOfUnsavedChanges] = useState(0);
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
@@ -71,6 +81,8 @@ export const BpmnContextProvider = ({
         appLibVersion,
         bpmnDetails,
         setBpmnDetails,
+        applicationMetadata,
+        updateApplicationMetadata,
       }}
     >
       {children}

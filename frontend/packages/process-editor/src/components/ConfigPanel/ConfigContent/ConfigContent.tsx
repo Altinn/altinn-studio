@@ -8,10 +8,18 @@ import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/con
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { ConfigSectionWrapper } from './ConfigSectionWrapper';
 import { LinkIcon } from '@studio/icons';
+import { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 
 export const ConfigContent = (): JSX.Element => {
   const { t } = useTranslation();
-  const { bpmnDetails } = useBpmnContext();
+  const { bpmnDetails, applicationMetadata } = useBpmnContext();
+
+  console.log('applicationMetadata', applicationMetadata);
+
+  const allDataTypes: string[] = getValidDataTypeIds(applicationMetadata);
+  console.log('allDataTypes', allDataTypes);
+  const showCreateDatamodelLink: boolean = allDataTypes.length === 0;
+  // TODO useState for selected and not selected
 
   const configTitle = t(getConfigTitleKey(bpmnDetails?.taskType));
   const configHeaderHelpText = t(getConfigTitleHelpTextKey(bpmnDetails?.taskType));
@@ -48,28 +56,41 @@ export const ConfigContent = (): JSX.Element => {
           IF Datamodel exists, show drop down with models
           ELSE show LINK to Datamodel page
         */}
-        {1 === 2 ? (
-          <Select
-            label={t('process_editor.select_datamodel_label')}
-            options={[]}
-            onChange={() => {}}
-            value={''}
-          />
-        ) : (
+        {showCreateDatamodelLink ? (
           <div className={classes.datamodelLinkWrapper}>
             <LinkIcon className={classes.linkIcon} />
             {/* TODO - FIX href */}
             <Link href={'/datamodel'}>{t('process_editor.create_new_datamodel_link')}</Link>
           </div>
+        ) : (
+          <Select
+            label={t('process_editor.select_datamodel_label')}
+            options={[]}
+            onChange={() => {}}
+            value={[]}
+            multiple
+          />
         )}
       </ConfigSectionWrapper>
     </>
   );
 };
+// TODO move
+const getValidDataTypeIds = (applicationMetadata: ApplicationMetadata): string[] => {
+  if (!applicationMetadata.dataTypes) return [];
 
-/**
- *           options={authLevelOptionKeysAsDisplayStrings}
-          onChange={(authLevel: RequiredAuthLevel) => onSave(authLevel)}
-          value={requiredAuthenticationLevelEndUser}
-          inputId={SELECT_AUTH_LEVEL_ID}
- */
+  const dataTypesWithoutRefDataAsPdf: DataTypeElement[] = filterOutRefDataAsPdf(
+    applicationMetadata.dataTypes,
+  );
+
+  if (dataTypesWithoutRefDataAsPdf.length === 0) return [];
+
+  return mapDataTypesToDataTypeIds(dataTypesWithoutRefDataAsPdf);
+};
+
+const filterOutRefDataAsPdf = (dataTypes: DataTypeElement[]): DataTypeElement[] => {
+  return dataTypes.filter((dataType: DataTypeElement) => dataType.id !== 'ref-data-as-pdf');
+};
+
+const mapDataTypesToDataTypeIds = (dataTypes: DataTypeElement[]): string[] =>
+  dataTypes.map((dataType: DataTypeElement) => dataType.id);
