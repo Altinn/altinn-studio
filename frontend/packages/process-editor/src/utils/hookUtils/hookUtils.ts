@@ -10,18 +10,14 @@ import type { BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEdi
 export const getBpmnViewerDetailsFromBusinessObject = (
   businessObject: BpmnBusinessObjectViewer,
 ): BpmnDetails => {
-  console.log('businessobject', businessObject);
-  const bpmnType = businessObject?.$type;
-  const bpmnId = businessObject?.id;
-  const bpmnName = businessObject?.name;
   const bpmnAttrs = businessObject?.$attrs;
   const bpmnTasktype = bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
 
   const bpmnDetails: BpmnDetails = {
-    id: bpmnId,
-    name: bpmnName,
+    id: businessObject?.id,
+    name: businessObject?.name,
     taskType: bpmnTasktype,
-    type: bpmnType,
+    type: businessObject?.$type,
   };
   return bpmnDetails;
 };
@@ -34,22 +30,17 @@ export const getBpmnViewerDetailsFromBusinessObject = (
 export const getBpmnEditorDetailsFromBusinessObject = (
   businessObject: BpmnBusinessObjectEditor,
 ): BpmnDetails => {
-  const bpmnType = businessObject?.$type;
-  const bpmnId = businessObject?.id;
-  const bpmnName = businessObject?.name;
-
-  const extensionElements = businessObject?.extensionElements;
-  const values = extensionElements?.values;
-  const taskTypeFromV8 = values ? values[0].taskType : null;
+  const extensionElementsValues = businessObject?.extensionElements?.values;
+  const taskTypeFromV8 = extensionElementsValues ? extensionElementsValues[0].taskType : null;
 
   const bpmnAttrs = businessObject.$attrs;
   const taskTypeFromV7 = bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
 
   const bpmnDetails: BpmnDetails = {
-    id: bpmnId,
-    name: bpmnName,
+    id: businessObject?.id,
+    name: businessObject?.name,
     taskType: taskTypeFromV8 || taskTypeFromV7,
-    type: bpmnType,
+    type: businessObject?.$type,
   };
   return bpmnDetails;
 };
