@@ -9,18 +9,6 @@ import { PartyListSearch } from './PartyListSearch';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-const enhetSearchResult = {
-  _embedded: {
-    enheter: [{ organisasjonsnummer: '123456789', navn: 'Digdir' }],
-  },
-};
-
-const underenhetSearchResult = {
-  _embedded: {
-    underenheter: [{ organisasjonsnummer: '987654321', navn: 'Under Digdir' }],
-  },
-};
-
 const handleAddMemberMock = jest.fn();
 
 const defaultProps = {
@@ -38,7 +26,22 @@ const user = userEvent.setup();
 
 describe('PartyListSearch', () => {
   it('should call handleAddMember when enhet is selected', async () => {
-    render();
+    render({
+      getEnheter: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          _embedded: {
+            enheter: [{ organisasjonsnummer: '123456789', navn: 'Digdir' }],
+          },
+        }),
+      ),
+      getUnderenheter: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          _embedded: {
+            underenheter: [{ organisasjonsnummer: '987654321', navn: 'Under Digdir' }],
+          },
+        }),
+      ),
+    });
 
     const searchField = screen.getByTestId('enhet-search');
     await act(() => user.type(searchField, 'Digdir'));
@@ -51,7 +54,23 @@ describe('PartyListSearch', () => {
   });
 
   it('should show spinner when loading enheter', async () => {
-    render();
+    render({
+      getEnheter: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getUnderenheter: jest.fn().mockImplementation(() => Promise.resolve({})),
+    });
+
+    const searchField = screen.getByTestId('enhet-search');
+    await act(() => user.type(searchField, 'Digdir'));
+    await waitFor(() => {
+      expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    });
+  });
+
+  it('should show message when no enheter are found', async () => {
+    render({
+      getEnheter: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getUnderenheter: jest.fn().mockImplementation(() => Promise.resolve({})),
+    });
 
     const searchField = screen.getByTestId('enhet-search');
     await act(() => user.type(searchField, 'Digdir'));
@@ -61,11 +80,10 @@ describe('PartyListSearch', () => {
   });
 });
 
-const render = () => {
+const render = (queries: Partial<ServicesContextProps> = {}) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getEnheter: jest.fn().mockImplementation(() => Promise.resolve(enhetSearchResult)),
-    getUnderenheter: jest.fn().mockImplementation(() => Promise.resolve(underenhetSearchResult)),
+    ...queries,
   };
 
   return rtlRender(
