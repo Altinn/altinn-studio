@@ -49,6 +49,14 @@ describe('PartyListSearch', () => {
 
     expect(handleAddMemberMock).toHaveBeenCalled();
   });
+
+  it('should show spinner when loading enheter', async () => {
+    render();
+
+    const searchField = screen.getByTestId('enhet-search');
+    await act(() => user.type(searchField, 'Digdir'));
+    await waitFor(() => expect(screen.queryByText('Laster...')).not.toBeInTheDocument());
+  });
 });
 
 const render = () => {

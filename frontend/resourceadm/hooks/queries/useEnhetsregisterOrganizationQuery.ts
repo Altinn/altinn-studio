@@ -5,7 +5,6 @@ import {
   BrregOrganizationResult,
   BrregUnderOrganizationResult,
 } from 'app-shared/types/ResourceAdm';
-import { get } from 'app-shared/utils/networking';
 import { AxiosError } from 'axios';
 
 const getQueryUrl = (enhetType: string, search: string) => {
