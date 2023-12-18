@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Button,
@@ -36,6 +37,8 @@ export const PartyListDetail = ({
   list,
   backUrl,
 }: PartyListDetailProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const deleteWarningModalRef = useRef<HTMLDialogElement>(null);
   const navigate = useNavigate();
   const [listItems, setListItems] = useState<(PartyListMember & { isDeleted?: boolean })[]>(
@@ -98,35 +101,35 @@ export const PartyListDetail = ({
   return (
     <div className={classes.partyListDetailWrapper}>
       <Modal ref={deleteWarningModalRef} onClose={closeModal}>
-        <Modal.Header>Bekreft sletting av liste</Modal.Header>
-        <Modal.Content>Vil du slette denne listen?</Modal.Content>
+        <Modal.Header>{t('resourceadm.listadmin_delete_list_header')}</Modal.Header>
+        <Modal.Content>{t('resourceadm.listadmin_delete_list_description')}</Modal.Content>
         <Modal.Footer>
           <Button color='danger' onClick={() => handleDelete()}>
-            Slett liste
+            {t('resourceadm.listadmin_delete_list')}
           </Button>
           <Button variant='tertiary' onClick={closeModal}>
-            Avbryt
+            {t('general.cancel')}
           </Button>
         </Modal.Footer>
       </Modal>
       <div>
         <DigdirLink to={backUrl} as={Link}>
-          Tilbake
+          {t('general.back')}
         </DigdirLink>
       </div>
       <Heading level={1} size='large'>
-        Administrer enhetsliste
+        {t('resourceadm.listadmin_list_detail_header')}
       </Heading>
       <FieldWrapper
-        label='Liste-id'
-        description='Liste-id brukes for å identifisere listen, og kan ikke endres'
+        label={t('resourceadm.listadmin_list_id')}
+        description={t('resourceadm.listadmin_list_id_description')}
       >
         <Textfield value={list.identifier} disabled />
       </FieldWrapper>
       <FieldWrapper
         fieldId='listname'
-        label='Listenavn'
-        description='Gi listen et beskrivende navn, f.eks "Godkjente banker"'
+        label={t('resourceadm.listadmin_list_name')}
+        description={t('resourceadm.listadmin_list_id_description')}
         ariaDescriptionId='listname-description'
       >
         <Textfield
@@ -139,8 +142,8 @@ export const PartyListDetail = ({
       </FieldWrapper>
       <FieldWrapper
         fieldId='listdescription'
-        label='Beskrivelse'
-        description='Her kan du beskrive listen'
+        label={t('resourceadm.listadmin_list_description')}
+        description={t('resourceadm.listadmin_list_description_description')}
         ariaDescriptionId='listdescription-description'
       >
         <Textfield
@@ -152,15 +155,15 @@ export const PartyListDetail = ({
         />
       </FieldWrapper>
       <FieldWrapper
-        label='Registrerte enheter'
-        description='Enheter i denne listen kan bruke ressursen'
+        label={t('resourceadm.listadmin_list_organizations')}
+        description={t('resourceadm.listadmin_list_organizations_description')}
       >
         <Table>
           <TableHeader>
             <TableRow>
-              <TableCell>Orgnr</TableCell>
-              <TableCell>Navn</TableCell>
-              <TableCell>Type</TableCell>
+              <TableCell>{t('resourceadm.listadmin_orgnr')}</TableCell>
+              <TableCell>{t('resourceadm.listadmin_navn')}</TableCell>
+              <TableCell>{t('resourceadm.listadmin_type')}</TableCell>
               <TableCell />
             </TableRow>
           </TableHeader>
@@ -168,7 +171,7 @@ export const PartyListDetail = ({
             {listItems.length === 0 && (
               <tr>
                 <td colSpan={100}>
-                  <Alert severity='info'>Listen inneholder ingen enheter</Alert>
+                  <Alert severity='info'>{t('resourceadm.listadmin_empty_list')}</Alert>
                 </td>
               </tr>
             )}
@@ -176,8 +179,12 @@ export const PartyListDetail = ({
               return (
                 <TableRow key={item.orgNr} className={item.isDeleted ? classes.memberDeleted : ''}>
                   <TableCell>{item.orgNr}</TableCell>
-                  <TableCell>{item.orgName || '<navn ikke funnet>'}</TableCell>
-                  <TableCell>{item.isUnderenhet ? 'Underenhet' : 'Enhet'}</TableCell>
+                  <TableCell>{item.orgName || t('resourceadm.listadmin_empty_name')}</TableCell>
+                  <TableCell>
+                    {item.isUnderenhet
+                      ? t('resourceadm.listadmin_underenhet')
+                      : t('resourceadm.listadmin_enhet')}
+                  </TableCell>
                   <TableCell>
                     <Button
                       color={item.isDeleted ? 'second' : 'danger'}
@@ -189,7 +196,9 @@ export const PartyListDetail = ({
                       variant='secondary'
                       size='small'
                     >
-                      {item.isDeleted ? 'Angre fjern' : 'Fjern fra liste'}
+                      {item.isDeleted
+                        ? t('resourceadm.listadmin_undo_remove_from_list')
+                        : t('resourceadm.listadmin_remove_from_list')}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -209,7 +218,7 @@ export const PartyListDetail = ({
           color='danger'
           onClick={() => deleteWarningModalRef.current?.showModal()}
         >
-          Slett liste
+          {t('resourceadm.listadmin_delete_list')}
         </Button>
       </div>
     </div>

@@ -1,7 +1,8 @@
-import { Button, Heading, Spinner, Textfield } from '@digdir/design-system-react';
-import { BrregOrganization, PartyListMember } from 'app-shared/types/ResourceAdm';
 import React, { useState } from 'react';
 import { useDebounce } from 'react-use';
+import { useTranslation } from 'react-i18next';
+import { Button, Heading, Spinner, Textfield } from '@digdir/design-system-react';
+import { BrregOrganization, PartyListMember } from 'app-shared/types/ResourceAdm';
 import {
   useEnhetsregisterOrganizationQuery,
   useEnhetsregisterUnderOrganizationQuery,
@@ -16,6 +17,8 @@ export const PartyListSearch = ({
   existingMembers,
   handleAddMember,
 }: PartyListSearchProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const [searchText, setSearchText] = useState<string>('');
   const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   useDebounce(() => setDebouncedSearchText(searchText), 500, [searchText]);
@@ -30,12 +33,20 @@ export const PartyListSearch = ({
     erUnderenhet: boolean,
   ): React.ReactNode => {
     if (enheter.length === 0) {
-      return <div>{erUnderenhet ? 'Fant ingen underenheter' : 'Fant ingen enheter'}</div>;
+      return (
+        <div>
+          {erUnderenhet
+            ? t('resourceadm.listadmin_search_no_underenheter')
+            : t('resourceadm.listadmin_search_no_enheter')}
+        </div>
+      );
     }
     return (
       <>
         <Heading level={2} size='medium'>
-          {erUnderenhet ? 'Underenheter' : 'Enheter'}
+          {erUnderenhet
+            ? t('resourceadm.listadmin_underenheter')
+            : t('resourceadm.listadmin_enheter')}
         </Heading>
         {enheter.map((org) => {
           return (
@@ -65,11 +76,11 @@ export const PartyListSearch = ({
       <Textfield
         data-testid='enhet-search'
         value={searchText}
-        placeholder='søk etter enhet'
+        placeholder={t('resourceadm.listadmin_search')}
         onChange={(event) => setSearchText(event.target.value)}
       />
       {(isLoadingEnheterSearch || isLoadingUnderenheterSearch) && debouncedSearchText && (
-        <Spinner size='xlarge' variant='interaction' title='Laster...' />
+        <Spinner size='xlarge' variant='interaction' title={t('general.loading')} />
       )}
       {debouncedSearchText.length > 0 &&
         !isLoadingEnheterSearch &&

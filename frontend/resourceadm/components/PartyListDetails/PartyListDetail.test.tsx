@@ -43,19 +43,19 @@ const user = userEvent.setup();
 describe('PartyListDetail', () => {
   it('should show special name if name is not found', () => {
     render();
-    expect(screen.getByText('<navn ikke funnet>')).toBeInTheDocument();
+    expect(screen.getByText(textMock('resourceadm.listadmin_empty_name'))).toBeInTheDocument();
   });
 
   it('should show message when list is empty', () => {
     render({ list: { ...defaultProps.list, members: [] } });
-    expect(screen.getByText('Listen inneholder ingen enheter')).toBeInTheDocument();
+    expect(screen.getByText(textMock('resourceadm.listadmin_empty_list'))).toBeInTheDocument();
   });
 
   it('should call service to remove member', async () => {
     const removePartyListMemberMock = jest.fn();
     render({}, { removePartyListMember: removePartyListMemberMock });
 
-    const removeButton = screen.getByText('Fjern fra liste');
+    const removeButton = screen.getByText(textMock('resourceadm.listadmin_remove_from_list'));
     await act(() => user.click(removeButton));
 
     expect(removePartyListMemberMock).toHaveBeenCalled();
@@ -65,10 +65,10 @@ describe('PartyListDetail', () => {
     const addPartyListMemberMock = jest.fn();
     render({}, { addPartyListMember: addPartyListMemberMock });
 
-    const removeButton = screen.getByText('Fjern fra liste');
+    const removeButton = screen.getByText(textMock('resourceadm.listadmin_remove_from_list'));
     await act(() => user.click(removeButton));
 
-    const reAddButton = screen.getByText('Angre fjern');
+    const reAddButton = screen.getByText(textMock('resourceadm.listadmin_undo_remove_from_list'));
     await act(() => user.click(reAddButton));
 
     expect(addPartyListMemberMock).toHaveBeenCalled();
@@ -78,7 +78,7 @@ describe('PartyListDetail', () => {
     const updatePartyListMock = jest.fn();
     render({}, { updatePartyList: updatePartyListMock });
 
-    const nameField = screen.getByLabelText('Listenavn');
+    const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
     await act(() => user.type(nameField, ' endret'));
     await act(() => nameField.blur());
 
@@ -91,7 +91,9 @@ describe('PartyListDetail', () => {
     const updatePartyListMock = jest.fn();
     render({}, { updatePartyList: updatePartyListMock });
 
-    const descriptionField = screen.getByLabelText('Beskrivelse');
+    const descriptionField = screen.getByLabelText(
+      textMock('resourceadm.listadmin_list_description'),
+    );
     await act(() => user.type(descriptionField, ' endret'));
     await act(() => descriptionField.blur());
 
@@ -104,7 +106,9 @@ describe('PartyListDetail', () => {
     const updatePartyListMock = jest.fn();
     render({}, { updatePartyList: updatePartyListMock });
 
-    const descriptionField = screen.getByLabelText('Beskrivelse');
+    const descriptionField = screen.getByLabelText(
+      textMock('resourceadm.listadmin_list_description'),
+    );
     await act(() => user.clear(descriptionField));
     await act(() => descriptionField.blur());
 
@@ -117,10 +121,10 @@ describe('PartyListDetail', () => {
     const addPartyListMemberMock = jest.fn();
     render({}, { addPartyListMember: addPartyListMemberMock });
 
-    const deleteListButton = screen.getByText('Slett liste');
+    const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
     await act(() => user.click(deleteListButton));
 
-    const confirmDeleteButton = screen.getAllByText('Slett liste');
+    const confirmDeleteButton = screen.getAllByText(textMock('resourceadm.listadmin_delete_list'));
     await act(() => user.click(confirmDeleteButton[0]));
 
     expect(mockedNavigate).toHaveBeenCalledWith('/listadmin');
@@ -130,13 +134,15 @@ describe('PartyListDetail', () => {
     const addPartyListMemberMock = jest.fn();
     render({}, { addPartyListMember: addPartyListMemberMock });
 
-    const deleteListButton = screen.getByText('Slett liste');
+    const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
     await act(() => user.click(deleteListButton));
 
-    const cancelDeleteButton = screen.getByText('Avbryt');
+    const cancelDeleteButton = screen.getByText(textMock('general.cancel'));
     await act(() => user.click(cancelDeleteButton));
 
-    expect(screen.queryByText('Bekreft sletting av liste')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('resourceadm.listadmin_delete_list_header')),
+    ).not.toBeInTheDocument();
   });
 });
 

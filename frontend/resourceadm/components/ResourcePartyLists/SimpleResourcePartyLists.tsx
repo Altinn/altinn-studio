@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Alert, Button, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './SimpleResourcePartyLists.module.css';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
@@ -20,6 +21,8 @@ export const SimpleResourcePartyLists = ({
   env,
   resourceData,
 }: SimpleResourcePartyListsProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
   const navigate = useNavigate();
@@ -67,11 +70,11 @@ export const SimpleResourcePartyLists = ({
   };
 
   if (isLoadingEnvListData || isLoadingConnectedLists) {
-    return <StudioSpinner spinnerText='Laster...' />;
+    return <StudioSpinner spinnerText={t('general.loading')} />;
   }
 
   if (envListDataError || connectedListsError) {
-    return <Alert severity='danger'>Kunne ikke laste enhetslister</Alert>;
+    return <Alert severity='danger'>{t('resourceadm.listadmin_load_list_error')}</Alert>;
   }
 
   return (
@@ -97,14 +100,16 @@ export const SimpleResourcePartyLists = ({
         as={Link}
         to={getResourcePageURL(selectedContext, repo, resourceData.identifier, 'about')}
       >
-        Tilbake
+        {t('general.back')}
       </DigdirLink>
-      <Heading
-        level={1}
-        size='large'
-      >{`Ressurseierstyrt rettighetsregister for ${resourceData.title.nb} - ${env}`}</Heading>
+      <Heading level={1} size='large'>
+        {t('resourceadm.listadmin_resource_header', {
+          resourceTitle: resourceData.title.nb,
+          env: env.toUpperCase(),
+        })}
+      </Heading>
       <Checkbox.Group
-        legend='Alle enheter og underenheter i valgte liste(r) kan bruke ressursen'
+        legend={t('resourceadm.listadmin_resource_list_checkbox_header')}
         size='small'
         onChange={(newValues: string[]) => {
           if (selectedLists.length < newValues.length) {
@@ -131,14 +136,14 @@ export const SimpleResourcePartyLists = ({
                   'partylists',
                 )}/${env}/${list.identifier}`}
               >
-                (endre)
+                {`(${t('general.edit')})`}
               </DigdirLink>
             </div>
           );
         })}
       </Checkbox.Group>
       <Button variant='secondary' onClick={() => createPartyListModalRef.current?.showModal()}>
-        Opprett ny enhetsliste
+        {t('resourceadm.listadmin_create_list')}
       </Button>
     </div>
   );

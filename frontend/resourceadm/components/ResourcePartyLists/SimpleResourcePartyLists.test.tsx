@@ -57,13 +57,13 @@ describe('PartyListSearch', () => {
   it('should show show spinner on loading', async () => {
     render();
 
-    const spinnerTitle = screen.queryByText('Laster...');
+    const spinnerTitle = screen.queryByText(textMock('general.loading'));
     expect(spinnerTitle).toBeInTheDocument();
   });
   it('should show selected lists checked', async () => {
     render();
 
-    const spinnerTitle = screen.queryByText('Laster...');
+    const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitFor(() => expect(spinnerTitle).not.toBeInTheDocument());
 
     const checkbox1 = screen.getByLabelText('List 1');
@@ -73,24 +73,24 @@ describe('PartyListSearch', () => {
     expect(checkbox2).toBeChecked();
   });
 
-  it('should show error when loading party lists or connected lists fail', async () => {});
-
   it('should show create party list modal when create button is pressed', async () => {
     render();
 
-    const spinnerTitle = screen.queryByText('Laster...');
+    const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitFor(() => expect(spinnerTitle).not.toBeInTheDocument());
 
-    const createButton = screen.getByText('Opprett ny enhetsliste');
+    const createButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));
     await act(() => user.click(createButton));
 
-    expect(screen.getByText('Lag ny enhetsliste i TT02')).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_create_list_header', { env: 'TT02' })),
+    ).toBeInTheDocument();
   });
 
   it('should call add when checkbox is checked', async () => {
     render();
 
-    const spinnerTitle = screen.queryByText('Laster...');
+    const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitFor(() => expect(spinnerTitle).not.toBeInTheDocument());
 
     const checkbox1 = screen.getByLabelText('List 1');
@@ -102,7 +102,7 @@ describe('PartyListSearch', () => {
   it('should call remove when checkbox is unchecked', async () => {
     render();
 
-    const spinnerTitle = screen.queryByText('Laster...');
+    const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitFor(() => expect(spinnerTitle).not.toBeInTheDocument());
 
     const checkbox2 = screen.getByLabelText('List 2');

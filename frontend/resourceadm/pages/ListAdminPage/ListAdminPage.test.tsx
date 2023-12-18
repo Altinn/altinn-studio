@@ -46,10 +46,12 @@ describe('PartyListSearch', () => {
   it('should show create dialog when create new button is clicked', async () => {
     render();
 
-    const createNewButton = screen.getByText('Opprett ny enhetsliste');
+    const createNewButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));
     await act(() => user.click(createNewButton));
 
-    expect(screen.getByText('Lag ny enhetsliste i TT02')).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_create_list_header', { env: 'TT02' })),
+    ).toBeInTheDocument();
   });
 });
 

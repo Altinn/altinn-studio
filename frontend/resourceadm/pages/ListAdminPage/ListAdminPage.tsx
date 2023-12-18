@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Button,
   Heading,
@@ -14,6 +15,7 @@ import { NewPartyListModal } from '../../components/NewPartyListModal/NewPartyLi
 import { getPartyListPageUrl, getResourceDashboardURL } from 'resourceadm/utils/urlUtils/urlUtils';
 
 export const ListAdminPage = (): React.ReactNode => {
+  const { t } = useTranslation();
   const { selectedContext, env: selectedEnv } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -30,12 +32,12 @@ export const ListAdminPage = (): React.ReactNode => {
   return (
     <div className={classes.listAdminPageWrapper}>
       <DigdirLink as={Link} to={getResourceDashboardURL(selectedContext, repo)}>
-        Tilbake til dashboard
+        {t('resourceadm.listadmin_back')}
       </DigdirLink>
       <Heading level={1} size='large'>
-        Administrer enhetslister i ressurseierstyrt rettighetsregister
+        {t('resourceadm.listadmin_header')}
       </Heading>
-      <Paragraph size='small'>Velg miljø:</Paragraph>
+      <Paragraph size='small'>{t('resourceadm.listadmin_select_environment')}</Paragraph>
       <div className={classes.environmentSelectorWrapper}>
         <ToggleGroup
           onChange={(newValue) => navigate(getPartyListPageUrl(selectedContext, repo, newValue))}
@@ -77,7 +79,7 @@ export const ListAdminPage = (): React.ReactNode => {
               );
             })}
           <Button variant='secondary' onClick={() => createPartyListModalRef.current?.showModal()}>
-            Opprett ny enhetsliste
+            {t('resourceadm.listadmin_create_list')}
           </Button>
         </div>
       )}

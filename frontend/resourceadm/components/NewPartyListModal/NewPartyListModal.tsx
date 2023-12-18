@@ -1,4 +1,5 @@
 import React, { useState, forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 import { useCreatePartyListMutation } from 'resourceadm/hooks/mutations/useCreatePartyListMutation';
 import { Button, Modal, Paragraph } from '@digdir/design-system-react';
@@ -14,6 +15,8 @@ interface NewPartyListModalProps {
 
 export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModalProps>(
   ({ org, env, onClose, onPartyListCreated }, ref): JSX.Element => {
+    const { t } = useTranslation();
+
     const [id, setId] = useState<string>('');
     const [name, setName] = useState<string>('');
     const [errorMessage, setErrorMessage] = useState<string>('');
@@ -39,7 +42,7 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
         onSuccess: () => onPartyListCreated(newId),
         onError: (error: any) => {
           if (error.response.status === ServerCodes.Conflict) {
-            setErrorMessage('En enhetsliste med denne id-en finnes fra før');
+            setErrorMessage(t('resourceadm.listadmin_identifier_conflict'));
           }
         },
       });
@@ -47,17 +50,15 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
 
     return (
       <Modal ref={ref} onClose={onClose}>
-        <Modal.Header>{`Lag ny enhetsliste i ${env.toUpperCase()}`}</Modal.Header>
+        <Modal.Header>
+          {t('resourceadm.listadmin_create_list_header', { env: env.toUpperCase() })}
+        </Modal.Header>
         <Modal.Content>
           <div>
-            <Paragraph size='small'>
-              Velg navn og id for listen. Navnet er for intern bruk, og id er foreslått basert på
-              navnet du skriver men kan redigeres om du ønsker en annen. Navn kan endres senere,
-              mens id kan ikke endres.
-            </Paragraph>
+            <Paragraph size='small'>{t('resourceadm.listadmin_create_list_description')}</Paragraph>
             <ResourceNameAndId
-              idLabel='Liste id'
-              titleLabel='Listenavn'
+              idLabel={t('resourceadm.listadmin_list_id')}
+              titleLabel={t('resourceadm.listadmin_list_name')}
               id={id}
               title={name}
               onIdChange={(newId: string) => setId(newId)}
@@ -76,10 +77,10 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
               }
             }}
           >
-            Opprett enhetsliste
+            {t('resourceadm.listadmin_confirm_create_list')}
           </Button>
           <Button variant='tertiary' onClick={() => onClose()}>
-            Avbryt
+            {t('general.cancel')}
           </Button>
         </Modal.Footer>
       </Modal>

@@ -410,7 +410,9 @@ export const AboutResourcePage = ({
                           resourceId,
                           'partylists',
                         )}/${env}/`}
-                      >{`Administrer ressurseierstyrt rettighetsregister i ${env}`}</DigdirLink>
+                      >
+                        {t('resourceadm.about_resource_edit_rrr', { env: env.toUpperCase() })}
+                      </DigdirLink>
                     </div>
                   );
                 })}

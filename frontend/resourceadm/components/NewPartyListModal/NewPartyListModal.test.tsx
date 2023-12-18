@@ -26,14 +26,14 @@ describe('PartyListSearch', () => {
   it('should disable create button when name or id is empty', async () => {
     await renderAndOpenModal();
 
-    const createButton = screen.getByText('Opprett enhetsliste');
+    const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
     expect(createButton).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('should close modal on cancel click', async () => {
     await renderAndOpenModal();
 
-    const closeButton = screen.getByText('Avbryt');
+    const closeButton = screen.getByText(textMock('general.cancel'));
     await act(() => user.click(closeButton));
 
     expect(closeModalMock).toHaveBeenCalled();
@@ -42,10 +42,10 @@ describe('PartyListSearch', () => {
   it('should call service to create new party list', async () => {
     await renderAndOpenModal();
 
-    const nameField = screen.getByLabelText('Listenavn');
+    const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
     await act(() => user.type(nameField, 'nytt navn'));
 
-    const createButton = screen.getByText('Opprett enhetsliste');
+    const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
     await act(() => user.click(createButton));
 
     await waitFor(() => {
@@ -60,14 +60,14 @@ describe('PartyListSearch', () => {
         .mockImplementation(() => Promise.reject({ response: { status: 409 } })),
     });
 
-    const nameField = screen.getByLabelText('Listenavn');
+    const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
     await act(() => user.type(nameField, 'nytt navn'));
 
-    const createButton = screen.getByText('Opprett enhetsliste');
+    const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
     await act(() => user.click(createButton));
 
     expect(
-      await screen.findByText('En enhetsliste med denne id-en finnes fra før'),
+      await screen.findByText(textMock('resourceadm.listadmin_identifier_conflict')),
     ).toBeInTheDocument();
   });
 });
