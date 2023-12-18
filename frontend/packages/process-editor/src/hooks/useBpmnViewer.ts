@@ -2,6 +2,7 @@ import { MutableRefObject, useRef, useEffect, useState } from 'react';
 import BpmnJS from 'bpmn-js/dist/bpmn-navigated-viewer.development.js';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import type { BpmnViewerError } from '../types/BpmnViewerError';
+import { getBpmnViewerDetailsFromBusinessObject } from '../utils/hookUtils';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -16,7 +17,7 @@ type UseBpmnViewerResult = {
 };
 
 export const useBpmnViewer = (): UseBpmnViewerResult => {
-  const { bpmnXml } = useBpmnContext();
+  const { bpmnXml, setBpmnDetails } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [bpmnViewerError, setBpmnViewerError] = useState<BpmnViewerError | undefined>(undefined);
 
@@ -28,6 +29,16 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
 
     const viewer = new BpmnJS({ container: canvasRef.current });
 
+    const eventBus = viewer.get('eventBus');
+    const events = ['element.click'];
+
+    events.forEach((event) => {
+      eventBus.on(event, (e: any) => {
+        const bpmnDetails = getBpmnViewerDetailsFromBusinessObject(e?.element?.businessObject);
+        setBpmnDetails(bpmnDetails);
+      });
+    });
+
     const initializeViewer = async () => {
       try {
         await viewer.importXML(bpmnXml);
@@ -37,7 +48,7 @@ export const useBpmnViewer = (): UseBpmnViewerResult => {
     };
 
     initializeViewer();
-  }, [bpmnXml]);
+  }, [bpmnXml, setBpmnDetails]);
 
   return { canvasRef, bpmnViewerError };
 };

@@ -1,0 +1,1 @@
+export { ConfigContent } from './ConfigContent';
