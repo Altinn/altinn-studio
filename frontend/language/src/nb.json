@@ -638,7 +638,7 @@
   "preview.view_size_mobile": "Mobil",
   "process_editor.configuration_panel_confirmation_task": "Oppgave: Bekreftelse",
   "process_editor.configuration_panel_data_task": "Oppgave: Utfylling",
-  "process_editor.configuration_panel_element_not_supported": "Vi støtter foreløpig kun å se på Oppgaver. Velg en Oppgave for å se detaljer.",
+  "process_editor.configuration_panel_element_not_supported": "Vi støtter foreløpig kun å se på oppgaver. Velg en oppgave for å se detaljer.",
   "process_editor.configuration_panel_feedback_task": "Oppgave: Tilbakemelding",
   "process_editor.configuration_panel_header_help_text_confirmation": "Bekreftelse-oppgave (confirmation) brukes for å vise sluttbruker en oppsummering som de kan bekrefte.",
   "process_editor.configuration_panel_header_help_text_data": "Utfylling-oppgave (data) brukes dersom det skal samles inn eller vises frem data.",
