@@ -1,7 +1,6 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
 import { TFunction } from 'i18next';
-import { editorPath } from 'app-shared/api/paths';
 import { Button, Select, LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
@@ -12,7 +11,7 @@ import { useLayoutSetsQuery } from '../../../../packages/ux-editor/src/hooks/que
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
-import { RoutePaths } from '../../enums/RoutePaths';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 export interface AppPreviewMenuItem {
   key: string;
@@ -102,18 +101,16 @@ export const appPreviewButtonActions = (
   app: string,
   instanceId: string,
 ): AltinnButtonActionItem[] => {
-  const subUrl = `/${RoutePaths.UIEditor}?layout=`;
+  const packagesRouter = new PackagesRouter({ org, app });
+  const subUrl = `?layout=${window.localStorage.getItem(instanceId)}`;
+
   const action: AltinnButtonActionItem[] = [
     {
       title: 'top_menu.preview_back_to_editing',
-      path: editorPath,
       menuKey: TopBarMenu.Preview,
       buttonVariant: 'secondary',
       headerButtonsClasses: classes.backToEditorBtn,
-      handleClick: () =>
-        (window.location.href = `${editorPath(org, app)}${subUrl}${window.localStorage.getItem(
-          instanceId,
-        )}`),
+      handleClick: () => packagesRouter.navigateToPackage('editorUiEditor', subUrl),
     },
   ];
   return action;
