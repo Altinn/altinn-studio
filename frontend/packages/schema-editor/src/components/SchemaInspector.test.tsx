@@ -6,12 +6,7 @@ import { dataMock } from '../mockData';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FieldNode, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import {
-  buildUiSchema,
-  FieldType,
-  SchemaModel,
-  validateTestUiSchema,
-} from '@altinn/schema-model';
+import { buildUiSchema, FieldType, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/renderWithProviders';
 import { getSavedModel } from '../../test/test-utils';
@@ -35,8 +30,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 const mockUiSchema = buildUiSchema(dataMock);
 const model = SchemaModel.fromArray(mockUiSchema);
-const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
-  model.getNode(selectedId);
+const getMockSchemaByPath = (selectedId: string): UiSchemaNode => model.getNode(selectedId);
 
 const texts = {
   'schema_editor.maxLength': 'Maksimal lengde',
@@ -80,9 +74,7 @@ describe('SchemaInspector', () => {
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
     const tablist = screen.getByRole('tablist');
     expect(tablist).toBeDefined();
-    const tabpanel = screen.getByRole('tabpanel');
-    expect(tabpanel).toBeDefined();
-    expect(screen.getAllByRole('tab')).toHaveLength(1);
+    expect(screen.getAllByRole('tab')).toHaveLength(2);
     const textboxes = screen.getAllByRole('textbox');
 
     for (const textbox of textboxes) {
@@ -178,9 +170,20 @@ describe('SchemaInspector', () => {
     const testUiSchema: UiSchemaNodes = [rootNode, item];
     validateTestUiSchema(testUiSchema);
     renderSchemaInspector(testUiSchema, item);
-    await act(() => user.click(screen.queryAllByRole('tab')[1]));
-    await act(() => user.click(screen.getByDisplayValue(enumValue)));
+
+    const enumField = screen.getAllByRole('textbox', {
+      name: 'schema_editor.enum_value',
+    });
+    expect(enumField).toHaveLength(item.enum.length);
+
+    await act(() => user.click(enumField[0]));
     await act(() => user.keyboard('{Enter}'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+
+    const enumFieldAfter = screen.getAllByRole('textbox', {
+      name: 'schema_editor.enum_value',
+    });
+    expect(enumFieldAfter).toHaveLength(item.enum.length + 1);
+
+    expect(saveDatamodel).not.toHaveBeenCalled();
   });
 });

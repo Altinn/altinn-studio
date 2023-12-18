@@ -3,6 +3,7 @@
   margin-top: 18px;
   box-sizing: border-box;
   justify-content: space-between;
+  align-items: center;
   display: flex;
   gap: 8px;
 }

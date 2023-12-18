@@ -40,3 +40,9 @@
   margin-left: var(--vertical-line-left-spacing);
   box-shadow: var(--vertical-line-colour) var(--vertical-line-width) 0 inset;
 }
+
+.label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

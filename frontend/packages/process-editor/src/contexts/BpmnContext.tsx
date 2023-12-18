@@ -2,8 +2,9 @@ import { supportsProcessEditor } from '../utils/processEditorUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import Modeler from 'bpmn-js/lib/Modeler';
 import React, { MutableRefObject, createContext, useContext, useRef, useState } from 'react';
+import { BpmnDetails } from '../types/BpmnDetails';
 
-type BpmnContextProps = {
+export type BpmnContextProps = {
   bpmnXml: string;
   modelerRef?: MutableRefObject<Modeler>;
   numberOfUnsavedChanges: number;
@@ -11,6 +12,8 @@ type BpmnContextProps = {
   getUpdatedXml: () => Promise<string>;
   isEditAllowed: boolean;
   appLibVersion: string;
+  bpmnDetails: BpmnDetails;
+  setBpmnDetails: React.Dispatch<React.SetStateAction<BpmnDetails>>;
 };
 
 export const BpmnContext = createContext<BpmnContextProps>({
@@ -21,9 +24,11 @@ export const BpmnContext = createContext<BpmnContextProps>({
   getUpdatedXml: async () => '',
   isEditAllowed: true,
   appLibVersion: '',
+  bpmnDetails: null,
+  setBpmnDetails: () => {},
 });
 
-type BpmnContextProviderProps = {
+export type BpmnContextProviderProps = {
   children: React.ReactNode;
   bpmnXml: string | undefined | null;
   appLibVersion: string;
@@ -34,8 +39,11 @@ export const BpmnContextProvider = ({
   appLibVersion,
 }: BpmnContextProviderProps) => {
   const [numberOfUnsavedChanges, setNumberOfUnsavedChanges] = useState(0);
+  const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
+
   const isEditAllowed =
     supportsProcessEditor(appLibVersion) || shouldDisplayFeature('shouldOverrideAppLibCheck');
+
   const modelerRef = useRef<Modeler | null>(null);
 
   const getUpdatedXml = async (): Promise<string> => {
@@ -61,6 +69,8 @@ export const BpmnContextProvider = ({
         getUpdatedXml,
         isEditAllowed,
         appLibVersion,
+        bpmnDetails,
+        setBpmnDetails,
       }}
     >
       {children}

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-js.css';
@@ -6,6 +7,7 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 
 import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
+import { useConfirmationDialogOnPageLeave } from 'app-shared/hooks/useConfirmationDialogOnPageLeave';
 import { BPMNViewer } from './BPMNViewer';
 import { BPMNEditor } from './BPMNEditor';
 import { CanvasActionMenu } from './CanvasActionMenu';
@@ -24,27 +26,23 @@ export type CanvasProps = {
  * @returns {JSX.Element} - The rendered component
  */
 export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
-  const { getUpdatedXml, isEditAllowed } = useBpmnContext();
-  const [isEditorView, setIsEditorView] = useState(false);
+  const { getUpdatedXml, isEditAllowed, numberOfUnsavedChanges } = useBpmnContext();
 
-  const toggleViewModus = (): void => {
-    setIsEditorView((prevIsEditorView) => !prevIsEditorView);
-  };
+  const { t } = useTranslation();
 
   const handleOnSave = async (): Promise<void> => {
     onSave(await getUpdatedXml());
   };
 
+  useConfirmationDialogOnPageLeave(
+    Boolean(numberOfUnsavedChanges),
+    t('process_editor.unsaved_changes_confirmation_message'),
+  );
+
   return (
     <div className={classes.container}>
-      {isEditAllowed && (
-        <CanvasActionMenu
-          onSave={handleOnSave}
-          toggleViewModus={toggleViewModus}
-          isEditorView={isEditorView}
-        />
-      )}
-      <div className={classes.wrapper}>{isEditorView ? <BPMNEditor /> : <BPMNViewer />}</div>
+      <CanvasActionMenu onSave={handleOnSave} />
+      <div className={classes.wrapper}>{isEditAllowed ? <BPMNEditor /> : <BPMNViewer />}</div>
     </div>
   );
 };

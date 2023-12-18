@@ -28,7 +28,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         /// <returns>The model code in C#</returns>
         public string CreateModelFromMetadata(ModelMetadata serviceMetadata)
         {
-            Dictionary<string, string> classes = new Dictionary<string, string>();
+            Dictionary<string, string> classes = new();
 
             CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null), serviceMetadata, serviceMetadata.TargetNamespace);
 
@@ -47,7 +47,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 .Append(string.Concat(classes.Values))
                 .AppendLine("}");
 
-            return writer.ToString();
+            string cSharpClasses = writer.ToString();
+
+            Compiler.CompileToAssembly(cSharpClasses);
+
+            return cSharpClasses;
         }
 
         /// <summary>

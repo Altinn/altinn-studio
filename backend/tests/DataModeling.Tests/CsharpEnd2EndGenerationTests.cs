@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Xml.Serialization;
+using Altinn.Studio.DataModeling.Converter.Csharp;
 using DataModeling.Tests.Assertions;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;

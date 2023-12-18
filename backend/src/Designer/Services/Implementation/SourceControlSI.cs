@@ -57,7 +57,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
-            cloneOptions.CredentialsProvider = CredentialsProvider();
+            cloneOptions.FetchOptions.CredentialsProvider = CredentialsProvider();
             string localPath = FindLocalRepoLocation(org, repository);
             string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
 
@@ -70,7 +70,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
-            cloneOptions.CredentialsProvider = CredentialsProvider();
+            cloneOptions.FetchOptions.CredentialsProvider = CredentialsProvider();
 
             if (!string.IsNullOrEmpty(branchName))
             {

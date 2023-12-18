@@ -123,7 +123,7 @@ export const TreeViewItem = ({
       type='button'
       variant='tertiary'
     >
-      {label}
+      <div className={classes.label}>{label}</div>
     </Button>
   );
 
