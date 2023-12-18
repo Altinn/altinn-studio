@@ -64,14 +64,14 @@ export const PageHeader = ({ org, app, showSubMenu, user, isRepoError }: PageHea
 
   return (
     <AltinnHeader
-      menuItems={menuItems}
+      menuItems={!isRepoError && menuItems}
       showSubMenu={showSubMenu && !isRepoError}
       subMenuContent={!isRepoError && subMenuContent({ org, app })}
       org={org}
-      app={app}
+      app={!isRepoError && app}
       user={user}
       repository={repository}
-      buttonActions={buttonActions(org, app)}
+      buttonActions={!isRepoError && buttonActions(org, app)}
     />
   );
 };

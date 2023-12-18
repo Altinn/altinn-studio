@@ -41,8 +41,12 @@ export const AltinnHeader = ({
           <a href='/'>
             <AltinnStudioLogo />
           </a>
-          <span className={classes.bigSlash}>/</span>
-          <span className={classes.appName}>{app || ''}</span>
+          {app && (
+            <>
+              <span className={classes.bigSlash}>/</span>
+              <span className={classes.appName}>{app}</span>
+            </>
+          )}
         </div>
         <AltinnHeaderMenu menuItems={menuItems} />
         <div className={classes.rightContent}>
