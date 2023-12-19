@@ -13,7 +13,6 @@ export const test = base.extend<ExtendedTestOptions>({
 config();
 
 export default defineConfig<ExtendedTestOptions>({
-  testDir: './integration',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -28,11 +27,21 @@ export default defineConfig<ExtendedTestOptions>({
     {
       name: 'simple-schema-app',
       dependencies: ['setup'],
+      testDir: './integration',
+      teardown: 'teardown-simple-schema-app',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
-        headless: false,
+        testAppName: 'simple-app-test',
+      },
+    },
+    {
+      name: 'teardown-simple-schema-app',
+      testDir: './teardown',
+      testMatch: '*simple-app-test.teardown*',
+      use: {
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         testAppName: 'simple-app-test',
       },
     },
