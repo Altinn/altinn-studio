@@ -4,7 +4,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { PartyList } from 'app-shared/types/ResourceAdm';
 
 /**
- * Query to get the list of party lists
+ * Query to get the list of party lists (without members)
  *
  * @param org the organisation of the user
  * @param env the chosen environment

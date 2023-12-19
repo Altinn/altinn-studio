@@ -7,21 +7,21 @@ import type { PartyList } from 'app-shared/types/ResourceAdm';
  * Query to get a party list with members
  *
  * @param org the organisation of the user
- * @param listId the list id
+ * @param listIdentifier the list identifier
  * @param env the chosen environment
  *
  * @returns UseQueryResult with a party list with members
  */
 export const useGetPartyListQuery = (
   org: string,
-  listId: string,
+  listIdentifier: string,
   env: string,
 ): UseQueryResult<PartyList> => {
   const { getPartyList } = useServicesContext();
 
   return useQuery<PartyList>({
-    queryKey: [QueryKey.PartyList, listId, env],
-    queryFn: () => getPartyList(org, listId, env),
-    enabled: !!org && !!listId && !!env,
+    queryKey: [QueryKey.PartyList, listIdentifier, env],
+    queryFn: () => getPartyList(org, listIdentifier, env),
+    enabled: !!org && !!listIdentifier && !!env,
   });
 };

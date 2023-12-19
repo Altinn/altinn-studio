@@ -4,9 +4,10 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
 
 /**
- * Query to get the list of party lists
+ * Query to get all party lists connected to a resource
  *
  * @param org the organisation of the user
+ * @param resourceId the identifier of the resource
  * @param env the chosen environment
  *
  * @returns UseQueryResult with a list of party lists

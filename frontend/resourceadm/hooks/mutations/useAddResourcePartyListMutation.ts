@@ -3,10 +3,11 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
- * Mutation to create a new partylist.
+ * Mutation to connect a party list to a resource
  *
  * @param org the organisation of the user
- * @param env the id of the resource
+ * @param resourceId the identifier of the resource to connect the list to
+ * @param env the list environment
  */
 export const useAddResourcePartyListMutation = (org: string, resourceId: string, env: string) => {
   const queryClient = useQueryClient();

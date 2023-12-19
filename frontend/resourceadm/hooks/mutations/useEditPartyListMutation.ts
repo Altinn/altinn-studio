@@ -4,20 +4,20 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { JsonPatch } from 'resourceadm/utils/jsonPatchUtils/jsonPatchUtils';
 
 /**
- * Mutation to edit an existing resource.
+ * Mutation to edit metadata of a party list
  *
  * @param org the organisation of the user
- * @param listId the repo the user is in
- * @param env the id of the resource
+ * @param listIdentifier the identifier of party list to delete
+ * @param env the list environment
  */
-export const useEditPartyListMutation = (org: string, listId: string, env: string) => {
+export const useEditPartyListMutation = (org: string, listIdentifier: string, env: string) => {
   const queryClient = useQueryClient();
   const { updatePartyList } = useServicesContext();
 
   return useMutation({
-    mutationFn: (payload: JsonPatch[]) => updatePartyList(org, listId, env, payload),
+    mutationFn: (payload: JsonPatch[]) => updatePartyList(org, listIdentifier, env, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PartyList, listId, env] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.PartyList, listIdentifier, env] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.PartyLists, env] });
     },
   });

@@ -3,17 +3,18 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
- * Mutation to create a new partylist.
+ * Mutation to delete a party list
  *
  * @param org the organisation of the user
- * @param env the id of the resource
+ * @param listIdentifier the identifier of party list to delete
+ * @param env the list environment
  */
-export const useDeletePartyListMutation = (org: string, listId: string, env: string) => {
+export const useDeletePartyListMutation = (org: string, listIdentifier: string, env: string) => {
   const queryClient = useQueryClient();
   const { deletePartyList } = useServicesContext();
 
   return useMutation({
-    mutationFn: () => deletePartyList(org, listId, env),
+    mutationFn: () => deletePartyList(org, listIdentifier, env),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.PartyLists, env] });
     },

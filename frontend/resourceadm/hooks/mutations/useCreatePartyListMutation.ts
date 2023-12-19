@@ -7,7 +7,7 @@ import type { PartyList } from 'app-shared/types/ResourceAdm';
  * Mutation to create a new partylist.
  *
  * @param org the organisation of the user
- * @param env the id of the resource
+ * @param env the list environment
  */
 export const useCreatePartyListMutation = (org: string, env: string) => {
   const queryClient = useQueryClient();
