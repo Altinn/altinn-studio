@@ -24,14 +24,18 @@ export const SchemaNode = ({ pointer }: SchemaNodeProps): ReactElement => {
   const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
   const node = savableModel.getNode(pointer);
+  const label = savableModel.isChildOfCombination(pointer) ? '' : extractNameFromPointer(pointer);
+  const index = savableModel.getIndexOfChildNode(pointer);
+  const title = label || t('schema_editor.tree.combination_child_title', { index });
   return (
     <DragAndDropTree.Item
       emptyMessage={t('schema_editor.empty_node')}
       expandable={isNodeValidParent(node)}
       icon={renderIcon(savableModel, pointer)}
-      label={extractNameFromPointer(pointer)}
+      label={label}
       labelWrapper={labelWrapper(savableModel, pointer)}
       nodeId={pointer}
+      title={title}
     >
       {renderSchemaNodeList(savableModel, pointer)}
     </DragAndDropTree.Item>
@@ -41,7 +45,7 @@ export const SchemaNode = ({ pointer }: SchemaNodeProps): ReactElement => {
 const labelWrapper = (schemaModel: SavableSchemaModel, pointer: string) => {
   const LabelWrapper = (label: ReactNode) => {
     const node = schemaModel.getNode(pointer);
-    const className = createWrapperClassNames(node);
+    const className = createWrapperClassNames(schemaModel, node);
 
     return (
       <div className={className}>
@@ -56,8 +60,9 @@ const labelWrapper = (schemaModel: SavableSchemaModel, pointer: string) => {
   return LabelWrapper;
 };
 
-const createWrapperClassNames = (node: UiSchemaNode): string => {
+const createWrapperClassNames = (schemaModel: SavableSchemaModel, node: UiSchemaNode): string => {
   const { isArray } = node;
-  const isParentNode = isNodeValidParent(node);
+  const finalNode = schemaModel.getFinalNode(node.pointer);
+  const isParentNode = isNodeValidParent(finalNode) ;
   return cn(classes.schemaNodeLabel, isArray && classes.isArray, isParentNode && classes.isParent);
 };

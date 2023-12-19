@@ -113,7 +113,8 @@ export class SchemaModel {
     return this.getNode(node.reference);
   }
 
-  public getFinalNode(pointer): FieldNode | CombinationNode {
+  /** Returns the node that the given node refers to, or the given node if it is not a reference. */
+  public getFinalNode(pointer: string): FieldNode | CombinationNode {
     const node = this.getNode(pointer);
     return isReference(node) ? this.getFinalNode(node.reference) : node;
   }
@@ -524,4 +525,4 @@ export class SchemaModel {
   }
 }
 
-const defaultNodePosition: NodePosition = {parentPointer: ROOT_POINTER, index: -1};
+const defaultNodePosition: NodePosition = { parentPointer: ROOT_POINTER, index: -1 };

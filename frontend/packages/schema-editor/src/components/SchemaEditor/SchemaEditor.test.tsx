@@ -5,7 +5,6 @@ import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
 import type { SchemaState } from '../../types';
 import {
-  CombinationKind,
   FieldType,
   Keyword,
   buildUiSchema,
@@ -234,29 +233,6 @@ describe('SchemaEditor', () => {
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
-  });
-
-  test('should only be possible to add a reference to a combination type', async () => {
-    const jsonSchema: JsonSchema = {
-      [Keyword.Properties]: {
-        mockItem: {
-          [CombinationKind.AllOf]: [{ [Keyword.Type]: FieldType.String }],
-        },
-      },
-      [Keyword.Definitions]: {},
-    };
-    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
-    renderEditor({ appContextProps: { schemaModel } });
-    await clickOpenAddNodeButton();
-    expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.add_reference') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('menuitem', { name: textMock('schema_editor.add_field') }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('menuitem', { name: textMock('schema_editor.add_combination') }),
-    ).not.toBeInTheDocument();
   });
 
   test('when a type is selected, the type edit panel should be rendered', async () => {

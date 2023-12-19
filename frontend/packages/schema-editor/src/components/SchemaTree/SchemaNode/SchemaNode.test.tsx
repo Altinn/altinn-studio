@@ -147,4 +147,4 @@ const render = ({
 };
 
 const getAddButton = () =>
-  screen.getByRole('button', {name: textMock('schema_editor.add_node_of_type')});
+  screen.getByRole('button', { name: textMock('schema_editor.add_node_of_type') });

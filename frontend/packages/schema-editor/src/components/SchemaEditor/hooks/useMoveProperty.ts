@@ -1,6 +1,6 @@
 import { HandleMove, ItemPosition } from 'app-shared/types/dndTypes';
 import { useCallback } from 'react';
-import { extractNameFromPointer, NodePosition } from '../../../../../schema-model';
+import { extractNameFromPointer, isCombination, NodePosition } from '../../../../../schema-model';
 import { calculatePositionInFullList } from '@altinn/schema-editor/components/SchemaEditor/utils';
 import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 import { useTranslation } from 'react-i18next';
@@ -11,14 +11,14 @@ export const useMoveProperty = (): HandleMove => {
 
   const areThereCollidingNames = useCallback(
     (pointer: string, position: ItemPosition): boolean => {
-      const name = extractNameFromPointer(pointer);
       const currentParent = savableModel.getParentNode(pointer);
       const isMovingWithinSameParent = position.parentId === currentParent.pointer;
-      const doesTargetHaveChildWithSameName = savableModel.doesNodeHaveChildWithName(
-        position.parentId,
-        name,
-      );
-      return !isMovingWithinSameParent && doesTargetHaveChildWithSameName;
+      if (isMovingWithinSameParent) return false;
+      const targetParent = savableModel.getNode(position.parentId);
+      const isTargetParentACombination = isCombination(targetParent);
+      if (isTargetParentACombination) return false;
+      const name = extractNameFromPointer(pointer);
+      return savableModel.doesNodeHaveChildWithName(position.parentId, name);
     },
     [savableModel],
   );

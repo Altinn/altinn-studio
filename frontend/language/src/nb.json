@@ -1076,6 +1076,7 @@
   "schema_editor.textRow-deletion-text": "Er du sikker på at du vil slette denne raden?",
   "schema_editor.textRow-title-confirmCancel-popover": "Er du sikker på at du vil slette denne raden?",
   "schema_editor.title": "Tittel",
+  "schema_editor.tree.combination_child_title": "Element nummer {{index}}",
   "schema_editor.type": "Type",
   "schema_editor.types": "Typer",
   "schema_editor.types_editing": "Du redigerer nå på {{type}}",

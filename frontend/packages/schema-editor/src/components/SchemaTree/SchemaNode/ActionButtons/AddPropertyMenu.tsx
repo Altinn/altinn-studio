@@ -1,25 +1,21 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
-import { isCombination, ObjectKind } from '../../../../../../schema-model';
+import { ObjectKind } from '../../../../../../schema-model';
 import { ActionButton } from './ActionButton';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { DropdownMenu } from '@digdir/design-system-react';
 import { CombinationIcon, PropertyIcon, ReferenceIcon } from '@studio/icons';
-import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 
 interface AddPropertyMenuProps {
   pointer: string;
 }
 
 export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
-  const savableModel = useSavableSchemaModel();
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const { t } = useTranslation();
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
   const addProperty = useAddProperty();
-
-  const node = savableModel.getNode(pointer);
 
   const addField = () => addPropertyAndClose(ObjectKind.Field);
   const addCombination = () => addPropertyAndClose(ObjectKind.Combination);
@@ -49,16 +45,12 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
         size='small'
       >
         <DropdownMenu.Group>
-          {!isCombination(node) && (
-            <>
-              <DropdownMenu.Item onClick={addField} icon={<PropertyIcon />}>
-                {t('schema_editor.add_field')}
-              </DropdownMenu.Item>
-              <DropdownMenu.Item onClick={addCombination} icon={<CombinationIcon />}>
-                {t('schema_editor.add_combination')}
-              </DropdownMenu.Item>
-            </>
-          )}
+          <DropdownMenu.Item onClick={addField} icon={<PropertyIcon />}>
+            {t('schema_editor.add_field')}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item onClick={addCombination} icon={<CombinationIcon />}>
+            {t('schema_editor.add_combination')}
+          </DropdownMenu.Item>
           <DropdownMenu.Item onClick={addReference} icon={<ReferenceIcon />}>
             {t('schema_editor.add_reference')}
           </DropdownMenu.Item>
