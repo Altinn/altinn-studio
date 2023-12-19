@@ -32,6 +32,8 @@ export type ServicesContextProviderProps = ServicesContextProps & {
   clientConfig?: QueryClientConfig;
 };
 
+const LOG_OUT_TIMER_MS = 5000;
+
 const ServicesContext = createContext<ServicesContextProps>(null);
 
 const handleError = (
@@ -44,7 +46,13 @@ const handleError = (
   // TODO : log axios errors
 
   if (error?.response?.status === ServerCodes.Unauthorized) {
-    logout().then(() => window.location.assign(userLogoutAfterPath()));
+    const errorMessageKey = 'api_errors.Unauthorized';
+    if (i18n.exists(errorMessageKey)) {
+      toast.error(t(errorMessageKey), { toastId: errorMessageKey, autoClose: LOG_OUT_TIMER_MS });
+    }
+    setTimeout(() => {
+      logout().then(() => window.location.assign(userLogoutAfterPath()));
+    }, LOG_OUT_TIMER_MS);
     return;
   }
 

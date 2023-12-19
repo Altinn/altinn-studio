@@ -4,6 +4,7 @@ const path = require('path');
 module.exports = defineConfig({
   chromeWebSecurity: false,
   projectId: 'o7mikf',
+
   e2e: {
     experimentalRunAllSpecs: true,
     supportFile: 'src/support/index.js',
@@ -15,6 +16,7 @@ module.exports = defineConfig({
       );
     },
   },
+
   video: false,
   fixturesFolder: 'src/fixtures',
   downloadsFolder: 'downloads',
@@ -27,11 +29,20 @@ module.exports = defineConfig({
   requestTimeout: 10000,
   defaultCommandTimeout: 8000,
   reporter: 'junit',
+
   reporterOptions: {
     mochaFile: 'reports/result-[hash].xml',
   },
+
   retries: {
     runMode: 1,
     openMode: 0,
+  },
+
+  component: {
+    devServer: {
+      framework: 'react',
+      bundler: 'webpack',
+    },
   },
 });

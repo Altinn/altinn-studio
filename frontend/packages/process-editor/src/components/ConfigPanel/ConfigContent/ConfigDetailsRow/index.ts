@@ -1,0 +1,1 @@
+export { ConfigDetailsRow } from './ConfigDetailsRow';
