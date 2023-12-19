@@ -1131,7 +1131,7 @@
   "settings_modal.setup_tab_heading": "Oppsett",
   "settings_modal.setup_tab_switch_autoDeleteOnProcessEnd": "Automatisk sletting etter innsending",
   "settings_modal.setup_tab_switch_copyInstanceSettings_enabled": "Bruker kan kopiere instansen",
-  "settings_modal.setup_tab_switch_messageBoxConfig_hideSettings_hideAlways": "Skjul i arkiv hos bruker etter innsending ",
+  "settings_modal.setup_tab_switch_messageBoxConfig_hideSettings_hideAlways": "Skjul i arkiv hos bruker etter innsending",
   "settings_modal.setup_tab_switch_onEntry_show": "Vis påstartede instanser",
   "shared.header_all": "Alle",
   "shared.header_button": "Altinn profilmeny",
