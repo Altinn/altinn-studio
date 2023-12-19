@@ -5,8 +5,7 @@ This section will be documented after the team meeting about Strategy 03.01.2024
 add more test before we have decided a Test Strategy for the team.
 
 ## Setup
-For å komme i gang med å kjøre testene må du opprette en .env fil på root av mappen `playwright`. Env
-filen må inneholde følgende:
+For å komme i gang med å skrive kjøre og skrive tester må vi bli med
 
 
 ```
