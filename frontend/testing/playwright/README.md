@@ -26,6 +26,7 @@ PLAYWRIGHT_TEST_BASE_URL=http://studio.localhost
 PLAYWRIGHT_USER=<<your-test-user-username>>
 PLAYWRIGHT_PASS=<<your-test-user-password>>
 PLAYWRIGHT_DESIGNER_APP_NAME=<<name-of-the-designer-app>>
+GITEA_ACCESS_TOKEN=<<generated-gitea-token-by-the-setup-script>>
 ```
 
 ## Short Step By Step Guide
