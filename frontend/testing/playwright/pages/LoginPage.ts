@@ -9,30 +9,30 @@ export class LoginPage extends BasePage {
   }
 
   public async goToAltinnLoginPage(): Promise<void> {
-    await this._page.goto(this.getRoute('altinnLoginPage'));
+    await this.page.goto(this.getRoute('altinnLoginPage'));
   }
 
   public async goToGiteaLoginPage(): Promise<void> {
-    await this._page.getByRole('button', { name: 'Logg inn' }).click();
+    await this.page.getByRole('button', { name: 'Logg inn' }).click();
   }
 
   public async writeUsername(username: string): Promise<void> {
-    return await this._page.getByLabel('Username or Email Address').fill(username);
+    return await this.page.getByLabel('Username or Email Address').fill(username);
   }
 
   public async writePassword(password: string): Promise<void> {
-    return await this._page.getByLabel('Password').fill(password);
+    return await this.page.getByLabel('Password').fill(password);
   }
 
   public async clickLoginButton(): Promise<void> {
-    return await this._page.getByRole('button', { name: 'Sign In' }).click();
+    return await this.page.getByRole('button', { name: 'Sign In' }).click();
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {
-    return this._page.waitForURL(this.getRoute('dashboard'));
+    return this.page.waitForURL(this.getRoute('dashboard'));
   }
 
   public async addSessionToSharableStorage() {
-    return await this._page.context().storageState({ path: this._authStorageFile });
+    return await this.page.context().storageState({ path: this._authStorageFile });
   }
 }

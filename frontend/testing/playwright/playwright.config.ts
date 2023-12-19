@@ -1,5 +1,5 @@
-import { defineConfig, devices } from '@playwright/test';
-import { config } from 'dotenv';
+import {defineConfig, devices} from '@playwright/test';
+import {config} from 'dotenv';
 
 config();
 
@@ -15,7 +15,7 @@ export default defineConfig({
   },
 
   projects: [
-    { name: "setup", testMatch: /.*\.setup\.ts/ },
+    {name: "setup", testMatch: /.*\.setup\.ts/ },
     {
       name: 'chromium',
       dependencies: ['setup'],

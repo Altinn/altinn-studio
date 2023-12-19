@@ -2,7 +2,7 @@
 import { LoginPage } from "../pages/LoginPage";
 
 
-setup('authenticate user', async ({page}) => {
+setup('authenticate user', async ({page}): Promise<void> => {
     const loginPage = new LoginPage(page);
 
     await loginPage.goToAltinnLoginPage();
