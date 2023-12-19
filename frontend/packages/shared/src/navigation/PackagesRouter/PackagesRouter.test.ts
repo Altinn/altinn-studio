@@ -6,7 +6,7 @@ const mockApp: string = 'app';
 describe('PackagesRouter', () => {
   describe('constructor', () => {
     it('should default to empty strings if app and org are not provided', () => {
-      const routerWithoutParams = new PackagesRouter({});
+      const routerWithoutParams = new PackagesRouter();
       expect(routerWithoutParams['app']).toEqual('');
       expect(routerWithoutParams['org']).toEqual('');
     });

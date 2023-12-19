@@ -102,7 +102,7 @@ export const appPreviewButtonActions = (
   instanceId: string,
 ): AltinnButtonActionItem[] => {
   const packagesRouter = new PackagesRouter({ org, app });
-  const subUrl = `?layout=${window.localStorage.getItem(instanceId)}`;
+  const queryParams = `?layout=${window.localStorage.getItem(instanceId)}`;
 
   const action: AltinnButtonActionItem[] = [
     {
@@ -110,7 +110,7 @@ export const appPreviewButtonActions = (
       menuKey: TopBarMenu.Preview,
       buttonVariant: 'secondary',
       headerButtonsClasses: classes.backToEditorBtn,
-      handleClick: () => packagesRouter.navigateToPackage('editorUiEditor', subUrl),
+      handleClick: () => packagesRouter.navigateToPackage('editorUiEditor', queryParams),
     },
   ];
   return action;
