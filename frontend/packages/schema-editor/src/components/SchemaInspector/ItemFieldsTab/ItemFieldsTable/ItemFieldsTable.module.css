@@ -30,7 +30,7 @@
 }
 
 .tableCell {
-  vertical-align: middle;
+  vertical-align: top;
   padding-bottom: 1rem;
   box-sizing: border-box;
   padding-right: 1rem;
