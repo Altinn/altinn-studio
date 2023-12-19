@@ -10,7 +10,7 @@
     "ts-node": "^10.9.2"
   },
   "scripts": {
-    "setup:playwright": "playwright install",
+    "setup:playwright": "playwright install --with-deps",
     "setup:local:env": "ts-node ./scripts/setup.ts",
     "test:all": "playwright test --config ./playwright.config.ts"
   },
