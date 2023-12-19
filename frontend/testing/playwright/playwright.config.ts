@@ -27,7 +27,8 @@ export default defineConfig<ExtendedTestOptions>({
     {
       name: 'simple-schema-app',
       dependencies: ['setup'],
-      testDir: './integration',
+      testDir: './integration/create-app-and-simple-schema/',
+      testMatch: '*.spec.ts',
       teardown: 'teardown-simple-schema-app',
       use: {
         ...devices['Desktop Chrome'],
@@ -38,8 +39,8 @@ export default defineConfig<ExtendedTestOptions>({
     },
     {
       name: 'teardown-simple-schema-app',
-      testDir: './teardown',
-      testMatch: '*simple-app-test.teardown*',
+      testDir: './integration/create-app-and-simple-schema/',
+      testMatch: '*simple-app-test.teardown.ts',
       use: {
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         testAppName: 'simple-app-test',
