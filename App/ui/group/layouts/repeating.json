@@ -59,6 +59,7 @@
         },
         "textResourceBindings": {
           "title": "Group title",
+          "summaryTitle": "Group summary title",
           "edit_button_open": [
             "if",
             [
@@ -492,7 +493,7 @@
           "group": "Endringsmelding-grp-9786.Gruppe2"
         },
         "textResourceBindings": {
-          "title": "Gruppe2",
+          "summaryTitle": "Gruppe2",
           "add_button": "referanse"
         },
         "tableHeaders": ["group2-input"],
