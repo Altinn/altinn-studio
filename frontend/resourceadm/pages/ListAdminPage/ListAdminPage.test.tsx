@@ -27,7 +27,7 @@ jest.mock('react-router-dom', () => ({
 
 const user = userEvent.setup();
 
-describe('PartyListSearch', () => {
+describe('ListAdminPage', () => {
   it('should show lists after environment is selected', async () => {
     render();
 

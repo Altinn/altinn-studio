@@ -108,4 +108,3 @@ export const addPartyListMember = (org: string, listId: string, orgnr: string, e
 export const removePartyListMember = (org: string, listId: string, orgnr: string, environment: string) => del(partyListMemberPath(org, listId, orgnr, environment));
 export const addResourcePartyList = (org: string, resourceId: string, listId: string, environment: string) => post(resourcePartyListPath(org, resourceId, listId, environment));
 export const removeResourcePartyList = (org: string, resourceId: string, listId: string, environment: string) => del(resourcePartyListPath(org, resourceId, listId, environment));
-export const editResourcePartyList = (org: string, resourceId: string, listId: string, environment: string, payload: string[]) => patch(resourcePartyListPath(org, resourceId, listId, environment), payload);

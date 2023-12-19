@@ -22,7 +22,7 @@ const defaultProps = {
 
 const user = userEvent.setup();
 
-describe('PartyListSearch', () => {
+describe('NewPartyListModal', () => {
   it('should disable create button when name or id is empty', async () => {
     await renderAndOpenModal();
 

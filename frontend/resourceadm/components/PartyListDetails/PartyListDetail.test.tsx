@@ -80,7 +80,7 @@ describe('PartyListDetail', () => {
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
     await act(() => user.type(nameField, ' endret'));
-    await act(() => nameField.blur());
+    act(() => nameField.blur());
 
     expect(updatePartyListMock).toHaveBeenCalledWith(testOrg, testListeIdentifier, testEnv, [
       { op: 'replace', path: '/name', value: 'Test-liste endret' },
@@ -95,7 +95,7 @@ describe('PartyListDetail', () => {
       textMock('resourceadm.listadmin_list_description'),
     );
     await act(() => user.type(descriptionField, ' endret'));
-    await act(() => descriptionField.blur());
+    act(() => descriptionField.blur());
 
     expect(updatePartyListMock).toHaveBeenCalledWith(testOrg, testListeIdentifier, testEnv, [
       { op: 'replace', path: '/description', value: 'Dette er en beskrivelse endret' },
@@ -110,7 +110,7 @@ describe('PartyListDetail', () => {
       textMock('resourceadm.listadmin_list_description'),
     );
     await act(() => user.clear(descriptionField));
-    await act(() => descriptionField.blur());
+    act(() => descriptionField.blur());
 
     expect(updatePartyListMock).toHaveBeenCalledWith(testOrg, testListeIdentifier, testEnv, [
       { op: 'remove', path: '/description' },

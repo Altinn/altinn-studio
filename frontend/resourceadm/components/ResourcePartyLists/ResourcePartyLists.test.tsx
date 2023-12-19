@@ -53,7 +53,7 @@ jest.mock('react-router-dom', () => ({
 const user = userEvent.setup();
 
 describe('ResourcePartyLists', () => {
-  it('should show show spinner on loading', async () => {
+  it('should show show spinner on loading', () => {
     render();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
