@@ -11,6 +11,7 @@ on:
       - 'docker-compose.yml'
       - 'Dockerfile'
       - 'gitea/**'
+      - 'package.json'
   workflow_dispatch:
 
 jobs:
@@ -60,7 +61,7 @@ jobs:
           install: true
           working-directory: frontend/testing/cypress
           env: environment=local
-          spec: src/integration/studio/*.js
+          spec: src/integration/**/*.js
           record: false
           parallel: false
 
