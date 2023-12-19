@@ -56,7 +56,7 @@ const render = async ({ handleComponentChange = jest.fn(), queries = {} } = {}) 
         },
         itemType: 'COMPONENT',
         dataModelBindings: {},
-        optionsId: 'test-1',
+        optionsId: '',
       }}
     />,
   );
