@@ -9,7 +9,7 @@ import { ConfigContent } from './ConfigContent';
 
 /**
  * @component
- *  Displays the configuration panel area of the ProcessEditor
+ *  Displays the configuration panel area of the ProcessEditor.
  *
  * @returns {JSX.Element} - The rendered component
  */
