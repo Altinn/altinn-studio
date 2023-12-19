@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './ResourcePartyLists.module.css';
@@ -25,7 +25,6 @@ export const ResourcePartyLists = ({
 
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
-  const navigate = useNavigate();
   const createPartyListModalRef = useRef<HTMLDialogElement>(null);
 
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
@@ -81,18 +80,13 @@ export const ResourcePartyLists = ({
         ref={createPartyListModalRef}
         org={selectedContext}
         env={env}
+        navigateUrl={`${getResourcePageURL(
+          selectedContext,
+          repo,
+          resourceData.identifier,
+          'partylists',
+        )}/${env}/`}
         onClose={() => createPartyListModalRef.current?.close()}
-        onPartyListCreated={(identifier: string) => {
-          createPartyListModalRef.current?.close();
-          navigate(
-            `${getResourcePageURL(
-              selectedContext,
-              repo,
-              resourceData.identifier,
-              'partylists',
-            )}/${env}/${identifier}`,
-          );
-        }}
       />
       <DigdirLink
         as={Link}

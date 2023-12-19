@@ -11,14 +11,19 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const mockButtonText: string = 'Mock Button';
 const closeModalMock = jest.fn();
-const partyListCreatedMock = jest.fn();
 
 const defaultProps = {
   org: 'orgname',
   env: 'tt02',
+  navigateUrl: '/listadmin/partylist/',
   onClose: closeModalMock,
-  onPartyListCreated: partyListCreatedMock,
 };
+
+const mockedNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockedNavigate,
+}));
 
 const user = userEvent.setup();
 
@@ -39,7 +44,7 @@ describe('NewPartyListModal', () => {
     expect(closeModalMock).toHaveBeenCalled();
   });
 
-  it('should call service to create new party list', async () => {
+  it('should navigate after party list is created', async () => {
     await renderAndOpenModal();
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
@@ -49,7 +54,7 @@ describe('NewPartyListModal', () => {
     await act(() => user.click(createButton));
 
     await waitFor(() => {
-      expect(partyListCreatedMock).toHaveBeenCalled();
+      expect(mockedNavigate).toHaveBeenCalledWith('/listadmin/partylist/nytt-navn');
     });
   });
 

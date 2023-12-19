@@ -58,11 +58,8 @@ export const ListAdminPage = (): React.ReactNode => {
             ref={createPartyListModalRef}
             org={selectedContext}
             env={selectedEnv}
+            navigateUrl={getPartyListPageUrl(selectedContext, repo, selectedEnv)}
             onClose={() => createPartyListModalRef.current?.close()}
-            onPartyListCreated={(identifier: string) => {
-              createPartyListModalRef.current?.close();
-              navigate(getPartyListPageUrl(selectedContext, repo, selectedEnv, identifier));
-            }}
           />
           {isLoadingEnvListData && <StudioSpinner />}
           {!!envListData &&

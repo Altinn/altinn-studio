@@ -1,4 +1,5 @@
 import React, { useState, forwardRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 import { useCreatePartyListMutation } from 'resourceadm/hooks/mutations/useCreatePartyListMutation';
@@ -9,13 +10,14 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 interface NewPartyListModalProps {
   org: string;
   env: string;
+  navigateUrl: string;
   onClose: () => void;
-  onPartyListCreated: (identifier: string) => void;
 }
 
 export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModalProps>(
-  ({ org, env, onClose, onPartyListCreated }, ref): JSX.Element => {
+  ({ org, env, navigateUrl, onClose }, ref): JSX.Element => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     const [id, setId] = useState<string>('');
     const [name, setName] = useState<string>('');
@@ -39,7 +41,7 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
       };
 
       createPartyList(newPartyList, {
-        onSuccess: () => onPartyListCreated(newId),
+        onSuccess: () => navigate(`${navigateUrl}${newId}`),
         onError: (error: any) => {
           if (error.response.status === ServerCodes.Conflict) {
             setErrorMessage(t('resourceadm.listadmin_identifier_conflict'));
