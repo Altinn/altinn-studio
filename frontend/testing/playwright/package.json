@@ -5,6 +5,7 @@
   "packageManager": "yarn@4.0.2",
   "devDependencies": {
     "@playwright/test": "^1.40.1",
+    "@types/dotenv": "^8.2.0",
     "@types/node": "^20.10.5",
     "ts-node": "^10.9.2"
   },
@@ -12,5 +13,8 @@
     "setup:playwright": "playwright install",
     "setup:local:env": "ts-node ./scripts/setup.ts",
     "test:all": "playwright test --config ./playwright.config.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
   }
 }
