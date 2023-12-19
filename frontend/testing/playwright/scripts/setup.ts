@@ -1,8 +1,9 @@
 ﻿import path from 'path';
 import fs from 'fs';
-
-require('dotenv').config({ path: path.resolve(__dirname, '../../../../.env') });
 import os from 'os';
+
+// Configure the dotenv to read form the .env file on root of monorepo.
+require('dotenv').config({ path: path.resolve(__dirname, '../../../../.env') });
 
 const environment: Record<string, string> = {
   PLAYWRIGHT_TEST_BASE_URL: 'http://studio.localhost',
