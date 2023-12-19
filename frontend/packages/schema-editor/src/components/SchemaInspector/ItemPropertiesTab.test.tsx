@@ -40,7 +40,18 @@ describe('ItemPropertiesTab', () => {
     validateTestUiSchema(uiSchemaNodes);
     renderWithProviders({
       appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodes) },
-    })(<ItemPropertiesTab selectedItem={uiSchemaNodes[2]}/>);
+    })(<ItemPropertiesTab selectedItem={uiSchemaNodes[2]} />);
     expect(screen.getByText(textMock('combination_inline_object_disclaimer'))).toBeDefined();
+  });
+
+  it('should render explanation message if the selected item is a root node', () => {
+    const rootNode: FieldNode = {
+      ...rootNodeMock,
+      pointer: '#', // root pointer
+      children: undefined,
+    };
+
+    renderWithProviders()(<ItemPropertiesTab selectedItem={rootNode} />);
+    screen.getByText(textMock('app_data_modelling.properties_information'));
   });
 });

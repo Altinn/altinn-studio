@@ -3,6 +3,7 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import Modeler from 'bpmn-js/lib/Modeler';
 import { useBpmnModeler } from './useBpmnModeler';
+import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -12,7 +13,7 @@ type UseBpmnViewerResult = {
 };
 
 export const useBpmnEditor = (): UseBpmnViewerResult => {
-  const { bpmnXml, modelerRef, setNumberOfUnsavedChanges } = useBpmnContext();
+  const { bpmnXml, modelerRef, setNumberOfUnsavedChanges, setBpmnDetails } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { getModeler } = useBpmnModeler();
 
@@ -32,6 +33,16 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       });
     };
 
+    const eventBus: any = modelerInstance.get('eventBus');
+    const events = ['element.click'];
+
+    events.forEach((event) => {
+      eventBus.on(event, (e: any) => {
+        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
+        setBpmnDetails(bpmnDetails);
+      });
+    });
+
     const initializeEditor = async () => {
       try {
         await modelerInstance.importXML(bpmnXml);
@@ -44,7 +55,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
     initializeEditor();
     initializeUnsavedChangesCount();
-  }, [bpmnXml, modelerRef, setNumberOfUnsavedChanges]);
+  }, [bpmnXml, modelerRef, setBpmnDetails, setNumberOfUnsavedChanges]);
 
   return { canvasRef, modelerRef };
 };
