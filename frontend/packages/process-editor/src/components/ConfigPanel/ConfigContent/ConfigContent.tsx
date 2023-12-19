@@ -26,23 +26,22 @@ export const ConfigContent = (): JSX.Element => {
 
   const packagesRouter = new PackagesRouter({ org, app });
 
-  const allDataTypes: DataTypeIdAndTaskId[] = getValidDataTypeIdsAndTaskIds(applicationMetadata);
-  const showCreateDatamodelLink: boolean = allDataTypes.length === 0;
+  const validDataTypeIdsAndTaskIds: DataTypeIdAndTaskId[] =
+    getValidDataTypeIdsAndTaskIds(applicationMetadata);
+  const showCreateDatamodelLink: boolean = validDataTypeIdsAndTaskIds.length === 0;
 
-  const dataTypeOptions = allDataTypes.map((data) => ({
+  const dataTypeOptions = validDataTypeIdsAndTaskIds.map((data) => ({
     value: data.dataTypeId,
     label: data.dataTypeId,
   }));
 
-  const dataTypeValues = getSelectedDataTypes(bpmnDetails.id, allDataTypes);
+  const dataTypeValues = getSelectedDataTypes(bpmnDetails.id, validDataTypeIdsAndTaskIds);
   const configTitle = t(getConfigTitleKey(bpmnDetails?.taskType));
   const configHeaderHelpText = t(getConfigTitleHelpTextKey(bpmnDetails?.taskType));
 
   const updateDataTasksInApplicationMetadata = (taskIds: string[]) => {
     const updatedApplicationMetadata: ApplicationMetadata =
       getApplicationMetadataWithUpdatedDataTypes(applicationMetadata, bpmnDetails.id, taskIds);
-
-    // TODO - Handle when remove
 
     updateApplicationMetadata(updatedApplicationMetadata);
   };
@@ -75,6 +74,14 @@ export const ConfigContent = (): JSX.Element => {
         />
       </ConfigSectionWrapper>
       <ConfigSectionWrapper>
+        <div className={classes.headingAndHelpTextWrapper}>
+          <Heading level={3} size='xxsmall'>
+            {t('process_editor.datatype_label')}
+          </Heading>
+          <HelpText size='medium' title={t('process_editor.datatype_helptext_title')}>
+            <Paragraph size='small'>{t('process_editor.datatype_helptext_content')}</Paragraph>
+          </HelpText>
+        </div>
         {showCreateDatamodelLink ? (
           <div className={classes.datamodelLinkWrapper}>
             <LinkIcon className={classes.linkIcon} />
@@ -83,9 +90,10 @@ export const ConfigContent = (): JSX.Element => {
             </Link>
           </div>
         ) : (
-          /* TODO - Replace with Combobox when published - Issue: ____ */
+          /* TODO - Replace with Combobox when published - Issue: #11891 */
           <Select
-            label={t('process_editor.select_datamodel_label')}
+            label={t('process_editor.select_datatype_label')}
+            hideLabel
             options={dataTypeOptions}
             onChange={updateDataTasksInApplicationMetadata}
             value={dataTypeValues}

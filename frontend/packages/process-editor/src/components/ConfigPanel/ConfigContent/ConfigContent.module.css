@@ -22,3 +22,8 @@
   color: var(--fds-semantic-text-action-default);
   font-size: 1.25rem;
 }
+
+.headingAndHelpTextWrapper {
+  display: flex;
+  justify-content: space-between;
+}
