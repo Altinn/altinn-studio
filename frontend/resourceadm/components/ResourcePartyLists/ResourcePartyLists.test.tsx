@@ -1,11 +1,11 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { SimpleResourcePartyLists } from './SimpleResourcePartyLists';
+import { ResourcePartyLists } from './ResourcePartyLists';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
@@ -27,7 +27,6 @@ const connectedListsResponse = [
     resourceIdentifier: 'res1',
     partyListName: 'List 2',
     partyListIdentifier: 'list2',
-    actions: [],
   },
 ];
 
@@ -53,7 +52,7 @@ jest.mock('react-router-dom', () => ({
 
 const user = userEvent.setup();
 
-describe('PartyListSearch', () => {
+describe('ResourcePartyLists', () => {
   it('should show show spinner on loading', async () => {
     render();
 
@@ -64,7 +63,7 @@ describe('PartyListSearch', () => {
     render();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
-    await waitFor(() => expect(spinnerTitle).not.toBeInTheDocument());
+    await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox1 = screen.getByLabelText('List 1');
     expect(checkbox1).not.toBeChecked();
@@ -77,7 +76,7 @@ describe('PartyListSearch', () => {
     render();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
-    await waitFor(() => expect(spinnerTitle).not.toBeInTheDocument());
+    await waitForElementToBeRemoved(spinnerTitle);
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));
     await act(() => user.click(createButton));
@@ -91,7 +90,7 @@ describe('PartyListSearch', () => {
     render();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
-    await waitFor(() => expect(spinnerTitle).not.toBeInTheDocument());
+    await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox1 = screen.getByLabelText('List 1');
     await act(() => user.click(checkbox1));
@@ -103,7 +102,7 @@ describe('PartyListSearch', () => {
     render();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
-    await waitFor(() => expect(spinnerTitle).not.toBeInTheDocument());
+    await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox2 = screen.getByLabelText('List 2');
     await act(() => user.click(checkbox2));
@@ -126,7 +125,7 @@ const render = () => {
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <SimpleResourcePartyLists {...defaultProps} />
+        <ResourcePartyLists {...defaultProps} />
       </ServicesContextProvider>
     </MemoryRouter>,
   );

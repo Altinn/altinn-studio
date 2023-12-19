@@ -22,7 +22,7 @@ import { useRemovePartyListMemberMutation } from 'resourceadm/hooks/mutations/us
 import { useAddPartyListMemberMutation } from 'resourceadm/hooks/mutations/useAddPartyListMemberMutation';
 import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
 import { useDeletePartyListMutation } from 'resourceadm/hooks/mutations/useDeletePartyListMutation';
-import { PartyListSearch } from './PartyListSearch';
+import { PartyListSearch } from '../PartyListSearch/PartyListSearch';
 
 export interface PartyListDetailProps {
   org: string;
@@ -42,7 +42,7 @@ export const PartyListDetail = ({
   const deleteWarningModalRef = useRef<HTMLDialogElement>(null);
   const navigate = useNavigate();
   const [listItems, setListItems] = useState<(PartyListMember & { isDeleted?: boolean })[]>(
-    list.members,
+    list.members ?? [],
   );
   const [listName, setListName] = useState<string>(list.name || '');
   const [listDescription, setListDescription] = useState<string>(list.description || '');
@@ -54,14 +54,12 @@ export const PartyListDetail = ({
 
   // add member
   const handleAddMember = (memberToAdd: PartyListMember): void => {
-    console.log('ADD member', memberToAdd);
     addListMember(memberToAdd.orgNr);
     setListItems((old) => [...old, memberToAdd]);
   };
 
   // remove member
   const handleRemoveMember = (memberIdToRemove: string): void => {
-    console.log('DELETE member', memberIdToRemove);
     removeListMember(memberIdToRemove);
     setListItems((old) =>
       old.map((x) => (x.orgNr === memberIdToRemove ? { ...x, isDeleted: true } : x)),
@@ -70,7 +68,6 @@ export const PartyListDetail = ({
 
   // undo remove member
   const handleUndoRemoveMember = (memberIdToUndoRemove: string): void => {
-    console.log('ADD member', memberIdToUndoRemove);
     addListMember(memberIdToUndoRemove);
     setListItems((old) =>
       old.map((x) => (x.orgNr === memberIdToUndoRemove ? { ...x, isDeleted: false } : x)),
@@ -79,16 +76,14 @@ export const PartyListDetail = ({
 
   // change list name, description and possibly other properties
   const handleSave = (diff: Partial<PartyList>): void => {
-    console.log('SAVE', { ...list, ...diff });
     editPartyList(createReplacePatch<Partial<PartyList>>(diff));
   };
 
   // slett, må gjøres utenfor? Evt ha en back-funksjon
   const handleDelete = (): void => {
-    console.log('DELETE', list.identifier);
     deletePartyList(undefined, {
       onSuccess: () => navigate(backUrl),
-      onError: (error: any) => {
+      onError: (_error: any) => {
         // TODO
       },
     });

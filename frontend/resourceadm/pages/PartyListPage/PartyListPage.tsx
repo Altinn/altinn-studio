@@ -1,11 +1,14 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 import { PartyListDetail } from 'resourceadm/components/PartyListDetails/PartyListDetail';
 import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
 import { getPartyListPageUrl } from 'resourceadm/utils/urlUtils/urlUtils';
 
 export const PartyListPage = (): React.ReactNode => {
+  const { t } = useTranslation();
+
   const { selectedContext, env, listId } = useParams();
   const repo = `${selectedContext}-resources`;
 
@@ -16,7 +19,7 @@ export const PartyListPage = (): React.ReactNode => {
   );
 
   if (isLoadingList) {
-    return <StudioSpinner />;
+    return <StudioSpinner spinnerText={t('general.loading')} />;
   }
 
   return (

@@ -1,36 +1,34 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Alert, Button, Heading, Label, NativeSelect } from '@digdir/design-system-react';
-import { ResourcePartyListActions } from './ResourcePartyListActions';
-import { PartyListResourceLink } from 'app-shared/types/ResourceAdm';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Alert, Button, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import classes from './ResourcePartyLists.module.css';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
 import { StudioSpinner } from '@studio/components';
 import { useGetResourcePartyListsQuery } from 'resourceadm/hooks/queries/useGetResourcePartyLists';
-import { useEditResourcePartyListMutation } from 'resourceadm/hooks/mutations/useEditResourcePartyListMutation';
 import { useAddResourcePartyListMutation } from 'resourceadm/hooks/mutations/useAddResourcePartyListMutation';
 import { useRemoveResourcePartyListMutation } from 'resourceadm/hooks/mutations/useRemoveResourcePartyListMutation';
+import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { NewPartyListModal } from '../NewPartyListModal/NewPartyListModal';
-import { getPartyListPageUrl } from 'resourceadm/utils/urlUtils/urlUtils';
+import { Resource } from 'app-shared/types/ResourceAdm';
 
 interface ResourcePartyListsProps {
   env: string;
-  resourceId: string;
-  onBack: () => void;
+  resourceData: Resource;
 }
 
 export const ResourcePartyLists = ({
   env,
-  resourceId,
-  onBack,
+  resourceData,
 }: ResourcePartyListsProps): React.ReactNode => {
+  const { t } = useTranslation();
+
   const { selectedContext } = useParams();
   const repo = `${selectedContext}-resources`;
   const navigate = useNavigate();
-
   const createPartyListModalRef = useRef<HTMLDialogElement>(null);
 
-  const [selectedAddList, setSelectedAddList] = useState<string>('');
-  const [selectedLists, setSelectedLists] = useState<PartyListResourceLink[]>([]);
+  const [selectedLists, setSelectedLists] = useState<string[]>([]);
 
   const {
     data: envListData,
@@ -41,69 +39,44 @@ export const ResourcePartyLists = ({
     data: connectedLists,
     isLoading: isLoadingConnectedLists,
     error: connectedListsError,
-  } = useGetResourcePartyListsQuery(selectedContext, resourceId, env);
-  const { mutate: editResourcePartyList } = useEditResourcePartyListMutation(
-    selectedContext,
-    resourceId,
-    env,
-  );
+  } = useGetResourcePartyListsQuery(selectedContext, resourceData.identifier, env);
   const { mutate: addResourcePartyList } = useAddResourcePartyListMutation(
     selectedContext,
-    resourceId,
+    resourceData.identifier,
     env,
   );
   const { mutate: removeResourcePartyList } = useRemoveResourcePartyListMutation(
     selectedContext,
-    resourceId,
+    resourceData.identifier,
     env,
   );
 
   useEffect(() => {
     if (connectedLists) {
-      setSelectedLists(connectedLists);
+      setSelectedLists(connectedLists.map((x) => x.partyListIdentifier));
     }
   }, [connectedLists]);
 
-  const filterAvailableLists = () => {
-    return envListData.filter((z) => {
-      const usedLists = selectedLists.map((x) => x.partyListIdentifier);
-      return usedLists.indexOf(z.identifier) === -1;
-    });
-  };
-
-  const handleSave = (listItem: PartyListResourceLink, diff: Partial<PartyListResourceLink>) => {
-    const saveItem = { ...listItem, ...diff };
-    // call service to save
-    console.log('SAVE', saveItem);
-    editResourcePartyList({ listId: listItem.partyListIdentifier, actions: diff.actions });
-    // update state
-    setSelectedLists((old) =>
-      old.map((y) => (y.partyListIdentifier === listItem.partyListIdentifier ? saveItem : y)),
-    );
-  };
-
-  const handleDelete = (listItemId: string) => {
-    setSelectedLists((old) => old.filter((y) => y.partyListIdentifier !== listItemId));
+  const handleRemove = (listItemId: string) => {
+    setSelectedLists((old) => old.filter((y) => y !== listItemId));
     removeResourcePartyList(listItemId);
-    console.log('DELETE', listItemId); // do not delete when listItemId is 0, just remove from state
   };
 
-  const handleAdd = (listItem: PartyListResourceLink) => {
-    console.log('ADD', listItem);
-    addResourcePartyList(listItem.partyListIdentifier);
-    setSelectedLists((old) => [...old, listItem]);
+  const handleAdd = (listItemId: string) => {
+    addResourcePartyList(listItemId);
+    setSelectedLists((old) => [...old, listItemId]);
   };
 
   if (isLoadingEnvListData || isLoadingConnectedLists) {
-    return <StudioSpinner />;
+    return <StudioSpinner spinnerText={t('general.loading')} />;
   }
 
   if (envListDataError || connectedListsError) {
-    return <Alert severity='danger'>Kunne ikke laste lister</Alert>;
+    return <Alert severity='danger'>{t('resourceadm.listadmin_load_list_error')}</Alert>;
   }
 
   return (
-    <div style={{ width: '100%', margin: '1rem' }}>
+    <div className={classes.resourcePartyListsWrapper}>
       <NewPartyListModal
         ref={createPartyListModalRef}
         org={selectedContext}
@@ -111,64 +84,65 @@ export const ResourcePartyLists = ({
         onClose={() => createPartyListModalRef.current?.close()}
         onPartyListCreated={(identifier: string) => {
           createPartyListModalRef.current?.close();
-          navigate(getPartyListPageUrl(selectedContext, repo, env, identifier));
+          navigate(
+            `${getResourcePageURL(
+              selectedContext,
+              repo,
+              resourceData.identifier,
+              'partylists',
+            )}/${env}/${identifier}`,
+          );
         }}
       />
-      <Button variant='tertiary' onClick={onBack}>
-        Tilbake
+      <DigdirLink
+        as={Link}
+        to={getResourcePageURL(selectedContext, repo, resourceData.identifier, 'about')}
+      >
+        {t('general.back')}
+      </DigdirLink>
+      <Heading level={1} size='large'>
+        {t('resourceadm.listadmin_resource_header', {
+          resourceTitle: resourceData.title.nb,
+          env: env.toUpperCase(),
+        })}
+      </Heading>
+      <Checkbox.Group
+        legend={t('resourceadm.listadmin_resource_list_checkbox_header')}
+        size='small'
+        onChange={(newValues: string[]) => {
+          if (selectedLists.length < newValues.length) {
+            // list was added
+            const addedListIdentifier = newValues[newValues.length - 1];
+            handleAdd(addedListIdentifier);
+          } else {
+            const removedListIdentifier = selectedLists.find((x) => newValues.indexOf(x) === -1);
+            handleRemove(removedListIdentifier);
+          }
+        }}
+        value={selectedLists}
+      >
+        {envListData.map((list) => {
+          return (
+            <div key={list.identifier} className={classes.listCheckboxWrapper}>
+              <Checkbox value={list.identifier}>{list.name}</Checkbox>
+              <DigdirLink
+                as={Link}
+                to={`${getResourcePageURL(
+                  selectedContext,
+                  repo,
+                  resourceData.identifier,
+                  'partylists',
+                )}/${env}/${list.identifier}`}
+              >
+                {`(${t('general.edit')})`}
+              </DigdirLink>
+            </div>
+          );
+        })}
+      </Checkbox.Group>
+      <Button variant='secondary' onClick={() => createPartyListModalRef.current?.showModal()}>
+        {t('resourceadm.listadmin_create_list')}
       </Button>
-      <Heading level={1} size='large'>{`Konfigurer RRR for ${resourceId} - ${env}`}</Heading>
-      {selectedLists.map((x) => {
-        return (
-          <ResourcePartyListActions
-            key={x.partyListIdentifier}
-            listItem={x}
-            onRemove={(listIdToRemove: string) => {
-              handleDelete(listIdToRemove);
-            }}
-            onChange={(listItem: PartyListResourceLink, diff: Partial<PartyListResourceLink>) => {
-              handleSave(listItem, diff);
-            }}
-          />
-        );
-      })}
-      <Label size='small' htmlFor='addlist'>
-        Legg til liste
-      </Label>
-      <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
-        <NativeSelect
-          id='addlist'
-          style={{ width: '20rem' }}
-          value={selectedAddList}
-          onChange={(event) => setSelectedAddList(event.target.value)}
-        >
-          <option value=''>{'<velg liste>'}</option>
-          {filterAvailableLists().map((x) => {
-            return (
-              <option key={x.identifier} value={x.identifier}>
-                {x.name}
-              </option>
-            );
-          })}
-        </NativeSelect>
-        <Button
-          disabled={!selectedAddList}
-          onClick={() => {
-            setSelectedAddList('');
-            handleAdd({
-              resourceIdentifier: resourceId,
-              partyListName: envListData.find((list) => list.identifier === selectedAddList).name,
-              partyListIdentifier: selectedAddList,
-              actions: [],
-            });
-          }}
-        >
-          Legg til
-        </Button>
-        <Button variant='secondary' onClick={() => createPartyListModalRef.current?.showModal()}>
-          Opprett ny liste
-        </Button>
-      </div>
     </div>
   );
 };
