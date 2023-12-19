@@ -21,14 +21,6 @@ test.describe('create-app-and-simple-schema', () => {
     await createServicePage.clickOnCreateAppButton();
     await createServicePage.redirectedToEditorOverview();
   });
-
-  test('should create new datamodel and name it "simple-db-model"', async ({
-    page,
-  }): Promise<void> => {});
-
-  test.afterAll(async ({ request }) => {
-    request.delete('', {});
-  });
 });
 
 
