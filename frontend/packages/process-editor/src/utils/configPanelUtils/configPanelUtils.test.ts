@@ -1,4 +1,4 @@
-import { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
+import { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import {
   filterOutRefDataAsPdf,
   getApplicationMetadataWithUpdatedDataTypes,
@@ -113,13 +113,32 @@ describe('configPanelUtils', () => {
 
   describe('getApplicationMetadataWithUpdatedDataTypes', () => {
     it('updates taskIds in the copied applicationMetadata', () => {
-      const newTaskId: string = 'newTask';
+      const bpmnTaskId: string = 'newTask';
       const result = getApplicationMetadataWithUpdatedDataTypes(
         mockApplicationMetadata,
-        newTaskId,
+        bpmnTaskId,
         [mockDataTypeId1],
       );
-      expect(result.dataTypes[0].taskId).toEqual(newTaskId);
+      expect(result.dataTypes[0].taskId).toEqual(bpmnTaskId);
+    });
+
+    it('removes taskIds when it is not in the selected list', () => {
+      const bpmnTaskId: string = 'newTask';
+
+      const oldAppData: ApplicationMetadata = {
+        ...mockApplicationMetadata,
+        dataTypes: [...mockApplicationMetadata.dataTypes, { id: 'id', taskId: 'taskId' }],
+      };
+
+      const result = getApplicationMetadataWithUpdatedDataTypes(oldAppData, bpmnTaskId, [
+        mockDataTypeId1,
+      ]);
+      expect(result.dataTypes[0].taskId).not.toBeNull();
+      expect(result.dataTypes[1].taskId).toBeNull();
+
+      const result2 = getApplicationMetadataWithUpdatedDataTypes(result, bpmnTaskId, []);
+      expect(result2.dataTypes[0].taskId).toBeNull();
+      expect(result2.dataTypes[1].taskId).toBeNull();
     });
   });
 });
