@@ -24,9 +24,9 @@ export class PackagesRouter {
   private app: string;
   private org: string;
 
-  constructor(private paramsOptions: ParamsOptions) {
-    this.app = this.paramsOptions.app ?? '';
-    this.org = this.paramsOptions.org ?? '';
+  constructor(private paramsOptions?: ParamsOptions) {
+    this.app = this.paramsOptions?.app ?? '';
+    this.org = this.paramsOptions?.org ?? '';
   }
 
   public navigateToPackage(packageRoute: PackagesRoute, queryParams?: string): void {
