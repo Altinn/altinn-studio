@@ -206,7 +206,7 @@ describe('TextResource', () => {
         }),
       ),
     );
-    expect(handleRemoveTextResource).toBeCalledTimes(1);
+    expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
   });
 
   it('Does not call handleRemoveTextResourceBinding is called when cancel delete button is clicked', async () => {

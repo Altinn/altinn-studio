@@ -52,8 +52,8 @@ describe('FormComponent', () => {
     const component = screen.getByRole('listitem');
     await act(() => user.click(component));
 
-    expect(handleSaveMock).toBeCalledTimes(1);
-    expect(handleEditMock).toBeCalledTimes(1);
+    expect(handleSaveMock).toHaveBeenCalledTimes(1);
+    expect(handleEditMock).toHaveBeenCalledTimes(1);
   });
 
   describe('Delete confirmation dialog', () => {
@@ -91,7 +91,7 @@ describe('FormComponent', () => {
       });
       await act(() => user.click(confirmButton));
 
-      expect(mockDeleteFormComponent).toBeCalledWith(component1IdMock);
+      expect(mockDeleteFormComponent).toHaveBeenCalledWith(component1IdMock);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
@@ -104,7 +104,7 @@ describe('FormComponent', () => {
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
       await act(() => user.click(cancelButton));
 
-      expect(mockDeleteFormComponent).toBeCalledTimes(0);
+      expect(mockDeleteFormComponent).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
@@ -119,7 +119,7 @@ describe('FormComponent', () => {
       });
       await act(() => user.click(confirmButton));
 
-      expect(mockDeleteFormComponent).toBeCalledTimes(1);
+      expect(mockDeleteFormComponent).toHaveBeenCalledTimes(1);
       expect(handleDiscardMock).toHaveBeenCalledTimes(1);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
@@ -132,7 +132,7 @@ describe('FormComponent', () => {
 
       await act(() => user.click(document.body));
 
-      expect(mockDeleteFormComponent).toBeCalledTimes(0);
+      expect(mockDeleteFormComponent).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
   });

@@ -31,8 +31,8 @@ describe('EditTextResourceBindings component', () => {
   const textResources: ITextResource[] = [
     {
       id: 'test-text',
-      value: 'This is a test'
-    }
+      value: 'This is a test',
+    },
   ];
 
   test('that it renders', async () => {
@@ -45,14 +45,20 @@ describe('EditTextResourceBindings component', () => {
 
   test('that handleComponentChange is called when adding a new text', async () => {
     const handleComponentChange = jest.fn();
-    await renderEditTextResourceBindingsComponent({ handleComponentChange, textKey: 'does-not-exist' });
+    await renderEditTextResourceBindingsComponent({
+      handleComponentChange,
+      textKey: 'does-not-exist',
+    });
     await act(() => user.click(screen.getByLabelText(textMock('general.add'))));
-    expect(handleComponentChange).toBeCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
   });
 
   test('that handleComponentChange is called when choosing existing text', async () => {
     const handleComponentChange = jest.fn();
-    await renderEditTextResourceBindingsComponent({ handleComponentChange, textKey: 'does-not-exist' });
+    await renderEditTextResourceBindingsComponent({
+      handleComponentChange,
+      textKey: 'does-not-exist',
+    });
 
     // Click search button
     await act(() => user.click(screen.getByLabelText(textMock('general.search'))));
@@ -65,39 +71,53 @@ describe('EditTextResourceBindings component', () => {
     // Select text from available options
     await act(() => user.click(screen.getByRole('option', { name: textResources[0].id })));
 
-    expect(handleComponentChange).toBeCalledTimes(1);
-    expect(handleComponentChange).toBeCalledWith({
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       textResourceBindings: {
         ...mockComponent.textResourceBindings,
-        'does-not-exist': 'test-text'
-      }
+        'does-not-exist': 'test-text',
+      },
     });
   });
 
   test('That handleComponentChange and removeTextResourceBinding are called when confirm delete textResourceBinding button is clicked', async () => {
     const handleComponentChange = jest.fn();
     const removeTextResourceBinding = jest.fn();
-    await renderEditTextResourceBindingsComponent({ handleComponentChange, removeTextResourceBinding });
+    await renderEditTextResourceBindingsComponent({
+      handleComponentChange,
+      removeTextResourceBinding,
+    });
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
-    await act(() => user.click(screen.getByRole('button', { name: textMock('ux_editor.text_resource_bindings.delete_confirm') })));
-    expect(handleComponentChange).toBeCalledTimes(1);
-    expect(handleComponentChange).toBeCalledWith({
+    await act(() =>
+      user.click(
+        screen.getByRole('button', {
+          name: textMock('ux_editor.text_resource_bindings.delete_confirm'),
+        }),
+      ),
+    );
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       textResourceBindings: {},
     });
-    expect(removeTextResourceBinding).toBeCalledTimes(1);
+    expect(removeTextResourceBinding).toHaveBeenCalledTimes(1);
   });
 
   const waitForData = async () => {
-    const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
-    const { result } = renderHookWithMockStore({}, {
-      getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
-      getTextResources: (_o, _a, lang) => Promise.resolve<ITextResourcesWithLanguage>({
-        language: lang,
-        resources: textResources
-      }),
-    })(() => useTextResourcesQuery(org, app)).renderHookResult;
+    const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+      .renderHookResult.result;
+    const { result } = renderHookWithMockStore(
+      {},
+      {
+        getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
+        getTextResources: (_o, _a, lang) =>
+          Promise.resolve<ITextResourcesWithLanguage>({
+            language: lang,
+            resources: textResources,
+          }),
+      },
+    )(() => useTextResourcesQuery(org, app)).renderHookResult;
     await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   };
@@ -111,12 +131,14 @@ describe('EditTextResourceBindings component', () => {
   }: Partial<EditTextResourceBindingProps>) => {
     await waitForData();
 
-    return renderWithMockStore()(<EditTextResourceBinding
-      component={component}
-      handleComponentChange={handleComponentChange}
-      removeTextResourceBinding={removeTextResourceBinding}
-      textKey={textKey}
-      labelKey={labelKey}
-    />);
+    return renderWithMockStore()(
+      <EditTextResourceBinding
+        component={component}
+        handleComponentChange={handleComponentChange}
+        removeTextResourceBinding={removeTextResourceBinding}
+        textKey={textKey}
+        labelKey={labelKey}
+      />,
+    );
   };
 });

@@ -54,7 +54,7 @@ describe('SchemaItem', () => {
       await act(() => user.click(confirmButton));
 
       await waitFor(() => {
-        expect(dispatchSpy).toBeCalledWith({
+        expect(dispatchSpy).toHaveBeenCalledWith({
           payload: '#/$defs/Test',
           type: 'schemaEditor/removeSelection',
         });
@@ -73,7 +73,7 @@ describe('SchemaItem', () => {
       await act(() => user.click(cancelButton));
 
       await waitFor(() => {
-        expect(dispatchSpy).toBeCalledTimes(0);
+        expect(dispatchSpy).toHaveBeenCalledTimes(0);
       });
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
@@ -87,7 +87,7 @@ describe('SchemaItem', () => {
       await act(() => user.click(document.body));
 
       await waitFor(() => {
-        expect(dispatchSpy).toBeCalledTimes(0);
+        expect(dispatchSpy).toHaveBeenCalledTimes(0);
       });
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
@@ -134,6 +134,6 @@ const render = async (props: Partial<SchemaItemProps> = {}) => {
   })(
     <DndProvider backend={HTML5Backend}>
       <SchemaItem {...allProps} />
-    </DndProvider>
+    </DndProvider>,
   );
 };

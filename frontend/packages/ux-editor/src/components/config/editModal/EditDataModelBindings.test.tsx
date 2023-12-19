@@ -8,53 +8,48 @@ import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 
-const getDatamodelMetadata = () =>
-  Promise.resolve({
-    elements: {
-      testModel: {
-        id: 'testModel',
-        type: 'ComplexType',
-        dataBindingName: 'testModel',
-        displayString: 'testModel',
-        isReadOnly: false,
-        isTagContent: false,
-        jsonSchemaPointer: '#/definitions/testModel',
-        maxOccurs: 1,
-        minOccurs: 1,
-        name: 'testModel',
-        parentElement: null,
-        restrictions: [],
-        texts: [],
-        xmlSchemaXPath: '/testModel',
-        xPath: '/testModel',
-      },
-      'testModel.field1': {
-        id: 'testModel.field1',
-        type: 'SimpleType',
-        dataBindingName: 'testModel.field1',
-        displayString: 'testModel.field1',
-        isReadOnly: false,
-        isTagContent: false,
-        jsonSchemaPointer: '#/definitions/testModel/properteis/field1',
-        maxOccurs: 1,
-        minOccurs: 1,
-        name: 'testModel/field1',
-        parentElement: null,
-        restrictions: [],
-        texts: [],
-        xmlSchemaXPath: '/testModel/field1',
-        xPath: '/testModel/field1',
-      },
+const datamodelMetadata = {
+  elements: {
+    testModel: {
+      id: 'testModel',
+      type: 'ComplexType',
+      dataBindingName: 'testModel',
+      displayString: 'testModel',
+      isReadOnly: false,
+      isTagContent: false,
+      jsonSchemaPointer: '#/definitions/testModel',
+      maxOccurs: 1,
+      minOccurs: 1,
+      name: 'testModel',
+      parentElement: null,
+      restrictions: [],
+      texts: [],
+      xmlSchemaXPath: '/testModel',
+      xPath: '/testModel',
     },
-  });
+    'testModel.field1': {
+      id: 'testModel.field1',
+      type: 'SimpleType',
+      dataBindingName: 'testModel.field1',
+      displayString: 'testModel.field1',
+      isReadOnly: false,
+      isTagContent: false,
+      jsonSchemaPointer: '#/definitions/testModel/properteis/field1',
+      maxOccurs: 1,
+      minOccurs: 1,
+      name: 'testModel/field1',
+      parentElement: null,
+      restrictions: [],
+      texts: [],
+      xmlSchemaXPath: '/testModel/field1',
+      xPath: '/testModel/field1',
+    },
+  },
+};
 
-const render = async ({
-  dataModelBindings = {},
-  handleComponentChange = jest.fn(),
-  handleDataModelChange = jest.fn(),
-  setSelectedOption = jest.fn(),
-  onEditClick = jest.fn(),
-} = {}) => {
+const getDatamodelMetadata = () => Promise.resolve(datamodelMetadata);
+
+const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
     ...appDataMock,
     textResources: {
@@ -65,8 +60,6 @@ const render = async ({
   return renderWithMockStore(
     { appData },
     { getDatamodelMetadata },
-    handleDataModelChange(),
-    setSelectedOption(),
   )(
     <EditDataModelBindings
       handleComponentChange={handleComponentChange}
@@ -139,20 +132,30 @@ describe('EditDataModelBindings', () => {
   });
 
   it('check that handleDataModelChange is called', async () => {
-    const handleDataModelChange = jest.fn();
-    const dataModelSelectVisible = jest.fn();
-    await render({ handleDataModelChange });
+    const handleComponentChange = jest.fn();
+    await render({ handleComponentChange });
     const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
     await waitFor(async () => {
       await userEvent.click(linkIcon);
     });
-    dataModelSelectVisible(true);
     const select = screen.getByRole('combobox');
-    const option = within(select).getByText('');
+    await waitFor(async () => await userEvent.click(select));
     await waitFor(async () => {
-      await userEvent.click(option);
+      await userEvent.click(
+        screen.getByRole('option', {
+          name: datamodelMetadata.elements.testModel.dataBindingName,
+        }),
+      );
     });
-    expect(handleDataModelChange).toHaveBeenCalled();
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      dataModelBindings: { simpleBinding: 'testModel' },
+      id: 'someComponentId',
+      itemType: 'COMPONENT',
+      required: true,
+      textResourceBindings: { title: 'ServiceName' },
+      timeStamp: undefined,
+      type: 'Input',
+    });
   });
 
   it('should render save icon', async () => {
@@ -194,84 +197,65 @@ describe('EditDataModelBindings', () => {
     expect(screen.getByText(/ux_editor.modal_properties_data_model_link/i)).toBeInTheDocument();
   });
 
-  it('should call handleDataModelChange and update setSelectedOption on delete button click', async () => {
-    const handleDataModelChange = jest.fn();
-    const setSelectedOption = String('');
+  it('deletes existing data model link', async () => {
+    const handleComponentChange = jest.fn();
+    const dataModelBindingKey = 'testModel.field1';
 
-    await render({ handleDataModelChange });
-
-    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
-    await waitFor(async () => {
-      await userEvent.click(linkIcon);
+    await render({
+      handleComponentChange,
+      dataModelBindings: { simpleBinding: dataModelBindingKey },
     });
 
-    expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
+    const datamodelText = screen.getByText(dataModelBindingKey);
+    expect(datamodelText).toBeInTheDocument();
+
+    await waitFor(async () => {
+      await userEvent.hover(datamodelText);
+    });
+
+    const editIcon = screen.getByRole('button', { name: textMock('general.edit') });
+    await waitFor(async () => {
+      await userEvent.click(editIcon);
+    });
+
+    expect(await screen.findByText(dataModelBindingKey)).toBeInTheDocument();
     const deleteButton = await screen.findByRole('button', { name: /general.delete/i });
     await waitFor(async () => {
       await userEvent.click(deleteButton);
     });
-    expect(handleDataModelChange).toBeCalled;
-    expect(typeof setSelectedOption).toEqual('string');
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      dataModelBindings: { simpleBinding: '' },
+      id: 'someComponentId',
+      itemType: 'COMPONENT',
+      required: false,
+      textResourceBindings: { title: 'ServiceName' },
+      timeStamp: undefined,
+      type: 'Input',
+    });
   });
 
-  it('should call handleDataModelChange and setSelectedOption on data model change', async () => {
-    const handleDataModelChange = jest.fn();
-    const setSelectedOption = jest.fn();
+  it('shows edit form', async () => {
+    const dataModelBindingKey = 'testModel.field1';
+    await render({
+      dataModelBindings: { simpleBinding: dataModelBindingKey },
+    });
 
-    await render({ handleDataModelChange, setSelectedOption });
+    const datamodelText = screen.getByText(dataModelBindingKey);
+    expect(datamodelText).toBeInTheDocument();
 
-    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
     await waitFor(async () => {
-      await userEvent.click(linkIcon);
+      await userEvent.hover(datamodelText);
+    });
+
+    const editIcon = screen.getByRole('button', { name: textMock('general.edit') });
+    await waitFor(async () => {
+      await userEvent.click(editIcon);
     });
 
     expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
+      screen.getByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
-    expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
-
-    expect(handleDataModelChange).toBeCalled;
-    expect(setSelectedOption).toBeCalled;
-  });
-
-  it('should render LinkedDataModelContainer component when an option is selected', async () => {
-    const handleDataModelChange = jest.fn();
-    const setSelectedOption = jest.fn();
-
-    await render({ handleDataModelChange, setSelectedOption });
-
-    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
-    await waitFor(async () => {
-      await userEvent.click(linkIcon);
-    });
-
-    expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
-    ).toBeInTheDocument();
-    expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
-
-    expect(handleDataModelChange).toBeCalled;
-    expect(setSelectedOption).toBeCalled;
-
-    const linkedDataModelContainer = await screen.findByText('testModel.field1');
-    expect(linkedDataModelContainer).toBeInTheDocument();
-  });
-
-  it('check that  onEditClick is called', async () => {
-    const onEditClick = jest.fn();
-    await render({ onEditClick });
-
-    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
-    await waitFor(async () => {
-      await userEvent.click(linkIcon);
-    });
-    const editIcon = screen.getByRole('button', { name: /Edit/i });
-    await waitFor(async () => {
-      await userEvent.hover(editIcon);
-    });
-
-    expect(editIcon).toBeInTheDocument();
-    expect(onEditClick).toHaveBeenCalled;
+    expect(screen.getByRole('combobox').getAttribute('value')).toEqual(dataModelBindingKey);
   });
 
   it('show right data model when switching component', async () => {
