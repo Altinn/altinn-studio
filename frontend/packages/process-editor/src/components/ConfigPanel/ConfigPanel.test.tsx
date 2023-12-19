@@ -1,24 +1,40 @@
 import React from 'react';
 import { ConfigPanel } from './ConfigPanel';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { BpmnContext, BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
+import { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
+import userEvent from '@testing-library/user-event';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
 const mockAppLibVersion7: string = '7.0.3';
 
-const mockId: string = 'testId';
+const mockBpmnId: string = 'testId';
 const mockName: string = 'testName';
 
 const mockBpmnDetails: BpmnDetails = {
-  id: mockId,
+  id: mockBpmnId,
   name: mockName,
   taskType: 'data',
   type: BpmnTypeEnum.Task,
 };
+
+const mockOrg: string = 'org';
+const mockAppId: string = 'id';
+const mockDataTypeId1: string = 'type1';
+const mockDataTypeTaskId1: string = 'oldTask';
+const mockDataType1: DataTypeElement = { id: mockDataTypeId1, taskId: mockDataTypeTaskId1 };
+const mockDataTypes: DataTypeElement[] = [mockDataType1];
+const mockApplicationMetadata: ApplicationMetadata = {
+  id: mockAppId,
+  org: mockOrg,
+  dataTypes: mockDataTypes,
+};
+
+const mockUpdateApplicationMetadata = jest.fn();
 
 const mockBpmnContextValue: BpmnContextProps = {
   bpmnXml: mockBPMNXML,
@@ -29,6 +45,8 @@ const mockBpmnContextValue: BpmnContextProps = {
   isEditAllowed: true,
   bpmnDetails: mockBpmnDetails,
   setBpmnDetails: jest.fn(),
+  applicationMetadata: mockApplicationMetadata,
+  updateApplicationMetadata: mockUpdateApplicationMetadata,
 };
 
 describe('ConfigPanel', () => {
@@ -76,8 +94,12 @@ describe('ConfigPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display the details about the selected task when a "data" task is selected', () => {
+  it('should display the details about the selected task when a "data" task is selected', async () => {
     render();
+
+    const user = userEvent.setup();
+    // Added to remove the error "Warning: An update to Select inside a test was not wrapped in act(...)."
+    await act(() => user.tab());
 
     expect(
       screen.getByRole('heading', {
@@ -90,8 +112,12 @@ describe('ConfigPanel', () => {
     expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
   });
 
-  it('should display the details about the selected task when a "confirmation" task is selected', () => {
+  it('should display the details about the selected task when a "confirmation" task is selected', async () => {
     render({ bpmnDetails: { ...mockBpmnDetails, taskType: 'confirmation' } });
+
+    const user = userEvent.setup();
+    // Added to remove the error "Warning: An update to Select inside a test was not wrapped in act(...)."
+    await act(() => user.tab());
 
     expect(
       screen.getByRole('heading', {
@@ -104,8 +130,12 @@ describe('ConfigPanel', () => {
     expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
   });
 
-  it('should display the details about the selected task when a "feedback" task is selected', () => {
+  it('should display the details about the selected task when a "feedback" task is selected', async () => {
     render({ bpmnDetails: { ...mockBpmnDetails, taskType: 'feedback' } });
+
+    const user = userEvent.setup();
+    // Added to remove the error "Warning: An update to Select inside a test was not wrapped in act(...)."
+    await act(() => user.tab());
 
     expect(
       screen.getByRole('heading', {
@@ -118,8 +148,12 @@ describe('ConfigPanel', () => {
     expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
   });
 
-  it('should display the details about the selected task when a "signing" task is selected', () => {
+  it('should display the details about the selected task when a "signing" task is selected', async () => {
     render({ bpmnDetails: { ...mockBpmnDetails, taskType: 'signing' } });
+
+    const user = userEvent.setup();
+    // Added to remove the error "Warning: An update to Select inside a test was not wrapped in act(...)."
+    await act(() => user.tab());
 
     expect(
       screen.getByRole('heading', {

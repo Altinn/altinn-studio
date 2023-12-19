@@ -28,6 +28,7 @@ export const ConfigContent = (): JSX.Element => {
 
   const validDataTypeIdsAndTaskIds: DataTypeIdAndTaskId[] =
     getValidDataTypeIdsAndTaskIds(applicationMetadata);
+
   const showCreateDatamodelLink: boolean = validDataTypeIdsAndTaskIds.length === 0;
 
   const dataTypeOptions = validDataTypeIdsAndTaskIds.map((data) => ({
