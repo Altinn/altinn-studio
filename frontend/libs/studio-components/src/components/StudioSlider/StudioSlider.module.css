@@ -17,7 +17,7 @@
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
-  width: 100%;
+  width: calc(100% - var(--outline-offset) - 0.1rem);
   cursor: pointer;
 }
 
@@ -62,7 +62,7 @@ datalist {
   position: absolute;
   top: 0;
   display: flex;
-  width: calc(100% + var(--outline-offset));
+  width: 100%;
   justify-content: space-around;
   --datalist-height: calc(var(--height) + var(--outline-offset));
   height: var(--datalist-height);
@@ -79,10 +79,15 @@ option {
   height: var(--datalist-height);
   align-items: center;
   border-left: 1px solid white;
+  border-right: 1px solid white;
 }
 
 option:first-child {
   border-left: 1px solid transparent;
+}
+
+option:last-child {
+  border-right: 1px solid transparent;
 }
 
 .outsideGrid {

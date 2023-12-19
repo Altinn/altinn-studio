@@ -44,8 +44,8 @@ export const EditGridForGivenViewSize = ({
   return (
     <>
       <div className={classes.lockIcon}>
-        {!gridValues[viewSize] && <PadlockLockedFillIcon title='lockIcon' fontSize='1.5rem' />}
         <Paragraph size='small'>{t('ux_editor.modal_properties_grid')}</Paragraph>
+        {!gridValues[viewSize] && <PadlockLockedFillIcon title='lockIcon' fontSize='1.5rem' />}
       </div>
 
       <StudioSlider
