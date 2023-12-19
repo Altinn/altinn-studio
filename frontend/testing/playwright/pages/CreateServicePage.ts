@@ -1,5 +1,5 @@
-﻿import {Page} from "@playwright/test";
-import {BasePage} from "../helpers/BasePage";
+﻿import { Page } from '@playwright/test';
+import { BasePage } from '../helpers/BasePage';
 
 export class CreateServicePage extends BasePage {
   constructor(page: Page) {
@@ -7,7 +7,7 @@ export class CreateServicePage extends BasePage {
   }
 
   public async goToCreateAppForm(): Promise<void> {
-    await this.page.goto(this.getRoute("dashboardCreateApp"));
+    await this.page.goto(this.getRoute('dashboardCreateApp'));
   }
 
   public async writeAppName(appName: string): Promise<void> {
@@ -16,7 +16,7 @@ export class CreateServicePage extends BasePage {
   }
 
   public async clickOnCreateAppButton(): Promise<void> {
-    await this.page.getByRole('button', {name: 'Opprett applikasjon'}).click();
+    await this.page.getByRole('button', { name: 'Opprett applikasjon' }).click();
   }
 
   public async redirectedToEditorOverview(): Promise<void> {
