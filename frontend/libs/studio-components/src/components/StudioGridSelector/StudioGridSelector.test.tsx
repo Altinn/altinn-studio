@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { StudioSlider } from './StudioSlider';
+import { StudioGridSelector } from './StudioGridSelector';
 
-describe('StudioSlider', () => {
+describe('StudioGridSelector', () => {
   it('should render slider with value 12 and not disabled by default', () => {
-    render(<StudioSlider handleSliderChange={() => jest.fn()} />);
+    render(<StudioGridSelector handleSliderChange={() => jest.fn()} />);
 
     const slider = screen.getByRole('slider');
     expect(slider).toHaveValue('12');
@@ -12,7 +12,7 @@ describe('StudioSlider', () => {
   });
 
   it('should render slider as disabled when disabled is true', () => {
-    render(<StudioSlider disabled={true} handleSliderChange={() => jest.fn()} />);
+    render(<StudioGridSelector disabled={true} handleSliderChange={() => jest.fn()} />);
 
     const slider = screen.getByRole('slider');
     expect(slider).toHaveAttribute('disabled');
@@ -20,7 +20,7 @@ describe('StudioSlider', () => {
 
   it('should render slider with correct value', () => {
     const sliderValue = 4;
-    render(<StudioSlider sliderValue={sliderValue} handleSliderChange={() => jest.fn()} />);
+    render(<StudioGridSelector sliderValue={sliderValue} handleSliderChange={() => jest.fn()} />);
 
     const slider = screen.getByRole('slider');
     expect(slider).toHaveValue(sliderValue.toString());
@@ -29,7 +29,7 @@ describe('StudioSlider', () => {
   it('should render slider with lowest possible value when sliderValue is negative', () => {
     const sliderValue = -4;
     const lowestPossibleValue = 1;
-    render(<StudioSlider sliderValue={sliderValue} handleSliderChange={() => jest.fn()} />);
+    render(<StudioGridSelector sliderValue={sliderValue} handleSliderChange={() => jest.fn()} />);
 
     const slider = screen.getByRole('slider');
     expect(slider).toHaveValue(lowestPossibleValue.toString());
@@ -38,7 +38,7 @@ describe('StudioSlider', () => {
   it('should render slider with highest possible value when sliderValue is too high', () => {
     const sliderValue = 14;
     const lowestPossibleValue = 12;
-    render(<StudioSlider sliderValue={sliderValue} handleSliderChange={() => jest.fn()} />);
+    render(<StudioGridSelector sliderValue={sliderValue} handleSliderChange={() => jest.fn()} />);
 
     const slider = screen.getByRole('slider');
     expect(slider).toHaveValue(lowestPossibleValue.toString());
@@ -48,7 +48,7 @@ describe('StudioSlider', () => {
     const sliderValue = 4;
     const newSliderValue = 6;
     const onSliderChange = jest.fn();
-    render(<StudioSlider sliderValue={sliderValue} handleSliderChange={onSliderChange} />);
+    render(<StudioGridSelector sliderValue={sliderValue} handleSliderChange={onSliderChange} />);
 
     const slider = screen.getByRole('slider');
     fireEvent.change(slider, { target: { value: newSliderValue } });

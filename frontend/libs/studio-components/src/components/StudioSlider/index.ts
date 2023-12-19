@@ -1,1 +1,0 @@
-export { StudioSlider } from './StudioSlider';

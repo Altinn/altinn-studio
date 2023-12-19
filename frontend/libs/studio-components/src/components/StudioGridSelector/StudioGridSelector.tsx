@@ -1,8 +1,8 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import classes from './StudioSlider.module.css';
+import classes from './StudioGridSelector.module.css';
 import cn from 'classnames';
 
-type StudioSliderProps = {
+type StudioGridSelectorProps = {
   disabled?: boolean;
   sliderValue?: number;
   handleSliderChange: (newValue: number) => void;
@@ -12,11 +12,11 @@ type StudioSliderProps = {
  * @component
  *    Component to select a value within the range 1 to 12. Adapted to select value for grid-property on layout components
  */
-export const StudioSlider = ({
+export const StudioGridSelector = ({
   disabled = false,
   sliderValue = 12,
   handleSliderChange,
-}: StudioSliderProps) => {
+}: StudioGridSelectorProps) => {
   const [value, setValue] = useState<number>(sliderValue);
   const gridValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   useEffect(() => {
