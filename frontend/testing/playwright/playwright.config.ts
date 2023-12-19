@@ -1,12 +1,15 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, test as base } from '@playwright/test';
 import { config } from 'dotenv';
 
 type ExtendedTestOptions = {
   testAppName: string;
-}
+};
+
+export const test = base.extend<ExtendedTestOptions>({
+  testAppName: [process.env.PLAYWRIGHT_DESIGNER_APP_NAME, { option: true }],
+});
 
 config();
-
 
 export default defineConfig<ExtendedTestOptions>({
   testDir: './integration',

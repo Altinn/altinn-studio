@@ -1,8 +1,6 @@
-﻿import { test as base } from '@playwright/test';
+﻿import { test } from '../playwright.config';
 import { CreateServicePage } from '../pages/CreateServicePage';
 import { DashboardPage } from '../pages/DashboardPage';
-
-const test = base.extend<{ testAppName: string }>({ testAppName: 'demo'});
 
 test.describe('create-app-and-simple-schema', () => {
   test('should load dashboard and be able to navigate to create app', async ({
