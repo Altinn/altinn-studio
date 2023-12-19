@@ -5,10 +5,7 @@ import { Environment } from './StudioEnvironment';
 export class BasePage extends RouterRoute {
   public readonly page: Page;
 
-  constructor(
-    page: Page,
-    environment?: Environment,
-  ) {
+  constructor(page: Page, environment?: Environment) {
     super(environment);
     this.page = page;
   }

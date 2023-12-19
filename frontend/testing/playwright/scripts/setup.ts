@@ -1,31 +1,32 @@
-﻿import path from 'path'
+﻿import path from 'path';
 import fs from 'fs';
 
-require('dotenv').config({path: path.resolve(__dirname, '../../../../.env')})
-import os from "os";
+require('dotenv').config({ path: path.resolve(__dirname, '../../../../.env') });
+import os from 'os';
 
 const environment: Record<string, string> = {
   PLAYWRIGHT_TEST_BASE_URL: 'http://studio.localhost',
   PLAYWRIGHT_DESIGNER_APP_NAME: 'auto-test-app',
 
   PLAYWRIGHT_USER: process.env.GITEA_CYPRESS_USER,
-  PLAYWRIGHT_PASS: process.env.GITEA_CYPRESS_PASS
-}
+  PLAYWRIGHT_PASS: process.env.GITEA_CYPRESS_PASS,
+};
 
 const getEnvFilePath = (): string => {
   return path.resolve(__dirname, '..', '.env');
-}
+};
 
 const mapEnvironment = () => {
-  return Object.keys(environment).map((key) => ([key, environment[key]].join('='))).join(os.EOL);
-}
+  return Object.keys(environment)
+    .map((key) => [key, environment[key]].join('='))
+    .join(os.EOL);
+};
 
 const updateEnvironmentVars = (): void => {
   const filePath: string = getEnvFilePath();
   console.table(environment);
-  fs.writeFileSync(filePath, mapEnvironment(), {encoding: 'utf8', flag: 'w'})
-}
-
+  fs.writeFileSync(filePath, mapEnvironment(), { encoding: 'utf8', flag: 'w' });
+};
 
 (async (): Promise<void> => {
   console.log('----- SETUP PLAYWRIGHT ENVIRONMENT VARIABLES STARTED -----');
@@ -33,6 +34,6 @@ const updateEnvironmentVars = (): void => {
     console.error('Ensure to run `node setup.js` within development folder on root.');
     return;
   }
-  updateEnvironmentVars()
+  updateEnvironmentVars();
   console.log('----- SETUP PLAYWRIGHT ENVIRONMENT VARIABLES DONE -----');
 })();

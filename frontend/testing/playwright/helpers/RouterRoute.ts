@@ -11,9 +11,7 @@ const routerRoutes: RouterRoutes = {
   editorOverview: `/editor/{{org}}/{{app}}/overview`,
 };
 
-
 export class RouterRoute extends StudioEnvironment {
-
   constructor(environment: Environment) {
     super(environment);
   }
