@@ -89,7 +89,7 @@ describe('ConfigContent', () => {
     expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
   });
 
-  it('should display the details about the selected task when a task not of type "BpmnTaskType" is selected task is selected', () => {
+  it('should display the details about the selected task when a task not of type "BpmnTaskType" is selected', () => {
     render({ bpmnDetails: { ...mockBpmnDetails, taskType: undefined } });
 
     expect(
