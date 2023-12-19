@@ -1,11 +1,11 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditGrid } from './EditGrid';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { component1Mock } from '../../../testing/layoutMock';
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
@@ -13,110 +13,52 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async ({
-  grid = undefined,
-  type = undefined,
-  handleComponentChange = jest.fn(),
-} = {}) => {
+const render = async ({ grid = undefined, handleComponentChange = jest.fn() } = {}) => {
   await waitForData();
 
   return renderWithMockStore()(
     <EditGrid
       handleComponentChange={handleComponentChange}
-      component={{
-        id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-        type,
-        textResourceBindings: {
-          title: 'SomeTextId',
-        },
-        grid,
-        itemType: 'COMPONENT',
-        dataModelBindings: {},
-      }}
+      component={{ ...component1Mock, grid }}
     />,
   );
 };
 
 describe('EditGrid', () => {
   it('should show grid value 4 on slider for mobile tab when xs: "4" is set on grid on component', async () => {
-    await render({ grid: { xs: '4' }, type: ComponentType.Input });
+    await render({ grid: { xs: 4 } });
 
     const mobileTab = screen.getByRole('tab', {
       name: textMock('ux_editor.modal_properties_grid_size_xs'),
     });
-    expect(mobileTab).toBeInTheDocument();
+    expect(mobileTab).toHaveAttribute('aria-selected', 'true');
 
     const slider = screen.getByRole('slider');
     expect(slider).toBeInTheDocument();
     expect(slider).toHaveValue('4');
-
-    const selectedSliderValue = screen.getByText('4');
-    expect(selectedSliderValue).toBeInTheDocument();
-  });
-
-  it('should show that default value, 12, is set for grid on both xs and md when not set on component', async () => {
-    const user = userEvent.setup();
-    await render({ type: ComponentType.Input });
-
-    const lockIconLaptop = screen.getByRole('img', { name: 'lockIcon' });
-    expect(lockIconLaptop).toBeInTheDocument();
-
-    const sliderLaptop = screen.getByRole('slider');
-    expect(sliderLaptop).toBeInTheDocument();
-    expect(sliderLaptop).toHaveValue('12');
-    expect(sliderLaptop).toHaveAttribute('disabled');
-
-    const mobileTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.modal_properties_grid_size_xs'),
-    });
-    expect(mobileTab).toBeInTheDocument();
-    await act(() => user.click(mobileTab));
-
-    const lockIconMobile = screen.getByRole('img', { name: 'lockIcon' });
-    expect(lockIconMobile).toBeInTheDocument();
-
-    const sliderMobile = screen.getByRole('slider');
-    expect(sliderMobile).toBeInTheDocument();
-    expect(sliderMobile).toHaveValue('12');
-    expect(sliderMobile).toHaveAttribute('disabled');
   });
 
   it('should show slider value equals to grid xs: "2" when switching tab from laptop with grid md: "6"', async () => {
     const user = userEvent.setup();
-    await render({ grid: { xs: '2', md: '6' }, type: ComponentType.Input });
-
-    const mobileTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.modal_properties_grid_size_xs'),
-    });
-    expect(mobileTab).toBeInTheDocument();
-
-    const sliderLaptop = screen.getByRole('slider');
-    expect(sliderLaptop).toHaveValue('6');
-
-    await act(() => user.click(mobileTab));
+    await render({ grid: { xs: 2, md: 6 } });
 
     const sliderMobile = screen.getByRole('slider');
     expect(sliderMobile).toHaveValue('2');
-  });
-
-  it('should show laptop tab as selected when grid is not set on any screens on component', async () => {
-    await render({ type: ComponentType.Input });
 
     const laptopTab = screen.getByRole('tab', {
       name: textMock('ux_editor.modal_properties_grid_size_md'),
     });
     expect(laptopTab).toBeInTheDocument();
+    expect(laptopTab).toHaveAttribute('aria-selected', 'false');
+    await act(() => user.click(laptopTab));
     expect(laptopTab).toHaveAttribute('aria-selected', 'true');
 
-    const mobileTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.modal_properties_grid_size_xs'),
-    });
-    expect(mobileTab).toBeInTheDocument();
-    expect(mobileTab).toHaveAttribute('aria-selected', 'false');
+    const sliderLaptop = screen.getByRole('slider');
+    expect(sliderLaptop).toHaveValue('6');
   });
 
-  it('should show mobile tab as selected when grid is only set on xs on component', async () => {
-    await render({ grid: { xs: '3' }, type: ComponentType.Input });
+  it('should show mobile tab as selected when by default', async () => {
+    await render({ grid: { xs: 3, md: 4 } });
 
     const laptopTab = screen.getByRole('tab', {
       name: textMock('ux_editor.modal_properties_grid_size_md'),
@@ -131,19 +73,146 @@ describe('EditGrid', () => {
     expect(mobileTab).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('should show laptop tab as selected when grid is set on both xs and md on component', async () => {
-    await render({ grid: { xs: '3', md: '6' }, type: ComponentType.Input });
+  it('should call handleComponentChange with grid: xs: 12 when switch is disabled', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    await render({ handleComponentChange });
+
+    const lockIcon = screen.getByRole('img', { name: 'lockIcon' });
+    expect(lockIcon).toBeInTheDocument();
+
+    const switchUseDefault = screen.getByRole('checkbox');
+
+    await act(() => user.click(switchUseDefault));
+
+    const lockIconAfterSwitchClick = screen.queryByRole('img', { name: 'lockIcon' });
+    expect(lockIconAfterSwitchClick).not.toBeInTheDocument();
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...component1Mock,
+      grid: {
+        xs: 12,
+      },
+    });
+  });
+
+  it('should call handleComponentChange with grid: xs: 3 when slider is changed', async () => {
+    const handleComponentChange = jest.fn();
+    await render({ grid: { xs: 12 }, handleComponentChange });
+
+    const slider = screen.getByRole('slider');
+
+    fireEvent.change(slider, { target: { value: '3' } });
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...component1Mock,
+      grid: {
+        xs: 3,
+      },
+    });
+  });
+
+  it('should call handleComponentChange with new value for xs, but remain original value for md, when slider is changed to "4" for mobile', async () => {
+    const handleComponentChange = jest.fn();
+    await render({
+      grid: { xs: 6, md: 3 },
+      handleComponentChange,
+    });
+
+    const slider = screen.getByRole('slider');
+
+    fireEvent.change(slider, { target: { value: '4' } });
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...component1Mock,
+      grid: {
+        xs: 4,
+        md: 3,
+      },
+    });
+  });
+
+  it('should call handleComponentChange with original value for md and no value for xs when useDefaultSwitch is enabled', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    await render({
+      grid: { xs: 3, md: 3 },
+      handleComponentChange,
+    });
+
+    const switchUseDefault = screen.getByRole('checkbox');
+    await act(() => user.click(switchUseDefault));
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...component1Mock,
+      grid: {
+        md: 3,
+      },
+    });
+  });
+
+  it('should call handleComponentChange with original value for xs and no value for md when useDefaultSwitch is enabled for laptop tab', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    await render({
+      grid: { xs: 3, md: 3 },
+      handleComponentChange,
+    });
 
     const laptopTab = screen.getByRole('tab', {
       name: textMock('ux_editor.modal_properties_grid_size_md'),
     });
-    expect(laptopTab).toBeInTheDocument();
-    expect(laptopTab).toHaveAttribute('aria-selected', 'true');
+    await act(() => user.click(laptopTab));
 
-    const mobileTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.modal_properties_grid_size_xs'),
+    const switchUseDefault = screen.getByRole('checkbox');
+
+    await act(() => user.click(switchUseDefault));
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...component1Mock,
+      grid: {
+        xs: 3,
+      },
     });
-    expect(mobileTab).toBeInTheDocument();
-    expect(mobileTab).toHaveAttribute('aria-selected', 'false');
+  });
+
+  it('should call handleComponentChange with original values for innerGrid and labelGrid when useDefaultSwitch is enabled', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    await render({
+      grid: {
+        innerGrid: { xs: 3, md: 3 },
+        labelGrid: { xs: 6 },
+        xs: 10,
+      },
+      handleComponentChange,
+    });
+
+    const switchUseDefault = screen.getByRole('checkbox');
+
+    await act(() => user.click(switchUseDefault));
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...component1Mock,
+      grid: {
+        innerGrid: { xs: 3, md: 3 },
+        labelGrid: { xs: 6 },
+      },
+    });
+  });
+
+  it('should call handleComponentChange with no grid-property when useDefaultSwitch is disabled', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    await render({
+      grid: { xs: 3 },
+      handleComponentChange,
+    });
+
+    const switchUseDefault = screen.getByRole('checkbox');
+
+    await act(() => user.click(switchUseDefault));
+
+    expect(handleComponentChange).toHaveBeenCalledWith(component1Mock);
   });
 });

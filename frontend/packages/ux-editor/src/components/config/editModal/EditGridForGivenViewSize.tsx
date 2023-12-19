@@ -1,65 +1,62 @@
-import React, { useState } from 'react';
-import type { IGenericEditComponent } from '../componentConfig';
+import React from 'react';
 import { useText } from '../../../hooks';
 import { StudioSlider } from '@studio/components';
 import { Paragraph, Switch } from '@digdir/design-system-react';
-import { ViewSizeForGridProp } from './EditGrid';
 import { PadlockLockedFillIcon } from '@navikt/aksel-icons';
 import classes from './EditGridForGivenViewSize.module.css';
+import { GridSizeForViewSize, ViewSizeForGridProp } from './EditGrid';
+import { deepCopy } from 'app-shared/pure';
 
-export interface EditGridForGivenViewSizeProps extends IGenericEditComponent {
+export interface EditGridForGivenViewSizeProps {
+  handleUpdateGrid: (newGridValues: GridSizeForViewSize) => void;
+  gridValues: GridSizeForViewSize;
   viewSize: ViewSizeForGridProp;
-  useDefaultGridSize: boolean;
 }
 
+const setGridValueOnViewSize = (
+  viewSize: ViewSizeForGridProp,
+  gridValues: GridSizeForViewSize,
+  newGridValue,
+) => {
+  const newGridValues = deepCopy(gridValues);
+  newGridValues[viewSize] = newGridValue;
+  return newGridValues;
+};
+
 export const EditGridForGivenViewSize = ({
+  handleUpdateGrid,
+  gridValues,
   viewSize,
-  useDefaultGridSize,
-  handleComponentChange,
-  component,
 }: EditGridForGivenViewSizeProps) => {
   const t = useText();
-  const [useDefault, setUseDefault] = useState<boolean>(useDefaultGridSize);
 
-  const DEFAULT_GRID_VALUE = '12';
+  const DEFAULT_GRID_VALUE = 12;
 
-  const handleSliderChange = (newValue: string) => {
-    const newGridObject = viewSize === ViewSizeForGridProp.S ? { xs: newValue } : { md: newValue };
-    handleComponentChange({
-      ...component,
-      grid: {
-        ...component.grid,
-        ...newGridObject,
-      },
-    });
-  };
-
-  const handleSwitchChange = () => {
-    // call function to mutate component on new ref
-    if (useDefault) {
-      handleSliderChange(DEFAULT_GRID_VALUE);
-    } else {
-      if (viewSize === ViewSizeForGridProp.S) delete component.grid?.xs;
-      if (viewSize === ViewSizeForGridProp.M) delete component.grid?.md;
-      if (Object.keys(component.grid).length === 0) delete component.grid;
-      handleComponentChange(component);
-    }
-    setUseDefault(!useDefault);
+  const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newGridObject = setGridValueOnViewSize(
+      viewSize,
+      gridValues,
+      e.target.checked ? undefined : DEFAULT_GRID_VALUE,
+    );
+    handleUpdateGrid(newGridObject);
   };
 
   return (
     <>
       <div className={classes.lockIcon}>
-        {useDefault && <PadlockLockedFillIcon title='lockIcon' fontSize='1.5rem' />}
+        {!gridValues[viewSize] && <PadlockLockedFillIcon title='lockIcon' fontSize='1.5rem' />}
         <Paragraph size='small'>{t('ux_editor.modal_properties_grid')}</Paragraph>
       </div>
 
       <StudioSlider
-        disabled={useDefault}
-        sliderValue={viewSize === ViewSizeForGridProp.S ? component.grid?.xs : component.grid?.md}
-        handleSliderChange={(newValue) => handleSliderChange(newValue)}
+        disabled={!gridValues[viewSize]}
+        sliderValue={gridValues[viewSize]}
+        handleSliderChange={(newValue) => {
+          const newGridObject = setGridValueOnViewSize(viewSize, gridValues, Number(newValue));
+          handleUpdateGrid(newGridObject);
+        }}
       />
-      <Switch checked={useDefault} onChange={handleSwitchChange} size='small'>
+      <Switch checked={!gridValues[viewSize]} onChange={handleSwitchChange} size='small'>
         {t('ux_editor.modal_properties_grid_use_default')}
       </Switch>
     </>

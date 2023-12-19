@@ -2,9 +2,9 @@
   background-color: white;
   border-radius: 0.5rem;
   padding-right: 0.5rem;
+  gap: 0 !important;
 }
 
 .viewSizesTabs {
-  margin-left: 1rem;
-  margin-top: 0.5rem;
+  margin-left: 0.5rem;
 }
