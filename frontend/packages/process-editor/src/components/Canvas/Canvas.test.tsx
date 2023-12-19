@@ -5,6 +5,7 @@ import { Canvas } from './Canvas';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { BpmnContextProvider, BpmnContextProviderProps } from '../../contexts/BpmnContext';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { mockApplicationMetadata } from '../../mocks/applicationMetadataMock';
 
 const mockOnSave = jest.fn();
 
@@ -15,6 +16,8 @@ const defaultProps: BpmnContextProviderProps = {
   appLibVersion: mockAppLibVersion8,
   bpmnXml: '',
   children: null,
+  applicationMetadata: mockApplicationMetadata,
+  updateApplicationMetadata: jest.fn(),
 };
 
 const render = (props: Partial<BpmnContextProviderProps> = {}) => {

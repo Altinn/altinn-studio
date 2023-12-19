@@ -1,4 +1,4 @@
-import { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
+import { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import {
   filterOutRefDataAsPdf,
   getApplicationMetadataWithUpdatedDataTypes,
@@ -9,18 +9,12 @@ import {
   mapDataTypesToDataTypeIdAndTaskIds,
 } from './configPanelUtils';
 import { DataTypeIdAndTaskId } from '../../types/DataTypeIdAndTaskId';
-
-const mockId: string = 'mockId';
-const mockOrg: string = 'org';
-const mockDataTypeId1: string = 'type1';
-const mockDataTypeTaskId1: string = 'oldTask';
-const mockDataType1: DataTypeElement = { id: mockDataTypeId1, taskId: mockDataTypeTaskId1 };
-const mockDataTypes: DataTypeElement[] = [mockDataType1];
-const mockApplicationMetadata: ApplicationMetadata = {
-  id: mockId,
-  org: mockOrg,
-  dataTypes: mockDataTypes,
-};
+import {
+  mockApplicationMetadata,
+  mockDataTypeId1,
+  mockDataTypeTaskId1,
+  mockDataTypes,
+} from '../../mocks/applicationMetadataMock';
 
 describe('configPanelUtils', () => {
   describe('getConfigTitleKey', () => {

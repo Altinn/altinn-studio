@@ -16,12 +16,10 @@ export const ProcessEditor = () => {
   const { org, app } = useStudioUrlParams();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
 
-  // const { data: appLibData, isLoading: appLibDataLoading } = useAppLibVersionQuery(org, app);
   const {
     status: appLibStatus,
     data: appLibData,
     error: appLibError,
-    isLoading: appLibDataLoading,
   } = useAppLibVersionQuery(org, app);
   const {
     status: applicationMetadataStatus,
@@ -70,13 +68,4 @@ export const ProcessEditor = () => {
         />
       );
   }
-  /*
-  if (appLibDataLoading) {
-    return <Spinner title={t('process_editor.loading')} />;
-  }
-
-  // TODO: Handle error will be handled better after issue #10735 is resolved
-  return (
-
-  );*/
 };

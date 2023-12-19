@@ -3,6 +3,7 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { BpmnContextProvider } from '../../../contexts/BpmnContext';
 import { VersionHelpText } from './VersionHelpText';
+import { mockApplicationMetadata } from '../../../mocks/applicationMetadataMock';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion7: string = '7.0.3';
@@ -19,6 +20,8 @@ describe('VersionHelpText', () => {
       <BpmnContextProvider
         bpmnXml={mockBPMNXML}
         appLibVersion={appLibVersion || mockAppLibVersion7}
+        applicationMetadata={mockApplicationMetadata}
+        updateApplicationMetadata={jest.fn()}
       >
         <VersionHelpText />
       </BpmnContextProvider>,

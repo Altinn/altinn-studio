@@ -3,35 +3,12 @@ import { ConfigContent } from './ConfigContent';
 import { render as rtlRender, screen, act } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { BpmnContext, BpmnContextProps } from '../../../contexts/BpmnContext';
-import { BpmnDetails } from '../../../types/BpmnDetails';
-import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
-import { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import userEvent from '@testing-library/user-event';
+import { mockApplicationMetadata, mockDataTypeId1 } from '../../../mocks/applicationMetadataMock';
+import { mockBpmnDetails } from '../../../mocks/bpmnDetailsMock';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
-
-const mockBpmnId: string = 'testId';
-const mockName: string = 'testName';
-
-const mockBpmnDetails: BpmnDetails = {
-  id: mockBpmnId,
-  name: mockName,
-  taskType: 'data',
-  type: BpmnTypeEnum.Task,
-};
-
-const mockOrg: string = 'org';
-const mockAppId: string = 'id';
-const mockDataTypeId1: string = 'type1';
-const mockDataTypeTaskId1: string = 'oldTask';
-const mockDataType1: DataTypeElement = { id: mockDataTypeId1, taskId: mockDataTypeTaskId1 };
-const mockDataTypes: DataTypeElement[] = [mockDataType1];
-const mockApplicationMetadata: ApplicationMetadata = {
-  id: mockAppId,
-  org: mockOrg,
-  dataTypes: mockDataTypes,
-};
 
 const mockUpdateApplicationMetadata = jest.fn();
 

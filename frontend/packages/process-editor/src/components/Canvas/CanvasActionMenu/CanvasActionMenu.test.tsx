@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { CanvasActionMenu, CanvasActionMenuProps } from './CanvasActionMenu';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { BpmnContextProvider } from '../../../contexts/BpmnContext';
+import { mockApplicationMetadata } from '../../../mocks/applicationMetadataMock';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
@@ -43,7 +44,12 @@ describe('CanvasActionMenu', () => {
 
 const render = (appLibVersion?: string) => {
   return rtlRender(
-    <BpmnContextProvider bpmnXml={mockBPMNXML} appLibVersion={appLibVersion || mockAppLibVersion8}>
+    <BpmnContextProvider
+      bpmnXml={mockBPMNXML}
+      appLibVersion={appLibVersion || mockAppLibVersion8}
+      applicationMetadata={mockApplicationMetadata}
+      updateApplicationMetadata={jest.fn()}
+    >
       <CanvasActionMenu {...defaultProps} />
     </BpmnContextProvider>,
   );

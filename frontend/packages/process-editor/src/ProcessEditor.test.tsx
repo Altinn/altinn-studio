@@ -4,6 +4,7 @@ import { ProcessEditor, ProcessEditorProps } from './ProcessEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { mockApplicationMetadata } from './mocks/applicationMetadataMock';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
@@ -16,6 +17,8 @@ const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
   onSave: mockOnSave,
   appLibVersion: mockAppLibVersion8,
+  applicationMetadata: mockApplicationMetadata,
+  updateApplicationMetadata: jest.fn(),
 };
 
 const render = (props: Partial<ProcessEditorProps> = {}) => {
