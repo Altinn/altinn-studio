@@ -1740,6 +1740,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@digdir/design-system-react@npm:0.40.0":
+  version: 0.40.0
+  resolution: "@digdir/design-system-react@npm:0.40.0"
+  dependencies:
+    "@altinn/figma-design-tokens": "npm:^6.0.1"
+    "@digdir/design-system-tokens": "npm:^0.10.0"
+    "@floating-ui/react": "npm:0.25.2"
+    "@navikt/aksel-icons": "npm:^3.2.4"
+    cssnano: "npm:^6.0.1"
+    react-number-format: "npm:5.2.2"
+  peerDependencies:
+    react: ">=18.2.0"
+    react-dom: ">=18.2.0"
+  checksum: fe7ac01a6b8927663e657264215cbef16cc5041b7976aa7d000e9a091b96bec5f55f6be26361a3c9ddd8a141f9d07881aad332993ddf9b1c779bde67fd09d921
+  languageName: node
+  linkType: hard
+
 "@digdir/design-system-tokens@npm:0.10.0, @digdir/design-system-tokens@npm:^0.10.0":
   version: 0.10.0
   resolution: "@digdir/design-system-tokens@npm:0.10.0"
@@ -5555,7 +5572,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": "npm:0.29.1"
     "@altinn/figma-design-tokens": "npm:6.0.1"
-    "@digdir/design-system-react": "npm:0.38.0"
+    "@digdir/design-system-react": "npm:0.40.0"
     "@digdir/design-system-tokens": "npm:0.10.0"
     "@emotion/react": "npm:11.11.1"
     "@emotion/styled": "npm:11.11.0"
