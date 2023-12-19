@@ -179,8 +179,8 @@ describe('TextEditor', () => {
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
   const view = renderWithProviders(<TextEditor />, {
     queries: {
-      ...getTextResources,
-      ...getTextLanguages,
+      getTextResources,
+      getTextLanguages,
       ...queries,
     },
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,

@@ -4,7 +4,11 @@ import { NavigationMenu, NavigationMenuProps } from './NavigationMenu';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
+import {
+  formLayoutSettingsMock,
+  renderHookWithMockStore,
+  renderWithMockStore,
+} from '../../../../testing/mocks';
 import { formDesignerMock } from '../../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 
@@ -113,9 +117,14 @@ describe('NavigationMenu', () => {
 });
 
 const waitForData = async () => {
-  const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
-  ).renderHookResult.result;
+  const getFormLayoutSettings = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
+  const settingsResult = renderHookWithMockStore(
+    {},
+    { getFormLayoutSettings },
+  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
+    .result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

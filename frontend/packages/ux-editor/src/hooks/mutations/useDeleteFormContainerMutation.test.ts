@@ -3,7 +3,7 @@ import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
-import { container1IdMock, layout1NameMock } from '../../testing/layoutMock';
+import { container1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:
 const org = 'org';
@@ -31,9 +31,11 @@ describe('useDeleteFormContainerMutation', () => {
 });
 
 const renderDeleteFormContainerMutation = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
+  const formLayoutsResult = renderHookWithMockStore(
+    {},
+    { getFormLayouts },
+  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   return renderHookWithMockStore()(() =>
     useDeleteFormContainerMutation(org, app, selectedLayoutSet),

@@ -8,7 +8,13 @@ import {
   useUpdateFormContainerMutation,
 } from './useUpdateFormContainerMutation';
 import { FormContainer } from '../../types/FormContainer';
-import { container1IdMock, layout1Mock, layout1NameMock } from '../../testing/layoutMock';
+import {
+  container1IdMock,
+  externalLayoutsMock,
+  layout1Mock,
+  layout1NameMock,
+} from '../../testing/layoutMock';
+import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 
 // Test data:
 const org = 'org';
@@ -56,12 +62,16 @@ describe('useUpdateFormContainerMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
-  const ruleConfigResult = renderHookWithMockStore()(() =>
-    useRuleConfigQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
+  const getRuleConfig = jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock));
+  const formLayoutsResult = renderHookWithMockStore(
+    {},
+    { getFormLayouts },
+  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const ruleConfigResult = renderHookWithMockStore(
+    {},
+    { getRuleConfig },
+  )(() => useRuleConfigQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(ruleConfigResult.current.isSuccess).toBe(true));
 };

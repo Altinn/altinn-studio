@@ -8,6 +8,7 @@ import {
   component1IdMock,
   component2IdMock,
   container1IdMock,
+  externalLayoutsMock,
   layout1NameMock,
   layoutMock,
 } from '../../testing/layoutMock';
@@ -53,8 +54,10 @@ describe('useUpdateFormComponentOrderMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
+  const formLayoutsResult = renderHookWithMockStore(
+    {},
+    { getFormLayouts },
+  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 };

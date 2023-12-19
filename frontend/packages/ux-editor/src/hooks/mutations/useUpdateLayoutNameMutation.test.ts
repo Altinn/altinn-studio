@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
@@ -41,12 +41,16 @@ describe('useUpdateLayoutNameMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
+  const getFormLayoutSettings = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore()(() =>
     useFormLayoutsQuery(org, app, selectedLayoutSet),
   ).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore(
+    {},
+    { getFormLayoutSettings },
+  )(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

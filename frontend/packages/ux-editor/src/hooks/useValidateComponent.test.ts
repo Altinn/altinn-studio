@@ -1,6 +1,10 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ErrorCode, useValidateComponent } from './useValidateComponent';
-import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
+import {
+  FormCheckboxesComponent,
+  FormComponent,
+  FormRadioButtonsComponent,
+} from '../types/FormComponent';
 import { optionListIdsMock, renderHookWithMockStore } from '../testing/mocks';
 
 describe('useValidateComponent', () => {
@@ -139,4 +143,10 @@ describe('useValidateComponent', () => {
   });
 });
 
-const render = (component: FormComponent) => renderHookWithMockStore()(() => useValidateComponent(component)).renderHookResult.result.current;
+const render = (component: FormComponent) => {
+  const queries = {
+    getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(optionListIdsMock)),
+  };
+  return renderHookWithMockStore({}, queries)(() => useValidateComponent(component))
+    .renderHookResult.result.current;
+};

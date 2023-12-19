@@ -5,7 +5,11 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
-import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import {
+  renderHookWithMockStore,
+  renderWithMockStore,
+  textLanguagesMock,
+} from '../../testing/mocks';
 import { component1IdMock, component1Mock } from '../../testing/layoutMock';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
@@ -200,7 +204,10 @@ const waitForData = async () => {
   const { result: texts } = renderHookWithMockStore(
     {},
     {
-      getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
+      getTextResources: jest
+        .fn()
+        .mockImplementation(() => Promise.resolve({ language: 'nb', resources: nbTextResources })),
+      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
     },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));

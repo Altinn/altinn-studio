@@ -2,7 +2,12 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { TextResource, TextResourceProps } from './TextResource';
-import { queryClientMock, renderHookWithMockStore, renderWithMockStore } from '../testing/mocks';
+import {
+  queryClientMock,
+  renderHookWithMockStore,
+  renderWithMockStore,
+  textLanguagesMock,
+} from '../testing/mocks';
 import { useLayoutSchemaQuery } from '../hooks/queries/useLayoutSchemaQuery';
 import { act, screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -10,6 +15,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 
@@ -245,6 +251,7 @@ const renderAndOpenSearchSection = async () => {
 };
 
 const waitForData = async (resources: ITextResource[]) => {
+  const getTextLanguages = jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock));
   const { result } = renderHookWithMockStore(
     {},
     {
@@ -254,6 +261,7 @@ const waitForData = async (resources: ITextResource[]) => {
           resources,
         }),
       ),
+      getTextLanguages,
     },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())

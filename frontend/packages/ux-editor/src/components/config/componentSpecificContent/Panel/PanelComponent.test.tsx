@@ -3,7 +3,11 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
 import { FormComponent } from '../../../../types/FormComponent';
-import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
+import {
+  formLayoutSettingsMock,
+  renderHookWithMockStore,
+  renderWithMockStore,
+} from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
@@ -30,12 +34,16 @@ const mockHandleComponentChange = jest.fn();
 const user = userEvent.setup();
 
 const waitForData = async () => {
+  const getFormLayoutSettings = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore()(() =>
     useFormLayoutsQuery(org, app, selectedLayoutSet),
   ).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore(
+    {},
+    { getFormLayoutSettings },
+  )(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
     .renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
