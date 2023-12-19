@@ -13,15 +13,16 @@
   margin: var(--margin-top) var(--margin-horizontal) 0 var(--margin-horizontal);
 }
 
-.button {
+.buttonContainer {
   display: flex;
   justify-content: center;
   padding-top: var(--fds-spacing-5);
   background-color: var(--fds-semantic-surface-neutral-subtle);
+  padding-bottom: 50px;
 }
 
-.addButton {
-  padding-bottom: 50px;
+.button {
+  height: max-content;
 }
 
 .wrapper {
