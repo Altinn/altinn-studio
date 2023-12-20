@@ -1,18 +1,20 @@
+import { SupportedLanguage, ValidLanguage } from 'resourceadm/types/global';
+
 export interface NewResource {
   identifier: string;
-  title: SupportedLanguageKey<string>;
+  title: SupportedLanguage;
 }
 
 export interface Resource {
   identifier: string;
   resourceType?: ResourceTypeOption;
-  title: SupportedLanguageKey<string>;
-  description?: SupportedLanguageKey<string>;
+  title: SupportedLanguage;
+  description?: SupportedLanguage;
   keywords?: ResourceKeyword[]; // TODO - Does this need to be changed? Issue: #10883
   homepage?: string;
   visible?: boolean;
   delegable?: boolean;
-  rightDescription?: SupportedLanguageKey<string>;
+  rightDescription?: SupportedLanguage;
   version?: string;
   resourceReferences?: ResourceReference[];
   status?: ResourceStatusOption;
@@ -41,7 +43,7 @@ export type ResourceAvailableForTypeOption =
   | 'SelfRegisteredUser';
 
 export interface ResourceKeyword {
-  language: 'nb' | 'nn' | 'en';
+  language: ValidLanguage;
   word: string;
 }
 
@@ -51,7 +53,7 @@ export interface Version {
 }
 
 export interface ResourceListItem {
-  title: SupportedLanguageKey<string>;
+  title: SupportedLanguage;
   createdBy: string;
   lastChanged: string;
   hasPolicy: boolean;
@@ -67,12 +69,6 @@ export interface ResourceVersionStatus {
 export interface Validation {
   status: number;
   errors: any;
-}
-
-export interface SupportedLanguageKey<T> {
-  nb?: T;
-  nn?: T;
-  en?: T;
 }
 
 export interface ResourceReference {

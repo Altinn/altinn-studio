@@ -1,10 +1,8 @@
 export type NavigationBarPage = 'about' | 'policy' | 'deploy' | 'migration';
 
-export interface SupportedLanguage {
-  nb?: string;
-  nn?: string;
-  en?: string;
-}
+export type ValidLanguage = 'nb' | 'nn' | 'en';
+
+export type SupportedLanguage = Record<ValidLanguage, string>;
 
 export interface DeployError {
   message: string;

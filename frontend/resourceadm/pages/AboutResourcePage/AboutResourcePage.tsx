@@ -4,7 +4,6 @@ import { Heading } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
 import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
-  SupportedLanguageKey,
   Resource,
   ResourceTypeOption,
   ResourceStatusOption,
@@ -12,10 +11,7 @@ import type {
   ResourceContactPoint,
 } from 'app-shared/types/ResourceAdm';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
-import {
-  getMissingInputLanguageString,
-  getResourcePageTextfieldError,
-} from 'resourceadm/utils/resourceUtils';
+import { getMissingInputLanguageString } from 'resourceadm/utils/resourceUtils';
 import {
   availableForTypeMap,
   resourceStatusMap,
@@ -92,13 +88,11 @@ export const AboutResourcePage = ({
   }));
 
   // States to store the different input values
-  const [title, setTitle] = useState<SupportedLanguageKey<string>>(
-    resourceData.title ?? emptyLanguages,
-  );
-  const [description, setDescription] = useState<SupportedLanguageKey<string>>(
+  const [title, setTitle] = useState<SupportedLanguage>(resourceData.title ?? emptyLanguages);
+  const [description, setDescription] = useState<SupportedLanguage>(
     resourceData.description ?? emptyLanguages,
   );
-  const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
+  const [rightDescription, setRightDescription] = useState<SupportedLanguage>(
     resourceData.rightDescription ?? emptyLanguages,
   );
 
@@ -169,19 +163,21 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_resource_title_text')}
           value={title['nb']}
           onFocus={() => setTranslationType('title')}
-          isValid={!(showAllErrors && getResourcePageTextfieldError(title) && title['nb'] === '')}
           onChangeValue={(value: string) =>
             setTitle((oldTitle) => {
               return { ...oldTitle, nb: value };
             })
           }
           onBlur={handleSaveResource}
-          showErrorMessage={showAllErrors && getResourcePageTextfieldError(title)}
-          errorText={getMissingInputLanguageString(
-            title,
-            t('resourceadm.about_resource_error_usage_string_title'),
-            t,
-          )}
+          errorText={
+            showAllErrors
+              ? getMissingInputLanguageString(
+                  title,
+                  t('resourceadm.about_resource_error_usage_string_title'),
+                  t,
+                )
+              : ''
+          }
         />
         {translationType === 'title' && (
           <RightTranslationBar
@@ -199,25 +195,21 @@ export const AboutResourcePage = ({
           value={description['nb']}
           onFocus={() => setTranslationType('description')}
           id='aboutNBDescription'
-          isValid={
-            !(
-              showAllErrors &&
-              getResourcePageTextfieldError(description) &&
-              description['nb'] === ''
-            )
-          }
           onChangeValue={(value: string) => {
             setDescription((oldDescription) => {
               return { ...oldDescription, nb: value };
             });
           }}
           onBlur={handleSaveResource}
-          showErrorMessage={showAllErrors && getResourcePageTextfieldError(description)}
-          errorText={getMissingInputLanguageString(
-            description,
-            t('resourceadm.about_resource_error_usage_string_description'),
-            t,
-          )}
+          errorText={
+            showAllErrors
+              ? getMissingInputLanguageString(
+                  description,
+                  t('resourceadm.about_resource_error_usage_string_description'),
+                  t,
+                )
+              : ''
+          }
         />
         {translationType === 'description' && (
           <RightTranslationBar
@@ -252,26 +244,12 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_rights_description_text')}
           value={rightDescription['nb']}
           onFocus={() => setTranslationType('rightDescription')}
-          isValid={
-            !resourceData.delegable
-              ? true
-              : !(
-                  showAllErrors &&
-                  getResourcePageTextfieldError(rightDescription) &&
-                  rightDescription['nb'] === ''
-                )
-          }
           onChangeValue={(value: string) =>
             setRightDescription((oldRightsDescription) => {
               return { ...oldRightsDescription, nb: value };
             })
           }
           onBlur={handleSaveResource}
-          showErrorMessage={
-            showAllErrors &&
-            getResourcePageTextfieldError(rightDescription) &&
-            resourceData.delegable
-          }
           errorText={
             resourceData.delegable
               ? getMissingInputLanguageString(

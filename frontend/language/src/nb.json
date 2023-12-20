@@ -722,7 +722,6 @@
   "resourceadm.about_resource_keywords_text": "Legg til nøkkelord for ressursen, separer hvert ord med et komma \",\". Eksempler er ord som er enkle å søke på.",
   "resourceadm.about_resource_langauge_error_missing_1": "Du mangler oversettelse for {{usageString}} på {{lang}}.",
   "resourceadm.about_resource_langauge_error_missing_2": "Du mangler oversettelse for {{usageString}} på {{lang1}} og {{lang2}}.",
-  "resourceadm.about_resource_langauge_error_missing_3": "Du mangler oversettelse for {{usageString}} på {{lang1}}, {{lang2}}, og {{lang3}}.",
   "resourceadm.about_resource_public_service_dont_show": "skal ikke",
   "resourceadm.about_resource_public_service_label": "Vis i offentlige kataloger",
   "resourceadm.about_resource_public_service_show": "skal",
