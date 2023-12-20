@@ -82,7 +82,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
         open={dropdownOpen}
         onClose={() => setDropdownOpen(false)}
         size='small'
-      className={classes.dropdownMenu}
+        className={classes.dropdownMenu}
       >
         <DropdownMenu.Group>
           {!pageIsReceipt && (
