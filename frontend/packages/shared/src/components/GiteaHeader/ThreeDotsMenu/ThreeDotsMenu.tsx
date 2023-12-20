@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { TabsIcon } from '@navikt/aksel-icons';
+import { MonitorIcon, TabsIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
 import { LegacyPopover, Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
+import { LocalChangesModal } from 'app-development/layout/LocalChangesModalItem/LocalChangesModal';
 
 type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
@@ -25,6 +26,7 @@ export const ThreeDotsMenu = ({
   const { t } = useTranslation();
   const closeCloneModal = () => setCloneModalAnchor(null);
   const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
@@ -58,6 +60,22 @@ export const ThreeDotsMenu = ({
               <span>{t('dashboard.repository')}</span>
             </a>
           </li>
+          <li onClick={() => setIsOpen(true)}>
+            <div className={classes.link}>
+              <span className={classes.iconWrapper}>
+                <MonitorIcon className={classes.icon} />
+              </span>
+              <span>{t('dashboard.local_changes')}</span>
+            </div>
+          </li>
+          {isOpen && (
+            <LocalChangesModal
+              isOpen={isOpen}
+              onClose={() => setIsOpen(false)}
+              org={org}
+              app={app}
+            />
+          )}
         </ul>
       </LegacyPopover>
       {hasCloneModal && <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />}

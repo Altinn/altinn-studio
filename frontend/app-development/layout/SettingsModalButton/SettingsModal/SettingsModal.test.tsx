@@ -83,9 +83,6 @@ describe('SettingsModal', () => {
       screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_policy') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_localChanges') }),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_accessControl') }),
     ).toBeInTheDocument();
   });
@@ -155,32 +152,6 @@ describe('SettingsModal', () => {
       }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
-  });
-
-  it.only('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('settings_modal.local_changes_tab_heading'),
-        level: 2,
-      }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
-
-    const localChangesTab = screen.getByRole('tab', {
-      name: textMock('settings_modal.left_nav_tab_localChanges'),
-    });
-    await act(() => user.click(localChangesTab));
-
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('settings_modal.local_changes_tab_heading'),
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading')),
-    ).not.toBeInTheDocument();
   });
 
   it('changes the tab from "about" to "accessControl" when access control tab is clicked', async () => {
