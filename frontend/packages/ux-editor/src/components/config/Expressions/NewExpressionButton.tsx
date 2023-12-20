@@ -4,6 +4,8 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
 import { ExpressionProperty, expressionPropertyTexts } from '../../../types/Expressions';
 
+import classes from './NewExpressionButton.module.css';
+
 export interface NewExpressionButtonProps {
   options: ExpressionProperty[];
   onAddExpression: (property: ExpressionProperty) => void;
@@ -36,6 +38,7 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
         placement='bottom'
         size='medium'
         open={showDropDown}
+        className={classes.dropdownMenu}
       >
         <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
           {options.map((o) => (

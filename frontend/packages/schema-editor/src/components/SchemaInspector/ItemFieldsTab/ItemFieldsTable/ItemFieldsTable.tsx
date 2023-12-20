@@ -16,10 +16,7 @@ export type ItemFieldsTableProps = {
  * @component
  *    Displays the Item Fields as a table
  */
-export const ItemFieldsTable = ({
-  readonly,
-  selectedItem,
-}: ItemFieldsTableProps): ReactNode => {
+export const ItemFieldsTable = ({ readonly, selectedItem }: ItemFieldsTableProps): ReactNode => {
   const { t } = useTranslation();
   const { schemaModel } = useSchemaEditorAppContext();
   const addProperty = useAddProperty();
@@ -28,6 +25,7 @@ export const ItemFieldsTable = ({
     addProperty(ObjectKind.Field, FieldType.String, selectedItem.pointer);
 
   const fieldNodes = schemaModel.getChildNodes(selectedItem.pointer);
+
   const displayTableRows = fieldNodes.map((fieldNode, i) => (
     <ItemFieldsTableRow
       fieldNode={fieldNode}
