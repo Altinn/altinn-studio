@@ -52,8 +52,9 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               onChange={handleOptionsIdChange}
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
-              renderField={() => (
+              renderField={({ fieldProps }) => (
                 <Select
+                  onChange={fieldProps.onChange}
                   options={optionListIds.map((option) => ({
                     label: option,
                     value: option,

@@ -168,6 +168,24 @@ describe('ConfigContent', () => {
 
     expect(mockUpdateApplicationMetadata).toHaveBeenCalledTimes(1);
   });
+
+  it('should display the details about the selected task when a task not of type "BpmnTaskType" is selected', async () => {
+    render({ bpmnDetails: { ...mockBpmnDetails, taskType: undefined } });
+
+    const user = userEvent.setup();
+    // Added to remove the error "Warning: An update to Select inside a test was not wrapped in act(...)."
+    await act(() => user.tab());
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('process_editor.configuration_panel_missing_task'),
+        level: 2,
+      }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
+    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
+  });
 });
 
 const render = (rootContextProps: Partial<BpmnContextProps> = {}) => {
