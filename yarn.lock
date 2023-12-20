@@ -1723,9 +1723,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.38.0":
-  version: 0.38.0
-  resolution: "@digdir/design-system-react@npm:0.38.0"
+"@digdir/design-system-react@npm:0.39.0":
+  version: 0.39.0
+  resolution: "@digdir/design-system-react@npm:0.39.0"
   dependencies:
     "@altinn/figma-design-tokens": "npm:^6.0.1"
     "@digdir/design-system-tokens": "npm:^0.10.0"
@@ -1736,7 +1736,7 @@ __metadata:
   peerDependencies:
     react: ">=18.2.0"
     react-dom: ">=18.2.0"
-  checksum: ccbe4b9ae7e39584167d117b116f7bc1ec6cef5839df58c6a3b79a559b511d9ce3603563bfee64a7279ab7acf34c32371fb963dd559d53334f88b33407df89e7
+  checksum: 166bf885447e4d53e19f1bd20f7701d5c20027b96ea2383cfd2cb2f70093e76dd619958c5de915f31f78404b5dae20efeb30d96445df4d8b93c29656c87cd474
   languageName: node
   linkType: hard
 
@@ -3823,7 +3823,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/components@workspace:frontend/libs/studio-components"
   dependencies:
-    "@digdir/design-system-react": "npm:0.38.0"
+    "@digdir/design-system-react": "npm:0.39.0"
     "@digdir/design-system-tokens": "npm:0.10.0"
     "@studio/icons": "npm:^0.1.0"
     "@testing-library/jest-dom": "npm:^6.1.3"
