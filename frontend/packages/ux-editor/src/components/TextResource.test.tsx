@@ -15,7 +15,6 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 

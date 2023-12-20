@@ -19,8 +19,8 @@ const render = () => {
     getFormLayoutSettings: jest
       .fn()
       .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
-    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
-    getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
+    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>(ruleHandlerMock)),
+    getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
   };
   const props = {
     selectedLayout: 'test-layout',

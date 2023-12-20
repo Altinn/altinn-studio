@@ -12,11 +12,10 @@ import userEvent from '@testing-library/user-event';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockSelectedContext: string = 'selectedContext';
 const mockEnv: string = 'env1';
-
-const getAltinn2LinkServices = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const mockAltinn2LinkService: Altinn2LinkService = {
   externalServiceCode: 'code1',
@@ -47,7 +46,7 @@ describe('ServiceContent', () => {
 
   it('fetches getAltinn2LinkServices on mount', () => {
     render();
-    expect(getAltinn2LinkServices).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getAltinn2LinkServices).toHaveBeenCalledTimes(1);
   });
 
   it('shows an error message if an error occured on the "getAltinn2LinkServices" query', async () => {
@@ -69,12 +68,7 @@ describe('ServiceContent', () => {
   });
 
   it('renders empty list state correctly', async () => {
-    render(
-      {},
-      {
-        getAltinn2LinkServices: () => Promise.resolve([]),
-      },
-    );
+    render();
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
@@ -115,9 +109,11 @@ describe('ServiceContent', () => {
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (props: Partial<ServiceContentProps> = {}) => {
-  getAltinn2LinkServices.mockImplementation(() => Promise.resolve(mockAltinn2LinkServices));
+  const getAltinn2LinkServices = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(mockAltinn2LinkServices));
 
-  render(props);
+  render(props, { getAltinn2LinkServices });
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
   );
@@ -129,7 +125,7 @@ const render = (
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
-    getAltinn2LinkServices,
+    ...queriesMock,
     ...queries,
   };
 

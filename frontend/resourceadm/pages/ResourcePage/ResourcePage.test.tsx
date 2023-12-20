@@ -9,6 +9,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient } from '@tanstack/react-query';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockResource1: Resource = {
   identifier: 'r1',
@@ -29,11 +30,6 @@ const mockResource2: Resource = {
 
 const mockSelectedContext: string = 'test';
 
-const getValidatePolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getValidateResource = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getResource = jest.fn().mockImplementation(() => Promise.resolve({}));
-const updateResource = jest.fn().mockImplementation(() => Promise.resolve({}));
-
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
@@ -50,17 +46,17 @@ describe('ResourcePage', () => {
 
   it('fetches validate policy on mount', () => {
     render();
-    expect(getValidatePolicy).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getValidatePolicy).toHaveBeenCalledTimes(1);
   });
 
   it('fetches validate resource on mount', () => {
     render();
-    expect(getValidateResource).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getValidateResource).toHaveBeenCalledTimes(1);
   });
 
   it('fetches resource on mount', () => {
     render();
-    expect(getResource).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getResource).toHaveBeenCalledTimes(1);
   });
 
   it('displays left navigation bar on mount', () => {
@@ -89,9 +85,11 @@ describe('ResourcePage', () => {
   });
 
   it('displays migrate tab in left navigation bar when resource reference is present in resource', async () => {
-    getResource.mockImplementation(() => Promise.resolve(mockResource1));
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
 
-    render();
+    render({ getResource });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );
@@ -102,9 +100,11 @@ describe('ResourcePage', () => {
   });
 
   it('does not display migrate tab in left navigation bar when resource reference is not in resource', async () => {
-    getResource.mockImplementation(() => Promise.resolve(mockResource2));
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource2));
 
-    render();
+    render({ getResource });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );
@@ -116,9 +116,12 @@ describe('ResourcePage', () => {
 
   it('opens navigation modal when resource has errors', async () => {
     const user = userEvent.setup();
-    getResource.mockImplementation(() => Promise.resolve(mockResource2));
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource2));
+    const getValidateResource = jest.fn().mockImplementation(() => Promise.reject(null));
 
-    render();
+    render({ getResource, getValidateResource });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );
@@ -148,16 +151,9 @@ const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const allQueries: ServicesContextProps = {
-    getValidatePolicy,
-    getValidateResource,
-    getResource,
-    updateResource,
-    ...queries,
-  };
   return rtlRender(
     <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <ResourcePage />
       </ServicesContextProvider>
     </MemoryRouter>,

@@ -88,21 +88,21 @@ describe('PolicyEditorPage', () => {
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
-    getPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
+    getPolicy.mockImplementation(() => Promise.resolve<Policy>(mockPolicy));
 
     expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
-    getPolicyActions.mockImplementation(() => Promise.resolve(mockActions));
+    getPolicyActions.mockImplementation(() => Promise.resolve<PolicyAction[]>(mockActions));
 
     expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
-    getPolicySubjects.mockImplementation(() => Promise.resolve(mockSubjects));
+    getPolicySubjects.mockImplementation(() => Promise.resolve<PolicySubject[]>(mockSubjects));
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.policy_editor_spinner')),

@@ -4,6 +4,7 @@ import { AppEnvironments } from './AppEnvironments';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
+import { appDeployment, deployEnvironment } from 'app-shared/mocks/mocks';
 
 // Test data
 const org = 'org';
@@ -18,10 +19,7 @@ const render = (queries = {}) => {
 
 describe('AppEnvironments', () => {
   it('shows loading spinner when loading required data', () => {
-    render({
-      getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),
-      getOrgList: jest.fn().mockImplementation(() => Promise.resolve([])),
-    });
+    render();
 
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
@@ -38,10 +36,7 @@ describe('AppEnvironments', () => {
   });
 
   it('shows no environments message when organization has no environment', async () => {
-    render({
-      getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),
-      getOrgList: jest.fn().mockImplementation(() => Promise.resolve({ orgs: [] })),
-    });
+    render();
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
@@ -54,26 +49,17 @@ describe('AppEnvironments', () => {
 
   it('shows statuses when organization has environments', async () => {
     const envName = 'tt02';
-    const envType = 'test';
     render({
       getDeployments: jest.fn().mockImplementation(() =>
         Promise.resolve({
           results: [
             {
-              tagName: '1',
+              ...appDeployment,
               envName,
-              deployedInEnv: false,
               build: {
-                id: '14381045',
-                status: 'completed',
-                result: 'succeeded',
-                started: '2023-10-03T09:57:31.238Z',
+                ...appDeployment.build,
                 finished: '2023-10-03T09:57:41.29Z',
               },
-              created: '2023-10-03T11:57:31.072013+02:00',
-              createdBy: 'test',
-              app,
-              org,
             },
           ],
         }),
@@ -82,13 +68,8 @@ describe('AppEnvironments', () => {
       getEnvironments: jest.fn().mockImplementation(() =>
         Promise.resolve([
           {
-            appsUrl: 'http://host.docker.internal:6161',
-            platformUrl: 'http://host.docker.internal:6161',
-            hostname: 'host.docker.internal:6161',
-            appPrefix: 'apps',
-            platformPrefix: 'platform',
+            ...deployEnvironment,
             name: envName,
-            type: envType,
           },
         ]),
       ),

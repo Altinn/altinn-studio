@@ -1,92 +1,203 @@
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import { AppConfig } from 'app-shared/types/AppConfig';
+import { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { BranchStatus } from 'app-shared/types/BranchStatus';
+import { Commit } from 'app-shared/types/Commit';
+import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import { JsonSchema } from 'app-shared/types/JsonSchema';
+import { Organization } from 'app-shared/types/Organization';
+import { OrgsState } from 'app-shared/types/OrgsState';
+import { RepoStatus } from 'app-shared/types/RepoStatus';
+import { Repository } from 'app-shared/types/Repository';
+import {
+  Resource,
+  ResourceListItem,
+  ResourceVersionStatus,
+  Validation,
+} from 'app-shared/types/ResourceAdm';
+import { RuleConfig } from 'app-shared/types/RuleConfig';
+import { User } from 'app-shared/types/User';
+import {
+  AppDeploymentsResponse,
+  AppReleasesResponse,
+  CreateRepoCommitPayload,
+  DatamodelMetadataResponse,
+  FormLayoutsResponse,
+  SearchRepositoryResponse,
+} from 'app-shared/types/api';
+import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { NewsList } from 'app-shared/types/api/NewsList';
+import {
+  IFrontEndSettings,
+  ILayoutSettings,
+  IRepository,
+  ITextResourcesObjectFormat,
+  ITextResourcesWithLanguage,
+} from 'app-shared/types/global';
+import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
+import { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
+import {
+  appConfig,
+  appDeploymentsResponse,
+  appLibVersion,
+  appReleasesResponse,
+  applicationMetadata,
+  branchStatus,
+  commit,
+  createRepoCommitPayload,
+  datamodelMetadataResponse,
+  customRepository,
+  layoutSets,
+  newsList,
+  orgsState,
+  policy,
+  repoStatus,
+  repository,
+  resource,
+  resourceVersionStatus,
+  ruleConfig,
+  searchRepositoryResponse,
+  textResourcesWithLanguage,
+  user,
+  validation,
+} from './mocks';
+
 export const queriesMock: ServicesContextProps = {
-  addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve({})),
-  addLayoutSet: jest.fn().mockImplementation(() => Promise.resolve({})),
-  addRepo: jest.fn().mockImplementation(() => Promise.resolve({})),
-  addXsdFromRepo: jest.fn().mockImplementation(() => Promise.resolve({})),
-  commitAndPushChanges: jest.fn().mockImplementation(() => Promise.resolve({})),
-  configureLayoutSet: jest.fn().mockImplementation(() => Promise.resolve({})),
-  copyApp: jest.fn().mockImplementation(() => Promise.resolve({})),
-  createDatamodel: jest.fn().mockImplementation(() => Promise.resolve({})),
-  createDeployment: jest.fn().mockImplementation(() => Promise.resolve({})),
-  createRelease: jest.fn().mockImplementation(() => Promise.resolve({})),
-  createRepoCommit: jest.fn().mockImplementation(() => Promise.resolve({})),
-  createResource: jest.fn().mockImplementation(() => Promise.resolve({})),
-  deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  deleteDatamodel: jest.fn().mockImplementation(() => Promise.resolve({})),
-  deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
-  deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve({})),
-  generateModels: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getAppReleases: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getComponentSchema: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getComponentsCommonDefsSchema: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getDatamodel: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getDatamodelMetadata: jest.fn().mockImplementation(() => Promise.resolve({ elements: {} })),
-  getDatamodelsJson: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getDatamodelsXsd: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getDeployments: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getExpressionSchema: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getNewsList: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getOrgList: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getOrganizations: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getPolicy: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve(null)),
-  getRepoPull: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getResource: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getResourceList: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getResourcePublishStatus: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getRuleModel: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getTextResources: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getUser: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getValidatePolicy: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getValidateResource: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getWidgetSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  logout: jest.fn().mockImplementation(() => Promise.resolve({})),
-  pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve({})),
-  resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve({})),
-  saveDatamodel: jest.fn().mockImplementation(() => Promise.resolve({})),
-  saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
-  saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve({})),
-  searchRepos: jest.fn().mockImplementation(() => Promise.resolve({})),
-  setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve({})),
-  unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updatePolicy: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateResource: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateTextId: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateTranslationByLangCode: jest.fn().mockImplementation(() => Promise.resolve({})),
-  upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getAppPolicy: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getAppConfig: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getAppMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getRepoInitialCommit: jest.fn().mockImplementation(() => Promise.resolve({})),
-  publishResource: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getAltinn2LinkServices: jest.fn().mockImplementation(() => Promise.resolve([])),
-  importResourceFromAltinn2: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getAppLibVersion: jest.fn().mockImplementation(() => Promise.resolve({})),
+  // Queries
+  getAppReleases: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
+  getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
+  getComponentSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getComponentsCommonDefsSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  getDatamodelMetadata: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<DatamodelMetadataResponse>(datamodelMetadataResponse),
+    ),
+  getDatamodelsJson: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<DatamodelMetadataJson[]>([])),
+  getDatamodelsXsd: jest.fn().mockImplementation(() => Promise.resolve<DatamodelMetadataXsd[]>([])),
+  getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getDeployments: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppDeploymentsResponse>(appDeploymentsResponse)),
+  getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<DeployEnvironment[]>([])),
+  getExpressionSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
+  getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
+  getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
+  getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
+  getNewsList: jest.fn().mockImplementation(() => Promise.resolve<NewsList>(newsList)),
+  getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgsState>(orgsState)),
+  getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
+  getRepoInitialCommit: jest.fn().mockImplementation(() => Promise.resolve<Commit>(commit)),
+  getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
+  getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
+  getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
+  getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
+  getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<IRepository[]>([])),
+  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getTextResources: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
+    ),
+  getUser: jest.fn().mockImplementation(() => Promise.resolve<User>(user)),
+  getWidgetSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<WidgetSettingsResponse | null>({})),
+  searchRepos: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<SearchRepositoryResponse>(searchRepositoryResponse)),
+
+  // Queries - Settings modal
+  getAppConfig: jest.fn().mockImplementation(() => Promise.resolve<AppConfig>(appConfig)),
+  getAppPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
+  getAppMetadata: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ApplicationMetadata>(applicationMetadata)),
+
+  // Queries - Resourceadm
+  getAltinn2LinkServices: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<Altinn2LinkService[]>([])),
+  getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
+  getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
+  getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
+  getResource: jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource)),
+  getResourceList: jest.fn().mockImplementation(() => Promise.resolve<ResourceListItem[]>([])),
+  getResourcePublishStatus: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ResourceVersionStatus>(resourceVersionStatus)),
+  getValidatePolicy: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
+  getValidateResource: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
+
+  // Queries - PrgetBpmnFile
+  getAppLibVersion: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppLibVersion>(appLibVersion)),
+  getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
+
+  // Mutations
+  addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
+  addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
+  addLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
+  addRepo: jest.fn().mockImplementation(() => Promise.resolve<IRepository>(customRepository)),
+  addXsdFromRepo: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  commitAndPushChanges: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
+  configureLayoutSet: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
+  copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
+  createDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
+  createRelease: jest.fn().mockImplementation(() => Promise.resolve()),
+  createRepoCommit: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
+  deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteDatamodel: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
+  generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
+  logout: jest.fn().mockImplementation(() => Promise.resolve()),
+  pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
+  resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
+  saveDatamodel: jest.fn().mockImplementation(() => Promise.resolve()),
+  saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
+  saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
+  saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
+  setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve<IRepository[]>([])),
+  unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateTextId: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateTranslationByLangCode: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  upsertTextResources: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ITextResourcesObjectFormat>({})),
+
+  // Mutations - Resourceadm
+  createResource: jest.fn().mockImplementation(() => Promise.resolve()),
+  importResourceFromAltinn2: jest.fn().mockImplementation(() => Promise.resolve<Resource>(null)),
+  publishResource: jest.fn().mockImplementation(() => Promise.resolve()),
+  updatePolicy: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateResource: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - ProcessEditor
+  updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
 };

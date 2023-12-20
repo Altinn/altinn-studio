@@ -24,8 +24,7 @@ jest.mock('@altinn/schema-editor/components/SchemaEditor', () => ({
 
 describe('SelectedSchemaEditor', () => {
   it('Displays loading spinner while loading', () => {
-    const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve({}));
-    render({ getDatamodel });
+    render();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
   });
 
@@ -38,8 +37,7 @@ describe('SelectedSchemaEditor', () => {
   });
 
   it('Renders SchemaEditorApp when finished loading', async () => {
-    const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve({}));
-    render({ getDatamodel });
+    render();
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(screen.getByTestId(schemaEditorTestId)).toBeInTheDocument();
   });
@@ -48,10 +46,10 @@ describe('SelectedSchemaEditor', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient = createQueryClientMock(),
-  props: Partial<SelectedSchemaEditorProps> = {}
+  props: Partial<SelectedSchemaEditorProps> = {},
 ) =>
   renderWithMockStore(
     {},
     queries,
-    queryClient
+    queryClient,
   )(<SelectedSchemaEditor {...defaultProps} {...props} />);

@@ -13,20 +13,13 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { usePublishResourceMutation } from 'resourceadm/hooks/mutations';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { ResourceVersionStatus, Version, Validation } from 'app-shared/types/ResourceAdm';
+import { Validation } from 'app-shared/types/ResourceAdm';
 import userEvent from '@testing-library/user-event';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockResourceId: string = 'r1';
 const mockSelectedContext: string = 'test';
 const mockId: string = 'page-content-deploy';
-
-const mockRepoStatus: RepoStatus = {
-  aheadBy: 0,
-  behindBy: 0,
-  contentStatus: [],
-  hasMergeConflict: false,
-  repositoryStatus: 'Ok',
-};
 
 const mockRepoStatusAhead: RepoStatus = {
   aheadBy: 1,
@@ -36,18 +29,6 @@ const mockRepoStatusAhead: RepoStatus = {
   repositoryStatus: 'Ok',
 };
 
-const mockVersionTT02: Version = { version: null, environment: 'tt02' };
-const mockVersionPROD: Version = { version: null, environment: 'prod' };
-const mockVersionAT22: Version = { version: null, environment: 'at22' };
-const mockVersionAT23: Version = { version: null, environment: 'at23' };
-
-const mockPublishStatus: ResourceVersionStatus = {
-  policyVersion: null,
-  resourceVersion: '1',
-  publishedVersions: [mockVersionTT02, mockVersionPROD, mockVersionAT22, mockVersionAT23],
-};
-
-const mockValidatePolicyData1: Validation = { status: 200, errors: [] };
 const mockValidatePolicyData2: Validation = {
   status: 400,
   errors: ['rule1.policyerror.missingsubject'],
@@ -57,17 +38,11 @@ const mockValidatePolicyData3: Validation = {
   errors: ['policyerror.missingpolicy'],
 };
 
-const mockValidateResourceData1: Validation = { status: 200, errors: [] };
 const mockValidateResourceData2: Validation = { status: 400, errors: ['resource.title'] };
 
 const mockResourceVersionText: string = '2';
 const mockNavigateToPageWithError = jest.fn();
 const mockOnSaveVersion = jest.fn();
-
-const getRepoStatus = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getResourcePublishStatus = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getValidatePolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getValidateResource = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -104,22 +79,22 @@ describe('DeployResourcePage', () => {
 
   it('fetches repo status data on mount', () => {
     render();
-    expect(getRepoStatus).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getRepoStatus).toHaveBeenCalledTimes(1);
   });
 
   it('fetches resource publish status data on mount', () => {
     render();
-    expect(getResourcePublishStatus).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getResourcePublishStatus).toHaveBeenCalledTimes(1);
   });
 
   it('fetches validates policy on mount', () => {
     render();
-    expect(getValidatePolicy).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getValidatePolicy).toHaveBeenCalledTimes(1);
   });
 
   it('fetches validates resource on mount', () => {
     render();
-    expect(getValidateResource).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getValidateResource).toHaveBeenCalledTimes(1);
   });
 
   it.each(['getResourcePublishStatus', 'getValidatePolicy', 'getValidateResource'])(
@@ -301,7 +276,7 @@ describe('DeployResourcePage', () => {
 
   it('disables the deploy buttons when there is validate resource error', async () => {
     await resolveAndWaitForSpinnerToDisappear({
-      getValidateResource: () => Promise.resolve(mockValidateResourceData2),
+      getValidateResource: () => Promise.resolve<Validation>(mockValidateResourceData2),
     });
 
     const tt02 = textMock('resourceadm.deploy_test_env');
@@ -320,7 +295,7 @@ describe('DeployResourcePage', () => {
 
   it('disables the deploy buttons when there is validate policy error', async () => {
     await resolveAndWaitForSpinnerToDisappear({
-      getValidatePolicy: () => Promise.resolve(mockValidatePolicyData2),
+      getValidatePolicy: () => Promise.resolve<Validation>(mockValidatePolicyData2),
     });
     const tt02 = textMock('resourceadm.deploy_test_env');
     const prod = textMock('resourceadm.deploy_prod_env');
@@ -392,12 +367,12 @@ const resolveAndWaitForSpinnerToDisappear = async (
   queries: Partial<ServicesContextProps> = {},
   props: Partial<DeployResourcePageProps> = {},
 ) => {
-  getRepoStatus.mockImplementation(() => Promise.resolve(mockRepoStatus));
-  getResourcePublishStatus.mockImplementation(() => Promise.resolve(mockPublishStatus));
-  getValidatePolicy.mockImplementation(() => Promise.resolve(mockValidatePolicyData1));
-  getValidateResource.mockImplementation(() => Promise.resolve(mockValidateResourceData1));
-
-  render(queries, props);
+  render(
+    {
+      ...queries,
+    },
+    props,
+  );
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('resourceadm.deploy_spinner')),
   );
@@ -408,16 +383,12 @@ const render = (
   props: Partial<DeployResourcePageProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const allQueries: ServicesContextProps = {
-    getRepoStatus,
-    getResourcePublishStatus,
-    getValidatePolicy,
-    getValidateResource,
+  const allQueries = {
     ...queries,
   };
   return rtlRender(
     <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
+      <ServicesContextProvider {...queriesMock} {...allQueries} client={queryClient}>
         <DeployResourcePage {...defaultProps} {...props} />
       </ServicesContextProvider>
     </MemoryRouter>,

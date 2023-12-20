@@ -12,6 +12,7 @@ import {
   layout1NameMock,
   layoutMock,
 } from '../../testing/layoutMock';
+import { FormLayoutsResponse } from 'app-shared/types/api';
 
 // Test data:
 const org = 'org';
@@ -54,7 +55,9 @@ describe('useUpdateFormComponentOrderMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
+  const getFormLayouts = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
   const formLayoutsResult = renderHookWithMockStore(
     {},
     { getFormLayouts },

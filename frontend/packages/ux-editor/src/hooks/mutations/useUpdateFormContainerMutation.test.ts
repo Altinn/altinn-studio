@@ -15,6 +15,8 @@ import {
   layout1NameMock,
 } from '../../testing/layoutMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
+import { FormLayoutsResponse } from 'app-shared/types/api';
+import { RuleConfig } from 'app-shared/types/RuleConfig';
 
 // Test data:
 const org = 'org';
@@ -62,8 +64,12 @@ describe('useUpdateFormContainerMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
-  const getRuleConfig = jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock));
+  const getFormLayouts = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+  const getRuleConfig = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfigMock));
   const formLayoutsResult = renderHookWithMockStore(
     {},
     { getFormLayouts },

@@ -1,8 +1,7 @@
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useRuleModelQuery } from './useRuleModelQuery';
-import {
+import ruleHandlerMock, {
   condition1Input1Label,
   condition1Input1Name,
   condition1Name,
@@ -23,17 +22,20 @@ import {
   rule2Input2Name,
   rule2Name,
 } from '../../testing/ruleHandlerMock';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
+const getRuleModel = jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
+
 describe('useRuleModelQuery', () => {
   it('Calls getRuleModel with correct parameters', async () => {
     await renderAndWaitForSuccess();
-    expect(queriesMock.getRuleModel).toHaveBeenCalledTimes(1);
-    expect(queriesMock.getRuleModel).toHaveBeenCalledWith(org, app, selectedLayoutSet);
+    expect(getRuleModel).toHaveBeenCalledTimes(1);
+    expect(getRuleModel).toHaveBeenCalledWith(org, app, selectedLayoutSet);
   });
 
   it('Parses file correctly and returns an array of rules and conditions', async () => {
@@ -74,10 +76,11 @@ describe('useRuleModelQuery', () => {
   });
 });
 
-const renderAndWaitForSuccess = async () => {
-  const { renderHookResult } = renderHookWithMockStore()(() =>
-    useRuleModelQuery(org, app, selectedLayoutSet),
-  );
+const renderAndWaitForSuccess = async (queries: Partial<ServicesContextProps> = {}) => {
+  const { renderHookResult } = renderHookWithMockStore(
+    {},
+    { getRuleModel },
+  )(() => useRuleModelQuery(org, app, selectedLayoutSet));
   await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
   return renderHookResult;
 };

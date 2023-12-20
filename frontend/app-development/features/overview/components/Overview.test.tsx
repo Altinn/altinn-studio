@@ -16,8 +16,6 @@ describe('Overview', () => {
   });
   it('renders component', async () => {
     render({
-      getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),
-      getOrgList: jest.fn().mockImplementation(() => Promise.resolve({ orgs: [] })),
       getAppConfig: jest.fn().mockImplementation(() =>
         Promise.resolve({
           serviceName: title,
@@ -44,14 +42,6 @@ describe('Overview', () => {
 
   it('should display AppLogs if environments exist', async () => {
     render({
-      getAppConfig: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          repositoryName: app,
-          serviceName: app,
-          serviceId: null,
-          serviceDescription: null,
-        }),
-      ),
       getOrgList: jest.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
@@ -61,41 +51,6 @@ describe('Overview', () => {
           },
         }),
       ),
-      getDeployments: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          results: [
-            {
-              tagName: '1',
-              envName: 'test',
-              deployedInEnv: true,
-              build: {
-                id: '1',
-                status: 'completed',
-                result: 'succeeded',
-                started: '2023-10-03T09:57:31.238Z',
-                finished: null,
-              },
-              created: '2023-10-03T11:57:31.072013+02:00',
-              createdBy: 'test',
-              app,
-              org,
-            },
-          ],
-        }),
-      ),
-      getEnvironments: jest.fn().mockImplementation(() =>
-        Promise.resolve([
-          {
-            appsUrl: '',
-            platformUrl: '',
-            hostname: '',
-            appPrefix: '',
-            platformPrefix: '',
-            name: '',
-            type: '',
-          },
-        ]),
-      ),
     });
     expect(
       await screen.findByRole('heading', { name: textMock('overview.activity') }),
@@ -103,14 +58,7 @@ describe('Overview', () => {
   });
 
   it('should not display AppLogs if environments do not exist', async () => {
-    render({
-      getAppConfig: jest.fn().mockImplementation(() => Promise.resolve({})),
-      getOrgList: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          orgs: {},
-        }),
-      ),
-    });
+    render();
     expect(
       screen.queryByRole('heading', { name: textMock('overview.activity') }),
     ).not.toBeInTheDocument();

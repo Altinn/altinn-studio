@@ -8,6 +8,7 @@ import userEvent from '@testing-library/user-event';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import * as testids from '../../../../../../testing/testids';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const user = userEvent.setup();
 const org = 'test-org';
@@ -51,13 +52,11 @@ const mergeConflictRepoStatus: RepoStatus = {
   repositoryStatus: 'CheckoutConflict',
 };
 
-const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
 const getRepoPull = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
 const commitAndPushChanges = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
 
 const defaultQueries: Partial<ServicesContextProps> = {
-  getRepoMetadata,
   getRepoStatus,
   getRepoPull,
   commitAndPushChanges,
@@ -74,7 +73,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
 
   it('should render header when type is not defined', async () => {
     render();
-    await waitFor(() => expect(getRepoMetadata).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(queriesMock.getRepoMetadata).toHaveBeenCalledTimes(1));
     expect(await screen.findByTestId(testids.versionControlHeader)).not.toBeNull();
   });
 
@@ -82,7 +81,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     render();
     const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
     await act(() => user.click(fetchButton));
-    await waitFor(() => expect(getRepoMetadata).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(queriesMock.getRepoMetadata).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getRepoStatus).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(1));
   });
@@ -220,7 +219,12 @@ const render = (
   queries: Partial<ServicesContextProps> = {},
 ) =>
   renderRtl(
-    <ServicesContextProvider {...{ ...defaultQueries, ...queries }} client={queryClientMock}>
-      <VersionControlButtons {...{ ...defaultProps, ...props }} />
+    <ServicesContextProvider
+      {...queriesMock}
+      {...defaultQueries}
+      {...queries}
+      client={queryClientMock}
+    >
+      <VersionControlButtons {...defaultProps} {...props} />
     </ServicesContextProvider>,
   );

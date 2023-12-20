@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
 import { IAppDataState } from '../../../features/appData/appDataReducers';

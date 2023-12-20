@@ -4,6 +4,7 @@ import { AppStatus } from './AppStatus';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
+import { appDeployment } from 'app-shared/mocks/mocks';
 
 // Test data
 const org = 'ttd';
@@ -44,20 +45,8 @@ describe('AppStatus', () => {
           Promise.resolve({
             results: [
               {
-                tagName: '1',
-                envName: envNameProduction,
+                ...appDeployment,
                 deployedInEnv: true,
-                build: {
-                  id: '14381045',
-                  status: 'completed',
-                  result: 'succeeded',
-                  started: '2023-10-03T09:57:31.238Z',
-                  finished: '2023-10-03T09:57:41.29Z',
-                },
-                created: '2023-10-03T11:57:31.072013+02:00',
-                createdBy: 'test',
-                app,
-                org,
               },
             ],
           }),
@@ -80,20 +69,9 @@ describe('AppStatus', () => {
         Promise.resolve({
           results: [
             {
-              tagName: '1',
+              ...appDeployment,
               envName: envNameTest,
               deployedInEnv: true,
-              build: {
-                id: '14381045',
-                status: 'completed',
-                result: 'succeeded',
-                started: '2023-10-03T09:57:31.238Z',
-                finished: '2023-10-03T09:57:41.29Z',
-              },
-              created: '2023-10-03T11:57:31.072013+02:00',
-              createdBy: 'test',
-              app,
-              org,
             },
           ],
         }),
@@ -108,13 +86,7 @@ describe('AppStatus', () => {
   });
 
   it('shows no app alert when application not deployed', async () => {
-    render({
-      getDeployments: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          results: [],
-        }),
-      ),
-    });
+    render();
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
@@ -129,20 +101,12 @@ describe('AppStatus', () => {
         Promise.resolve({
           results: [
             {
-              tagName: '1',
+              ...appDeployment,
               envName: envNameTest,
-              deployedInEnv: false,
               build: {
-                id: '14381045',
-                status: 'completed',
-                result: 'succeeded',
-                started: '2023-10-03T09:57:31.238Z',
+                ...appDeployment.build,
                 finished: '2023-10-03T09:57:41.29Z',
               },
-              created: '2023-10-03T11:57:31.072013+02:00',
-              createdBy: 'test',
-              app,
-              org,
             },
           ],
         }),

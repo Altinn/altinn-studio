@@ -13,7 +13,9 @@ describe('EditCodeList', () => {
   it('should render the component', async () => {
     await render({
       queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(optionListIdsMock)),
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
       },
     });
     expect(await screen.findByText('Bytt til egendefinert kodeliste')).toBeInTheDocument();
@@ -22,7 +24,9 @@ describe('EditCodeList', () => {
   it('should render the component when optionListIds is undefined', async () => {
     await render({
       queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(optionListIdsMock)),
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
       },
     });
 
