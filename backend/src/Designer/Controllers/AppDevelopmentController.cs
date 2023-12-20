@@ -376,7 +376,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (FileNotFoundException)
             {
-                return NotFound("Could not find rule handler in app.");
+                return NoContent();
             }
             catch (BadHttpRequestException exception)
             {

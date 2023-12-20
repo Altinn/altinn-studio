@@ -7,7 +7,7 @@ import { BpmnTaskType } from '../../types/BpmnTaskType';
  *
  */
 export const getConfigTitleKey = (taskType: BpmnTaskType) => {
-  return `process_editor.configuration_panel_${taskType}_task`;
+  return `process_editor.configuration_panel_${taskType ?? 'missing'}_task`;
 };
 
 /**
