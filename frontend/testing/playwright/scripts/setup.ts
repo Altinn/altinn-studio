@@ -63,6 +63,6 @@ const updateEnvironmentVars = async (): Promise<void> => {
     console.error('Ensure to run `node setup.js` within development folder on root.');
     return;
   }
-  updateEnvironmentVars();
+  await updateEnvironmentVars();
   console.log('----- SETUP PLAYWRIGHT ENVIRONMENT VARIABLES DONE -----');
 })();

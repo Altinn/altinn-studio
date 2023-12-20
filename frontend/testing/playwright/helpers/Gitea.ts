@@ -1,6 +1,8 @@
 ﻿import { StudioEnvironment, Environment } from './StudioEnvironment';
 
 export class Gitea extends StudioEnvironment {
+  public giteaAccessToken: string = process.env.GITEA_ACCESS_TOKEN;
+
   constructor(environment?: Environment) {
     super(environment);
   }

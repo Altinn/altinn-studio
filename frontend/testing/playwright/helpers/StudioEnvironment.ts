@@ -7,7 +7,6 @@ export class StudioEnvironment {
   public readonly org: string;
   public app: string;
   public readonly designerAppName: string;
-  public giteaAccessToken: string = process.env.GITEA_ACCESS_TOKEN;
 
   constructor(private environment?: Environment) {
     this.org = this.environment?.org ?? process.env.PLAYWRIGHT_USER;
