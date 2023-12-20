@@ -251,7 +251,7 @@ export const AboutResourcePage = ({
           }
           onBlur={handleSaveResource}
           errorText={
-            resourceData.delegable
+            showAllErrors && resourceData.delegable
               ? getMissingInputLanguageString(
                   rightDescription,
                   t('resourceadm.about_resource_error_usage_string_rights_description'),
