@@ -12,6 +12,7 @@ import { useSearchParams } from 'react-router-dom';
 import { InputPopover } from './InputPopover';
 import { deepCopy } from 'app-shared/pure';
 import { useAppContext } from '../../../../hooks/useAppContext';
+import classes from './NavigationMenu.module.css';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -81,6 +82,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
         open={dropdownOpen}
         onClose={() => setDropdownOpen(false)}
         size='small'
+        className={classes.dropdownMenu}
       >
         <DropdownMenu.Group>
           {!pageIsReceipt && (
