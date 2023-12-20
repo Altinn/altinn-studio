@@ -23,6 +23,11 @@ export const StudioGridSelector = ({
     setValue(sliderValue ?? 12);
   }, [sliderValue]);
 
+  const optionClassName = (gridValue: number) => cn(
+    classes.option,
+    gridValue > value ? classes.outside : classes.inside,
+  );
+
   return (
     <div
       className={disabled ? cn(classes.sliderContainer, classes.disabled) : classes.sliderContainer}
@@ -47,8 +52,8 @@ export const StudioGridSelector = ({
             key={gridValue}
             value={gridValue}
             label={gridValue.toString()}
-            className={gridValue > value ? classes.outsideGrid : undefined}
-          ></option>
+            className={optionClassName(gridValue)}
+          />
         ))}
       </datalist>
     </div>
