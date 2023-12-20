@@ -51,7 +51,11 @@ export const getValidDataTypeIdsAndTaskIds = (
  * @returns a filtered list of DataTypeElements
  */
 export const filterOutRefDataAsPdf = (dataTypes: DataTypeElement[]): DataTypeElement[] => {
-  return dataTypes.filter((dataType: DataTypeElement) => dataType.id !== 'ref-data-as-pdf');
+  const unsupportedDataTypes: string[] = ['ref-data-as-pdf'];
+
+  return dataTypes.filter(
+    (dataType: DataTypeElement) => !unsupportedDataTypes.includes(dataType.id),
+  );
 };
 
 /**

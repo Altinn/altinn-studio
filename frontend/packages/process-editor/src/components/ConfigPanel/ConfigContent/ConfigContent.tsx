@@ -2,7 +2,15 @@ import React from 'react';
 import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
-import { Divider, Heading, HelpText, Link, Paragraph, Select } from '@digdir/design-system-react';
+import {
+  Divider,
+  Heading,
+  HelpText,
+  Link,
+  Paragraph,
+  Select,
+  MultiSelectOption,
+} from '@digdir/design-system-react';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { ConfigIcon } from './ConfigIcon';
 import { ConfigDetailsRow } from './ConfigDetailsRow';
@@ -24,21 +32,23 @@ export const ConfigContent = (): JSX.Element => {
   const { bpmnDetails, applicationMetadata, updateApplicationMetadata } = useBpmnContext();
   const { org, app } = useStudioUrlParams();
 
-  const packagesRouter = new PackagesRouter({ org, app });
+  const packagesRouter: PackagesRouter = new PackagesRouter({ org, app });
 
   const validDataTypeIdsAndTaskIds: DataTypeIdAndTaskId[] =
     getValidDataTypeIdsAndTaskIds(applicationMetadata);
 
   const showCreateDatamodelLink: boolean = validDataTypeIdsAndTaskIds.length === 0;
 
-  const dataTypeOptions = validDataTypeIdsAndTaskIds.map((data) => ({
-    value: data.dataTypeId,
-    label: data.dataTypeId,
-  }));
+  const dataTypeOptions: MultiSelectOption[] = validDataTypeIdsAndTaskIds.map(
+    (data: DataTypeIdAndTaskId) => ({
+      value: data.dataTypeId,
+      label: data.dataTypeId,
+    }),
+  );
 
-  const dataTypeValues = getSelectedDataTypes(bpmnDetails.id, validDataTypeIdsAndTaskIds);
-  const configTitle = t(getConfigTitleKey(bpmnDetails?.taskType));
-  const configHeaderHelpText =
+  const dataTypeValues: string[] = getSelectedDataTypes(bpmnDetails.id, validDataTypeIdsAndTaskIds);
+  const configTitle: string = t(getConfigTitleKey(bpmnDetails?.taskType));
+  const configHeaderHelpText: string =
     bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails?.taskType));
 
   const updateDataTasksInApplicationMetadata = (taskIds: string[]) => {

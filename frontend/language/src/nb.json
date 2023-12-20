@@ -652,7 +652,7 @@
   "process_editor.configuration_panel_no_task": "Velg et element i prosessen for å se detaljer.",
   "process_editor.configuration_panel_signing_task": "Oppgave: Signering",
   "process_editor.create_new_datamodel_link": "Lag ny datamodell",
-  "process_editor.datatype_helptext_content": " En datatype spesifiserer hva slags data man forventer. Det kan være en datamodell (for strukturerte data fra f.eks. skjema), eller spesifikasjon av binære vedlegg. Datatypen inneholder metadata om dataene, som f.eks. antall dataelementer av den typen, evt. hvilken datamodell som er knyttet til datatypen, mm.",
+  "process_editor.datatype_helptext_content": "En datatype spesifiserer hva slags data man forventer. Det kan være en datamodell (for strukturerte data fra f.eks. et skjema), eller spesifikasjon av binære vedlegg. Datatypen inneholder metadata om dataene, som f.eks. antall dataelementer av den typen, ev. hvilken datamodell som er knyttet til datatypen, mm.",
   "process_editor.datatype_helptext_title": "Informasjon om datatype",
   "process_editor.datatype_label": "Datatype",
   "process_editor.edit_mode": "Redigeringsmodus",
