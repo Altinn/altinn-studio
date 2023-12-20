@@ -9,8 +9,10 @@ import {
   validateTestUiSchema,
 } from '../../../../../schema-model';
 import {
+  combinationNodeMock,
   fieldNode1Mock,
   nodeWithSameNameAsObjectChildMock,
+  objectChildMock,
   objectNodeMock,
   rootNodeMock,
   uiSchemaNodesMock,
@@ -89,6 +91,34 @@ describe('useMoveProperty', () => {
     const nameOfAddedChild = extractNameFromPointer(addedRootChild.pointer);
     expect(nameOfAddedChild).toEqual(nameOfMovedNode);
     validateTestUiSchema(savedModel.asArray());
+  });
+
+  it('Moves a property to the given combination node', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = objectChildMock.pointer;
+    const pointerOfNewParent = combinationNodeMock.pointer;
+    const numberOfChildrenInNewParent = combinationNodeMock.children.length;
+    const indexInNewParent = 0;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const childrenOfNewParent = savedModel.getChildNodes(pointerOfNewParent);
+    expect(childrenOfNewParent.length).toEqual(numberOfChildrenInNewParent + 1);
+  });
+
+  it('Moves a property when it is moved inside the same parent', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = fieldNode1Mock.pointer;
+    const pointerOfNewParent = combinationNodeMock.pointer;
+    const numberOfChildrenInNewParent = combinationNodeMock.children.length;
+    const indexInNewParent = 1;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const childrenOfNewParent = savedModel.getChildNodes(pointerOfNewParent);
+    expect(childrenOfNewParent.length).toEqual(numberOfChildrenInNewParent);
   });
 
   it('Does not move the property when there is already a property with the same name in the target parent', () => {

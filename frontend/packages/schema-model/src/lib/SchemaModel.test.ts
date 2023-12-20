@@ -450,7 +450,6 @@ describe('SchemaModel', () => {
   describe('moveNode', () => {
     describe('When the given parent node is not a reference', () => {
       describe.each(parentNodeTypes)('When moving to %s', (parentNodeType) => {
-
         const model = schemaModel.deepClone();
         const { target, expectedNewPointer } = moveNodeTestData[parentNodeType];
         const { parentPointer, index } = target;
@@ -727,6 +726,13 @@ describe('SchemaModel', () => {
       const model = schemaModel.deepClone();
       const result = model.generateUniqueChildName(referenceNodeMock.pointer, 'newName');
       expect(result).toBe('newName0');
+      expect(model.asArray()).toEqual(schemaModel.asArray());
+    });
+
+    it('Returns only the number when no prefix is given', () => {
+      const model = schemaModel.deepClone();
+      const result = model.generateUniqueChildName(referenceNodeMock.pointer);
+      expect(result).toBe('0');
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
   });

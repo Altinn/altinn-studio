@@ -33,6 +33,7 @@ import {
   defaultReferenceNode,
 } from '../config/default-nodes';
 import { convertPropToType } from './mutations/convert-node';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export class SchemaModel {
   private readonly nodeMap: NodeMap;
@@ -187,7 +188,6 @@ export class SchemaModel {
   }
 
   private unshiftCombinationChildren = (node: CombinationNode, fromIndex: number): void => {
-    if (fromIndex < 0) return;
     const { children } = node;
     for (let i = children.length; i > fromIndex; i--) {
       const newName = i.toString();
@@ -261,7 +261,7 @@ export class SchemaModel {
     parent: CombinationNode,
     index: number,
   ): SchemaModel => {
-    const finalIndex = index < 0 ? parent.children.length - 1 : index;
+    const finalIndex = ArrayUtils.getValidIndex(parent.children, index);
     const currentParent = this.getParentNode(pointer);
     if (currentParent.pointer === parent.pointer) {
       const fromIndex = this.getIndexOfChildNode(pointer);
