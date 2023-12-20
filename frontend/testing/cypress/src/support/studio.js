@@ -107,3 +107,7 @@ Cypress.Commands.add('ensureCreatePageIsLoaded', () => {
   cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
   cy.findByRole('button', { name: `${texts['ux_editor.pages_add']}` }).should('be.visible');
 });
+
+Cypress.Commands.add('openSettingsModal', () => {
+  cy.findByRole('button', { name: texts['settings_modal.heading'] }).click();
+});

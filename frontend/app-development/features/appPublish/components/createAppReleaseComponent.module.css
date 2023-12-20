@@ -5,12 +5,7 @@
   gap: 1rem;
 }
 
-.createReleaseInvalidTagName {
-  background-color: #fbf6bd;
-  padding: 1.2rem;
-  padding: 1.2rem 0 1.2rem 0;
-}
-
 .releaseVersionInput {
   width: 50%;
+  margin-bottom: 8px;
 }
