@@ -13,7 +13,6 @@ import { useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
-import cn from 'classnames';
 import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
@@ -157,8 +156,8 @@ export const DesignView = (): ReactNode => {
           onClickAddPage={() => handleAddPage(true)}
         />
       </div>
-      <div className={cn(classes.button, classes.addButton)}>
-        <Button icon={<PlusIcon />} onClick={() => handleAddPage(false)} size='small'>
+      <div className={classes.buttonContainer}>
+        <Button icon={<PlusIcon />} onClick={() => handleAddPage(false)} size='small' className={classes.button}>
           {t('ux_editor.pages_add')}
         </Button>
       </div>
