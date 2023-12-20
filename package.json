@@ -33,7 +33,6 @@
     "@types/css-modules": "1.0.4",
     "@types/jest": "29.5.7",
     "@types/lodash-es": "4.17.10",
-    "@types/node": "^20.10.3",
     "@types/react": "18.2.34",
     "@types/react-dom": "18.2.14",
     "@types/react-redux": "7.1.28",
