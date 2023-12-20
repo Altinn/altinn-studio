@@ -1,0 +1,6 @@
+.configSectionWrapper {
+  display: flex;
+  flex-direction: column;
+  margin-inline: 1rem;
+  gap: 1rem;
+}

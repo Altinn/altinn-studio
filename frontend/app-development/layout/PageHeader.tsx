@@ -3,12 +3,12 @@ import { AltinnHeader } from 'app-shared/components/altinnHeader/AltinnHeader';
 import { getFilteredTopBarMenu } from './AppBar/appBarConfig';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useAppSelector } from 'app-development/hooks';
-import { previewPath, publishPath } from 'app-shared/api/paths';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { User } from 'app-shared/types/User';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 type SubMenuContentProps = {
   org: string;
@@ -27,23 +27,23 @@ export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
 };
 
 export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
+  const packagesRouter = new PackagesRouter({ org, app });
+
   const actions: AltinnButtonActionItem[] = [
     {
       title: 'top_menu.preview',
-      path: previewPath,
       menuKey: TopBarMenu.Preview,
       buttonVariant: 'secondary',
       buttonColor: 'inverted',
       headerButtonsClasses: undefined,
-      handleClick: () => (window.location.href = previewPath(org, app)),
+      handleClick: () => packagesRouter.navigateToPackage('preview'),
     },
     {
       title: 'top_menu.deploy',
-      path: publishPath,
       menuKey: TopBarMenu.Deploy,
       buttonVariant: 'secondary',
       headerButtonsClasses: undefined,
-      handleClick: () => (window.location.href = publishPath(org, app)),
+      handleClick: () => packagesRouter.navigateToPackage('editorPublish'),
     },
   ];
   return actions;
@@ -64,14 +64,14 @@ export const PageHeader = ({ org, app, showSubMenu, user, isRepoError }: PageHea
 
   return (
     <AltinnHeader
-      menuItems={menuItems}
+      menuItems={!isRepoError && menuItems}
       showSubMenu={showSubMenu && !isRepoError}
       subMenuContent={!isRepoError && subMenuContent({ org, app })}
       org={org}
-      app={app}
+      app={!isRepoError && app}
       user={user}
       repository={repository}
-      buttonActions={buttonActions(org, app)}
+      buttonActions={!isRepoError && buttonActions(org, app)}
     />
   );
 };
