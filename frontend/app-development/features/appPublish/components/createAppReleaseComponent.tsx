@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import classes from './createAppReleaseComponent.module.css';
 import type { ChangeEvent } from 'react';
-import { LegacyTextField, Button, LegacyTextArea } from '@digdir/design-system-react';
+import { Button, Textfield, Textarea } from '@digdir/design-system-react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { FormField } from '../../../../packages/shared/src/components/FormField/FormField';
 
 export function CreateReleaseComponent() {
   const { org, app } = useStudioUrlParams();
@@ -37,27 +38,40 @@ export function CreateReleaseComponent() {
 
   return (
     <div className={classes.createReleaseForm}>
-      {!versionNameValid(releases, tagName) ? (
-        <div className={classes.createReleaseInvalidTagName}>
-          {t('app_create_release.release_versionnumber_validation')}
-        </div>
-      ) : null}
-      <div className={classes.releaseVersionInput}>
-        <LegacyTextField
-          label={t('app_create_release.release_versionnumber')}
-          onChange={handleTagNameChange}
-          value={tagName}
-          isValid={versionNameValid(releases, tagName)}
-        />
-      </div>
-      <div>
-        <LegacyTextArea
-          label={t('app_create_release.release_description')}
-          value={body}
-          onChange={handleBodyChange}
-          rows={4}
-        />
-      </div>
+      <FormField
+        value={tagName}
+        customValidationRules={(value: string) => {
+          const trimmedValue = value.trim().toLowerCase();
+          if (releases.some((release) => release.tagName.toLowerCase() === trimmedValue)) {
+            return t('app_create_release.release_versionnumber_already_exists');
+          }
+          return versionNameValid(releases, trimmedValue)
+            ? ''
+            : t('app_create_release.release_versionnumber_validation');
+        }}
+        customValidationMessages={(errorCode) => errorCode}
+        renderField={({ fieldProps }) => (
+          <div className={classes.releaseVersionInput}>
+            <Textfield
+              {...fieldProps}
+              label={t('app_create_release.release_versionnumber')}
+              onChange={handleTagNameChange}
+            />
+          </div>
+        )}
+      />
+      <FormField
+        value={body}
+        renderField={({ fieldProps }) => (
+          <Textarea
+            {...fieldProps}
+            label={t('app_create_release.release_description')}
+            value={body}
+            onChange={handleBodyChange}
+            rows={4}
+          />
+        )}
+      />
       <div>
         <Button
           onClick={handleBuildVersionClick}
