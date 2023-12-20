@@ -36,4 +36,3 @@ This is a short step-by-step guide with less minimum needed explanation to get s
 2. Install browsers and set up Playwright by executing `yarn setup:playwright`.
 3. Generate a .env file for your local environment by running `yarn setup:local:env`.
 4. You are now ready to execute tests using the command `yarn test:all`.
-
