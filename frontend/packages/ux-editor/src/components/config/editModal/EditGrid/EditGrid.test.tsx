@@ -2,10 +2,10 @@ import React from 'react';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditGrid } from './EditGrid';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { component1Mock } from '../../../testing/layoutMock';
+import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { component1Mock } from '../../../../testing/layoutMock';
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())

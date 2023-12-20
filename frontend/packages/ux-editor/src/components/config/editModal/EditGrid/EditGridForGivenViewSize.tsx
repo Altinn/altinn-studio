@@ -1,27 +1,27 @@
 import React from 'react';
-import { useText } from '../../../hooks';
-import { StudioGridSelector } from '@studio/components';
+import { useText } from '../../../../hooks';
+import { GridSize, StudioGridSelector } from '@studio/components';
 import { Paragraph, Switch } from '@digdir/design-system-react';
-import { PadlockLockedFillIcon } from '@navikt/aksel-icons';
+import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './EditGridForGivenViewSize.module.css';
-import { GridSizeForViewSize, ViewSizeForGridProp } from './EditGrid';
 import { deepCopy } from 'app-shared/pure';
+import { GridSizes } from './types/GridSizes';
+import { ViewSize } from './types/ViewSize';
+import { findLargestSelectedViewsizeBelowCurrent } from './utils';
 
 export interface EditGridForGivenViewSizeProps {
-  handleUpdateGrid: (newGridValues: GridSizeForViewSize) => void;
-  gridValues: GridSizeForViewSize;
-  viewSize: ViewSizeForGridProp;
+  handleUpdateGrid: (newGridValues: GridSizes) => void;
+  gridValues: GridSizes;
+  viewSize: ViewSize;
 }
 
-const setGridValueOnViewSize = (
-  viewSize: ViewSizeForGridProp,
-  gridValues: GridSizeForViewSize,
-  newGridValue,
-) => {
+const setGridValueOnViewSize = (viewSize: ViewSize, gridValues: GridSizes, newGridValue) => {
   const newGridValues = deepCopy(gridValues);
   newGridValues[viewSize] = newGridValue;
   return newGridValues;
 };
+
+const DEFAULT_GRID_VALUE: GridSize = 12;
 
 export const EditGridForGivenViewSize = ({
   handleUpdateGrid,
@@ -29,8 +29,6 @@ export const EditGridForGivenViewSize = ({
   viewSize,
 }: EditGridForGivenViewSizeProps) => {
   const t = useText();
-
-  const DEFAULT_GRID_VALUE = 12;
 
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newGridObject = setGridValueOnViewSize(
@@ -49,7 +47,7 @@ export const EditGridForGivenViewSize = ({
       </div>
       <StudioGridSelector
         disabled={!gridValues[viewSize]}
-        sliderValue={gridValues[viewSize]}
+        sliderValue={findLargestSelectedViewsizeBelowCurrent(gridValues, viewSize)}
         handleSliderChange={(newValue) => {
           const newGridObject = setGridValueOnViewSize(viewSize, gridValues, Number(newValue));
           handleUpdateGrid(newGridObject);

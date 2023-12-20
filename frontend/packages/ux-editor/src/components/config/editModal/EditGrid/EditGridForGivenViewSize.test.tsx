@@ -1,10 +1,11 @@
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
-import { GridSizeForViewSize, ViewSizeForGridProp } from './EditGrid';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { GridSizes } from './types/GridSizes';
+import { ViewSize } from './types/ViewSize';
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
@@ -12,11 +13,17 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
+type RenderProps = {
+  gridValues?: GridSizes;
+  viewSize?: ViewSize;
+  handleUpdateGrid?: (grid: GridSizes) => void;
+};
+
 const render = async ({
-  gridValues = { xs: 3, md: 10 } as GridSizeForViewSize,
-  viewSize = ViewSizeForGridProp.M,
+  gridValues = { xs: 3, md: 10 },
+  viewSize = ViewSize.md,
   handleUpdateGrid = jest.fn(),
-} = {}) => {
+}: RenderProps = {}) => {
   await waitForData();
 
   return renderWithMockStore()(
@@ -29,7 +36,7 @@ const render = async ({
 };
 
 describe('EditGridForGivenViewSize', () => {
-  it('should show that default value, 12, is set for grid when gridValue is not set for laptop viewSize', async () => {
+  it('should take the value of the largest view size below it when not defined', async () => {
     await render({ gridValues: { xs: 3 } });
 
     const lockIcon = screen.getByRole('img', { name: 'lockIcon' });
@@ -37,7 +44,7 @@ describe('EditGridForGivenViewSize', () => {
 
     const slider = screen.getByRole('slider');
     expect(slider).toBeInTheDocument();
-    expect(slider).toHaveValue('12');
+    expect(slider).toHaveValue('3');
     expect(slider).toHaveAttribute('disabled');
 
     const switchLaptop = screen.getByRole('checkbox', {
@@ -48,7 +55,7 @@ describe('EditGridForGivenViewSize', () => {
   });
 
   it('should show that default value, 12, is set for grid when gridValue is not set for mobile viewSize', async () => {
-    await render({ gridValues: { md: 3 }, viewSize: ViewSizeForGridProp.S });
+    await render({ gridValues: { md: 3 }, viewSize: ViewSize.sm });
 
     const lockIconMobile = screen.getByRole('img', { name: 'lockIcon' });
     expect(lockIconMobile).toBeInTheDocument();

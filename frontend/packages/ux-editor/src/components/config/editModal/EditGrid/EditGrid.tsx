@@ -1,32 +1,24 @@
 import React, { useState, ReactNode } from 'react';
-import type { IGenericEditComponent } from '../componentConfig';
-import { useText } from '../../../hooks';
+import type { IGenericEditComponent } from '../../componentConfig';
 import { Tabs } from '@digdir/design-system-react';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
-import { LaptopIcon, MobileSmallIcon } from '@navikt/aksel-icons';
-import { FormComponent } from '../../../types/FormComponent';
+import { LaptopIcon, MobileSmallIcon } from '@studio/icons';
+import { FormComponent } from '../../../../types/FormComponent';
 import { deepCopy } from 'app-shared/pure';
+import { ViewSize } from './types/ViewSize';
+import { GridSizes } from './types/GridSizes';
+import { useTranslation } from 'react-i18next';
 
-export enum ViewSizeForGridProp {
-  S = 'xs',
-  M = 'md',
-}
-
-export interface GridSizeForViewSize {
-  xs?: number;
-  md?: number;
-}
-
-const getIconForViewSize = (viewSize: ViewSizeForGridProp): ReactNode => {
+const getIconForViewSize = (viewSize: ViewSize): ReactNode => {
   const iconMapping = {
-    [ViewSizeForGridProp.S]: <MobileSmallIcon />,
-    [ViewSizeForGridProp.M]: <LaptopIcon />,
+    [ViewSize.xs]: <MobileSmallIcon />,
+    [ViewSize.md]: <LaptopIcon />,
   };
   return iconMapping[viewSize] || null;
 };
 
-const setGridOnComponent = (gridValues: GridSizeForViewSize, component: FormComponent) => {
+const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => {
   const newComponent = deepCopy(component);
   newComponent.grid = { ...newComponent.grid, ...gridValues };
   if (
@@ -38,13 +30,16 @@ const setGridOnComponent = (gridValues: GridSizeForViewSize, component: FormComp
   return newComponent;
 };
 
-export const EditGrid = ({ handleComponentChange, component }: IGenericEditComponent) => {
-  const [gridValues, setGridValues] = useState<GridSizeForViewSize>(component.grid ?? {});
-  const [selectedViewSizeForGridProp, setSelectedViewSizeForGridProp] =
-    useState<ViewSizeForGridProp>(ViewSizeForGridProp.S);
-  const t = useText();
+const accessibleViewsizes: ViewSize[] = [ViewSize.xs, ViewSize.md];
 
-  const handleUpdateGrid = (newGridValues: GridSizeForViewSize) => {
+export const EditGrid = ({ handleComponentChange, component }: IGenericEditComponent) => {
+  const [gridValues, setGridValues] = useState<GridSizes>(component.grid ?? {});
+  const [selectedViewSizeForGridProp, setSelectedViewSizeForGridProp] = useState<ViewSize>(
+    ViewSize.xs,
+  );
+  const { t } = useTranslation();
+
+  const handleUpdateGrid = (newGridValues: GridSizes) => {
     const updatedComponent = setGridOnComponent(newGridValues, component);
     setGridValues(newGridValues);
     handleComponentChange(updatedComponent);
@@ -55,11 +50,11 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
       className={classes.gridContainer}
       key={component.id}
       defaultValue={selectedViewSizeForGridProp}
-      onChange={(viewSize: ViewSizeForGridProp) => setSelectedViewSizeForGridProp(viewSize)}
+      onChange={(viewSize: ViewSize) => setSelectedViewSizeForGridProp(viewSize)}
       size='small'
     >
-      <Tabs.List className={classes.viewSizesTabs}>
-        {Object.values(ViewSizeForGridProp).map((viewSize: ViewSizeForGridProp) => {
+      <Tabs.List>
+        {accessibleViewsizes.map((viewSize: ViewSize) => {
           return (
             <Tabs.Tab key={viewSize} value={viewSize} icon={getIconForViewSize(viewSize)}>
               {t(`ux_editor.modal_properties_grid_size_${viewSize}`)}
@@ -67,13 +62,11 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
           );
         })}
       </Tabs.List>
-      {Object.values(ViewSizeForGridProp).map((viewSize: ViewSizeForGridProp) => {
+      {accessibleViewsizes.map((viewSize: ViewSize) => {
         return (
           <Tabs.Content key={viewSize} value={viewSize}>
             <EditGridForGivenViewSize
-              handleUpdateGrid={(newGridValues: GridSizeForViewSize) =>
-                handleUpdateGrid(newGridValues)
-              }
+              handleUpdateGrid={(newGridValues: GridSizes) => handleUpdateGrid(newGridValues)}
               gridValues={gridValues}
               viewSize={viewSize}
             />

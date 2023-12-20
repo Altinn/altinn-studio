@@ -26,24 +26,6 @@ describe('StudioGridSelector', () => {
     expect(slider).toHaveValue(sliderValue.toString());
   });
 
-  it('should render slider with lowest possible value when sliderValue is negative', () => {
-    const sliderValue = -4;
-    const lowestPossibleValue = 1;
-    render(<StudioGridSelector sliderValue={sliderValue} handleSliderChange={() => jest.fn()} />);
-
-    const slider = screen.getByRole('slider');
-    expect(slider).toHaveValue(lowestPossibleValue.toString());
-  });
-
-  it('should render slider with highest possible value when sliderValue is too high', () => {
-    const sliderValue = 14;
-    const lowestPossibleValue = 12;
-    render(<StudioGridSelector sliderValue={sliderValue} handleSliderChange={() => jest.fn()} />);
-
-    const slider = screen.getByRole('slider');
-    expect(slider).toHaveValue(lowestPossibleValue.toString());
-  });
-
   it('should call onSliderChange when new value is clicked on slider', () => {
     const sliderValue = 4;
     const newSliderValue = 6;

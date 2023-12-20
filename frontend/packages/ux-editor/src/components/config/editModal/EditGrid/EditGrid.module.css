@@ -1,0 +1,4 @@
+.gridContainer {
+  background-color: white;
+  border-radius: var(--fds-border_radius-large);
+}
