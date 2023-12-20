@@ -106,7 +106,10 @@ export const mapKeywordsArrayToString = (resourceKeywords: ResourceKeyword[]): s
   return resourceKeywords.map((k) => k.word).join(', ');
 };
 export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeyword[] => {
-  return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
+  return keywrodString
+    .split(',')
+    .filter(Boolean)
+    .map((val) => ({ language: 'nb', word: val.trim() }));
 };
 
 /**
