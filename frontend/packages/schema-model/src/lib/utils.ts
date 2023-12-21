@@ -96,7 +96,7 @@ export const isDefinition = (node: UiSchemaNode): boolean =>
 export const isProperty = (node: UiSchemaNode): boolean => !isDefinition(node);
 
 export const isNodeValidParent = (node: UiSchemaNode): boolean =>
-  isCombination(node) || (isField(node) && (isObject(node) || isArray(node)));
+  isCombination(node) || (isField(node) && isObject(node));
 
 export const isTheRootNode = (node: UiSchemaNode): boolean =>
   node.pointer === ROOT_POINTER;
