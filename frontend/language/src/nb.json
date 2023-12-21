@@ -28,6 +28,7 @@
   "app_create_release.release_creating": "Bygger en ny versjon av applikasjonen, startet av",
   "app_create_release.release_description": "Beskriv innholdet i versjonen",
   "app_create_release.release_versionnumber": "Versjonsnummer",
+  "app_create_release.release_versionnumber_already_exists": "Et versjonnummer med det navnet finnes allerede.",
   "app_create_release.release_versionnumber_validation": "Må være en unik kombinasjon av tall, små bokstaver (a-z) og spesialtegnene \".\" og \"-\". Maks 128 tegn.",
   "app_create_release.still_building_release": "Bygger fortsatt versjon {{version}}",
   "app_create_release_errors.build_cannot_be_saved": "Huff da, vi opplever en teknisk feil som fører til at applikasjonen ikke blir bygget. Forsøk å laste siden på nytt (f5). Dersom problemet vedvarer, kontakt",
