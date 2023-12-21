@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM node:18-alpine3.18
 COPY . .
 RUN yarn install
 EXPOSE 6161
