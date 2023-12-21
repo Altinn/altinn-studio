@@ -9,6 +9,7 @@ import { SettingsModalButton } from './SettingsModalButton';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { User } from 'app-shared/types/User';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import { RepositoryType } from 'app-shared/types/global';
 
 type SubMenuContentProps = {
   org: string;
@@ -16,12 +17,15 @@ type SubMenuContentProps = {
 };
 
 export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
+  const repositoryType = getRepositoryType(org, app);
   return (
     <GiteaHeader
       org={org}
       app={app}
       hasCloneModal
-      leftComponent={<SettingsModalButton org={org} app={app} />}
+      leftComponent={
+        repositoryType !== RepositoryType.Datamodels && <SettingsModalButton org={org} app={app} />
+      }
     />
   );
 };
