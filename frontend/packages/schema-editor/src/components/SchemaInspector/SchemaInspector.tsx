@@ -1,13 +1,13 @@
 import React from 'react';
 import { Alert, Tabs } from '@digdir/design-system-react';
 import { isObject } from '@altinn/schema-model';
-import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
-import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
+import { ItemPropertiesTab } from './ItemPropertiesTab';
+import { ItemFieldsTab } from './ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
-import { useSchemaAndReduxSelector } from '../hooks/useSchemaAndReduxSelector';
+import { useSchemaAndReduxSelector } from '../../hooks/useSchemaAndReduxSelector';
 
 export const SchemaInspector = () => {
   const { t } = useTranslation();

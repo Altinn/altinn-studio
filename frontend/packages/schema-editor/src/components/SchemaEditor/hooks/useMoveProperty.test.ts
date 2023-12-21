@@ -1,0 +1,134 @@
+import { renderHookWithProviders } from '../../../../test/renderHookWithProviders';
+import { useMoveProperty } from './useMoveProperty';
+import { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
+import { HandleMove, ItemPosition } from 'app-shared/types/dndTypes';
+import {
+  extractNameFromPointer,
+  ROOT_POINTER,
+  SchemaModel,
+  validateTestUiSchema,
+} from '../../../../../schema-model';
+import {
+  combinationNodeMock,
+  fieldNode1Mock,
+  nodeWithSameNameAsObjectChildMock,
+  objectChildMock,
+  objectNodeMock,
+  rootNodeMock,
+  uiSchemaNodesMock,
+} from '../../../../test/mocks/uiSchemaMock';
+import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
+
+describe('useMoveProperty', () => {
+  const setup = () => {
+    const save = jest.fn();
+    const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
+    const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, save };
+    const { result } = renderHookWithProviders({ appContextProps })(useMoveProperty);
+    const move: HandleMove = result.current;
+    return { move, save };
+  };
+
+  it('Moves a property to the given position', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = fieldNode1Mock.pointer;
+    const pointerOfNewParent = objectNodeMock.pointer;
+    const indexInNewParent = 1;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const childrenOfNewParent = savedModel.getChildNodes(pointerOfNewParent);
+    const addedChild = childrenOfNewParent[indexInNewParent];
+    const nameOfMovedNode = extractNameFromPointer(pointerOfNodeToMove);
+    const nameOfAddedChild = extractNameFromPointer(addedChild.pointer);
+    expect(nameOfAddedChild).toEqual(nameOfMovedNode);
+    validateTestUiSchema(savedModel.asArray());
+  });
+
+  it('Moves a property to the given position when it is on the root', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = fieldNode1Mock.pointer;
+    const indexInNewParent = 1;
+    const target: ItemPosition = { parentId: ROOT_POINTER, index: indexInNewParent };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const rootChildren = savedModel.getRootChildren();
+    const addedRootChild = rootChildren[indexInNewParent];
+    const nameOfMovedNode = extractNameFromPointer(pointerOfNodeToMove);
+    const nameOfAddedChild = extractNameFromPointer(addedRootChild.pointer);
+    expect(nameOfAddedChild).toEqual(nameOfMovedNode);
+    validateTestUiSchema(savedModel.asArray());
+  });
+
+  it('Moves a property to the given position when it is on the root and the target index is 0', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = fieldNode1Mock.pointer;
+    const target: ItemPosition = { parentId: ROOT_POINTER, index: 0 };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const rootChildren = savedModel.getRootChildren();
+    const addedRootChild = rootChildren[0];
+    const nameOfMovedNode = extractNameFromPointer(pointerOfNodeToMove);
+    const nameOfAddedChild = extractNameFromPointer(addedRootChild.pointer);
+    expect(nameOfAddedChild).toEqual(nameOfMovedNode);
+    validateTestUiSchema(savedModel.asArray());
+  });
+
+  it('Moves a property to the given position when it is on the root and the target index is equal to the number of root properties', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = fieldNode1Mock.pointer;
+    const index = rootNodeMock.children.length;
+    const target: ItemPosition = { parentId: ROOT_POINTER, index };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const rootChildren = savedModel.getRootChildren();
+    const addedRootChild = rootChildren[index];
+    const nameOfMovedNode = extractNameFromPointer(pointerOfNodeToMove);
+    const nameOfAddedChild = extractNameFromPointer(addedRootChild.pointer);
+    expect(nameOfAddedChild).toEqual(nameOfMovedNode);
+    validateTestUiSchema(savedModel.asArray());
+  });
+
+  it('Moves a property to the given combination node', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = objectChildMock.pointer;
+    const pointerOfNewParent = combinationNodeMock.pointer;
+    const numberOfChildrenInNewParent = combinationNodeMock.children.length;
+    const indexInNewParent = 0;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const childrenOfNewParent = savedModel.getChildNodes(pointerOfNewParent);
+    expect(childrenOfNewParent.length).toEqual(numberOfChildrenInNewParent + 1);
+  });
+
+  it('Moves a property when it is moved inside the same parent', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = fieldNode1Mock.pointer;
+    const pointerOfNewParent = combinationNodeMock.pointer;
+    const numberOfChildrenInNewParent = combinationNodeMock.children.length;
+    const indexInNewParent = 1;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const childrenOfNewParent = savedModel.getChildNodes(pointerOfNewParent);
+    expect(childrenOfNewParent.length).toEqual(numberOfChildrenInNewParent);
+  });
+
+  it('Does not move the property when there is already a property with the same name in the target parent', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = nodeWithSameNameAsObjectChildMock.pointer;
+    const pointerOfNewParent = objectNodeMock.pointer;
+    const indexInNewParent = 0;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(0);
+  });
+});

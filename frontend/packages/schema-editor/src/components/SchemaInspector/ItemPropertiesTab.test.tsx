@@ -28,7 +28,7 @@ describe('ItemPropertiesTab', () => {
       children: [],
     };
     const uiSchemaNodes: UiSchemaNodes = [rootNode, selectedNode];
-    ['donald', 'dolly'].forEach((childNodeName) => {
+    ['0', '1'].forEach((childNodeName) => {
       const pointer = `${selectedNodePointer}/${combinationType}/${childNodeName}`;
       const node: FieldNode = {
         ...nodeMockBase,
