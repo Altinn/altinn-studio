@@ -1,12 +1,12 @@
 import React from 'react';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { renderSchemaNodeList } from './renderSchemaNodeList';
-import { setSelectedId } from '@altinn/schema-editor/features/editor/schemaEditorSlice';
+import { setSelectedId } from '../../features/editor/schemaEditorSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectedIdSelector } from '@altinn/schema-editor/selectors/reduxSelectors';
+import { selectedIdSelector } from '../../selectors/reduxSelectors';
 import { useTranslation } from 'react-i18next';
-import { SchemaNode } from '@altinn/schema-editor/components/SchemaTree/SchemaNode';
-import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
+import { SchemaNode } from './SchemaNode';
+import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
 
 export interface SchemaTreeProps {
   pointer?: string;

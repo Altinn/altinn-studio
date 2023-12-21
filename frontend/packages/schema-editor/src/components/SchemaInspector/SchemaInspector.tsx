@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert, Tabs } from '@digdir/design-system-react';
-import { isObject } from '../../../../schema-model';
+import { isObject } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import classes from './SchemaInspector.module.css';

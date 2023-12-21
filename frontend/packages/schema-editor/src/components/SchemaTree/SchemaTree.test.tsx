@@ -1,12 +1,12 @@
 import React from 'react';
-import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '../../../../schema-model';
+import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import {
   childOfDefinitionNodeMock,
   definitionNodeMock,
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
-import { SchemaTree } from '@altinn/schema-editor/components/SchemaTree/SchemaTree';
+import { SchemaTree } from './SchemaTree';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

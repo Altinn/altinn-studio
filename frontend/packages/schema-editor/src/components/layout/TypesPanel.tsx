@@ -5,15 +5,14 @@ import {
   setSelectedNode,
 } from '@altinn/schema-editor/features/editor/schemaEditorSlice';
 
-import { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType, ObjectKind } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { FieldType, ObjectKind, isCombination } from '@altinn/schema-model';
 
 import { useTranslation } from 'react-i18next';
 import { ActionMenu } from '../common/ActionMenu';
 import { IconImage } from '../common/Icon';
-import { isCombination } from '@altinn/schema-model';
-import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
-import { SchemaTree } from '@altinn/schema-editor/components/SchemaTree';
+import { useAddProperty } from '../../hooks/useAddProperty';
+import { SchemaTree } from '../SchemaTree';
 
 export type TypesPanelProps = {
   uiSchemaNode: UiSchemaNode;

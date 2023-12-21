@@ -1,5 +1,5 @@
 import { render as renderRtl, screen } from '@testing-library/react';
-import { renderIcon } from '@altinn/schema-editor/components/SchemaTree/SchemaNode/renderIcon';
+import { renderIcon } from './renderIcon';
 import {
   CombinationKind,
   CombinationNode,
@@ -12,7 +12,7 @@ import {
   UiSchemaNode,
   UiSchemaNodes,
   validateTestUiSchema,
-} from '../../../../../schema-model';
+} from '@altinn/schema-model';
 import { nodeMockBase } from '../../../../test/mocks/uiSchemaMock';
 
 const definitionNodePointer = `${ROOT_POINTER}/$defs/testDef`;

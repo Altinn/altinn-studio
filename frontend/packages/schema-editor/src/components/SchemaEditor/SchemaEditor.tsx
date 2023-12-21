@@ -3,22 +3,22 @@ import { useDispatch } from 'react-redux';
 import classes from './SchemaEditor.module.css';
 import { setSchemaName, setSelectedId, setUiSchema } from '../../features/editor/schemaEditorSlice';
 import { useTranslation } from 'react-i18next';
-import { TypesInspector } from '@altinn/schema-editor/components/TypesInspector';
+import { TypesInspector } from '../TypesInspector';
 import classNames from 'classnames';
 import { Button } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
-import { ModelsPanel, TypesPanel } from '@altinn/schema-editor/components/layout';
-import { SchemaInspector } from '@altinn/schema-editor/components/SchemaInspector';
-import { extractNameFromPointer, ROOT_POINTER, UiSchemaNodes } from '../../../../schema-model';
-import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
+import { ModelsPanel, TypesPanel } from '../layout';
+import { SchemaInspector } from '../SchemaInspector';
+import { extractNameFromPointer, ROOT_POINTER, UiSchemaNodes } from '@altinn/schema-model';
+import { useSchemaAndReduxSelector } from '../../hooks/useSchemaAndReduxSelector';
 import {
   selectedDefinitionParentSelector,
   selectedPropertyParentSelector,
-} from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
-import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+} from '../../selectors/schemaAndReduxSelectors';
+import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
-import { useMoveProperty } from '@altinn/schema-editor/components/SchemaEditor/hooks/useMoveProperty';
-import { useAddReference } from '@altinn/schema-editor/components/SchemaEditor/hooks/useAddReference';
+import { useMoveProperty } from './hooks/useMoveProperty';
+import { useAddReference } from './hooks/useAddReference';
 
 export interface SchemaEditorProps {
   modelName?: string;

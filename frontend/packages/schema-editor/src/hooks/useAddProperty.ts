@@ -1,6 +1,6 @@
-import { FieldType, NodePosition, ObjectKind, ROOT_POINTER } from '../../../schema-model';
+import { FieldType, NodePosition, ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
+import { useSavableSchemaModel } from '../hooks/useSavableSchemaModel';
 
 export const useAddProperty = () => {
   const savableModel = useSavableSchemaModel();

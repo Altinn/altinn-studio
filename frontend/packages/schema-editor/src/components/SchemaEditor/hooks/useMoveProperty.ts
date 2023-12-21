@@ -1,8 +1,8 @@
 import { HandleMove, ItemPosition } from 'app-shared/types/dndTypes';
 import { useCallback } from 'react';
-import { extractNameFromPointer, isCombination, NodePosition } from '../../../../../schema-model';
-import { calculatePositionInFullList } from '@altinn/schema-editor/components/SchemaEditor/utils';
-import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
+import { extractNameFromPointer, isCombination, NodePosition } from '@altinn/schema-model';
+import { calculatePositionInFullList } from '../utils';
+import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import { useTranslation } from 'react-i18next';
 
 export const useMoveProperty = (): HandleMove => {

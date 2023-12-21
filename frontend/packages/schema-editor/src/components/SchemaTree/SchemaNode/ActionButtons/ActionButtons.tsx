@@ -3,11 +3,11 @@ import { ReferenceIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ActionButtons.module.css';
 import cn from 'classnames';
-import { isNodeValidParent, isReference } from '../../../../../../schema-model';
+import { isNodeValidParent, isReference } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
 import { AddPropertyMenu } from './AddPropertyMenu';
-import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
-import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
+import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
+import { SavableSchemaModel } from '../../../../classes/SavableSchemaModel';
 
 export interface ActionButtonsProps {
   pointer: string;

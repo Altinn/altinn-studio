@@ -7,7 +7,7 @@ import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
-import { SchemaTree } from '@altinn/schema-editor/components/SchemaTree';
+import { SchemaTree } from '../SchemaTree';
 
 export const ModelsPanel = () => {
   const translation = useTranslation();

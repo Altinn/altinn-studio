@@ -11,7 +11,7 @@ import {
   UiSchemaNodes,
   makePointerFromArray,
   SchemaModel,
-} from '../../../../schema-model';
+} from '@altinn/schema-model';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';

@@ -1,8 +1,8 @@
 import { HandleAdd, ItemPosition } from 'app-shared/types/dndTypes';
 import { useCallback } from 'react';
-import { NodePosition } from '../../../../../schema-model';
-import { calculatePositionInFullList } from '@altinn/schema-editor/components/SchemaEditor/utils';
-import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
+import { NodePosition } from '@altinn/schema-model';
+import { calculatePositionInFullList } from '../utils';
+import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 
 export const useAddReference = (): HandleAdd<string> => {
   const savableModel = useSavableSchemaModel();

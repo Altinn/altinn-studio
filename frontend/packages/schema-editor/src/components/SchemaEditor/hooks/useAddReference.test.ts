@@ -3,17 +3,17 @@ import {
   isReference,
   ReferenceNode,
   SchemaModel,
-} from '../../../../../schema-model';
+} from '@altinn/schema-model';
 import {
   definitionNodeMock,
   combinationNodeMock,
   uiSchemaNodesMock
 } from '../../../../test/mocks/uiSchemaMock';
-import { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
 import { renderHookWithProviders } from '../../../../test/renderHookWithProviders';
 import { HandleAdd, ItemPosition } from 'app-shared/types/dndTypes';
-import { useAddReference } from '@altinn/schema-editor/components/SchemaEditor/hooks/useAddReference';
-import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
+import { useAddReference } from './useAddReference';
+import { SavableSchemaModel } from '../../../classes/SavableSchemaModel';
 
 describe('useAddReference', () => {
   const setup = () => {

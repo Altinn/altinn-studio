@@ -1,6 +1,6 @@
 import { renderHookWithProviders } from '../../../../test/renderHookWithProviders';
-import { useMoveProperty } from '@altinn/schema-editor/components/SchemaEditor/hooks/useMoveProperty';
-import { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import { useMoveProperty } from './useMoveProperty';
+import { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
 import { HandleMove, ItemPosition } from 'app-shared/types/dndTypes';
 import {
   extractNameFromPointer,

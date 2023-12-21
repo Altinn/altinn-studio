@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
-import { ObjectKind } from '../../../../../../schema-model';
+import { useAddProperty } from '../../../../hooks/useAddProperty';
+import { ObjectKind } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { DropdownMenu } from '@digdir/design-system-react';

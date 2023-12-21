@@ -8,7 +8,7 @@ import {
   ObjectKind,
   ROOT_POINTER,
   SchemaModel,
-} from '../../../../../schema-model';
+} from '@altinn/schema-model';
 import {
   definitionNodeMock,
   objectNodeMock,
