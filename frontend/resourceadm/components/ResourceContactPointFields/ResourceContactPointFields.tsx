@@ -62,7 +62,7 @@ export const ResourceContactPointFields = ({
   const handleClickAddButton = () => {
     const updatedList = [...contactPoints, emptyContactPoint];
     setContactPoints(updatedList);
-    onContactPointsChanged(contactPoints);
+    onContactPointsChanged(updatedList);
   };
 
   /**
