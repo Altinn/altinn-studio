@@ -2,9 +2,9 @@ import React from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@navikt/aksel-icons';
 import { Textfield, Alert, Paragraph, Heading, Textarea } from '@digdir/design-system-react';
-import type { SupportedLanguage, ValidLanguage } from 'resourceadm/types/global';
 import { useTranslation } from 'react-i18next';
 import { mapLanguageKeyToLanguageText } from 'resourceadm/utils/resourceUtils';
+import { SupportedLanguage, ValidLanguage } from 'app-shared/types/ResourceAdm';
 
 export type RightTranslationBarProps = {
   title: string;

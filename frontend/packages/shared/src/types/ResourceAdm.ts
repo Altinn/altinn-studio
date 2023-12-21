@@ -1,5 +1,6 @@
-import { SupportedLanguage, ValidLanguage } from 'resourceadm/types/global';
+export type ValidLanguage = 'nb' | 'nn' | 'en';
 
+export type SupportedLanguage = Record<ValidLanguage, string>;
 export interface NewResource {
   identifier: string;
   title: SupportedLanguage;

@@ -5,9 +5,11 @@ import type {
   ResourceStatusOption,
   ResourceAvailableForTypeOption,
   ResourceKeyword,
+  ValidLanguage,
+  SupportedLanguage,
 } from 'app-shared/types/ResourceAdm';
 import { ReactNode } from 'react';
-import { NavigationBarPage, SupportedLanguage, ValidLanguage } from 'resourceadm/types/global';
+import { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 
 /**
  * The map of resource type

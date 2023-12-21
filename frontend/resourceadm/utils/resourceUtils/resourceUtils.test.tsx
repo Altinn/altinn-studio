@@ -5,10 +5,10 @@ import {
   mapLanguageKeyToLanguageText,
   mapKeywordStringToKeywordTypeArray,
 } from './resourceUtils';
-import type { SupportedLanguage } from 'resourceadm/types/global';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
 import React from 'react';
+import { SupportedLanguage } from 'app-shared/types/ResourceAdm';
 
 describe('mapKeywordStringToKeywordTypeArray', () => {
   it('should split keywords correctly', () => {

@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { Heading } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
-import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
+import type { Translation } from 'resourceadm/types/Translation';
 import type {
   Resource,
   ResourceTypeOption,
   ResourceStatusOption,
   ResourceAvailableForTypeOption,
   ResourceContactPoint,
+  SupportedLanguage,
 } from 'app-shared/types/ResourceAdm';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 import { getMissingInputLanguageString } from 'resourceadm/utils/resourceUtils';

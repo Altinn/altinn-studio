@@ -13,7 +13,7 @@ import {
   Label,
   Link,
 } from '@digdir/design-system-react';
-import type { NavigationBarPage } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
 
 const envOptions = [
