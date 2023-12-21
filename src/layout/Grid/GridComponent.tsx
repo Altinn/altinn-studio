@@ -2,11 +2,12 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
-import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
+import { Caption } from 'src/components/form/Caption';
 import { Description } from 'src/components/form/Description';
+import { Fieldset } from 'src/components/form/Fieldset';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { Label } from 'src/components/form/Label';
@@ -26,7 +27,8 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { node } = props;
-  const { rows } = node.item;
+  const { rows, textResourceBindings, labelSettings } = node.item;
+  const { title, description, help } = textResourceBindings ?? {};
   const shouldHaveFullWidth = node.parent instanceof LayoutPage;
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
@@ -42,6 +44,15 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
       wrapper={(child) => <FullWidthWrapper>{child}</FullWidthWrapper>}
     >
       <Table id={node.item.id}>
+        {title && (
+          <Caption
+            className={cn({ [css.captionFullWidth]: shouldHaveFullWidth })}
+            title={<Lang id={title} />}
+            description={<Lang id={description} />}
+            helpText={help}
+            labelSettings={labelSettings}
+          />
+        )}
         {rows.map((row, rowIdx) => (
           <GridRowRenderer
             key={rowIdx}
@@ -258,13 +269,16 @@ function CellWithLabel({ className, columnStyleOptions, referenceComponent }: Ce
 }
 
 function MobileGrid({ node }: PropsFromGenericComponent<'Grid'>) {
+  const { textResourceBindings, id, labelSettings } = node.item;
+  const { title, description, help } = textResourceBindings ?? {};
   return (
-    <Grid
-      id={node.item.id}
-      container={true}
-      item={true}
-      spacing={3}
-      alignItems='flex-start'
+    <Fieldset
+      id={id}
+      legend={title && <Lang id={title} />}
+      description={title && <Lang id={description} />}
+      helpText={help}
+      labelSettings={labelSettings}
+      className={css.mobileFieldset}
     >
       {nodesFromGrid(node)
         .filter((child) => !child.isHidden())
@@ -274,6 +288,6 @@ function MobileGrid({ node }: PropsFromGenericComponent<'Grid'>) {
             node={child}
           />
         ))}
-    </Grid>
+    </Fieldset>
   );
 }

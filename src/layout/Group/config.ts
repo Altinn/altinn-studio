@@ -99,7 +99,14 @@ function makeRepeatingGroup() {
       new CG.trb({
         name: 'title',
         title: 'Title',
-        description: 'The title of the group (shown above each instance in a Summary)',
+        description: 'The title of the group (shown above the group and above each instance in a Summary)',
+      }),
+    )
+    .addTextResource(
+      new CG.trb({
+        name: 'description',
+        title: 'Description',
+        description: 'The description of the group (shown above the group below the title)',
       }),
     )
     .addTextResource(
@@ -331,7 +338,8 @@ function makeRepeatingGroup() {
       ),
     )
     .addProperty(new CG.prop('rowsBefore', CG.common('GridRows').optional()))
-    .addProperty(new CG.prop('rowsAfter', CG.common('GridRows').optional()));
+    .addProperty(new CG.prop('rowsAfter', CG.common('GridRows').optional()))
+    .addProperty(new CG.prop('labelSettings', CG.common('ILabelSettings').optional()));
 }
 
 function makeNonRepeatingGroup() {
@@ -346,9 +354,9 @@ function makeNonRepeatingGroup() {
     )
     .addTextResource(
       new CG.trb({
-        name: 'body',
-        title: 'Body',
-        description: 'The body text shown underneath the title',
+        name: 'description',
+        title: 'Description',
+        description: 'The description text shown underneath the title',
       }),
     )
     .addProperty(commonNonRepChildComponents)
@@ -387,9 +395,9 @@ function makeNonRepeatingPanelGroup() {
     )
     .addTextResource(
       new CG.trb({
-        name: 'body',
-        title: 'Body',
-        description: 'The body text of the Panel',
+        name: 'description',
+        title: 'Description',
+        description: 'The description text of the Panel',
       }),
     )
     .addProperty(commonNonRepChildComponents)

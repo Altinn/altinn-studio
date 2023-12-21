@@ -109,7 +109,7 @@ export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps
                     item
                     xs={12}
                   >
-                    <Lang id={textResourceBindings?.body} />
+                    <Lang id={textResourceBindings?.description} />
                   </Grid>
 
                   {/*  // TODO: Add test case for filling out a new row in panel, not saving it, and midway through*/}

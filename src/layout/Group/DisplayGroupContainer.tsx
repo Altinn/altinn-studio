@@ -1,13 +1,11 @@
 import React from 'react';
 
 import { Heading } from '@digdir/design-system-react';
-import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
+import { Fieldset } from 'src/components/form/Fieldset';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/DisplayGroupContainer.module.css';
-import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import type { HeadingLevel } from 'src/layout/common.generated';
 import type {
@@ -21,6 +19,7 @@ export interface IDisplayGroupContainer {
   groupNode: LayoutNodeForGroup<CompGroupNonRepeatingInternal | CompGroupNonRepeatingPanelInternal>;
   id?: string;
   onlyRowIndex?: number | undefined;
+  isSummary?: boolean;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
 
@@ -32,8 +31,16 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['size']
   [6]: 'xsmall',
 };
 
-export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayoutNode }: IDisplayGroupContainer) {
+export function DisplayGroupContainer({
+  groupNode,
+  id,
+  onlyRowIndex,
+  isSummary,
+  renderLayoutNode,
+}: IDisplayGroupContainer) {
   const container = groupNode.item;
+  const { title, summaryTitle, description } = container.textResourceBindings ?? {};
+
   if (groupNode.isHidden()) {
     return null;
   }
@@ -41,57 +48,34 @@ export function DisplayGroupContainer({ groupNode, id, onlyRowIndex, renderLayou
   const isNested = groupNode.parent instanceof BaseLayoutNode;
   const headingLevel = Math.min(Math.max(groupNode.parents().length + 1, 2), 6) as HeadingLevel;
   const headingSize = headingSizes[headingLevel];
+  const legend = isSummary ? summaryTitle : title;
 
   return (
-    <Grid
-      container={true}
-      item={true}
-      id={id || container.id}
-      className={cn(pageBreakStyles(container.pageBreak), {
-        [classes.groupContainer]: !isNested,
-        [classes.groupingIndicator]: !!container.showGroupingIndicator && isNested,
-      })}
-      spacing={3}
-      alignItems='flex-start'
-      data-testid='display-group-container'
-      data-componentid={container.id}
-    >
-      {(container.textResourceBindings?.title || container.textResourceBindings?.body) && (
-        <Grid
-          item={true}
-          xs={12}
-        >
-          {container.textResourceBindings?.title && (
-            <Heading
-              level={headingLevel}
-              size={headingSize}
-            >
-              <Lang id={container.textResourceBindings?.title} />
-            </Heading>
-          )}
-          {container.textResourceBindings?.body && (
-            <p className={classes.groupBody}>
-              <Lang id={container.textResourceBindings?.body} />
-            </p>
-          )}
-        </Grid>
-      )}
-      <ConditionalWrapper
-        condition={!!container.showGroupingIndicator && !isNested}
-        wrapper={(children) => (
-          <Grid
-            item={true}
-            container={true}
-            spacing={3}
-            alignItems='flex-start'
-            className={classes.groupingIndicator}
+    <Fieldset
+      legend={
+        legend && (
+          <Heading
+            level={headingLevel}
+            size={headingSize}
           >
-            {children}
-          </Grid>
+            <Lang id={legend} />
+          </Heading>
+        )
+      }
+      className={isSummary ? classes.summary : classes.group}
+      description={description && !isSummary && <Lang id={description} />}
+    >
+      <div
+        id={id || container.id}
+        data-componentid={container.id}
+        data-testid='display-group-container'
+        className={cn(
+          { [classes.groupingIndicator]: !!container.showGroupingIndicator && !isNested },
+          classes.groupContainer,
         )}
       >
-        <>{groupNode.children(undefined, onlyRowIndex).map((n) => renderLayoutNode(n))}</>
-      </ConditionalWrapper>
-    </Grid>
+        {groupNode.children(undefined, onlyRowIndex).map((n) => renderLayoutNode(n))}
+      </div>
+    </Fieldset>
   );
 }

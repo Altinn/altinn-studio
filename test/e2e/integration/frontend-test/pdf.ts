@@ -125,26 +125,26 @@ describe('PDF', () => {
     cy.testPdf(() => {
       cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
 
-      cy.getSummary('Group title').should('contain.text', 'Endre fra : NOK 1');
-      cy.getSummary('Group title').should('contain.text', 'Endre verdi 1 til  : NOK 5');
-      cy.getSummary('Group title').should(
+      cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 1');
+      cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1 til  : NOK 5');
+      cy.getSummary('Group summary title').should(
         'contain.text',
         'hvor fikk du vite om skjemaet? : Digitaliseringsdirektoratet',
       );
-      cy.getSummary('Group title').should('contain.text', 'Referanse : Sophie Salt');
+      cy.getSummary('Group summary title').should('contain.text', 'Referanse : Sophie Salt');
 
-      cy.getSummary('Group title').should('contain.text', 'Endre fra : NOK 120');
-      cy.getSummary('Group title').should('contain.text', 'Endre verdi 120 til  : NOK 350');
-      cy.getSummary('Group title').should('contain.text', 'hvor fikk du vite om skjemaet? : Altinn');
-      cy.getSummary('Group title').should('contain.text', 'Referanse : Ola Nordmann');
+      cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 120');
+      cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 120 til  : NOK 350');
+      cy.getSummary('Group summary title').should('contain.text', 'hvor fikk du vite om skjemaet? : Altinn');
+      cy.getSummary('Group summary title').should('contain.text', 'Referanse : Ola Nordmann');
 
-      cy.getSummary('Group title').should('contain.text', 'Endre fra : NOK 1 233');
-      cy.getSummary('Group title').should('contain.text', 'Endre verdi 1233 til  : NOK 3 488');
-      cy.getSummary('Group title').should(
+      cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 1 233');
+      cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1233 til  : NOK 3 488');
+      cy.getSummary('Group summary title').should(
         'contain.text',
         'hvor fikk du vite om skjemaet? : Du har ikke lagt inn informasjon her',
       );
-      cy.getSummary('Group title').should('contain.text', 'Referanse : Du har ikke lagt inn informasjon her');
+      cy.getSummary('Group summary title').should('contain.text', 'Referanse : Du har ikke lagt inn informasjon her');
     });
   });
 

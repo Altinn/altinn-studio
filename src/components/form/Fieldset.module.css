@@ -1,0 +1,9 @@
+.legendContent {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.description {
+  margin: 0;
+}

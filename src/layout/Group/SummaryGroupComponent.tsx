@@ -79,6 +79,7 @@ export function SummaryGroupComponent({
                 targetNode as LayoutNodeForGroup<CompGroupNonRepeatingInternal | CompGroupNonRepeatingPanelInternal>
               }
               onlyRowIndex={idx}
+              isSummary={true}
               renderLayoutNode={(n) => {
                 if (inExcludedChildren(n) || n.isHidden()) {
                   return null;

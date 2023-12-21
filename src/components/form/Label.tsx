@@ -15,7 +15,7 @@ export interface IFormLabelProps {
   required?: boolean;
   readOnly?: boolean;
   labelSettings?: ILabelSettings;
-  helpText: React.ReactNode;
+  helpText?: React.ReactNode;
 }
 
 export function Label({ label, id, required, readOnly, labelSettings, helpText }: IFormLabelProps) {

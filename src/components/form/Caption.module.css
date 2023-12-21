@@ -1,0 +1,10 @@
+.tableCaption {
+  text-align: left;
+}
+
+.captionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-bottom: 0.75rem;
+}

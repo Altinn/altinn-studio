@@ -1,0 +1,14 @@
+.showAllFieldset > legend {
+  padding-left: var(--modal-padding-x);
+  padding-right: var(--modal-padding-x);
+}
+
+.showAllFieldset .showAllDescription {
+  padding-left: var(--modal-padding-x);
+  padding-right: var(--modal-padding-x);
+  padding-bottom: 12px !important;
+}
+
+.showAllFieldset > * {
+  margin-top: 0 !important;
+}

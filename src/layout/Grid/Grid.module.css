@@ -59,3 +59,14 @@ tr > .fullWidthCellLast {
 .textLabel button {
   align-self: flex-start;
 }
+
+.captionFullWidth {
+  padding-left: var(--modal-padding-x);
+  padding-right: var(--modal-padding-x);
+}
+
+.mobileFieldset {
+  display: flex;
+  gap: 24px;
+  flex-direction: column;
+}

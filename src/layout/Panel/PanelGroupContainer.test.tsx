@@ -22,7 +22,7 @@ describe('PanelGroupContainer', () => {
     children: ['input1', 'input2'],
     textResourceBindings: {
       title: 'Title for PanelGoup',
-      body: 'Body for PanelGroup',
+      description: 'Description for PanelGroup',
     },
     panel: {
       variant: 'info',
@@ -88,7 +88,7 @@ describe('PanelGroupContainer', () => {
     expect(secondInputTitle).toBeInTheDocument();
   });
 
-  it('should display title and body', async () => {
+  it('should display title and description', async () => {
     await render({
       container,
       components: groupComponents,
@@ -100,8 +100,8 @@ describe('PanelGroupContainer', () => {
     const title = screen.queryByText('Title for PanelGoup');
     expect(title).toBeInTheDocument();
 
-    const body = screen.queryByText('Body for PanelGroup');
-    expect(body).toBeInTheDocument();
+    const description = screen.queryByText('Description for PanelGroup');
+    expect(description).toBeInTheDocument();
   });
 });
 

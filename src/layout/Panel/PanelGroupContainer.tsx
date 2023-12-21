@@ -20,6 +20,7 @@ interface PanelGroupContainerProps {
 
 export const PanelGroupContainer = ({ node }: PanelGroupContainerProps) => {
   const { iconUrl, iconAlt } = node.item.panel || {};
+  const { title, description } = node.item.textResourceBindings || {};
   const fullWidth = node.parent instanceof LayoutPage;
   const isOnBottom = node.parent.children().indexOf(node) === node.parent.children().length - 1;
   const isOnTop = node.parent.children().indexOf(node) === 0;
@@ -43,7 +44,7 @@ export const PanelGroupContainer = ({ node }: PanelGroupContainerProps) => {
         )}
       >
         <Panel
-          title={<Lang id={node.item.textResourceBindings?.title} />}
+          title={<Lang id={title} />}
           renderIcon={
             iconUrl
               ? ({ size }) => (
@@ -63,9 +64,9 @@ export const PanelGroupContainer = ({ node }: PanelGroupContainerProps) => {
             spacing={3}
             data-testid='panel-group-container'
           >
-            {node.item.textResourceBindings?.body && (
+            {description && (
               <div className={classes.panelBodyText}>
-                <Lang id={node.item.textResourceBindings?.body} />
+                <Lang id={description} />
               </div>
             )}
             {node.children().map((child) => (

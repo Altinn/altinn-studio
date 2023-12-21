@@ -1,24 +1,28 @@
 import React from 'react';
+import type { HTMLAttributes } from 'react';
+
+import cn from 'classnames';
 
 import classes from 'src/components/form/Description.module.css';
 
-export interface IDescriptionProps {
+export type DescriptionProps = {
   description: React.ReactNode | string | undefined;
-  id: string;
-}
+  id?: string;
+} & HTMLAttributes<HTMLSpanElement>;
 
-export function Description(props: IDescriptionProps) {
-  if (!props.description) {
+export function Description({ description, className, id, ...rest }: DescriptionProps) {
+  if (!description) {
     return null;
   }
 
   return (
     <span
-      className={classes.description}
-      id={`description-${props.id}`}
-      data-testid={`description-${props.id}`}
+      {...rest}
+      className={cn(classes.description, className)}
+      id={`description-${id}`}
+      data-testid={`description-${id}`}
     >
-      {props.description}
+      {description}
     </span>
   );
 }
