@@ -105,7 +105,11 @@ export const FileUploadComponent = ({
           value={fileUploaderComponent.displayMode}
           propertyPath={`${component.propertyPath}/properties/displayMode`}
           renderField={({ fieldProps }) => (
-            <Radio.Group name={`${component.id}-display-mode`} inline={true} onChange={fieldProps.onChange}>
+            <Radio.Group
+              name={`${component.id}-display-mode`}
+              inline={true}
+              onChange={fieldProps.onChange}
+            >
               <Radio value='simple'>{t('ux_editor.modal_properties_file_upload_simple')}</Radio>
               <Radio value='list'>{t('ux_editor.modal_properties_file_upload_list')}</Radio>
             </Radio.Group>
