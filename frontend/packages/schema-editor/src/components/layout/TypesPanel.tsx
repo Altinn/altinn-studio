@@ -1,4 +1,3 @@
-import type { ChangeEvent } from 'react';
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import {
@@ -6,33 +5,23 @@ import {
   setSelectedNode,
 } from '@altinn/schema-editor/features/editor/schemaEditorSlice';
 
-import { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType, ObjectKind } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { FieldType, ObjectKind, isCombination } from '@altinn/schema-model';
 
-import { SchemaTreeView } from '../TreeView/SchemaTreeView';
 import { useTranslation } from 'react-i18next';
-import classes from './TypesPanel.module.css';
 import { ActionMenu } from '../common/ActionMenu';
 import { IconImage } from '../common/Icon';
-import { isCombination } from '@altinn/schema-model';
-import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
+import { useAddProperty } from '../../hooks/useAddProperty';
+import { SchemaTree } from '../SchemaTree';
 
 export type TypesPanelProps = {
-  expandedDefNodes: string[];
-  setExpandedDefNodes: (nodes: string[]) => void;
   uiSchemaNode: UiSchemaNode;
 };
-export const TypesPanel = ({
-  expandedDefNodes,
-  setExpandedDefNodes,
-  uiSchemaNode,
-}: TypesPanelProps) => {
+export const TypesPanel = ({ uiSchemaNode }: TypesPanelProps) => {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
   const dispatch = useDispatch();
   const addProperty = useAddProperty();
-  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
-    setExpandedDefNodes(nodeIds);
 
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newPointer = addProperty(objectKind, fieldType, uiSchemaNode.pointer);
@@ -40,13 +29,13 @@ export const TypesPanel = ({
       dispatch(
         isCombination(uiSchemaNode)
           ? setSelectedNode(newPointer)
-          : setSelectedAndFocusedNode(newPointer)
+          : setSelectedAndFocusedNode(newPointer),
       );
     }
   };
 
   return (
-    <div className={classes.root}>
+    <>
       <ActionMenu
         items={[
           {
@@ -87,13 +76,7 @@ export const TypesPanel = ({
         ]}
         openButtonText={t('add')}
       />
-      <SchemaTreeView
-        expanded={expandedDefNodes}
-        items={[uiSchemaNode]}
-        onNodeToggle={handleDefinitionsNodeExpanded}
-        selectedPointer={uiSchemaNode.pointer}
-        isPropertiesView={false}
-      />
-    </div>
+      <SchemaTree pointer={uiSchemaNode.pointer} />
+    </>
   );
 };

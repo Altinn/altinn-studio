@@ -6,7 +6,7 @@ import type { NameFieldProps } from './NameField';
 import { NameField } from './NameField';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import {
-  parentNodeMock,
+  combinationNodeMock,
   uiSchemaNodesMock
 } from '../../../test/mocks/uiSchemaMock';
 import { SchemaModel } from '../../../../schema-model';
@@ -17,7 +17,7 @@ const user = userEvent.setup();
 const defaultProps: NameFieldProps = {
   id: 'test-id',
   label: 'test-label',
-  pointer: parentNodeMock.pointer,
+  pointer: combinationNodeMock.pointer,
   onKeyDown: jest.fn(),
   disabled: false,
   handleSave: jest.fn(),
