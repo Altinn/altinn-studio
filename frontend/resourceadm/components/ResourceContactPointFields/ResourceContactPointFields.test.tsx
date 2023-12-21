@@ -130,6 +130,15 @@ describe('ResourceContactPointFields', () => {
       textMock('resourceadm.about_resource_contact_legend'),
     );
     expect(contactPointFields).toHaveLength(mockContactPointList.length + 1);
+    expect(mockOnContactPointsChanged).toHaveBeenCalledWith([
+      mockContactPoint1,
+      {
+        telephone: '',
+        category: '',
+        contactPage: '',
+        email: '',
+      },
+    ]);
   });
 
   it('should delete contact point when clicking the "Delete contact point" button', async () => {
@@ -155,6 +164,25 @@ describe('ResourceContactPointFields', () => {
       textMock('resourceadm.about_resource_contact_legend'),
     );
     expect(contactPointFields).toHaveLength(1);
+  });
+
+  it('should edit contact point when input field value is changed', async () => {
+    const user = userEvent.setup();
+    render(<ResourceContactPointFields {...defaultProps} />);
+
+    const telephoneField = screen.getByLabelText(
+      textMock('resourceadm.about_resource_contact_label_telephone'),
+    );
+
+    await act(() => user.type(telephoneField, mockNewInput));
+    await act(() => telephoneField.blur());
+
+    expect(mockOnContactPointsChanged).toHaveBeenCalledWith([
+      {
+        ...mockContactPoint1,
+        telephone: `${mockContactPoint1.contactPage}${mockNewInput}`,
+      },
+    ]);
   });
 
   it('displays error message when show error is true', () => {
