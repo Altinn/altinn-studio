@@ -123,18 +123,6 @@ export const AboutResourcePage = ({
   };
 
   /**
-   * Adds another contact point to the list
-   *
-   * @param contactPoints the list of contact points to add
-   */
-  const handleClickAddContactPoint = (contactPoints: ResourceContactPoint[]) => {
-    handleSave({
-      ...resourceData,
-      contactPoints,
-    });
-  };
-
-  /**
    * Displays the content on the page
    */
   const displayContent = () => {
@@ -330,8 +318,7 @@ export const AboutResourcePage = ({
         />
         <ResourceContactPointFields
           contactPointList={resourceData.contactPoints}
-          onClickAddMoreContactPoint={handleClickAddContactPoint}
-          onLeaveTextFields={(contactPoints: ResourceContactPoint[]) =>
+          onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>
             handleSave({ ...resourceData, contactPoints: contactPoints })
           }
           showErrors={showAllErrors}
