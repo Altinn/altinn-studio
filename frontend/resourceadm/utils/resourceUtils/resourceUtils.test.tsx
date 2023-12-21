@@ -3,11 +3,24 @@ import {
   getIsActiveTab,
   getMissingInputLanguageString,
   mapLanguageKeyToLanguageText,
+  mapKeywordStringToKeywordTypeArray,
 } from './resourceUtils';
 import type { SupportedLanguage } from 'resourceadm/types/global';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
 import React from 'react';
+
+describe('mapKeywordStringToKeywordTypeArray', () => {
+  it('should split keywords correctly', () => {
+    const keywords = mapKeywordStringToKeywordTypeArray('test,,,,comma, hei,meh,');
+    expect(keywords).toStrictEqual([
+      { word: 'test', language: 'nb' },
+      { word: 'comma', language: 'nb' },
+      { word: 'hei', language: 'nb' },
+      { word: 'meh', language: 'nb' },
+    ]);
+  });
+});
 
 describe('mapLanguageKeyToLanguageText', () => {
   it('to return Bokmål for nb', () => {
@@ -24,6 +37,48 @@ describe('mapLanguageKeyToLanguageText', () => {
 });
 
 describe('getMissingInputLanguageString', () => {
+  it('to map a language with no empty fields to correct string', () => {
+    const translationFunctionMock = (key: string) => {
+      return key;
+    };
+
+    const languageStringMock: SupportedLanguage = {
+      nb: 'Test tekst',
+      nn: 'Test',
+      en: 'Test',
+    };
+
+    const result = getMissingInputLanguageString(
+      languageStringMock,
+      'test',
+      translationFunctionMock,
+    );
+    expect(result).toEqual('');
+  });
+
+  it('to map a language with 1 non-empty field to correct string', () => {
+    const translationFunctionMock = (key: string) => {
+      if (key === 'resourceadm.about_resource_langauge_error_missing_1')
+        return 'Du mangler oversettelse for test på Engelsk.';
+      return key;
+    };
+
+    const languageStringMock: SupportedLanguage = {
+      nb: 'Test tekst',
+      nn: 'Test',
+      en: '',
+    };
+    const missingInputLanguageStringTestMock: string =
+      'Du mangler oversettelse for test på Engelsk.';
+
+    const result = getMissingInputLanguageString(
+      languageStringMock,
+      'test',
+      translationFunctionMock,
+    );
+    expect(result).toEqual(missingInputLanguageStringTestMock);
+  });
+
   it('to map a language with 2 non-empty fields to correct string', () => {
     const translationFunctionMock = (key: string) => {
       if (key === 'resourceadm.about_resource_langauge_error_missing_2')
@@ -46,40 +101,40 @@ describe('getMissingInputLanguageString', () => {
     );
     expect(result).toEqual(missingInputLanguageStringTestMock);
   });
+});
 
-  describe('getIsActiveTab', () => {
-    it('returns true when current page and tab id mathces', () => {
-      const isActive = getIsActiveTab('about', 'about');
-      expect(isActive).toBeTruthy();
-    });
-
-    it('returns false when current page and tab id does not match', () => {
-      const isActive = getIsActiveTab('about', 'policy');
-      expect(isActive).toBeFalsy();
-    });
+describe('getIsActiveTab', () => {
+  it('returns true when current page and tab id mathces', () => {
+    const isActive = getIsActiveTab('about', 'about');
+    expect(isActive).toBeTruthy();
   });
 
-  describe('createNavigationTab', () => {
-    const mockOnClick = jest.fn();
+  it('returns false when current page and tab id does not match', () => {
+    const isActive = getIsActiveTab('about', 'policy');
+    expect(isActive).toBeFalsy();
+  });
+});
 
-    const mockTo: string = '/about';
+describe('createNavigationTab', () => {
+  const mockOnClick = jest.fn();
 
-    const mockTab: LeftNavigationTab = {
-      icon: <TestFlaskIcon />,
-      tabName: 'resourceadm.left_nav_bar_about',
-      tabId: 'about',
-      action: {
-        type: 'link',
-        onClick: mockOnClick,
-        to: mockTo,
-      },
-      isActiveTab: true,
-    };
+  const mockTo: string = '/about';
 
-    it('creates a new tab when the function is called', () => {
-      const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
+  const mockTab: LeftNavigationTab = {
+    icon: <TestFlaskIcon />,
+    tabName: 'resourceadm.left_nav_bar_about',
+    tabId: 'about',
+    action: {
+      type: 'link',
+      onClick: mockOnClick,
+      to: mockTo,
+    },
+    isActiveTab: true,
+  };
 
-      expect(newTab).toEqual(mockTab);
-    });
+  it('creates a new tab when the function is called', () => {
+    const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
+
+    expect(newTab).toEqual(mockTab);
   });
 });
