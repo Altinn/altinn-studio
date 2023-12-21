@@ -2,15 +2,15 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { SchemaInspector } from './SchemaInspector';
-import { dataMock } from '../mockData';
+import { dataMock } from '../../mockData';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FieldNode, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { buildUiSchema, FieldType, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
-import { renderWithProviders } from '../../test/renderWithProviders';
-import { getSavedModel } from '../../test/test-utils';
-import { nodeMockBase, rootNodeMock } from '../../test/mocks/uiSchemaMock';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { renderWithProviders } from '../../../test/renderWithProviders';
+import { getSavedModel } from '../../../test/test-utils';
+import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';
 
 const user = userEvent.setup();
 

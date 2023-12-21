@@ -159,9 +159,8 @@ export const addCombinationItem: UiSchemaReducer<AddCombinationItemArgs> = (
   { pointer, callback },
 ) => {
   const newSchema = uiSchema.deepClone();
-  const name = newSchema.generateUniqueChildName(pointer);
   const target: NodePosition = { parentPointer: pointer, index: -1 };
-  const newNode = newSchema.addField(name, FieldType.Null, target);
+  const newNode = newSchema.addField(undefined, FieldType.Null, target);
   callback(newNode.pointer);
   return newSchema;
 };

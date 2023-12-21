@@ -7,7 +7,7 @@ import { SchemaState } from '@altinn/schema-editor/types';
 import {
   fieldNode1Mock,
   nodeWithCustomPropsMock,
-  parentNodeMock,
+  combinationNodeMock,
   toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
@@ -19,10 +19,10 @@ const user = userEvent.setup();
 
 // Test data:
 const saveDatamodel = jest.fn();
-const defaultNode: UiSchemaNode = parentNodeMock;
+const defaultNode: UiSchemaNode = combinationNodeMock;
 const defaultState: Partial<SchemaState> = {
   selectedEditorTab: 'properties',
-  selectedPropertyNodeId: parentNodeMock.pointer,
+  selectedPropertyNodeId: combinationNodeMock.pointer,
 };
 
 const renderItemDataComponent = (
@@ -102,7 +102,7 @@ describe('ItemDataComponent', () => {
     await act(() => user.tab());
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = updatedModel.getNode(parentNodeMock.pointer);
+    const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
     expect(updatedNode.title).toEqual(title);
   });
 
@@ -119,7 +119,7 @@ describe('ItemDataComponent', () => {
     await act(() => user.tab());
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = updatedModel.getNode(parentNodeMock.pointer);
+    const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
     expect(updatedNode.description).toEqual(description);
   });
 

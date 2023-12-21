@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import classes from './SchemaEditor.module.css';
-import { setSchemaName, setSelectedId, setUiSchema } from '../features/editor/schemaEditorSlice';
+import { setSchemaName, setSelectedId, setUiSchema } from '../../features/editor/schemaEditorSlice';
 import { useTranslation } from 'react-i18next';
-import { TypesInspector } from '@altinn/schema-editor/components/TypesInspector';
+import { TypesInspector } from '../TypesInspector';
 import classNames from 'classnames';
 import { Button } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
-import { ModelsPanel, TypesPanel } from '@altinn/schema-editor/components/layout';
-import { SchemaInspector } from '@altinn/schema-editor/components/SchemaInspector';
-import {
-  UiSchemaNodes,
-  extractNameFromPointer,
-} from '@altinn/schema-model';
-import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
+import { ModelsPanel, TypesPanel } from '../layout';
+import { SchemaInspector } from '../SchemaInspector';
+import { extractNameFromPointer, ROOT_POINTER, UiSchemaNodes } from '@altinn/schema-model';
+import { useSchemaAndReduxSelector } from '../../hooks/useSchemaAndReduxSelector';
 import {
   selectedDefinitionParentSelector,
   selectedPropertyParentSelector,
-} from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
-import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+} from '../../selectors/schemaAndReduxSelectors';
+import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
+import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { useMoveProperty } from './hooks/useMoveProperty';
+import { useAddReference } from './hooks/useAddReference';
 
 export interface SchemaEditorProps {
   modelName?: string;
@@ -27,6 +27,8 @@ export interface SchemaEditorProps {
 export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const dispatch = useDispatch();
   const { schemaModel, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const moveProperty = useMoveProperty();
+  const addReference = useAddReference();
 
   useEffect(() => {
     if (modelName) {
@@ -65,49 +67,37 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
   const definitions: UiSchemaNodes = schemaModel.getDefinitions();
   const selectedType = definitions.find((item) => item.pointer === selectedTypePointer);
 
-  const properties: UiSchemaNodes = schemaModel.getRootProperties();
-
   return (
     <>
-      <aside className={classes.inspector}>
-        <TypesInspector schemaItems={definitions} />
-      </aside>
-      {selectedType ? (
-        <div id='types-editor' className={classNames(classes.editor, classes.editorTypes)}>
-          <div className={classes.typeInfo}>
-            <span>
-              {t('schema_editor.types_editing', {
-                type: extractNameFromPointer(selectedTypePointer),
-              })}
-            </span>
-            <Button
-              onClick={handleResetSelectedType}
-              icon={<XMarkIcon />}
-              variant='tertiary'
-              color='inverted'
-              aria-label={t('schema_editor.close_type')}
-              size='small'
-            />
+      <DragAndDropTree.Provider onAdd={addReference} onMove={moveProperty} rootId={ROOT_POINTER}>
+        <aside className={classes.inspector}>
+          <TypesInspector schemaItems={definitions} />
+        </aside>
+        {selectedType ? (
+          <div id='types-editor' className={classNames(classes.editor, classes.editorTypes)}>
+            <div className={classes.typeInfo}>
+              <span>
+                {t('schema_editor.types_editing', {
+                  type: extractNameFromPointer(selectedTypePointer),
+                })}
+              </span>
+              <Button
+                onClick={handleResetSelectedType}
+                icon={<XMarkIcon />}
+                variant='tertiary'
+                color='inverted'
+                aria-label={t('schema_editor.close_type')}
+                size='small'
+              />
+            </div>
+            <TypesPanel uiSchemaNode={selectedType}/>
           </div>
-          <TypesPanel
-            uiSchemaNode={selectedType}
-            setExpandedDefNodes={setExpandedDefNodes}
-            expandedDefNodes={
-              expandedDefNodes.includes(selectedTypePointer)
-                ? expandedDefNodes
-                : expandedDefNodes.concat([selectedTypePointer])
-            }
-          />
-        </div>
-      ) : (
-        <div id='schema-editor' className={classes.editor}>
-          <ModelsPanel
-            setExpandedPropNodes={setExpandedPropNodes}
-            expandedPropNodes={expandedPropNodes}
-            properties={properties}
-          />
-        </div>
-      )}
+        ) : (
+          <div id='schema-editor' className={classes.editor}>
+            <ModelsPanel />
+          </div>
+        )}
+      </DragAndDropTree.Provider>
       <aside className={classes.inspector}>
         <SchemaInspector />
       </aside>
