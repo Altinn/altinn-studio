@@ -74,7 +74,10 @@ context('SettingsModal', () => {
     accessControlTab.getBankruptcyPartyCheckbox().should('be.checked');
   });
 
-  it('is possible to delete local changes', () => {
+  // TODO: This part is no longer belonging to the settings modal, but is now a part of the 3-dot menu in header
+  // We need to include it in the cypress test for the 3-dot menu when we have that in place.
+
+  /*   it('is possible to delete local changes', () => {
     localChangesTab.getTab().click();
     localChangesTab.getHeader().should('be.visible');
     localChangesTab.getDownloadChangesLink().should('be.visible');
@@ -86,5 +89,5 @@ context('SettingsModal', () => {
     localChangesTab.getConfirmRepoNameField().type(`${Cypress.env('designerAppName')}`);
     localChangesTab.getConfirmDeleteButton().should('be.enabled').click();
     cy.findByText(texts['overview.reset_repo_completed']).should('be.visible');
-  });
+  });  */
 });

@@ -43,7 +43,7 @@ export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode =
 
   return (
     <TabContent>
-      <TabHeader text={t('settings_modal.local_changes_tab_heading')} />
+      <TabHeader text={t('dashboard.local_changes')} />
       <div className={classes.contentWrapper}>
         <Paragraph size='small'>{t('settings_modal.local_changes_tab_info_text')}</Paragraph>
         <LocalChangesActionButton

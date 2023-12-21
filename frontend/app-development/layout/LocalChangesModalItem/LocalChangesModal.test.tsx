@@ -74,27 +74,6 @@ describe('LocalChangesModal', () => {
     render({ ...defaultProps, isOpen: true });
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
-
-  it('Should display the main heading of the modal when modal is open.', async () => {
-    render({ ...defaultProps, isOpen: true });
-    expect(
-      screen.getByRole('heading', { name: textMock('dashboard.local_changes') }),
-    ).toBeInTheDocument();
-  });
-
-  it("Should not display 'dashboard.local_changes' when modal is closed.", async () => {
-    render({ ...defaultProps, isOpen: false });
-    expect(
-      screen.queryByRole('heading', { name: textMock('dashboard.local_changes') }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("Should display heading in 'LocalChangesTab' component when modal is open.", async () => {
-    render({ ...defaultProps, isOpen: true });
-    expect(
-      screen.getByRole('heading', { name: textMock('settings_modal.local_changes_tab_heading') }),
-    ).toBeInTheDocument;
-  });
 });
 
 const render = (

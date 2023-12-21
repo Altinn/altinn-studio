@@ -1130,7 +1130,6 @@
   "settings_modal.local_changes_tab_download_only_changed_button": "Last ned zip-fil med bare filer som er endret",
   "settings_modal.local_changes_tab_download_your_files_description": "Du kan laste ned alle filene du har gjort endringer på fra din lokale maskin.",
   "settings_modal.local_changes_tab_download_your_files_label": "Last ned filer som er endret",
-  "settings_modal.local_changes_tab_heading": "Lokale endringer",
   "settings_modal.local_changes_tab_info_text": "Du kan gjøre endringer lokalt her i Altinn Studio før det lastes opp til det sentrale repositoriet. Når de er lastet opp, vil endringene bli tilgjengelig for alle. ",
   "settings_modal.open_button": "Åpne modal",
   "settings_modal.policy_tab_heading": "Tilgangsregler",

@@ -1,9 +1,8 @@
 import * as texts from '@altinn-studio/language/src/nb.json';
 
 export const localChangesTab = {
-  getHeader: () =>
-    cy.findByRole('heading', { name: texts['settings_modal.local_changes_tab_heading'] }),
-  getTab: () => cy.findByText(texts['settings_modal.local_changes_tab_heading']),
+  getHeader: () => cy.findByRole('heading', { name: texts['dashboard.local_changes'] }),
+  getTab: () => cy.findByText(texts['dashboard.local_changes']),
   getDownloadChangesLink: () =>
     cy.findByRole('link', {
       name: texts['settings_modal.local_changes_tab_download_only_changed_button'],
