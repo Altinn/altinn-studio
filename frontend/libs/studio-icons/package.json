@@ -1,6 +1,6 @@
 {
   "name": "@studio/icons",
-  "packageManager": "yarn@3.6.4",
+  "packageManager": "yarn@3.7.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {
