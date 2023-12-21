@@ -41,25 +41,17 @@ context('datamodel', () => {
     datamodel.getProperty('name0').should('exist');
     datamodel.getNameField().clear().type('test').blur();
     datamodel.getNameField().invoke('val').should('eq', 'test');
-    datamodel.getProperty(/^test($| )/).should('exist');
+    datamodel.getProperty('test').should('exist').click();
 
     const addFieldToTestObject = () => {
-      datamodel
-        .getProperty(/^test($| )/)
-        .within(() =>
-          cy
-            .findAllByRole('button', {name: texts['schema_editor.open_action_menu']})
-            .first()
-            .click(),
-        );
-      cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
-        .should('exist')
-        .click()
+      datamodel.getProperty(/^test($| )/).focus();
+      cy.findAllByRole('button', {name: texts['schema_editor.add_node_of_type']}).click();
+      cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] }).should('exist').click();
     };
 
     // Add text1
     addFieldToTestObject();
-    datamodel.getProperty('name0').should('exist');
+    datamodel.getProperty('name0').should('exist').click();
     datamodel.getNameField().clear().type('text1').blur();
     datamodel.getNameField().invoke('val').should('eq', 'text1');
     datamodel.getProperty('text1').should('exist');

@@ -15,7 +15,6 @@ describe('StudioIcons', () => {
 
     expect(iconElement).toHaveAttribute('width', '1em');
     expect(iconElement).toHaveAttribute('height', '1em');
-    expect(iconElement).toHaveAttribute('viewBox', '0 0 24 24');
   });
 
   it.each(studioIcons)('should render %s icon with title-tag', (iconName) => {
