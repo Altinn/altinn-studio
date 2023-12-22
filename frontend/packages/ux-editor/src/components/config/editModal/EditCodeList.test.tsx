@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditCodeList } from './EditCodeList';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, act } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import {
   renderWithMockStore,
@@ -8,6 +8,7 @@ import {
   optionListIdsMock,
 } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
+import userEvent from '@testing-library/user-event';
 
 describe('EditCodeList', () => {
   it('should render the component', async () => {
@@ -31,6 +32,18 @@ describe('EditCodeList', () => {
     });
 
     expect(await screen.findByText('Bytt til egendefinert kodeliste')).toBeInTheDocument();
+  });
+
+  it('should call onChange when option list changes', async () => {
+    const handleComponentChangeMock = jest.fn();
+    const user = userEvent.setup();
+    await render({ handleComponentChange: handleComponentChangeMock });
+
+    await waitFor(() => screen.findByRole('combobox'));
+
+    await act(() => user.click(screen.getByRole('combobox')));
+    await act(() => user.click(screen.getByRole('option', { name: 'test-1' })));
+    await waitFor(() => expect(handleComponentChangeMock).toHaveBeenCalled());
   });
 });
 

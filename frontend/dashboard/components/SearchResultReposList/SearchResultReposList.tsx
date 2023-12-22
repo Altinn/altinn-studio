@@ -2,7 +2,6 @@ import React from 'react';
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
-import { DATAGRID_ROWS_PER_PAGE_OPTIONS } from '../../constants';
 
 type SearchResultReposList = {
   searchValue: string;
@@ -32,7 +31,6 @@ export const SearchResultReposList = ({ searchValue }: SearchResultReposList) =>
         onSortModelChange={setSortModel}
         sortModel={sortModel}
         pageSize={pageSize}
-        rowsPerPageOptions={DATAGRID_ROWS_PER_PAGE_OPTIONS}
       />
     </div>
   );

@@ -14,7 +14,11 @@ import type { Repository } from 'app-shared/types/Repository';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
-import { DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
+import {
+  DATAGRID_DEFAULT_PAGE_SIZE,
+  DATAGRID_PAGE_SIZE_OPTIONS,
+  DATAGRID_PAGE_SIZE_TYPE,
+} from '../../constants';
 import classes from './RepoList.module.css';
 import { User } from 'app-shared/types/Repository';
 import { useSetStarredRepoMutation } from '../../hooks/mutations';
@@ -32,17 +36,17 @@ export interface IRepoListProps {
   isLoading: boolean;
   repos?: Repository[];
   isServerSort?: boolean;
-  pageSize?: number;
+  pageSize?: DATAGRID_PAGE_SIZE_TYPE;
   rowCount: number;
   onPageChange?: (page: number) => void;
   onSortModelChange?: (newSortModel: GridSortModel) => void;
-  onPageSizeChange?: (newPageSize: number) => void;
-  rowsPerPageOptions?: Array<number>;
+  onPageSizeChange?: (newPageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
+  pageSizeOptions?: Array<number>;
   sortModel?: GridSortModel;
   disableVirtualization?: boolean;
 }
 
-const defaultRowsPerPageOptions = [DATAGRID_DEFAULT_PAGE_SIZE];
+const defaultPageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS;
 
 const isRowSelectable = () => false;
 
@@ -84,11 +88,27 @@ export const RepoList = ({
   onPageChange,
   onSortModelChange,
   onPageSizeChange,
-  rowsPerPageOptions = defaultRowsPerPageOptions,
+  pageSizeOptions = defaultPageSizeOptions,
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
   const { data: userStarredRepos, isPending: areUserStarredReposPending } = useStarredReposQuery();
+
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize,
+    page: 0,
+  });
+
+  const handlePaginationModelChange = (newPaginationModel) => {
+    if (newPaginationModel.page !== paginationModel.page) {
+      onPageChange(newPaginationModel.page);
+    }
+    if (newPaginationModel.pageSize !== paginationModel.pageSize) {
+      onPageSizeChange(newPaginationModel.pageSize);
+    }
+    setPaginationModel(newPaginationModel);
+  };
+
   const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
 
   const { mutate: setStarredRepo } = useSetStarredRepoMutation();
@@ -258,6 +278,8 @@ export const RepoList = ({
     <div ref={copyModalAnchorRef}>
       {isServerSort ? (
         <DataGrid
+          paginationModel={paginationModel}
+          onPaginationModelChange={handlePaginationModelChange}
           components={{
             NoRowsOverlay: NoResults,
           }}
@@ -266,22 +288,21 @@ export const RepoList = ({
           loading={isLoading || areUserStarredReposPending}
           rows={repos}
           columns={cols}
-          pageSize={pageSize}
           disableColumnMenu={true}
           isRowSelectable={isRowSelectable}
           sortModel={sortModel}
           paginationMode='server'
           sortingMode='server'
           onSortModelChange={onSortModelChange}
-          onPageSizeChange={onPageSizeChange}
           rowCount={rowCount ?? 0}
-          rowsPerPageOptions={rowsPerPageOptions}
-          onPageChange={onPageChange}
+          pageSizeOptions={pageSizeOptions}
           sx={gridStyleOverride}
           disableVirtualization={disableVirtualization}
         />
       ) : (
         <DataGrid
+          paginationModel={paginationModel}
+          onPaginationModelChange={handlePaginationModelChange}
           componentsProps={componentPropsLabelOverrides}
           components={{
             NoRowsOverlay: NoResults,
@@ -290,8 +311,7 @@ export const RepoList = ({
           loading={isLoading || areUserStarredReposPending}
           rows={repos}
           columns={cols}
-          pageSize={pageSize}
-          rowsPerPageOptions={rowsPerPageOptions}
+          pageSizeOptions={pageSizeOptions}
           disableColumnMenu={true}
           isRowSelectable={isRowSelectable}
           sx={gridStyleOverride}

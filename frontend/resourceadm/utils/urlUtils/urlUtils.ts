@@ -1,4 +1,4 @@
-import type { NavigationBarPage } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 
 /**
  * Returns the path to the dashboard based on the name of the organisation
@@ -29,7 +29,7 @@ export const getResourcePageURL = (
   organisation: string,
   repo: string,
   resourceId: string,
-  resourcePage: NavigationBarPage
+  resourcePage: NavigationBarPage,
 ): string => {
   return `/${organisation}/${repo}/resource/${resourceId}/${resourcePage}`;
 };

@@ -6,9 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/Repository';
 import { Organization } from 'app-shared/types/Organization';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
-import { DATAGRID_ROWS_PER_PAGE_OPTIONS } from '../../constants';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
+import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 
 type OrgReposListProps = {
   user: User;
@@ -27,7 +27,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
     setSortModel,
     setPageNumber,
     setPageSize,
-  } = useReposSearch({ uid: uid as number, defaultPageSize: 5 });
+  } = useReposSearch({ uid: uid as number, defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE });
 
   return (
     <div>
@@ -43,7 +43,6 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         onPageChange={setPageNumber}
         onSortModelChange={setSortModel}
         sortModel={sortModel}
-        rowsPerPageOptions={DATAGRID_ROWS_PER_PAGE_OPTIONS}
         pageSize={pageSize}
       />
     </div>
