@@ -88,8 +88,8 @@ export const orgsState: OrgsState = {
 
 export const commit: Commit = {
   message: '',
-  author: { name: '', email: '', when: new Date() },
-  comitter: { name: '', email: '', when: new Date() },
+  author: { name: '', email: '', when: new Date(null) },
+  comitter: { name: '', email: '', when: new Date(null) },
   sha: '',
   messageShort: '',
   encoding: '',
