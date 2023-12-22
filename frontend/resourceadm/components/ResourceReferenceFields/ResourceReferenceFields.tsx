@@ -43,7 +43,7 @@ export const ResourceReferenceFields = ({
   showErrors,
 }: ResourceReferenceFieldsProps): React.ReactNode => {
   return (
-    <FieldsetWrapper
+    <FieldsetWrapper<ResourceReference>
       list={resourceReferenceList}
       onListFieldChanged={onResourceReferenceFieldChanged}
       emptyItem={emptyResrouceReference}
@@ -54,11 +54,11 @@ export const ResourceReferenceFields = ({
         deleteConfirmationButton: 'resourceadm.about_resource_reference_confirm_delete_button',
         addButton: 'resourceadm.about_resource_reference_add_reference',
       }}
-      renderItem={(item: ResourceReference, onChange) => {
+      renderItem={(item: ResourceReference, onChange: (changedItem: ResourceReference) => void) => {
         return (
           <ResourceReferenceFieldset
             resourceReference={item}
-            onChangeResourceReferenceField={(rr: ResourceReference) => onChange(rr)}
+            onChangeResourceReferenceField={onChange}
             showErrors={showErrors}
           />
         );

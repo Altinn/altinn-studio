@@ -40,13 +40,13 @@ export type FieldsetWrapperProps<T> = {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export function FieldsetWrapper<T>({
+export const FieldsetWrapper = <T,>({
   list,
   onListFieldChanged,
   emptyItem,
   translations,
   renderItem,
-}: FieldsetWrapperProps<T>): React.ReactNode {
+}: FieldsetWrapperProps<T>): React.ReactNode => {
   const { t } = useTranslation();
   const deleteModalRef = useRef<HTMLDialogElement>(null);
 
@@ -140,4 +140,4 @@ export function FieldsetWrapper<T>({
       </Button>
     </>
   );
-}
+};

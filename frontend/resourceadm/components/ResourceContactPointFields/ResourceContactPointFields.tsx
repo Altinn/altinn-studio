@@ -45,7 +45,7 @@ export const ResourceContactPointFields = ({
   showErrors,
 }: ResourceContactPointFieldsProps): React.ReactNode => {
   return (
-    <FieldsetWrapper
+    <FieldsetWrapper<ResourceContactPoint>
       list={contactPointList}
       onListFieldChanged={onContactPointsChanged}
       translations={{
@@ -58,12 +58,12 @@ export const ResourceContactPointFields = ({
       emptyItem={emptyContactPoint}
       renderItem={(
         contactPoint: ResourceContactPoint,
-        onChange: (res: ResourceContactPoint) => void,
+        onChange: (changedItem: ResourceContactPoint) => void,
       ) => {
         return (
           <ResourceContactPointFieldset
             contactPoint={contactPoint}
-            onLeaveTextFields={(rr: ResourceContactPoint) => onChange(rr)}
+            onLeaveTextFields={onChange}
             showErrors={showErrors}
           />
         );
