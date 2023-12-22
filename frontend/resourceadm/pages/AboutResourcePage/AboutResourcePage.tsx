@@ -10,6 +10,7 @@ import type {
   ResourceAvailableForTypeOption,
   ResourceContactPoint,
   SupportedLanguage,
+  ResourceReference,
 } from 'app-shared/types/ResourceAdm';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
 import { getMissingInputLanguageString } from 'resourceadm/utils/resourceUtils';
@@ -30,6 +31,7 @@ import {
   ResourceDropdown,
 } from 'resourceadm/components/ResourcePageInputs';
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
+import { ResourceReferenceFields } from 'resourceadm/components/ResourceReferenceFields';
 
 /**
  * Initial value for languages with empty fields
@@ -322,6 +324,13 @@ export const AboutResourcePage = ({
           onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>
             handleSave({ ...resourceData, contactPoints: contactPoints })
           }
+          showErrors={showAllErrors}
+        />
+        <ResourceReferenceFields
+          resourceReferenceList={resourceData.resourceReferences}
+          onResourceReferenceFieldChanged={(resourceReferences: ResourceReference[]) => {
+            handleSave({ ...resourceData, resourceReferences: resourceReferences });
+          }}
           showErrors={showAllErrors}
         />
         <ResourceSwitchInput
