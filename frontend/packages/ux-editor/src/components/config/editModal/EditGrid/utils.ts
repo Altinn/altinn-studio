@@ -2,7 +2,7 @@ import { GridSizes } from './types/GridSizes';
 import { ViewSize } from './types/ViewSize';
 import { GridSize } from '@studio/components';
 
-export const findLargestSelectedViewsizeBelowCurrent = (
+export const findEffectiveGridSize = (
   selectedViewSizes: GridSizes,
   currentViewSize: ViewSize,
 ): GridSize => {

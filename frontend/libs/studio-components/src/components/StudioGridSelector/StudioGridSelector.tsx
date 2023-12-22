@@ -11,7 +11,7 @@ type StudioGridSelectorProps = {
 
 /**
  * @component
- *    Component to select a value within the range 1 to 12. Adapted to select value for grid-property on layout components
+ *    A component designed for choosing a value within the range of 1 to 12
  */
 export const StudioGridSelector = ({
   disabled = false,
@@ -21,7 +21,7 @@ export const StudioGridSelector = ({
   const [value, setValue] = useState<number>(sliderValue);
   const gridValues: GridSize[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   useEffect(() => {
-    setValue(sliderValue ?? 12);
+    setValue(sliderValue);
   }, [sliderValue]);
 
   const optionClassName = (gridValue: number) =>

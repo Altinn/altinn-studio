@@ -7,7 +7,7 @@ import classes from './EditGridForGivenViewSize.module.css';
 import { deepCopy } from 'app-shared/pure';
 import { GridSizes } from './types/GridSizes';
 import { ViewSize } from './types/ViewSize';
-import { findLargestSelectedViewsizeBelowCurrent } from './utils';
+import { findEffectiveGridSize } from './utils';
 
 export interface EditGridForGivenViewSizeProps {
   handleUpdateGrid: (newGridValues: GridSizes) => void;
@@ -47,7 +47,7 @@ export const EditGridForGivenViewSize = ({
       </div>
       <StudioGridSelector
         disabled={!gridValues[viewSize]}
-        sliderValue={findLargestSelectedViewsizeBelowCurrent(gridValues, viewSize)}
+        sliderValue={findEffectiveGridSize(gridValues, viewSize)}
         handleSliderChange={(newValue) => {
           const newGridObject = setGridValueOnViewSize(viewSize, gridValues, Number(newValue));
           handleUpdateGrid(newGridObject);

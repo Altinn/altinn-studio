@@ -3,20 +3,12 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { Tabs } from '@digdir/design-system-react';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
-import { LaptopIcon, MobileSmallIcon } from '@studio/icons';
+import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
 import { FormComponent } from '../../../../types/FormComponent';
 import { deepCopy } from 'app-shared/pure';
 import { ViewSize } from './types/ViewSize';
 import { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
-
-const getIconForViewSize = (viewSize: ViewSize): ReactNode => {
-  const iconMapping = {
-    [ViewSize.xs]: <MobileSmallIcon />,
-    [ViewSize.md]: <LaptopIcon />,
-  };
-  return iconMapping[viewSize] || null;
-};
 
 const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => {
   const newComponent = deepCopy(component);
@@ -29,8 +21,6 @@ const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => 
   }
   return newComponent;
 };
-
-const accessibleViewsizes: ViewSize[] = [ViewSize.xs, ViewSize.md];
 
 export const EditGrid = ({ handleComponentChange, component }: IGenericEditComponent) => {
   const [gridValues, setGridValues] = useState<GridSizes>(component.grid ?? {});
@@ -45,6 +35,14 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
     handleComponentChange(updatedComponent);
   };
 
+  const iconMapping: Record<ViewSize, ReactNode> = {
+    [ViewSize.xs]: <MobileSmallIcon />,
+    [ViewSize.sm]: <MobileIcon />,
+    [ViewSize.md]: <TabletIcon />,
+    [ViewSize.lg]: <LaptopIcon />,
+    [ViewSize.xl]: <MonitorIcon />,
+  };
+
   return (
     <Tabs
       className={classes.gridContainer}
@@ -53,16 +51,16 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
       onChange={(viewSize: ViewSize) => setSelectedViewSizeForGridProp(viewSize)}
       size='small'
     >
-      <Tabs.List>
-        {accessibleViewsizes.map((viewSize: ViewSize) => {
+      <Tabs.List className={classes.tabs}>
+        {Object.keys(ViewSize).map((viewSize: ViewSize) => {
           return (
-            <Tabs.Tab key={viewSize} value={viewSize} icon={getIconForViewSize(viewSize)}>
+            <Tabs.Tab key={viewSize} value={viewSize} icon={iconMapping[viewSize] || null}>
               {t(`ux_editor.modal_properties_grid_size_${viewSize}`)}
             </Tabs.Tab>
           );
         })}
       </Tabs.List>
-      {accessibleViewsizes.map((viewSize: ViewSize) => {
+      {Object.keys(ViewSize).map((viewSize: ViewSize) => {
         return (
           <Tabs.Content key={viewSize} value={viewSize}>
             <EditGridForGivenViewSize

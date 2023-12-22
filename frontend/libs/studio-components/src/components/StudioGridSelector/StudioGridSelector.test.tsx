@@ -3,19 +3,19 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { StudioGridSelector } from './StudioGridSelector';
 
 describe('StudioGridSelector', () => {
-  it('should render slider with value 12 and not disabled by default', () => {
+  it('should render slider with value 12 and it is enabled by default', () => {
     render(<StudioGridSelector handleSliderChange={() => jest.fn()} />);
 
     const slider = screen.getByRole('slider');
     expect(slider).toHaveValue('12');
-    expect(slider).not.toHaveAttribute('disabled');
+    expect(slider).not.toBeDisabled();
   });
 
   it('should render slider as disabled when disabled is true', () => {
     render(<StudioGridSelector disabled={true} handleSliderChange={() => jest.fn()} />);
 
     const slider = screen.getByRole('slider');
-    expect(slider).toHaveAttribute('disabled');
+    expect(slider).toBeDisabled();
   });
 
   it('should render slider with correct value', () => {
