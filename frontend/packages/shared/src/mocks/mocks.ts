@@ -207,7 +207,11 @@ export const organization: Organization = {
 
 export const resource: Resource = {
   identifier: '',
-  title: {},
+  title: {
+    nb: '',
+    nn: '',
+    en: '',
+  },
 };
 
 export const searchRepositoryResponse: SearchRepositoryResponse = {

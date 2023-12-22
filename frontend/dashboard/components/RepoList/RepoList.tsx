@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type {
   GridActionsColDef,
   GridColDef,
@@ -10,7 +10,7 @@ import type {
 } from '@mui/x-data-grid';
 import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 import cn from 'classnames';
-import type { Repository } from 'app-shared/types/Repository';
+import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
@@ -30,11 +30,10 @@ import {
   StarIcon,
   StarFillIcon,
 } from '@navikt/aksel-icons';
-import { useStarredReposQuery } from 'dashboard/hooks/queries';
 
 export interface IRepoListProps {
   isLoading: boolean;
-  repos?: Repository[];
+  repos?: RepositoryWithStarred[];
   isServerSort?: boolean;
   pageSize?: DATAGRID_PAGE_SIZE_TYPE;
   rowCount: number;
@@ -50,7 +49,7 @@ const defaultPageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS;
 
 const isRowSelectable = () => false;
 
-const defaultArray: Repository[] = [];
+const defaultArray: RepositoryWithStarred[] = [];
 
 const gridStyleOverride = {
   border: 'none',
@@ -92,8 +91,6 @@ export const RepoList = ({
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
-  const { data: userStarredRepos, isPending: areUserStarredReposPending } = useStarredReposQuery();
-
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize,
     page: 0,
@@ -116,11 +113,6 @@ export const RepoList = ({
   const copyModalAnchorRef = useRef(null);
   const { t } = useTranslation();
 
-  const isRepoStarred = useCallback(
-    (repoId: number) => userStarredRepos?.some((starredRepo) => starredRepo.id === repoId),
-    [userStarredRepos],
-  );
-
   const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
       field: '',
@@ -130,11 +122,10 @@ export const RepoList = ({
       headerClassName: classes.columnHeader,
       width: 50,
       getActions: (params: GridRowParams) => {
-        const repo = params.row as Repository;
-        const isStarred = isRepoStarred(repo.id);
+        const repo = params.row as RepositoryWithStarred;
 
         const handleToggleFav = () => {
-          if (isStarred) {
+          if (repo.hasStarred) {
             unsetStarredRepo(repo);
           } else {
             setStarredRepo(repo);
@@ -146,9 +137,9 @@ export const RepoList = ({
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            label={isStarred ? t('dashboard.unstar') : t('dashboard.star')}
+            label={repo.hasStarred ? t('dashboard.unstar') : t('dashboard.star')}
             icon={
-              isStarred ? (
+              repo.hasStarred ? (
                 <StarFillIcon name='star-fill-icon' className={classes.favoriteIcon} />
               ) : (
                 <StarIcon name='star-icon' className={classes.dropdownIcon} />
@@ -261,7 +252,7 @@ export const RepoList = ({
     ];
 
     return [favouriteActionCol, ...columns, ...actionsCol];
-  }, [isRepoStarred, setStarredRepo, t, unsetStarredRepo]);
+  }, [setStarredRepo, t, unsetStarredRepo]);
 
   const handleCloseCopyModal = () => setCopyCurrentRepoName(null);
 
@@ -285,7 +276,7 @@ export const RepoList = ({
           }}
           componentsProps={componentPropsLabelOverrides}
           autoHeight={true}
-          loading={isLoading || areUserStarredReposPending}
+          loading={isLoading}
           rows={repos}
           columns={cols}
           disableColumnMenu={true}
@@ -308,7 +299,7 @@ export const RepoList = ({
             NoRowsOverlay: NoResults,
           }}
           autoHeight={true}
-          loading={isLoading || areUserStarredReposPending}
+          loading={isLoading}
           rows={repos}
           columns={cols}
           pageSizeOptions={pageSizeOptions}
