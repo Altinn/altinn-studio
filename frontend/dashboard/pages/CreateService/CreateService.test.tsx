@@ -3,8 +3,8 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { CreateService } from './CreateService';
-import { User } from 'app-shared/types/User';
-import { IGiteaOrganisation, IRepository } from 'app-shared/types/global';
+import { Repository, User } from 'app-shared/types/Repository';
+import { IGiteaOrganisation } from 'app-shared/types/global';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
@@ -15,21 +15,38 @@ const orgMock: IGiteaOrganisation = {
   full_name: 'unit-test',
 };
 
-const repositoryMock: IRepository = {
+const repositoryMock: Repository = {
   clone_url: '',
   description: '',
   full_name: 'test',
   html_url: '',
   id: 0,
   is_cloned_to_local: false,
-  user_has_starred: false,
   name: 'test',
   owner: {
     avatar_url: '',
     full_name: '',
     login: '',
+    email: '',
+    id: 0,
+    userType: 0,
   },
   updated_at: '',
+  created_at: '',
+  default_branch: '',
+  empty: false,
+  fork: false,
+  forks_count: 0,
+  mirror: false,
+  open_issues_count: 0,
+  permissions: undefined,
+  private: false,
+  repositoryCreatedStatus: 0,
+  size: 0,
+  ssh_url: '',
+  stars_count: 0,
+  watchers_count: 0,
+  website: '',
 };
 
 const userMock: User = {
@@ -38,6 +55,7 @@ const userMock: User = {
   email: 'tester@tester.test',
   full_name: 'Tester Testersen',
   login: 'tester',
+  userType: 0,
 };
 
 jest.mock('react-router-dom', () => ({
@@ -61,6 +79,7 @@ const renderWithMockServices = (
             email: '',
             full_name: '',
             login: '',
+            userType: 0,
           }
         }
       />

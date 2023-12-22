@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import type {
   GridActionsColDef,
   GridColDef,
@@ -10,13 +10,13 @@ import type {
 } from '@mui/x-data-grid';
 import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 import cn from 'classnames';
-import type { IRepository } from 'app-shared/types/global';
+import type { Repository } from 'app-shared/types/Repository';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
 import classes from './RepoList.module.css';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { useSetStarredRepoMutation } from '../../hooks/mutations';
 import { useUnsetStarredRepoMutation } from '../../hooks/mutations';
 import {
@@ -24,13 +24,13 @@ import {
   FilesIcon,
   ExternalLinkIcon,
   StarIcon,
-  StarFillIcon
+  StarFillIcon,
 } from '@navikt/aksel-icons';
-
+import { useStarredReposQuery } from 'dashboard/hooks/queries';
 
 export interface IRepoListProps {
   isLoading: boolean;
-  repos?: IRepository[];
+  repos?: Repository[];
   isServerSort?: boolean;
   pageSize?: number;
   rowCount: number;
@@ -46,7 +46,7 @@ const defaultRowsPerPageOptions = [DATAGRID_DEFAULT_PAGE_SIZE];
 
 const isRowSelectable = () => false;
 
-const defaultArray: IRepository[] = [];
+const defaultArray: Repository[] = [];
 
 const gridStyleOverride = {
   border: 'none',
@@ -88,12 +88,18 @@ export const RepoList = ({
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
+  const { data: userStarredRepos, isPending: areUserStarredReposPending } = useStarredReposQuery();
   const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
 
   const { mutate: setStarredRepo } = useSetStarredRepoMutation();
   const { mutate: unsetStarredRepo } = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = useRef(null);
   const { t } = useTranslation();
+
+  const isRepoStarred = useCallback(
+    (repoId: number) => userStarredRepos?.some((starredRepo) => starredRepo.id === repoId),
+    [userStarredRepos],
+  );
 
   const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
@@ -104,9 +110,11 @@ export const RepoList = ({
       headerClassName: classes.columnHeader,
       width: 50,
       getActions: (params: GridRowParams) => {
-        const repo = params.row as IRepository;
+        const repo = params.row as Repository;
+        const isStarred = isRepoStarred(repo.id);
+
         const handleToggleFav = () => {
-          if (repo.user_has_starred) {
+          if (isStarred) {
             unsetStarredRepo(repo);
           } else {
             setStarredRepo(repo);
@@ -118,11 +126,15 @@ export const RepoList = ({
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
-            icon={ repo.user_has_starred 
-                ? <StarFillIcon name="star-fill-icon" className={classes.favoriteIcon} />
-                : <StarIcon name="star-icon" className={classes.dropdownIcon} />}
-          />
+            label={isStarred ? t('dashboard.unstar') : t('dashboard.star')}
+            icon={
+              isStarred ? (
+                <StarFillIcon name='star-fill-icon' className={classes.favoriteIcon} />
+              ) : (
+                <StarIcon name='star-icon' className={classes.dropdownIcon} />
+              )
+            }
+          />,
         ];
       },
     };
@@ -188,7 +200,12 @@ export const RepoList = ({
             />,
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.editLink)}
-              icon={<PencilIcon  title={t("dashboard.edit_app_icon")} className={cn(classes.linkIcon, classes.editLink)} />}
+              icon={
+                <PencilIcon
+                  title={t('dashboard.edit_app_icon')}
+                  className={cn(classes.linkIcon, classes.editLink)}
+                />
+              }
               key={`dashboard.edit_app${params.row.id}`}
               label={t('dashboard.edit_app')}
               onClick={() => (window.location.href = editUrl)}
@@ -224,7 +241,7 @@ export const RepoList = ({
     ];
 
     return [favouriteActionCol, ...columns, ...actionsCol];
-  }, [setStarredRepo, t, unsetStarredRepo]);
+  }, [isRepoStarred, setStarredRepo, t, unsetStarredRepo]);
 
   const handleCloseCopyModal = () => setCopyCurrentRepoName(null);
 
@@ -234,7 +251,7 @@ export const RepoList = ({
         labelRowsPerPage: t('dashboard.rows_per_page'),
       },
     }),
-    [t]
+    [t],
   );
 
   return (
@@ -246,7 +263,7 @@ export const RepoList = ({
           }}
           componentsProps={componentPropsLabelOverrides}
           autoHeight={true}
-          loading={isLoading}
+          loading={isLoading || areUserStarredReposPending}
           rows={repos}
           columns={cols}
           pageSize={pageSize}
@@ -270,7 +287,7 @@ export const RepoList = ({
             NoRowsOverlay: NoResults,
           }}
           autoHeight={true}
-          loading={isLoading}
+          loading={isLoading || areUserStarredReposPending}
           rows={repos}
           columns={cols}
           pageSize={pageSize}

@@ -12,8 +12,8 @@ import { Commit } from 'app-shared/types/Commit';
 import { OrgsState } from 'app-shared/types/OrgsState';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
 import { RuleConfig } from 'app-shared/types/RuleConfig';
-import { IRepository, ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { User } from 'app-shared/types/User';
+import { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { User } from 'app-shared/types/Repository';
 import { AppConfig } from 'app-shared/types/AppConfig';
 import { Policy } from '@altinn/policy-editor';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -121,13 +121,7 @@ export const user: User = {
   full_name: '',
   id: 1,
   login: '',
-};
-
-export const searchRepositoryResponse: SearchRepositoryResponse = {
-  data: [],
-  ok: false,
-  totalCount: 0,
-  totalPages: 0,
+  userType: 0,
 };
 
 export const appConfig: AppConfig = {
@@ -161,23 +155,6 @@ export const appLibVersion: AppLibVersion = {
   version: '',
 };
 
-export const customRepository: IRepository = {
-  name: '',
-  full_name: '',
-  owner: {
-    avatar_url: '',
-    login: '',
-    full_name: '',
-  },
-  description: '',
-  is_cloned_to_local: false,
-  updated_at: '',
-  html_url: '',
-  clone_url: '',
-  id: 1,
-  user_has_starred: false,
-};
-
 export const repository: Repository = {
   clone_url: '',
   created_at: '',
@@ -188,7 +165,7 @@ export const repository: Repository = {
   forks_count: 0,
   full_name: '',
   html_url: '',
-  id: 0,
+  id: 1,
   is_cloned_to_local: false,
   mirror: false,
   name: '',
@@ -199,7 +176,7 @@ export const repository: Repository = {
     full_name: '',
     id: 0,
     login: '',
-    UserType: 0,
+    userType: 0,
   },
   permissions: {
     admin: false,
@@ -231,4 +208,11 @@ export const organization: Organization = {
 export const resource: Resource = {
   identifier: '',
   title: {},
+};
+
+export const searchRepositoryResponse: SearchRepositoryResponse = {
+  data: [],
+  ok: false,
+  totalCount: 0,
+  totalPages: 0,
 };

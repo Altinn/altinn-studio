@@ -8,7 +8,7 @@ import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 
 type SubMenuContentProps = {
   org: string;

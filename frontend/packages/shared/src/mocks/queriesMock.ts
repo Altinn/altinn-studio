@@ -19,7 +19,7 @@ import {
   Validation,
 } from 'app-shared/types/ResourceAdm';
 import { RuleConfig } from 'app-shared/types/RuleConfig';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import {
   AppDeploymentsResponse,
   AppReleasesResponse,
@@ -33,7 +33,6 @@ import { NewsList } from 'app-shared/types/api/NewsList';
 import {
   IFrontEndSettings,
   ILayoutSettings,
-  IRepository,
   ITextResourcesObjectFormat,
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
@@ -49,7 +48,6 @@ import {
   commit,
   createRepoCommitPayload,
   datamodelMetadataResponse,
-  customRepository,
   layoutSets,
   newsList,
   orgsState,
@@ -106,7 +104,7 @@ export const queriesMock: ServicesContextProps = {
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<IRepository[]>([])),
+  getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getTextResources: jest
     .fn()
@@ -153,7 +151,7 @@ export const queriesMock: ServicesContextProps = {
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   addLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
-  addRepo: jest.fn().mockImplementation(() => Promise.resolve<IRepository>(customRepository)),
+  addRepo: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   addXsdFromRepo: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   commitAndPushChanges: jest
     .fn()
@@ -178,7 +176,7 @@ export const queriesMock: ServicesContextProps = {
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
-  setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve<IRepository[]>([])),
+  setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve()),

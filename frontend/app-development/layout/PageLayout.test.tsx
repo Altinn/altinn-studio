@@ -5,28 +5,11 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
 import { textMock } from '../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { User } from 'app-shared/types/User';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { repoStatus } from 'app-shared/mocks/mocks';
 
 const mockOrg: string = 'org';
 const mockApp: string = 'app';
-
-const mockRepoStatus: RepoStatus = {
-  aheadBy: 0,
-  behindBy: 0,
-  contentStatus: [],
-  hasMergeConflict: false,
-  repositoryStatus: 'Ok',
-};
-
-const mockUser: User = {
-  avatar_url: 'test',
-  email: 'test@test.com',
-  full_name: 'Mock Tester',
-  id: 1,
-  login: 'MT1',
-};
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -60,7 +43,7 @@ describe('PageLayout', () => {
 
   it('renders "MergeConflictWarning" when repoStatus has merge conflict', async () => {
     render({
-      getRepoStatus: () => Promise.resolve({ ...mockRepoStatus, hasMergeConflict: true }),
+      getRepoStatus: () => Promise.resolve({ ...repoStatus, hasMergeConflict: true }),
     });
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
@@ -83,11 +66,7 @@ describe('PageLayout', () => {
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
-  render({
-    ...queries,
-    getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve(mockRepoStatus)),
-    getUser: jest.fn().mockImplementation(() => Promise.resolve(mockUser)),
-  });
+  render(queries);
   await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 };
 

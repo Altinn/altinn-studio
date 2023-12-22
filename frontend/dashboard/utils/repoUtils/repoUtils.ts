@@ -1,5 +1,4 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import type { IRepository } from 'app-shared/types/global';
 import { Organization } from 'app-shared/types/Organization';
 import i18next from 'i18next';
 
@@ -9,11 +8,6 @@ type GetReposLabel = {
   t: typeof i18next.t;
   isDatamodelsRepo?: boolean;
   isResourcesRepo?: boolean;
-};
-
-export type MergeReposProps = {
-  repos?: IRepository[];
-  starredRepos: IRepository[];
 };
 
 type TranslationMapKey = SelectedContextType | 'named_org' | 'org';
@@ -62,23 +56,6 @@ export const getReposLabel = ({
   return orgName
     ? t(concatenatedTranslationMap.named_org, { orgName })
     : t(concatenatedTranslationMap.org);
-};
-
-export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
-  if (!repos) {
-    return [];
-  }
-
-  if (!starredRepos) {
-    return repos;
-  }
-
-  return repos.map((repo) => {
-    return {
-      ...repo,
-      user_has_starred: !!starredRepos.find((starredRepo) => starredRepo.id === repo.id),
-    };
-  });
 };
 
 export const validateRepoName = (repoName: string) => {

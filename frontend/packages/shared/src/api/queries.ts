@@ -49,13 +49,13 @@ import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/Da
 import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { ILayoutSettings, IRepository, ITextResourcesWithLanguage, IFrontEndSettings } from 'app-shared/types/global';
+import { ILayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings } from 'app-shared/types/global';
 import { Organization } from 'app-shared/types/Organization';
 import { OrgsState } from 'app-shared/types/OrgsState';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
 import { Repository } from 'app-shared/types/Repository';
 import { RuleConfig } from 'app-shared/types/RuleConfig';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';
@@ -98,7 +98,7 @@ export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoP
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
 export const getRuleConfig = (owner: string, app: string, layoutSetName: string) => get<RuleConfig>(ruleConfigPath(owner, app, layoutSetName));
 export const getRuleModel = (owner: string, app: string, layoutSetName: string) => get<string>(ruleHandlerPath(owner, app, layoutSetName));
-export const getStarredRepos = () => get<IRepository[]>(userStarredListPath());
+export const getStarredRepos = () => get<Repository[]>(userStarredListPath());
 export const getTextLanguages = (owner: string, app: string): Promise<string[]> => get(textLanguagesPath(owner, app));
 export const getTextResources = (owner: string, app: string, lang: string) => get<ITextResourcesWithLanguage>(textResourcesPath(owner, app, lang));
 export const getUser = () => get<User>(userCurrentPath());

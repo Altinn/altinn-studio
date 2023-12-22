@@ -3,11 +3,11 @@ import { render, screen, waitForElementToBeRemoved } from '@testing-library/reac
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { Dashboard } from './Dashboard';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { User } from 'app-shared/types/User';
-import { starredRepoMock } from '../../data-mocks/starredRepoMock';
-import { searchedRepos } from '../../data-mocks/searchedReposMock';
+import { Repository, User } from 'app-shared/types/Repository';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { repository, searchRepositoryResponse } from 'app-shared/mocks/mocks';
+import { SearchRepositoryResponse } from 'app-shared/types/api';
 
 const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
   render(
@@ -36,7 +36,9 @@ describe('Dashboard', () => {
   });
 
   test('should display favorite list with one item', async () => {
-    renderWithMockServices({ getStarredRepos: () => Promise.resolve([starredRepoMock]) });
+    renderWithMockServices({
+      getStarredRepos: () => Promise.resolve<Repository[]>([repository]),
+    });
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
     expect(
       await screen.findAllByRole('menuitem', { name: textMock('dashboard.unstar') }),
@@ -44,7 +46,13 @@ describe('Dashboard', () => {
   });
 
   test('should display list of my application', async () => {
-    renderWithMockServices({ searchRepos: () => Promise.resolve(searchedRepos) });
+    renderWithMockServices({
+      searchRepos: () =>
+        Promise.resolve<SearchRepositoryResponse>({
+          ...searchRepositoryResponse,
+          data: [repository],
+        }),
+    });
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
     expect(
       await screen.findAllByRole('menuitem', { name: textMock('dashboard.star') }),

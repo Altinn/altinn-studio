@@ -21,7 +21,7 @@ export const repositoryMock: Repository = {
     full_name: '',
     id: 0,
     login: '',
-    UserType: 0,
+    userType: 0,
   },
   permissions: {
     admin: true,
@@ -36,4 +36,4 @@ export const repositoryMock: Repository = {
   updated_at: '',
   watchers_count: 0,
   website: '',
-}
+};

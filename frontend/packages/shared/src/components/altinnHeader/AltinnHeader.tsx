@@ -5,7 +5,7 @@ import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButton } from '../altinnHeaderButtons/AltinnHeaderButton';
 import { AltinnHeaderProfile } from '../AltinnHeaderProfile';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import classnames from 'classnames';
 import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
 import { Repository } from 'app-shared/types/Repository';

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppBar, Grid, Toolbar, Typography } from '@mui/material';
-import type { IGiteaOrganisation, IUser } from '../../types/global';
+import type { IGiteaOrganisation } from '../../types/global';
+import type { User } from '../../types/Repository';
 import AltinnStudioLogo from './AltinnStudioLogo';
 import { HeaderMenu } from './HeaderMenu';
 import classes from './Header.module.css';
@@ -13,7 +14,7 @@ export enum SelectedContextType {
 
 export interface IHeaderContext {
   selectableOrgs?: IGiteaOrganisation[];
-  user: IUser;
+  user: User;
 }
 
 export const HeaderContext = React.createContext<IHeaderContext>({

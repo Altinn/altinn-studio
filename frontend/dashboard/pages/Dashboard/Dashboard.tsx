@@ -15,7 +15,7 @@ import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
 import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { Organization } from 'app-shared/types/Organization';
 import { useStarredReposQuery } from '../../hooks/queries';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
@@ -94,16 +94,12 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
           </div>
 
           {debouncedSearchText ? (
-            <SearchResultReposList searchValue={debouncedSearchText} starredRepos={starredRepos} />
+            <SearchResultReposList searchValue={debouncedSearchText} />
           ) : (
             <>
               <FavoriteReposList />
               <div>
-                <OrgReposList
-                  user={user}
-                  organizations={organizations}
-                  starredRepos={starredRepos}
-                />
+                <OrgReposList user={user} organizations={organizations} />
               </div>
               <DatamodelsReposList
                 user={user}

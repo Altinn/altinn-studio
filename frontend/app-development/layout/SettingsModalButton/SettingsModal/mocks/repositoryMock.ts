@@ -21,7 +21,7 @@ export const mockRepository1: Repository = {
     full_name: 'Mons Monsen',
     id: 234,
     login: 'Mons',
-    UserType: 2,
+    userType: 2,
   },
   permissions: {
     admin: true,

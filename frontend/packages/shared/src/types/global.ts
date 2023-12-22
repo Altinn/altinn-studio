@@ -20,29 +20,10 @@ export interface IComponentsSettings {
   excludeFromPdf?: string[];
 }
 
-export interface IRepository {
-  name: string;
-  full_name: string;
-  owner: IUser;
-  description: string;
-  is_cloned_to_local: boolean;
-  updated_at: string;
-  html_url: string;
-  clone_url: string;
-  id: number;
-  user_has_starred: boolean;
-}
-
 export enum RepositoryType {
   App = 'App',
   Datamodels = 'Datamodels',
   Unknown = 'Unknown',
-}
-
-export interface IUser {
-  avatar_url: string;
-  login: string;
-  full_name: string;
 }
 
 export interface IGiteaOrganisation {

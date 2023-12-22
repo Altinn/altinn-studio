@@ -40,7 +40,7 @@ import { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload'
 import { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { ILayoutSettings, IRepository, ITextResourcesObjectFormat } from 'app-shared/types/global';
+import { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import { RuleConfig } from 'app-shared/types/RuleConfig';
 import { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
@@ -50,6 +50,7 @@ import type { Policy } from '@altinn/policy-editor';
 import type { NewResource, Resource } from 'app-shared/types/ResourceAdm';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { AppConfig } from 'app-shared/types/AppConfig';
+import { Repository } from 'app-shared/types/Repository';
 
 const headers = {
   Accept: 'application/json',
@@ -59,7 +60,7 @@ const headers = {
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
 export const addLayoutSet = (org: string, app: string, payload: LayoutSetConfig) => put(layoutSetsPath(org, app), payload);
-export const addRepo = (repoToAdd: AddRepoParams) => post<IRepository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
+export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(datamodelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
 export const configureLayoutSet = (org: string, app: string, layoutSetName: string) => post<LayoutSets>(layoutSetPath(org, app, layoutSetName));
@@ -80,8 +81,8 @@ export const saveDatamodel = (org: string, app: string, modelPath: string, paylo
 export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: ExternalFormLayout) => post<void, ExternalFormLayout>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutSettings = (org: string, app: string, layoutSetName: string, payload: ILayoutSettings) => post<ILayoutSettings>(layoutSettingsPath(org, app, layoutSetName), payload);
 export const saveRuleConfig = (org: string, app: string, layoutSetName: string, payload: RuleConfig) => post<RuleConfig>(ruleConfigPath(org, app, layoutSetName), payload);
-export const setStarredRepo = (repo: IRepository) => put<IRepository[]>(userStarredRepoPath(repo.owner.login, repo.name), {});
-export const unsetStarredRepo = (repo: IRepository) => del(userStarredRepoPath(repo.owner.login, repo.name));
+export const setStarredRepo = (org: string, app: string) => put(userStarredRepoPath(org, app), {});
+export const unsetStarredRepo = (org: string, app: string) => del(userStarredRepoPath(org, app));
 export const updateAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => put<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const updateFormLayoutName = (org: string, app: string, oldName: string, newName: string, layoutSetName: string) => post<void, string>(formLayoutNamePath(org, app, oldName, layoutSetName), JSON.stringify(newName), { headers: { 'Content-Type': 'application/json' } });
 export const updateTextId = (org: string, app: string, payload: UpdateTextIdPayload) => put<void, UpdateTextIdPayload>(textResourceIdsPath(org, app), payload);

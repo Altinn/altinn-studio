@@ -2,19 +2,18 @@ import React from 'react';
 import { RepoList } from '../RepoList';
 import { getReposLabel } from '../../utils/repoUtils';
 import { getUidFilter } from '../../utils/filterUtils';
-import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
 import { useTranslation } from 'react-i18next';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { Organization } from 'app-shared/types/Organization';
 import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery';
-import { IRepository } from 'app-shared/types/global';
+import { Repository } from 'app-shared/types/Repository';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
 
 type DataModelsReposListProps = {
   user: User;
   organizations: Organization[];
-  starredRepos: IRepository[];
+  starredRepos: Repository[];
 };
 export const DatamodelsReposList = ({
   user,
@@ -36,12 +35,7 @@ export const DatamodelsReposList = ({
     page: 0,
   });
 
-  const reposWithStarred = useAugmentReposWithStarred({
-    repos: repos?.data,
-    starredRepos,
-  });
-
-  if (!reposWithStarred.length) {
+  if (!repos?.data.length) {
     return null;
   }
 
@@ -50,7 +44,7 @@ export const DatamodelsReposList = ({
       <Heading level={2} size='small' spacing>
         {getReposLabel({ selectedContext, orgs: organizations, t, isDatamodelsRepo: true })}
       </Heading>
-      <RepoList repos={reposWithStarred} isLoading={isPendingOrgRepos} pageSize={5} rowCount={2} />
+      <RepoList repos={repos?.data} isLoading={isPendingOrgRepos} pageSize={5} rowCount={2} />
     </div>
   );
 };
