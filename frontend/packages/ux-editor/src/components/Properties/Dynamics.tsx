@@ -4,7 +4,11 @@ import { ConditionalRendering } from './ConditionalRendering';
 import { Expressions } from '../config/Expressions';
 import { useText } from '../../hooks';
 
-export const Dynamics = ({ formId }) => {
+interface DynamicsProps {
+  formId: string;
+}
+
+export const Dynamics = ({ formId }: DynamicsProps) => {
   const [showOldExpressions, setShowOldExpressions] = useState<boolean>(false);
   const t = useText();
 
@@ -12,7 +16,7 @@ export const Dynamics = ({ formId }) => {
     setShowOldExpressions(event.target.checked);
   };
 
-  const ruleHandlerExist = (window as any).conditionalRuleHandlerObject !== undefined;
+  const ruleHandlerExist = (window as any).ruleHandlerObject !== undefined;
 
   return (
     <>
@@ -23,7 +27,7 @@ export const Dynamics = ({ formId }) => {
           checked={showOldExpressions}
           size={'small'}
         >
-          {t('right_menu.show_new_dynamics')}
+          {t('right_menu.show_old_dynamics')}
         </Switch>
       )}
       {showOldExpressions ? <ConditionalRendering /> : <Expressions key={formId} />}

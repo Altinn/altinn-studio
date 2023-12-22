@@ -10,16 +10,17 @@ const user = userEvent.setup();
 
 // Test data:
 const contentText = 'Innhold';
-const conditionalRenderingText = 'Vis/skjul';
+const dynamicsText = 'Dynamikk';
 const calculationsText = 'Beregninger';
 const texts = {
   'right_menu.content': contentText,
-  'right_menu.dynamics': conditionalRenderingText,
+  'right_menu.dynamics': dynamicsText,
   'right_menu.calculations': calculationsText,
 };
 
 const contentTestId = 'content';
 const conditionalRenderingTestId = 'conditional-rendering';
+const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
 
 // Mocks:
@@ -28,6 +29,9 @@ jest.mock('./Content', () => ({
 }));
 jest.mock('./ConditionalRendering', () => ({
   ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
+}));
+jest.mock('../config/Expressions', () => ({
+  Expressions: () => <div data-testid={expressionsTestId} />,
 }));
 jest.mock('./Calculations', () => ({
   Calculations: () => <div data-testid={calculationsTestId} />,
@@ -59,30 +63,29 @@ describe('Properties', () => {
     });
   });
 
-  describe('Conditional rendering', () => {
-    it('Closes conditional rendering on load', () => {
+  describe('Dynamics', () => {
+    it('Closes dynamics on load', () => {
       render();
-      const button = screen.queryByRole('button', { name: conditionalRenderingText });
+      const button = screen.queryByRole('button', { name: dynamicsText });
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
-    it('Toggles conditional rendering when clicked', async () => {
+    it('Toggles dynamics when clicked', async () => {
       render();
-      const button = screen.queryByRole('button', { name: conditionalRenderingText });
+      const button = screen.queryByRole('button', { name: dynamicsText });
       await act(() => user.click(button));
       expect(button).toHaveAttribute('aria-expanded', 'true');
       await act(() => user.click(button));
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
-    it('Shows new dynamics switch', async () => {
-      render();
-      const button = screen.queryByRole('button', { name: conditionalRenderingText });
-      await act(() => user.click(button));
-      const switchNDynamics = screen.getByRole('checkbox', {
-        name: 'right_menu.show_new_dynamics',
-      });
-      expect(switchNewDynamics).toBeInTheDocument();
+    it('Shows new dynamics by default', async () => {
+      const { rerender } = render();
+      rerender(getComponent({ formId: 'test' }));
+      const dynamicsButton = screen.queryByRole('button', { name: dynamicsText });
+      await act(() => user.click(dynamicsButton));
+      const newDynamics = screen.getByTestId(expressionsTestId);
+      expect(newDynamics).toBeInTheDocument();
     });
   });
 
@@ -104,12 +107,13 @@ describe('Properties', () => {
   });
 
   it('Renders accordion', () => {
-    render();
+    const formIdMock = 'test-id';
+    render({ formId: formIdMock });
     expect(screen.getByText(contentText)).toBeInTheDocument();
-    expect(screen.getByText(conditionalRenderingText)).toBeInTheDocument();
+    expect(screen.getByText(dynamicsText)).toBeInTheDocument();
     expect(screen.getByText(calculationsText)).toBeInTheDocument();
     expect(screen.getByTestId(contentTestId)).toBeInTheDocument();
-    expect(screen.getByTestId(conditionalRenderingTestId)).toBeInTheDocument();
+    expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
     expect(screen.getByTestId(calculationsTestId)).toBeInTheDocument();
   });
 });
