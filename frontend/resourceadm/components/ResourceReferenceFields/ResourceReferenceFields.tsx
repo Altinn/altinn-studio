@@ -4,7 +4,7 @@ import { ResourceReferenceFieldset } from './ResourceReferenceFieldset';
 import { FieldsetWrapper } from '../FieldsetWrapper';
 
 // Empty value for when adding a new field
-const emptyResrouceReference: ResourceReference = {
+const emptyResourceReference: ResourceReference = {
   referenceSource: 'Default',
   reference: '',
   referenceType: 'Default',
@@ -46,7 +46,7 @@ export const ResourceReferenceFields = ({
     <FieldsetWrapper<ResourceReference>
       list={resourceReferenceList}
       onListFieldChanged={onResourceReferenceFieldChanged}
-      emptyItem={emptyResrouceReference}
+      emptyItem={emptyResourceReference}
       translations={{
         deleteButton: 'resourceadm.about_resource_reference_delete',
         deleteHeader: 'resourceadm.about_resource_reference_delete',
