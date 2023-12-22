@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@mui/x-data-grid": "5.17.26",
+    "@mui/x-data-grid": "6.18.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-router-dom": "6.21.0",

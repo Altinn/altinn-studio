@@ -1531,7 +1531,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.18.9, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.7.6, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.7.6, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
   version: 7.21.0
   resolution: "@babel/runtime@npm:7.21.0"
   dependencies:
@@ -3027,22 +3027,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/utils@npm:^5.10.3":
-  version: 5.11.11
-  resolution: "@mui/utils@npm:5.11.11"
-  dependencies:
-    "@babel/runtime": "npm:^7.21.0"
-    "@types/prop-types": "npm:^15.7.5"
-    "@types/react-is": "npm:^16.7.1 || ^17.0.0"
-    prop-types: "npm:^15.8.1"
-    react-is: "npm:^18.2.0"
-  peerDependencies:
-    react: ^17.0.0 || ^18.0.0
-  checksum: 31696064e685995cab020432da7efc18ddf9bc5a17ec56b556833ef0ec6d00c6d4a577ab4f3e96ac1fcf6aa35aedc7468d2fed9ffa56fb4574189066e8c66d46
-  languageName: node
-  linkType: hard
-
-"@mui/utils@npm:^5.15.0, @mui/utils@npm:^5.15.1":
+"@mui/utils@npm:^5.14.16, @mui/utils@npm:^5.15.0, @mui/utils@npm:^5.15.1":
   version: 5.15.1
   resolution: "@mui/utils@npm:5.15.1"
   dependencies:
@@ -3060,21 +3045,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/x-data-grid@npm:5.17.26":
-  version: 5.17.26
-  resolution: "@mui/x-data-grid@npm:5.17.26"
+"@mui/x-data-grid@npm:6.18.5":
+  version: 6.18.5
+  resolution: "@mui/x-data-grid@npm:6.18.5"
   dependencies:
-    "@babel/runtime": "npm:^7.18.9"
-    "@mui/utils": "npm:^5.10.3"
-    clsx: "npm:^1.2.1"
+    "@babel/runtime": "npm:^7.23.2"
+    "@mui/utils": "npm:^5.14.16"
+    clsx: "npm:^2.0.0"
     prop-types: "npm:^15.8.1"
-    reselect: "npm:^4.1.6"
+    reselect: "npm:^4.1.8"
   peerDependencies:
     "@mui/material": ^5.4.1
     "@mui/system": ^5.4.1
-    react: ^17.0.2 || ^18.0.0
-    react-dom: ^17.0.2 || ^18.0.0
-  checksum: 644da429c5dd380043cfd0bb3ca58cc0bbea19503aaabaa8e359935904b281da3c84773b8313a08b554abbdd39d819c37868f32b4f67c0f6d51d7c21cfafffab
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  checksum: 2d7738b052c9b4c56fa1421928fe07d4e51067606c2caac942e5256736c06a2d9dbb0e7650e08dd5dea93035a3a127e2a27c3995838b81d53cc425d1fbd3535c
   languageName: node
   linkType: hard
 
@@ -4525,7 +4510,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prop-types@npm:*, @types/prop-types@npm:^15.7.5":
+"@types/prop-types@npm:*":
   version: 15.7.5
   resolution: "@types/prop-types@npm:15.7.5"
   checksum: 5b43b8b15415e1f298243165f1d44390403bb2bd42e662bca3b5b5633fdd39c938e91b7fce3a9483699db0f7a715d08cef220c121f723a634972fdf596aec980
@@ -4568,15 +4553,6 @@ __metadata:
   dependencies:
     "@types/react": "npm:*"
   checksum: e6dd39b2ef65f6e6257f1792c62e997273a06c3e72e05f082185d0b8dfd8972340f9d5452408183b4bf03bd68cbb2fb9da89e063f1ba98c287a38953491febec
-  languageName: node
-  linkType: hard
-
-"@types/react-is@npm:^16.7.1 || ^17.0.0":
-  version: 17.0.3
-  resolution: "@types/react-is@npm:17.0.3"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 6abb7c47d54f012272650df8a962a28bd82f219291e5ef8b4dfa7fe0bb98ae243b060bf9fbe8ceff6213141794855a006db194b490b00ffd15842ae19d0ce1f0
   languageName: node
   linkType: hard
 
@@ -6762,7 +6738,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^1.1.1, clsx@npm:^1.2.1":
+"clsx@npm:^1.1.1":
   version: 1.2.1
   resolution: "clsx@npm:1.2.1"
   checksum: 5ded6f61f15f1fa0350e691ccec43a28b12fb8e64c8e94715f2a937bc3722d4c3ed41d6e945c971fc4dcc2a7213a43323beaf2e1c28654af63ba70c9968a8643
@@ -7455,7 +7431,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:frontend/dashboard"
   dependencies:
-    "@mui/x-data-grid": "npm:5.17.26"
+    "@mui/x-data-grid": "npm:6.18.5"
     cross-env: "npm:7.0.3"
     jest: "npm:29.7.0"
     react: "npm:18.2.0"
@@ -14762,13 +14738,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:^4.1.6":
-  version: 4.1.7
-  resolution: "reselect@npm:4.1.7"
-  checksum: 2b3b231cb3ec90bf980a51f2af403328b41d9111d089944c13a69461dc23b80ccc3f5f8913bccf1b5a25a1a978925d5fc4f9b66c0463643d8f0a20669cb4a4b6
-  languageName: node
-  linkType: hard
-
 "reserved-words@npm:^0.1.2":
   version: 0.1.2
   resolution: "reserved-words@npm:0.1.2"
@@ -14895,7 +14864,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "resourceadm@workspace:frontend/resourceadm"
   dependencies:
-    "@mui/x-data-grid": "npm:5.17.26"
+    "@mui/x-data-grid": "npm:6.18.5"
     "@svgr/webpack": "npm:8.1.0"
     cross-env: "npm:7.0.3"
     jest: "npm:29.7.0"
