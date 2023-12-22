@@ -1,7 +1,11 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
 import { useParams } from 'react-router-dom';
-import { PolicyEditor } from '@altinn/policy-editor';
+import {
+  PolicyEditor,
+  mergeActionsFromPolicyWithActionOptions,
+  mergeSubjectsFromPolicyWithSubjectOptions,
+} from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import { useResourcePolicyQuery } from 'resourceadm/hooks/queries';
@@ -80,11 +84,15 @@ export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): 
         </div>
       );
     }
+
+    const mergedActions = mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
+    const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjectData);
+
     return (
       <PolicyEditor
         policy={policyData}
-        actions={actionData}
-        subjects={subjectData}
+        actions={mergedActions}
+        subjects={mergedSubjects}
         resourceId={resourceId}
         onSave={handleSavePolicy}
         showAllErrors={showAllErrors}
