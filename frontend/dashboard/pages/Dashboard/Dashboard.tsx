@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
-import { StudioPageSpinner } from '@studio/components';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
@@ -17,7 +16,6 @@ import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/Repository';
 import { Organization } from 'app-shared/types/Organization';
-import { useStarredReposQuery } from '../../hooks/queries';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import * as testids from '../../../testing/testids';
 import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
@@ -32,7 +30,6 @@ type DashboardProps = {
 export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
-  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
@@ -45,10 +42,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const handleClearSearch = () => setSearchText('');
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
-
-  if (areStarredReposPending) {
-    return <StudioPageSpinner />;
-  }
 
   return (
     <>
@@ -101,11 +94,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               <div>
                 <OrgReposList user={user} organizations={organizations} />
               </div>
-              <DatamodelsReposList
-                user={user}
-                organizations={organizations}
-                starredRepos={starredRepos}
-              />
+              <DatamodelsReposList user={user} organizations={organizations} />
               {selectedContext !== SelectedContextType.All &&
                 selectedContext !== SelectedContextType.Self && (
                   <ResourcesRepoList user={user} organizations={organizations} />
