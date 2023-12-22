@@ -7,17 +7,17 @@ const DELETE_ID_NOT_SET = -1;
 
 export type FieldsetWrapperProps<T> = {
   /**
-   * The current resource references list
+   * The current list
    */
   list: T[];
   /**
-   * Function to be executed when resource references are changed
-   * @param resourceReference the updated list of resource references
+   * Function to be executed when list is changed
+   * @param list the updated list
    * @returns void
    */
-  onListFieldChanged: (listItem: T[]) => void;
+  onListFieldChanged: (list: T[]) => void;
   /**
-   * If the error should be shown
+   * Translation keys for texts displayed by the wrapper
    */
   translations: {
     deleteButton: string;
@@ -26,17 +26,27 @@ export type FieldsetWrapperProps<T> = {
     deleteConfirmationButton: string;
     addButton: string;
   };
+  /**
+   * List object where all values are default values
+   */
   emptyItem: T;
-  renderItem: (listItem: T, onChange: (res: T) => void) => React.ReactNode;
+  /**
+   * Render function for rendering a list item.
+   * @param listItem the list item to render
+   * @param onChange function to call when item is changed. Call this function from child fieldset render on change
+   */
+  renderItem: (listItem: T, onChange: (item: T) => void) => React.ReactNode;
 };
 
 /**
  * @component
- *    Renders the list of resource referencess as groups with the input and select fields
+ *    Renders the list and calls the renderItem prop function for each list item
  *
- * @property {ResourceReference[]}[resourceReferenceList] - The current resource references list
- * @property {function}[onResourceReferenceFieldChanged] - Function to be executed when resource references are changed
- * @property {boolean}[showErrors] - If the error should be shown
+ * @property {T[]}[list] - The current list
+ * @property {function}[onListFieldChanged] - Function to be executed when list is changed
+ * @property {Object}[translations] - Translation keys for texts displayed by the wrapper
+ * @property {T}[emptyItem] - List object where all values are default values
+ * @property {function}[renderItem] - Render function for rendering a list item.
  *
  * @returns {React.ReactNode} - The rendered component
  */
@@ -54,7 +64,7 @@ export const FieldsetWrapper = <T,>({
   const [listItems, setListItems] = useState<T[]>(list ?? [emptyItem]);
 
   /**
-   * Adds the resource reference to the list
+   * Adds a new empty list item to the list
    */
   const handleClickAddButton = () => {
     const updatedList = [...listItems, emptyItem];
@@ -63,7 +73,7 @@ export const FieldsetWrapper = <T,>({
   };
 
   /**
-   * Removes the resource reference from the list
+   * Removes a list item in the deleteId position from the list
    */
   const handleClickRemoveButton = () => {
     const updatedList = listItems.filter((_item, index) => index !== deleteId);
@@ -73,8 +83,8 @@ export const FieldsetWrapper = <T,>({
   };
 
   /**
-   * Updates the resource reference when leaving a field
-   * @param resourceReference
+   * Updates the list item when a field is changed
+   * @param listItem
    * @param pos
    */
   const onChangeListItemField = (listItem: T, pos: number) => {
@@ -85,14 +95,14 @@ export const FieldsetWrapper = <T,>({
   };
 
   /**
-   * Closes the delete resource reference modal
+   * Closes the delete list item modal
    */
   const onCloseDeleteModal = (): void => {
     deleteModalRef.current?.close();
     setDeleteId(DELETE_ID_NOT_SET);
   };
   /**
-   * Displays each resource reference as a group of 3 elements
+   * Render each list item with renderItem() and display a delete button for each
    */
   const displayFields = listItems.map((listItem: T, pos: number) => (
     <div key={`${JSON.stringify(listItem)}-${pos}`} className={classes.fieldset}>

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
 import { ResourceContactPointFieldset } from './ResourceContactPointFieldset';
-import { FieldsetWrapper } from '../FieldsetWrapper/FieldsetWrapper';
+import { FieldsetWrapper } from '../FieldsetWrapper';
 
 // Empty value for when adding a new field
 const emptyContactPoint: ResourceContactPoint = {

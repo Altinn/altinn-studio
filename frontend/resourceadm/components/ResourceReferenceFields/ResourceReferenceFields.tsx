@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ResourceReference } from 'app-shared/types/ResourceAdm';
 import { ResourceReferenceFieldset } from './ResourceReferenceFieldset';
-import { FieldsetWrapper } from '../FieldsetWrapper/FieldsetWrapper';
+import { FieldsetWrapper } from '../FieldsetWrapper';
 
 // Empty value for when adding a new field
 const emptyResrouceReference: ResourceReference = {
