@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Fieldset, Select, Textfield } from '@digdir/design-system-react';
-import classes from './ResourceReferenceFields.module.css';
 import type {
   ResourceReference,
   ResourceReferenceSource,
@@ -56,12 +55,10 @@ export const ResourceReferenceFieldset = ({
 
   return (
     <>
-      <div className={classes.divider} />
       <Fieldset
         legend={t('resourceadm.about_resource_references')}
         description={t('resourceadm.about_resource_references_description')}
         size='small'
-        className={classes.fieldset}
       >
         <Select
           label={t('resourceadm.about_resource_reference_source')}

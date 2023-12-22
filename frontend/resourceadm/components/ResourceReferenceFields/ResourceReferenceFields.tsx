@@ -97,7 +97,8 @@ export const ResourceReferenceFields = ({
    */
   const displayReferenceFields = resourceReferences.map(
     (resourceReference: ResourceReference, pos: number) => (
-      <div key={`${JSON.stringify(resourceReference)}-${pos}`}>
+      <div key={`${JSON.stringify(resourceReference)}-${pos}`} className={classes.fieldset}>
+        <div className={classes.divider} />
         <ResourceReferenceFieldset
           resourceReference={resourceReference}
           onChangeResourceReferenceField={(rr: ResourceReference) =>
@@ -105,20 +106,22 @@ export const ResourceReferenceFields = ({
           }
           showErrors={showErrors}
         />
-        <Button
-          size='small'
-          color='danger'
-          aria-disabled={resourceReferences.length < 2}
-          onClick={() => {
-            if (resourceReferences.length > 1) {
-              // TODO: can the last resourceReference be deleted??
-              deleteModalRef.current?.showModal();
-              setDeleteId(pos);
-            }
-          }}
-        >
-          {t('resourceadm.about_resource_reference_delete')}
-        </Button>
+        <div className={classes.buttonWrapper}>
+          <Button
+            size='small'
+            color='danger'
+            aria-disabled={resourceReferences.length < 2}
+            onClick={() => {
+              if (resourceReferences.length > 1) {
+                // TODO: can the last resourceReference be deleted??
+                deleteModalRef.current?.showModal();
+                setDeleteId(pos);
+              }
+            }}
+          >
+            {t('resourceadm.about_resource_reference_delete')}
+          </Button>
+        </div>
       </div>
     ),
   );
@@ -139,11 +142,9 @@ export const ResourceReferenceFields = ({
       </Modal>
       <div className={classes.divider} />
       {displayReferenceFields}
-      <div className={classes.buttonWrapper}>
-        <Button size='small' onClick={handleClickAddButton}>
-          {t('resourceadm.about_resource_reference_add_reference')}
-        </Button>
-      </div>
+      <Button size='small' onClick={handleClickAddButton}>
+        {t('resourceadm.about_resource_reference_add_reference')}
+      </Button>
     </>
   );
 };
