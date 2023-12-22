@@ -3,7 +3,7 @@ import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Button, Select } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { EnvironmentType } from 'resourceadm/types/global';
+import { EnvironmentType } from 'resourceadm/types/EnvironmentType';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ServiceContent } from './ServiceContent';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';

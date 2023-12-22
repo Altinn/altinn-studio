@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './MigrationStep.module.css';
 import { Alert, Paragraph, Label } from '@digdir/design-system-react';
-import { NavigationBarPage } from 'resourceadm/types/global';
+import { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import { LinkButton } from '../LinkButton';
 
 type MigrationStepProps = {
