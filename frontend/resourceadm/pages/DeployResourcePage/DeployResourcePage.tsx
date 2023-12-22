@@ -13,7 +13,8 @@ import {
   ErrorMessage,
 } from '@digdir/design-system-react';
 import { useParams } from 'react-router-dom';
-import type { NavigationBarPage, DeployError } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
+import type { DeployError } from 'resourceadm/types/DeployError';
 import {
   useResourcePolicyPublishStatusQuery,
   useValidatePolicyQuery,

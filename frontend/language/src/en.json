@@ -598,7 +598,6 @@
   "resourceadm.about_resource_keywords_text": "Add keywords for the resource, separating each word with a comma \",\". Examples are words that are easy to search for.",
   "resourceadm.about_resource_langauge_error_missing_1": "You are missing translation for {{usageString}} in {{lang}}.",
   "resourceadm.about_resource_langauge_error_missing_2": "You are missing translation for {{usageString}} in {{lang1}} and {{lang2}}.",
-  "resourceadm.about_resource_langauge_error_missing_3": "You are missing translation for {{usageString}} in {{lang1}}, {{lang2}}, and {{lang3}}.",
   "resourceadm.about_resource_public_service_dont_show": "will not be",
   "resourceadm.about_resource_public_service_label": "Display in public directories",
   "resourceadm.about_resource_public_service_show": "will be",

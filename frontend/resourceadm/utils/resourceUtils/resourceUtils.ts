@@ -1,14 +1,15 @@
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import type {
-  SupportedLanguageKey,
   ResourceTypeOption,
   ResourceStatusOption,
   ResourceAvailableForTypeOption,
   ResourceKeyword,
+  ValidLanguage,
+  SupportedLanguage,
 } from 'app-shared/types/ResourceAdm';
 import { ReactNode } from 'react';
-import { NavigationBarPage, SupportedLanguage } from 'resourceadm/types/global';
+import { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 
 /**
  * The map of resource type
@@ -41,17 +42,6 @@ export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string>
 };
 
 /**
- * Returns true if the text is either null, undefined, or at least one of the
- * laguage fields are empty.
- *
- * @param text the text to check
- *
- * @returns boolean for if it has error or not
- */
-export const getResourcePageTextfieldError = (text: SupportedLanguageKey<string>): boolean =>
-  text === undefined || text === null || text.nb === '' || text.nn === '' || text.en === '';
-
-/**
  * Converts the resource type key to the correct displayable string
  *
  * @param resourceType the resourcetype to convert
@@ -66,8 +56,8 @@ export const convertResourceTypeToDisplayString = (resourceType: ResourceTypeOpt
  * Maps the language key to the text
  */
 export const mapLanguageKeyToLanguageText = (
-  val: 'nb' | 'nn' | 'en',
-  translationFunction: (key: string, params?: object) => string,
+  val: ValidLanguage,
+  translationFunction: (key: string) => string,
 ) => {
   if (val === 'nb') return translationFunction('language.nb');
   if (val === 'nn') return translationFunction('language.nn');
@@ -86,39 +76,23 @@ export const getMissingInputLanguageString = (
   usageString: string,
   translationFunction: (key: string, params?: KeyValuePairs<string>) => string,
 ): string => {
-  const valArr: ('nb' | 'nn' | 'en')[] = [];
-
-  // Add the different languages
-  if (language.nb === '') {
-    valArr.push('nb');
-  }
-  if (language.nn === '') {
-    valArr.push('nn');
-  }
-  if (language.en === '') {
-    valArr.push('en');
-  }
+  const supportedLanguages: ValidLanguage[] = ['nb', 'nn', 'en'];
+  const missingLanguages = supportedLanguages.filter((lang) => !language[lang]);
 
   // Return different messages based on the length
-  if (valArr.length === 1) {
+  if (missingLanguages.length === 1) {
     return translationFunction('resourceadm.about_resource_langauge_error_missing_1', {
       usageString,
-      lang: mapLanguageKeyToLanguageText(valArr[0], translationFunction),
+      lang: mapLanguageKeyToLanguageText(missingLanguages[0], translationFunction),
     });
-  }
-  if (valArr.length === 2) {
+  } else if (missingLanguages.length > 1) {
+    const lastLang = missingLanguages.pop();
     return translationFunction('resourceadm.about_resource_langauge_error_missing_2', {
       usageString,
-      lang1: mapLanguageKeyToLanguageText(valArr[0], translationFunction),
-      lang2: mapLanguageKeyToLanguageText(valArr[1], translationFunction),
-    });
-  }
-  if (valArr.length === 3) {
-    return translationFunction('resourceadm.about_resource_langauge_error_missing_3', {
-      usageString,
-      lang1: mapLanguageKeyToLanguageText(valArr[0], translationFunction),
-      lang2: mapLanguageKeyToLanguageText(valArr[1], translationFunction),
-      lang3: mapLanguageKeyToLanguageText(valArr[2], translationFunction),
+      lang1: missingLanguages
+        .map((lang) => mapLanguageKeyToLanguageText(lang, translationFunction))
+        .join(', '),
+      lang2: mapLanguageKeyToLanguageText(lastLang, translationFunction),
     });
   }
   return '';
@@ -134,7 +108,10 @@ export const mapKeywordsArrayToString = (resourceKeywords: ResourceKeyword[]): s
   return resourceKeywords.map((k) => k.word).join(', ');
 };
 export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): ResourceKeyword[] => {
-  return keywrodString.split(', ').map((val) => ({ language: 'nb', word: val.trim() }));
+  return keywrodString
+    .split(',')
+    .filter(Boolean)
+    .map((val) => ({ language: 'nb', word: val.trim() }));
 };
 
 /**
