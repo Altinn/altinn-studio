@@ -38,48 +38,50 @@ describe('Properties', () => {
   describe('Content', () => {
     it('Closes content on load', () => {
       render();
-      const button = screen.queryByRole("button", { name: contentText });
-      expect(button).toHaveAttribute('aria-expanded', "false");
+      const button = screen.queryByRole('button', { name: contentText });
+      expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Toggles content when clicked', async () => {
       render();
-      const button = screen.queryByRole("button", { name: contentText });
+      const button = screen.queryByRole('button', { name: contentText });
       await act(() => user.click(button));
-      expect(button).toHaveAttribute('aria-expanded', "true");
+      expect(button).toHaveAttribute('aria-expanded', 'true');
       await act(() => user.click(button));
-      expect(button).toHaveAttribute('aria-expanded', "false");
+      expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Opens content when a component is selected', async () => {
       const { rerender } = render();
       rerender(getComponent({ formId: 'test' }));
-      const button = screen.queryByRole("button", { name: contentText });
-      await waitFor(() => expect(button).toHaveAttribute('aria-expanded', "true"));
+      const button = screen.queryByRole('button', { name: contentText });
+      await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
     });
   });
 
   describe('Conditional rendering', () => {
     it('Closes conditional rendering on load', () => {
       render();
-      const button = screen.queryByRole("button", { name: conditionalRenderingText });
-      expect(button).toHaveAttribute('aria-expanded', "false");
+      const button = screen.queryByRole('button', { name: conditionalRenderingText });
+      expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Toggles conditional rendering when clicked', async () => {
       render();
-      const button = screen.queryByRole("button", { name: conditionalRenderingText });
+      const button = screen.queryByRole('button', { name: conditionalRenderingText });
       await act(() => user.click(button));
-      expect(button).toHaveAttribute('aria-expanded', "true");
+      expect(button).toHaveAttribute('aria-expanded', 'true');
       await act(() => user.click(button));
-      expect(button).toHaveAttribute('aria-expanded', "false");
+      expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Shows new dynamics switch', async () => {
       render();
-      const button = screen.queryByRole("button", { name: conditionalRenderingText });
+      const button = screen.queryByRole('button', { name: conditionalRenderingText });
       await act(() => user.click(button));
-      const switchNewDynamics = screen.getByRole('checkbox', { name: 'right_menu.show_new_dynamics' });
+      const switchNDynamics = screen.getByRole('checkbox', {
+        name: 'right_menu.show_new_dynamics',
+      });
       expect(switchNewDynamics).toBeInTheDocument();
     });
   });
@@ -87,17 +89,17 @@ describe('Properties', () => {
   describe('Calculations', () => {
     it('Closes calculations on load', () => {
       render();
-      const button = screen.queryByRole("button", { name: calculationsText });
-      expect(button).toHaveAttribute('aria-expanded', "false");
+      const button = screen.queryByRole('button', { name: calculationsText });
+      expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Toggles calculations when clicked', async () => {
       render();
-      const button = screen.queryByRole("button", { name: calculationsText });
+      const button = screen.queryByRole('button', { name: calculationsText });
       await act(() => user.click(button));
-      expect(button).toHaveAttribute('aria-expanded', "true");
+      expect(button).toHaveAttribute('aria-expanded', 'true');
       await act(() => user.click(button));
-      expect(button).toHaveAttribute('aria-expanded', "false");
+      expect(button).toHaveAttribute('aria-expanded', 'false');
     });
   });
 
@@ -113,10 +115,12 @@ describe('Properties', () => {
 });
 
 const getComponent = (formContextProps: Partial<FormContext> = {}) => (
-  <FormContext.Provider value={{
-    ...formContextProviderMock,
-    ...formContextProps
-  }}>
+  <FormContext.Provider
+    value={{
+      ...formContextProviderMock,
+      ...formContextProps,
+    }}
+  >
     <Properties />
   </FormContext.Provider>
 );
