@@ -5,14 +5,14 @@ import { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryR
 import { useSearchParamsState } from '../useSearchParamsState';
 import {
   DATAGRID_PAGE_SIZE_TYPE,
-  DATAGRID_ROWS_PER_PAGE_OPTIONS,
+  DATAGRID_PAGE_SIZE_OPTIONS,
   DATAGRID_DEFAULT_PAGE_SIZE,
 } from '../../constants';
 
 type UseRepoSearchResult = {
   searchResults: SearchRepositoryResponse | undefined;
   isLoadingSearchResults: boolean;
-  pageSize: number;
+  pageSize: DATAGRID_PAGE_SIZE_TYPE;
   sortModel: GridSortModel;
   setSortModel: (selectedSortModel: GridSortModel) => void;
   setPageNumber: (pageNumber: number) => void;
@@ -35,7 +35,7 @@ export const useReposSearch = ({
     defaultPageSize,
     (value: string) => {
       const parsedValue = Number(value);
-      return DATAGRID_ROWS_PER_PAGE_OPTIONS.includes(parsedValue)
+      return DATAGRID_PAGE_SIZE_OPTIONS.includes(parsedValue)
         ? (parsedValue as DATAGRID_PAGE_SIZE_TYPE)
         : defaultPageSize;
     },
