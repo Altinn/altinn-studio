@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import classes from './ResourceContactPointFields.module.css';
 import type { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
 import { Fieldset } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
@@ -50,12 +49,10 @@ export const ResourceContactPointFieldset = ({
 
   return (
     <>
-      <div className={classes.divider} />
       <Fieldset
         legend={t('resourceadm.about_resource_contact_legend')}
         description={t('resourceadm.about_resource_contact_description')}
         size='small'
-        className={classes.fieldset}
       >
         <ResourceContactPointTextField
           label={t('resourceadm.about_resource_contact_label_category')}
