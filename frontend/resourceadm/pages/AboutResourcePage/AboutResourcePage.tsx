@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { Heading } from '@digdir/design-system-react';
-import { useParams } from 'react-router-dom';
 import type { Translation } from 'resourceadm/types/Translation';
 import type {
   Resource,
@@ -30,6 +29,7 @@ import {
   ResourceDropdown,
 } from 'resourceadm/components/ResourcePageInputs';
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
  * Initial value for languages with empty fields
@@ -62,7 +62,7 @@ export const AboutResourcePage = ({
 }: AboutResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { resourceId } = useParams();
+  const { resourceId } = useUrlParams();
 
   /**
    * Resource type options
