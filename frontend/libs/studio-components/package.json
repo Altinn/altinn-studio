@@ -8,7 +8,7 @@
     "lint": "eslint \"src/components/**/*.ts*\""
   },
   "dependencies": {
-    "@digdir/design-system-react": "0.38.0",
+    "@digdir/design-system-react": "0.42.0",
     "@digdir/design-system-tokens": "0.11.0",
     "@studio/icons": "^0.1.0",
     "react": "^18.2.0",
