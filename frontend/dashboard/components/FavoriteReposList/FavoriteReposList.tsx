@@ -16,7 +16,6 @@ export const FavoriteReposList = () => {
       <RepoList
         repos={userStarredRepos}
         isLoading={areUserStarredReposPending}
-        pageSize={5}
         rowCount={userStarredRepos?.length ?? 0}
       />
     </div>
