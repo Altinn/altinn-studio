@@ -31,7 +31,7 @@ jobs:
           reportgenerator -reports:TestResults/**/coverage.cobertura.xml -targetdir:TestResults/Output/CoverageReport -reporttypes:Cobertura
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code-coverage-report
           path: TestResults/Output/CoverageReport/
