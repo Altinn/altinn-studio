@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -52,6 +51,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private static string ProcessDefinitionFilePath => Path.Combine(PROCESS_DEFINITION_FOLDER_PATH, PROCESS_DEFINITION_FILENAME);
 
         private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+
+        private const string TextResourceFileNameRegEx = @"^resource\.[a-zA-Z]{2,3}\.json$";
 
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
@@ -233,8 +234,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             foreach (string directoryFile in directoryFiles)
             {
                 string fileName = Path.GetFileName(directoryFile);
-                string pattern = @"^resource\.[a-zA-Z]{2,3}\.json$";
-                if (Regex.IsMatch(fileName, pattern))
+                if (Regex.IsMatch(fileName, TextResourceFileNameRegEx))
                 {
                     string[] nameParts = fileName.Split('.');
                     string languageCode = nameParts[1];
