@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
@@ -25,9 +26,9 @@ namespace Altinn.App.Logic.DataProcessing
     /// <param name="instance">The instance that data belongs to</param>
     /// <param name="dataId">The dataId for data if available</param>
     /// <param name="data">The data as object</param>
-    public async Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data)
+    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, Dictionary<string, string> changedFields)
     {
-      return await Task.FromResult(false);
+      return Task.CompletedTask;
     }
 
     /// <summary>
@@ -43,11 +44,11 @@ namespace Altinn.App.Logic.DataProcessing
     /// <param name="instance">The instance that data belongs to</param>
     /// <param name="dataId">The dataId for data if available</param>
     /// <param name="data">The data as object</param>
-    public async Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data)
+    public Task ProcessDataRead(Instance instance, Guid? dataId, object data)
     {
       if (data.GetType() != typeof(Skjema))
       {
-        return false;
+        return Task.CompletedTask;
       }
       Skjema skjema = (Skjema)data;
       SetupModel(skjema);
@@ -55,7 +56,7 @@ namespace Altinn.App.Logic.DataProcessing
       SetJournalNumber(skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316);
       CheckName(skjema.OpplysningerOmArbeidstakerengrp8819.OpplysningerOmArbeidstakerengrp8855.AnsattNavndatadef1223);
 
-      return await Task.FromResult(true);
+      return Task.CompletedTask;
     }
 
     private void CheckName(AnsattNavndatadef1223 name)
