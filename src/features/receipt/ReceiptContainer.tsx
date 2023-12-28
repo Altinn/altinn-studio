@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 
 import moment from 'moment';
 
@@ -8,14 +8,12 @@ import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppReceiver } from 'src/core/texts/appTexts';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParties } from 'src/features/party/PartiesProvider';
-import { CustomReceipt } from 'src/features/receipt/CustomReceipt';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
-import { layoutsSelector } from 'src/selectors/layout';
 import {
   filterDisplayAttachments,
   filterDisplayPdfAttachments,
@@ -24,7 +22,7 @@ import {
 import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { IDisplayAttachment, IParty } from 'src/types/shared';
+import type { IParty } from 'src/types/shared';
 
 interface ReturnInstanceMetaDataObjectProps {
   langTools: IUseLanguage;
@@ -78,120 +76,115 @@ export const getSummaryDataObject = ({
 };
 
 export const ReceiptContainer = () => {
-  const [attachments, setAttachments] = useState<IDisplayAttachment[]>([]);
-  const [pdf, setPdf] = useState<IDisplayAttachment[]>([]);
-  const [lastChangedDateTime, setLastChangedDateTime] = useState('');
-  const [instanceMetaObject, setInstanceMetaObject] = useState<SummaryDataObject>({});
-
-  const receiptLayoutName = useAppSelector((state) => state.formLayout.uiConfig.receiptLayoutName);
-  const allOrgs = useAppSelector((state) => state.organisationMetaData.allOrgs);
-  const applicationMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
+  const applicationMetadata = useApplicationMetadata();
   const instance = useLaxInstanceData();
   const parties = useParties();
-  const layouts = useAppSelector(layoutsSelector);
   const langTools = useLanguage();
   const receiver = useAppReceiver();
+
+  // TODO: Enable custom receipt again. We probably need to fetch layout-sets to figure out if we should show a
+  // custom receipt, and then provide LayoutsProvider for that layout-set.
+  // const receiptLayoutName = useAppSelector((state) => state.formLayout.uiConfig.receiptLayoutName);
+  // const layouts = Object.keys(useLayouts());
 
   const origin = window.location.origin;
 
   const { instanceGuid } = useInstanceIdParams();
 
-  useEffect(() => {
-    if (allOrgs != null && instance && instance.org && allOrgs && parties && instanceGuid) {
+  const lastChangedDateTime = useMemo(() => {
+    if (instance && instance.data) {
+      return moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm');
+    }
+    return undefined;
+  }, [instance]);
+
+  const attachments = useMemo(() => {
+    if (instance && instance.data) {
+      const defaultElementIds = applicationMetadata.dataTypes
+        .filter((dataType) => !!dataType.appLogic)
+        .map((type) => type.id);
+
+      const attachmentsResult = filterDisplayAttachments(instance.data, defaultElementIds);
+      return attachmentsResult || [];
+    }
+    return undefined;
+  }, [applicationMetadata, instance]);
+
+  const pdf = useMemo(() => {
+    if (instance && instance.data) {
+      return filterDisplayPdfAttachments(instance.data);
+    }
+    return undefined;
+  }, [instance]);
+
+  const instanceMetaObject = useMemo(() => {
+    if (instance && instance.org && parties && instanceGuid && lastChangedDateTime) {
       const instanceOwnerParty = parties.find(
         (party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId,
       );
 
-      const obj = getSummaryDataObject({
+      return getSummaryDataObject({
         langTools,
         instanceOwnerParty,
         instanceGuid,
         lastChangedDateTime,
         receiver,
       });
-      setInstanceMetaObject(obj);
     }
-  }, [allOrgs, parties, instance, lastChangedDateTime, instanceGuid, langTools, receiver]);
 
-  useEffect(() => {
-    if (instance && instance.data && applicationMetadata) {
-      const defaultElementIds = applicationMetadata.dataTypes
-        .filter((dataType) => !!dataType.appLogic)
-        .map((type) => type.id);
-
-      const attachmentsResult = filterDisplayAttachments(instance.data, defaultElementIds);
-      setAttachments(attachmentsResult || []);
-      setPdf(filterDisplayPdfAttachments(instance.data));
-      setLastChangedDateTime(moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm'));
-    }
-  }, [instance, applicationMetadata]);
-
-  // React.useEffect(() => {
-  //   if (!process?.ended) {
-  //     navigateToPage(PageKeys.Confirmation);
-  //   }
-  // }, [process?.ended, navigateToPage]);
+    return undefined;
+  }, [instance, parties, instanceGuid, lastChangedDateTime, langTools, receiver]);
 
   const requirementMissing = !attachments
     ? 'attachments'
-    : !applicationMetadata
-      ? 'applicationMetadata'
-      : !instanceMetaObject
-        ? 'instanceMetaObject'
-        : !lastChangedDateTime
-          ? 'lastChangedDateTime'
-          : !allOrgs
-            ? 'allOrgs'
-            : !instance
-              ? 'instance'
-              : !parties
-                ? 'parties'
-                : undefined;
+    : !instanceMetaObject
+      ? 'instanceMetaObject'
+      : !lastChangedDateTime
+        ? 'lastChangedDateTime'
+        : !instance
+          ? 'instance'
+          : !parties
+            ? 'parties'
+            : undefined;
+
+  if (requirementMissing || !(instance && parties && instanceMetaObject && pdf)) {
+    return (
+      <AltinnContentLoader
+        width={705}
+        height={561}
+        reason={`receipt-missing-${requirementMissing}`}
+      >
+        <AltinnContentIconReceipt />
+      </AltinnContentLoader>
+    );
+  }
 
   return (
     <div id='ReceiptContainer'>
-      {!requirementMissing &&
-      attachments &&
-      applicationMetadata &&
-      instanceMetaObject &&
-      lastChangedDateTime &&
-      allOrgs &&
-      instance &&
-      parties ? (
-        <>
-          {!applicationMetadata.autoDeleteOnProcessEnd &&
-            (receiptLayoutName && layouts.includes(receiptLayoutName) ? (
-              <CustomReceipt />
-            ) : (
-              <ReceiptComponent
-                attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, langTools)}
-                body={<Lang id={'receipt.body'} />}
-                collapsibleTitle={<Lang id={'receipt.attachments'} />}
-                instanceMetaDataObject={instanceMetaObject}
-                subtitle={<Lang id={'receipt.subtitle'} />}
-                subtitleurl={returnUrlToArchive(origin) || undefined}
-                title={<Lang id={'receipt.title'} />}
-                titleSubmitted={<Lang id={'receipt.title_submitted'} />}
-                pdf={pdf}
-              />
-            ))}
-          {applicationMetadata.autoDeleteOnProcessEnd && (
-            <ReceiptComponentSimple
-              body={<Lang id={'receipt.body_simple'} />}
-              title={<Lang id={'receipt.title'} />}
-            />
-          )}
-          <ReadyForPrint />
-        </>
-      ) : (
-        <AltinnContentLoader
-          width={705}
-          height={561}
-          reason={`receipt-missing-${requirementMissing}`}
-        >
-          <AltinnContentIconReceipt />
-        </AltinnContentLoader>
+      {/* TODO: This code was here to render CustomReceipt, but does not work when we don't fetch layouts here*/}
+      {/*{receiptLayoutName && layouts.includes(receiptLayoutName) ? (*/}
+      {/*  <CustomReceipt />*/}
+      {/*)}*/}
+      {!applicationMetadata.autoDeleteOnProcessEnd && (
+        <ReceiptComponent
+          attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, langTools)}
+          body={<Lang id={'receipt.body'} />}
+          collapsibleTitle={<Lang id={'receipt.attachments'} />}
+          instanceMetaDataObject={instanceMetaObject}
+          subtitle={<Lang id={'receipt.subtitle'} />}
+          subtitleurl={returnUrlToArchive(origin) || undefined}
+          title={<Lang id={'receipt.title'} />}
+          titleSubmitted={<Lang id={'receipt.title_submitted'} />}
+          pdf={pdf}
+        />
       )}
+      {applicationMetadata.autoDeleteOnProcessEnd && (
+        <ReceiptComponentSimple
+          body={<Lang id={'receipt.body_simple'} />}
+          title={<Lang id={'receipt.title'} />}
+        />
+      )}
+      <ReadyForPrint />
     </div>
   );
 };

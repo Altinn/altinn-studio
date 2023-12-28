@@ -144,7 +144,11 @@ export class CodeGeneratorFileContext<T extends FileType> {
   }
 
   public addSymbol(name: string, exported: boolean, generator: MaybeSymbolizedCodeGenerator<any>) {
-    const prefix = exported ? 'export ' : '';
+    const comment = generator.internal.typeScript.comment
+      ? `/**\n * ${generator.internal.typeScript.comment.split('\n').join('\n * ')}\n */\n`
+      : '';
+
+    const prefix = exported ? `${comment}export ` : comment;
     if (this.type === 'typeScript') {
       const tsDefinition = prefix + generator.toTypeScriptDefinition(name);
       if (this.symbols[name] && this.symbols[name] !== tsDefinition) {

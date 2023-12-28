@@ -27,14 +27,6 @@ export interface AttachmentActionRemove {
 export type RawAttachmentAction<T extends AttachmentActionUpload | AttachmentActionUpdate | AttachmentActionRemove> =
   Omit<T, 'action'>;
 
-export interface IAttachmentsCtx {
-  attachments: IAttachments;
-  upload(action: RawAttachmentAction<AttachmentActionUpload>): Promise<string | undefined>;
-  update(action: RawAttachmentAction<AttachmentActionUpdate>): Promise<void>;
-  remove(action: RawAttachmentAction<AttachmentActionRemove>): Promise<boolean>;
-  awaitUpload(attachment: TemporaryAttachment): Promise<IData | false>;
-}
-
 interface IAttachmentTemporary {
   temporaryId: string;
   filename: string;

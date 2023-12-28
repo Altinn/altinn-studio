@@ -55,7 +55,7 @@ function testGroup(mode: Mode) {
   cy.addItemToGroup(1, 2, 'automation');
 
   // Mobile tables always have two columns
-  ensureTableHasNumColumns(appFrontend.group.mainGroup, 2);
+  ensureTableHasNumColumns(appFrontend.group.mainGroup, 6, 2);
   let editWas: any = {};
   cy.changeLayout((c) => {
     if (c.id === 'mainGroup' && c.type === 'Group' && groupIsRepeatingExt(c) && c.edit) {
@@ -64,7 +64,7 @@ function testGroup(mode: Mode) {
       c.edit.deleteButton = false;
     }
   });
-  ensureTableHasNumColumns(appFrontend.group.mainGroup, 2);
+  ensureTableHasNumColumns(appFrontend.group.mainGroup, 6, 2);
   cy.changeLayout((component) => {
     if (component.id === 'mainGroup' && component.type === 'Group' && 'edit' in component && component.edit) {
       component.edit = { ...editWas };
@@ -75,7 +75,7 @@ function testGroup(mode: Mode) {
   cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
 
   cy.navPage('repeating (store endringer)').click();
-  ensureTableHasNumColumns(appFrontend.group.overflowGroup, 2);
+  ensureTableHasNumColumns(appFrontend.group.overflowGroup, 4, 2);
 
   cy.navPage('hide').click();
   cy.get(appFrontend.group.sendersName).type('automation');
@@ -93,16 +93,11 @@ function testGroup(mode: Mode) {
   sendIn();
 }
 
-function ensureTableHasNumColumns(tableContainer: string, numColumns: number) {
+function ensureTableHasNumColumns(tableContainer: string, numRows: number, numColumns: number) {
   cy.get(tableContainer)
     .find('table')
-    .first()
-    .find('tr')
-    .then((rows) => {
-      for (const row of rows) {
-        cy.wrap(row).find('td,th').should('have.length', numColumns);
-      }
-    });
+    .find('td,th')
+    .should('have.length', numRows * numColumns);
 }
 
 function testLikert() {

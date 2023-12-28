@@ -2,7 +2,8 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
@@ -65,34 +66,42 @@ const render = async (ids?: string[]) =>
         title: 'Attachments',
       },
     },
-    reduxState: getInitialStateMock((state) => {
-      if (state.deprecated.lastKnownInstance) {
-        const dataElement1 = generateDataElement({
-          id: 'test-data-type-1',
-          dataType: 'ref-data-as-pdf',
-          filename: 'testData1.pdf',
-          contentType: 'application/pdf',
-        });
-        const dataElement2 = generateDataElement({
-          id: 'test-data-type-2',
-          dataType: 'not-ref-data-as-pdf',
-          filename: '2mb.txt',
-          contentType: 'text/plain',
-        });
-        const dataElement3 = generateDataElement({
-          id: 'test-data-type-3',
-          dataType: 'different-process-task',
-          filename: 'differentTask.pdf',
-          contentType: 'text/plain',
-        });
-        state.deprecated.lastKnownInstance.data.push(...[dataElement1, dataElement2, dataElement3]);
-      }
-      if (state.applicationMetadata.applicationMetadata) {
-        const dataType1 = generateDataType({ id: 'not-ref-data-as-pdf', dataType: 'text/plain', taskId: 'Task_1' });
-        const dataType2 = generateDataType({ id: 'different-process-task', dataType: 'text/plain', taskId: 'Task_2' });
-        state.applicationMetadata.applicationMetadata.dataTypes.push(...[dataType1, dataType2]);
-      }
-    }),
+    queries: {
+      fetchInstanceData: async () =>
+        getInstanceDataMock((i) => {
+          i.data.push(
+            generateDataElement({
+              id: 'test-data-type-1',
+              dataType: 'ref-data-as-pdf',
+              filename: 'testData1.pdf',
+              contentType: 'application/pdf',
+            }),
+            generateDataElement({
+              id: 'test-data-type-2',
+              dataType: 'not-ref-data-as-pdf',
+              filename: '2mb.txt',
+              contentType: 'text/plain',
+            }),
+            generateDataElement({
+              id: 'test-data-type-3',
+              dataType: 'different-process-task',
+              filename: 'differentTask.pdf',
+              contentType: 'text/plain',
+            }),
+          );
+        }),
+      fetchApplicationMetadata: async () =>
+        getApplicationMetadataMock((a) => {
+          a.dataTypes.push(
+            generateDataType({ id: 'not-ref-data-as-pdf', dataType: 'text/plain', taskId: 'Task_1' }),
+            generateDataType({
+              id: 'different-process-task',
+              dataType: 'text/plain',
+              taskId: 'Task_2',
+            }),
+          );
+        }),
+    },
   });
 
 interface GenerateDataElementProps {

@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
+import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
 import { TextResourcesActions } from 'src/features/language/textResources/textResourcesSlice';
@@ -30,7 +30,7 @@ const useTextResourcesQuery = () => {
   const enabled = isAnonymous || profile !== undefined;
 
   const utils = {
-    ...useQuery({
+    ...useQueryWithStaleData({
       enabled,
       queryKey: ['fetchTextResources', selectedLanguage],
       queryFn: () => fetchTextResources(selectedLanguage),

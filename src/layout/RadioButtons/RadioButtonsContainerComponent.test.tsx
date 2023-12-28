@@ -4,6 +4,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
+import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { RadioButtonContainerComponent } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IOption } from 'src/layout/common.generated';
@@ -26,30 +27,28 @@ const threeOptions: IOption[] = [
 
 interface Props extends Partial<RenderGenericComponentTestProps<'RadioButtons'>> {
   options?: IOption[];
+  formData?: string;
+  groupData?: any;
 }
 
-const render = async ({ component, genericProps, options }: Props = {}) => {
+const render = async ({ component, options, formData, groupData = getFormDataMockForRepGroup() }: Props = {}) =>
   await renderGenericComponentTest({
     type: 'RadioButtons',
     renderer: (props) => <RadioButtonContainerComponent {...props} />,
     component: {
       optionsId: 'countries',
       preselectedOptionIndex: undefined,
+      dataModelBindings: { simpleBinding: 'myRadio' },
       ...component,
-    },
-    genericProps: {
-      legend: () => <span>legend</span>,
-      handleDataChange: jest.fn(),
-      ...genericProps,
     },
     queries: {
       fetchOptions: () =>
         options
           ? Promise.resolve({ data: options, headers: {} } as AxiosResponse<IOption[], any>)
           : Promise.reject(new Error('No options provided to render()')),
+      fetchFormData: async () => (formData ? { myRadio: formData, ...groupData } : { ...groupData }),
     },
   });
-};
 
 const getRadio = ({ name, isChecked = false }) =>
   screen.getByRole('radio', {
@@ -64,66 +63,50 @@ const findRadio = ({ name, isChecked = false }) =>
   });
 
 describe('RadioButtonsContainerComponent', () => {
-  it('should call handleDataChange with value of preselectedOptionIndex when simpleBinding is not set', async () => {
-    const handleChange = jest.fn();
-    await render({
+  it('should update data model with value of preselectedOptionIndex', async () => {
+    const { formDataMethods } = await render({
       component: {
         preselectedOptionIndex: 1,
-      },
-      genericProps: {
-        handleDataChange: handleChange,
-        formData: {
-          simpleBinding: undefined,
-        },
       },
       options: threeOptions,
     });
 
-    await waitFor(() => expect(handleChange).toHaveBeenCalledWith('sweden', { validate: true }));
+    await waitFor(() =>
+      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myRadio', newValue: 'sweden' }),
+    );
   });
 
-  it('should not call handleDataChange when simpleBinding is set and preselectedOptionIndex', async () => {
-    const handleChange = jest.fn();
-    await render({
+  it('should not update data model when preselectedOptionIndex is set, but another value is selected', async () => {
+    const { formDataMethods } = await render({
       component: {
         preselectedOptionIndex: 0,
       },
-      genericProps: {
-        handleDataChange: handleChange,
-        formData: {
-          simpleBinding: 'denmark',
-        },
-      },
+      formData: 'denmark',
       options: threeOptions,
     });
 
     expect(await findRadio({ name: 'Sweden' })).toBeInTheDocument();
     expect(getRadio({ name: 'Denmark', isChecked: true })).toBeInTheDocument();
 
-    expect(handleChange).not.toHaveBeenCalled();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
   });
 
-  it('should not set any as selected when no binding and no preselectedOptionIndex is set', async () => {
-    const handleChange = jest.fn();
-    await render({ genericProps: { handleDataChange: handleChange }, options: threeOptions });
+  it('should not set any as selected without preselectedOptionIndex', async () => {
+    const { formDataMethods } = await render({
+      options: threeOptions,
+    });
 
     await waitFor(() => expect(getRadio({ name: 'Norway' })).toBeInTheDocument());
     expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
     expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
 
-    expect(handleChange).not.toHaveBeenCalled();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
   });
 
-  it('should call handleDataChange with updated value when selection changes', async () => {
-    const handleChange = jest.fn();
-    await render({
-      genericProps: {
-        handleDataChange: handleChange,
-        formData: {
-          simpleBinding: 'norway',
-        },
-      },
+  it('should update data model with updated value when selection changes', async () => {
+    const { formDataMethods } = await render({
       options: threeOptions,
+      formData: 'norway',
     });
 
     await waitFor(() => {
@@ -133,42 +116,19 @@ describe('RadioButtonsContainerComponent', () => {
     expect(await findRadio({ name: 'Norway', isChecked: true })).toBeInTheDocument();
     expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
 
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
+
     const denmark = await waitFor(() => getRadio({ name: 'Denmark' }));
     expect(denmark).toBeInTheDocument();
     await userEvent.click(denmark);
 
-    expect(handleChange).not.toHaveBeenCalled();
-    await waitFor(() => expect(handleChange).toHaveBeenCalledWith('denmark', { validate: true }));
+    await waitFor(() =>
+      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myRadio', newValue: 'denmark' }),
+    );
   });
 
-  it('should call handleDataChange instantly on blur when the value has changed', async () => {
-    const handleChange = jest.fn();
-    await render({
-      genericProps: {
-        handleDataChange: handleChange,
-        formData: {
-          simpleBinding: 'norway',
-        },
-      },
-      options: threeOptions,
-    });
-
-    const denmark = await waitFor(() => getRadio({ name: 'Denmark' }));
-
-    expect(denmark).toBeInTheDocument();
-
-    expect(handleChange).not.toHaveBeenCalled();
-    await userEvent.click(denmark);
-    await userEvent.tab();
-    expect(handleChange).toHaveBeenCalledWith('denmark', { validate: true });
-  });
-
-  it('should not call handleDataChange on blur when the value is unchanged', async () => {
-    const handleChange = jest.fn();
-    await render({
-      genericProps: {
-        handleDataChange: handleChange,
-      },
+  it('should not update data model when the value is unchanged', async () => {
+    const { formDataMethods } = await render({
       options: threeOptions,
     });
 
@@ -180,13 +140,11 @@ describe('RadioButtonsContainerComponent', () => {
       fireEvent.blur(getRadio({ name: 'Denmark' }));
     });
 
-    expect(handleChange).not.toHaveBeenCalled();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
   });
 
-  it('should present replaced label, description and help text if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
-    const handleDataChange = jest.fn();
-
-    await render({
+  it('should present replaced label, description and help text if setup with values from repeating group and trigger data model update with replaced values', async () => {
+    const { formDataMethods } = await render({
       component: {
         optionsId: undefined,
         source: {
@@ -196,9 +154,6 @@ describe('RadioButtonsContainerComponent', () => {
           helpText: 'option.from.rep.group.helpText',
           value: 'someGroup[{0}].valueField',
         },
-      },
-      genericProps: {
-        handleDataChange,
       },
     });
 
@@ -221,9 +176,9 @@ describe('RadioButtonsContainerComponent', () => {
       'Help Text: The value from the group is: Label for second',
     );
 
-    expect(handleDataChange).not.toHaveBeenCalled();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
     await userEvent.click(getRadio({ name: /The value from the group is: Label for first/ }));
-    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('Value for first', { validate: true }));
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myRadio', newValue: 'Value for first' });
   });
 
   it('should present the options list in the order it is provided when sortOrder is not specified', async () => {

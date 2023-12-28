@@ -340,6 +340,18 @@ const authContextKeys: { [key in keyof IAuthContext]: true } = {
   reject: true,
 };
 
+function pickSimpleValue(path: string | undefined | null, formData: object) {
+  if (!path) {
+    return null;
+  }
+
+  const value = dot.pick(path, formData);
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+  return null;
+}
+
 /**
  * All the functions available to execute inside expressions
  */
@@ -512,7 +524,7 @@ export const ExprFunctions = {
           return null;
         }
 
-        return (this.dataSources.formData && this.dataSources.formData[simpleBinding]) || null;
+        return pickSimpleValue(simpleBinding, this.dataSources.formData);
       }
 
       // Expressions can technically be used without having all the layouts available, which might lead to unexpected
@@ -537,12 +549,12 @@ export const ExprFunctions = {
       const maybeNode = this.failWithoutNode();
       if (maybeNode instanceof BaseLayoutNode) {
         const newPath = maybeNode?.transposeDataModel(path);
-        return (newPath && this.dataSources.formData[newPath]) || null;
+        return pickSimpleValue(newPath, this.dataSources.formData);
       }
 
       // No need to transpose the data model according to the location inside a repeating group when the context is
       // a LayoutPage (i.e., when we're resolving an expression directly on the layout definition).
-      return this.dataSources.formData[path] || null;
+      return pickSimpleValue(path, this.dataSources.formData);
     },
     args: [ExprVal.String] as const,
     returns: ExprVal.Any,
@@ -570,7 +582,6 @@ export const ExprFunctions = {
       }
 
       return component.def.getDisplayData(component as any, {
-        formData: this.dataSources.formData,
         attachments: this.dataSources.attachments,
         options: this.dataSources.options,
         langTools: this.dataSources.langTools,
@@ -796,21 +807,6 @@ export const ExprTypes: {
     accepts: [ExprVal.Boolean, ExprVal.String, ExprVal.Number, ExprVal.Any],
     impl: (arg) => arg,
   },
-};
-
-/**
- * This function is attached globally, to aid in expression development. An app developer can use this function
- * to try out a given expression (even in the context of a given component ID), and see the result directly in
- * the browser console window.
- *
- * @deprecated This has been replaced by the developer tools, and should not be used anymore. It throws an error, but
- * after a while we can probably remove it entirely.
- */
-window.evalExpression = () => {
-  throw new Error(
-    'evalExpression() utgår. Du kan nå evaluere og teste uttrykk i utviklerverktøyene i stedet. Trykk Ctrl+Shift+K ' +
-      'for å åpne utviklerverktøyene, og naviger til fanen som heter "Uttrykk".',
-  );
 };
 
 export const ExprConfigForComponent: ExprObjConfig<CompExternal> = {

@@ -60,4 +60,4 @@ const { Provider, useCtx } = delayedContext(() =>
 );
 
 export const DataModelSchemaProvider = Provider;
-export const useDataModelSchema = () => useCtx();
+export const useCurrentDataModelSchema = () => useCtx()?.dataModelSchema;

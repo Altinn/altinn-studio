@@ -2,42 +2,33 @@ import React from 'react';
 
 import { Select } from '@digdir/design-system-react';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
 const defaultSelectedOptions: string[] = [];
-export function MultipleSelectComponent({
-  node,
-  handleDataChange,
-  formData,
-  isValid,
-  overrideDisplay,
-}: IMultipleSelectProps) {
+export function MultipleSelectComponent({ node, isValid, overrideDisplay }: IMultipleSelectProps) {
   const { id, readOnly, textResourceBindings, dataModelBindings } = node.item;
-  const {
-    value: _value,
-    setValue,
-    saveValue,
-  } = useDelayedSavedState(handleDataChange, dataModelBindings?.simpleBinding, formData?.simpleBinding);
-  const value = _value ?? formData?.simpleBinding ?? '';
+  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
+  const saveValue = FD.useSetForBindings(dataModelBindings);
+  const debounce = FD.useDebounceImmediately();
   const selected = value && value.length > 0 ? value.split(',') : defaultSelectedOptions;
   const { options: calculatedOptions } = useGetOptions({
     ...node.item,
     node,
     metadata: {
       setValue: (metadata) => {
-        handleDataChange(metadata, { key: 'metadata' });
+        saveValue('metadata', metadata);
       },
     },
     formData: {
       type: 'multi',
       values: selected,
       setValues: (values) => {
-        setValue(values.join(','), true);
+        saveValue('simpleBinding', values.join(','));
       },
     },
     removeDuplicates: true,
@@ -47,7 +38,7 @@ export function MultipleSelectComponent({
   const formattedOptions = useFormattedOptions(calculatedOptions, true);
 
   const handleChange = (values: string[]) => {
-    setValue(values.join(','));
+    saveValue('simpleBinding', values.join(','));
   };
 
   const selectedValues = calculatedOptions
@@ -65,7 +56,7 @@ export function MultipleSelectComponent({
       disabled={readOnly}
       error={!isValid}
       onChange={handleChange}
-      onBlur={saveValue}
+      onBlur={debounce}
       value={selectedValues}
       aria-label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
     />

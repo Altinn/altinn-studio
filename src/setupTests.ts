@@ -9,7 +9,7 @@ import dotenv from 'dotenv';
 import { jestPreviewConfigure } from 'jest-preview';
 import { TextDecoder, TextEncoder } from 'util';
 
-import type { AppQueries } from 'src/core/contexts/AppQueriesProvider';
+import type { AppQueries } from 'src/queries/types';
 
 // Importing CSS for jest-preview to look nicer
 import 'src/index.css';
@@ -44,7 +44,6 @@ Object.defineProperty(document, 'fonts', {
 // org and app is assigned to window object, so to avoid 'undefined' in tests, they need to be set
 window.org = 'ttd';
 window.app = 'test';
-window.instanceId = 'test-instance-id';
 
 window.logError = (...args) => {
   throw new Error(args.join(' '));
@@ -55,24 +54,14 @@ window.logErrorOnce = window.logError;
 window.logWarnOnce = window.logError;
 window.logInfoOnce = window.logError;
 
+window.scrollTo = () => {};
+
 jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10) : 20000);
 
 jest.mock('axios');
 
 (global as any).TextEncoder = TextEncoder;
 (global as any).TextDecoder = TextDecoder;
-
-(async () => {
-  // These need to run after TextEncoder and TextDecoder has been set above, because we can't start importing our code
-  // before these are present. We also need to set up the store at least once first, so that saga slice actions have
-  // been assigned.
-
-  const setupStore = (await import('src/redux/store')).setupStore;
-  const initSagas = (await import('src/redux/sagas')).initSagas;
-
-  const { sagaMiddleware } = setupStore();
-  initSagas(sagaMiddleware);
-})();
 
 global.ResizeObserver = require('resize-observer-polyfill');
 

@@ -3,16 +3,20 @@ import React from 'react';
 import { FileCsvIcon, FileExcelIcon, FileIcon, FilePdfIcon, FileWordIcon } from '@navikt/aksel-icons';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
+import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import classes from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName.module.css';
 import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
-import { dataElementUrl } from 'src/utils/urls/appUrlHelper';
+import { getDataElementUrl } from 'src/utils/urls/appUrlHelper';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IAttachment } from 'src/features/attachments';
 
 export const AttachmentFileName = ({ attachment, mobileView }: { attachment: IAttachment; mobileView: boolean }) => {
-  const url = isAttachmentUploaded(attachment)
-    ? makeUrlRelativeIfSameDomain(dataElementUrl(attachment.data.id))
-    : undefined;
+  const instanceId = useLaxInstanceData()?.id;
+  const url =
+    isAttachmentUploaded(attachment) && instanceId
+      ? makeUrlRelativeIfSameDomain(getDataElementUrl(instanceId, attachment.data.id))
+      : undefined;
+
   const fileName = (
     <>
       <span className={classes.truncate}>{removeFileEnding(attachment.data.filename)}</span>

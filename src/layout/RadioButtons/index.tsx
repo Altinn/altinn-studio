@@ -15,10 +15,8 @@ export class RadioButtons extends RadioButtonsDef {
     return <RadioButtonContainerComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNode<'RadioButtons'>, { formData, langTools, options }: DisplayDataProps): string {
-    const value = node.item.dataModelBindings?.simpleBinding
-      ? formData[node.item.dataModelBindings.simpleBinding] || ''
-      : '';
+  getDisplayData(node: LayoutNode<'RadioButtons'>, { langTools, options }: DisplayDataProps): string {
+    const value = node.getFormData().simpleBinding ?? '';
     const optionList = options[node.item.id] || [];
     return getSelectedValueToText(value, langTools, optionList) || '';
   }

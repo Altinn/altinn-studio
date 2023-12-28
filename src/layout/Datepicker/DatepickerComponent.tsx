@@ -7,9 +7,9 @@ import { CalendarIcon } from '@navikt/aksel-icons';
 import moment from 'moment';
 import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useIsMobile } from 'src/hooks/useIsMobile';
 import { getDateConstraint, getDateFormat, getDateString } from 'src/utils/dateHelpers';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -103,7 +103,7 @@ class AltinnMomentUtils extends MomentUtils {
 // We dont use the built-in validation for the 3rd party component, so it is always empty string
 const emptyString = '';
 
-export function DatepickerComponent({ node, formData, handleDataChange, isValid, overrideDisplay }: IDatepickerProps) {
+export function DatepickerComponent({ node, isValid, overrideDisplay }: IDatepickerProps) {
   const classes = useStyles();
   const { langAsString } = useLanguage();
   const languageLocale = useCurrentLanguage();
@@ -125,26 +125,18 @@ export function DatepickerComponent({ node, formData, handleDataChange, isValid,
   const calculatedFormat = getDateFormat(format, languageLocale);
   const isMobile = useIsMobile();
 
-  const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
-    handleDataChange,
-    dataModelBindings?.simpleBinding,
-    formData?.simpleBinding ?? '',
-  );
-
+  const setValue = FD.useSetForBinding(dataModelBindings?.simpleBinding);
+  const debounce = FD.useDebounceImmediately();
+  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
   const dateValue = moment(value, moment.ISO_8601);
   const [date, input] = dateValue.isValid() ? [dateValue, undefined] : [null, value ?? ''];
 
-  const handleDateValueChange = (
-    dateValue: MaterialUiPickersDate,
-    inputValue: string | undefined,
-    saveImmediately = false,
-  ) => {
+  const handleDateValueChange = (dateValue: MaterialUiPickersDate, inputValue: string | undefined) => {
     if (dateValue?.isValid()) {
       dateValue.set('hour', 12).set('minute', 0).set('second', 0).set('millisecond', 0);
-      setValue(getDateString(dateValue, timeStamp), saveImmediately);
+      setValue(getDateString(dateValue, timeStamp));
     } else {
-      const skipValidation = (dateValue?.parsingFlags().charsLeftOver ?? 0) > 0;
-      setValue(inputValue ?? '', saveImmediately, skipValidation);
+      setValue(inputValue ?? '');
     }
   };
 
@@ -177,9 +169,8 @@ export function DatepickerComponent({ node, formData, handleDataChange, isValid,
             placeholder={calculatedFormat}
             key={id}
             onChange={handleDateValueChange}
-            onBlur={saveValue}
-            onAccept={(dateValue) => handleDateValueChange(dateValue, undefined, true)}
-            onPaste={onPaste}
+            onBlur={debounce}
+            onAccept={(dateValue) => handleDateValueChange(dateValue, undefined)}
             autoOk={true}
             invalidDateMessage={emptyString}
             maxDateMessage={emptyString}

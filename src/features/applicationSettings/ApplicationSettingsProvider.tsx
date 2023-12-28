@@ -27,7 +27,7 @@ const useApplicationSettingsQuery = () => {
   });
 };
 
-const { Provider, useCtx } = delayedContext(() =>
+const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
   createQueryContext({
     name: 'ApplicationSettings',
     required: true,
@@ -38,3 +38,4 @@ const { Provider, useCtx } = delayedContext(() =>
 
 export const ApplicationSettingsProvider = Provider;
 export const useApplicationSettings = () => useCtx();
+export const useLaxApplicationSettings = () => useLaxCtx();

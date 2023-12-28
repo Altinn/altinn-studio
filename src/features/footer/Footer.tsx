@@ -1,32 +1,30 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import cn from 'classnames';
 
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { createFooterComponent } from 'src/features/footer';
 import classes from 'src/features/footer/Footer.module.css';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import type { IFooterLayout } from 'src/features/footer/types';
+import { useFooterLayout } from 'src/features/footer/FooterLayoutProvider';
 
 export const Footer = () => {
-  const footerLayout: IFooterLayout | null = useAppSelector((state) => state.footerLayout.footerLayout);
-  const useOrganisationLogo = useAppSelector((state) => state.applicationMetadata.applicationMetadata?.logo != null);
+  const footerLayout = useFooterLayout();
+  const application = useLaxApplicationMetadata();
+  const shouldUseOrgLogo = application !== ContextNotProvided && application.logo != null;
 
-  const components = React.useMemo(
-    () => footerLayout?.footer.map((props) => createFooterComponent(props)),
-    [footerLayout],
-  );
-
-  if (!components && !useOrganisationLogo) {
+  const components = useMemo(() => footerLayout.map((props) => createFooterComponent(props)), [footerLayout]);
+  if (!components.length && !shouldUseOrgLogo) {
     return null;
   }
 
   return (
-    <footer className={cn(classes.footer, { [classes.columnLayout]: useOrganisationLogo })}>
-      <div className={classes.elements}>{components?.map((component) => component.render())}</div>
-      {useOrganisationLogo && (
+    <footer className={cn(classes.footer, { [classes.columnLayout]: shouldUseOrgLogo })}>
+      <div className={classes.elements}>{components.map((component) => component.render())}</div>
+      {shouldUseOrgLogo && (
         <>
-          {components != null && <hr className={classes.separator} />}
+          {components.length > 0 && <hr className={classes.separator} />}
           <AltinnLogo color={LogoColor.blueDarker} />
         </>
       )}

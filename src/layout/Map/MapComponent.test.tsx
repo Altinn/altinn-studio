@@ -6,7 +6,7 @@ import { MapComponent } from 'src/layout/Map/MapComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Map'>> = {}) =>
+const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Map'>> = {}) =>
   await renderGenericComponentTest({
     type: 'Map',
     renderer: (props) => <MapComponent {...props} />,
@@ -14,15 +14,16 @@ const render = async ({ component, genericProps }: Partial<RenderGenericComponen
       readOnly: false,
       required: false,
       textResourceBindings: {},
+      dataModelBindings: {
+        simpleBinding: 'myCoords',
+      },
       ...component,
     },
     genericProps: {
-      formData: {
-        simpleBinding: undefined,
-      },
       isValid: true,
-      ...genericProps,
+      ...rest.genericProps,
     },
+    ...rest,
   });
 
 describe('MapComponent', () => {
@@ -35,10 +36,10 @@ describe('MapComponent', () => {
 
   it('should show correct footer text when location is set', async () => {
     await render({
-      genericProps: {
-        formData: {
-          simpleBinding: '59.2641592,10.4036248',
-        },
+      queries: {
+        fetchFormData: async () => ({
+          myCoords: '59.2641592,10.4036248',
+        }),
       },
     });
 

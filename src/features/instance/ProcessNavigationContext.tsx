@@ -1,19 +1,16 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { useMutation } from '@tanstack/react-query';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
-import { useAttachments } from 'src/features/attachments/AttachmentsContext';
-import { FormDataActions } from 'src/features/formData/formDataSlice';
-import { useStrictInstance } from 'src/features/instance/InstanceContext';
-import { useLaxProcessData, useRealTaskType, useSetProcessData } from 'src/features/instance/ProcessContext';
+import { useHasPendingAttachments } from 'src/features/attachments/AttachmentsContext';
+import { FD } from 'src/features/formData/FormDataWrite';
+import { useLaxInstance, useStrictInstance } from 'src/features/instance/InstanceContext';
+import { useLaxProcessData, useSetProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
-import { ProcessTaskType } from 'src/types';
 import type { IActionType, IProcess } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -23,18 +20,24 @@ interface ProcessNextProps {
 }
 
 function useProcessNext() {
-  const dispatch = useAppDispatch();
-  const submittingState = useAppSelector((state) => state.formData.submittingState);
-  const realTaskType = useRealTaskType();
+  // const submittingState = useAppSelector((state) => state.formData.submittingState);
   const { doProcessNext } = useAppMutations();
   const { reFetch: reFetchInstanceData } = useStrictInstance();
   const language = useCurrentLanguage();
   const setProcessData = useSetProcessData();
   const currentProcessData = useLaxProcessData();
   const { navigateToTask } = useNavigatePage();
+  const instanceId = useLaxInstance()?.instanceId;
+  const waitForSave = FD.useWaitForSave();
 
   const utils = useMutation({
-    mutationFn: ({ taskId, action }: ProcessNextProps = {}) => doProcessNext.call(taskId, language, action),
+    mutationFn: async ({ taskId, action }: ProcessNextProps = {}) => {
+      if (!instanceId) {
+        throw new Error('Missing instance ID, cannot perform process/next');
+      }
+      await waitForSave(true);
+      return doProcessNext.call(instanceId, taskId, language, action);
+    },
     onSuccess: async (data: IProcess) => {
       doProcessNext.setLastResult(data);
       await reFetchInstanceData();
@@ -58,35 +61,35 @@ function useProcessNext() {
     [mutateAsync],
   );
 
-  useEffect(() => {
-    (async () => {
-      if (submittingState === 'validationSuccessful') {
-        await nativeMutate({});
-        dispatch(FormDataActions.submitClear());
-      }
-    })();
-  }, [dispatch, nativeMutate, submittingState]);
+  // useEffect(() => {
+  //   (async () => {
+  //     if (submittingState === 'validationSuccessful') {
+  //       await nativeMutate({});
+  //       dispatch(FormDataActions.submitClear());
+  //     }
+  //   })();
+  // }, [dispatch, nativeMutate, submittingState]);
 
   const perform = useCallback(
     async (props: ProcessNextProps) => {
-      if (submittingState !== 'inactive') {
-        return;
-      }
+      // if (submittingState !== 'inactive') {
+      //   return;
+      // }
 
-      if (
-        realTaskType === ProcessTaskType.Data &&
-        // Skipping the full form data submit if an action is set. Signing, rejecting, etc should not attempt to submit
-        // form data, as you probably only have read-access to the data model at this point.
-        !props?.action
-      ) {
-        dispatch(FormDataActions.submit());
-        return;
-      }
+      // if (
+      //   realTaskType === ProcessTaskType.Data &&
+      //   // Skipping the full form data submit if an action is set. Signing, rejecting, etc should not attempt to submit
+      //   // form data, as you probably only have read-access to the data model at this point.
+      //   !props?.action
+      // ) {
+      //   dispatch(FormDataActions.submit());
+      //   return;
+      // }
 
-      dispatch(FormDataActions.submitReady({ state: 'working' }));
+      // dispatch(FormDataActions.submitReady({ state: 'working' }));
       await nativeMutate(props || {});
     },
-    [realTaskType, submittingState, dispatch, nativeMutate],
+    [nativeMutate],
   );
 
   return { perform, error: utils.error };
@@ -109,15 +112,12 @@ const { Provider, useCtx } = createContext<ContextData | undefined>({
 export function ProcessNavigationProvider({ children }: React.PropsWithChildren) {
   const { perform, error } = useProcessNext();
   const [_busyWithId, setBusyWithId] = useState<string>('');
-  const submittingState = useAppSelector((state) => state.formData.submittingState);
+  // const submittingState = useAppSelector((state) => state.formData.submittingState);
 
-  const attachments = useAttachments();
-  const attachmentsPending = Object.values(attachments).some(
-    (fileUploader) =>
-      fileUploader?.some((attachment) => !attachment.uploaded || attachment.updating || attachment.deleting),
-  );
+  const attachmentsPending = useHasPendingAttachments();
 
-  const busyWithId = submittingState === 'inactive' ? '' : _busyWithId;
+  // const busyWithId = submittingState === 'inactive' ? '' : _busyWithId;
+  const busyWithId = _busyWithId;
 
   const next = useCallback(
     async ({ nodeId, ...rest }: ProcessNextProps & { nodeId: string }) => {

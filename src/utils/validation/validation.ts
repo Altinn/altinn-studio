@@ -4,16 +4,13 @@ import {
   implementsEmptyFieldValidation,
   implementsSchemaValidation,
 } from 'src/layout';
-import { groupIsRepeatingExt } from 'src/layout/Group/tools';
 import { runExpressionValidationsOnNode } from 'src/utils/validation/expressionValidation';
 import { getSchemaValidationErrors } from 'src/utils/validation/schemaValidation';
 import { emptyValidation } from 'src/utils/validation/validationHelpers';
 import type { IAttachments, UploadedAttachment } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { CompGroupExternal } from 'src/layout/Group/config.generated';
-import type { CompInternal, CompOrGroupExternal, ILayout, ILayouts } from 'src/layout/layout';
-import type { IRepeatingGroups } from 'src/types';
+import type { CompInternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type {
   IComponentValidations,
@@ -85,45 +82,6 @@ export function runValidationOnNodes(
   }
 
   return validations;
-}
-
-/**
- * @deprecated
- * @see useExprContext
- * @see useResolvedNode
- * @see ResolvedNodesSelector
- */
-export function getParentGroup(groupId: string, layout: ILayout): CompGroupExternal | undefined {
-  if (!groupId || !layout) {
-    return undefined;
-  }
-  return layout.find((element) => {
-    if (element.id !== groupId && element.type === 'Group') {
-      const childrenWithoutMultiPage = element.children?.map((childId) =>
-        groupIsRepeatingExt(element) && element.edit?.multiPage ? childId.split(':')[1] : childId,
-      );
-      if (childrenWithoutMultiPage?.indexOf(groupId) > -1) {
-        return true;
-      }
-    }
-    return false;
-  }) as CompGroupExternal | undefined;
-}
-
-/**
- * @deprecated
- * @see useExprContext
- * @see useResolvedNode
- * @see ResolvedNodesSelector
- */
-export function getGroupChildren(groupId: string, layout: ILayout): CompOrGroupExternal[] {
-  const layoutGroup = layout.find((element) => element.id === groupId) as CompGroupExternal;
-  return layout.filter(
-    (element) =>
-      layoutGroup?.children
-        ?.map((id) => (groupIsRepeatingExt(layoutGroup) && layoutGroup.edit?.multiPage ? id.split(':')[1] : id))
-        .includes(element.id),
-  );
 }
 
 export function attachmentsValid(
@@ -244,145 +202,6 @@ export const getFormHasErrors = (validations: IValidations): boolean => {
   }
   return false;
 };
-
-/*
- * Removes the validations for a given group index and shifts higher indexes if necessary.
- * @param id the group id
- * @param index the index to remove
- * @param currentLayout the current layout
- * @param layout the layout state
- * @param repeatingGroups the repeating groups
- * @param validations the current validations
- * @returns a new validation object with the validations for the given group index removed
- */
-export function removeGroupValidationsByIndex(
-  id: string,
-  index: number,
-  currentLayout: string,
-  layout: ILayouts,
-  repeatingGroups: IRepeatingGroups,
-  validations: IValidations,
-  shift = true,
-): IValidations {
-  if (!validations[currentLayout]) {
-    return validations;
-  }
-  let result = JSON.parse(JSON.stringify(validations));
-  const indexedId = `${id}-${index}`;
-  const repeatingGroup = repeatingGroups[id];
-  delete result[currentLayout][indexedId];
-  const children = getGroupChildren(repeatingGroup.baseGroupId || id, layout[currentLayout] || []);
-  const parentGroup = getParentGroup(repeatingGroup.baseGroupId || id, layout[currentLayout] || []);
-
-  // Remove validations for child elements on given index
-  children?.forEach((element) => {
-    let childKey;
-    if (parentGroup) {
-      const splitId = id.split('-');
-      const parentIndex = splitId[splitId.length - 1];
-      childKey = `${element.id}-${parentIndex}-${index}`;
-    } else {
-      childKey = `${element.id}-${index}`;
-    }
-    if (element.type !== 'Group') {
-      // delete component directly
-      delete result[currentLayout][childKey];
-    } else {
-      // recursively call delete if we have a child group
-      const childGroupCount = repeatingGroups[`${element.id}-${index}`]?.index;
-      for (let i = 0; i <= childGroupCount; i++) {
-        result = removeGroupValidationsByIndex(
-          `${element.id}-${index}`,
-          i,
-          currentLayout,
-          layout,
-          repeatingGroups,
-          result,
-          false,
-        );
-      }
-    }
-  });
-
-  // Shift validations if necessary
-  if (shift && index < repeatingGroup.index + 1) {
-    for (let i = index + 1; i <= repeatingGroup.index + 1; i++) {
-      const key = `${id}-${i}`;
-      const newKey = `${id}-${i - 1}`;
-      delete result[currentLayout][key];
-      result[currentLayout][newKey] = validations[currentLayout][key];
-      children?.forEach((element) => {
-        let childKey;
-        let shiftKey;
-        if (parentGroup) {
-          const splitId = id.split('-');
-          const parentIndex = splitId[splitId.length - 1];
-          childKey = `${element.id}-${parentIndex}-${i}`;
-          shiftKey = `${element.id}-${parentIndex}-${i - 1}`;
-        } else {
-          childKey = `${element.id}-${i}`;
-          shiftKey = `${element.id}-${i - 1}`;
-        }
-        if (element.type !== 'Group') {
-          delete result[currentLayout][childKey];
-          result[currentLayout][shiftKey] = validations[currentLayout][childKey];
-        } else {
-          result = shiftChildGroupValidation(
-            element,
-            i,
-            result,
-            repeatingGroups,
-            layout[currentLayout] || [],
-            currentLayout,
-          );
-        }
-      });
-    }
-  }
-
-  return result;
-}
-
-function shiftChildGroupValidation(
-  group: CompGroupExternal,
-  indexToShiftFrom: number,
-  validations: IValidations,
-  repeatingGroups: IRepeatingGroups,
-  layout: ILayout,
-  currentLayout: string,
-) {
-  const result = structuredClone(validations);
-  const highestIndexOfChildGroup = getHighestIndexOfChildGroup(group.id, repeatingGroups);
-  const children = getGroupChildren(group.id, layout);
-
-  for (let i = indexToShiftFrom; i <= highestIndexOfChildGroup + 1; i++) {
-    const givenIndexCount = repeatingGroups[`${group.id}-${i}`]?.index ?? -1;
-    for (let childIndex = 0; childIndex < givenIndexCount + 1; childIndex++) {
-      const childGroupKey = `${group.id}-${i}-${childIndex}`;
-      const shiftGroupKey = `${group.id}-${i - 1}-${childIndex}`;
-      delete result[currentLayout][childGroupKey];
-      result[currentLayout][shiftGroupKey] = validations[currentLayout][childGroupKey];
-      children?.forEach((child) => {
-        const childKey = `${child.id}-${i}-${childIndex}`;
-        const shiftKey = `${child.id}-${i - 1}-${childIndex}`;
-        delete result[currentLayout][childKey];
-        result[currentLayout][shiftKey] = validations[currentLayout][childKey];
-      });
-    }
-  }
-  return result;
-}
-
-export function getHighestIndexOfChildGroup(group: string, repeatingGroups: IRepeatingGroups) {
-  if (!group || !repeatingGroups) {
-    return -1;
-  }
-  let index = 0;
-  while (repeatingGroups[`${group}-${index}`]?.index !== undefined) {
-    index += 1;
-  }
-  return index - 1;
-}
 
 export function missingFieldsInLayoutValidations(
   layoutValidations: ILayoutValidations,

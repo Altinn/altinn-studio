@@ -1,7 +1,7 @@
 import type { IInstance } from 'src/types/shared';
 
-export function getInstanceDataMock(): IInstance {
-  return {
+export function getInstanceDataMock(mutate?: (data: IInstance) => void): IInstance {
+  const out: IInstance = {
     instanceOwner: {
       partyId: '12345',
       personNumber: '01017512345',
@@ -57,4 +57,9 @@ export function getInstanceDataMock(): IInstance {
     status: null,
     title: null,
   };
+
+  if (mutate) {
+    mutate(out);
+  }
+  return out;
 }

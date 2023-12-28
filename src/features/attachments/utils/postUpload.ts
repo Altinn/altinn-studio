@@ -8,7 +8,7 @@ import type { ImmerReducer } from 'use-immer';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useMappedAttachments } from 'src/features/attachments/utils/mapping';
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstance, useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
@@ -278,10 +278,16 @@ const useRemove = (dispatch: Dispatch) => {
 
 function useAttachmentsAddTagMutation() {
   const { doAttachmentAddTag } = useAppMutations();
+  const instanceId = useLaxInstanceData()?.id;
 
   return useMutation({
-    mutationFn: ({ dataGuid, tagToAdd }: { dataGuid: string; tagToAdd: string }) =>
-      doAttachmentAddTag.call(dataGuid, tagToAdd),
+    mutationFn: ({ dataGuid, tagToAdd }: { dataGuid: string; tagToAdd: string }) => {
+      if (!instanceId) {
+        throw new Error('Missing instanceId, cannot add attachment');
+      }
+
+      return doAttachmentAddTag.call(instanceId, dataGuid, tagToAdd);
+    },
     onError: (error: HttpClientError) => {
       window.logError('Failed to add tag to attachment:\n', error);
     },
@@ -290,10 +296,16 @@ function useAttachmentsAddTagMutation() {
 
 function useAttachmentsRemoveTagMutation() {
   const { doAttachmentRemoveTag } = useAppMutations();
+  const instanceId = useLaxInstanceData()?.id;
 
   return useMutation({
-    mutationFn: ({ dataGuid, tagToRemove }: { dataGuid: string; tagToRemove: string }) =>
-      doAttachmentRemoveTag.call(dataGuid, tagToRemove),
+    mutationFn: ({ dataGuid, tagToRemove }: { dataGuid: string; tagToRemove: string }) => {
+      if (!instanceId) {
+        throw new Error('Missing instanceId, cannot remove attachment');
+      }
+
+      return doAttachmentRemoveTag.call(instanceId, dataGuid, tagToRemove);
+    },
     onError: (error: HttpClientError) => {
       window.logError('Failed to remove tag from attachment:\n', error);
     },
@@ -302,9 +314,16 @@ function useAttachmentsRemoveTagMutation() {
 
 function useAttachmentsRemoveMutation() {
   const { doAttachmentRemove } = useAppMutations();
+  const instanceId = useLaxInstanceData()?.id;
 
   return useMutation({
-    mutationFn: (dataGuid: string) => doAttachmentRemove.call(dataGuid),
+    mutationFn: (dataGuid: string) => {
+      if (!instanceId) {
+        throw new Error('Missing instanceId, cannot remove attachment');
+      }
+
+      return doAttachmentRemove.call(instanceId, dataGuid);
+    },
     onError: (error: HttpClientError) => {
       window.logError('Failed to delete attachment:\n', error);
     },

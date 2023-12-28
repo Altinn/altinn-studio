@@ -8,29 +8,23 @@ import cn from 'classnames';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
+import { useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
+import { RepeatingGroupEditRowProvider, useRepeatingGroupEdit } from 'src/layout/Group/RepeatingGroupsEditContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import type { CompGroupRepeatingInternal, IGroupEditPropertiesInternal } from 'src/layout/Group/config.generated';
-import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 
 export interface IRepeatingGroupsEditContainer {
-  node: LayoutNodeForGroup<CompGroupRepeatingInternal>;
-  className?: string;
-  deleting?: boolean;
   editIndex: number;
-  setEditIndex: (index: number, forceValidation?: boolean) => void;
-  onClickRemove?: (groupIndex: number) => void;
+  className?: string;
   forceHideSaveButton?: boolean;
-  multiPageIndex?: number;
-  setMultiPageIndex?: (index: number) => void;
 }
 
 export function RepeatingGroupsEditContainer({
-  node,
   editIndex,
   ...props
 }: IRepeatingGroupsEditContainer): JSX.Element | null {
+  const { node } = useRepeatingGroup();
   const group = node.item;
-
   const row = group.rows[editIndex];
 
   if (!row) {
@@ -43,32 +37,34 @@ export function RepeatingGroupsEditContainer({
   }
 
   return (
-    <RepeatingGroupsEditContainerInternal
+    <RepeatingGroupEditRowProvider
       node={node}
       editIndex={editIndex}
-      group={group}
-      row={row}
-      {...props}
-    />
+    >
+      <RepeatingGroupsEditContainerInternal
+        editIndex={editIndex}
+        group={group}
+        row={row}
+        {...props}
+      />
+    </RepeatingGroupEditRowProvider>
   );
 }
 
 function RepeatingGroupsEditContainerInternal({
-  node,
   className,
-  deleting,
   editIndex,
-  setEditIndex,
-  onClickRemove,
   forceHideSaveButton,
-  multiPageIndex,
-  setMultiPageIndex,
   group,
   row,
 }: IRepeatingGroupsEditContainer & {
   group: CompGroupRepeatingInternal;
   row: CompGroupRepeatingInternal['rows'][number];
 }): JSX.Element | null {
+  const { node, closeForEditing, deleteRow, openNextForEditing, isDeleting, moreVisibleRowsAfterEditIndex } =
+    useRepeatingGroup();
+  const { multiPageEnabled, multiPageIndex, nextMultiPage, prevMultiPage, hasNextMultiPage, hasPrevMultiPage } =
+    useRepeatingGroupEdit();
   const id = node.item.id;
   const textsForRow = row.groupExpressions?.textResourceBindings;
   const editForRow = row.groupExpressions?.edit;
@@ -84,42 +80,9 @@ function RepeatingGroupsEditContainerInternal({
     ...textsForRow,
   };
 
-  const nextDisplayedGroup = () => {
-    const nextDisplayedIndex = group.rows.findIndex(
-      (group, idx) => idx > editIndex && group && !group.groupExpressions?.hiddenRow,
-    );
-    return nextDisplayedIndex > -1 ? nextDisplayedIndex : null;
-  };
-
-  const nextIndex: number | null = nextDisplayedGroup();
-
-  const saveClicked = () => {
-    setEditIndex(-1);
-  };
-
-  const nextClicked = () => {
-    if (nextIndex !== null) {
-      setEditIndex && setEditIndex(nextIndex, true);
-      if (edit.multiPage) {
-        setMultiPageIndex && setMultiPageIndex(0);
-      }
-    }
-  };
-
-  const removeClicked = () => {
-    onClickRemove && onClickRemove(editIndex);
-    if (edit.multiPage) {
-      setMultiPageIndex && setMultiPageIndex(0);
-    }
-  };
-
   const getGenericComponentsToRender = (): (JSX.Element | null)[] =>
     rowItems.map((n): JSX.Element | null => {
-      const isOnOtherMultiPage =
-        edit?.multiPage &&
-        typeof multiPageIndex === 'number' &&
-        multiPageIndex > -1 &&
-        n.item.multiPageIndex !== multiPageIndex;
+      const isOnOtherMultiPage = multiPageEnabled && n.item.multiPageIndex !== multiPageIndex;
 
       if (isOnOtherMultiPage) {
         return null;
@@ -144,8 +107,10 @@ function RepeatingGroupsEditContainerInternal({
 
   const isNested = typeof group.baseComponentId === 'string';
   const saveButtonVisible =
-    !forceHideSaveButton && (edit?.saveButton !== false || (edit.saveAndNextButton === true && nextIndex === null));
-  const saveAndNextButtonVisible = !forceHideSaveButton && edit.saveAndNextButton === true && nextIndex !== null;
+    !forceHideSaveButton &&
+    (edit?.saveButton !== false || (edit.saveAndNextButton === true && !moreVisibleRowsAfterEditIndex));
+  const saveAndNextButtonVisible =
+    !forceHideSaveButton && edit.saveAndNextButton === true && moreVisibleRowsAfterEditIndex;
 
   const hideTable = edit.mode === 'hideTable' || edit.mode === 'showAll';
 
@@ -175,8 +140,8 @@ function RepeatingGroupsEditContainerInternal({
               size='small'
               icon={<DeleteIcon />}
               iconPlacement='right'
-              disabled={deleting}
-              onClick={removeClicked}
+              disabled={isDeleting(editIndex)}
+              onClick={() => deleteRow(editIndex)}
               data-testid='delete-button'
             >
               <Lang id={'general.delete'} />
@@ -207,37 +172,33 @@ function RepeatingGroupsEditContainerInternal({
               spacing={1}
               style={{ marginBottom: 12 }}
             >
-              {typeof multiPageIndex === 'number' &&
-                multiPageIndex > 0 &&
-                rowItems.filter((n) => n.item.multiPageIndex === multiPageIndex - 1).length > 0 && (
-                  <Grid item={true}>
-                    <Button
-                      icon={<Back aria-hidden='true' />}
-                      size='small'
-                      variant='tertiary'
-                      color='second'
-                      onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex - 1)}
-                    >
-                      <Lang id={'general.back'} />
-                    </Button>
-                  </Grid>
-                )}
-              {typeof multiPageIndex === 'number' &&
-                multiPageIndex > -1 &&
-                rowItems.filter((n) => n.item.multiPageIndex === multiPageIndex + 1).length > 0 && (
-                  <Grid item={true}>
-                    <Button
-                      icon={<Next aria-hidden='true' />}
-                      iconPlacement='right'
-                      size='small'
-                      variant='tertiary'
-                      color='second'
-                      onClick={() => setMultiPageIndex && setMultiPageIndex(multiPageIndex + 1)}
-                    >
-                      <Lang id={'general.next'} />
-                    </Button>
-                  </Grid>
-                )}
+              {hasPrevMultiPage && (
+                <Grid item={true}>
+                  <Button
+                    icon={<Back aria-hidden='true' />}
+                    size='small'
+                    variant='tertiary'
+                    color='second'
+                    onClick={() => prevMultiPage()}
+                  >
+                    <Lang id={'general.back'} />
+                  </Button>
+                </Grid>
+              )}
+              {hasNextMultiPage && (
+                <Grid item={true}>
+                  <Button
+                    icon={<Next aria-hidden='true' />}
+                    iconPlacement='right'
+                    size='small'
+                    variant='tertiary'
+                    color='second'
+                    onClick={() => nextMultiPage()}
+                  >
+                    <Lang id={'general.next'} />
+                  </Button>
+                </Grid>
+              )}
             </Grid>
           )}
           <Grid
@@ -249,7 +210,7 @@ function RepeatingGroupsEditContainerInternal({
               <Grid item={true}>
                 <Button
                   id={`next-button-grp-${id}`}
-                  onClick={nextClicked}
+                  onClick={() => openNextForEditing()}
                   variant='primary'
                   color='first'
                   size='small'
@@ -262,7 +223,7 @@ function RepeatingGroupsEditContainerInternal({
               <Grid item={true}>
                 <Button
                   id={`add-button-grp-${id}`}
-                  onClick={saveClicked}
+                  onClick={() => closeForEditing(editIndex)}
                   variant={saveAndNextButtonVisible ? 'secondary' : 'primary'}
                   color='first'
                   size='small'

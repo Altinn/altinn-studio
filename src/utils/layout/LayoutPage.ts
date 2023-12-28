@@ -141,7 +141,9 @@ export class LayoutPage implements LayoutObject {
     return runValidationOnNodes(this.allChildren, validationCtxGenerator);
   }
 
-  public isHiddenViaTracks(uiConfig: IUiConfig): boolean {
+  public isHiddenViaTracks(
+    uiConfig: Pick<IUiConfig, 'currentView' | 'receiptLayoutName' | 'pdfLayoutName' | 'pageOrderConfig'>,
+  ): boolean {
     const myKey = this.top.myKey;
     if (myKey === uiConfig.currentView) {
       // If this is the current view, then it's never hidden. This avoids settings fields as hidden when

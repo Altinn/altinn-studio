@@ -4,9 +4,10 @@ import { screen } from '@testing-library/react';
 
 import { Caption } from 'src/components/form/Caption';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import type { CaptionProps } from 'src/components/form/Caption';
 
 describe('Caption', () => {
-  const render = async (props) =>
+  const render = async (props?: Partial<CaptionProps>) =>
     await renderWithoutInstanceAndLayout({
       renderer: () => (
         <table>
@@ -20,13 +21,13 @@ describe('Caption', () => {
     });
 
   it('provides table with accessible title', async () => {
-    await render({});
+    await render();
     const title = screen.getByRole('table', { name: /title test description test/i });
     expect(title).toBeInTheDocument();
   });
 
   it('provides an optional indicator', async () => {
-    await render({ requried: false, labelSettings: { optionalIndicator: true } });
+    await render({ required: false, labelSettings: { optionalIndicator: true } });
     const title = screen.getByRole('table', { name: /title test \(valgfri\) description test/i });
     expect(title).toBeInTheDocument();
   });

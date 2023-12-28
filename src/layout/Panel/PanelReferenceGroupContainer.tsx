@@ -9,10 +9,7 @@ import { EditIconButton } from 'src/components/EditIconButton';
 import { FullWidthGroupWrapper } from 'src/components/form/FullWidthGroupWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { getVariant } from 'src/components/form/Panel';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { Lang } from 'src/features/language/Lang';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { CustomIcon } from 'src/layout/Panel/CustomPanelIcon';
 import type { CompGroupNonRepeatingPanelInternal } from 'src/layout/Group/config.generated';
@@ -23,9 +20,6 @@ export interface IPanelGroupContainerProps {
 }
 
 export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps) {
-  const dispatch = useAppDispatch();
-  const { pageKey } = useNavigationParams();
-
   const container = node.item.panel ? node.item : undefined;
   const [open, setOpen] = useState<boolean>(!container?.panel?.groupReference);
   const hidden = node.isHidden();
@@ -40,12 +34,7 @@ export function PanelReferenceGroupContainer({ node }: IPanelGroupContainerProps
     setOpen(false);
     if (referencedGroupNode) {
       // Adds a new row to the referenced group, making the one we made here visible
-      dispatch(
-        FormLayoutActions.repGroupAddRow({
-          groupId: referencedGroupNode.item.id,
-          currentPageId: pageKey,
-        }),
-      );
+      // TODO: This code will be removed, so there's no need to implement this
     }
   };
 

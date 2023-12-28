@@ -1,7 +1,7 @@
 import type { IProcess } from 'src/types/shared';
 
-export function getProcessDataMock(): IProcess {
-  return {
+export function getProcessDataMock(mutate?: (process: IProcess) => void): IProcess {
+  const out: IProcess = {
     started: '2020-01-01',
     startEvent: null,
     currentTask: {
@@ -16,4 +16,10 @@ export function getProcessDataMock(): IProcess {
     ended: null,
     endEvent: null,
   };
+
+  if (mutate) {
+    mutate(out);
+  }
+
+  return out;
 }

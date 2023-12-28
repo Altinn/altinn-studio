@@ -24,7 +24,6 @@ import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/Ap
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
-import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
@@ -35,7 +34,6 @@ import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import * as queries from 'src/queries/queries';
 import { initSagas } from 'src/redux/sagas';
 import { setupStore } from 'src/redux/store';
-import { ExprContextWrapper } from 'src/utils/layout/ExprContext';
 
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
@@ -74,39 +72,35 @@ document.addEventListener('DOMContentLoaded', () => {
 function Root() {
   return (
     <InstantiationProvider>
-      <PageNavigationProvider>
-        <ExprContextWrapper>
-          <ApplicationMetadataProvider>
-            <OrgsProvider>
-              <ApplicationSettingsProvider>
-                <LayoutSetsProvider>
-                  <FooterLayoutProvider>
-                    <ProfileProvider>
-                      <PartyProvider>
-                        <TextResourcesProvider>
-                          <KeepAliveProvider>
-                            <WindowTitleProvider>
-                              <DevTools>
-                                <App />
-                                <ToastContainer
-                                  position='top-center'
-                                  theme='colored'
-                                  transition={Slide}
-                                  draggable={false}
-                                />
-                              </DevTools>
-                            </WindowTitleProvider>
-                          </KeepAliveProvider>
-                        </TextResourcesProvider>
-                      </PartyProvider>
-                    </ProfileProvider>
-                  </FooterLayoutProvider>
-                </LayoutSetsProvider>
-              </ApplicationSettingsProvider>
-            </OrgsProvider>
-          </ApplicationMetadataProvider>
-        </ExprContextWrapper>
-      </PageNavigationProvider>
+      <ApplicationMetadataProvider>
+        <OrgsProvider>
+          <ApplicationSettingsProvider>
+            <LayoutSetsProvider>
+              <FooterLayoutProvider>
+                <ProfileProvider>
+                  <PartyProvider>
+                    <TextResourcesProvider>
+                      <KeepAliveProvider>
+                        <WindowTitleProvider>
+                          <DevTools>
+                            <App />
+                            <ToastContainer
+                              position='top-center'
+                              theme='colored'
+                              transition={Slide}
+                              draggable={false}
+                            />
+                          </DevTools>
+                        </WindowTitleProvider>
+                      </KeepAliveProvider>
+                    </TextResourcesProvider>
+                  </PartyProvider>
+                </ProfileProvider>
+              </FooterLayoutProvider>
+            </LayoutSetsProvider>
+          </ApplicationSettingsProvider>
+        </OrgsProvider>
+      </ApplicationMetadataProvider>
     </InstantiationProvider>
   );
 }

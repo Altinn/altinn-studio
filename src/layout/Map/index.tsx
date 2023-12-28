@@ -14,12 +14,12 @@ export class Map extends MapDef {
     return <MapComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNode<'Map'>, { formData }): string {
+  getDisplayData(node: LayoutNode<'Map'>): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    return formData[node.item.dataModelBindings.simpleBinding] || '';
+    return node.getFormData().simpleBinding ?? '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Map'>): JSX.Element | null {

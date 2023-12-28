@@ -1,19 +1,18 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { Form } from 'src/components/form/Form';
+import { Form, FormFirstPage } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useIsStatelessApp } from 'src/features/applicationMetadata/appMetadataUtils';
+import { LayoutValidationProvider } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { useCurrentParty, useCurrentPartyIsValid } from 'src/features/party/PartiesProvider';
-import { ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { useAllowAnonymousIs } from 'src/features/stateless/getAllowAnonymous';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { PageKeys } from 'src/hooks/useNavigatePage';
 import { usePromptForParty } from 'src/hooks/usePromptForParty';
 import { PresentationType } from 'src/types';
 import type { ShowTypes } from 'src/features/applicationMetadata';
@@ -61,18 +60,22 @@ export function Entrypoint() {
   if (isStateless) {
     return (
       <FormProvider>
-        <PresentationComponent type={PresentationType.Stateless}>
+        <LayoutValidationProvider>
           <Routes>
             <Route
-              path={PageKeys.Receipt}
-              element={<ReceiptContainer />}
+              path=':pageKey'
+              element={
+                <PresentationComponent type={PresentationType.Stateless}>
+                  <Form />
+                </PresentationComponent>
+              }
             />
             <Route
-              path=':pageKey'
-              element={<Form />}
+              path='*'
+              element={<FormFirstPage />}
             />
           </Routes>
-        </PresentationComponent>
+        </LayoutValidationProvider>
       </FormProvider>
     );
   }

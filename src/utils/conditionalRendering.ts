@@ -1,19 +1,16 @@
-import type {
-  IConditionalRenderingRule,
-  IConditionalRenderingRules,
-  IParameters,
-  ISelectedFields,
-} from 'src/features/form/dynamics';
-import type { IFormData } from 'src/features/formData';
-import type { IRepeatingGroups } from 'src/types';
+import dot from 'dot-object';
+
+import { splitDashedKey } from 'src/utils/formLayout';
+import type { IConditionalRenderingRule, IConditionalRenderingRules } from 'src/features/form/dynamics';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 /**
  * Runs conditional rendering rules, returns Set of hidden component IDs
  */
 export function runConditionalRenderingRules(
   rules: IConditionalRenderingRules | null,
-  formData: IFormData | null,
-  repeatingGroups: IRepeatingGroups | null,
+  nodes: LayoutPages,
 ): Set<string> {
   const componentsToHide = new Set<string>();
   if (!window.conditionalRuleHandlerHelper) {
@@ -25,6 +22,7 @@ export function runConditionalRenderingRules(
     return componentsToHide;
   }
 
+  const topLevelNode = nodes.allNodes()[0] as LayoutNode | undefined;
   for (const key of Object.keys(rules)) {
     if (!key) {
       continue;
@@ -32,96 +30,66 @@ export function runConditionalRenderingRules(
 
     const connection: IConditionalRenderingRule = rules[key];
     if (connection.repeatingGroup) {
-      const repeatingGroup = repeatingGroups && repeatingGroups[connection.repeatingGroup.groupId];
-      if (!repeatingGroup) {
-        continue;
-      }
-
-      for (let index = 0; index <= repeatingGroup.index; index++) {
-        const connectionCopy = structuredClone(connection);
-        connectionCopy.inputParams = mapRepeatingGroupIndex({
-          ruleObject: connectionCopy.inputParams,
-          index,
-          dataModelField: true,
-        });
-        connectionCopy.selectedFields = mapRepeatingGroupIndex({
-          ruleObject: connectionCopy.selectedFields,
-          index,
-        });
-
-        if (connection.repeatingGroup.childGroupId) {
-          const childGroup = repeatingGroups && repeatingGroups[`${connection.repeatingGroup.childGroupId}-${index}`];
-          if (childGroup) {
-            for (let childIndex = 0; childIndex <= childGroup?.index; childIndex++) {
-              const connectionNestedCopy = structuredClone(connectionCopy);
-              connectionNestedCopy.inputParams = mapRepeatingGroupIndex({
-                ruleObject: connectionCopy.inputParams,
-                index: childIndex,
-                dataModelField: true,
-                nested: true,
-              });
-              connectionNestedCopy.selectedFields = mapRepeatingGroupIndex({
-                ruleObject: connectionCopy.selectedFields,
-                index: childIndex,
-                nested: true,
-              });
-              runConditionalRenderingRule(connectionNestedCopy, formData, componentsToHide);
+      const node = nodes.findById(connection.repeatingGroup.groupId);
+      if (node?.isType('Group') && node.isRepGroup()) {
+        for (const row of node.item.rows) {
+          const firstChild = row.items[0] as LayoutNode | undefined;
+          runConditionalRenderingRule(connection, firstChild, componentsToHide);
+          if (connection.repeatingGroup.childGroupId) {
+            const childId = `${connection.repeatingGroup.childGroupId}-${row.index}`;
+            const childNode = node.flat(true, row.index).find((n) => n.item.id === childId);
+            if (childNode && childNode.isType('Group') && childNode.isRepGroup()) {
+              for (const childRow of childNode.item.rows) {
+                const firstNestedChild = childRow.items[0] as LayoutNode | undefined;
+                runConditionalRenderingRule(connection, firstNestedChild, componentsToHide);
+              }
             }
           }
         }
-        runConditionalRenderingRule(connectionCopy, formData, componentsToHide);
       }
     } else {
-      runConditionalRenderingRule(connection, formData, componentsToHide);
+      runConditionalRenderingRule(connection, topLevelNode, componentsToHide);
     }
   }
 
   return componentsToHide;
 }
 
-interface MapRepeatingGroupIndexParams {
-  ruleObject: IParameters | ISelectedFields;
-  index: number;
-  dataModelField?: boolean;
-  nested?: boolean;
-}
-
-function mapRepeatingGroupIndex({
-  ruleObject,
-  index,
-  dataModelField = false,
-  nested = false,
-}: MapRepeatingGroupIndexParams) {
-  const result: any = {};
-  Object.keys(ruleObject).forEach((key) => {
-    const field = ruleObject[key];
-    result[key] = field.replace(nested ? '{1}' : '{0}', dataModelField ? `[${index}]` : `-${index}`);
-  });
-  return result;
-}
-
 function runConditionalRenderingRule(
   rule: IConditionalRenderingRule,
-  formData: IFormData | null,
+  node: LayoutNode | undefined,
   hiddenFields: Set<string>,
 ) {
   const functionToRun = rule.selectedFunction;
   const objectToUpdate = window.conditionalRuleHandlerHelper[functionToRun]();
+  const formData = node?.getDataSources().formData || {};
 
-  // Map input object structure to input object defined in the conditional rendering rule connection
-  const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
-    const selectedParam: string = rule.inputParams[elem];
-    acc[elem] = formData ? formData[selectedParam] : null;
-    return acc;
-  }, {});
+  const inputObj = {} as Record<string, string | number | boolean | null>;
+  for (const key of Object.keys(objectToUpdate)) {
+    const param = rule.inputParams[key].replace(/{\d+}/g, '');
+    const transposed = node?.transposeDataModel(param) ?? param;
+    const value = dot.pick(transposed, formData);
 
-  const result = window.conditionalRuleHandlerObject[functionToRun](newObj);
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      inputObj[key] = value;
+    } else {
+      inputObj[key] = null;
+    }
+  }
+
+  const result = window.conditionalRuleHandlerObject[functionToRun](inputObj);
   const action = rule.selectedAction;
   const hide = (action === 'Show' && !result) || (action === 'Hide' && result);
-  Object.keys(rule.selectedFields).forEach((elementToPerformActionOn) => {
+
+  const splitId = splitDashedKey(node?.item.id ?? '');
+  for (const elementToPerformActionOn of Object.keys(rule.selectedFields)) {
     if (elementToPerformActionOn && hide) {
-      const elementId = rule.selectedFields[elementToPerformActionOn];
+      const elementId = rule.selectedFields[elementToPerformActionOn].replace(/{\d+}/g, (match) => {
+        const index = match.replace(/[{}]/g, '');
+        return `-${splitId.depth[index]}`;
+      });
+
       hiddenFields.add(elementId);
     }
-  });
+  }
 }

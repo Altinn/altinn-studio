@@ -13,21 +13,21 @@ describe('Options', () => {
     // Make sure we wait until the option is visible, as it's not instant
     cy.get('[role=option][value="nordmann"]').should('exist');
 
-    cy.get(appFrontend.changeOfName.reference).dsSelect('Ola Nordmann');
+    cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
 
     //Secure options
     cy.get(appFrontend.changeOfName.reference2).get('[role=option][value=1]').should('exist');
-    cy.get(appFrontend.changeOfName.reference2).dsSelect('Ole');
+    cy.dsSelect(appFrontend.changeOfName.reference2, 'Ole');
     cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Ole');
 
     // Select a different source, expect previous selection to be cleared and
     // new value to be selectable in the reference option
-    cy.get(appFrontend.changeOfName.sources).dsSelect('Digitaliseringsdirektoratet');
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
     cy.get(appFrontend.changeOfName.reference).and('have.value', '');
-    cy.get(appFrontend.changeOfName.reference).dsSelect('Sophie Salt');
+    cy.dsSelect(appFrontend.changeOfName.reference, 'Sophie Salt');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Sophie Salt');
-    cy.get(appFrontend.changeOfName.reference2).dsSelect('Dole');
+    cy.dsSelect(appFrontend.changeOfName.reference2, 'Dole');
     cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Dole');
   });
 
@@ -108,14 +108,14 @@ describe('Options', () => {
     cy.get('@interceptOptions(references).all').should('have.length', 2);
     cy.get('@interceptOptions(test).all').should('have.length', 2);
 
-    cy.get(appFrontend.changeOfName.reference).dsSelect('My fixed value');
+    cy.dsSelect(appFrontend.changeOfName.reference, 'My fixed value');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'My fixed value');
-    cy.get(appFrontend.changeOfName.reference2).dsSelect('My fixed value');
+    cy.dsSelect(appFrontend.changeOfName.reference2, 'My fixed value');
     cy.get(appFrontend.changeOfName.reference2).should('have.value', 'My fixed value');
 
     // Selecting a new source now causes requests to fire once more with new mapping,
     // but the fixed value should stay in place as they were present in both the old and new options responses
-    cy.get(appFrontend.changeOfName.sources).dsSelect('Digitaliseringsdirektoratet');
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
     cy.get('@interceptOptions(references).all').should('have.length', 3);
     cy.get('@interceptOptions(test).all').should('have.length', 3);
@@ -129,7 +129,7 @@ describe('Options', () => {
     cy.goto('changename');
     cy.wait('@optionsMunicipality');
 
-    cy.get(appFrontend.changeOfName.municipality).dsSelect('Oslo');
+    cy.dsSelect(appFrontend.changeOfName.municipality, 'Oslo');
 
     cy.get(appFrontend.changeOfName.municipalityMetadata)
       .should('have.prop', 'value')

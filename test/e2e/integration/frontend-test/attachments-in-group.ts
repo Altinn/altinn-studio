@@ -1,8 +1,12 @@
+import dot from 'dot-object';
+import deepEqual from 'fast-deep-equal';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import type { makeUploaderSelectors } from 'test/e2e/pageobjects/app-frontend';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
+import { flattenObject } from 'src/utils/databindings';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 
 const appFrontend = new AppFrontend();
@@ -12,7 +16,7 @@ interface IUploadFileArgs {
   idx: number;
   fileName: string;
   verifyTableRow: boolean;
-  tableRow;
+  tableRow: any;
   secondPage?: boolean;
 }
 
@@ -38,7 +42,7 @@ describe('Repeating group attachments', () => {
     gotoSecondPage();
   });
 
-  const makeTestFile = (fileName) => ({
+  const makeTestFile = (fileName: string) => ({
     fileName,
     mimeType: 'application/pdf',
     lastModified: Date.now(),
@@ -69,8 +73,7 @@ describe('Repeating group attachments', () => {
 
     const attachment = item.attachments(idx);
     if (attachment.tagSelector !== undefined && attachment.tagSave !== undefined) {
-      cy.get(attachment.tagSelector).should('not.be.disabled');
-      cy.get(attachment.tagSelector).dsSelect('Altinn');
+      cy.dsSelect(attachment.tagSelector, 'Altinn');
       cy.get(attachment.tagSave).click();
     }
 
@@ -87,56 +90,63 @@ describe('Repeating group attachments', () => {
     }
   };
 
-  const getAttachmentState = () =>
-    cy.getReduxState((state) => {
-      const attachments = state.deprecated.lastKnownAttachments || {};
-      const keys = Object.keys(attachments);
-      const out: { [componentId: string]: string[] } = {};
+  const expectAttachmentsToBe = (expected: any) =>
+    cy.waitUntil(() =>
+      cy.window().then((win) => {
+        const attachments = win.CypressState?.attachments || {};
+        const keys = Object.keys(attachments);
+        const actual: { [componentId: string]: string[] } = {};
 
-      for (const componentId of keys) {
-        if (!componentId.startsWith('mainUploader') && !componentId.startsWith('subUploader')) {
-          continue;
-        }
+        for (const componentId of keys) {
+          if (!componentId.startsWith('mainUploader') && !componentId.startsWith('subUploader')) {
+            continue;
+          }
 
-        const attachmentsForComponent = attachments[componentId] || [];
-        for (const attachment of attachmentsForComponent) {
-          out[componentId] = out[componentId] || [];
-          out[componentId].push(attachment.data.filename || '');
-        }
-      }
-
-      return out;
-    });
-
-  const getFormDataState = () =>
-    cy.getReduxState((state) => {
-      const formData = state.formData.formData;
-      const out: [string, string][] = [];
-      const idToNameMapping: { [attachmentId: string]: string } = {};
-
-      for (const attachmentList of Object.values(state.deprecated.lastKnownAttachments || {})) {
-        for (const attachment of attachmentList || []) {
-          if (isAttachmentUploaded(attachment)) {
-            const id = attachment.data.id;
-            idToNameMapping[id] = attachment.data.filename ?? id;
+          const attachmentsForComponent = attachments[componentId] || [];
+          for (const attachment of attachmentsForComponent) {
+            actual[componentId] = actual[componentId] || [];
+            actual[componentId].push(attachment.data.filename || '');
           }
         }
-      }
 
-      const expectedPrefix = 'Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788';
-      for (const key of Object.keys(formData)) {
-        if (key.startsWith(expectedPrefix) && key.includes('fileUpload')) {
-          const uuid = formData[key];
-          if (idToNameMapping[uuid]) {
-            out.push([key.replace(expectedPrefix, ''), idToNameMapping[uuid]]);
-          } else {
-            out.push([key.replace(expectedPrefix, ''), uuid]);
+        return deepEqual(expected, actual);
+      }),
+    );
+
+  const expectFormDataToBe = (expected: any) =>
+    cy.waitUntil(() =>
+      cy.window().then((win) => {
+        const formData = win.CypressState?.formData || {};
+        const actual: [string, string][] = [];
+        const idToNameMapping: { [attachmentId: string]: string } = {};
+
+        for (const attachmentList of Object.values(win.CypressState?.attachments || {})) {
+          for (const attachment of attachmentList || []) {
+            if (isAttachmentUploaded(attachment)) {
+              const id = attachment.data.id;
+              idToNameMapping[id] = attachment.data.filename ?? id;
+            }
           }
         }
-      }
 
-      return out.sort();
-    });
+        const expectedPrefix = 'Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788';
+        const innerObj = dot.pick(expectedPrefix, formData);
+        const innerFlat = flattenObject(innerObj);
+        for (const key of Object.keys(innerFlat)) {
+          if (key.includes('fileUpload')) {
+            const uuid = innerFlat[key];
+            if (idToNameMapping[uuid]) {
+              actual.push([key.replace(expectedPrefix, ''), idToNameMapping[uuid]]);
+            } else {
+              actual.push([key.replace(expectedPrefix, ''), uuid]);
+            }
+          }
+        }
+
+        const actualSorted = actual.sort();
+        return deepEqual(expected, actualSorted);
+      }),
+    );
 
   const interceptFormDataSave = () => {
     cy.intercept('PUT', getInstanceIdRegExp({ prefix: 'instances', postfix: 'data' })).as('saveInstanceData');
@@ -174,7 +184,7 @@ describe('Repeating group attachments', () => {
       tableRow: appFrontend.group.row(0),
       secondPage: true,
     });
-    getAttachmentState().should('deep.equal', {
+    expectAttachmentsToBe({
       [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[0].single],
     });
 
@@ -225,6 +235,9 @@ describe('Repeating group attachments', () => {
       cy.get(appFrontend.group.row(row).editBtn).click();
       gotoSecondPage();
       filenames[row].nested.forEach((nestedRow, nestedRowIdx) => {
+        if (nestedRowIdx === 0) {
+          cy.get(appFrontend.group.row(row).nestedGroup.row(nestedRowIdx).editBtn).click();
+        }
         nestedRow.forEach((fileName, idx) => {
           uploadFile({
             item: appFrontend.group.row(row).nestedGroup.row(nestedRowIdx).uploadTagMulti,
@@ -247,7 +260,7 @@ describe('Repeating group attachments', () => {
       cy.get(appFrontend.group.saveMainGroup).should('not.exist');
     });
 
-    getAttachmentState().should('deep.equal', {
+    expectAttachmentsToBe({
       [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[0].single],
       [appFrontend.group.row(0).uploadMulti.stateKey]: filenames[0].multi,
       [appFrontend.group.row(1).uploadSingle.stateKey]: [filenames[1].single],
@@ -321,7 +334,7 @@ describe('Repeating group attachments', () => {
     verifyPreview();
     cy.get(appFrontend.group.row(1).editBtn).click();
 
-    const expectedAttachmentState = {
+    const attachmentState = {
       [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[0].single],
       [appFrontend.group.row(0).uploadMulti.stateKey]: [filenames[0].multi[0], filenames[0].multi[2]],
       [appFrontend.group.row(1).uploadSingle.stateKey]: [filenames[1].single],
@@ -335,7 +348,7 @@ describe('Repeating group attachments', () => {
       ],
     };
 
-    const expectedFormData = [
+    const formData = [
       ['[0].fileUpload', filenames[0].single],
       ['[0].fileUploadList[0]', filenames[0].multi[0]],
       ['[0].fileUploadList[1]', filenames[0].multi[2]],
@@ -362,8 +375,8 @@ describe('Repeating group attachments', () => {
       ['[1].nested-grp-1234[1].fileUploadList[1]', filenames[1].nested[1][2]],
     ].sort();
 
-    getAttachmentState().should('deep.equal', expectedAttachmentState);
-    getFormDataState().should('deep.equal', expectedFormData);
+    expectAttachmentsToBe(attachmentState);
+    expectFormDataToBe(formData);
 
     if (runReloadTests) {
       // Reload tha page at this point to verify that attachments are mapped correctly from formData back to the
@@ -371,8 +384,8 @@ describe('Repeating group attachments', () => {
       cy.reload();
       cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
 
-      getFormDataState().should('deep.equal', expectedFormData);
-      getAttachmentState().should('deep.equal', expectedAttachmentState);
+      expectFormDataToBe(formData);
+      expectAttachmentsToBe(attachmentState);
     } else {
       cy.get(appFrontend.group.saveMainGroup).click();
       cy.get(appFrontend.group.saveMainGroup).should('not.exist');
@@ -386,7 +399,7 @@ describe('Repeating group attachments', () => {
 
     waitForFormDataSave();
 
-    const expectedAttachmentStateAfterDeletingFirstNestedRow = {
+    const attachmentStateAfterDeletingFirstNestedRow = {
       [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[0].single],
       [appFrontend.group.row(0).uploadMulti.stateKey]: [filenames[0].multi[0], filenames[0].multi[2]],
       [appFrontend.group.row(1).uploadSingle.stateKey]: [filenames[1].single],
@@ -399,7 +412,7 @@ describe('Repeating group attachments', () => {
       ],
     };
 
-    const expectedFormDataAfterDeletingFirstNestedRow = [
+    const formDataAfterDeletingFirstNestedRow = [
       ['[0].fileUpload', filenames[0].single],
       ['[0].fileUploadList[0]', filenames[0].multi[0]],
       ['[0].fileUploadList[1]', filenames[0].multi[2]],
@@ -430,8 +443,8 @@ describe('Repeating group attachments', () => {
     );
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
 
-    getFormDataState().should('deep.equal', expectedFormDataAfterDeletingFirstNestedRow);
-    getAttachmentState().should('deep.equal', expectedAttachmentStateAfterDeletingFirstNestedRow);
+    expectFormDataToBe(formDataAfterDeletingFirstNestedRow);
+    expectAttachmentsToBe(attachmentStateAfterDeletingFirstNestedRow);
 
     // Delete the entire first row. This should cascade down and delete all attachments inside that row, and inside
     // nested rows.
@@ -442,7 +455,7 @@ describe('Repeating group attachments', () => {
     verifyPreview(true);
     waitForFormDataSave();
 
-    const expectedAttachmentStateAfterDeletingFirstRow = {
+    const attachmentStateAfterDeletingFirstRow = {
       [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[1].single],
       [appFrontend.group.row(0).uploadMulti.stateKey]: filenames[1].multi,
       [appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.stateKey]: filenames[1].nested[0],
@@ -452,7 +465,7 @@ describe('Repeating group attachments', () => {
       ],
     };
 
-    const expectedFormDataAfterDeletingFirstRow = [
+    const formDataAfterDeletingFirstRow = [
       ['[0].fileUpload', filenames[1].single],
       ['[0].fileUploadList[0]', filenames[1].multi[0]],
       ['[0].fileUploadList[1]', filenames[1].multi[1]],
@@ -467,16 +480,16 @@ describe('Repeating group attachments', () => {
       ['[0].nested-grp-1234[1].fileUploadList[1]', filenames[1].nested[1][2]],
     ].sort();
 
-    getAttachmentState().should('deep.equal', expectedAttachmentStateAfterDeletingFirstRow);
-    getFormDataState().should('deep.equal', expectedFormDataAfterDeletingFirstRow);
+    expectAttachmentsToBe(attachmentStateAfterDeletingFirstRow);
+    expectFormDataToBe(formDataAfterDeletingFirstRow);
 
     if (runReloadTests) {
       // Reload the page again to verify that form data still maps attachments correctly after deleting the first row
       cy.reload();
       verifyPreview(true);
 
-      getAttachmentState().should('deep.equal', expectedAttachmentStateAfterDeletingFirstRow);
-      getFormDataState().should('deep.equal', expectedFormDataAfterDeletingFirstRow);
+      expectAttachmentsToBe(attachmentStateAfterDeletingFirstRow);
+      expectFormDataToBe(formDataAfterDeletingFirstRow);
     }
   });
 });

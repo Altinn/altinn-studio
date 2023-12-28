@@ -3,48 +3,14 @@ import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/f
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression, preProcessLayout } from 'src/features/expressions/validation';
 import { getLayoutComponentObject } from 'src/layout';
-import { groupIsRepeatingExt } from 'src/layout/Group/tools';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { Layouts } from 'src/features/expressions/shared';
-import type { ILayout } from 'src/layout/layout';
-import type { IRepeatingGroups } from 'src/types';
-
-function generateRepeatingGroups(layout: ILayout) {
-  const repeatingGroups: IRepeatingGroups = {};
-  for (const component of layout) {
-    if (component.type === 'Group' && groupIsRepeatingExt(component)) {
-      repeatingGroups[component.id] = {
-        index: 1,
-        editIndex: -1,
-      };
-      for (const child of component.children) {
-        const childElm = layout.find((c) => c.id === child);
-        if (childElm?.type === 'Group' && groupIsRepeatingExt(childElm)) {
-          repeatingGroups[`${childElm.id}-0`] = {
-            index: 1,
-            editIndex: -1,
-          };
-        }
-      }
-    }
-  }
-
-  return repeatingGroups;
-}
 
 function evalAllExpressions(layouts: Layouts) {
-  let repeatingGroups: IRepeatingGroups = {};
-  for (const page of Object.values(layouts)) {
-    repeatingGroups = {
-      ...repeatingGroups,
-      ...generateRepeatingGroups(page.data.layout),
-    };
-  }
   const dataSources = getHierarchyDataSourcesMock();
   const nodes = generateEntireHierarchy(
     convertLayouts(layouts),
     Object.keys(layouts)[0],
-    repeatingGroups,
     dataSources,
     getLayoutComponentObject,
   );

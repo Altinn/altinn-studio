@@ -132,18 +132,18 @@ describe('Dynamics', () => {
     cy.get(appFrontend.changeOfName.reference).should('not.exist');
     cy.get(appFrontend.changeOfName.reference2).should('not.exist');
 
-    cy.get(appFrontend.changeOfName.sources).dsSelect('Value A');
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Value A');
     cy.get(appFrontend.changeOfName.reference).should('be.visible');
     cy.get(appFrontend.changeOfName.reference2).should('not.exist');
 
-    cy.get(appFrontend.changeOfName.reference).dsSelect('Value B');
+    cy.dsSelect(appFrontend.changeOfName.reference, 'Value B');
     cy.get(appFrontend.changeOfName.reference2).should('be.visible');
 
     // Going back and changing something should hide both fields, and changing it back should show both fields
-    cy.get(appFrontend.changeOfName.sources).dsSelect('Value B');
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Value B');
     cy.get(appFrontend.changeOfName.reference).should('not.exist');
     cy.get(appFrontend.changeOfName.reference2).should('not.exist');
-    cy.get(appFrontend.changeOfName.sources).dsSelect('Value A');
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Value A');
     cy.get(appFrontend.changeOfName.reference).should('be.visible');
     cy.get(appFrontend.changeOfName.reference2).should('be.visible');
   });

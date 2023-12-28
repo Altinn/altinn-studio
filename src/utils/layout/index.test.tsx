@@ -1,5 +1,5 @@
 import { LayoutStyle } from 'src/layout/common.generated';
-import { shouldUseRowLayout } from 'src/utils/layout';
+import { shouldUseRowLayout } from 'src/utils/layout/index';
 
 describe('shouldUseRowLayout', () => {
   it('Should be false when layout is column', () => {

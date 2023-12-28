@@ -1,5 +1,6 @@
 import { staticUseLanguageFromState } from 'src/features/language/useLanguage';
 import { Triggers } from 'src/layout/common.generated';
+import { flattenObject } from 'src/utils/databindings';
 import type { IRuntimeState, TriggersPageValidation } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type {
@@ -17,7 +18,7 @@ import type {
 
 export function validationContextFromState(state: IRuntimeState, node: LayoutNode | undefined): IValidationContext {
   return {
-    formData: state.formData.formData,
+    formData: flattenObject(state.deprecated.formData),
     langTools: staticUseLanguageFromState(state, node),
     currentLanguage: state.deprecated.currentLanguage,
     attachments: state.deprecated.lastKnownAttachments || {},
@@ -138,30 +139,6 @@ export function filterValidationObjectsByPage(
   }
 
   return [];
-}
-
-// Preserves fixed validations, as these can fix validations on other components.
-export function filterValidationObjectsByRowIndex(
-  rowIndex: number,
-  baseRowIndices: number[],
-  validationObjects: IValidationObject[],
-): IValidationObject[] {
-  const filteredValidationObjects: IValidationObject[] = [];
-  const rowIndicesToCompare = [...baseRowIndices, rowIndex];
-  for (const o of validationObjects) {
-    if (!o.empty && o.severity === 'fixed') {
-      filteredValidationObjects.push(o);
-      continue;
-    }
-
-    if (o.rowIndices.length < rowIndicesToCompare.length) {
-      continue;
-    }
-    if (rowIndicesToCompare.every((index, i) => o.rowIndices[i] === index)) {
-      filteredValidationObjects.push(o);
-    }
-  }
-  return filteredValidationObjects;
 }
 
 /**

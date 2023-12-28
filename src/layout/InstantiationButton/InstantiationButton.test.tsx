@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -32,6 +33,14 @@ const render = async () =>
       </MemoryRouter>
     ),
     renderer: (props) => <InstantiationButtonComponent {...props} />,
+    queries: {
+      fetchApplicationMetadata: async () => ({
+        ...getApplicationMetadataMock(),
+        onEntry: {
+          show: 'stateless',
+        },
+      }),
+    },
   });
 
 describe('InstantiationButton', () => {

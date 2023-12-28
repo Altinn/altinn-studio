@@ -29,13 +29,17 @@ describe('Anonymous (stateless)', () => {
     cy.get(appFrontend.stateless.idnummer2).should('have.value', '1234567890');
   });
 
-  it('should cancel previous requests when changing answers', () => {
-    // Do not remove the delay, it's added to ensure that the test has time to cancel the request
-    cy.intercept('**/data/anonymous?dataType=default', { delay: 200 }).as('postDefault');
-    cy.get(appFrontend.stateless.name).type('test');
-    cy.get('label:contains("kvinne")').click();
-    cy.get('label:contains("mann")').click();
-    cy.get('@window.logInfo').should('have.been.calledWith', 'Request aborted due to saga cancellation');
+  it('rapid form data updates should respect the last user action', () => {
+    // Delaying the save operation makes sure we have time to trigger multiple updates
+    cy.intercept('**/data/anonymous?dataType=default', { delay: 200 }).as('postData');
+    cy.findByRole('radio', { name: 'kvinne' }).click();
+    cy.findByRole('radio', { name: 'kvinne' }).blur();
+    // Wait for @postData to start, but do not wait for it to finish
+    cy.waitUntil(() => cy.get('@postData.all').then((requests) => requests.length > 0));
+    cy.findByRole('radio', { name: 'mann' }).click();
+    cy.waitUntil(() => cy.get('@postData.all').then((requests) => requests.length == 2));
+    cy.wait('@postData');
+    cy.findByRole('radio', { name: 'mann' }).should('be.checked');
   });
 
   it('should render iframe with srcdoc and the heading text should be "The red title is rendered within an iframe"', () => {

@@ -86,7 +86,7 @@ describe('NavBar', () => {
       hideCloseButton: true,
       showLanguageSelector: false,
       type: ProcessTaskType.Data,
-      initialPage: 'Task_1/2',
+      initialPage: '2',
     });
     expect(screen.getByTestId('form-back-button')).toBeInTheDocument();
   });

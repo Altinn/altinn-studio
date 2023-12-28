@@ -10,14 +10,14 @@ import {
   applicationMetadataApiUrl,
   applicationSettingsApiUrl,
   currentPartyUrl,
-  dataElementUrl,
-  fileTagUrl,
-  fileUploadUrl,
   getActionsUrl,
   getActiveInstancesUrl,
   getCreateInstancesUrl,
   getCustomValidationConfigUrl,
+  getDataElementUrl,
   getFetchFormDynamicsUrl,
+  getFileTagUrl,
+  getFileUploadUrl,
   getFooterLayoutUrl,
   getJsonSchemaUrl,
   getLayoutSetsUrl,
@@ -43,7 +43,7 @@ import type { IFormDynamics } from 'src/features/form/dynamics';
 import type { Instantiation } from 'src/features/instantiate/InstantiationContext';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IPdfFormat } from 'src/features/pdf/types';
-import type { ILayoutFileExternal, IOption } from 'src/layout/common.generated';
+import type { IOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ILayoutSets, ILayoutSettings, ISimpleInstance } from 'src/types';
@@ -53,6 +53,7 @@ import type {
   IAppLanguage,
   IApplicationSettings,
   IData,
+  IDataAfterDataModelSave,
   IInstance,
   IParty,
   IProcess,
@@ -81,11 +82,15 @@ export const doInstantiateWithPrefill = async (data: Instantiation): Promise<IIn
 export const doInstantiate = async (partyId: string): Promise<IInstance> =>
   cleanUpInstanceData((await httpPost(getCreateInstancesUrl(partyId))).data);
 
-export const doProcessNext = async (taskId?: string, language?: string, action?: IActionType): Promise<IProcess> =>
-  httpPut(getProcessNextUrl(taskId, language), action ? { action } : null);
+export const doProcessNext = async (
+  instanceId: string,
+  taskId?: string,
+  language?: string,
+  action?: IActionType,
+): Promise<IProcess> => httpPut(getProcessNextUrl(instanceId, taskId, language), action ? { action } : null);
 
-export const doAttachmentUpload = async (dataTypeId: string, file: File): Promise<IData> => {
-  const url = fileUploadUrl(dataTypeId);
+export const doAttachmentUpload = async (instanceId: string, dataTypeId: string, file: File): Promise<IData> => {
+  const url = getFileUploadUrl(instanceId, dataTypeId);
   let contentType: string;
   if (!file.type) {
     contentType = `application/octet-stream`;
@@ -105,12 +110,12 @@ export const doAttachmentUpload = async (dataTypeId: string, file: File): Promis
   return (await httpPost(url, config, file)).data;
 };
 
-export const doAttachmentRemoveTag = async (dataGuid: string, tagToRemove: string): Promise<void> =>
-  (await httpDelete(fileTagUrl(dataGuid, tagToRemove))).data;
+export const doAttachmentRemoveTag = async (instanceId: string, dataGuid: string, tagToRemove: string): Promise<void> =>
+  (await httpDelete(getFileTagUrl(instanceId, dataGuid, tagToRemove))).data;
 
-export const doAttachmentAddTag = async (dataGuid: string, tagToAdd: string): Promise<void> => {
+export const doAttachmentAddTag = async (instanceId: string, dataGuid: string, tagToAdd: string): Promise<void> => {
   const response = await httpPost(
-    fileTagUrl(dataGuid, undefined),
+    getFileTagUrl(instanceId, dataGuid, undefined),
     {
       headers: {
         'Content-Type': 'application/json',
@@ -133,13 +138,17 @@ export const doPerformAction = async (partyId: string, dataGuid: string, data: a
   return response.data;
 };
 
-export const doAttachmentRemove = async (dataGuid: string): Promise<void> => {
-  const response = await httpDelete(dataElementUrl(dataGuid));
+export const doAttachmentRemove = async (instanceId: string, dataGuid: string): Promise<void> => {
+  const response = await httpDelete(getDataElementUrl(instanceId, dataGuid));
   if (response.status !== 200) {
     throw new Error('Failed to remove attachment');
   }
   return response.data;
 };
+
+export const doPutFormData = (url: string, data: FormData): Promise<IDataAfterDataModelSave> => httpPut(url, data);
+export const doPostFormData = async (url: string, data: FormData): Promise<object> =>
+  (await httpPost(url, undefined, data)).data;
 
 /**
  * Query functions (these should use httpGet and start with 'fetch')
@@ -156,7 +165,7 @@ export const fetchInstanceData = (partyId: string, instanceGuid: string): Promis
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 
-export const fetchProcessNextSteps = (): Promise<string[]> => httpGet(getProcessNextUrl());
+export const fetchProcessNextSteps = (instanceId: string): Promise<string[]> => httpGet(getProcessNextUrl(instanceId));
 
 export const fetchApplicationMetadata = (): Promise<IApplicationMetadata> => httpGet(applicationMetadataApiUrl);
 
@@ -164,12 +173,11 @@ export const fetchApplicationSettings = (): Promise<IApplicationSettings> => htt
 
 export const fetchCurrentParty = (): Promise<IParty | undefined> => httpGet(currentPartyUrl);
 
-export const fetchFooterLayout = (): Promise<IFooterLayout> => httpGet(getFooterLayoutUrl());
+export const fetchFooterLayout = (): Promise<IFooterLayout | null> => httpGet(getFooterLayoutUrl());
 
 export const fetchLayoutSets = (): Promise<ILayoutSets> => httpGet(getLayoutSetsUrl());
 
-export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection | ILayoutFileExternal> =>
-  httpGet(getLayoutsUrl(layoutSetId));
+export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(layoutSetId));
 
 export const fetchLayoutSettings = (layoutSetId: string | undefined): Promise<ILayoutSettings> =>
   httpGet(getLayoutSettingsUrl(layoutSetId));

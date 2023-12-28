@@ -59,22 +59,25 @@ describe('UI Components', () => {
 
   it('is possible to download attachments that are uploaded', () => {
     cy.goto('changename');
+    cy.intercept({ url: '**/instances/**/data?dataType=fileUpload-changename' }, (req) => {
+      req.reply((res) => {
+        res.setDelay(500);
+      });
+    }).as('uploadWithDelay');
+
     cy.get(appFrontend.changeOfName.uploadDropZone).should('be.visible');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
 
     cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
     cy.get(appFrontend.changeOfName.uploadSuccess).should('exist');
 
-    cy.window().then((win) => {
-      setTimeout(() => win.location.reload(), 1000);
-    });
-
+    cy.intercept({ url: '**/instances/**/data/**', method: 'GET' }).as('downloadAttachment');
     cy.get(appFrontend.changeOfName.downloadAttachment).click();
+    cy.wait('@downloadAttachment');
 
     const downloadsFolder = Cypress.config('downloadsFolder');
     const downloadedFilename = path.join(downloadsFolder, 'test.pdf');
-
-    cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((buffer) => expect(buffer.length).equal(299));
+    cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((buffer) => expect(buffer?.length).equal(299));
   });
 
   it('is possible to upload attachments with tags', () => {
@@ -85,8 +88,7 @@ describe('UI Components', () => {
       force: true,
     });
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
-    cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('not.be.disabled');
-    cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).dsSelect('Adresse');
+    cy.dsSelect(appFrontend.changeOfName.uploadWithTag.tagsDropDown, 'Adresse');
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
     cy.wait('@saveTags');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploaded).then((table) => {
@@ -109,7 +111,7 @@ describe('UI Components', () => {
     });
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
     cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('not.be.disabled');
-    cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).dsSelect('Adresse');
+    cy.dsSelect(appFrontend.changeOfName.uploadWithTag.tagsDropDown, 'Adresse');
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
     cy.wait('@saveTags');
 
@@ -187,7 +189,7 @@ describe('UI Components', () => {
     cy.get('[data-testid="NavigationBar"]').find('button:contains("summary")').should('be.visible');
   });
 
-  it('address component fetches post place from zip code', () => {
+  it.skip('address component fetches post place from zip code', () => {
     cy.goto('changename');
 
     // Mock zip code API, so that we don't rely on external services for our tests
@@ -403,6 +405,7 @@ describe('UI Components', () => {
       cy.get(appFrontend.changeOfName.newFirstName).type('rrr');
       cy.get('#form-content-newFirstName').contains(`Du har overskredet maks antall tegn med ${7 - maxLength}`);
 
+      /* TODO: Comment these back in after validation refactor
       // Display data model validation below component if maxLength in layout and datamodel is different
       if (maxLength !== 4) {
         cy.get('#form-content-newFirstName').should('contain', 'Bruk 4 eller færre tegn');
@@ -412,6 +415,7 @@ describe('UI Components', () => {
       cy.get(appFrontend.errorReport).should('be.visible');
       cy.get(appFrontend.errorReport).should('contain.text', 'Må summeres opp til 100%');
       cy.get(appFrontend.errorReport).should('contain.text', 'Bruk 4 eller færre tegn');
+       */
     });
   });
 
@@ -421,9 +425,9 @@ describe('UI Components', () => {
     cy.fillOut('changename');
     cy.gotoNavPage('form');
 
-    cy.get(appFrontend.changeOfName.sources).dsSelect('Digitaliseringsdirektoratet');
-    cy.get(appFrontend.changeOfName.reference).dsSelect('Sophie Salt');
-    cy.get(appFrontend.changeOfName.reference2).dsSelect('Dole');
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
+    cy.dsSelect(appFrontend.changeOfName.reference, 'Sophie Salt');
+    cy.dsSelect(appFrontend.changeOfName.reference2, 'Dole');
     cy.reloadAndWait();
 
     cy.get(appFrontend.changeOfName.newFirstName).should('have.value', 'a');

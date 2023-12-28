@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { act, fireEvent, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
@@ -15,22 +15,20 @@ jest.mock('src/utils/dateHelpers', () => ({
   getDateFormat: jest.fn(() => 'DD.MM.YYYY'),
 }));
 
-const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Datepicker'>> = {}) => {
-  // eslint-disable-next-line testing-library/await-async-events
-  const user = userEvent.setup();
+const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Datepicker'>> = {}) =>
   await renderGenericComponentTest({
     type: 'Datepicker',
     renderer: (props) => <DatepickerComponent {...props} />,
     component: {
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
+      dataModelBindings: {
+        simpleBinding: 'myDate',
+      },
       ...component,
     },
-    genericProps,
+    ...rest,
   });
-
-  return { user };
-};
 
 const currentYearNumeric = new Date().toLocaleDateString(navigator.language, {
   year: 'numeric',
@@ -45,14 +43,10 @@ const getCalendarYearHeader = (method = 'getByRole') =>
     name: currentYearNumeric,
   });
 
-const getOpenCalendarButton = () =>
-  screen.getByRole('button', {
-    name: /Åpne datovelger/i,
-  });
-
-const getCalendarDayButton = (dayNumber) =>
+const getCalendarDayButton = (dayNumber: string) =>
   // Getting by role would be better, but it is too slow, because of the big DOM that is generated
   screen.getByText(dayNumber);
+
 const { setScreenWidth } = mockMediaQuery(600);
 
 describe('DatepickerComponent', () => {
@@ -62,11 +56,15 @@ describe('DatepickerComponent', () => {
 
   it('should not show calendar initially, and show calendar when clicking calendar button', async () => {
     jest.spyOn(console, 'error').mockImplementation();
-    const { user } = await render();
+    await render();
 
     expect(getCalendarYearHeader('queryByRole')).not.toBeInTheDocument();
 
-    await act(() => user.click(getOpenCalendarButton()));
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: /Åpne datovelger/i,
+      }),
+    );
 
     expect(getCalendarYearHeader()).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -80,129 +78,94 @@ describe('DatepickerComponent', () => {
 
   it('should not show calendar initially, and show calendar in a dialog when clicking calendar button, and screen size is mobile sized', async () => {
     setScreenWidth(400);
-    const { user } = await render();
+    await render();
 
     expect(getCalendarYearHeader('queryByRole')).not.toBeInTheDocument();
 
-    await act(() => user.click(getOpenCalendarButton()));
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: /Åpne datovelger/i,
+      }),
+    );
 
     expect(getCalendarYearHeader()).toBeInTheDocument();
     expect(screen.getAllByRole('dialog')[0]).toBeInTheDocument();
   });
 
-  it('should call handleDataChange when clicking date in calendar', async () => {
-    const handleDataChange = jest.fn();
-    const { user } = await render({ genericProps: { handleDataChange } });
+  it('should call setLeafValue when clicking date in calendar', async () => {
+    const { formDataMethods } = await render();
 
-    await act(() => user.click(getOpenCalendarButton()));
-    await act(() => user.click(getCalendarDayButton('15')));
-
-    expect(handleDataChange).toHaveBeenCalledWith(
-      // Ignore TZ part of timestamp to avoid test failing when this changes
-      // Calendar opens up on current year/month by default, so we need to cater for this in the expected output
-      expect.stringContaining(`${currentYearNumeric}-${currentMonthNumeric}-15T12:00:00.000+`),
-      { validate: true },
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: /Åpne datovelger/i,
+      }),
     );
-  });
+    await userEvent.click(getCalendarDayButton('15'));
 
-  it('should call handleDataChange without skipping validation if date is cleared', async () => {
-    const handleDataChange = jest.fn();
-    const { user } = await render({ genericProps: { handleDataChange, formData: { simpleBinding: '2022-12-31' } } });
-
-    const inputField = screen.getByRole('textbox');
-
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.clear(inputField);
-      fireEvent.blur(inputField);
-    });
-
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
-    expect(handleDataChange).toHaveBeenCalledWith('', { validate: true });
-  });
-
-  it('should call handleDataChange with formatted value (timestamp=true) without skipping validation if date is valid', async () => {
-    const handleDataChange = jest.fn();
-    const { user } = await render({ genericProps: { handleDataChange }, component: { timeStamp: true } });
-
-    const inputField = screen.getByRole('textbox');
-
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.type(inputField, '31122022');
-      fireEvent.blur(inputField);
-    });
-
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
-    expect(handleDataChange).toHaveBeenCalledWith(expect.stringContaining('2022-12-31T12:00:00.000+'), {
-      validate: true,
+    // Ignore TZ part of timestamp to avoid test failing when this changes
+    // Calendar opens up on current year/month by default, so we need to cater for this in the expected output
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      path: 'myDate',
+      newValue: expect.stringContaining(`${currentYearNumeric}-${currentMonthNumeric}-15T12:00:00.000+`),
     });
   });
 
-  it('should call handleDataChange with formatted value (timestamp=false) without skipping validation if date is valid', async () => {
-    const handleDataChange = jest.fn();
-    const { user } = await render({ genericProps: { handleDataChange }, component: { timeStamp: false } });
-
-    const inputField = screen.getByRole('textbox');
-
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.type(inputField, '31122022');
-      fireEvent.blur(inputField);
+  it('should call setLeafValue if date is cleared', async () => {
+    const { formDataMethods } = await render({
+      queries: {
+        fetchFormData: async () => ({ myDate: '2022-12-31' }),
+      },
     });
 
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
-    expect(handleDataChange).toHaveBeenCalledWith('2022-12-31', { validate: true });
+    await userEvent.clear(screen.getByRole('textbox'));
+
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDate', newValue: '' });
   });
 
-  it('should call handleDataChange with formatted value (timestamp=undefined) without skipping validation if date is valid', async () => {
-    const handleDataChange = jest.fn();
-    const { user } = await render({ genericProps: { handleDataChange }, component: { timeStamp: undefined } });
+  it('should call setLeafValue with formatted value (timestamp=true) if date is valid', async () => {
+    const { formDataMethods } = await render({ component: { timeStamp: true } });
 
-    const inputField = screen.getByRole('textbox');
+    await userEvent.type(screen.getByRole('textbox'), '31122022');
 
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.type(inputField, '31122022');
-      fireEvent.blur(inputField);
-    });
-
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
-    expect(handleDataChange).toHaveBeenCalledWith(expect.stringContaining('2022-12-31T12:00:00.000+'), {
-      validate: true,
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      path: 'myDate',
+      newValue: expect.stringContaining('2022-12-31T12:00:00.000+'),
     });
   });
 
-  it('should call handleDataChange without skipping validation if date is invalid but finished filling out', async () => {
-    const handleDataChange = jest.fn();
-    const { user } = await render({ genericProps: { handleDataChange } });
+  it('should call setLeafValue with formatted value (timestamp=false) if date is valid', async () => {
+    const { formDataMethods } = await render({ component: { timeStamp: false } });
 
-    const inputField = screen.getByRole('textbox');
+    await userEvent.type(screen.getByRole('textbox'), '31122022');
 
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.type(inputField, '12345678');
-      fireEvent.blur(inputField);
-    });
-
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
-    expect(handleDataChange).toHaveBeenCalledWith('12.34.5678', { validate: true });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDate', newValue: '2022-12-31' });
   });
 
-  it('should call handleDataChange with skipValidation=true if not finished filling out the date', async () => {
-    const handleDataChange = jest.fn();
-    const { user } = await render({ genericProps: { handleDataChange } });
+  it('should call setLeafValue with formatted value (timestamp=undefined) if date is valid', async () => {
+    const { formDataMethods } = await render({ component: { timeStamp: undefined } });
 
-    const inputField = screen.getByRole('textbox');
+    await userEvent.type(screen.getByRole('textbox'), '31122022');
 
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      await user.type(inputField, `1234`);
-      fireEvent.blur(inputField);
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      path: 'myDate',
+      newValue: expect.stringContaining('2022-12-31T12:00:00.000+'),
     });
+  });
 
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
-    expect(handleDataChange).toHaveBeenCalledWith('12.34.____', { validate: false });
+  it('should call setLeafValue if date is invalid but finished filling out', async () => {
+    const { formDataMethods } = await render();
+
+    await userEvent.type(screen.getByRole('textbox'), '12345678');
+
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDate', newValue: '12.34.5678' });
+  });
+
+  it('should call setLeafValue if not finished filling out the date', async () => {
+    const { formDataMethods } = await render();
+
+    await userEvent.type(screen.getByRole('textbox'), `1234`);
+
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDate', newValue: '12.34.____' });
   });
 
   it('should have aria-describedby if textResourceBindings.description is present', async () => {

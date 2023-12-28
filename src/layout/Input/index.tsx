@@ -18,13 +18,12 @@ export class Input extends InputDef {
     return <InputComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNode<'Input'>, { formData, currentLanguage }: DisplayDataProps): string {
+  getDisplayData(node: LayoutNode<'Input'>, { currentLanguage }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    const text = formData[node.item.dataModelBindings.simpleBinding] || '';
-
+    const text = node.getFormData().simpleBinding || '';
     const numberFormatting = getMapToReactNumberConfig(
       node.item.formatting as IInputFormatting | undefined,
       text,

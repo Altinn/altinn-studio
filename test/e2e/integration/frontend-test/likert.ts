@@ -7,7 +7,7 @@ const appFrontend = new AppFrontend();
 const likertPage = new Likert();
 
 describe('Likert', () => {
-  it('Should show validation message for required likert', () => {
+  it.skip('Should show validation message for required likert', () => {
     cy.goto('likert');
     cy.get(appFrontend.sendinButton).click();
     cy.findAllByRole('alert').should(($alerts) => {

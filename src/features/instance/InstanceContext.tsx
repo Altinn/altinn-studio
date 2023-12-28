@@ -8,10 +8,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { LayoutValidationProvider } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { FormProvider } from 'src/features/form/FormContext';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
-import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { DeprecatedActions } from 'src/redux/deprecatedSlice';
@@ -58,13 +55,7 @@ function useGetInstanceDataQuery(enabled: boolean, partyId: string, instanceGuid
   });
 }
 
-export const InstanceProvider = ({
-  children,
-  provideLayoutValidation = true,
-}: {
-  children: React.ReactNode;
-  provideLayoutValidation?: boolean;
-}) => {
+export const InstanceProvider = ({ children }: { children: React.ReactNode }) => {
   const { partyId, instanceGuid } = useParams();
 
   if (!partyId || !instanceGuid) {
@@ -75,7 +66,6 @@ export const InstanceProvider = ({
     <InnerInstanceProvider
       partyId={partyId}
       instanceGuid={instanceGuid}
-      provideLayoutValidation={provideLayoutValidation}
     >
       {children}
     </InnerInstanceProvider>
@@ -86,12 +76,10 @@ const InnerInstanceProvider = ({
   children,
   partyId,
   instanceGuid,
-  provideLayoutValidation,
 }: {
   children: React.ReactNode;
   partyId: string;
   instanceGuid: string;
-  provideLayoutValidation: boolean;
 }) => {
   const reduxDispatch = useAppDispatch();
 
@@ -133,10 +121,6 @@ const InnerInstanceProvider = ({
     instantiation.error && setError(instantiation.error);
   }, [fetchQuery.error, instantiation.error]);
 
-  // TODO: Remove this when no longer needed in sagas
-  const instanceId = `${partyId}/${instanceGuid}`;
-  window.instanceId = instanceId;
-
   if (error) {
     return <DisplayError error={error} />;
   }
@@ -158,16 +142,10 @@ const InnerInstanceProvider = ({
         },
         partyId,
         instanceGuid,
-        instanceId,
+        instanceId: `${partyId}/${instanceGuid}`,
       }}
     >
-      <ProcessProvider instance={data}>
-        <FormProvider>
-          <ProcessNavigationProvider>
-            {provideLayoutValidation ? <LayoutValidationProvider>{children}</LayoutValidationProvider> : children}
-          </ProcessNavigationProvider>
-        </FormProvider>
-      </ProcessProvider>
+      <ProcessProvider instance={data}>{children}</ProcessProvider>
     </Provider>
   );
 };

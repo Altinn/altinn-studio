@@ -1,3 +1,4 @@
+import type { IFormData } from 'src/features/formData';
 import type { FixedLanguageList } from 'src/language/languages';
 
 export interface IAltinnOrg {
@@ -44,6 +45,10 @@ export interface IData {
   createdBy: string;
   lastChanged: string;
   lastChangedBy: string;
+}
+
+export interface IDataAfterDataModelSave extends IData {
+  changedFields?: IFormData;
 }
 
 export interface IDataType {

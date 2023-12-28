@@ -8,12 +8,12 @@ import classes from 'src/features/receipt/CustomReceipt.module.css';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { extractBottomButtons } from 'src/utils/formLayout';
-import { useExprContext } from 'src/utils/layout/ExprContext';
+import { useNodes } from 'src/utils/layout/NodesContext';
 import { getFormHasErrors } from 'src/utils/validation/validation';
 
 export function CustomReceipt() {
   const receiptLayoutName = useAppSelector((state) => state.formLayout.uiConfig.receiptLayoutName);
-  const page = useExprContext()?.findLayout(receiptLayoutName);
+  const page = useNodes()?.findLayout(receiptLayoutName);
   const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
 
   const [mainNodes, errorReportNodes] = React.useMemo(() => {

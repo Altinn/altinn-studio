@@ -120,6 +120,17 @@ describe('Grid component', () => {
   });
 
   it('should resolve text resources when Grid rows are shown in nested repeating groups', () => {
+    // Slowing down the save operation also serves to test that we can receive changes to an object in the data
+    // model that we also changed locally, and that these changes will be merged together. Clicking the
+    // 'show group to continue' checkbox will store data in a location the server also expands upon. If this save
+    // finishes too fast, we would end up getting the new data model from the server before we have a chance to
+    // click the checkbox.
+    cy.intercept('**/data/**', (req) => {
+      req.on('response', (res) => {
+        res.setDelay(300);
+      });
+    });
+
     cy.goto('group');
     cy.get(appFrontend.group.prefill.liten).dsCheck();
     cy.navPage('repeating').click();

@@ -68,10 +68,10 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   cy.get(appFrontend.group.currentValue).type('1500');
   cy.get(appFrontend.group.currentValue).should('not.exist');
 
-  // TODO: This is a bug. The 'add new item' button should be disabled again if the row disappears because of a filter,
-  // as the edit container is now gone, but you're left without any way to add a new row or escape the 'editIndex' being
-  // set to a row index that is not displayed.
-  cy.get(appFrontend.group.addNewItem).should('not.exist');
+  // There used to be a bug here, where the row would be moved to the overflow group, but still be in edit-mode
+  // according to our internal state. When this is no longer the case, it should be possible to click the "Add new
+  // item"-button again, even after the row we just edited disappeared.
+  cy.get(appFrontend.group.addNewItem).should('be.visible');
   cy.get(appFrontend.group.editContainer).should('not.exist');
   cy.get(appFrontend.group.saveMainGroup).should('not.exist');
 
@@ -90,10 +90,9 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
 
   cy.navPage('repeating').click();
 
-  // TODO: Continuation of the bug above. The row just re-appeared and is now in edit-mode again, so now we can
-  // continue editing it. This could probably be removed when the bug above is fixed.
-  cy.get(appFrontend.group.editContainer).should('exist');
-  cy.get(appFrontend.group.saveMainGroup).click();
+  // When we had the bug mentioned above, the row would be moved back to the first group, but still be in edit-mode
+  // according to our internal state. No that this is fixed, there should be no edit-container.
+  cy.get(appFrontend.group.editContainer).should('not.exist');
 
   // Make sure the row is now in the first group again
   cy.get(appFrontend.group.mainGroup)

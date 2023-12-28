@@ -1,10 +1,6 @@
-import { useMemo } from 'react';
+import type { MutableRefObject } from 'react';
 
-import { useAttachments } from 'src/features/attachments/AttachmentsContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { type IUseLanguage, useLanguage } from 'src/features/language/useLanguage';
-import { useAllOptions } from 'src/features/options/useAllOptions';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { type IUseLanguage } from 'src/features/language/useLanguage';
 import { ComponentConfigs } from 'src/layout/components.generated';
 import type { IAttachments } from 'src/features/attachments';
 import type { IFormData } from 'src/features/formData';
@@ -12,7 +8,6 @@ import type { AllOptionsMap } from 'src/features/options/useAllOptions';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompInternal, CompRendersLabel, CompTypes } from 'src/layout/layout';
 import type { AnyComponent, LayoutComponent } from 'src/layout/LayoutComponent';
-import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
 import type {
@@ -43,23 +38,13 @@ const _componentsTypeCheck: {
   ...ComponentConfigs,
 };
 
-export interface IComponentProps<T extends CompTypes> {
-  handleDataChange: (
-    value: string | undefined,
-    options?: {
-      key?: string; // Defaults to simpleBinding
-      validate?: boolean; // Defaults to true
-    },
-  ) => void;
-  shouldFocus: boolean;
-  label: () => JSX.Element | null;
-  legend: () => JSX.Element | null;
-  formData: IComponentFormData<T>;
+export interface IComponentProps {
+  containerDivRef: MutableRefObject<HTMLDivElement | null>;
   isValid?: boolean;
   componentValidations?: IComponentValidations;
 }
 
-export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps<T> {
+export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps {
   node: LayoutNode<T>;
   overrideItemProps?: Partial<Omit<CompInternal<T>, 'id'>>;
   overrideDisplay?: IGenericComponentProps<T>['overrideDisplay'];
@@ -139,7 +124,6 @@ export function implementsGroupValidation<Type extends CompTypes>(
 }
 
 export interface DisplayDataProps {
-  formData: IFormData;
   attachments: IAttachments;
   options: AllOptionsMap;
   langTools: IUseLanguage;
@@ -155,17 +139,4 @@ export function implementsDisplayData<Type extends CompTypes>(
   component: AnyComponent<Type>,
 ): component is typeof component & DisplayData<Type> {
   return 'getDisplayData' in component && 'useDisplayData' in component;
-}
-
-export function useDisplayDataProps(): DisplayDataProps {
-  const formData = useAppSelector((state) => state.formData.formData);
-  const langTools = useLanguage();
-  const options = useAllOptions();
-  const attachments = useAttachments();
-  const currentLanguage = useCurrentLanguage();
-
-  return useMemo(
-    () => ({ options, attachments, langTools, formData, currentLanguage }),
-    [attachments, langTools, options, formData, currentLanguage],
-  );
 }

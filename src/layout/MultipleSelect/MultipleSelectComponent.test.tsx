@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { act, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -8,7 +9,11 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 
 const dummyLabel = 'dummyLabel';
 
-const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'MultipleSelect'>> = {}) => {
+const render = async ({
+  component,
+  genericProps,
+  ...rest
+}: Partial<RenderGenericComponentTestProps<'MultipleSelect'>> = {}) =>
   await renderGenericComponentTest({
     type: 'MultipleSelect',
     renderer: (props) => (
@@ -18,7 +23,7 @@ const render = async ({ component, genericProps }: Partial<RenderGenericComponen
       </>
     ),
     component: {
-      dataModelBindings: { simpleBinding: 'some.field' },
+      dataModelBindings: { simpleBinding: 'someField' },
       options: [
         { value: 'value1', label: 'label1' },
         { value: 'value2', label: 'label2' },
@@ -30,20 +35,17 @@ const render = async ({ component, genericProps }: Partial<RenderGenericComponen
       ...component,
     },
     genericProps: {
-      formData: { simpleBinding: '' },
       isValid: true,
-      handleDataChange: jest.fn(),
       ...genericProps,
     },
+    ...rest,
   });
-};
 
 describe('MultipleSelect', () => {
-  jest.useFakeTimers();
   it('should display correct options as selected when supplied with a comma separated form data', async () => {
     await render({
-      genericProps: {
-        formData: { simpleBinding: 'value1,value3' },
+      queries: {
+        fetchFormData: async () => ({ someField: 'value1,value3' }),
       },
     });
     const input = screen.getByTestId('InputWrapper');
@@ -53,17 +55,14 @@ describe('MultipleSelect', () => {
   });
 
   it('should remove item from comma separated form data on delete', async () => {
-    const handleDataChange = jest.fn();
-    await render({
-      genericProps: {
-        handleDataChange,
-        formData: { simpleBinding: 'value1,value2,value3' },
+    const { formDataMethods } = await render({
+      queries: {
+        fetchFormData: async () => ({ someField: 'value1,value2,value3' }),
       },
     });
 
-    await act(() => screen.getByRole('button', { name: /Slett label2/i }).click());
-    jest.runOnlyPendingTimers();
+    await userEvent.click(screen.getByRole('button', { name: /Slett label2/i }));
 
-    expect(handleDataChange).toBeCalledWith('value1,value3', { validate: true });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'someField', newValue: 'value1,value3' });
   });
 });

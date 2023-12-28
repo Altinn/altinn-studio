@@ -6,10 +6,10 @@ import cn from 'classnames';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.css';
 import { WrappedCheckbox } from 'src/layout/Checkboxes/WrappedCheckbox';
 import { shouldUseRowLayout } from 'src/utils/layout';
@@ -19,47 +19,32 @@ export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
 
 const defaultSelectedOptions: string[] = [];
 
-export const CheckboxContainerComponent = ({
-  node,
-  formData,
-  isValid,
-  handleDataChange,
-  overrideDisplay,
-}: ICheckboxContainerProps) => {
+export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: ICheckboxContainerProps) => {
   const { id, layout, readOnly, textResourceBindings, dataModelBindings, required, labelSettings, alertOnChange } =
     node.item;
   const { langAsString } = useLanguage();
-  const {
-    value: _value,
-    setValue,
-    saveValue,
-  } = useDelayedSavedState(handleDataChange, dataModelBindings?.simpleBinding, formData?.simpleBinding ?? '', 200);
 
-  const value = _value ?? formData?.simpleBinding ?? '';
+  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
+  const setData = FD.useSetForBindings(dataModelBindings);
+  const debounce = FD.useDebounceImmediately();
+
   const selected = value && value.length > 0 ? value.split(',') : defaultSelectedOptions;
   const { options: calculatedOptions, isFetching } = useGetOptions({
     ...node.item,
     node,
     metadata: {
       setValue: (metadata) => {
-        handleDataChange(metadata, { key: 'metadata' });
+        setData('metadata', metadata);
       },
     },
     formData: {
       type: 'multi',
       values: selected,
       setValues: (values) => {
-        setValue(values.join(','), true);
+        setData('simpleBinding', values.join(','));
       },
     },
   });
-
-  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    // Only set value instantly if moving focus outside of the checkbox group
-    if (!event.currentTarget.contains(event.relatedTarget)) {
-      saveValue();
-    }
-  };
 
   const labelTextGroup = (
     <span className={classes.checkBoxLabelContainer}>
@@ -90,7 +75,7 @@ export const CheckboxContainerComponent = ({
     <div
       id={id}
       key={`checkboxes_group_${id}`}
-      onBlur={handleBlur}
+      onBlur={debounce}
     >
       <Checkbox.Group
         className={cn({ [classes.horizontal]: horizontal }, classes.checkboxGroup)}
@@ -111,8 +96,10 @@ export const CheckboxContainerComponent = ({
             hideLabel={hideLabel}
             alertOnChange={alertOnChange}
             selected={selected}
-            value={value}
-            setValue={setValue}
+            value={value || ''}
+            setValue={(newValue) => {
+              setData('simpleBinding', newValue);
+            }}
           />
         ))}
       </Checkbox.Group>

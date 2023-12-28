@@ -4,9 +4,10 @@ import { screen } from '@testing-library/react';
 
 import { Fieldset } from 'src/components/form/Fieldset';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import type { FieldsetProps } from 'src/components/form/Fieldset';
 
 describe('Fieldset', () => {
-  const render = async (props) =>
+  const render = async (props?: Partial<FieldsetProps>) =>
     await renderWithoutInstanceAndLayout({
       renderer: () => (
         <Fieldset
@@ -18,19 +19,19 @@ describe('Fieldset', () => {
     });
 
   it('renders with accessible legend', async () => {
-    await render({});
+    await render();
     const fieldset = screen.getByRole('group', { name: /legend test/i });
     expect(fieldset).toBeInTheDocument();
   });
 
   it('renders with accessible description', async () => {
-    await render({});
+    await render();
     const description = screen.getByText('description test');
     expect(description).toBeInTheDocument();
   });
 
   it('provides an optional indicator', async () => {
-    await render({ requried: false, labelSettings: { optionalIndicator: true } });
+    await render({ required: false, labelSettings: { optionalIndicator: true } });
     const fieldset = screen.getByRole('group', { name: /legend test \(valgfri\)/i });
     expect(fieldset).toBeInTheDocument();
   });

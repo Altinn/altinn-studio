@@ -8,20 +8,21 @@ export const getUiConfigStateMock = (customStates?: Partial<IUiConfig>): IUiConf
     order: ['FormLayout'],
   },
   hiddenFields: [],
-  repeatingGroups: {
-    group: {
-      index: 1,
-      dataModelBinding: 'someGroup',
-    },
-    referencedGroup: {
-      index: 1,
-      dataModelBinding: 'referencedGroup',
-    },
-    testGroupId: {
-      index: 1,
-      dataModelBinding: 'Group',
-    },
-  },
+  // TODO: Recreate these mocks somewhere else
+  // repeatingGroups: {
+  //   group: {
+  //     index: 1,
+  //     dataModelBinding: 'someGroup',
+  //   },
+  //   referencedGroup: {
+  //     index: 1,
+  //     dataModelBinding: 'referencedGroup',
+  //   },
+  //   testGroupId: {
+  //     index: 1,
+  //     dataModelBinding: 'Group',
+  //   },
+  // },
   currentView: 'FormLayout',
   excludePageFromPdf: [],
   excludeComponentFromPdf: [],

@@ -4,12 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createLayoutValidator, validateLayoutSet } from 'src/features/devtools/utils/layoutSchemaValidation';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import type { LayoutValidationErrors } from 'src/features/devtools/layoutValidation/types';
 
 export function useLayoutSchemaValidation(enabled: boolean): LayoutValidationErrors | undefined {
-  const layouts = useAppSelector((state) => state.formLayout.layouts);
-  const layoutSetId = useAppSelector((state) => state.formLayout.layoutSetId) || 'default';
+  const layouts = useLayouts();
+  const layoutSetId = useCurrentLayoutSetId() || 'default';
 
   const { fetchLayoutSchema } = useAppQueries();
   const { data: layoutSchema, isSuccess } = useQuery(['fetchLayoutSchema'], () => fetchLayoutSchema(), { enabled });

@@ -1,11 +1,9 @@
 import React from 'react';
 
-import dot from 'dot-object';
-
 import { useBindingSchema } from 'src/features/datamodel/useBindingSchema';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { Value } from 'src/features/devtools/components/NodeInspector/NodeInspectorDataField';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { FD } from 'src/features/formData/FormDataWrite';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 interface Props {
@@ -14,9 +12,8 @@ interface Props {
 
 export function NodeInspectorDataModelBindings({ dataModelBindings }: Props) {
   const schema = useBindingSchema(dataModelBindings);
-  const formData = useAppSelector((state) => state.formData.formData);
-  const asObject = dot.object(structuredClone(formData || {}));
   const bindings = dataModelBindings || {};
+  const results = FD.useFreshBindings(bindings);
 
   return (
     <Value
@@ -35,7 +32,7 @@ export function NodeInspectorDataModelBindings({ dataModelBindings }: Props) {
             {bindings[key]}
             <br />
             <em>Resultat: </em>
-            <div className={classes.json}>{JSON.stringify(dot.pick(bindings[key], asObject) || null, null, 2)}</div>
+            <div className={classes.json}>{JSON.stringify(results[key], null, 2)}</div>
             <br />
             <em>Datamodell: </em>
             <div className={classes.json}>{JSON.stringify(schema?.[key] || null, null, 2)}</div>

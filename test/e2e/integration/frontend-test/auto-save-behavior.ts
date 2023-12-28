@@ -49,18 +49,29 @@ describe('Auto save behavior', () => {
       cy.wait('@putFormData').then(() => {
         expect(putFormDataCounter).to.be.eq(1);
       });
+
+      // Clicking the back button does not save anything, because we didn't
+      // change anything in the form data worth saving
+      cy.get(appFrontend.backButton).clickAndGone();
+      cy.navPage('prefill').should('have.attr', 'aria-current', 'page');
+
+      // Go forward again, change something and then observe the back button saves
+      cy.get(appFrontend.nextButton).clickAndGone();
+      cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
       cy.get(appFrontend.backButton).clickAndGone();
       cy.wait('@putFormData').then(() => {
         expect(putFormDataCounter).to.be.eq(2);
       });
 
       // NavigationBar
+      cy.get(appFrontend.group.prefill.middels).dsCheck();
       cy.get(appFrontend.navMenu).findByRole('button', { name: '2. repeating' }).click();
       cy.wait('@putFormData').then(() => {
         expect(putFormDataCounter).to.be.eq(3);
       });
 
       // Icon previous button
+      cy.get(appFrontend.group.showGroupToContinue).find('input').dsUncheck();
       cy.get(appFrontend.prevButton).clickAndGone();
       cy.wait('@putFormData').then(() => {
         expect(putFormDataCounter).to.be.eq(4);
@@ -73,6 +84,8 @@ describe('Auto save behavior', () => {
      * TODO(1508):
      * This test is skipped because validation is not triggered by the new navigation refactor.
      * This will be fixed in combination with #1506.
+     * Note: There may be a need to adjust the test to actually change some data before navigating to the next
+     * page, as was done for the tests above.
      */
     it.skip(`should run save before single field validation with navigation trigger ${trigger || 'undefined'}`, () => {
       cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });

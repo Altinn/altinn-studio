@@ -7,6 +7,7 @@ export const pathToMessageBox = 'ui/messagebox';
 export const pathToArchive = 'ui/messagebox/archive';
 export const pathToProfile = 'ui/profile';
 export const pathToAllSchemas = 'skjemaoversikt';
+
 const prodRegex = new RegExp(baseHostnameAltinnProd);
 const testRegex = new RegExp(baseHostnameAltinnTest);
 const localRegex = new RegExp(baseHostnameAltinnLocal);

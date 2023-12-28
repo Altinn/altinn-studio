@@ -4,9 +4,9 @@ import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { reducePageValidations } from 'src/types';
@@ -23,7 +23,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const refPrev = React.useRef<HTMLButtonElement>(null);
   const refNext = React.useRef<HTMLButtonElement>(null);
 
-  const pageTriggers = useAppSelector((state) => state.formLayout.uiConfig.pageTriggers);
+  const pageTriggers = useLayoutSettings().pages.triggers;
   const activeTriggers = triggers || pageTriggers;
   const nextTextKey = returnToView ? 'form_filler.back_to_summary' : textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';

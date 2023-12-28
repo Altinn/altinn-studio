@@ -51,11 +51,6 @@ export interface IGetApplicationMetadataFulfilled {
   applicationMetadata: IApplicationMetadata;
 }
 
-export interface IGetApplicationMetadataRejected {
-  error: Error;
-}
-
 export interface IBackendFeaturesState {
-  multiPartSave: boolean;
   jsonObjectInDataResponse: boolean; // Extended attachment validation
 }

@@ -1,5 +1,3 @@
-import dot from 'dot-object';
-
 import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
 import { evalExpr } from 'src/features/expressions';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
@@ -9,7 +7,7 @@ import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsM
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
-import { getRepeatingGroups, splitDashedKey } from 'src/utils/formLayout';
+import { splitDashedKey } from 'src/utils/formLayout';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { _private } from 'src/utils/layout/hierarchy';
 import { generateEntireHierarchy, generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
@@ -17,7 +15,6 @@ import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src
 import type { Expression } from 'src/features/expressions/types';
 import type { AllOptionsMap } from 'src/features/options/useAllOptions';
 import type { HierarchyDataSources } from 'src/layout/layout';
-import type { IRepeatingGroups } from 'src/types';
 import type { IApplicationSettings } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
@@ -77,7 +74,7 @@ describe('Expressions shared function tests', () => {
         const options: AllOptionsMap = {};
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
-          formData: dataModel ? dot.dot(dataModel) : {},
+          formData: dataModel ?? {},
           attachments: convertInstanceDataToAttachments(instanceDataElements),
           instanceDataSources: buildInstanceDataSources(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
@@ -90,18 +87,10 @@ describe('Expressions shared function tests', () => {
         };
 
         const _layouts = convertLayouts(layouts);
-        let repeatingGroups: IRepeatingGroups = {};
-        for (const key of Object.keys(_layouts)) {
-          repeatingGroups = {
-            ...repeatingGroups,
-            ...getRepeatingGroups(_layouts[key] || [], dataSources.formData),
-          };
-        }
-
         const currentLayout = (context && context.currentLayout) || '';
         const rootCollection = expectsFailure
-          ? generateEntireHierarchy(_layouts, currentLayout, repeatingGroups, dataSources, getLayoutComponentObject)
-          : resolvedNodesInLayouts(_layouts, currentLayout, repeatingGroups, dataSources);
+          ? generateEntireHierarchy(_layouts, currentLayout, dataSources, getLayoutComponentObject)
+          : resolvedNodesInLayouts(_layouts, currentLayout, dataSources);
         const component = findComponent(context, rootCollection);
 
         for (const node of rootCollection.allNodes()) {
@@ -183,7 +172,7 @@ describe('Expressions shared context tests', () => {
       ({ layouts, dataModel, instanceDataElements, instance, frontendSettings, permissions, expectedContexts }) => {
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
-          formData: dataModel ? dot.dot(dataModel) : {},
+          formData: dataModel ?? {},
           attachments: convertInstanceDataToAttachments(instanceDataElements),
           instanceDataSources: buildInstanceDataSources(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
@@ -193,13 +182,7 @@ describe('Expressions shared context tests', () => {
         const foundContexts: SharedTestContextList[] = [];
         const _layouts = layouts || {};
         for (const key of Object.keys(_layouts)) {
-          const repeatingGroups = getRepeatingGroups(_layouts[key].data.layout, dataSources.formData);
-          const layout = generateHierarchy(
-            _layouts[key].data.layout,
-            repeatingGroups,
-            dataSources,
-            getLayoutComponentObject,
-          );
+          const layout = generateHierarchy(_layouts[key].data.layout, dataSources, getLayoutComponentObject);
 
           foundContexts.push({
             component: key,

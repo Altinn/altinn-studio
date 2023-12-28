@@ -3,8 +3,8 @@ import React from 'react';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { Value } from 'src/features/devtools/components/NodeInspector/NodeInspectorDataField';
 import { canBeExpression } from 'src/features/expressions/validation';
+import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function NodeInspectorTextResourceBindings({ node, textResourceBindings }: Props) {
-  const textResources = useAppSelector((state) => state.textResources.resourceMap);
+  const textResources = useTextResources();
   const { langAsString } = useLanguage();
 
   let actualTextResourceBindings = textResourceBindings || {};

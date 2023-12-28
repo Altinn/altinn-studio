@@ -49,7 +49,7 @@ export function createQueryContext<QD, Req extends boolean, CD = QD>(props: Quer
     Loader = DefaultLoader,
     ...rest
   } = props;
-  const { Provider, useCtx, useHasProvider } = createContext<CD>({ name, required, ...(rest as any) });
+  const { Provider, useCtx, useLaxCtx, useHasProvider } = createContext<CD>({ name, required, ...(rest as any) });
   const defaultValue = ('default' in rest ? rest.default : undefined) as CD;
 
   const WrappingProvider = ({ children }: PropsWithChildren) => {
@@ -70,6 +70,7 @@ export function createQueryContext<QD, Req extends boolean, CD = QD>(props: Quer
   return {
     Provider: WrappingProvider,
     useCtx,
+    useLaxCtx,
     useHasProvider,
   };
 }

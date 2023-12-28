@@ -4,6 +4,8 @@ import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
+import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
+import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
@@ -11,7 +13,7 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Summary/SummaryComponent.module.css';
 import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
-import { useResolvedNode } from 'src/utils/layout/ExprContext';
+import { useResolvedNode } from 'src/utils/layout/NodesContext';
 import type { IGrid } from 'src/layout/common.generated';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -30,19 +32,22 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
   const { id, grid } = summaryNode.item;
   const display = overrides?.display || summaryNode.item.display;
   const { langAsString } = useLanguage();
-  const { navigateToPage, currentPageId } = useNavigatePage();
+  const { currentPageId } = useNavigatePage();
   const summaryItem = summaryNode.item;
 
   const targetNode = useResolvedNode(overrides?.targetNode || summaryNode.item.componentRef || summaryNode.item.id);
   const targetItem = targetNode?.item;
   const targetView = targetNode?.top.top.myKey;
 
-  const onChangeClick = () => {
+  const navigateTo = useNavigateToNode();
+  const { setReturnToView } = usePageNavigationContext();
+  const onChangeClick = async () => {
     if (!targetView) {
       return;
     }
 
-    navigateToPage(targetView, { focusComponentId: targetNode?.item.id, returnToView: currentPageId });
+    setReturnToView(currentPageId);
+    await navigateTo(targetNode, true);
   };
 
   if (!targetNode || !targetItem || targetNode.isHidden() || targetItem.type === 'Summary') {

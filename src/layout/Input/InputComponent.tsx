@@ -3,8 +3,8 @@ import React from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
 import { LegacyTextField } from '@digdir/design-system-react';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { useRerender } from 'src/hooks/useReload';
 import { canBeParsedToDecimal } from 'src/utils/formattingUtils';
@@ -14,7 +14,7 @@ import type { IInputFormatting } from 'src/layout/Input/config.generated';
 
 export type IInputProps = PropsFromGenericComponent<'Input'>;
 
-export function InputComponent({ node, isValid, formData, handleDataChange, overrideDisplay }: IInputProps) {
+export function InputComponent({ node, isValid, overrideDisplay }: IInputProps) {
   const {
     id,
     readOnly,
@@ -28,27 +28,24 @@ export function InputComponent({ node, isValid, formData, handleDataChange, over
     maxLength,
   } = node.item;
   const characterLimit = useCharacterLimit(maxLength);
-  const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
-    handleDataChange,
-    dataModelBindings?.simpleBinding,
-    formData?.simpleBinding ?? '',
-    saveWhileTyping,
-  );
+  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
   const { langAsString } = useLanguage();
   const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IInputFormatting | undefined, value);
   const [inputKey, rerenderInput] = useRerender('input');
+  const setValue = FD.useSetForBindings(dataModelBindings, saveWhileTyping);
+  const debounce = FD.useDebounceImmediately();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (!reactNumberFormatConfig.number || canBeParsedToDecimal(e.target.value)) {
-      setValue(e.target.value);
+      setValue('simpleBinding', e.target.value);
     }
   }
 
   function onBlur() {
-    saveValue();
     if (reactNumberFormatConfig.number) {
       rerenderInput();
     }
+    debounce();
   }
 
   const ariaLabel = overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined;
@@ -60,8 +57,7 @@ export function InputComponent({ node, isValid, formData, handleDataChange, over
           id={id}
           value={value}
           onChange={handleChange}
-          onBlur={saveValue}
-          onPaste={onPaste}
+          onBlur={onBlur}
           disabled={readOnly}
           aria-label={ariaLabel}
           aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
@@ -72,7 +68,6 @@ export function InputComponent({ node, isValid, formData, handleDataChange, over
           id={id}
           onBlur={onBlur}
           onChange={handleChange}
-          onPaste={onPaste}
           characterLimit={!readOnly ? characterLimit : undefined}
           readOnly={readOnly}
           isValid={isValid}

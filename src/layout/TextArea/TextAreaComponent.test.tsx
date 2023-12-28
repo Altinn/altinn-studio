@@ -1,21 +1,19 @@
 import React from 'react';
 
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-describe('TextAreaComponent.tsx', () => {
-  const user = userEvent.setup();
-
+describe('TextAreaComponent', () => {
   it('should render with initial text value', async () => {
     await render({
-      genericProps: {
-        formData: {
-          simpleBinding: 'initial text content',
-        },
+      queries: {
+        fetchFormData: async () => ({
+          myTextArea: 'initial text content',
+        }),
       },
     });
 
@@ -24,53 +22,46 @@ describe('TextAreaComponent.tsx', () => {
     expect(textarea).toHaveValue('initial text content');
   });
 
-  it('should fire handleDataChange with value when textarea is blurred', async () => {
+  it('should fire setLeafValue with value', async () => {
     const initialText = 'initial text content';
     const addedText = ' + added content';
 
-    const handleDataChange = jest.fn();
-    await render({
-      genericProps: {
-        formData: {
-          simpleBinding: initialText,
-        },
-        handleDataChange,
+    const { formDataMethods } = await render({
+      queries: {
+        fetchFormData: async () => ({
+          myTextArea: initialText,
+        }),
       },
     });
 
     const textarea = screen.getByRole('textbox');
-    await act(async () => {
-      await user.type(textarea, addedText);
-      await user.keyboard('{Tab}');
-    });
+    await userEvent.type(textarea, addedText);
 
-    expect(handleDataChange).toHaveBeenCalledWith(`${initialText}${addedText}`, { validate: true });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      path: 'myTextArea',
+      newValue: `${initialText}${addedText}`,
+    });
   });
 
-  it('should not fire handleDataChange when readOnly is true', async () => {
+  it('should not fire setLeafValue when readOnly is true', async () => {
     const initialText = 'initial text content';
     const addedText = ' + added content';
 
-    const handleDataChange = jest.fn();
-    await render({
+    const { formDataMethods } = await render({
       component: {
         readOnly: true,
       },
-      genericProps: {
-        formData: {
-          simpleBinding: initialText,
-        },
-        handleDataChange,
+      queries: {
+        fetchFormData: async () => ({
+          myTextArea: initialText,
+        }),
       },
     });
 
     const textarea = screen.getByRole('textbox');
-    await act(async () => {
-      await user.type(textarea, addedText);
-      await user.keyboard('{Tab}');
-    });
+    await userEvent.type(textarea, addedText);
 
-    expect(handleDataChange).not.toHaveBeenCalled();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
   });
 
   it('should have aria-describedby attribute if textResourceBindings is present', async () => {
@@ -93,11 +84,20 @@ describe('TextAreaComponent.tsx', () => {
   });
 });
 
-const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'TextArea'>> = {}) => {
+const render = async ({
+  component,
+  genericProps,
+  ...rest
+}: Partial<RenderGenericComponentTestProps<'TextArea'>> = {}) =>
   await renderGenericComponentTest({
     type: 'TextArea',
     renderer: (props) => <TextAreaComponent {...props} />,
-    component,
+    component: {
+      dataModelBindings: {
+        simpleBinding: 'myTextArea',
+      },
+      ...component,
+    },
     genericProps,
+    ...rest,
   });
-};

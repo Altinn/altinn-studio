@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { createContext as createReactContext, memo, useContext } from 'react';
+import type { Provider } from 'react';
 
 interface ContextProvider<T> {
-  Provider: React.Provider<T>;
+  Provider: Provider<T>;
   useCtx: () => T;
+  useLaxCtx: () => T | typeof ContextNotProvided;
   useHasProvider: () => boolean;
 }
 
@@ -32,22 +34,27 @@ export interface LaxContextProps<T> extends BaseProps {
 export type CreateContextProps<T> = StrictContextProps | LaxContextProps<T>;
 
 /**
+ * Special symbol returned from useLaxCtx() when no provider is present.
+ */
+export const ContextNotProvided = Symbol('ContextNotProvided');
+
+/**
  * A strict context must always be provided, and will throw an error if it is not. This is useful for contexts that
  * are required for the application to function.
  */
 export function createContext<T>({ name, required, ...rest }: CreateContextProps<T>): ContextProvider<T> {
   const defaultValue = 'default' in rest ? rest.default : undefined;
-  const Context = React.createContext<{ innerValue: T | undefined; provided: boolean }>({
+  const Context = createReactContext<{ innerValue: T | undefined; provided: boolean }>({
     innerValue: defaultValue,
     provided: false,
   });
   Context.displayName = name;
 
-  const useHasProvider = () => Boolean(React.useContext(Context).provided);
+  const useHasProvider = () => Boolean(useContext(Context).provided);
 
   const useCtx = (): T => {
     const hasProvider = useHasProvider();
-    const value = React.useContext(Context)?.innerValue;
+    const value = useContext(Context).innerValue;
     if (!hasProvider) {
       if (required) {
         throw new Error(`${name} is missing`);
@@ -57,9 +64,26 @@ export function createContext<T>({ name, required, ...rest }: CreateContextProps
     return value as T;
   };
 
-  const Provider = ({ value, children }: Parameters<React.Provider<T | undefined>>[0]) => (
+  const useLaxCtx = (): T | typeof ContextNotProvided => {
+    const hasProvider = useHasProvider();
+    const value = useContext(Context).innerValue;
+    if (!hasProvider) {
+      return ContextNotProvided;
+    }
+    return value as T;
+  };
+
+  const MyProvider = ({ value, children }: Parameters<Provider<T | undefined>>[0]) => (
     <Context.Provider value={{ innerValue: value, provided: true }}>{children}</Context.Provider>
   );
 
-  return { Provider: Provider as React.Provider<T>, useCtx, useHasProvider };
+  const RealProvider = memo(MyProvider as Provider<T>);
+  RealProvider.displayName = `${name}Provider`;
+
+  return {
+    Provider: RealProvider,
+    useCtx,
+    useLaxCtx,
+    useHasProvider,
+  };
 }

@@ -6,7 +6,7 @@ import type { Options as AxeOptions } from 'cypress-axe';
 
 import { breakpoints } from 'src/hooks/useIsMobile';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { ILayouts } from 'src/layout/layout';
+import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 
 const appFrontend = new AppFrontend();
 
@@ -34,13 +34,12 @@ Cypress.Commands.add('dsUncheck', { prevSubject: true }, (subject: JQueryWithSel
   }
 });
 
-Cypress.Commands.add('dsSelect', { prevSubject: true }, (subject: JQueryWithSelector | undefined, name) => {
-  cy.log(`Selecting ${name}`);
-  cy.wrap(subject).should('not.be.disabled');
-  cy.wrap(subject).click();
-  cy.findByRole('option', { name }).click({ force: true });
+Cypress.Commands.add('dsSelect', (selector, value) => {
+  cy.log(`Selecting ${value} in ${selector}`);
+  cy.get(selector).should('not.be.disabled');
+  cy.get(selector).click();
+  cy.findByRole('option', { name: value }).click();
   cy.get('body').click();
-  cy.wrap(subject);
 });
 
 Cypress.Commands.add('clickAndGone', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
@@ -353,11 +352,7 @@ Cypress.Commands.add(
     cy.get(appFrontend.group.currentValue).blur();
     cy.get(appFrontend.group.newValue).type(`${newValue}`);
     cy.get(appFrontend.group.newValue).blur();
-    cy.get(appFrontend.group.mainGroup)
-      .find(appFrontend.group.editContainer)
-      .find(appFrontend.group.next)
-
-      .click();
+    cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
 
     if (openByDefault || typeof openByDefault === 'undefined') {
       cy.get(appFrontend.group.addNewItemSubGroup).should('not.exist');
@@ -405,22 +400,6 @@ Cypress.Commands.add('moveProcessNext', () => {
   });
 });
 
-Cypress.Commands.add('getReduxState', (selector) =>
-  cy
-    .window()
-    .its('reduxStore')
-    .invoke('getState')
-    .then((state) => {
-      if (selector) {
-        return selector(state);
-      }
-
-      return state;
-    }),
-);
-
-Cypress.Commands.add('reduxDispatch', (action) => cy.window().its('reduxStore').invoke('dispatch', action));
-
 Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator) => {
   cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, times: 1 }, (req) => {
     req.reply((res) => {
@@ -440,22 +419,26 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator) 
 
 Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.window().then((win) => {
-    const state = win.reduxStore.getState();
-    const layouts: ILayouts = structuredClone(state.formLayout.layouts || {});
-    if (mutator && layouts) {
-      for (const layout of Object.values(layouts)) {
-        for (const component of layout || []) {
-          mutator(component);
+    const activeData = win.queryClient.getQueryCache().findAll({ type: 'active' });
+    for (const query of activeData) {
+      if (Array.isArray(query.queryKey) && query.queryKey[0] === 'formLayouts') {
+        const copy = structuredClone(query.state.data) as LayoutContextValue | undefined;
+        if (copy) {
+          if (mutator) {
+            for (const page of Object.values(copy.layouts)) {
+              for (const component of page || []) {
+                mutator(component);
+              }
+            }
+          }
+          if (wholeLayoutMutator) {
+            wholeLayoutMutator(copy.layouts);
+          }
+
+          win.queryClient.setQueryData(query.queryKey, copy);
         }
       }
     }
-    if (wholeLayoutMutator) {
-      wholeLayoutMutator(layouts);
-    }
-    win.reduxStore.dispatch({
-      type: 'formLayout/updateLayouts',
-      payload: layouts,
-    });
   });
 });
 
@@ -489,7 +472,16 @@ Cypress.Commands.add('testPdf', (callback, returnToForm = false) => {
 
   // Visit the PDF page and reload
   cy.location('href').then((href) => {
-    cy.visit(`${href}?pdf=1`);
+    const regex = getInstanceIdRegExp();
+    const instanceId = regex.exec(href)?.[1];
+    const before = href.split(regex)[0];
+    const visitUrl = `${before}${instanceId}?pdf=1`;
+
+    // After the navigation rewrite where we now add the current task ID to the URL, this test is only realistic if
+    // we remove the task and page from the URL before rendering the PDF. This is because the real PDF generator
+    // won't know about the task and page, and will load this URL and assume the app will figure out how to display
+    // the current task as a PDF.
+    cy.visit(visitUrl);
   });
   cy.reload();
 

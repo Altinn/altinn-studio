@@ -1,3 +1,5 @@
+import dot from 'dot-object';
+
 import { GridHierarchyGenerator } from 'src/layout/Grid/hierarchy';
 import { nodesFromGridRow } from 'src/layout/Grid/tools';
 import { groupIsNonRepeatingPanelExt, groupIsRepeating, groupIsRepeatingExt } from 'src/layout/Group/tools';
@@ -5,6 +7,7 @@ import { getRepeatingGroupStartStopIndex } from 'src/utils/formLayout';
 import { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type {
   CompGroupExternal,
+  CompGroupRepeatingExternal,
   CompGroupRepeatingInternal,
   CompGroupRepeatingLikertInternal,
   HRepGroupRows,
@@ -201,10 +204,13 @@ export class GroupHierarchyGenerator extends ComponentHierarchyGenerator<'Group'
       const prototype = ctx.generator.prototype(ctx.id) as UnprocessedItem<'Group'>;
 
       delete (props.item as any)['children'];
-      const item = props.item as CompGroupExternal;
+      const item = props.item as CompGroupRepeatingExternal;
       const me = ctx.generator.makeNode(props);
       const rows: HRepGroupRows = [];
-      const lastIndex = (ctx.generator.repeatingGroups || {})[props.item.id]?.index;
+      const formData = item.dataModelBindings?.group
+        ? dot.pick(item.dataModelBindings.group, ctx.generator.dataSources.formData)
+        : undefined;
+      const lastIndex = formData && Array.isArray(formData) ? formData.length - 1 : -1;
       const { startIndex, stopIndex } = getRepeatingGroupStartStopIndex(
         lastIndex,
         'edit' in props.item ? (props.item.edit as IGroupEditPropertiesLikert) : {},

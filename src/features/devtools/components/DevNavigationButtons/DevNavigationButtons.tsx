@@ -7,13 +7,13 @@ import classes from 'src/features/devtools/components/DevNavigationButtons/DevNa
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
-import { useExprContext } from 'src/utils/layout/ExprContext';
+import { useNodes } from 'src/utils/layout/NodesContext';
 
 export const DevNavigationButtons = () => {
   const { navigateToPage, currentPageId } = useNavigatePage();
   const { hidden } = usePageNavigationContext();
   const { orderWithHidden } = useUiConfigContext();
-  const ctx = useExprContext();
+  const ctx = useNodes();
   const order = orderWithHidden ?? [];
   const allPages = ctx?.allPageKeys() || [];
 

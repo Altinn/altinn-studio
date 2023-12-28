@@ -6,7 +6,7 @@ import cn from 'classnames';
 
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
 import classes from 'src/components/presentation/NavBar.module.css';
-import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { useReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
@@ -25,8 +25,7 @@ const expandIconStyle = { transform: 'rotate(45deg)' };
 export const NavBar = ({ type }: INavBarProps) => {
   const { langAsString } = useLanguage();
   const { navigateToPage, previous } = useNavigatePage();
-
-  const { returnToView } = usePageNavigationContext();
+  const returnToView = useReturnToView();
   const party = useCurrentParty();
   const { hideCloseButton, showLanguageSelector, showExpandWidthButton, expandedWidth, toggleExpandedWidth } =
     useUiConfigContext();

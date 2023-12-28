@@ -15,12 +15,12 @@ export class Dropdown extends DropdownDef {
     return <DropdownComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNode<'Dropdown'>, { formData, langTools, options }: DisplayDataProps): string {
+  getDisplayData(node: LayoutNode<'Dropdown'>, { langTools, options }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    const value = formData[node.item.dataModelBindings.simpleBinding] || '';
+    const value = node.getFormData().simpleBinding ?? '';
     const optionList = options[node.item.id] || [];
     return getSelectedValueToText(value, langTools, optionList) || '';
   }

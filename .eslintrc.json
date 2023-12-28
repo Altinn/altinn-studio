@@ -85,7 +85,12 @@
       }
     ],
     "@typescript-eslint/consistent-type-imports": ["warn"],
-    "react-hooks/exhaustive-deps": ["error"],
+    "react-hooks/exhaustive-deps": [
+      "error",
+      {
+        "additionalHooks": "^(useMemoDeepEqual)$"
+      }
+    ],
     "prefer-template": ["warn"],
     "sonarjs/no-duplicate-string": ["off"],
     "sonarjs/cognitive-complexity": ["off"],

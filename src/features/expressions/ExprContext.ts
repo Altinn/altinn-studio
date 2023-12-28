@@ -5,7 +5,6 @@ import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/pr
 import type { IAttachments } from 'src/features/attachments';
 import type { EvalExprOptions } from 'src/features/expressions/index';
 import type { ExprConfig, Expression, ExprPositionalArgs } from 'src/features/expressions/types';
-import type { IFormData } from 'src/features/formData';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { AllOptionsMap } from 'src/features/options/useAllOptions';
 import type { IUiConfig } from 'src/types';
@@ -16,7 +15,7 @@ import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 export interface ContextDataSources {
   instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
-  formData: IFormData;
+  formData: object;
   attachments: IAttachments;
   uiConfig: IUiConfig;
   options: AllOptionsMap;

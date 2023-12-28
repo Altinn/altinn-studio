@@ -51,8 +51,6 @@ describe('CustomWebComponent', () => {
         ...component,
       },
       genericProps: {
-        formData: { simpleBinding: 'This is a test' },
-        handleDataChange: (value: string) => value,
         isValid: true,
         shouldFocus: false,
         ...({ 'data-CustomAttributeWithReact': <span>Hello world</span> } as any),

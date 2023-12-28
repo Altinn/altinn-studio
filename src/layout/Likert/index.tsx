@@ -20,12 +20,12 @@ export class Likert extends LikertDef {
     return props.node.item.layout === LayoutStyle.Table || props.overrideItemProps?.layout === LayoutStyle.Table;
   }
 
-  getDisplayData(node: LayoutNode<'Likert'>, { formData, langTools, options }: DisplayDataProps): string {
+  getDisplayData(node: LayoutNode<'Likert'>, { langTools, options }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    const value = formData[node.item.dataModelBindings.simpleBinding] || '';
+    const value = node.getFormData().simpleBinding ?? '';
     const optionList = options[node.item.id] || [];
     return getSelectedValueToText(value, langTools, optionList) || '';
   }

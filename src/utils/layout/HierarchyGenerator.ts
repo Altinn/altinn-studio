@@ -9,7 +9,6 @@ import type {
   ILayout,
   ILayouts,
 } from 'src/layout/layout';
-import type { IRepeatingGroups } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export type UnprocessedItem<T extends CompTypes = CompTypes> = CompExternalExact<T>;
@@ -138,7 +137,6 @@ export class HierarchyGenerator {
 
   constructor(
     private readonly layouts: ILayouts,
-    public readonly repeatingGroups: IRepeatingGroups | null,
     public readonly dataSources: HierarchyDataSources,
     public readonly getLayoutComponentObject: DefGetter,
   ) {}
@@ -410,12 +408,11 @@ export class SimpleComponentHierarchyGenerator<Type extends CompTypes> extends C
 
 export function generateHierarchy(
   layout: ILayout,
-  repeatingGroups: IRepeatingGroups,
   dataSources: HierarchyDataSources,
   getLayoutComponentObject: DefGetter,
 ): LayoutPage {
   const clone = structuredClone({ FormLayout: layout }) as ILayouts;
-  const generator = new HierarchyGenerator(clone, repeatingGroups, dataSources, getLayoutComponentObject);
+  const generator = new HierarchyGenerator(clone, dataSources, getLayoutComponentObject);
   generator.run();
 
   return generator.pages.FormLayout;
@@ -424,11 +421,10 @@ export function generateHierarchy(
 export function generateEntireHierarchy(
   layouts: ILayouts,
   currentView: string | undefined,
-  repeatingGroups: IRepeatingGroups | null,
   dataSources: HierarchyDataSources,
   getLayoutComponentObject: DefGetter,
 ): LayoutPages {
-  const generator = new HierarchyGenerator(layouts, repeatingGroups, dataSources, getLayoutComponentObject);
+  const generator = new HierarchyGenerator(layouts, dataSources, getLayoutComponentObject);
   generator.run();
 
   return new LayoutPages(currentView as keyof typeof generator.pages | undefined, generator.pages);

@@ -21,7 +21,7 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   const { id, layout, readOnly, textResourceBindings, required, showAsCard } = node.item;
   const alertOnChange = 'alertOnChange' in node.item ? node.item.alertOnChange : undefined;
   const labelSettings = 'labelSettings' in node.item ? node.item.labelSettings : undefined;
-  const { selected, handleChange, handleBlur, fetchingOptions, calculatedOptions } = useRadioButtons(props);
+  const { selected, handleChange, fetchingOptions, calculatedOptions } = useRadioButtons(props);
   const { lang, langAsString } = useLanguage();
   const selectedLabel = calculatedOptions.find((option) => option.value === selected)?.label;
   const selectedLabelTranslated = langAsString(selectedLabel);
@@ -68,10 +68,7 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   }
 
   return (
-    <div
-      id={id}
-      onBlur={handleBlur}
-    >
+    <div id={id}>
       <Radio.Group
         legend={
           <span className={classes.label}>

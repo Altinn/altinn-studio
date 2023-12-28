@@ -11,40 +11,18 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowRenderer } from 'src/layout/Grid/GridComponent';
 import { nodesFromGridRows } from 'src/layout/Grid/tools';
 import classes from 'src/layout/Group/RepeatingGroup.module.css';
+import { useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
 import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
 import { RepeatingGroupTableRow } from 'src/layout/Group/RepeatingGroupTableRow';
 import { RepeatingGroupTableTitle } from 'src/layout/Group/RepeatingGroupTableTitle';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { GridRowsInternal, ITableColumnFormatting } from 'src/layout/common.generated';
-import type { CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
-import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 
-export interface IRepeatingGroupTableProps {
-  node: LayoutNodeForGroup<CompGroupRepeatingInternal>;
-  repeatingGroupIndex: number;
-  editIndex: number;
-  setEditIndex: (index: number, forceValidation?: boolean) => void;
-  onClickRemove: (groupIndex: number) => void;
-  setMultiPageIndex?: (index: number) => void;
-  multiPageIndex?: number;
-  deleting: boolean;
-  rowsBefore?: GridRowsInternal;
-  rowsAfter?: GridRowsInternal;
-}
-
-export function RepeatingGroupTable({
-  node,
-  repeatingGroupIndex,
-  editIndex,
-  setEditIndex,
-  onClickRemove,
-  setMultiPageIndex,
-  multiPageIndex,
-  deleting,
-  rowsBefore,
-  rowsAfter,
-}: IRepeatingGroupTableProps): JSX.Element | null {
+export function RepeatingGroupTable(): JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
+  const { node, isEditing } = useRepeatingGroup();
+  const rowsBefore = node.item.rowsBefore;
+  const rowsAfter = node.item.rowsAfter;
 
   const container = node.item;
   const { textResourceBindings, labelSettings, id, edit, minCount } = container;
@@ -78,10 +56,10 @@ export function RepeatingGroupTable({
   };
 
   const tableNodes = getTableNodes(0);
-  const numRows = repeatingGroupIndex + 1;
+  const numRows = node.item.rows.length;
 
   const isEmpty = numRows === 0;
-  const showTableHeader = numRows > 0 && !(numRows == 1 && editIndex == 0);
+  const showTableHeader = numRows > 0 && !(numRows == 1 && isEditing(0));
 
   const showDeleteButtonColumns = new Set<boolean>();
   const showEditButtonColumns = new Set<boolean>();
@@ -102,30 +80,6 @@ export function RepeatingGroupTable({
   }
 
   const isNested = typeof container?.baseComponentId === 'string';
-
-  const handleDeleteClick = (index: number) => {
-    onClickRemove(index);
-  };
-
-  const handleEditClick = (groupIndex: number) => {
-    if (groupIndex === editIndex) {
-      setEditIndex(-1);
-    } else {
-      setEditIndex(groupIndex);
-    }
-  };
-
-  const renderRepeatingGroupsEditContainer = () =>
-    editIndex >= 0 &&
-    edit?.mode !== 'onlyTable' && (
-      <RepeatingGroupsEditContainer
-        node={node}
-        editIndex={editIndex}
-        setEditIndex={setEditIndex}
-        multiPageIndex={multiPageIndex}
-        setMultiPageIndex={setMultiPageIndex}
-      />
-    );
 
   if (!tableNodes) {
     return null;
@@ -239,8 +193,8 @@ export function RepeatingGroupTable({
           </TableHeader>
         )}
         <TableBody id={`group-${id}-table-body`}>
-          {repeatingGroupIndex >= 0 &&
-            [...Array(repeatingGroupIndex + 1)].map((_x: any, index: number) => {
+          {numRows >= 1 &&
+            [...Array(numRows)].map((_x: any, index: number) => {
               const children = node.children(undefined, index);
               const rowHasErrors = !!children.find((c) => c.hasValidationMessages());
 
@@ -251,24 +205,17 @@ export function RepeatingGroupTable({
                 return null;
               }
 
-              const isEditingRow = index === editIndex && edit?.mode !== 'onlyTable';
+              const isEditingRow = isEditing(index) && edit?.mode !== 'onlyTable';
 
               return (
                 <React.Fragment key={index}>
                   <RepeatingGroupTableRow
-                    node={node}
                     className={cn({
                       [classes.editingRow]: isEditingRow,
                     })}
-                    editIndex={editIndex}
-                    setEditIndex={setEditIndex}
-                    onClickRemove={onClickRemove}
-                    deleting={deleting}
                     index={index}
                     rowHasErrors={rowHasErrors}
                     getTableNodes={getTableNodes}
-                    onEditClick={() => handleEditClick(index)}
-                    onDeleteClick={() => handleDeleteClick(index)}
                     mobileView={mobileView}
                     displayDeleteColumn={displayDeleteColumn}
                     displayEditColumn={displayEditColumn}
@@ -286,7 +233,7 @@ export function RepeatingGroupTable({
                             : tableNodes.length + 3 + (displayEditColumn ? 1 : 0) + (displayDeleteColumn ? 1 : 0)
                         }
                       >
-                        {renderRepeatingGroupsEditContainer()}
+                        {edit?.mode !== 'onlyTable' && <RepeatingGroupsEditContainer editIndex={index} />}
                       </TableCell>
                     </TableRow>
                   )}

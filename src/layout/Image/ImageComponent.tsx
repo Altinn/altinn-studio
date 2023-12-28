@@ -4,8 +4,8 @@ import { Grid, makeStyles } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { Lang } from 'src/features/language/Lang';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IImageProps = PropsFromGenericComponent<'Image'>;
@@ -20,7 +20,7 @@ export function ImageComponent({ node }: IImageProps) {
   const { langAsString } = useLanguage();
   const { id, image, textResourceBindings } = node.item;
   const classes = useStyles();
-  const languageKey = useAppSelector((state) => state.profile.profile?.profileSettingPreference.language || 'nb');
+  const languageKey = useCurrentLanguage();
   const width = image?.width || '100%';
   const align = image?.align || 'center';
   const altText = textResourceBindings?.altTextImg && langAsString(textResourceBindings.altTextImg);

@@ -3,9 +3,9 @@ import React, { useMemo } from 'react';
 import { Grid } from '@material-ui/core';
 
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { DataTypeReference, filterDisplayPdfAttachments, getDisplayAttachments } from 'src/utils/attachmentsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData, IDataType } from 'src/types/shared';
@@ -18,8 +18,7 @@ const emptyDataTypeArray: IDataType[] = [];
 export function AttachmentListComponent({ node }: IAttachmentListProps) {
   const instanceData = useLaxInstanceData()?.data ?? emptyDataArray;
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
-  const dataTypes =
-    useAppSelector((state) => state.applicationMetadata.applicationMetadata?.dataTypes) ?? emptyDataTypeArray;
+  const dataTypes = useApplicationMetadata().dataTypes ?? emptyDataTypeArray;
 
   const attachments = useMemo(() => {
     const allowedTypes = new Set(node.item.dataTypeIds ?? []);

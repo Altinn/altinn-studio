@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
 import { mapFormData } from 'src/utils/databindings';
 import type { IInstantiationButtonComponentProvidedProps } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
@@ -11,7 +11,7 @@ type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedP
 
 export const InstantiationButton = ({ children, ...props }: Props) => {
   const instantiation = useInstantiation();
-  const formData = useAppSelector((state) => state.formData.formData);
+  const formData = FD.useDebouncedDotMap();
   const party = useCurrentParty();
 
   const instantiate = () => {

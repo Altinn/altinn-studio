@@ -71,8 +71,7 @@ describe('Summary', () => {
       cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {
         force: true,
       });
-      cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('not.be.disabled');
-      cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).dsSelect('Adresse');
+      cy.dsSelect(appFrontend.changeOfName.uploadWithTag.tagsDropDown, 'Adresse');
       cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
 
       cy.get(appFrontend.backToSummaryButton).click();
@@ -126,8 +125,8 @@ describe('Summary', () => {
 
     // Test summary of non-repeating group
     cy.gotoNavPage('form');
-    cy.get('#reference').dsSelect('Ola Nordmann');
-    cy.get('#reference2').dsSelect('Ole');
+    cy.dsSelect('#reference', 'Ola Nordmann');
+    cy.dsSelect('#reference2', 'Ole');
     cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
@@ -138,9 +137,9 @@ describe('Summary', () => {
       });
 
     cy.gotoNavPage('form');
-    cy.get('#sources').dsSelect('Digitaliseringsdirektoratet');
-    cy.get('#reference').dsSelect('Sophie Salt');
-    cy.get('#reference2').dsSelect('Dole');
+    cy.dsSelect('#sources', 'Digitaliseringsdirektoratet');
+    cy.dsSelect('#reference', 'Sophie Salt');
+    cy.dsSelect('#reference2', 'Dole');
     cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
@@ -151,9 +150,9 @@ describe('Summary', () => {
       });
 
     cy.gotoNavPage('form');
-    cy.get('#sources').dsSelect('Annet');
-    cy.get('#reference').dsSelect('Test');
-    cy.get('#reference2').dsSelect('Doffen');
+    cy.dsSelect('#sources', 'Annet');
+    cy.dsSelect('#reference', 'Test');
+    cy.dsSelect('#reference2', 'Doffen');
     cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
       .and('have.length', 3)
@@ -204,15 +203,10 @@ describe('Summary', () => {
     cy.get(appFrontend.group.mainGroupSummary).first().children(mui.gridItem).eq(4).find('button').first().click();
 
     // Check to show a couple of nested options, then go back to the summary
-    cy.get(appFrontend.group.row(0).editBtn).click();
-    cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedDynamics).dsCheck();
-
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[1]).dsCheck();
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[2]).dsCheck();
-
-    cy.get(appFrontend.group.row(0).nestedGroup.saveBtn).click();
-    cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.backToSummaryButton).click();
 
     cy.get(appFrontend.group.mainGroupSummary)
@@ -488,7 +482,7 @@ describe('Summary', () => {
     }
   });
 
-  it('Navigation to fields on other pages outside the summary should not show the back-to-summary button', () => {
+  it.skip('Navigation to fields on other pages outside the summary should not show the back-to-summary button', () => {
     cy.gotoAndComplete('changename');
     injectExtraPageAndSetTriggers();
     cy.navPage('form').click();

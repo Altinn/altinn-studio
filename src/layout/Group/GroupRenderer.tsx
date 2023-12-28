@@ -2,7 +2,8 @@ import React from 'react';
 
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
-import { GroupContainer } from 'src/layout/Group/GroupContainer';
+import { RepeatingGroupContainer } from 'src/layout/Group/RepeatingGroupContainer';
+import { RepeatingGroupProvider } from 'src/layout/Group/RepeatingGroupContext';
 import { RepeatingGroupsFocusProvider } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { RepeatingGroupsLikertContainer } from 'src/layout/Likert/RepeatingGroupsLikertContainer';
 import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
@@ -11,19 +12,18 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 export type GroupRendererProps = PropsFromGenericComponent<'Group'>;
 
-export function GroupRenderer({ node }: GroupRendererProps) {
+export function GroupRenderer({ node, containerDivRef }: GroupRendererProps) {
   if (node.isRepGroupLikert()) {
     return <RepeatingGroupsLikertContainer node={node} />;
   }
 
   if (node.isRepGroup()) {
     return (
-      <RepeatingGroupsFocusProvider>
-        <GroupContainer
-          node={node}
-          key={node.item.id}
-        />
-      </RepeatingGroupsFocusProvider>
+      <RepeatingGroupProvider node={node}>
+        <RepeatingGroupsFocusProvider>
+          <RepeatingGroupContainer containerDivRef={containerDivRef} />
+        </RepeatingGroupsFocusProvider>
+      </RepeatingGroupProvider>
     );
   }
 

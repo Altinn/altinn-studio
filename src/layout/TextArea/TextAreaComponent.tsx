@@ -2,8 +2,8 @@ import React from 'react';
 
 import { LegacyTextArea } from '@digdir/design-system-react';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useDelayedSavedState } from 'src/hooks/useDelayedSavedState';
 import { useCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -11,24 +11,19 @@ import 'src/styles/shared.css';
 
 export type ITextAreaProps = PropsFromGenericComponent<'TextArea'>;
 
-export function TextAreaComponent({ node, formData, isValid, handleDataChange, overrideDisplay }: ITextAreaProps) {
+export function TextAreaComponent({ node, isValid, overrideDisplay }: ITextAreaProps) {
   const { langAsString } = useLanguage();
   const { id, readOnly, textResourceBindings, dataModelBindings, saveWhileTyping, autocomplete, maxLength } = node.item;
   const characterLimit = useCharacterLimit(maxLength);
-  const suppliedValue = formData?.simpleBinding;
-  const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
-    handleDataChange,
-    dataModelBindings?.simpleBinding,
-    suppliedValue ?? '',
-    saveWhileTyping,
-  );
+  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
+  const setValue = FD.useSetForBinding(dataModelBindings?.simpleBinding, saveWhileTyping);
+  const debounce = FD.useDebounceImmediately();
 
   return (
     <LegacyTextArea
       id={id}
-      onBlur={() => saveValue()}
       onChange={(e) => setValue(e.target.value)}
-      onPaste={() => onPaste()}
+      onBlur={debounce}
       readOnly={readOnly}
       resize='vertical'
       characterLimit={!readOnly ? characterLimit : undefined}

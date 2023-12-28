@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import type { ReactNode } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { OpenDevToolsButton } from 'src/features/devtools/components/OpenDevToolsButton/OpenDevToolsButton';
 import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
@@ -9,11 +9,7 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsDev } from 'src/hooks/useIsDev';
 
-interface IDevToolsProps {
-  children: ReactNode;
-}
-
-export const DevTools = ({ children }: IDevToolsProps) => {
+export const DevTools = ({ children }: PropsWithChildren) => {
   const isDev = useIsDev();
   const panelOpen = useAppSelector((state) => state.devTools.isOpen);
   const dispatch = useAppDispatch();

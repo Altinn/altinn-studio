@@ -13,7 +13,7 @@ type RenderProps = {
 const render = ({ order = [], currentPageId }: RenderProps) =>
   renderWithInstanceAndLayout({
     renderer: () => <Progress />,
-    initialPage: `Task_1/${currentPageId}`,
+    initialPage: currentPageId,
     queries: {
       fetchLayoutSettings: () => Promise.resolve({ showProgress: true, pages: { order } }),
     },

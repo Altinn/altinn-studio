@@ -1,16 +1,16 @@
 import { dot, object } from 'dot-object';
 
-import { getParentGroup } from 'src/utils/validation/validation';
 import type { IFormData } from 'src/features/formData';
 import type { IMapping } from 'src/layout/common.generated';
-import type { IDataModelBindings, ILayout } from 'src/layout/layout';
-import type { IRepeatingGroup, IRepeatingGroups } from 'src/types';
+import type { IDataModelBindings } from 'src/layout/layout';
 
 /**
  * Converts the formdata in store (that is flat) to a JSON
  * object that matches the JSON datamodel defined by the service from
  * XSD. This is needed for the API to understand
- * @param formData the complete datamodel in store
+ *
+ * The opposite conversion:
+ * @see flattenObject
  */
 export function convertDataBindingToModel(formData: any): any {
   return object({ ...formData });
@@ -57,66 +57,6 @@ export function getKeyWithoutIndexIndicators(keyWithIndexIndicators: string): st
   return keyWithIndexIndicators.replaceAll(GLOBAL_INDEX_KEY_INDICATOR_REGEX, '');
 }
 
-/*
-  Gets possible combinations of repeating group or nested groups
-  Example input ["group", "group.subGroup"] (note that sub groups should)
-  For the group setup
-  {
-    group: {
-      index: 2
-    },
-    subGroup-0: {
-      index: 2
-    },
-    subGroup-1: {
-      index: 1
-    }
-  }
-  Would produce the following output: [[0, 0], [0, 1], [0, 2], [1, 0]]
-*/
-export function getIndexCombinations(
-  baseGroupBindings: string[],
-  repeatingGroups: IRepeatingGroups | null,
-): number[][] {
-  const combinations: number[][] = [];
-
-  if (!baseGroupBindings?.length || !repeatingGroups) {
-    return combinations;
-  }
-
-  const repeatingGroupValues = Object.values(repeatingGroups);
-  const mainGroupMaxIndex = repeatingGroupValues.find((group) => group.dataModelBinding === baseGroupBindings[0])
-    ?.index;
-
-  if (mainGroupMaxIndex === undefined) {
-    return combinations;
-  }
-
-  if (baseGroupBindings.length === 1) {
-    return Array.from(Array(mainGroupMaxIndex + 1).keys()).map((x) => [x]);
-  } else {
-    const subGroupBinding = baseGroupBindings[1];
-    for (let mainGroupIndex = 0; mainGroupIndex <= mainGroupMaxIndex; mainGroupIndex++) {
-      const subGroupKey = Object.keys(repeatingGroups).filter(
-        (key) =>
-          repeatingGroups[key].dataModelBinding === subGroupBinding && mainGroupIndex === Number(key.split('-').pop()),
-      )[0];
-      const subGroupMaxIndex = repeatingGroups[subGroupKey]?.index;
-
-      if (subGroupMaxIndex < 0) {
-        combinations.push([mainGroupIndex]);
-        continue;
-      }
-
-      for (let subGroupIndex = 0; subGroupIndex <= subGroupMaxIndex; subGroupIndex++) {
-        combinations.push([mainGroupIndex, subGroupIndex]);
-      }
-    }
-  }
-
-  return combinations;
-}
-
 /**
  * Returns key indexes:
  *
@@ -133,6 +73,9 @@ export function getKeyIndex(keyWithIndex: string): number[] {
 /**
  * Converts JSON to the flat datamodel used in Redux data store
  * @param data The form data as JSON
+ *
+ * The opposite conversion:
+ * @see convertDataBindingToModel
  */
 export function flattenObject(data: any): IFormData {
   const flat = dot(data);
@@ -143,6 +86,9 @@ export function flattenObject(data: any): IFormData {
     } else if (flat[key] === '' && key.indexOf('.') > 0) {
       // For backwards compatibility, delete keys inside deeper object that are empty strings. This behaviour is
       // not always consistent, as it is only a case for deeper object (not direct properties).
+      delete flat[key];
+    } else if (typeof flat[key] === 'object' && !Array.isArray(flat[key]) && Object.keys(flat[key]).length === 0) {
+      // Empty objects are not considered
       delete flat[key];
     } else {
       // Cast all values to strings, for backwards compatibility. Lots of code already written in frontend
@@ -156,73 +102,8 @@ export function flattenObject(data: any): IFormData {
 }
 
 /**
- * @deprecated
- * @see LayoutNode
- * @see ExprContext
+ * @deprecated Use (or implement) this via FD.useMapping() instead
  */
-export function getGroupDataModelBinding(repeatingGroup: IRepeatingGroup, groupId: string, layout: ILayout) {
-  const parentGroup = getParentGroup(repeatingGroup.baseGroupId || groupId, layout);
-  if (parentGroup) {
-    const splitId = groupId.split('-');
-    const parentIndex = Number.parseInt(splitId[splitId.length - 1], 10);
-    const parentDataBinding = 'dataModelBindings' in parentGroup ? parentGroup.dataModelBindings?.group : undefined;
-    const indexedParentDataBinding = `${parentDataBinding}[${parentIndex}]`;
-    if (repeatingGroup.dataModelBinding && parentDataBinding) {
-      return repeatingGroup.dataModelBinding.replace(parentDataBinding, indexedParentDataBinding);
-    }
-    return undefined;
-  }
-
-  return repeatingGroup.dataModelBinding;
-}
-
-export function removeGroupData(
-  formData: IFormData,
-  index: number,
-  layout: ILayout,
-  groupId: string,
-  repeatingGroup: IRepeatingGroup,
-): IFormData {
-  const result = { ...formData };
-  const groupDataModelBinding = getGroupDataModelBinding(repeatingGroup, groupId, layout);
-
-  deleteGroupData(result, groupDataModelBinding, index, true);
-
-  if (index < repeatingGroup.index + 1) {
-    for (let i = index + 1; i <= repeatingGroup.index + 1; i++) {
-      deleteGroupData(result, groupDataModelBinding, i, true, true);
-    }
-  }
-
-  return result;
-}
-
-export function deleteGroupData(
-  data: { [key: string]: any },
-  keyStart: string | undefined,
-  index: number,
-  isDataModelBinding: boolean,
-  shiftData?: boolean,
-) {
-  if (!keyStart) {
-    return;
-  }
-
-  const prevData = { ...data };
-  Object.keys(data)
-    .filter((key) => key.startsWith(isDataModelBinding ? `${keyStart}[${index}]` : `${keyStart}-${index}`))
-    .forEach((key) => {
-      delete data[key];
-      if (shiftData) {
-        const newKey = key.replace(
-          isDataModelBinding ? `${keyStart}[${index}]` : `${keyStart}-${index}`,
-          isDataModelBinding ? `${keyStart}[${index - 1}]` : `${keyStart}-${index - 1}`,
-        );
-        data[newKey] = prevData[key];
-      }
-    });
-}
-
 export function mapFormData(formData: IFormData, mapping: IMapping | undefined) {
   const mappedFormData = {};
   if (!formData) {

@@ -9,11 +9,11 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import type { ImmerReducer } from 'use-immer';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useLaxInstance, useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ValidationActions } from 'src/features/validation/validationSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
 import { getValidationMessage } from 'src/utils/validation/backendValidation';
@@ -93,10 +93,7 @@ const initialState: State = {
 export const usePreUpload = () => {
   const [state, dispatch] = useImmerReducer(reducer, initialState);
   const upload = useUpload(dispatch);
-  const waitFor = useWaitForState<IData | false, State>({
-    cacheKey: ['attachments', 'preUpload'],
-    currentState: state,
-  });
+  const waitFor = useWaitForState<IData | false, State>(state);
 
   const awaitUpload = useCallback(
     (attachment: TemporaryAttachment) =>
@@ -129,7 +126,7 @@ const useUpload = (dispatch: Dispatch) => {
   const { mutateAsync } = useAttachmentsUploadMutation();
   const langTools = useLanguage();
   const reduxDispatch = useAppDispatch();
-  const backendFeatures = useAppSelector((state) => state.applicationMetadata.applicationMetadata?.features) || {};
+  const backendFeatures = useApplicationMetadata().features || {};
 
   return async (action: RawAttachmentAction<AttachmentActionUpload>) => {
     const { node, file } = action;
@@ -210,9 +207,16 @@ interface MutationVariables {
 
 function useAttachmentsUploadMutation() {
   const { doAttachmentUpload } = useAppMutations();
+  const instanceId = useLaxInstanceData()?.id;
 
   const options: UseMutationOptions<IData, HttpClientError, MutationVariables> = {
-    mutationFn: ({ dataTypeId, file }: MutationVariables) => doAttachmentUpload.call(dataTypeId, file),
+    mutationFn: ({ dataTypeId, file }: MutationVariables) => {
+      if (!instanceId) {
+        throw new Error('Missing instanceId, cannot upload attachment');
+      }
+
+      return doAttachmentUpload.call(instanceId, dataTypeId, file);
+    },
     onError: (error: HttpClientError) => {
       window.logError('Failed to upload attachment:\n', error.message);
     },

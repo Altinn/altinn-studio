@@ -2,14 +2,16 @@ import React, { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
+import { useCurrentDataModelSchema } from 'src/features/datamodel/DataModelSchemaProvider';
 import { dotNotationToPointer } from 'src/features/datamodel/notations';
 import { lookupBindingInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
-import { useCurrentDataModelSchema, useCurrentDataModelType } from 'src/features/datamodel/useBindingSchema';
+import { useCurrentDataModelType } from 'src/features/datamodel/useBindingSchema';
 import { useLayoutSchemaValidation } from 'src/features/devtools/layoutValidation/useLayoutSchemaValidation';
-import { generateSimpleRepeatingGroups } from 'src/features/form/layout/repGroups/generateSimpleRepeatingGroups';
-import { useCurrentLayoutSetId } from 'src/features/form/layout/useCurrentLayoutSetId';
+import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsDev } from 'src/hooks/useIsDev';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { getLayoutComponentObject } from 'src/layout';
 import { selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
@@ -70,16 +72,15 @@ const defaultLayouts: ILayouts = {};
  */
 function useDataModelBindingsValidation(props: LayoutValidationProps) {
   const layoutSetId = useCurrentLayoutSetId() || 'default';
-  const layouts = useAppSelector((state) => state.formLayout.layouts) || defaultLayouts;
+  const layouts = useLayouts() || defaultLayouts;
   const { logErrors = false } = props;
-  const repeatingGroups = useMemo(() => generateSimpleRepeatingGroups(layouts), [layouts]);
   const schema = useCurrentDataModelSchema();
   const dataType = useCurrentDataModelType();
   const dataSources = useAppSelector(selectDataSourcesFromState);
-  const currentPage = useAppSelector((state) => state.formLayout.uiConfig.currentView);
+  const { currentPageId } = useNavigatePage();
   const nodes = useMemo(
-    () => generateEntireHierarchy(layouts, currentPage, repeatingGroups, dataSources, getLayoutComponentObject),
-    [layouts, currentPage, repeatingGroups, dataSources],
+    () => generateEntireHierarchy(layouts, currentPageId, dataSources, getLayoutComponentObject),
+    [layouts, currentPageId, dataSources],
   );
 
   const layoutLoaded = useIsLayoutLoaded();
@@ -136,9 +137,9 @@ export const useLayoutValidation = () => useCtx();
 export const useLayoutValidationForPage = () => {
   const ctx = useLayoutValidation();
   const layoutSetId = useCurrentLayoutSetId() || 'default';
-  const currentPage = useAppSelector((state) => state.formLayout.uiConfig.currentView);
+  const { currentPageId } = useNavigatePage();
 
-  return ctx?.[layoutSetId]?.[currentPage];
+  return ctx?.[layoutSetId]?.[currentPageId];
 };
 
 export function LayoutValidationProvider({ children }: PropsWithChildren) {

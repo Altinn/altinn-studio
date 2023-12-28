@@ -4,7 +4,6 @@ import { v4 as uuid } from 'uuid';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import type { IBackendFeaturesState } from 'src/features/applicationMetadata';
 import type { IFormData } from 'src/features/formData';
 
 const appFrontend = new AppFrontend();
@@ -20,19 +19,7 @@ describe('Multipart save', () => {
   const requests: MultipartReq[] = [];
   const awaitingMatch: { [message: string]: string[] } = {};
 
-  /**
-   * This is not supported by 'frontend-test' yet, so we'll simulate the functionality by intercepting the requests
-   * and rewriting them to something the backend currently supports. In the process, we can verify that the
-   * functionality works on the frontend.
-   */
-  function simulateMultipartSave() {
-    cy.intercept('GET', '**/applicationmetadata', (req) => {
-      req.on('response', (res) => {
-        res.body.features = {
-          multiPartSave: true,
-        } as IBackendFeaturesState;
-      });
-    });
+  function interceptSaves() {
     cy.intercept('PUT', '**/instances/**/data/*', (req) => {
       const contentType = req.headers['content-type']?.toString();
       if (contentType.startsWith('multipart/form-data')) {
@@ -40,12 +27,9 @@ describe('Multipart save', () => {
         requests.push({
           id: uuid(),
           matched: false,
-          dataModel: dot.dot(dataModel),
+          dataModel,
           previousValues,
         });
-        req.body = JSON.stringify(dataModel);
-        req.headers['content-type'] = 'application/json';
-        delete req.headers['content-length'];
       }
       req.continue();
     }).as('multipartSave');
@@ -87,7 +71,7 @@ describe('Multipart save', () => {
     const msg = `${key} => ${newValueString} (was ${prevValueString})`;
     expectReq(
       (req) => {
-        let val: any = req.dataModel[key];
+        let val: any = dot.pick(key, req.dataModel);
         if (val !== newValue && val === undefined) {
           return false;
         }
@@ -110,14 +94,22 @@ describe('Multipart save', () => {
     );
   }
 
+  function expectNewRow(groupKey: string, index: number) {
+    expectReq(
+      (req) => {
+        const actualRows = dot.pick(groupKey, req.dataModel);
+        const actualLastIndex = actualRows.length - 1;
+        const expectedPrevValues = {}; // There are no previous values for these saves
+        return actualLastIndex === index && deepEqual(req.previousValues, expectedPrevValues);
+      },
+      `New row at ${groupKey}[${index}]`,
+      `Failed to assert that adding new row occurred on group ${groupKey} at index ${index}`,
+    );
+  }
+
   it('Multipart saving with groups', () => {
+    interceptSaves();
     cy.goto('group');
-
-    // We need to reload the app for it to recognize the features changed. We don't expect the backend features to
-    // change while a user is working in the same session, so there is no automatic detection for this.
-    simulateMultipartSave();
-    cy.reload();
-
     cy.get(appFrontend.nextButton).click();
 
     // Checking the checkbox should update with a 'null' previous value
@@ -132,16 +124,22 @@ describe('Multipart save', () => {
 
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     expectSave(showGroupKey, 'Ja', null);
-
     const groupKey = `${root}.OversiktOverEndringene-grp-9788`;
-    const currentValueKey = 'SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value';
-    const newValueKey = 'SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value';
+    const currentValueObj = 'SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131';
+    const currentValueKey = `${currentValueObj}.value`;
+    const newValueObj = 'SkattemeldingEndringEtterFristNyttBelop-datadef-37132';
+    const newValueKey = `${newValueObj}.value`;
     const subGroupKey = 'nested-grp-1234';
-    const commentKey = 'SkattemeldingEndringEtterFristKommentar-datadef-37133.value';
+    const commentObj = 'SkattemeldingEndringEtterFristKommentar-datadef-37133';
+    const commentKey = `${commentObj}.value`;
 
     function addRow(index: number, oldValue: string, newValue: string, comment) {
       cy.get(appFrontend.group.addNewItem).click();
+      expectNewRow(groupKey, index);
+
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.next).click();
+      // openByDefault is true on the nested row
+      expectNewRow(`${groupKey}[${index}].${subGroupKey}`, 0);
       expectSave(`${groupKey}[${index}].${subGroupKey}[0].source`, 'altinn', null);
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.back).click();
 
@@ -152,6 +150,10 @@ describe('Multipart save', () => {
       expectSave(`${groupKey}[${index}].${newValueKey}`, newValue, null);
 
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.next).click();
+      // Since we had 'openByDefault = true' on the nested row, it was opened automatically, but when we navigated
+      // away from it and back, it should be closed again. It should be set as `openByDefault = first` if we wanted
+      // it to be opened when navigating back to it.
+      cy.get(appFrontend.group.row(index).nestedGroup.row(0).editBtn).click();
       cy.get(appFrontend.group.comments).type(comment);
       expectSave(`${groupKey}[${index}].${subGroupKey}[0].${commentKey}`, comment, null);
 
@@ -172,6 +174,7 @@ describe('Multipart save', () => {
 
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.addNewItemSubGroup).click();
+    expectNewRow(`${groupKey}[0].${subGroupKey}`, 1);
     expectSave(`${groupKey}[0].${subGroupKey}[1].source`, 'altinn', null);
 
     cy.get(appFrontend.group.comments).type('third comment in first row');
@@ -201,15 +204,19 @@ describe('Multipart save', () => {
     cy.get(appFrontend.group.row(0).deleteBtn).click();
     expectReq(
       (req) => {
-        const relevantEntries = Object.entries(req.dataModel).filter(([k]) => k.startsWith(groupKey));
-        const relevantModel = Object.fromEntries(relevantEntries);
-        const expectedModel = {
-          // Group should now just have one row (we deleted the first one)
-          [`${groupKey}[0].${currentValueKey}`]: '1234',
-          [`${groupKey}[0].${newValueKey}`]: '5678',
-          [`${groupKey}[0].${subGroupKey}[0].source`]: 'altinn',
-          [`${groupKey}[0].${subGroupKey}[0].${commentKey}`]: 'second comment',
-        };
+        const actualRows = dot.pick(groupKey, req.dataModel);
+        const expectedRows = [
+          {
+            [currentValueObj]: { value: '1234' },
+            [newValueObj]: { value: '5678' },
+            [subGroupKey]: [
+              {
+                source: 'altinn',
+                [commentObj]: { value: 'second comment' },
+              },
+            ],
+          },
+        ];
 
         const expectedPrevValues = {
           [`${groupKey}[0].${currentValueKey}`]: '1',
@@ -230,7 +237,7 @@ describe('Multipart save', () => {
           [`${groupKey}[1].${subGroupKey}[0].${commentKey}`]: 'second comment',
         };
 
-        return deepEqual(relevantModel, expectedModel) && deepEqual(req.previousValues, expectedPrevValues);
+        return deepEqual(actualRows, expectedRows) && deepEqual(req.previousValues, expectedPrevValues);
       },
       'first row deleted',
       'failed to assert first row deletion',
@@ -239,7 +246,7 @@ describe('Multipart save', () => {
     cy.get(appFrontend.group.row(0).deleteBtn).click();
     expectReq(
       (req) => {
-        const relevantKeys = Object.keys(req.dataModel).filter((k) => k.startsWith(groupKey));
+        const actualRows = dot.pick(groupKey, req.dataModel);
         const expectedPrevValues = {
           [`${groupKey}[0].${currentValueKey}`]: '1234',
           [`${groupKey}[0].${newValueKey}`]: '5678',
@@ -247,7 +254,7 @@ describe('Multipart save', () => {
           [`${groupKey}[0].${subGroupKey}[0].${commentKey}`]: 'second comment',
         };
 
-        return relevantKeys.length === 0 && deepEqual(req.previousValues, expectedPrevValues);
+        return deepEqual(actualRows, []) && deepEqual(req.previousValues, expectedPrevValues);
       },
       'second row deleted',
       'failed to assert second row deletion',

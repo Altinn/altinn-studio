@@ -5,9 +5,9 @@ import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
 
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
@@ -370,20 +370,20 @@ async function renderAbstract<T extends Types>({
       isValid: true,
       ...genericProps,
     },
-    reduxState: getInitialStateMock((state) => {
-      const application = state.applicationMetadata.applicationMetadata;
-      application?.dataTypes.push({
-        id,
-        allowedContentTypes: ['image/png'],
-        maxCount: 4,
-        minCount: 1,
-      });
-
-      state.applicationMetadata.applicationMetadata = application;
-      state.deprecated.lastKnownInstance = getInstanceDataMock();
-      state.deprecated.lastKnownInstance.data.push(...attachments);
-    }),
     queries: {
+      fetchApplicationMetadata: async () =>
+        getApplicationMetadataMock((a) => {
+          a.dataTypes.push({
+            id,
+            allowedContentTypes: ['image/png'],
+            maxCount: 4,
+            minCount: 1,
+          });
+        }),
+      fetchInstanceData: async () =>
+        getInstanceDataMock((i) => {
+          i.data.push(...attachments);
+        }),
       fetchOptions: () =>
         Promise.resolve({
           data: [

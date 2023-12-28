@@ -1,69 +1,42 @@
 import React from 'react';
 
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import ResizeObserverModule from 'resize-observer-polyfill';
 
 import { getFormLayoutGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
 import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithNode } from 'src/test/renderWithProviders';
-import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
-import type { IFormData } from 'src/features/formData';
-import type { TextResourceMap } from 'src/features/language/textResources';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 import type { IOption } from 'src/layout/common.generated';
 import type { CompGroupRepeatingExternal, CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
 import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
-import type { IRepeatingGroupTableProps } from 'src/layout/Group/RepeatingGroupTable';
-import type { CompOrGroupExternal } from 'src/layout/layout';
+import type { CompOrGroupExternal, ILayoutCollection } from 'src/layout/layout';
 
 (global as any).ResizeObserver = ResizeObserverModule;
 
-const user = userEvent.setup();
-
-const getLayout = (group: CompGroupRepeatingExternal, components: CompOrGroupExternal[]) => {
-  const layout: ILayoutState = {
-    layouts: {
-      FormLayout: [group, ...components],
+const getLayout = (group: CompGroupRepeatingExternal, components: CompOrGroupExternal[]): ILayoutCollection => ({
+  FormLayout: {
+    data: {
+      layout: [group, ...components],
     },
-    layoutSetId: null,
-    uiConfig: {
-      hiddenFields: [],
-      repeatingGroups: {
-        'mock-container-id': {
-          index: 3,
-        },
-      },
-      currentView: 'FormLayout',
-      focus: undefined,
-      pageOrderConfig: {
-        order: ['FormLayout'],
-        hidden: [],
-        hiddenExpr: {},
-      },
-      excludePageFromPdf: [],
-      excludeComponentFromPdf: [],
-    },
-    layoutsets: null,
-  };
-
-  return layout;
-};
+  },
+});
 
 describe('RepeatingGroupTable', () => {
   const group = getFormLayoutGroupMock({
     id: 'mock-container-id',
   });
-  const textResources: TextResourceMap = { 'option.label': { value: 'Value to be shown' } };
   const options: IOption[] = [{ value: 'option.value', label: 'option.label' }];
   const components: CompOrGroupExternal[] = [
     {
       id: 'field1',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop1',
+        simpleBinding: 'some-group.prop1',
       },
       textResourceBindings: {
         title: 'Title1',
@@ -75,7 +48,7 @@ describe('RepeatingGroupTable', () => {
       id: 'field2',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop2',
+        simpleBinding: 'some-group.prop2',
       },
       textResourceBindings: {
         title: 'Title2',
@@ -87,7 +60,7 @@ describe('RepeatingGroupTable', () => {
       id: 'field3',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop3',
+        simpleBinding: 'some-group.prop3',
       },
       textResourceBindings: {
         title: 'Title3',
@@ -109,12 +82,6 @@ describe('RepeatingGroupTable', () => {
       options,
     } as CompCheckboxesExternal,
   ];
-  const layout: ILayoutState = getLayout(group, components);
-  const data: IFormData = {
-    'some-group[1].checkboxBinding': 'option.value',
-  };
-
-  const repeatingGroupIndex = 3;
 
   describe('popOver warning', () => {
     it('should open and close delete-warning on delete click when alertOnDelete is active', async () => {
@@ -128,13 +95,13 @@ describe('RepeatingGroupTable', () => {
         return;
       }
 
-      await render({}, layout);
+      await render(layout);
 
-      await act(() => user.click(screen.getAllByRole('button', { name: /slett/i })[0]));
+      await userEvent.click(screen.getAllByRole('button', { name: /slett/i })[0]);
 
       expect(screen.getByText('Er du sikker på at du vil slette denne raden?')).toBeInTheDocument();
 
-      await act(() => user.click(screen.getAllByRole('button', { name: /avbryt/i })[0]));
+      await userEvent.click(screen.getAllByRole('button', { name: /avbryt/i })[0]);
 
       expect(screen.queryByText('Er du sikker på at du vil slette denne raden?')).not.toBeInTheDocument();
     });
@@ -146,22 +113,29 @@ describe('RepeatingGroupTable', () => {
       setScreenWidth(1337);
     });
 
-    it('should trigger onClickRemove on delete-button click', async () => {
-      const onClickRemove = jest.fn();
-      await render({ onClickRemove });
+    it('should remove row on delete-button click', async () => {
+      const { formDataMethods } = await render();
 
-      await act(() => user.click(screen.getAllByRole('button', { name: /slett/i })[0]));
+      expect(screen.getByText('test row 0')).toBeInTheDocument();
+      expect(screen.getByText('test row 1')).toBeInTheDocument();
+      await userEvent.click(screen.getAllByRole('button', { name: /slett/i })[0]);
 
-      expect(onClickRemove).toBeCalledTimes(1);
+      expect(formDataMethods.removeIndexFromList).toBeCalledTimes(1);
+      expect(formDataMethods.removeIndexFromList).toBeCalledWith({
+        path: 'some-group',
+        index: 0,
+      });
+
+      expect(screen.queryByText('test row 0')).not.toBeInTheDocument();
+      expect(screen.getByText('test row 1')).toBeInTheDocument();
     });
 
-    it('should trigger setEditIndex on edit-button click', async () => {
-      const setEditIndex = jest.fn();
-      await render({ setEditIndex });
+    it('should open first row for editing when clicking edit button', async () => {
+      await render();
 
-      await act(() => user.click(screen.getAllByRole('button', { name: /rediger/i })[0]));
-
-      expect(setEditIndex).toBeCalledTimes(1);
+      expect(screen.getByTestId('editIndex')).toHaveTextContent('undefined');
+      await userEvent.click(screen.getAllByRole('button', { name: /rediger/i })[0]);
+      expect(screen.getByTestId('editIndex')).toHaveTextContent('0');
     });
   });
 
@@ -188,31 +162,43 @@ describe('RepeatingGroupTable', () => {
     });
   });
 
-  const render = async (props: Partial<IRepeatingGroupTableProps> = {}, newLayout?: ILayoutState) => {
-    const allProps: IRepeatingGroupTableProps = {
-      ...({} as IRepeatingGroupTableProps),
-      editIndex: -1,
-      repeatingGroupIndex,
-      deleting: false,
-      onClickRemove: jest.fn(),
-      setEditIndex: jest.fn(),
-      ...props,
-    };
-
+  const render = async (layout = getLayout(group, components)) => {
     const reduxState = getInitialStateMock();
-    reduxState.formLayout = newLayout || layout;
-    reduxState.textResources.resourceMap = textResources;
-    reduxState.formData.formData = data;
-
-    return await renderWithNode<LayoutNodeForGroup<CompGroupRepeatingInternal>>({
+    return await renderWithNode<true, LayoutNodeForGroup<CompGroupRepeatingInternal>>({
       nodeId: group.id,
+      inInstance: true,
       renderer: ({ node }) => (
-        <RepeatingGroupTable
-          {...allProps}
-          node={node}
-        />
+        <RepeatingGroupProvider node={node}>
+          <LeakEditIndex />
+          <RepeatingGroupTable />
+        </RepeatingGroupProvider>
       ),
+      queries: {
+        fetchLayouts: async () => layout,
+        fetchTextResources: async () => ({
+          language: 'nb',
+          resources: [
+            {
+              id: 'option.label',
+              value: 'Value to be shown',
+            },
+          ],
+        }),
+        fetchFormData: async () => ({
+          'some-group': [
+            { checkBoxBinding: 'option.value', prop1: 'test row 0' },
+            { checkBoxBinding: 'option.value', prop1: 'test row 1' },
+            { checkBoxBinding: 'option.value', prop1: 'test row 2' },
+            { checkBoxBinding: 'option.value', prop1: 'test row 3' },
+          ],
+        }),
+      },
       reduxState,
     });
   };
 });
+
+function LeakEditIndex() {
+  const { editingIndex } = useRepeatingGroup();
+  return <div data-testid='editIndex'>{editingIndex === undefined ? 'undefined' : editingIndex}</div>;
+}

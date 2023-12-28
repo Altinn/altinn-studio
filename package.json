@@ -173,7 +173,8 @@
     "redux-saga": "1.2.3",
     "reselect": "4.1.8",
     "typescript": "5.3.2",
-    "uuid": "9.0.1"
+    "uuid": "9.0.1",
+    "zustand": "^4.4.7"
   },
   "packageManager": "yarn@4.0.2",
   "lint-staged": {

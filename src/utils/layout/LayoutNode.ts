@@ -246,19 +246,19 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
    * If you pass the argument 'MyModel.Group[2].NestedGroup[3].Age' to this function, it will still be transposed to
    * the current row indexes: 'MyModel.Group[1].NestedGroup[2].Age' unless you pass overwriteOtherIndices = false.
    */
-  public transposeDataModel(dataModel: string, rowIndex?: number): string {
+  public transposeDataModel(dataModelPath: string, rowIndex?: number): string {
     const firstBinding = this.firstDataModelBinding();
     if (!firstBinding) {
       if (this.parent instanceof BaseLayoutNode) {
-        return this.parent.transposeDataModel(dataModel, this.rowIndex);
+        return this.parent.transposeDataModel(dataModelPath, this.rowIndex);
       }
 
-      return dataModel;
+      return dataModelPath;
     }
 
     const currentLocationIsRepGroup = this.isType('Group') && this.isRepGroup();
     return transposeDataBinding({
-      subject: dataModel,
+      subject: dataModelPath,
       currentLocation: firstBinding,
       rowIndex,
       currentLocationIsRepGroup,
@@ -365,7 +365,14 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
     for (const key of Object.keys(this.item.dataModelBindings)) {
       const binding = this.item.dataModelBindings[key];
       const data = dot.pick(binding, fullFormData);
-      formDataObj[key] = data ?? '';
+
+      if (key === 'list') {
+        formDataObj[key] = data ?? [];
+      } else if (key === 'simpleBinding') {
+        formDataObj[key] = data ? String(data) : '';
+      } else {
+        formDataObj[key] = data;
+      }
     }
 
     return formDataObj as IComponentFormData<Type>;

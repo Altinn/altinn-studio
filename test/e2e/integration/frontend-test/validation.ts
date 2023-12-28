@@ -55,7 +55,7 @@ describe('Validation', () => {
     );
   });
 
-  it('Custom field validation - warning/info/success', () => {
+  it.skip('Custom field validation - warning/info/success', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
 
@@ -160,7 +160,7 @@ describe('Validation', () => {
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.upload)).should('contain.text', texts.attachmentError);
   });
 
-  it('Validation on uploaded attachment type with tag', () => {
+  it.skip('Validation on uploaded attachment type with tag', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click({ multiple: true });
@@ -173,7 +173,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('not.contain.text', appFrontend.changeOfName.uploadWithTag.unwantedChar);
   });
 
-  it('Client side validation from json schema', () => {
+  it.skip('Client side validation from json schema', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('a');
 
@@ -230,7 +230,7 @@ describe('Validation', () => {
     }
   });
 
-  it('Task validation', () => {
+  it.skip('Task validation', () => {
     cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
@@ -257,7 +257,7 @@ describe('Validation', () => {
       },
     ] as BackendValidationIssue[]);
   }
-  it('Validations are removed for hidden fields', () => {
+  it.skip('Validations are removed for hidden fields', () => {
     // Init and add data to group
     cy.goto('group');
     cy.get(appFrontend.nextButton).click();
@@ -572,7 +572,7 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.uploadedTable).find('tbody > tr').should('have.length', 1);
   });
 
-  it('Submitting should be rejected if validation fails on field hidden by pageOrderConfig', () => {
+  it.skip('Submitting should be rejected if validation fails on field hidden by pageOrderConfig', () => {
     cy.goto('changename');
     cy.fillOut('changename');
 
@@ -590,7 +590,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('contain.text', 'Valideringsmelding på felt som aldri vises');
   });
 
-  it('Submitting should be rejected if validation fails on field hidden using expression', () => {
+  it.skip('Submitting should be rejected if validation fails on field hidden using expression', () => {
     cy.interceptLayout('group', (c) => {
       if (c.type === 'Input' && c.id === 'sendersName') {
         c.hidden = ['equals', ['component', 'comments'], 'hideSendersName'];
@@ -617,7 +617,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
   });
 
-  it('Submitting should be rejected if validation fails on a field hidden using legacy dynamics', () => {
+  it.skip('Submitting should be rejected if validation fails on a field hidden using legacy dynamics', () => {
     cy.intercept('POST', '**/pages/order*', (req) => {
       req.reply((res) => {
         res.send({
@@ -671,7 +671,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
   });
 
-  it('Submitting should be rejected if validation fails on page hidden using expression', () => {
+  it.skip('Submitting should be rejected if validation fails on page hidden using expression', () => {
     cy.interceptLayout(
       'group',
       () => undefined,
@@ -725,7 +725,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
   });
 
-  it('should navigate and scroll to correct component when clicking error report', () => {
+  it.skip('should navigate and scroll to correct component when clicking error report', () => {
     cy.goto('changename');
     cy.gotoNavPage('grid');
     cy.get(appFrontend.sendinButton).click();

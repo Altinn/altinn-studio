@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import React, { useState } from 'react';
-import type { ReactNode } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { Button } from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
@@ -12,10 +12,9 @@ function clampHeight(height: number): number {
   return Math.min(Math.max(height, 10), window.innerHeight);
 }
 
-interface IDevToolsPanelProps {
+interface IDevToolsPanelProps extends PropsWithChildren {
   isOpen: boolean;
   close: () => void;
-  children: ReactNode;
 }
 
 export const DevToolsPanel = ({ isOpen, close, children }: IDevToolsPanelProps) => {

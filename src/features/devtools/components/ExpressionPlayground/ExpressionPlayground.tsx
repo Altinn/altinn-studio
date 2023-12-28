@@ -13,8 +13,8 @@ import { asExpression } from 'src/features/expressions/validation';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
-import { useExprContext } from 'src/utils/layout/ExprContext';
 import { selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
+import { useNodes } from 'src/utils/layout/NodesContext';
 import type { ExprConfig, Expression, ExprFunction } from 'src/features/expressions/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -44,7 +44,7 @@ export const ExpressionPlayground = () => {
       isError: false,
     },
   ]);
-  const nodes = useExprContext();
+  const nodes = useNodes();
   const { currentPageId } = useNavigatePage();
   const dataSources = useAppSelector(selectDataSourcesFromState);
 

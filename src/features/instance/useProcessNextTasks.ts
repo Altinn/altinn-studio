@@ -14,7 +14,7 @@ function useProcessNextTasksQuery() {
 
   return useQuery({
     queryKey: ['fetchProcessNextSteps', instance?.id, taskId],
-    queryFn: () => fetchProcessNextSteps(),
+    queryFn: () => fetchProcessNextSteps(instance!.id),
     enabled: !!instance?.id && !!taskId && taskType !== ProcessTaskType.Archived,
   });
 }

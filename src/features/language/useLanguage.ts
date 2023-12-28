@@ -1,15 +1,17 @@
 import { Children, isValidElement, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { useLaxApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
+import { useFormDataReadOnly } from 'src/features/formData/FormDataReadOnly';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLanguageFromCode } from 'src/language/languages';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
-import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
+import { flattenObject, getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import type { IFormData } from 'src/features/formData';
@@ -63,6 +65,8 @@ type ObjectToDotNotation<T extends Record<string, any>, Prefix extends string = 
 
 export type ValidLanguageKey = ObjectToDotNotation<FixedLanguageList>;
 
+const emptyObject = {};
+
 /**
  * Hook to resolve a key to a language string or React element (if the key is found and contains markdown or HTML).
  * Prefer this over using the long-named language functions. When those are less used, we can refactor their
@@ -76,8 +80,9 @@ export function useLanguage(node?: LayoutNode) {
   const selectedAppLanguage = useCurrentLanguage();
   const componentCtx = useFormComponentCtx();
   const nearestNode = node || componentCtx?.node;
-  const formData = useAppSelector((state) => state.formData.formData);
-  const applicationSettings = useAppSelector((state) => state.applicationSettings.applicationSettings);
+  const formData = useFormDataReadOnly();
+  const _applicationSettings = useLaxApplicationSettings();
+  const applicationSettings = _applicationSettings === ContextNotProvided ? emptyObject : _applicationSettings;
   const instance = useLaxInstanceData();
   const instanceDataSources = useMemo(() => buildInstanceDataSources(instance), [instance]);
 
@@ -103,12 +108,12 @@ export function useLanguage(node?: LayoutNode) {
 export function staticUseLanguageFromState(state: IRuntimeState, node?: LayoutNode) {
   const textResources = state.textResources.resourceMap;
   const selectedAppLanguage = state.deprecated.currentLanguage;
-  const formData = state.formData.formData;
+  const formData = state.deprecated.formData;
   const applicationSettings = state.applicationSettings.applicationSettings;
   const instanceDataSources = buildInstanceDataSources(state.deprecated.lastKnownInstance);
   const dataSources: TextResourceVariablesDataSources = {
     node,
-    formData,
+    formData: flattenObject(formData),
     applicationSettings,
     instanceDataSources,
   };

@@ -4,6 +4,7 @@ import { Map } from '@altinn/altinn-design-system';
 import { makeStyles, Typography } from '@material-ui/core';
 import type { Location } from '@altinn/altinn-design-system';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { markerIcon } from 'src/layout/Map/MapIcons';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -16,14 +17,16 @@ export const useStyles = makeStyles(() => ({
   },
 }));
 
-export function MapComponent({ formData, handleDataChange, isValid, node }: IMapComponentProps) {
-  const { readOnly, layers, centerLocation, zoom } = node.item;
+export function MapComponent({ isValid, node }: IMapComponentProps) {
+  const { readOnly, layers, centerLocation, zoom, dataModelBindings } = node.item;
   const classes = useStyles();
-  const location = parseLocation(formData.simpleBinding);
+  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
+  const location = parseLocation(value);
+  const saveData = FD.useSetForBinding(dataModelBindings?.simpleBinding);
 
   const handleMapClicked = ({ latitude, longitude }: Location) => {
     const fractionDigits = 6;
-    handleDataChange(`${latitude.toFixed(fractionDigits)},${longitude.toFixed(fractionDigits)}`);
+    saveData(`${latitude.toFixed(fractionDigits)},${longitude.toFixed(fractionDigits)}`);
   };
 
   return (

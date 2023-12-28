@@ -4,10 +4,10 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
-import { FormDataActions } from 'src/features/formData/formDataSlice';
+import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
-import { promiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { AppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { queryPromiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
@@ -30,22 +30,45 @@ interface Props extends Partial<Omit<RenderGenericComponentTestProps<'Dropdown'>
   options?: IOption[];
 }
 
+function MySuperSimpleInput() {
+  const setValue = FD.useSetForBinding('myInput');
+  const value = FD.usePickFreshString('myInput');
+
+  return (
+    <input
+      data-testid='my-input'
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+    />
+  );
+}
+
 const render = async ({ component, genericProps, options, ...rest }: Props = {}) => {
-  const fetchOptions = promiseMock<AppQueries['fetchOptions']>();
+  const fetchOptions = queryPromiseMock('fetchOptions');
   const utils = await renderGenericComponentTest({
     type: 'Dropdown',
-    renderer: (props) => <DropdownComponent {...props} />,
+    renderer: (props) => (
+      <>
+        <DropdownComponent {...props} />
+        <MySuperSimpleInput />
+      </>
+    ),
     component: {
       optionsId: 'countries',
       readOnly: false,
+      dataModelBindings: {
+        simpleBinding: 'myDropdown',
+      },
       ...component,
     },
     genericProps: {
-      handleDataChange: jest.fn(),
       isValid: true,
       ...genericProps,
     },
     queries: {
+      fetchFormData: async () => ({
+        ...getFormDataMockForRepGroup(),
+      }),
       fetchOptions: (...args) =>
         options === undefined
           ? fetchOptions.mock(...args)
@@ -61,19 +84,16 @@ const render = async ({ component, genericProps, options, ...rest }: Props = {})
 };
 
 describe('DropdownComponent', () => {
-  it('should trigger handleDataChange when option is selected', async () => {
-    const handleDataChange = jest.fn();
-    await render({
-      genericProps: {
-        handleDataChange,
-      },
+  it('should trigger setLeafValue when option is selected', async () => {
+    const { formDataMethods } = await render({
       options: countries,
     });
 
-    expect(handleDataChange).not.toHaveBeenCalled();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Sweden'));
-    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('sweden', { validate: true }));
+
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDropdown', newValue: 'sweden' });
   });
 
   it('should show as disabled when readOnly is true', async () => {
@@ -100,51 +120,26 @@ describe('DropdownComponent', () => {
     expect(select).toHaveProperty('disabled', false);
   });
 
-  it('should trigger handleDataChange when preselectedOptionIndex is set', async () => {
-    const handleDataChange = jest.fn();
-    await render({
+  it('should trigger setLeafValue when preselectedOptionIndex is set', async () => {
+    const { formDataMethods } = await render({
       component: {
         preselectedOptionIndex: 2,
-      },
-      genericProps: {
-        handleDataChange,
       },
       options: countries,
     });
 
-    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true }));
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
-  });
-
-  it('should trigger handleDataChange instantly on blur', async () => {
-    const handleDataChange = jest.fn();
-    await render({
-      component: {
-        preselectedOptionIndex: 2,
-      },
-      genericProps: {
-        handleDataChange,
-      },
-      options: countries,
-    });
-
-    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true }));
-    const select = screen.getByRole('combobox');
-
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
-    await userEvent.click(select);
-
-    await userEvent.tab();
-    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('denmark', { validate: true }));
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDropdown', newValue: 'denmark' }),
+    );
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1);
   });
 
   it('should show spinner', async () => {
-    const { fetchOptions, originalDispatch } = await render({
+    const { fetchOptions } = await render({
       component: {
         optionsId: 'countries',
         mapping: {
-          'Some.Path': 'queryArg',
+          myInput: 'queryArg',
         },
       },
       waitUntilLoaded: false,
@@ -161,15 +156,7 @@ describe('DropdownComponent', () => {
 
     // The component always finishes loading the first time, but if we have mapping that affects the options
     // the component renders a spinner for a while when fetching the options again.
-    originalDispatch(
-      FormDataActions.updateFulfilled({
-        componentId: 'someId',
-        field: 'Some.Path',
-        data: 'newValue',
-        skipAutoSave: true,
-        skipValidation: true,
-      }),
-    );
+    await userEvent.type(screen.getByTestId('my-input'), 'test');
 
     await waitFor(() => expect(fetchOptions.mock).toHaveBeenCalledTimes(2));
     expect(screen.getByTestId('altinn-spinner')).toBeInTheDocument();
@@ -189,9 +176,8 @@ describe('DropdownComponent', () => {
     expect(screen.getByText('Finland')).toBeInTheDocument();
   });
 
-  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
-    const handleDataChange = jest.fn();
-    await render({
+  it('should present replaced label if setup with values from repeating group in redux and trigger setLeafValue with replaced values', async () => {
+    const { formDataMethods } = await render({
       component: {
         optionsId: undefined,
         source: {
@@ -200,22 +186,20 @@ describe('DropdownComponent', () => {
           value: 'someGroup[{0}].valueField',
         },
       },
-      genericProps: {
-        handleDataChange,
-      },
     });
 
-    expect(handleDataChange).not.toHaveBeenCalled();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('The value from the group is: Label for first'));
-    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('Value for first', { validate: true }));
 
-    expect(handleDataChange).toHaveBeenCalledTimes(1);
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDropdown', newValue: 'Value for first' });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1);
+
     await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('The value from the group is: Label for second'));
 
-    await waitFor(() => expect(handleDataChange).toHaveBeenCalledWith('Value for second', { validate: true }));
-    expect(handleDataChange).toHaveBeenCalledTimes(2);
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDropdown', newValue: 'Value for second' });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(2);
   });
 
   it('should present the options list in the order it is provided when sortOrder is not specified', async () => {

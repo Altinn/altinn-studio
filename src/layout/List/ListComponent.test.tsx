@@ -1,11 +1,14 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IDataList } from 'src/features/dataLists';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+
 const paginationData = { alternatives: [2, 5], default: 2 };
 const countries = [
   {
@@ -46,15 +49,28 @@ const countries = [
   },
 ];
 
-const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'List'>> = {}) => {
-  const fetchDataList = () =>
-    Promise.resolve({
-      listItems: [...countries],
-      _metaData: paginationData,
-    } as unknown as IDataList);
+function RenderCounter({ node }: { node: LayoutNode<'List'> }) {
+  const renderCount = React.useRef(0);
+  const bindings = node.item.dataModelBindings;
+
+  // This simulates the List component data model fetching. It will trigger a re-render of the component once every
+  // time any of the data model bindings change.
+  FD.usePickFreshStrings(bindings);
+
+  renderCount.current++;
+
+  return <div data-testid='render-count'>{renderCount.current}</div>;
+}
+
+const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'List'>> = {}) =>
   await renderGenericComponentTest({
     type: 'List',
-    renderer: (props) => <ListComponent {...props} />,
+    renderer: (props) => (
+      <>
+        <ListComponent {...props} />
+        <RenderCounter node={props.node} />
+      </>
+    ),
     component: {
       id: 'list-component-id',
       tableHeaders: {
@@ -63,24 +79,33 @@ const render = async ({ component, genericProps }: Partial<RenderGenericComponen
         HighestMountain: 'HighestMountain',
         FlagLink: 'FlagLink',
       },
+      dataModelBindings: {
+        Name: 'CountryName',
+        Population: 'CountryPopulation',
+        HighestMountain: 'CountryHighestMountain',
+      },
       sortableColumns: ['population', 'highestMountain'],
       pagination: paginationData,
       dataListId: 'countries',
       ...component,
     },
-    genericProps: {
-      legend: () => <span>legend</span>,
-      ...genericProps,
-    },
     queries: {
-      fetchDataList,
+      fetchDataList: async () => ({
+        listItems: countries,
+        _metaData: {
+          page: 0,
+          pageCount: 1,
+          pageSize: 5,
+          totaltItemsCount: 6,
+          links: [],
+        },
+      }),
+      ...rest.queries,
     },
+    ...rest,
   });
-};
 
 describe('ListComponent', () => {
-  jest.useFakeTimers();
-
   it('should render rows that is sent in but not rows that is not sent in', async () => {
     await render();
 
@@ -91,7 +116,57 @@ describe('ListComponent', () => {
 
   it('should render columns as markup', async () => {
     await render();
-
     expect(await screen.findByRole('link', { name: /Norwegian flag/ })).toBeInTheDocument();
+  });
+
+  it('should save all field values in dataModelBindings atomically', async () => {
+    jest.useFakeTimers();
+    const user = userEvent.setup({ delay: null });
+    const { formDataMethods, mutations } = await render();
+
+    // There should be one radio for each country, but none of them should be checked
+    await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
+    expect(screen.queryByRole('radio', { checked: true })).not.toBeInTheDocument();
+
+    expect(screen.getByTestId('render-count')).toHaveTextContent('2');
+
+    // Select the second row
+    await user.click(screen.getAllByRole('radio')[1]);
+    expect(formDataMethods.setMultiLeafValues).toHaveBeenCalledWith({
+      debounceTimeout: undefined,
+      changes: [
+        { path: 'CountryName', newValue: 'Sweden' },
+        { path: 'CountryPopulation', newValue: 10 },
+        { path: 'CountryHighestMountain', newValue: 1738 },
+      ],
+    });
+    expect(screen.getByTestId('render-count')).toHaveTextContent('3');
+
+    // Select the third row
+    await user.click(screen.getAllByRole('radio')[2]);
+    expect(formDataMethods.setMultiLeafValues).toHaveBeenCalledWith({
+      debounceTimeout: undefined,
+      changes: [
+        { path: 'CountryName', newValue: 'Denmark' },
+        { path: 'CountryPopulation', newValue: 6 },
+        { path: 'CountryHighestMountain', newValue: 170 },
+      ],
+    });
+    expect(screen.getByTestId('render-count')).toHaveTextContent('4');
+
+    // Wait until the debounce timeout has definitely passed, then expect the form data to be saved. It should only
+    // be saved once (even though we changed the value twice) because the debouncing happens globally.
+    act(() => jest.advanceTimersByTime(2000));
+    await waitFor(() => expect(mutations.doPutFormData.mock).toHaveBeenCalledTimes(1));
+
+    const multiPart: FormData = (mutations.doPutFormData.mock as jest.Mock).mock.calls[0][1];
+    const formData = JSON.parse(multiPart.get('dataModel') as string);
+    expect(formData).toEqual({
+      CountryName: 'Denmark',
+      CountryPopulation: '6',
+      CountryHighestMountain: '170',
+    });
+
+    jest.useRealTimers();
   });
 });

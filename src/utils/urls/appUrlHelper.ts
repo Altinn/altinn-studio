@@ -24,18 +24,22 @@ export const getSetCurrentPartyUrl = (partyId: string) => `${appPath}/api/v1/par
 
 export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
 
-export const fileUploadUrl = (attachmentType: string) =>
-  `${appPath}/instances/${window.instanceId}/data?dataType=${attachmentType}`;
+export const getFileUploadUrl = (instanceId: string, attachmentType: string) =>
+  `${appPath}/instances/${instanceId}/data?dataType=${attachmentType}`;
 
-export const fileTagUrl = (dataGuid: string, tag: string | undefined) => {
+export const getFileTagUrl = (instanceId: string, dataGuid: string, tag: string | undefined) => {
   if (tag) {
-    return `${appPath}/instances/${window.instanceId}/data/${dataGuid}/tags/${tag}`;
+    return `${appPath}/instances/${instanceId}/data/${dataGuid}/tags/${tag}`;
   }
 
-  return `${appPath}/instances/${window.instanceId}/data/${dataGuid}/tags`;
+  return `${appPath}/instances/${instanceId}/data/${dataGuid}/tags`;
 };
 
-export const dataElementUrl = (dataGuid: string) => `${appPath}/instances/${window.instanceId}/data/${dataGuid}`;
+export const getAnonymousStatelessDataModelUrl = (dataType: string) =>
+  `${appPath}/v1/data/anonymous?dataType=${dataType}`;
+export const getStatelessDataModelUrl = (dataType: string) => `${appPath}/v1/data?dataType=${dataType}`;
+export const getDataElementUrl = (instanceId: string, dataGuid: string) =>
+  `${appPath}/instances/${instanceId}/data/${dataGuid}`;
 
 export const getProcessStateUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process`;
 export const getActionsUrl = (partyId: string, instanceId: string) =>
@@ -51,13 +55,13 @@ export const getDataValidationUrl = (instanceId: string, dataGuid: string) =>
 export const getPdfFormatUrl = (instanceId: string, dataGuid: string) =>
   `${appPath}/instances/${instanceId}/data/${dataGuid}/pdf/format`;
 
-export const getProcessNextUrl = (taskId?: string, language?: string) => {
+export const getProcessNextUrl = (instanceId: string, taskId?: string, language?: string) => {
   const queryString = getQueryStringFromObject({
     elementId: taskId,
     lang: language,
   });
 
-  return `${appPath}/instances/${window.instanceId}/process/next${queryString}`;
+  return `${appPath}/instances/${instanceId}/process/next${queryString}`;
 };
 
 export const getRedirectUrl = (returnUrl: string) => `${appPath}/api/v1/redirect?url=${encodeURIComponent(returnUrl)}`;
@@ -118,7 +122,6 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 };
 
 export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
-export const getDataModelMetaDataUrl = () => `${appPath}/api/metadata/`;
 
 export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
 
@@ -131,16 +134,6 @@ export const getLayoutSettingsUrl = (layoutSetId: string | undefined) => {
 
 export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
 export const getFooterLayoutUrl = () => `${appPath}/api/v1/footer`;
-
-export const getFetchFormDataUrl = (instanceId: string, dataElementId: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataElementId}`;
-
-export const getStatelessFormDataUrl = (dataType: string, anonymous = false) => {
-  if (anonymous) {
-    return `${appPath}/v1/data/anonymous?dataType=${dataType}`;
-  }
-  return `${appPath}/v1/data?dataType=${dataType}`;
-};
 
 export const getFetchFormDynamicsUrl = (layoutSetId?: string) => {
   if (layoutSetId) {

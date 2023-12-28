@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -10,10 +11,7 @@ export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
   [key: string]: string | number | boolean | object | null | undefined;
 };
 
-export type IPassedOnProps = Omit<
-  PropsFromGenericComponent<'Custom'>,
-  'formData' | 'node' | 'componentValidations' | 'handleDataChange'
-> &
+export type IPassedOnProps = Omit<PropsFromGenericComponent<'Custom'>, 'node' | 'componentValidations'> &
   Omit<CompInternal<'Custom'>, 'tagName'> & {
     [key: string]: string | number | boolean | object | null | undefined;
     text: string | undefined;
@@ -22,9 +20,7 @@ export type IPassedOnProps = Omit<
 
 export function CustomWebComponent({
   node,
-  formData,
   componentValidations,
-  handleDataChange,
   ...passThroughPropsFromGenericComponent
 }: ICustomComponentProps) {
   const langTools = useLanguage();
@@ -39,12 +35,15 @@ export function CustomWebComponent({
   const Tag = tagName;
   const wcRef = React.useRef<any>(null);
 
+  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
+  const setData = FD.useSetForBindings(dataModelBindings);
+
   React.useLayoutEffect(() => {
     const { current } = wcRef;
     if (current) {
       const handleChange = (customEvent: CustomEvent) => {
         const { value, field } = customEvent.detail;
-        handleDataChange(value, { key: field });
+        setData(field, value);
       };
 
       current.addEventListener('dataChanged', handleChange);
@@ -52,7 +51,7 @@ export function CustomWebComponent({
         current.removeEventListener('dataChanged', handleChange);
       };
     }
-  }, [handleDataChange, wcRef]);
+  }, [setData, wcRef]);
 
   React.useLayoutEffect(() => {
     const { current } = wcRef;
@@ -66,10 +65,12 @@ export function CustomWebComponent({
   React.useLayoutEffect(() => {
     const { current } = wcRef;
     if (current) {
-      current.formData = formData;
+      current.formData = {
+        simpleBinding: value,
+      };
       current.componentValidations = componentValidations;
     }
-  }, [formData, componentValidations]);
+  }, [value, componentValidations]);
 
   if (node.isHidden() || !Tag) {
     return null;

@@ -1,7 +1,4 @@
 import {
-  dataElementUrl,
-  fileTagUrl,
-  fileUploadUrl,
   getCreateInstancesUrl,
   getDataListsUrl,
   getDataValidationUrl,
@@ -11,12 +8,10 @@ import {
   getLayoutSettingsUrl,
   getLayoutsUrl,
   getOptionsUrl,
-  getProcessNextUrl,
   getProcessStateUrl,
   getRedirectUrl,
   getRulehandlerUrl,
   getSetCurrentPartyUrl,
-  getStatelessFormDataUrl,
   getUpgradeAuthLevelUrl,
   getValidationUrl,
   redirectToUpgrade,
@@ -37,21 +32,6 @@ describe('Frontend urlHelper.ts', () => {
     it('should return the expected url for textResourcesUrl', () => {
       expect(textResourcesUrl('nb')).toBe('https://local.altinn.cloud/ttd/test/api/v1/texts/nb');
     });
-    it('should return the expected url for fileUploadUrl', () => {
-      expect(fileUploadUrl('dataGuid')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/test-instance-id/data?dataType=dataGuid',
-      );
-    });
-    it('should return the expected url for fileTagUrl', () => {
-      expect(fileTagUrl('dataGuid', undefined)).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/test-instance-id/data/dataGuid/tags',
-      );
-    });
-    it('should return the expected url for dataElementUrl', () => {
-      expect(dataElementUrl('dataGuid')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/test-instance-id/data/dataGuid',
-      );
-    });
     it('should return the expected url for getProcessStateUrl', () => {
       expect(getProcessStateUrl('12345/instanceId-1234')).toBe(
         'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/process',
@@ -71,12 +51,6 @@ describe('Frontend urlHelper.ts', () => {
       expect(getDataValidationUrl('12345/instanceId-1234', 'dataGuid')).toBe(
         'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/data/dataGuid/validate',
       );
-    });
-    it('should return the expected url for getProcessNextUrl', () => {
-      expect(getProcessNextUrl('taskId')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/test-instance-id/process/next?elementId=taskId',
-      );
-      expect(getProcessNextUrl()).toBe('https://local.altinn.cloud/ttd/test/instances/test-instance-id/process/next');
     });
     it('should return the expected url for getRedirectUrl', () => {
       expect(getRedirectUrl('http://www.nrk.no')).toBe(
@@ -442,29 +416,6 @@ describe('Frontend urlHelper.ts', () => {
       const result = getFetchFormDynamicsUrl('custom-rule.json');
 
       expect(result).toBe('https://local.altinn.cloud/ttd/test/api/ruleconfiguration/custom-rule.json');
-    });
-  });
-
-  describe('getStatelessFormDataUrl', () => {
-    const dataType = 'someDataType';
-    it('should return default when only dataType parameter is passed', () => {
-      const undefinedResult = getStatelessFormDataUrl(dataType);
-
-      const expected = `https://local.altinn.cloud/ttd/test/v1/data?dataType=${dataType}`;
-
-      expect(undefinedResult).toBe(expected);
-    });
-
-    it('should return anonymous url when anonymous is passed as true', () => {
-      const trueResult = getStatelessFormDataUrl(dataType, true);
-      const expected = `https://local.altinn.cloud/ttd/test/v1/data/anonymous?dataType=${dataType}`;
-      expect(trueResult).toBe(expected);
-    });
-
-    it('should return default url when anonymous is passed as false', () => {
-      const trueResult = getStatelessFormDataUrl(dataType, false);
-      const expected = `https://local.altinn.cloud/ttd/test/v1/data?dataType=${dataType}`;
-      expect(trueResult).toBe(expected);
     });
   });
 });

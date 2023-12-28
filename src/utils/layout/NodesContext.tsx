@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import {
@@ -8,17 +8,18 @@ import {
 } from 'src/features/form/dynamics/conditionalRenderingSagas';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
 import { _private, selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
-import type { LayoutNodeFromObj } from 'src/layout/layout';
+import type { HierarchyDataSources, LayoutNodeFromObj } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 export const { Provider, useCtx } = createContext<LayoutPages | undefined>({
-  name: 'ExprContext',
+  name: 'Nodes',
   required: false,
   default: undefined,
 });
@@ -34,7 +35,7 @@ function useLayoutsAsNodes(): LayoutPages | undefined {
   return _private.useResolvedExpressions();
 }
 
-export const ExprContextWrapper = (props: React.PropsWithChildren) => {
+export const NodesProvider = (props: React.PropsWithChildren) => {
   const resolvedNodes = useLayoutsAsNodes();
   useLegacyHiddenComponents(resolvedNodes);
 
@@ -48,7 +49,7 @@ export const ExprContextWrapper = (props: React.PropsWithChildren) => {
  *
  * Usually, if you're looking for a specific component/node, useResolvedNode() is better.
  */
-export const useExprContext = () => useCtx();
+export const useNodes = () => useCtx();
 
 /**
  * Given a selector, get a LayoutNode object
@@ -61,18 +62,18 @@ export const useExprContext = () => useCtx();
  *    you'll get the first row item as a result.
  */
 export function useResolvedNode<T>(selector: string | undefined | T | LayoutNode): LayoutNodeFromObj<T> | undefined {
-  const context = useExprContext();
+  const nodes = useNodes();
 
   if (typeof selector === 'object' && selector !== null && selector instanceof BaseLayoutNode) {
     return selector as any;
   }
 
   if (typeof selector === 'string') {
-    return context?.findById(selector) as any;
+    return nodes?.findById(selector) as any;
   }
 
   if (typeof selector == 'object' && selector !== null && 'id' in selector && typeof selector.id === 'string') {
-    return context?.findById(selector.id) as any;
+    return nodes?.findById(selector.id) as any;
   }
 
   return undefined;
@@ -88,10 +89,10 @@ export function useResolvedNode<T>(selector: string | undefined | T | LayoutNode
  */
 function useLegacyHiddenComponents(resolvedNodes: LayoutPages | undefined) {
   const _currentHiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
-  const formData = useAppSelector((state) => state.formData.formData);
+  const formData = FD.useDebounced();
   const rules = useAppSelector((state) => state.formDynamics.conditionalRendering);
-  const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
-  const dataSources = useAppSelector(selectDataSourcesFromState);
+  const _dataSources = useAppSelector(selectDataSourcesFromState);
+  const dataSources: HierarchyDataSources = useMemo(() => ({ ..._dataSources, formData }), [_dataSources, formData]);
   const { setHiddenPages, hidden, hiddenExpr } = usePageNavigationContext();
   const dispatch = useAppDispatch();
 
@@ -111,9 +112,9 @@ function useLegacyHiddenComponents(resolvedNodes: LayoutPages | undefined) {
 
     let futureHiddenFields: Set<string>;
     try {
-      futureHiddenFields = runConditionalRenderingRules(rules, formData, repeatingGroups);
-    } catch (err) {
-      console.error('Error while evaluating conditional rendering rules', err);
+      futureHiddenFields = runConditionalRenderingRules(rules, resolvedNodes);
+    } catch (error) {
+      window.logError('Error while evaluating conditional rendering rules:\n', error);
       futureHiddenFields = new Set();
     }
 
@@ -139,16 +140,5 @@ function useLegacyHiddenComponents(resolvedNodes: LayoutPages | undefined) {
         }),
       );
     }
-  }, [
-    _currentHiddenFields,
-    dataSources,
-    dispatch,
-    formData,
-    repeatingGroups,
-    resolvedNodes,
-    rules,
-    hidden,
-    hiddenExpr,
-    setHiddenPages,
-  ]);
+  }, [_currentHiddenFields, dataSources, dispatch, hidden, hiddenExpr, resolvedNodes, rules, setHiddenPages]);
 }

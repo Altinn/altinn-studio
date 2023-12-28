@@ -1,27 +1,27 @@
 import { useMemo } from 'react';
 
+import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { usePdfFormatQuery } from 'src/features/pdf/usePdfFormatQuery';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getLayoutComponentObject } from 'src/layout';
-import { useExprContext } from 'src/utils/layout/ExprContext';
 import { dataSourcesFromState } from 'src/utils/layout/hierarchy';
 import { generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
+import { useNodes } from 'src/utils/layout/NodesContext';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { CompInstanceInformationExternal } from 'src/layout/InstanceInformation/config.generated';
 import type { HierarchyDataSources, ILayout } from 'src/layout/layout';
 import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
-import type { IPageOrderConfig, IRepeatingGroups } from 'src/types';
+import type { IPageOrderConfig } from 'src/types';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 const PDF_LAYOUT_NAME = '__pdf__';
 
 export const usePdfPage = (): LayoutPage | null => {
-  const layoutPages = useExprContext();
+  const layoutPages = useNodes();
   const dataSources = useAppSelector(dataSourcesFromState);
   const pageOrderConfig = useAppSelector((state) => state.formLayout.uiConfig.pageOrderConfig);
-  const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
-  const pdfLayoutName = useAppSelector((state) => state.formLayout.uiConfig.pdfLayoutName);
+  const pdfLayoutName = useLayoutSettings().pages.pdfLayoutName;
 
   const customPdfPage = pdfLayoutName ? layoutPages?.[pdfLayoutName] : undefined;
   const method = customPdfPage ? 'custom' : 'auto';
@@ -32,10 +32,10 @@ export const usePdfPage = (): LayoutPage | null => {
 
   const automaticPdfPage = useMemo(() => {
     if (readyForPrint && method === 'auto') {
-      return generateAutomaticPage(pdfFormat!, pageOrderConfig!, layoutPages!, dataSources, repeatingGroups!);
+      return generateAutomaticPage(pdfFormat!, pageOrderConfig!, layoutPages!, dataSources);
     }
     return null;
-  }, [readyForPrint, method, pdfFormat, pageOrderConfig, layoutPages, dataSources, repeatingGroups]);
+  }, [readyForPrint, method, pdfFormat, pageOrderConfig, layoutPages, dataSources]);
 
   if (!readyForPrint) {
     return null;
@@ -53,7 +53,6 @@ function generateAutomaticPage(
   pageOrderConfig: IPageOrderConfig,
   layoutPages: LayoutPages,
   dataSources: HierarchyDataSources,
-  repeatingGroups: IRepeatingGroups,
 ): LayoutPage {
   const automaticPdfLayout: ILayout = [];
 
@@ -102,7 +101,7 @@ function generateAutomaticPage(
     });
 
   // Generate the hierarchy for the automatic PDF layout
-  const pdfPage = generateHierarchy(automaticPdfLayout, repeatingGroups, dataSources, getLayoutComponentObject);
+  const pdfPage = generateHierarchy(automaticPdfLayout, dataSources, getLayoutComponentObject);
   pdfPage.top = { myKey: PDF_LAYOUT_NAME, collection: layoutPages };
   return pdfPage;
 }

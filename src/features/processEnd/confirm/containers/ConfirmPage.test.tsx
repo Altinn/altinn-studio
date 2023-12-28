@@ -5,7 +5,7 @@ import { userEvent } from '@testing-library/user-event';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/processEnd/confirm/containers/ConfirmPage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
@@ -39,14 +39,16 @@ describe('ConfirmPage', () => {
   });
 
   it('should show loading when clicking submit', async () => {
-    window.instanceId = getInstanceDataMock()?.id;
     const { mutations } = await renderWithInstanceAndLayout({
       renderer: () => <ConfirmPage {...props} />,
-      reduxState: getInitialStateMock((state) => {
-        state.deprecated.lastKnownProcess!.currentTask!.actions = {
-          confirm: true,
-        };
-      }),
+      queries: {
+        fetchProcessState: async () =>
+          getProcessDataMock((p) => {
+            p.currentTask!.actions = {
+              confirm: true,
+            };
+          }),
+      },
       reduxGateKeeper: (action) =>
         !!('type' in action && (action.type.startsWith('deprecated/') || action.type === 'formData/submitReady')),
     });

@@ -6,14 +6,14 @@ import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { useComponentRefs } from 'src/features/devtools/hooks/useComponentRefs';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useExprContext } from 'src/utils/layout/ExprContext';
+import { useNodes } from 'src/utils/layout/NodesContext';
 import type { IDevToolsState } from 'src/features/devtools/data/types';
 
 const pseudoHiddenCssFilter = 'contrast(0.75)';
 
 export function DevHiddenFunctionality() {
   const state = useAppSelector((state) => state.devTools.hiddenComponents);
-  const hierarchy = useExprContext();
+  const hierarchy = useNodes();
   const dispatch = useAppDispatch();
 
   useComponentRefs({

@@ -14,12 +14,12 @@ export class TextArea extends TextAreaDef {
     return <TextAreaComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNode<'TextArea'>, { formData }): string {
+  getDisplayData(node: LayoutNode<'TextArea'>): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    return formData[node.item.dataModelBindings.simpleBinding] || '';
+    return node.getFormData().simpleBinding ?? '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'TextArea'>): JSX.Element | null {

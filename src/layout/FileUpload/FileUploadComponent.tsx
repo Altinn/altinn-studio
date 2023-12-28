@@ -25,11 +25,7 @@ import type { IComponentValidations } from 'src/utils/validation/types';
 
 export type IFileUploadWithTagProps = PropsFromGenericComponent<'FileUpload' | 'FileUploadWithTag'>;
 
-export function FileUploadComponent({
-  componentValidations,
-  node,
-  handleDataChange,
-}: IFileUploadWithTagProps): React.JSX.Element {
+export function FileUploadComponent({ componentValidations, node }: IFileUploadWithTagProps): React.JSX.Element {
   const {
     id,
     maxFileSizeInMB,
@@ -49,10 +45,7 @@ export function FileUploadComponent({
   const mobileView = useIsMobileOrTablet();
   const attachments = useAttachmentsFor(node);
   const uploadAttachment = useAttachmentsUploader();
-  const mappingTools = useAttachmentsMappedToFormData({
-    handleDataChange,
-    node,
-  });
+  const mappingTools = useAttachmentsMappedToFormData(node);
 
   const hasTag = type === 'FileUploadWithTag';
   const langTools = useLanguage();

@@ -5,6 +5,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
+import { useDisplayDataProps } from 'src/hooks/useDisplayData';
 import { CompCategory } from 'src/layout/common';
 import {
   type DisplayData,
@@ -12,7 +13,6 @@ import {
   type EmptyFieldValidation,
   type PropsFromGenericComponent,
   type SchemaValidation,
-  useDisplayDataProps,
 } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import { getFieldName } from 'src/utils/formComponentUtils';

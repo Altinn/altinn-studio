@@ -12,10 +12,12 @@ export interface IDeprecatedState {
   currentLanguage: string;
   selectedPartyId?: string;
   anonymous: boolean;
+  formData: object;
 }
 const initialState: IDeprecatedState = {
   currentLanguage: 'nb',
   anonymous: false,
+  formData: {},
 };
 
 export let DeprecatedActions: ActionsFromSlice<typeof deprecatedSlice>;
@@ -57,6 +59,11 @@ export const deprecatedSlice = () => {
       setAnonymous: mkAction<boolean>({
         reducer: (state, action) => {
           state.anonymous = action.payload;
+        },
+      }),
+      setFormData: mkAction<object>({
+        reducer: (state, action) => {
+          state.formData = action.payload;
         },
       }),
     },

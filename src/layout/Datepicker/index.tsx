@@ -10,7 +10,7 @@ import { formatISOString } from 'src/utils/formatDate';
 import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { IFormData } from 'src/features/formData';
-import type { ComponentValidation, PropsFromGenericComponent } from 'src/layout';
+import type { ComponentValidation, DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
@@ -21,14 +21,13 @@ export class Datepicker extends DatepickerDef implements ComponentValidation {
     return <DatepickerComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNode<'Datepicker'>, { formData, langTools }): string {
-    const { selectedLanguage } = langTools;
+  getDisplayData(node: LayoutNode<'Datepicker'>, { currentLanguage }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    const dateFormat = getDateFormat(node.item.format, selectedLanguage);
-    const data = formData[node.item.dataModelBindings?.simpleBinding] || '';
+    const dateFormat = getDateFormat(node.item.format, currentLanguage);
+    const data = node.getFormData().simpleBinding ?? '';
     return formatISOString(data, dateFormat) ?? data;
   }
 

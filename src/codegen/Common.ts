@@ -1,5 +1,6 @@
 import { CG, Variant } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
+import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData';
 import type { MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
 
 const common = {
@@ -501,11 +502,17 @@ const common = {
       ]),
 
   SaveWhileTyping: () =>
-    new CG.union(new CG.bool(), new CG.num())
-      .optional({ default: true })
+    new CG.num()
+      .optional({ default: DEFAULT_DEBOUNCE_TIMEOUT })
       .setTitle('Automatic saving while typing')
       .setDescription(
-        'Boolean or number. True = feature on (default), false = feature off (saves on focus blur), number = timeout in milliseconds (400 by default)',
+        `Lets you control how long we wait before saving the value locally while typing. ` +
+          `This value is usually also used to determine how long we wait before saving the value to the server. ` +
+          `The default value is ${DEFAULT_DEBOUNCE_TIMEOUT} milliseconds.`,
+      )
+      .setTsComment(
+        'Beware, this used to be a number OR boolean value in v3.\n' +
+          'It can be smart to check the type of this value before using it.',
       ),
 
   HTMLAutoCompleteValues: () =>

@@ -12,7 +12,7 @@ import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { ILabelSettings } from 'src/layout/common.generated';
 
-type CaptionProps = {
+export type CaptionProps = {
   title: React.ReactNode;
   description?: React.ReactNode;
   helpText?: React.ReactNode;

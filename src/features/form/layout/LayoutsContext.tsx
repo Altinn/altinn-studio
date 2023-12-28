@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import deepEqual from 'fast-deep-equal';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -9,8 +8,8 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { preProcessItem } from 'src/features/expressions/validation';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { useCurrentLayoutSetId } from 'src/features/form/layout/useCurrentLayoutSetId';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { useHasInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
@@ -21,10 +20,10 @@ import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IHiddenLayoutsExternal } from 'src/types';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-type LayoutContextValue = {
+export interface LayoutContextValue {
   layouts: ILayouts;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
-};
+}
 
 function useLayoutQuery() {
   const { fetchLayouts } = useAppQueries();
@@ -32,25 +31,13 @@ function useLayoutQuery() {
   const process = useLaxProcessData();
   const currentLayoutSetId = useLayoutSetId();
   const dispatch = useAppDispatch();
-  const previousData = useRef<LayoutContextValue | null>(null);
 
   const query = useQuery({
     // Waiting to fetch layouts until we have an instance, if we're supposed to have one
     // We don't want to fetch form layouts for a process step which we are currently not on
     enabled: hasInstance ? !!process : true,
     queryKey: ['formLayouts', currentLayoutSetId],
-    queryFn: async () => {
-      const result = processLayouts(await fetchLayouts(currentLayoutSetId!));
-      dispatch(
-        FormLayoutActions.fetchFulfilled({
-          layouts: result.layouts,
-          hiddenLayoutsExpressions: result.hiddenLayoutsExpressions,
-          layoutSetId: currentLayoutSetId || null,
-        }),
-      );
-      dispatch(FormLayoutActions.initRepeatingGroups({}));
-      return result;
-    },
+    queryFn: async () => processLayouts(await fetchLayouts(currentLayoutSetId!)),
     onError: (error: HttpClientError) => {
       window.logError('Fetching form layout failed:\n', error);
     },
@@ -60,22 +47,14 @@ function useLayoutQuery() {
     if (!query.data) {
       return;
     }
-    if (previousData.current === null) {
-      previousData.current = query.data;
-      return;
-    }
 
-    if (!deepEqual(previousData.current, query.data)) {
-      dispatch(
-        FormLayoutActions.fetchFulfilled({
-          layouts: query.data.layouts,
-          hiddenLayoutsExpressions: query.data.hiddenLayoutsExpressions,
-          layoutSetId: currentLayoutSetId || null,
-        }),
-      );
-      dispatch(FormLayoutActions.initRepeatingGroups({}));
-    }
-    previousData.current = query.data;
+    dispatch(
+      FormLayoutActions.fetchFulfilled({
+        layouts: query.data.layouts,
+        hiddenLayoutsExpressions: query.data.hiddenLayoutsExpressions,
+        layoutSetId: currentLayoutSetId || null,
+      }),
+    );
   }, [query.data, currentLayoutSetId, dispatch]);
 
   return query;

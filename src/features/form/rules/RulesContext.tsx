@@ -1,10 +1,12 @@
+import { useMemo } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useCurrentLayoutSetId } from 'src/features/form/layout/useCurrentLayoutSetId';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { getRuleModelFields } from 'src/utils/rules';
@@ -16,26 +18,35 @@ const useRulesQuery = () => {
   const { fetchRuleHandler } = useAppQueries();
   const layoutSetId = useCurrentLayoutSetId();
 
-  return useQuery({
+  const utils = useQuery({
     queryKey: ['fetchRules', layoutSetId],
     queryFn: () => fetchRuleHandler(layoutSetId),
-    onSuccess: (ruleModel) => {
-      clearExistingRules();
-      if (ruleModel) {
-        const rulesScript = window.document.createElement('script');
-        rulesScript.innerHTML = ruleModel;
-        rulesScript.id = RULES_SCRIPT_ID;
-        window.document.body.appendChild(rulesScript);
-        const ruleModelFields = getRuleModelFields();
-
-        dispatch(FormRulesActions.fetchFulfilled({ ruleModel: ruleModelFields }));
-      }
-    },
     onError: (error: AxiosError) => {
       clearExistingRules();
       window.logError('Fetching RuleHandler failed:\n', error);
     },
   });
+
+  const ruleModelFields = useMemo(() => {
+    if (utils.data) {
+      clearExistingRules();
+      const rulesScript = window.document.createElement('script');
+      rulesScript.innerHTML = utils.data;
+      rulesScript.id = RULES_SCRIPT_ID;
+      window.document.body.appendChild(rulesScript);
+      const ruleModelFields = getRuleModelFields();
+
+      dispatch(FormRulesActions.fetchFulfilled({ ruleModel: ruleModelFields }));
+      return ruleModelFields;
+    }
+
+    return null;
+  }, [dispatch, utils.data]);
+
+  return {
+    ...utils,
+    data: ruleModelFields,
+  };
 };
 
 function clearExistingRules() {
@@ -45,7 +56,7 @@ function clearExistingRules() {
   }
 }
 
-const { Provider } = delayedContext(() =>
+const { Provider, useCtx } = delayedContext(() =>
   createQueryContext({
     name: 'RulesContext',
     required: true,
@@ -54,3 +65,4 @@ const { Provider } = delayedContext(() =>
 );
 
 export const RulesProvider = Provider;
+export const useRuleModelFields = () => useCtx();

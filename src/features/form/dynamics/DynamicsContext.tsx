@@ -2,10 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
-import { useCurrentLayoutSetId } from 'src/features/form/layout/useCurrentLayoutSetId';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 
 function useDynamicsQuery() {
@@ -15,10 +16,10 @@ function useDynamicsQuery() {
 
   return useQuery({
     queryKey: ['fetchDynamics', layoutSetId],
-    queryFn: () => fetchDynamics(layoutSetId),
+    queryFn: async () => (await fetchDynamics(layoutSetId))?.data || null,
     onSuccess: (dynamics) => {
       if (dynamics) {
-        dispatch(FormDynamicsActions.fetchFulfilled(dynamics.data));
+        dispatch(FormDynamicsActions.fetchFulfilled(dynamics));
       }
     },
     onError: (error: AxiosError) => {
@@ -27,7 +28,7 @@ function useDynamicsQuery() {
   });
 }
 
-const { Provider } = delayedContext(() =>
+const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
   createQueryContext({
     name: 'Dynamics',
     required: true,
@@ -36,3 +37,8 @@ const { Provider } = delayedContext(() =>
 );
 
 export const DynamicsProvider = Provider;
+export const useDynamics = () => useCtx();
+export const useRuleConnections = () => {
+  const dynamics = useLaxCtx();
+  return dynamics === ContextNotProvided ? null : dynamics?.ruleConnection ?? null;
+};

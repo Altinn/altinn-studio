@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 
 import Grid from '@material-ui/core/Grid';
 
@@ -6,20 +7,40 @@ import classes from 'src/components/form/Form.module.css';
 import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getFieldName } from 'src/utils/formComponentUtils';
 import { extractBottomButtons, hasRequiredFields } from 'src/utils/formLayout';
-import { useExprContext } from 'src/utils/layout/ExprContext';
+import { useNodes } from 'src/utils/layout/NodesContext';
 import { getFormHasErrors, missingFieldsInLayoutValidations } from 'src/utils/validation/validation';
 
 export function Form() {
+  const nodes = useNodes();
   const langTools = useLanguage();
-  const { currentPageId } = useNavigatePage();
+  const { navigateToPage, currentPageId, isValidPageId } = useNavigatePage();
   const validations = useAppSelector((state) => state.formValidations.validations);
-  const nodes = useExprContext();
+  useRedirectToStoredPage();
+
+  const { scrollPosition } = usePageNavigationContext();
+  useEffect(() => {
+    if (currentPageId !== undefined && scrollPosition === undefined) {
+      window.scrollTo({ top: 0 });
+    }
+  }, [currentPageId, scrollPosition]);
+
+  useRegisterNodeNavigationHandler((targetNode) => {
+    const targetView = targetNode?.top.top.myKey;
+    if (targetView && targetView !== currentPageId) {
+      navigateToPage(targetView);
+      return true;
+    }
+    return false;
+  });
 
   const page = nodes?.all?.()?.[currentPageId];
   const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
@@ -47,6 +68,10 @@ export function Form() {
     }
     return hasErrors ? extractBottomButtons(page) : [page.children(), []];
   }, [page, hasErrors]);
+
+  if (!currentPageId || !isValidPageId(currentPageId)) {
+    return <FormFirstPage />;
+  }
 
   return (
     <>
@@ -79,4 +104,38 @@ export function Form() {
       <ReadyForPrint />
     </>
   );
+}
+
+export function FormFirstPage() {
+  const { startUrl, queryKeys } = useNavigatePage();
+  return (
+    <Navigate
+      to={startUrl + queryKeys}
+      replace
+    />
+  );
+}
+
+/**
+ * Redirects users that had a stored page in their local storage to the correct
+ * page, and later removes this currentViewCacheKey from localstorage, as
+ * it is no longer needed.
+ */
+function useRedirectToStoredPage() {
+  const { currentPageId, partyId, instanceGuid, isValidPageId, navigateToPage } = useNavigatePage();
+  const applicationMetadataId = useApplicationMetadata()?.id;
+  const location = useLocation().pathname;
+
+  const instanceId = `${partyId}/${instanceGuid}`;
+  const currentViewCacheKey = instanceId || applicationMetadataId;
+
+  useEffect(() => {
+    if (!currentPageId && !!currentViewCacheKey) {
+      const lastVisitedPage = localStorage.getItem(currentViewCacheKey);
+      if (lastVisitedPage !== null && isValidPageId(lastVisitedPage)) {
+        localStorage.removeItem(currentViewCacheKey);
+        navigateToPage(lastVisitedPage, { replace: true });
+      }
+    }
+  }, [currentPageId, currentViewCacheKey, isValidPageId, location, navigateToPage]);
 }

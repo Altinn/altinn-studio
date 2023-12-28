@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider as ReduxProvider } from 'react-redux';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
@@ -23,12 +23,10 @@ import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
-import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
+import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
-import { generateSimpleRepeatingGroups } from 'src/features/form/layout/repGroups/generateSimpleRepeatingGroups';
-import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { FormDataWriteGatekeepersProvider } from 'src/features/formData/FormDataWriteGatekeepers';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
@@ -36,60 +34,52 @@ import { TextResourcesProvider } from 'src/features/language/textResources/TextR
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { ProfileProvider } from 'src/features/profile/ProfileProvider';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { setupStore } from 'src/redux/store';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
-import { ExprContextWrapper, useExprContext } from 'src/utils/layout/ExprContext';
-import type { AppMutations, AppQueries, AppQueriesContext } from 'src/core/contexts/AppQueriesProvider';
+import { useNodes } from 'src/utils/layout/NodesContext';
 import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
+import type { FormDataWriteGatekeepers } from 'src/features/formData/FormDataWriteGatekeepers';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { IOption } from 'src/layout/common.generated';
-import type { CompExternalExact, CompTypes, ILayoutCollection, ILayouts } from 'src/layout/layout';
+import type { CompExternalExact, CompTypes } from 'src/layout/layout';
+import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 import type { IRuntimeState } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
-
-/**
- * These are the queries that cannot be mocked. Instead of mocking the queries themselves, you should provide preloaded
- * state that contains the state you need. In the future when we get rid of redux, all queries will be mockable.
- */
-type QueriesThatCannotBeMocked = 'fetchInstanceData' | 'fetchProcessState';
-
-type MockableQueries = Omit<AppQueries, QueriesThatCannotBeMocked>;
-type UnMockableQueries = Pick<AppQueries, QueriesThatCannotBeMocked>;
-
-type MockedMutations = {
-  [fn in keyof AppMutations]: {
-    mock: AppMutations[fn];
-    resolve: (retVal: Awaited<ReturnType<AppMutations[fn]>>) => void;
-    reject: (error: Error) => void;
-  };
-};
 
 type ReduxAction = Parameters<ReturnType<typeof setupStore>['store']['dispatch']>[0];
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   renderer: () => React.ReactElement;
   router?: (props: PropsWithChildren) => React.ReactNode;
   waitUntilLoaded?: boolean;
-  queries?: Partial<MockableQueries>;
+  queries?: Partial<AppQueries>;
   reduxState?: IRuntimeState;
   reduxGateKeeper?: (action: ReduxAction) => boolean;
+}
+
+interface InstanceRouterProps {
   initialPage?: string;
+  taskId?: string;
+  instanceId?: string;
+}
+
+interface ExtendedRenderOptionsWithInstance extends ExtendedRenderOptions, InstanceRouterProps {
+  formDataMethods?: Partial<FormDataWriteGatekeepers>;
 }
 
 interface BaseRenderOptions extends ExtendedRenderOptions {
-  unMockableQueries?: Partial<UnMockableQueries>;
   Providers?: typeof DefaultProviders;
 }
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 const exampleInstanceId = `512345/${exampleGuid}`;
 
-export function promiseMock<T extends (...args: unknown[]) => unknown>() {
-  const mock = jest.fn();
-  const resolve = jest.fn();
-  const reject = jest.fn();
+export function queryPromiseMock<T extends keyof AppQueriesContext>(_name: T) {
+  const mock = jest.fn().mockName(_name);
+  const resolve = jest.fn().mockName(`${_name}.resolve`);
+  const reject = jest.fn().mockName(`${_name}.reject`);
   mock.mockImplementation(
     () =>
       new Promise<T>((res, rej) => {
@@ -99,61 +89,91 @@ export function promiseMock<T extends (...args: unknown[]) => unknown>() {
   );
 
   return { mock, resolve, reject } as unknown as {
-    mock: T;
-    resolve: (retVal: Awaited<ReturnType<T>>) => void;
+    mock: AppQueriesContext[T];
+    resolve: (retVal?: Awaited<ReturnType<AppQueriesContext[T]>>) => void;
     reject: (error: Error) => void;
   };
 }
 
-const makeMutationMocks = (): MockedMutations => ({
-  doAttachmentAddTag: promiseMock<AppMutations['doAttachmentAddTag']>(),
-  doAttachmentRemove: promiseMock<AppMutations['doAttachmentRemove']>(),
-  doAttachmentRemoveTag: promiseMock<AppMutations['doAttachmentRemoveTag']>(),
-  doAttachmentUpload: promiseMock<AppMutations['doAttachmentUpload']>(),
-  doInstantiate: promiseMock<AppMutations['doInstantiate']>(),
-  doInstantiateWithPrefill: promiseMock<AppMutations['doInstantiateWithPrefill']>(),
-  doProcessNext: promiseMock<AppMutations['doProcessNext']>(),
-  doSetCurrentParty: promiseMock<AppMutations['doSetCurrentParty']>(),
-  doPerformAction: promiseMock<AppMutations['doPerformAction']>(),
+export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
+  makeMock: T,
+): {
+  [fn in keyof AppMutations]: ReturnType<T>;
+} => ({
+  doAttachmentAddTag: makeMock('doAttachmentAddTag'),
+  doAttachmentRemove: makeMock('doAttachmentRemove'),
+  doAttachmentRemoveTag: makeMock('doAttachmentRemoveTag'),
+  doAttachmentUpload: makeMock('doAttachmentUpload'),
+  doPutFormData: makeMock('doPutFormData'),
+  doPostFormData: makeMock('doPostFormData'),
+  doSetCurrentParty: makeMock('doSetCurrentParty'),
+  doInstantiate: makeMock('doInstantiate'),
+  doProcessNext: makeMock('doProcessNext'),
+  doInstantiateWithPrefill: makeMock('doInstantiateWithPrefill'),
+  doPerformAction: makeMock('doPerformAction'),
 });
 
-const makeDefaultQueryMocks = (state: IRuntimeState): MockableQueries => ({
-  fetchLogo: () => Promise.resolve(getLogoMock()),
-  fetchApplicationMetadata: () => Promise.resolve(state.applicationMetadata.applicationMetadata!),
-  fetchActiveInstances: () => Promise.resolve([]),
-  fetchCurrentParty: () => Promise.resolve(getPartyMock()),
-  fetchApplicationSettings: () => Promise.resolve({}),
-  fetchFooterLayout: () => Promise.resolve({ footer: [] } as IFooterLayout),
-  fetchLayoutSets: () => Promise.resolve(getLayoutSetsMock()),
-  fetchOrgs: () => Promise.resolve({ orgs: getOrgsMock() }),
-  fetchUserProfile: () => Promise.resolve(getProfileMock()),
-  fetchDataModelSchema: () => Promise.resolve({}),
-  fetchParties: () => Promise.resolve([getPartyMock()]),
-  fetchRefreshJwtToken: () => Promise.resolve({}),
-  fetchCustomValidationConfig: () => Promise.resolve(null),
-  fetchFormData: () => Promise.resolve({}),
-  fetchOptions: () => Promise.resolve({ data: [], headers: {} } as unknown as AxiosResponse<IOption[], any>),
-  fetchDataList: () => Promise.resolve({} as unknown as IDataList),
-  fetchPdfFormat: () => Promise.resolve({ excludedPages: [], excludedComponents: [] }),
-  fetchDynamics: () => Promise.resolve(null),
-  fetchRuleHandler: () => Promise.resolve(null),
-  fetchTextResources: () => Promise.resolve({ language: 'nb', resources: getTextResourcesMock() }),
-  fetchLayoutSchema: () => Promise.resolve({} as JSONSchema7),
-  fetchAppLanguages: () => Promise.resolve([]),
-  fetchProcessNextSteps: () => Promise.resolve([]),
-  fetchLayoutSettings: () => Promise.resolve({ pages: { order: [] } }),
-  fetchLayouts: () => Promise.resolve({}),
+const makeDefaultQueryMocks = (state: IRuntimeState): AppQueries => ({
+  fetchLogo: async () => getLogoMock(),
+  fetchApplicationMetadata: async () => state.applicationMetadata.applicationMetadata!,
+  fetchActiveInstances: async () => [],
+  fetchCurrentParty: async () => getPartyMock(),
+  fetchApplicationSettings: async () => ({}),
+  fetchFooterLayout: async () => ({ footer: [] }) as IFooterLayout,
+  fetchLayoutSets: async () => getLayoutSetsMock(),
+  fetchOrgs: async () => ({ orgs: getOrgsMock() }),
+  fetchUserProfile: async () => getProfileMock(),
+  fetchDataModelSchema: async () => ({}),
+  fetchParties: async () => [getPartyMock()],
+  fetchRefreshJwtToken: async () => ({}),
+  fetchCustomValidationConfig: async () => null,
+  fetchFormData: async () => ({}),
+  fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IOption[], any>,
+  fetchDataList: async () => ({}) as unknown as IDataList,
+  fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
+  fetchDynamics: async () => null,
+  fetchRuleHandler: async () => null,
+  fetchTextResources: async () => ({ language: 'nb', resources: getTextResourcesMock() }),
+  fetchLayoutSchema: async () => ({}) as JSONSchema7,
+  fetchAppLanguages: async () => [],
+  fetchProcessNextSteps: async () => [],
+  fetchLayoutSettings: async () => ({ pages: { order: [] } }),
+  fetchLayouts: () => Promise.reject(new Error('fetchLayouts not mocked')),
+  fetchProcessState: async () => getProcessDataMock(),
+  fetchInstanceData: async () => getInstanceDataMock(),
 });
-
-const unMockableQueriesDefaults: UnMockableQueries = {
-  fetchInstanceData: () => Promise.reject(new Error('fetchInstanceData not mocked')),
-  fetchProcessState: () => Promise.reject(new Error('fetchProcessState not mocked')),
-};
 
 const defaultReduxGateKeeper = (action: ReduxAction) =>
   // We'll allow all the deprecated actions by default, as these have no side effects and are needed for things
   // like the AllOptionsProvider (along with summary of options-components) to work
   !!(action && 'type' in action && action.type.startsWith('deprecated/'));
+
+export function makeDefaultFormDataMethodMocks(): FormDataWriteGatekeepers {
+  const makeMockFn = <Name extends keyof FormDataWriteGatekeepers>(name: Name) =>
+    jest
+      .fn()
+      .mockImplementation(() => true)
+      .mockName(name);
+
+  return {
+    setLeafValue: makeMockFn('setLeafValue'),
+    debounce: makeMockFn('debounce'),
+    saveFinished: makeMockFn('saveFinished'),
+    setMultiLeafValues: makeMockFn('setMultiLeafValues'),
+    removeValueFromList: makeMockFn('removeValueFromList'),
+    removeIndexFromList: makeMockFn('removeIndexFromList'),
+    appendToListUnique: makeMockFn('appendToListUnique'),
+    appendToList: makeMockFn('appendToList'),
+    unlock: makeMockFn('unlock'),
+    lock: makeMockFn('lock'),
+    requestManualSave: makeMockFn('requestManualSave'),
+  };
+}
+
+function NotFound() {
+  const location = useLocation();
+  return <div>Not found: {location.pathname}</div>;
+}
 
 function DefaultRouter({ children }: PropsWithChildren) {
   return (
@@ -162,6 +182,39 @@ function DefaultRouter({ children }: PropsWithChildren) {
         <Route
           path={'/'}
           element={<>{children}</>}
+        />
+        <Route
+          path={'*'}
+          element={<NotFound />}
+        />
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
+export function InstanceRouter({
+  children,
+  instanceId = exampleInstanceId,
+  taskId = 'Task_1',
+  initialPage = 'FormLayout',
+}: PropsWithChildren<InstanceRouterProps>) {
+  return (
+    <MemoryRouter
+      basename={'/ttd/test'}
+      initialEntries={[`/ttd/test/instance/${instanceId}/${taskId}/${initialPage}`]}
+    >
+      <Routes>
+        <Route
+          path={'instance/:partyId/:instanceGuid/:taskId/:pageId'}
+          element={children}
+        />
+        <Route
+          path={'instance/:partyId/:instanceGuid/:taskId'}
+          element={children}
+        />
+        <Route
+          path={'*'}
+          element={<NotFound />}
         />
       </Routes>
     </MemoryRouter>
@@ -187,25 +240,23 @@ function DefaultProviders({ children, store, queries, queryClient, Router = Defa
           <MuiThemeProvider theme={theme}>
             <PageNavigationProvider>
               <Router>
-                <ExprContextWrapper>
-                  <ApplicationMetadataProvider>
-                    <OrgsProvider>
-                      <ApplicationSettingsProvider>
-                        <LayoutSetsProvider>
-                          <ProfileProvider>
-                            <PartyProvider>
-                              <TextResourcesProvider>
-                                <FooterLayoutProvider>
-                                  <InstantiationProvider>{children}</InstantiationProvider>
-                                </FooterLayoutProvider>
-                              </TextResourcesProvider>
-                            </PartyProvider>
-                          </ProfileProvider>
-                        </LayoutSetsProvider>
-                      </ApplicationSettingsProvider>
-                    </OrgsProvider>
-                  </ApplicationMetadataProvider>
-                </ExprContextWrapper>
+                <ApplicationMetadataProvider>
+                  <OrgsProvider>
+                    <ApplicationSettingsProvider>
+                      <LayoutSetsProvider>
+                        <ProfileProvider>
+                          <PartyProvider>
+                            <TextResourcesProvider>
+                              <FooterLayoutProvider>
+                                <InstantiationProvider>{children}</InstantiationProvider>
+                              </FooterLayoutProvider>
+                            </TextResourcesProvider>
+                          </PartyProvider>
+                        </ProfileProvider>
+                      </LayoutSetsProvider>
+                    </ApplicationSettingsProvider>
+                  </OrgsProvider>
+                </ApplicationMetadataProvider>
               </Router>
             </PageNavigationProvider>
           </MuiThemeProvider>
@@ -228,20 +279,24 @@ function MinimalProviders({ children, store, queries, queryClient, Router = Defa
   );
 }
 
-const renderBase = async ({
-  renderer,
-  router,
-  queries = {},
-  waitUntilLoaded = true,
-  unMockableQueries = {},
-  reduxState,
-  reduxGateKeeper = defaultReduxGateKeeper,
-  Providers = DefaultProviders,
-  ...renderOptions
-}: BaseRenderOptions) => {
+interface SetupFakeAppProps {
+  queries?: Partial<AppQueries>;
+  mutations?: Partial<AppMutations>;
+  reduxState?: IRuntimeState;
+}
+
+/**
+ * This function bootstraps everything that is necessary to render a component with the same setup as the real app,
+ * but with some default mocks for the queries and mutations, and a sensible state. This is exported so you can
+ * use it when testing difficult problems that are unsuitable for unit tests.
+ *
+ * As an example, if you want to reproduce a bug in a browser (with all the nice React developer tools available there,
+ * which may not be available in a unit test context) you can use this function to render all the basic providers
+ * needed to render a component in something that looks like an app.
+ */
+export function setupFakeApp({ reduxState, queries, mutations }: SetupFakeAppProps = {}) {
   const state = reduxState || getInitialStateMock();
   const { store } = setupStore(state);
-  const mutations = makeMutationMocks();
 
   const queryClient = new QueryClient({
     logger: {
@@ -258,35 +313,68 @@ const renderBase = async ({
     },
   });
 
+  const finalQueries: AppQueries = {
+    ...makeDefaultQueryMocks(state),
+    ...queries,
+  };
+
+  const finalMutations: AppMutations = {
+    ...makeMutationMocks((name) => async () => {
+      alert(`Mutation called: ${name}`);
+      return undefined as any;
+    }),
+    ...mutations,
+  };
+
+  return {
+    state,
+    store,
+    queryClient,
+    queries: {
+      ...finalQueries,
+      ...finalMutations,
+    },
+    queriesOnly: finalQueries,
+    mutationsOnly: finalMutations,
+  };
+}
+
+const renderBase = async ({
+  renderer,
+  router,
+  queries = {},
+  waitUntilLoaded = true,
+  reduxState,
+  reduxGateKeeper = defaultReduxGateKeeper,
+  Providers = DefaultProviders,
+  ...renderOptions
+}: BaseRenderOptions) => {
   let isInitializing = !!waitUntilLoaded;
+  const {
+    state,
+    store,
+    queryClient,
+    queriesOnly: finalQueries,
+  } = setupFakeApp({
+    reduxState,
+    queries,
+  });
+  const mutations = makeMutationMocks(queryPromiseMock);
+
   const originalDispatch = store.dispatch;
   const dispatchedActions: ReduxAction[] = [];
   const ignoredActions: ReduxAction[] = [];
   if (reduxGateKeeper) {
     jest.spyOn(store, 'dispatch').mockImplementation((action) => {
       const performDispatch = reduxGateKeeper(action);
-      if (!isInitializing && !performDispatch && reduxGateKeeper === defaultReduxGateKeeper) {
-        console.error(
-          'Redux dispatch after initialization will be ignored without a reduxGateKeeper implementation:',
-          action,
-        );
-      }
-
       performDispatch && dispatchedActions.push(action);
       !performDispatch && ignoredActions.push(action);
       performDispatch && originalDispatch(action);
     });
   }
 
-  const finalQueries: AppQueries = {
-    ...makeDefaultQueryMocks(state),
-    ...queries,
-    ...unMockableQueriesDefaults,
-    ...unMockableQueries,
-  };
-
   const queryMocks = Object.fromEntries(
-    Object.entries(finalQueries).map(([key, value]) => [key, jest.fn().mockImplementation(value)]),
+    Object.entries(finalQueries).map(([key, value]) => [key, jest.fn().mockImplementation(value).mockName(key)]),
   ) as unknown as AppQueries;
 
   const mutationMocks = Object.fromEntries(
@@ -388,69 +476,89 @@ export const renderWithMinimalProviders = async (props: ExtendedRenderOptions) =
     Providers: MinimalProviders,
   });
 
-export const renderWithoutInstanceAndLayout = async (props: ExtendedRenderOptions) => await renderBase(props);
+export const renderWithoutInstanceAndLayout = async ({
+  withFormProvider = false,
+  ...rest
+}: ExtendedRenderOptions & { withFormProvider?: boolean }) =>
+  await renderBase({
+    ...rest,
+    Providers: withFormProvider
+      ? ({ children, ...props }: ProvidersProps) => (
+          <DefaultProviders {...props}>
+            <FormProvider>{children}</FormProvider>
+          </DefaultProviders>
+        )
+      : DefaultProviders,
+  });
+
 export const renderWithInstanceAndLayout = async ({
   renderer,
   reduxState: _reduxState,
-  initialPage = '',
+  instanceId,
+  taskId,
+  initialPage = 'FormLayout',
+  formDataMethods,
   ...renderOptions
-}: ExtendedRenderOptions) => {
-  const reduxState = _reduxState || getInitialStateMock();
-  let foundComponents = false;
-  const layouts = JSON.parse(JSON.stringify(reduxState.formLayout.layouts || {})) as ILayouts;
-  const layoutsAsCollection: ILayoutCollection = {};
-  for (const key in layouts) {
-    if (layouts[key]?.length) {
-      foundComponents = true;
-    }
+}: ExtendedRenderOptionsWithInstance) => {
+  const _formDataMethods = {
+    ...makeDefaultFormDataMethodMocks(),
+    ...formDataMethods,
+  };
 
-    layoutsAsCollection[key] = {
-      data: {
-        layout: layouts[key] || [],
-      },
-    };
+  if (renderOptions.router) {
+    throw new Error('Cannot use custom router with renderWithInstanceAndLayout');
   }
 
-  if (!foundComponents) {
-    throw new Error('No components found, maybe you want to test with renderWithoutInstanceAndLayout() instead?');
-  }
-
-  function InstanceRouter({ children }: PropsWithChildren) {
-    return (
-      <MemoryRouter
-        basename={'/ttd/test'}
-        initialEntries={[`/ttd/test/instance/${exampleInstanceId}/${initialPage}`]}
-      >
-        <Routes>
-          <Route
-            path={'instance/:partyId/:instanceGuid/*'}
-            element={children}
-          />
-        </Routes>
-      </MemoryRouter>
-    );
-  }
-
-  return await renderBase({
-    renderer: () => (
-      <InstanceProvider provideLayoutValidation={false}>
-        <LayoutsProvider>
-          <LayoutSettingsProvider>
-            <UiConfigProvider>
+  return {
+    formDataMethods: _formDataMethods,
+    ...(await renderBase({
+      ...renderOptions,
+      renderer: () => (
+        <InstanceProvider>
+          <FormDataWriteGatekeepersProvider value={_formDataMethods}>
+            <FormProvider>
               <WaitForNodes waitForAllNodes={true}>{renderer()}</WaitForNodes>
-            </UiConfigProvider>
-          </LayoutSettingsProvider>
-        </LayoutsProvider>
-      </InstanceProvider>
-    ),
-    unMockableQueries: {
-      fetchInstanceData: () => Promise.resolve(reduxState.deprecated.lastKnownInstance || getInstanceDataMock()),
-      fetchProcessState: () => Promise.resolve(reduxState.deprecated.lastKnownProcess || getProcessDataMock()),
-    },
-    router: InstanceRouter,
-    reduxState,
-    ...renderOptions,
-  });
+            </FormProvider>
+          </FormDataWriteGatekeepersProvider>
+        </InstanceProvider>
+      ),
+      router: ({ children }) => (
+        <InstanceRouter
+          instanceId={instanceId}
+          taskId={taskId}
+          initialPage={initialPage}
+        >
+          {children}
+        </InstanceRouter>
+      ),
+      queries: {
+        fetchLayouts: async () => ({
+          [initialPage]: {
+            data: {
+              layout: [
+                {
+                  id: 'noOtherComponentsHere',
+                  type: 'Header',
+                  textResourceBindings: {
+                    title:
+                      "You haven't added any components yet. Supply your own components " +
+                      'by overriding the "fetchLayouts" query in your test.',
+                  },
+                  size: 'L',
+                },
+              ],
+            },
+          },
+        }),
+        fetchLayoutSettings: async () => ({
+          pages: {
+            order: [initialPage],
+          },
+        }),
+        ...renderOptions.queries,
+      },
+    })),
+  };
 };
 
 const WaitForNodes = ({
@@ -458,31 +566,7 @@ const WaitForNodes = ({
   waitForAllNodes,
   nodeId,
 }: PropsWithChildren<{ waitForAllNodes: boolean; nodeId?: string }>) => {
-  const layouts = useAppSelector((state) => state.formLayout.layouts);
-  const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
-  const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
-  const nodes = useExprContext();
-
-  const waitingFor: string[] = [];
-  if (!layouts) {
-    waitingFor.push('layouts');
-  }
-  if (!currentView) {
-    waitingFor.push('currentView');
-  }
-  if (!repeatingGroups) {
-    waitingFor.push('repeatingGroups');
-  }
-
-  const waitingForString = waitingFor.join(', ');
-  if (waitingForString && waitForAllNodes) {
-    return (
-      <>
-        <div>Loading...</div>
-        <div>Waiting for {waitingForString}</div>
-      </>
-    );
-  }
+  const nodes = useNodes();
 
   if (!nodes && waitForAllNodes) {
     return (
@@ -513,29 +597,31 @@ const WaitForNodes = ({
   return <>{children}</>;
 };
 
-export interface RenderWithNodeTestProps<T extends LayoutNode> extends Omit<ExtendedRenderOptions, 'renderer'> {
+export interface RenderWithNodeTestProps<T extends LayoutNode, InInstance extends boolean>
+  extends Omit<ExtendedRenderOptions, 'renderer'>,
+    InstanceRouterProps {
   renderer: (props: { node: T; root: LayoutPages }) => React.ReactElement;
   nodeId: string;
-  inInstance?: boolean;
+  inInstance: InInstance;
 }
 
-export async function renderWithNode<T extends LayoutNode = LayoutNode>({
+type RenderWithNodeReturnType<InInstance extends boolean> = InInstance extends false
+  ? ReturnType<typeof renderWithoutInstanceAndLayout>
+  : ReturnType<typeof renderWithInstanceAndLayout>;
+
+export async function renderWithNode<InInstance extends boolean, T extends LayoutNode = LayoutNode>({
   renderer,
   reduxState: _reduxState,
-  inInstance = true,
+  inInstance,
   ...props
-}: RenderWithNodeTestProps<T>) {
+}: RenderWithNodeTestProps<T, InInstance>): Promise<RenderWithNodeReturnType<InInstance>> {
   const reduxState = _reduxState || getInitialStateMock();
   if (!reduxState.formLayout.layouts) {
     throw new Error('No layouts found, cannot render with nodes when no layout is in the redux state');
   }
 
-  // The repeating groups state is required for nodes to work
-  reduxState.formLayout.uiConfig.repeatingGroups =
-    reduxState.formLayout.uiConfig.repeatingGroups || generateSimpleRepeatingGroups(reduxState.formLayout.layouts);
-
   function Child() {
-    const root = useExprContext();
+    const root = useNodes();
 
     if (!root) {
       return <div>Unable to find root context</div>;
@@ -548,8 +634,13 @@ export async function renderWithNode<T extends LayoutNode = LayoutNode>({
     return renderer({ node: node as T, root });
   }
 
-  return (inInstance ? renderWithInstanceAndLayout : renderWithoutInstanceAndLayout)({
+  const funcToCall = inInstance === false ? renderWithoutInstanceAndLayout : renderWithInstanceAndLayout;
+  const extraPropsNotInInstance: Partial<Parameters<typeof renderWithoutInstanceAndLayout>[0]> =
+    inInstance === false ? { withFormProvider: true } : {};
+
+  return (await funcToCall({
     ...props,
+    ...extraPropsNotInInstance,
     reduxState,
     renderer: () => (
       <WaitForNodes
@@ -559,72 +650,79 @@ export async function renderWithNode<T extends LayoutNode = LayoutNode>({
         <Child />
       </WaitForNodes>
     ),
-  });
+  })) as unknown as RenderWithNodeReturnType<InInstance>;
 }
 
-export interface RenderGenericComponentTestProps<T extends CompTypes> extends Omit<ExtendedRenderOptions, 'renderer'> {
+export interface RenderGenericComponentTestProps<T extends CompTypes, InInstance extends boolean = true>
+  extends Omit<ExtendedRenderOptions, 'renderer'>,
+    InstanceRouterProps {
   type: T;
   renderer: (props: PropsFromGenericComponent<T>) => React.ReactElement;
   component?: Partial<CompExternalExact<T>>;
   genericProps?: Partial<PropsFromGenericComponent<T>>;
-  inInstance?: boolean;
+  inInstance?: InInstance;
 }
 
-export async function renderGenericComponentTest<T extends CompTypes>({
+export async function renderGenericComponentTest<T extends CompTypes, InInstance extends boolean = true>({
   type,
   renderer,
   component,
   genericProps,
-  reduxState: _reduxState,
+  initialPage = 'FormLayout',
   ...rest
-}: RenderGenericComponentTestProps<T>) {
+}: RenderGenericComponentTestProps<T, InInstance>) {
   const realComponentDef = {
     id: 'my-test-component-id',
     type,
     ...component,
   } as any;
 
-  const reduxState = _reduxState || getInitialStateMock();
-  if (!reduxState.formLayout.layouts) {
-    throw new Error('No layouts found, cannot render generic component when no layout is in the redux state');
-  }
-  const firstLayout = Object.keys(reduxState.formLayout.layouts)[0];
-  if (!firstLayout) {
-    throw new Error('No layouts found, cannot render generic component when no layout is in the redux state');
-  }
-
-  reduxState.formLayout.layouts[firstLayout]!.push(realComponentDef);
-
   const Wrapper = ({ node }: { node: LayoutNode<T> }) => {
     const props: PropsFromGenericComponent<T> = {
       node,
-      ...(mockGenericComponentProps as unknown as IComponentProps<T>),
+      ...(mockGenericComponentProps as unknown as IComponentProps),
       ...genericProps,
     };
 
-    return renderer(props);
+    return (
+      <FormComponentContextProvider
+        value={{
+          node,
+          baseComponentId: node.item.baseComponentId,
+          id: node.item.id,
+        }}
+      >
+        {renderer(props)}
+      </FormComponentContextProvider>
+    );
   };
 
-  return renderWithNode<LayoutNode<T>>({
+  return renderWithNode<InInstance, LayoutNode<T>>({
     ...rest,
-    reduxState,
     nodeId: realComponentDef.id,
     renderer: Wrapper,
+    inInstance: (rest.inInstance ?? true) as InInstance,
+    initialPage,
+    queries: {
+      fetchLayouts: async () => ({
+        [initialPage]: {
+          data: {
+            layout: [realComponentDef],
+          },
+        },
+      }),
+      fetchLayoutSettings: async () => ({
+        pages: {
+          order: [initialPage],
+        },
+      }),
+      ...rest.queries,
+    },
   });
 }
 
-const mockGenericComponentProps: IComponentProps<CompTypes> = {
-  formData: {},
-  handleDataChange: () => {
-    throw new Error('Called mock handleDataChange, override this yourself');
-  },
-  shouldFocus: false,
+const mockGenericComponentProps: IComponentProps = {
+  containerDivRef: { current: null },
   isValid: undefined,
   componentValidations: {},
-  label: () => {
-    throw new Error('Rendered mock label, override this yourself');
-  },
-  legend: () => {
-    throw new Error('Rendered mock legend, override this yourself');
-  },
 };

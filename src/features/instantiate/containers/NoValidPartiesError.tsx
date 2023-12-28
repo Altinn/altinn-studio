@@ -1,14 +1,14 @@
 import React from 'react';
 
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 export function NoValidPartiesError() {
   const { langAsString } = useLanguage();
-  const appMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
+  const appMetadata = useApplicationMetadata();
 
   function getAllowedParties(): string {
     let returnString = '';

@@ -11,7 +11,7 @@ import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import { ProcessTaskType } from 'src/types';
-import { useExprContext } from 'src/utils/layout/ExprContext';
+import { useNodes } from 'src/utils/layout/NodesContext';
 import type { IOption } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -23,16 +23,22 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
  */
 export type AllOptionsMap = { [nodeId: string]: IOption[] | undefined };
 
-const { Provider, useCtx } = createContext<State>({ name: 'AllOptionsContext', required: true });
-
-export const useAllOptions = () => useCtx().nodes;
-export const useAllOptionsInitiallyLoaded = () => useCtx().allInitiallyLoaded;
-
 interface State {
   allInitiallyLoaded: boolean;
   currentTaskId?: string;
   nodes: AllOptionsMap;
 }
+
+interface Context {
+  state: State;
+  dispatch: React.Dispatch<Actions>;
+}
+
+const { Provider, useCtx } = createContext<Context>({ name: 'AllOptions', required: true });
+
+export const useAllOptions = () => useCtx().state.nodes;
+export const useAllOptionsInitiallyLoaded = () => useCtx().state.allInitiallyLoaded;
+
 type Actions =
   | { type: 'nodeFetched'; nodeId: string; options: IOption[] }
   | { type: 'nodesFound'; nodesFound: string[] }
@@ -104,9 +110,7 @@ function isNodeOptionBased(node: LayoutNode) {
   );
 }
 
-export function AllOptionsProvider({ children }: PropsWithChildren) {
-  const nodes = useExprContext();
-  const currentTaskType = useRealTaskType();
+export function AllOptionsStoreProvider({ children }: PropsWithChildren) {
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
   const initialState: State = {
     allInitiallyLoaded: false,
@@ -114,11 +118,20 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
     currentTaskId,
   };
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  return <Provider value={{ state, dispatch }}>{children}</Provider>;
+}
+
+export function AllOptionsProvider({ children }: PropsWithChildren) {
+  const nodes = useNodes();
+  const currentTaskType = useRealTaskType();
   const reduxDispatch = useAppDispatch();
+  const { state, dispatch } = useCtx();
+  const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
 
   useEffect(() => {
     dispatch({ type: 'setCurrentTask', currentTaskId });
-  }, [currentTaskId]);
+  }, [currentTaskId, dispatch]);
 
   const finishedResult = useMemoDeepEqual(() => (state.allInitiallyLoaded ? state.nodes : undefined), [state]);
   useEffect(() => {
@@ -146,7 +159,7 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
         nodesFound,
       });
     }
-  }, [nodes, currentTaskType]);
+  }, [nodes, currentTaskType, dispatch]);
 
   const dummies = nodes
     ?.allNodes()
@@ -177,7 +190,7 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
   return (
     <>
       {dummies}
-      <Provider value={state}>{children}</Provider>
+      {children}
     </>
   );
 }

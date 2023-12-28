@@ -11,12 +11,13 @@ import { Header } from 'src/components/presentation/Header';
 import { NavBar } from 'src/components/presentation/NavBar';
 import classes from 'src/components/presentation/Presentation.module.css';
 import { Progress } from 'src/components/presentation/Progress';
+import { DevTools } from 'src/features/devtools/DevTools';
 import { Footer } from 'src/features/footer/Footer';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useProfile } from 'src/features/profile/ProfileProvider';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import type { PresentationType } from 'src/types';
@@ -30,7 +31,7 @@ export interface IPresentationProvidedProps extends PropsWithChildren {
 export const PresentationComponent = ({ header, type, children, renderNavBar = true }: IPresentationProvidedProps) => {
   const party = useCurrentParty();
   const instance = useLaxInstanceData();
-  const userParty = useAppSelector((state) => state.profile.profile?.party);
+  const userParty = useProfile()?.party;
   const { expandedWidth } = useUiConfigContext();
 
   const realHeader = header || (type === ProcessTaskType.Archived ? <Lang id={'receipt.receipt'} /> : undefined);
@@ -42,33 +43,35 @@ export const PresentationComponent = ({ header, type, children, renderNavBar = t
   document.body.style.background = backgroundColor;
 
   return (
-    <div className={cn(classes.container, { [classes.expanded]: expandedWidth })}>
-      <AltinnAppHeader
-        party={party}
-        userParty={userParty}
-        logoColor={LogoColor.blueDarker}
-        headerBackgroundColor={backgroundColor}
-      />
-      <main className={classes.page}>
-        {isProcessStepsArchived && instance?.status?.substatus && (
-          <AltinnSubstatusPaper
-            label={<Lang id={instance.status.substatus.label} />}
-            description={<Lang id={instance.status.substatus.description} />}
-          />
-        )}
-        {renderNavBar && <NavBar type={type} />}
-        <section
-          id='main-content'
-          className={classes.modal}
-        >
-          <Header header={realHeader}>
-            <ProgressBar type={type} />
-          </Header>
-          <div className={classes.modalBody}>{children}</div>
-        </section>
-      </main>
-      <Footer />
-    </div>
+    <DevTools>
+      <div className={cn(classes.container, { [classes.expanded]: expandedWidth })}>
+        <AltinnAppHeader
+          party={party}
+          userParty={userParty}
+          logoColor={LogoColor.blueDarker}
+          headerBackgroundColor={backgroundColor}
+        />
+        <main className={classes.page}>
+          {isProcessStepsArchived && instance?.status?.substatus && (
+            <AltinnSubstatusPaper
+              label={<Lang id={instance.status.substatus.label} />}
+              description={<Lang id={instance.status.substatus.description} />}
+            />
+          )}
+          {renderNavBar && <NavBar type={type} />}
+          <section
+            id='main-content'
+            className={classes.modal}
+          >
+            <Header header={realHeader}>
+              <ProgressBar type={type} />
+            </Header>
+            <div className={classes.modalBody}>{children}</div>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    </DevTools>
   );
 };
 

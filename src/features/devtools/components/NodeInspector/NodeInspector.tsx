@@ -12,10 +12,10 @@ import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useExprContext } from 'src/utils/layout/ExprContext';
+import { useNodes } from 'src/utils/layout/NodesContext';
 
 export const NodeInspector = () => {
-  const pages = useExprContext();
+  const pages = useNodes();
   const currentPage = pages?.current();
   const currentPageKey = currentPage?.top.myKey;
   const selectedId = useAppSelector((state) => state.devTools.nodeInspector.selectedNodeId);
