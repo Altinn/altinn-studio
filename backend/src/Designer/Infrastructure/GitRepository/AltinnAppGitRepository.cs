@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
@@ -52,7 +51,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
 
-        private const string TextResourceFileNameRegEx = @"^resource\.[a-zA-Z]{2,3}\.json$";
+        private const string TextResourceFileNamePattern = "resource.??.json";
 
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
@@ -230,17 +229,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 Directory.CreateDirectory(pathToTexts);
             }
 
-            string[] directoryFiles = GetFilesByRelativeDirectory(pathToTexts);
+            string[] directoryFiles = GetFilesByRelativeDirectory(pathToTexts, TextResourceFileNamePattern);
             foreach (string directoryFile in directoryFiles)
             {
                 string fileName = Path.GetFileName(directoryFile);
-                if (Regex.IsMatch(fileName, TextResourceFileNameRegEx))
-                {
-                    string[] nameParts = fileName.Split('.');
-                    string languageCode = nameParts[1];
-                    languages.Add(languageCode);
-                    languages.Sort(StringComparer.Ordinal);
-                }
+                string[] nameParts = fileName.Split('.');
+                string languageCode = nameParts[1];
+                languages.Add(languageCode);
+                languages.Sort(StringComparer.Ordinal);
             }
 
             return languages;
