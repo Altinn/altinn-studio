@@ -7,7 +7,7 @@ import { GiteaIcon } from 'app-shared/icons';
 import { LegacyPopover, Button } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
-import { LocalChangesModal } from 'app-development/layout/LocalChangesModalItem/LocalChangesModal';
+import { LocalChangesModal } from 'app-shared/components/GiteaHeader/ThreeDotsMenu/LocalChangesModal/LocalChangesModal';
 
 type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
@@ -26,7 +26,7 @@ export const ThreeDotsMenu = ({
   const { t } = useTranslation();
   const closeCloneModal = () => setCloneModalAnchor(null);
   const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);
-  const [isOpen, setIsOpen] = useState(false);
+  const [localChangesModalIsOpen, setLocalChangesModalIsOpen] = useState(false);
 
   return (
     <>
@@ -60,7 +60,7 @@ export const ThreeDotsMenu = ({
               <span>{t('dashboard.repository')}</span>
             </a>
           </li>
-          <li onClick={() => setIsOpen(true)}>
+          <li onClick={() => setLocalChangesModalIsOpen(true)}>
             <div className={classes.link}>
               <span className={classes.iconWrapper}>
                 <MonitorIcon className={classes.icon} />
@@ -68,10 +68,10 @@ export const ThreeDotsMenu = ({
               <span>{t('dashboard.local_changes')}</span>
             </div>
           </li>
-          {isOpen && (
+          {localChangesModalIsOpen && (
             <LocalChangesModal
-              isOpen={isOpen}
-              onClose={() => setIsOpen(false)}
+              isOpen={localChangesModalIsOpen}
+              onClose={() => setLocalChangesModalIsOpen(false)}
               org={org}
               app={app}
             />

@@ -1,17 +1,17 @@
 import React, { ReactNode, useState } from 'react';
-import classes from './LocalChangesTab.module.css';
+import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
-import { TabHeader } from '../../TabHeader';
+import { TabHeader } from '../../../../../../../../app-development/layout/SettingsModalButton/SettingsModal/components/TabHeader';
 import { Paragraph } from '@digdir/design-system-react';
 import { DownloadIcon, TrashIcon } from '@navikt/aksel-icons';
-import { LocalChangesActionButton } from './LocalChangesActionButton';
-import { DeleteModal } from './DeleteModal';
+import { LocalChangesActionButton } from '../LocalChangesActionButton';
+import { DeleteModal } from '../DeleteModal';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
 import { repoDownloadPath } from 'app-shared/api/paths';
-import { TabContent } from '../../TabContent';
+import { TabContent } from '../../../../../../../../app-development/layout/SettingsModalButton/SettingsModal/components/TabContent';
 
-export type LocalChangesTabProps = {
+export type LocalChangesProps = {
   org: string;
   app: string;
 };
@@ -25,7 +25,7 @@ export type LocalChangesTabProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode => {
+export const LocalChanges = ({ org, app }: LocalChangesProps): ReactNode => {
   const { t } = useTranslation();
 
   const { mutate: deleteLocalChanges } = useResetRepositoryMutation(org, app);

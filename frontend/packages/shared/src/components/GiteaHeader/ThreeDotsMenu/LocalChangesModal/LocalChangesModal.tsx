@@ -4,7 +4,7 @@ import { Heading } from '@digdir/design-system-react';
 import { MonitorIcon } from '@navikt/aksel-icons';
 import { StudioModal } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { LocalChangesTab } from '../SettingsModalButton/SettingsModal/components/Tabs/LocalChangesTab/LocalChangesTab';
+import { LocalChanges } from './LocalChanges/LocalChanges';
 
 export type LocalChangesModalProps = {
   isOpen: boolean;
@@ -35,7 +35,7 @@ export const LocalChangesModal = ({
       }
     >
       <div className={classes.modalContent}>
-        <LocalChangesTab org={org} app={app} />
+        <LocalChanges org={org} app={app} />
       </div>
     </StudioModal>
   );

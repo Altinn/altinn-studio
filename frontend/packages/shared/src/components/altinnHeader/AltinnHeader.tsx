@@ -10,7 +10,7 @@ import classnames from 'classnames';
 import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
 import { Repository } from 'app-shared/types/Repository';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
-import { getRepositoryType } from '../../../../shared/src/utils/repository';
+import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 

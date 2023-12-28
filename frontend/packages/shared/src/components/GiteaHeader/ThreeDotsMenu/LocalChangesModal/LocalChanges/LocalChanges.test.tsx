@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
-import { LocalChangesTab, LocalChangesTabProps } from './LocalChangesTab';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { LocalChanges, LocalChangesProps } from './LocalChanges';
+import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -13,7 +13,7 @@ import { repoDownloadPath } from 'app-shared/api/paths';
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
 
-jest.mock('../../../../../../hooks/mutations/useResetRepositoryMutation');
+jest.mock('app-development/hooks/mutations/useResetRepositoryMutation');
 const deleteLocalChangesMutation = jest.fn();
 const mockDeleteLocalChangesyMutation = useResetRepositoryMutation as jest.MockedFunction<
   typeof useResetRepositoryMutation
@@ -22,11 +22,11 @@ mockDeleteLocalChangesyMutation.mockReturnValue({
   mutate: deleteLocalChangesMutation,
 } as unknown as UseMutationResult<any, Error, void, unknown>);
 
-describe('LocalChangesTab', () => {
+describe('LocalChanges', () => {
   const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
 
-  const defaultProps: LocalChangesTabProps = {
+  const defaultProps: LocalChangesProps = {
     org: mockOrg,
     app: mockApp,
   };
@@ -135,7 +135,7 @@ describe('LocalChangesTab', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: LocalChangesTabProps,
+  props: LocalChangesProps,
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -144,7 +144,7 @@ const render = (
 
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <LocalChangesTab {...props} />
+      <LocalChanges {...props} />
     </ServicesContextProvider>,
   );
 };

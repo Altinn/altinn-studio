@@ -4,7 +4,7 @@
 import * as texts from '../../../../../language/src/nb.json';
 import { accessControlTab } from '../../selectors/accessControlTab';
 import { administrationTab } from '../../selectors/administrationTab';
-import { localChangesTab } from '../../selectors/localChangesTab';
+import { localChanges } from '../../selectors/localChanges';
 import { policyEditorTab } from '../../selectors/policyEditorTab';
 import { settingsTab } from '../../selectors/settingsTab';
 
@@ -78,16 +78,16 @@ context('SettingsModal', () => {
   // We need to include it in the cypress test for the 3-dot menu when we have that in place.
 
   /*   it('is possible to delete local changes', () => {
-    localChangesTab.getTab().click();
-    localChangesTab.getHeader().should('be.visible');
-    localChangesTab.getDownloadChangesLink().should('be.visible');
-    localChangesTab.getDownloadAllLink().should('be.visible');
-    localChangesTab.getDeleteChangesButton().should('be.visible').click();
-    localChangesTab.getConfirmRepoNameField().type('test');
-    localChangesTab.getConfirmDeleteButton().should('be.disabled');
-    localChangesTab.getConfirmRepoNameField().clear();
-    localChangesTab.getConfirmRepoNameField().type(`${Cypress.env('designerAppName')}`);
-    localChangesTab.getConfirmDeleteButton().should('be.enabled').click();
+    localChanges.getTab().click();
+    localChanges.getHeader().should('be.visible');
+    localChanges.getDownloadChangesLink().should('be.visible');
+    localChanges.getDownloadAllLink().should('be.visible');
+    localChanges.getDeleteChangesButton().should('be.visible').click();
+    localChanges.getConfirmRepoNameField().type('test');
+    localChanges.getConfirmDeleteButton().should('be.disabled');
+    localChanges.getConfirmRepoNameField().clear();
+    localChanges.getConfirmRepoNameField().type(`${Cypress.env('designerAppName')}`);
+    localChanges.getConfirmDeleteButton().should('be.enabled').click();
     cy.findByText(texts['overview.reset_repo_completed']).should('be.visible');
   });  */
 });
