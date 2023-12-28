@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Label, Paragraph, Select } from '@digdir/design-system-react';
+import { Label, Paragraph, LegacySelect } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceDropdownProps = {
@@ -96,7 +96,7 @@ export const ResourceDropdown = ({
         <Paragraph spacing short size='small'>
           {description}
         </Paragraph>
-        <Select
+        <LegacySelect
           options={options}
           onChange={handleChangeInput}
           value={selected}

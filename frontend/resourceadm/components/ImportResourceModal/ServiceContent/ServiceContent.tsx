@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import classes from './ServiceContent.module.css';
-import { Alert, ErrorMessage, Paragraph, Select, Spinner } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Paragraph, LegacySelect, Spinner } from '@digdir/design-system-react';
 import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from 'resourceadm/hooks/queries';
@@ -93,7 +93,7 @@ export const ServiceContent = ({
       }
       return (
         <div className={classes.contentWrapper}>
-          <Select
+          <LegacySelect
             options={mapAltinn2LinkServiceToSelectOption(altinn2LinkServices)}
             onChange={handleSelectService}
             value={

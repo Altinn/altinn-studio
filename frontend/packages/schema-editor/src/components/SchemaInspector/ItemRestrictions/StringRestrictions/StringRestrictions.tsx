@@ -5,7 +5,7 @@ import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
 import {
   Fieldset,
-  Select,
+  LegacySelect,
   LegacyTextField,
   Label,
   Switch,
@@ -78,7 +78,7 @@ export function StringRestrictions({
   return (
     <>
       <Divider marginless />
-      <Select
+      <LegacySelect
         inputId='format-select-input'
         label={t('format')}
         onChange={(value: string) => setRestriction(StrRestrictionKey.format, value)}

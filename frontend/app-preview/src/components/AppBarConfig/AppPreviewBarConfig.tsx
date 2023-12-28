@@ -1,7 +1,7 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
 import { TFunction } from 'i18next';
-import { Button, Select, LegacyToggleButtonGroup } from '@digdir/design-system-react';
+import { Button, LegacySelect, LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
@@ -65,7 +65,7 @@ export const SubPreviewMenuLeftContent = ({
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
-          <Select
+          <LegacySelect
             onChange={(layoutSet) => handleChangeLayoutSet(layoutSet)}
             options={layoutSets.sets.map((layoutSet) => ({
               label: layoutSet.id,

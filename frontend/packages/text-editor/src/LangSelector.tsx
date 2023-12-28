@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Select, Button } from '@digdir/design-system-react';
+import { LegacySelect, Button } from '@digdir/design-system-react';
 import classes from './LangSelector.module.css';
 import type { LangCode, Option } from './types';
 
@@ -31,13 +31,15 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
   };
   return (
     <div className={classes.LanguageSelector}>
-      <Select
+      <LegacySelect
         hideLabel={true}
         onChange={handleSelectOnChange}
         options={options}
         value={selectedOption.value}
       />
-      <Button {...addButtonProps} size='small'>Legg til</Button>
+      <Button {...addButtonProps} size='small'>
+        Legg til
+      </Button>
     </div>
   );
 };

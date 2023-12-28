@@ -3,7 +3,7 @@ import {
   Button,
   Label,
   ErrorMessage,
-  Select,
+  LegacySelect,
   Paragraph,
   Textarea,
 } from '@digdir/design-system-react';
@@ -446,7 +446,7 @@ export const ExpandablePolicyCard = ({
             : t('policy_editor.rule_card_actions_select_add')}
         </Paragraph>
         <div className={classes.dropdownWrapper}>
-          <Select
+          <LegacySelect
             options={actionOptions}
             onChange={(value: string) => value !== null && handleClickActionInList(value)}
             disabled={actionOptions.length === 0}
@@ -467,7 +467,7 @@ export const ExpandablePolicyCard = ({
             : t('policy_editor.rule_card_subjects_select_add')}
         </Paragraph>
         <div className={classes.dropdownWrapper}>
-          <Select
+          <LegacySelect
             options={subjectOptions}
             onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
             disabled={subjectOptions.length === 0}

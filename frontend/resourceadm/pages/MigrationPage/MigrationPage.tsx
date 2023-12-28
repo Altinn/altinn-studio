@@ -6,7 +6,7 @@ import { MigrationStep } from 'resourceadm/components/MigrationStep';
 import {
   Button,
   Textfield,
-  Select,
+  LegacySelect,
   Heading,
   Paragraph,
   Spinner,
@@ -109,10 +109,10 @@ export const MigrationPage = ({
               validatePolicyData === undefined
                 ? t('resourceadm.migration_no_access_rules')
                 : validatePolicyData.status === 200
-                ? t('resourceadm.migration_access_rules_ready_for_migration')
-                : t('resourceadm.migration_step_access_rules_errors', {
-                    validationErrors: validatePolicyData.errors.length,
-                  })
+                  ? t('resourceadm.migration_access_rules_ready_for_migration')
+                  : t('resourceadm.migration_step_access_rules_errors', {
+                      validationErrors: validatePolicyData.errors.length,
+                    })
             }
             isSuccess={validatePolicyData?.status === 200 ?? false}
             onNavigateToPageWithError={navigateToPageWithError}
@@ -135,7 +135,7 @@ export const MigrationPage = ({
           </Label>
           <Paragraph size='small'>{t('resourceadm.migration_select_environment_body')}</Paragraph>
           <div className={classes.selectEnv}>
-            <Select
+            <LegacySelect
               label={t('resourceadm.migration_select_environment_label')}
               hideLabel
               options={envOptions}
