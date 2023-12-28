@@ -4,7 +4,7 @@
 import * as texts from '../../../../../language/src/nb.json';
 import { accessControlTab } from '../../selectors/accessControlTab';
 import { administrationTab } from '../../selectors/administrationTab';
-import { localChanges } from '../../selectors/localChanges';
+//import { localChanges } from '../../selectors/localChanges';
 import { policyEditorTab } from '../../selectors/policyEditorTab';
 import { settingsTab } from '../../selectors/settingsTab';
 
