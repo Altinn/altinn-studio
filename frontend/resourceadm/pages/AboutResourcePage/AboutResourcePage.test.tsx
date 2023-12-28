@@ -99,7 +99,6 @@ describe('AboutResourcePage', () => {
     );
     expect(titleNbInput).toHaveValue(mockResource1.title.nb);
 
-    await act(() => user.clear(titleNbInput));
     await act(() => user.type(titleNbInput, mockNewTitleInput));
 
     expect(
@@ -131,7 +130,6 @@ describe('AboutResourcePage', () => {
     );
     expect(descriptionNbInput).toHaveValue(mockResource1.description.nb);
 
-    await act(() => user.clear(descriptionNbInput));
     await act(() => user.type(descriptionNbInput, mockNewDescriptionInput));
 
     expect(
