@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
@@ -9,17 +10,18 @@ namespace Altinn.App.AppLogic.DataProcessing
 {
   public class DataProcessor: IDataProcessor
   {
-    public async Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data)
+    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, Dictionary<string, string> changedFields)
     {
-      return await Task.FromResult(false);
+      return Task.CompletedTask;
     }
 
-    public async Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data)
+    public Task ProcessDataRead(Instance instance, Guid? dataId, object data)
     {
       if (data.GetType() != typeof(Skjema))
       {
-        return false;
+        return Task.CompletedTask;
       }
+
       Skjema skjema = (Skjema)data;
 
       if (skjema?.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.IdentifikasjonsnummerKravdatadef33317?.value == null)
@@ -48,7 +50,7 @@ namespace Altinn.App.AppLogic.DataProcessing
         skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316 ??= new Journalnummerdatadef33316();
         skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316.value = 1364;
       }
-      return await Task.FromResult(true);
+      return Task.CompletedTask;
     }
   }
 }
