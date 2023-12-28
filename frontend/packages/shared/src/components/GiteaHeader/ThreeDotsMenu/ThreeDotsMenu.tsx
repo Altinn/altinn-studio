@@ -9,7 +9,7 @@ import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
 import { LocalChangesModal } from 'app-shared/components/GiteaHeader/ThreeDotsMenu/LocalChangesModal/LocalChangesModal';
 
-type ThreeDotsMenuProps = {
+export type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
   hasCloneModal?: boolean;
   org: string;
