@@ -10,22 +10,21 @@ namespace Altinn.App.logic.DataProcessing
 {
     public class DataProcessor : IDataProcessor
     {
-        public async Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data)
+        public Task ProcessDataRead(Instance instance, Guid? dataId, object data)
         {
-            return await Task.FromResult(false);
+            return Task.CompletedTask;
         }
 
-        public async Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data)
+        public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, Dictionary<string, string> changedFields)
         {
-            bool edited = false;
-
             if (data.GetType() == typeof(NestedGroup))
             {
                 NestedGroup model = (NestedGroup)data;
-                if (model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?[0]?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value == 1337)
+                if (model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788 != null &&
+                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788?.Count > 0 &&
+                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0]?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value == 1337)
                 {
                     model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0].SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.value = 1338;
-                    edited = true;
                 }
 
                 // Server-side computed values for prefilling values in a group
@@ -96,7 +95,6 @@ namespace Altinn.App.logic.DataProcessing
                     }
 
                     model.PrefillValuesShadow = model.PrefillValues;
-                    edited = true;
                 }
 
                 // Calculating the sum of all changes, and selected changes (above hideRowValue)
@@ -129,7 +127,6 @@ namespace Altinn.App.logic.DataProcessing
                         model.sumAll = newSumAll;
                         model.sumAboveLimit = newSumAboveLimit;
                         model.numAboveLimit = newNumAboveLimit;
-                        edited = true;
                     }
                 }
             }
@@ -141,12 +138,10 @@ namespace Altinn.App.logic.DataProcessing
                 {
                     model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759 ??= new PersonMellomnavnNyttdatadef34759();
                     model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759.value = "MiddleNameFromCalculation";
-                    edited = true;
                 }
 
                 if (model != null)
                 {
-                    edited = true;
                     model.GridData ??= new GridData();
                     model.GridData.TotalGjeld ??= 0;
                     model.GridData.Bolig ??= new GjeldsFordeling();
@@ -166,7 +161,7 @@ namespace Altinn.App.logic.DataProcessing
                 }
             }
 
-            return await Task.FromResult(edited);
+            return Task.CompletedTask;
         }
     }
 }
