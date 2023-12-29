@@ -51,6 +51,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
 
+        private const string TextResourceFileNamePattern = "resource.??.json";
+
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
             WriteIndented = true,
@@ -227,12 +229,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 Directory.CreateDirectory(pathToTexts);
             }
 
-            string[] directoryFiles = GetFilesByRelativeDirectory(pathToTexts);
+            string[] directoryFiles = GetFilesByRelativeDirectory(pathToTexts, TextResourceFileNamePattern);
             foreach (string directoryFile in directoryFiles)
             {
                 string fileName = Path.GetFileName(directoryFile);
                 string[] nameParts = fileName.Split('.');
-                languages.Add(nameParts[1]);
+                string languageCode = nameParts[1];
+                languages.Add(languageCode);
                 languages.Sort(StringComparer.Ordinal);
             }
 
@@ -246,7 +249,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
-        public async Task<Designer.Models.TextResource> GetTextV1(string language, CancellationToken cancellationToken = default)
+        public async Task<TextResource> GetTextV1(string language, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string resourcePath = GetPathToJsonTextsFile($"resource.{language}.json");
@@ -255,12 +258,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 throw new NotFoundException("Text resource file not found.");
             }
             string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
-            Designer.Models.TextResource textResource = JsonSerializer.Deserialize<Designer.Models.TextResource>(fileContent, _jsonOptions);
+            TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, _jsonOptions);
 
             return textResource;
         }
 
-        public async Task SaveTextV1(string languageCode, Designer.Models.TextResource jsonTexts)
+        public async Task SaveTextV1(string languageCode, TextResource jsonTexts)
         {
             string fileName = $"resource.{languageCode}.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
