@@ -82,13 +82,29 @@ namespace Altinn.App.Api.Extensions
 
         private static void AddApplicationInsights(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
         {
-            string applicationInsightsKey = env.IsDevelopment() ?
-                         config["ApplicationInsights:InstrumentationKey"]
-                         : Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
+            string? applicationInsightsKey = env.IsDevelopment()
+                ? config["ApplicationInsights:InstrumentationKey"]
+                : Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
+            string? applicationInsightsConnectionString = env.IsDevelopment() ?
+                config["ApplicationInsights:ConnectionString"]
+                : Environment.GetEnvironmentVariable("ApplicationInsights__ConnectionString");
 
-            if (!string.IsNullOrEmpty(applicationInsightsKey))
+            if (!string.IsNullOrEmpty(applicationInsightsKey) || !string.IsNullOrEmpty(applicationInsightsConnectionString))
             {
-                services.AddApplicationInsightsTelemetry(applicationInsightsKey);
+                services.AddApplicationInsightsTelemetry((options) =>
+                {
+                    if (string.IsNullOrEmpty(applicationInsightsConnectionString))
+                    {
+#pragma warning disable CS0618 // Type or member is obsolete
+                        // Set instrumentationKey for compatibility if connectionString does not exist.
+                        options.InstrumentationKey = applicationInsightsKey;
+#pragma warning restore CS0618 // Type or member is obsolete
+                    }
+                    else
+                    {
+                        options.ConnectionString = applicationInsightsConnectionString;
+                    }
+                });
                 services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
