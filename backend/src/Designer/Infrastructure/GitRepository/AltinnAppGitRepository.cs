@@ -49,7 +49,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private static string ProcessDefinitionFilePath => Path.Combine(PROCESS_DEFINITION_FOLDER_PATH, PROCESS_DEFINITION_FILENAME);
 
-        private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+        public const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+
+        public const string _layoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
 
         private const string TextResourceFileNamePattern = "resource.??.json";
 
