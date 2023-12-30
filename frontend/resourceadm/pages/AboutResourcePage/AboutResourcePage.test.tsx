@@ -309,4 +309,36 @@ describe('AboutResourcePage', () => {
       ),
     ).not.toBeInTheDocument();
   });
+
+  it('does not display fields for resourceType MaskinportenSchema', () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockResource1, resourceType: 'MaskinportenSchema' }}
+      />,
+    );
+
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.about_resource_self_identified_label')),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.about_resource_enterprise_label')),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.about_resource_available_for_legend')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not display fields for resourceType BrokerService', () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockResource1, resourceType: 'BrokerService' }}
+      />,
+    );
+
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.about_resource_available_for_legend')),
+    ).not.toBeInTheDocument();
+  });
 });
