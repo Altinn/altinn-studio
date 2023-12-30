@@ -13,7 +13,7 @@ import {
   Label,
   Link,
 } from '@digdir/design-system-react';
-import type { NavigationBarPage } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
 
 const envOptions = [
@@ -109,10 +109,10 @@ export const MigrationPage = ({
               validatePolicyData === undefined
                 ? t('resourceadm.migration_no_access_rules')
                 : validatePolicyData.status === 200
-                ? t('resourceadm.migration_access_rules_ready_for_migration')
-                : t('resourceadm.migration_step_access_rules_errors', {
-                    validationErrors: validatePolicyData.errors.length,
-                  })
+                  ? t('resourceadm.migration_access_rules_ready_for_migration')
+                  : t('resourceadm.migration_step_access_rules_errors', {
+                      validationErrors: validatePolicyData.errors.length,
+                    })
             }
             isSuccess={validatePolicyData?.status === 200 ?? false}
             onNavigateToPageWithError={navigateToPageWithError}

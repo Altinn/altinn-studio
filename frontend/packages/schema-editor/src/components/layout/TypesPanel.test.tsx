@@ -3,10 +3,17 @@ import { dataMock } from '../../mockData';
 import { screen } from '@testing-library/react';
 
 import { TypesPanel, TypesPanelProps } from './TypesPanel';
-import { buildUiSchema, FieldType, ObjectKind, SchemaModel } from '@altinn/schema-model';
+import {
+  buildUiSchema,
+  FieldType,
+  ObjectKind,
+  ROOT_POINTER,
+  SchemaModel,
+} from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';
+import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 const typesText = 'Typer';
 const texts = {
@@ -44,15 +51,17 @@ const render = (props?: Partial<TypesPanelProps>) => {
       pointer: '#/$defs/Test',
       restrictions: {},
     },
-    expandedDefNodes: [],
-    setExpandedDefNodes: () => {},
   };
   const schemaNodes = buildUiSchema(dataMock);
   const schemaModel = SchemaModel.fromArray(schemaNodes);
   return renderWithProviders({
     state: mockInitialState,
     appContextProps: { schemaModel },
-  })(<TypesPanel {...defaultProps} {...props} />);
+  })(
+    <DragAndDropTree.Provider onAdd={jest.fn()} onMove={jest.fn()} rootId={ROOT_POINTER}>
+      <TypesPanel {...defaultProps} {...props} />
+    </DragAndDropTree.Provider>,
+  );
 };
 
 describe('TypesPanel', () => {

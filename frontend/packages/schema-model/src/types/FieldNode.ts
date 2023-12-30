@@ -12,6 +12,7 @@ export interface FieldNode {
   pointer: string;
   custom: KeyValuePairs;
   children: string[];
+  definitions?: string[];
   description?: string;
   enum?: string[];
   isRequired: boolean;

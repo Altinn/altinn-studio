@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import * as testids from '../../../../../testing/testids';
 import { useDispatch } from 'react-redux';
 import { setSelectedId } from '../../features/editor/schemaEditorSlice';
+import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;
@@ -20,21 +21,23 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
     setSelectedTypePointer(uiSchemaNode.pointer);
     dispatch(setSelectedId({ pointer: uiSchemaNode.pointer }));
   };
+  const name = extractNameFromPointer(uiSchemaNode.pointer);
+
   return (
-    <div
-      className={classNames(classes.item, {
-        [classes.itemSelected]: selected,
-      })}
-      onClick={handleClick}
-      data-testid={testids.typeItem(uiSchemaNode.pointer)}
-    >
-      <div>
-        <FileJsonIcon className={classes.typeIcon} />
+    <DragAndDropTree.NewItem payload={name}>
+      <div
+        className={classNames(classes.item, {
+          [classes.itemSelected]: selected,
+        })}
+        onClick={handleClick}
+        data-testid={testids.typeItem(uiSchemaNode.pointer)}
+      >
+        <div>
+          <FileJsonIcon className={classes.typeIcon} />
+        </div>
+        <span className={classes.typeName}>{name}</span>
+        <CogIcon />
       </div>
-      <span className={classes.typeName}>
-        {extractNameFromPointer(uiSchemaNode.pointer)}
-      </span>
-      <CogIcon />
-    </div>
+    </DragAndDropTree.NewItem>
   );
 };

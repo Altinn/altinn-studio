@@ -1,4 +1,4 @@
-import type { NavigationBarPage } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 
 /**
  * Returns the path to the dashboard based on the name of the organisation

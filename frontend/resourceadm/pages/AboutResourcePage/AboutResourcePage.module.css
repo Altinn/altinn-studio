@@ -3,14 +3,6 @@
   justify-content: space-between;
 }
 
-.rightWrapper {
-  height: 100%;
-  right: 0;
-  top: 0;
-  position: absolute;
-  width: 35%;
-}
-
 .pageWrapper {
   margin: 0;
   padding: 40px;

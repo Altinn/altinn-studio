@@ -157,7 +157,12 @@ export const DesignView = (): ReactNode => {
         />
       </div>
       <div className={classes.buttonContainer}>
-        <Button icon={<PlusIcon />} onClick={() => handleAddPage(false)} size='small' className={classes.button}>
+        <Button
+          icon={<PlusIcon />}
+          onClick={() => handleAddPage(false)}
+          size='small'
+          className={classes.button}
+        >
           {t('ux_editor.pages_add')}
         </Button>
       </div>

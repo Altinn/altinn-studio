@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { Textfield } from '@digdir/design-system-react';
-import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceLanguageTextFieldProps = {
   /**
@@ -28,10 +27,6 @@ type ResourceLanguageTextFieldProps = {
    */
   onFocus: () => void;
   /**
-   * Flag for if the value is valid
-   */
-  isValid: boolean;
-  /**
    * Function to be executed on key down
    */
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
@@ -40,10 +35,6 @@ type ResourceLanguageTextFieldProps = {
    * @returns void
    */
   onBlur: () => void;
-  /**
-   * Flag for if the error message should be shown
-   */
-  showErrorMessage?: boolean;
   /**
    * The error text to be shown
    */
@@ -59,10 +50,8 @@ type ResourceLanguageTextFieldProps = {
  * @property {string}[value] - The value in the field
  * @property {function}[onChangeValue] - Function that updates the value in the field
  * @property {function}[onFocus] - unction to be executed when the field is focused
- * @property {boolean}[isValid] - Flag for if the value is valid
  * @property {React.KeyboardEventHandler<HTMLInputElement>}[onKeyDown] - Function to be executed on key down
  * @property {function}[onBlur] - Function to be executed on blur
- * @property {boolean}[showErrorMessage] - Flag for if the error message should be shown
  * @property {string}[errorText] - The error text to be shown
  *
  * @returns {React.ReactNode} - The rendered component
@@ -72,18 +61,7 @@ export const ResourceLanguageTextField = forwardRef<
   ResourceLanguageTextFieldProps
 >(
   (
-    {
-      label,
-      description,
-      value,
-      onChangeValue,
-      onFocus,
-      isValid,
-      onKeyDown,
-      onBlur,
-      showErrorMessage = false,
-      errorText,
-    },
+    { label, description, value, onChangeValue, onFocus, onKeyDown, onBlur, errorText },
     ref,
   ): React.ReactNode => {
     return (
@@ -97,12 +75,11 @@ export const ResourceLanguageTextField = forwardRef<
             value={value}
             onChange={(e) => onChangeValue(e.target.value)}
             onFocus={onFocus}
-            error={!isValid}
+            error={errorText}
             ref={ref}
             onKeyDown={onKeyDown}
             onBlur={onBlur}
           />
-          {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
         </div>
       </>
     );

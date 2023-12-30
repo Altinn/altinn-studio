@@ -1,5 +1,4 @@
 export {
-  getResourcePageTextfieldError,
   convertResourceTypeToDisplayString,
   mapLanguageKeyToLanguageText,
   getMissingInputLanguageString,

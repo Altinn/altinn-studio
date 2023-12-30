@@ -2,20 +2,16 @@ import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import { Link, useParams } from 'react-router-dom';
-import type { SupportedLanguage, Translation } from 'resourceadm/types/global';
 import type {
-  SupportedLanguageKey,
   Resource,
   ResourceTypeOption,
   ResourceStatusOption,
   ResourceAvailableForTypeOption,
   ResourceContactPoint,
+  SupportedLanguage,
 } from 'app-shared/types/ResourceAdm';
 import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
-import {
-  getMissingInputLanguageString,
-  getResourcePageTextfieldError,
-} from 'resourceadm/utils/resourceUtils';
+import { getMissingInputLanguageString } from 'resourceadm/utils/resourceUtils';
 import {
   availableForTypeMap,
   resourceStatusMap,
@@ -35,6 +31,7 @@ import {
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { Translation } from 'resourceadm/types/Translation';
 
 /**
  * Initial value for languages with empty fields
@@ -75,7 +72,7 @@ export const AboutResourcePage = ({
    */
   const resourceTypeOptions = Object.entries(resourceTypeMap).map(([key, value]) => ({
     value: key,
-    label: value,
+    label: t(value),
   }));
 
   /**
@@ -83,7 +80,7 @@ export const AboutResourcePage = ({
    */
   const statusOptions = Object.keys(resourceStatusMap).map((key) => ({
     value: key,
-    label: resourceStatusMap[key],
+    label: t(resourceStatusMap[key]),
   }));
 
   /**
@@ -91,33 +88,20 @@ export const AboutResourcePage = ({
    */
   const availableForOptions = Object.keys(availableForTypeMap).map((key) => ({
     value: key,
-    label: availableForTypeMap[key],
+    label: t(availableForTypeMap[key]),
   }));
 
   // States to store the different input values
-  const [title, setTitle] = useState<SupportedLanguageKey<string>>(
-    resourceData.title ?? emptyLanguages,
-  );
-  const [description, setDescription] = useState<SupportedLanguageKey<string>>(
+  const [title, setTitle] = useState<SupportedLanguage>(resourceData.title ?? emptyLanguages);
+  const [description, setDescription] = useState<SupportedLanguage>(
     resourceData.description ?? emptyLanguages,
   );
-  const [rightDescription, setRightDescription] = useState<SupportedLanguageKey<string>>(
+  const [rightDescription, setRightDescription] = useState<SupportedLanguage>(
     resourceData.rightDescription ?? emptyLanguages,
   );
 
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<Translation>('none');
-
-  // To handle the error state of the page
-  const [hasTitleError, setHasTitleError] = useState(
-    getResourcePageTextfieldError(resourceData.title),
-  );
-  const [hasDescriptionError, setHasDescriptionError] = useState(
-    getResourcePageTextfieldError(resourceData.description),
-  );
-  const [hasRightDescriptionError, setHasRightDescriptionError] = useState(
-    resourceData.delegable ? getResourcePageTextfieldError(resourceData.rightDescription) : false,
-  );
 
   /**
    * Function that saves the resource to backend
@@ -143,73 +127,6 @@ export const AboutResourcePage = ({
   };
 
   /**
-   * Sets the values of the selected field and updates if the error is shown or not.
-   *
-   * @param value the value typed in the input field
-   */
-  const handleChangeTranslationValues = (value: SupportedLanguage) => {
-    const error = value.nb === '' || value.nn === '' || value.en === '';
-    if (translationType === 'title') {
-      setHasTitleError(error);
-      setTitle(value);
-    }
-    if (translationType === 'description') {
-      setHasDescriptionError(error);
-      setDescription(value);
-    }
-    if (translationType === 'rightDescription') {
-      setHasRightDescriptionError(resourceData.delegable ? error : false);
-      setRightDescription(value);
-    }
-  };
-
-  /**
-   * Adds another contact point to the list
-   *
-   * @param contactPoints the list of contact points to add
-   */
-  const handleClickAddContactPoint = (contactPoints: ResourceContactPoint[]) => {
-    handleSave({
-      ...resourceData,
-      contactPoints,
-    });
-  };
-
-  /**
-   * Displays the correct content in the right translation bar.
-   */
-  const displayRightTranslationBar = () => {
-    return (
-      <div className={classes.rightWrapper}>
-        <RightTranslationBar
-          title={
-            translationType === 'title'
-              ? t('resourceadm.about_resource_translation_title')
-              : translationType === 'description'
-              ? t('resourceadm.about_resource_translation_description')
-              : t('resourceadm.about_resource_translation_right_description')
-          }
-          value={
-            translationType === 'title'
-              ? title
-              : translationType === 'description'
-              ? description
-              : rightDescription
-          }
-          onLanguageChange={handleChangeTranslationValues}
-          usesTextArea={translationType === 'description'}
-          showErrors={
-            translationType === 'rightDescription'
-              ? resourceData.delegable && showAllErrors
-              : showAllErrors
-          }
-          onBlur={handleSaveResource}
-        />
-      </div>
-    );
-  };
-
-  /**
    * Displays the content on the page
    */
   const displayContent = () => {
@@ -222,7 +139,7 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_resource_type')}
           description={t('resourceadm.about_resource_resource_type_label')}
           value={resourceData.resourceType}
-          options={resourceTypeOptions.map((o) => ({ ...o, label: t(o.label) }))}
+          options={resourceTypeOptions}
           hasError={
             showAllErrors && !Object.keys(resourceTypeMap).includes(resourceData.resourceType)
           }
@@ -238,36 +155,64 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_resource_title_text')}
           value={title['nb']}
           onFocus={() => setTranslationType('title')}
-          isValid={!(showAllErrors && hasTitleError && title['nb'] === '')}
-          onChangeValue={(value: string) => handleChangeTranslationValues({ ...title, nb: value })}
+          onChangeValue={(value: string) =>
+            setTitle((oldTitle) => {
+              return { ...oldTitle, nb: value };
+            })
+          }
           onBlur={handleSaveResource}
-          showErrorMessage={showAllErrors && hasTitleError}
-          errorText={getMissingInputLanguageString(
-            title,
-            t('resourceadm.about_resource_error_usage_string_title'),
-            t,
-          )}
+          errorText={
+            showAllErrors
+              ? getMissingInputLanguageString(
+                  title,
+                  t('resourceadm.about_resource_error_usage_string_title'),
+                  t,
+                )
+              : ''
+          }
         />
-        {translationType === 'title' && displayRightTranslationBar()}
+        {translationType === 'title' && (
+          <RightTranslationBar
+            title={t('resourceadm.about_resource_translation_title')}
+            value={title}
+            onLanguageChange={setTitle}
+            usesTextArea={false}
+            showErrors={showAllErrors}
+            onBlur={handleSaveResource}
+          />
+        )}
         <ResourceLanguageTextArea
           label={t('resourceadm.about_resource_resource_description_label')}
           description={t('resourceadm.about_resource_resource_description_text')}
           value={description['nb']}
           onFocus={() => setTranslationType('description')}
           id='aboutNBDescription'
-          isValid={!(showAllErrors && hasDescriptionError && description['nb'] === '')}
           onChangeValue={(value: string) => {
-            handleChangeTranslationValues({ ...description, nb: value });
+            setDescription((oldDescription) => {
+              return { ...oldDescription, nb: value };
+            });
           }}
           onBlur={handleSaveResource}
-          showErrorMessage={showAllErrors && hasDescriptionError}
-          errorText={getMissingInputLanguageString(
-            description,
-            t('resourceadm.about_resource_error_usage_string_description'),
-            t,
-          )}
+          errorText={
+            showAllErrors
+              ? getMissingInputLanguageString(
+                  description,
+                  t('resourceadm.about_resource_error_usage_string_description'),
+                  t,
+                )
+              : ''
+          }
         />
-        {translationType === 'description' && displayRightTranslationBar()}
+        {translationType === 'description' && (
+          <RightTranslationBar
+            title={t('resourceadm.about_resource_translation_description')}
+            value={description}
+            onLanguageChange={setDescription}
+            usesTextArea={true}
+            showErrors={showAllErrors}
+            onBlur={handleSaveResource}
+          />
+        )}
         <ResourceTextField
           label={t('resourceadm.about_resource_homepage_label')}
           description={t('resourceadm.about_resource_homepage_text')}
@@ -291,22 +236,32 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_rights_description_text')}
           value={rightDescription['nb']}
           onFocus={() => setTranslationType('rightDescription')}
-          isValid={
-            !(showAllErrors && hasRightDescriptionError && rightDescription['nb'] === '') ||
-            !resourceData.delegable
-          }
           onChangeValue={(value: string) =>
-            handleChangeTranslationValues({ ...rightDescription, nb: value })
+            setRightDescription((oldRightsDescription) => {
+              return { ...oldRightsDescription, nb: value };
+            })
           }
           onBlur={handleSaveResource}
-          showErrorMessage={showAllErrors && hasRightDescriptionError && resourceData.delegable}
-          errorText={getMissingInputLanguageString(
-            rightDescription,
-            t('resourceadm.about_resource_error_usage_string_rights_description'),
-            t,
-          )}
+          errorText={
+            showAllErrors && resourceData.delegable
+              ? getMissingInputLanguageString(
+                  rightDescription,
+                  t('resourceadm.about_resource_error_usage_string_rights_description'),
+                  t,
+                )
+              : ''
+          }
         />
-        {translationType === 'rightDescription' && displayRightTranslationBar()}
+        {translationType === 'rightDescription' && (
+          <RightTranslationBar
+            title={t('resourceadm.about_resource_translation_right_description')}
+            value={rightDescription}
+            onLanguageChange={setRightDescription}
+            usesTextArea={false}
+            showErrors={resourceData.delegable && showAllErrors}
+            onBlur={handleSaveResource}
+          />
+        )}
         <ResourceTextField
           label={t('resourceadm.about_resource_keywords_label')}
           description={t('resourceadm.about_resource_keywords_text')}
@@ -322,7 +277,7 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_status_label')}
           description={t('resourceadm.about_resource_status_text')}
           value={resourceData.status}
-          options={statusOptions.map((o) => ({ ...o, label: t(o.label) }))}
+          options={statusOptions}
           hasError={showAllErrors && !Object.keys(resourceStatusMap).includes(resourceData.status)}
           onFocus={() => setTranslationType('none')}
           onBlur={(selected: ResourceStatusOption) =>
@@ -367,8 +322,7 @@ export const AboutResourcePage = ({
         />
         <ResourceContactPointFields
           contactPointList={resourceData.contactPoints}
-          onClickAddMoreContactPoint={handleClickAddContactPoint}
-          onLeaveTextFields={(contactPoints: ResourceContactPoint[]) =>
+          onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>
             handleSave({ ...resourceData, contactPoints: contactPoints })
           }
           showErrors={showAllErrors}
