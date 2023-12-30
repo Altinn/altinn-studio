@@ -286,31 +286,35 @@ export const AboutResourcePage = ({
           errorText={t('resourceadm.about_resource_status_error')}
         />
         {resourceData.resourceType !== 'MaskinportenSchema' && (
-          <>
-            <ResourceSwitchInput
-              label={t('resourceadm.about_resource_self_identified_label')}
-              description={t('resourceadm.about_resource_self_identified_text')}
-              value={resourceData.selfIdentifiedUserEnabled ?? false}
-              onFocus={() => setTranslationType('none')}
-              onBlur={(isChecked: boolean) =>
-                handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
-              }
-              id='selfIdentifiedUsersEnabledSwitch'
-              descriptionId='selfIdentifiedUsersEnabledSwitchDescription'
-              toggleTextTranslationKey='resourceadm.about_resource_self_identified_show_text'
-            />
-            <ResourceSwitchInput
-              label={t('resourceadm.about_resource_enterprise_label')}
-              description={t('resourceadm.about_resource_enterprise_text')}
-              value={resourceData.enterpriseUserEnabled ?? false}
-              onFocus={() => setTranslationType('none')}
-              onBlur={(isChecked: boolean) =>
-                handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
-              }
-              id='enterpriseUserEnabledSwitch'
-              descriptionId='enterpriseUserEnabledSwitchDescription'
-              toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
-            />
+          <ResourceSwitchInput
+            label={t('resourceadm.about_resource_self_identified_label')}
+            description={t('resourceadm.about_resource_self_identified_text')}
+            value={resourceData.selfIdentifiedUserEnabled ?? false}
+            onFocus={() => setTranslationType('none')}
+            onBlur={(isChecked: boolean) =>
+              handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
+            }
+            id='selfIdentifiedUsersEnabledSwitch'
+            descriptionId='selfIdentifiedUsersEnabledSwitchDescription'
+            toggleTextTranslationKey='resourceadm.about_resource_self_identified_show_text'
+          />
+        )}
+        {resourceData.resourceType !== 'MaskinportenSchema' && (
+          <ResourceSwitchInput
+            label={t('resourceadm.about_resource_enterprise_label')}
+            description={t('resourceadm.about_resource_enterprise_text')}
+            value={resourceData.enterpriseUserEnabled ?? false}
+            onFocus={() => setTranslationType('none')}
+            onBlur={(isChecked: boolean) =>
+              handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
+            }
+            id='enterpriseUserEnabledSwitch'
+            descriptionId='enterpriseUserEnabledSwitchDescription'
+            toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
+          />
+        )}
+        {resourceData.resourceType !== 'MaskinportenSchema' &&
+          resourceData.resourceType !== 'BrokerService' && (
             <ResourceCheckboxGroup
               options={availableForOptions}
               legend={t('resourceadm.about_resource_available_for_legend')}
@@ -321,8 +325,7 @@ export const AboutResourcePage = ({
               }
               value={resourceData.availableForType ?? []}
             />
-          </>
-        )}
+          )}
         <ResourceContactPointFields
           contactPointList={resourceData.contactPoints}
           onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>

@@ -32,7 +32,11 @@ export interface ResourceContactPoint {
   contactPage: string;
 }
 
-export type ResourceTypeOption = 'GenericAccessResource' | 'Systemresource' | 'MaskinportenSchema';
+export type ResourceTypeOption =
+  | 'GenericAccessResource'
+  | 'Systemresource'
+  | 'MaskinportenSchema'
+  | 'BrokerService';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 

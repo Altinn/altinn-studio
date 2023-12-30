@@ -746,6 +746,7 @@
   "resourceadm.about_resource_resource_title_label": "Navn på tjenesten (Bokmål)",
   "resourceadm.about_resource_resource_title_text": "Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass på at navnet er forståelig og gjenkjennbart.",
   "resourceadm.about_resource_resource_type": "Ressurstype",
+  "resourceadm.about_resource_resource_type_brokerservice": "Broker service",
   "resourceadm.about_resource_resource_type_error": "Du mangler å legge til ressurstype.",
   "resourceadm.about_resource_resource_type_generic_access_resource": "Generisk tilgangsressurs",
   "resourceadm.about_resource_resource_type_label": "Velg en ressurstype fra listen under.",
