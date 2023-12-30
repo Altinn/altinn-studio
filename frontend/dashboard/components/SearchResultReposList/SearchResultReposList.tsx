@@ -3,7 +3,6 @@ import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarr
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
-import { DATAGRID_ROWS_PER_PAGE_OPTIONS } from '../../constants';
 import { IRepository } from 'app-shared/types/global';
 
 type SearchResultReposList = {
@@ -12,8 +11,15 @@ type SearchResultReposList = {
 };
 export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResultReposList) => {
   const { t } = useTranslation();
-  const { searchResults, isLoadingSearchResults, sortModel, pageSize, setPageNumber, setSortModel, setPageSize } =
-    useReposSearch({ keyword: searchValue });
+  const {
+    searchResults,
+    isLoadingSearchResults,
+    sortModel,
+    pageSize,
+    setPageNumber,
+    setSortModel,
+    setPageSize,
+  } = useReposSearch({ keyword: searchValue });
 
   const reposWithStarred = useAugmentReposWithStarred({
     repos: searchResults?.data,
@@ -33,7 +39,6 @@ export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResul
         onSortModelChange={setSortModel}
         sortModel={sortModel}
         pageSize={pageSize}
-        rowsPerPageOptions={DATAGRID_ROWS_PER_PAGE_OPTIONS}
       />
     </div>
   );

@@ -87,6 +87,20 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
+        public void GetLanguages_NotOnlyResourceFilesInTextsFolder_ShouldReturnCorrectLanguagesSorted()
+        {
+            string org = "ttd";
+            string repository = "hvem-er-hvem";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            var languages = altinnAppGitRepository.GetLanguages();
+
+            languages.Should().NotBeNull();
+            languages.ToArray().Should().Equal("en", "nb");
+        }
+
+        [Fact]
         public void GetLayoutSetNames_WithAppThatUsesLayoutSet_ShouldReturnLayoutSetNames()
         {
             string org = "ttd";
