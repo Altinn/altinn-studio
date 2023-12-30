@@ -143,11 +143,9 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
         className={classes.resourceNameAndId}
       />
       <div className={classes.buttonWrapper}>
-        <div className={classes.closeButton}>
-          <Button onClick={onClose} color='first' variant='tertiary' size='small'>
-            {t('general.cancel')}
-          </Button>
-        </div>
+        <Button onClick={onClose} color='first' variant='tertiary' size='small'>
+          {t('general.cancel')}
+        </Button>
         <Button
           onClick={() =>
             !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined

@@ -1,13 +1,10 @@
 .buttonWrapper {
   display: flex;
   justify-content: flex-end;
-  margin-top: 40px;
-}
-
-.closeButton {
-  margin-right: 10px;
+  gap: var(--fds-spacing-2);
+  margin-top: var(--fds-spacing-10);
 }
 
 .text {
-  margin-top: 20px;
+  margin-top: var(--fds-spacing-5);
 }
