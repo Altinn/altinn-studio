@@ -123,6 +123,7 @@
   "dashboard.edit_service": "Rediger app",
   "dashboard.favourites": "Favoritter",
   "dashboard.field_cannot_be_empty": "Dette feltet kan ikke være tomt",
+  "dashboard.gitea.menu": "Gitea menu",
   "dashboard.go_to_resources": "Gå til ressurser-dashboard",
   "dashboard.last_modified": "Sist endret",
   "dashboard.local_changes": "Lokale endringer",

@@ -8,11 +8,12 @@ const user = userEvent.setup();
 const cloneTextMock = textMock('sync_header.clone');
 const repositoryTextMock = textMock('dashboard.repository');
 const localChangesTextMock = textMock('dashboard.local_changes');
+const localChangesModalMock = 'LocalChangesModal';
 
 jest.mock(
   'app-shared/components/GiteaHeader/ThreeDotsMenu/LocalChangesModal/LocalChangesModal',
   () => ({
-    LocalChangesModal: jest.fn().mockReturnValue(null),
+    LocalChangesModal: () => <div data-testid={localChangesModalMock} />,
   }),
 );
 
@@ -21,7 +22,7 @@ describe('ThreeDotsMenu', () => {
 
   it('should show the menu items when open', async () => {
     await render();
-    const threeDotsMenu = screen.getByLabelText('Gitea menu');
+    const threeDotsMenu = screen.getByText(textMock('dashboard.gitea.menu'));
     expect(threeDotsMenu).toBeInTheDocument();
 
     await act(() => user.click(threeDotsMenu));
@@ -38,7 +39,7 @@ describe('ThreeDotsMenu', () => {
   it('should not show the clone option when onlyShowRepository is true', async () => {
     await render({ onlyShowRepository: true });
 
-    const threeDotsMenu = screen.getByLabelText('Gitea menu');
+    const threeDotsMenu = screen.getByText(textMock('dashboard.gitea.menu'));
     expect(threeDotsMenu).toBeInTheDocument();
 
     await act(() => user.click(threeDotsMenu));
@@ -47,9 +48,9 @@ describe('ThreeDotsMenu', () => {
     expect(cloneText).not.toBeInTheDocument();
   });
 
-  it('should local changes be in document when setLocalChangesModalIsOpen and it is clicked', async () => {
-    await render({ localChangesModalIsOpen: true } as Partial<ThreeDotsMenuProps>);
-    const threeDotsMenu = screen.getByLabelText('Gitea menu');
+  it('should render local changes modal', async () => {
+    await render();
+    const threeDotsMenu = screen.getByLabelText(textMock('dashboard.gitea.menu'));
     expect(threeDotsMenu).toBeInTheDocument();
 
     await act(() => user.click(threeDotsMenu));
@@ -57,7 +58,8 @@ describe('ThreeDotsMenu', () => {
     expect(localchangeText).toBeInTheDocument();
 
     await act(() => user.click(localchangeText));
-    const localChangesModal = await screen.findByText(localChangesTextMock);
+
+    const localChangesModal = screen.getByTestId(localChangesModalMock);
     expect(localChangesModal).toBeInTheDocument();
   });
 });

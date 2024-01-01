@@ -1,5 +1,10 @@
 .contentWrapper {
-  max-width: 500px;
+  padding: 40px;
+  width: calc(var(--modal-max-width) - var(--modal-border-size));
+  height: calc(
+    var(--modal-content-max-height) - var(--heading-height) - var(--modal-border-radius)
+  );
+  overflow: scroll;
 }
 
 .downloadIcon {

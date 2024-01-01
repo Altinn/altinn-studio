@@ -7,6 +7,7 @@
   --modal-translate: calc(var(--modal-position) * -1);
   --heading-height: 60px;
   --modal-border-size: 1px;
+  --modal-border-radius: 20px;
   --modal-content-max-height: calc(var(--modal-max-height) - var(--heading-height)) -
     var(--modal-border-size);
 
@@ -16,7 +17,7 @@
   max-height: var(--modal-max-height);
   min-height: var(--modal-min-height);
   height: max-content;
-  border-radius: 20px;
+  border-radius: var(--modal-border-radius);
   position: absolute;
   top: var(--modal-position);
   left: var(--modal-position);

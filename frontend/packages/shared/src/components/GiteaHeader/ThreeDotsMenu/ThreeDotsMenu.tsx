@@ -34,7 +34,7 @@ export const ThreeDotsMenu = ({
         className={classes.popover}
         trigger={
           <Button
-            icon={<MenuElipsisVerticalIcon title='Gitea menu' />}
+            icon={<MenuElipsisVerticalIcon title={t('dashboard.gitea.menu')} />}
             variant='tertiary'
             color='inverted'
             size='small'
