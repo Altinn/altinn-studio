@@ -6,7 +6,7 @@ import { designer } from '../../selectors/designer';
 import { header } from '../../selectors/header';
 
 const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerAppName')}`;
-const initialPageName = 'MyFirstFormPage';
+const initialPageName = 'Side1';
 
 context('Designer', () => {
   before(() => {

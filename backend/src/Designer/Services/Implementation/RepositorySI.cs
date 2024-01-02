@@ -34,6 +34,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class RepositorySI : IRepository
     {
+        // Using Norwegian name of initial page to be consistent
+        // with automatic naming from frontend when adding new page
+        private const string InitialLayout = "Side1";
+
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -278,9 +282,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer);
-                string initialLayout = "MyFirstFormPage";
-                await _appDevelopmentService.SaveFormLayout(editingContext, null, initialLayout, GetInitialLayout());
-                await _appDevelopmentService.SaveLayoutSettings(editingContext, GetInitialLayoutSettings(initialLayout), null);
+                await _appDevelopmentService.SaveFormLayout(editingContext, null, InitialLayout, GetInitialLayout());
+                await _appDevelopmentService.SaveLayoutSettings(editingContext, GetInitialLayoutSettings(InitialLayout), null);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
@@ -295,7 +298,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var layout = new JsonObject
             {
-                ["schema"] = AltinnAppGitRepository._layoutSchemaUrl,
+                ["schema"] = AltinnAppGitRepository.LayoutSchemaUrl,
                 ["data"] = new JsonObject
                 {
                     ["layout"] = new JsonArray()
@@ -309,7 +312,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var layoutSettings = new JsonObject
             {
-                ["schema"] = AltinnAppGitRepository._layoutSettingsSchemaUrl,
+                ["schema"] = AltinnAppGitRepository.LayoutSettingsSchemaUrl,
                 ["pages"] = new JsonObject
                 {
                     ["order"] = new JsonArray { initialLayout }
