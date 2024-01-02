@@ -9,6 +9,7 @@ using Altinn.ResourceRegistry.Core.Enums.Altinn2;
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -308,12 +309,12 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingrightdescription");
             }
-
-            if (resource.AvailableForType == null || resource.AvailableForType.Count == 0)
+            
+            if (resource.ResourceType != ResourceType.MaskinportenSchema && (resource.AvailableForType == null || resource.AvailableForType.Count == 0))
             {
                 ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
             }
-
+            
             if (resource.Status == null)
             {
                 ModelState.AddModelError($"{resource.Identifier}.status", "resourceerror.missingstatus");
