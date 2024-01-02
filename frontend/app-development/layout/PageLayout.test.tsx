@@ -7,9 +7,12 @@ import { textMock } from '../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
+import { privateRepositoryMock, repositoryMock } from '../test/repositoryMock';
 
 const mockOrg: string = 'org';
 const mockApp: string = 'app';
+
+const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve(repositoryMock));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -52,7 +55,7 @@ describe('PageLayout', () => {
     ).toBeInTheDocument();
   });
 
-  it('renderes the page content and no errors when there are no errors', async () => {
+  it('renders the page content and no errors when there are no errors', async () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(
@@ -63,6 +66,18 @@ describe('PageLayout', () => {
       screen.queryByRole('heading', { name: textMock('merge_conflict.headline'), level: 1 }),
     ).not.toBeInTheDocument();
   });
+
+  it('renders header with no publish button when repoOwner is a private person', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getRepoMetadata: () => Promise.resolve(privateRepositoryMock),
+    });
+
+    expect(screen.getByRole('button', { name: textMock('top_menu.preview') })).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole('button', { name: textMock('top_menu.deploy') }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
@@ -71,8 +86,13 @@ const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesCont
 };
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
+  const allQueries: ServicesContextProps = {
+    getRepoMetadata,
+    ...queries,
+  };
+
   renderWithProviders(<PageLayout />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
-    queries,
+    queries: allQueries,
   });
 };

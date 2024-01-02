@@ -9,7 +9,7 @@
     "jest": "29.7.0"
   },
   "peerDependencies": {
-    "@mui/material": "5.15.0",
+    "@mui/material": "5.15.1",
     "@reduxjs/toolkit": "1.9.7",
     "axios": "1.6.2",
     "classnames": "2.3.2",
