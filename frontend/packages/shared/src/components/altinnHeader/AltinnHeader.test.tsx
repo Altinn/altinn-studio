@@ -78,6 +78,43 @@ describe('AltinnHeader', () => {
     });
     expect(screen.queryByRole('button', { name: subMenuContentText })).not.toBeInTheDocument();
   });
+
+  it('should render Deploy header button when repo is owned by an org', () => {
+    const mockTextDeployButton = 'TestDeployButton';
+    render({
+      repoOwnerIsOrg: true,
+      buttonActions: [
+        {
+          buttonVariant: 'tertiary',
+          headerButtonsClasses: undefined,
+          menuKey: TopBarMenu.Deploy,
+          title: mockTextDeployButton,
+          handleClick: jest.fn(),
+        },
+      ],
+    });
+    expect(
+      screen.getByRole('button', { name: textMock(mockTextDeployButton) }),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render Deploy header button when repo is owned by a private person', () => {
+    render({
+      repoOwnerIsOrg: false,
+      buttonActions: [
+        {
+          buttonVariant: 'tertiary',
+          headerButtonsClasses: undefined,
+          menuKey: TopBarMenu.Deploy,
+          title: 'TestButton',
+          handleClick: jest.fn(),
+        },
+      ],
+    });
+    expect(
+      screen.queryByRole('button', { name: textMock(TopBarMenu.Deploy) }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 const render = (props: Partial<AltinnHeaderProps> = {}) => {

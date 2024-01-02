@@ -1,0 +1,25 @@
+import React from 'react';
+import { Alert, Paragraph, Link } from '@digdir/design-system-react';
+import { Trans, useTranslation } from 'react-i18next';
+import classes from './RepoOwnedByPersonInfo.module.css';
+
+export const RepoOwnedByPersonInfo = () => {
+  const { t } = useTranslation();
+  return (
+    <>
+      <Alert>{t('app_publish.private_app_owner')}</Alert>
+      <div className={classes.infoContainer}>
+        <div className={classes.textContainer}>
+          <Paragraph>{t('app_publish.private_app_owner_info')}</Paragraph>
+          <Paragraph>
+            <Trans
+              i18nKey={'app_publish.private_app_owner_help'}
+              components={{ a: <Link href='/contact'> </Link> }}
+            />
+          </Paragraph>
+          <Paragraph>{t('app_publish.private_app_owner_options')}</Paragraph>
+        </div>
+      </div>
+    </>
+  );
+};

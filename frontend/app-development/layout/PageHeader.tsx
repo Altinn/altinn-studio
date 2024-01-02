@@ -58,10 +58,18 @@ type PageHeaderProps = {
   app: string;
   showSubMenu: boolean;
   user: User;
+  repoOwnerIsOrg: boolean;
   isRepoError?: boolean;
 };
 
-export const PageHeader = ({ org, app, showSubMenu, user, isRepoError }: PageHeaderProps) => {
+export const PageHeader = ({
+  org,
+  app,
+  showSubMenu,
+  user,
+  repoOwnerIsOrg,
+  isRepoError,
+}: PageHeaderProps) => {
   const repoType = getRepositoryType(org, app);
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const menuItems = getFilteredTopBarMenu(repoType);
@@ -75,6 +83,7 @@ export const PageHeader = ({ org, app, showSubMenu, user, isRepoError }: PageHea
       app={!isRepoError && app}
       user={user}
       repository={repository}
+      repoOwnerIsOrg={repoOwnerIsOrg}
       buttonActions={!isRepoError && buttonActions(org, app)}
     />
   );

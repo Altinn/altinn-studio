@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
  * Hook that returns the username and org of a logged in user.
  *
  * @param user the User that is logged in
- * @param org the organisatio of the user
- * @param repository the reposiroty the application is in
+ * @param org the organisation of the user
+ * @param repository the repository the application is in
  *
  * @returns {string} - The username and org
  */
