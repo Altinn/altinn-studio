@@ -38,6 +38,7 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
         onClose={() => setShowDropdown(false)}
         open={showDropdown}
         placement='bottom'
+        portal
         size='small'
       >
         <DropdownMenu.Group heading={t('right_menu.expressions_property')}>

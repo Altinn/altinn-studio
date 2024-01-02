@@ -2,7 +2,3 @@
   background: var(--fds-semantic-surface-neutral-subtle);
   flex: var(--properties-width-fraction);
 }
-
-.accordion {
-  height: 100%; /* TODO: Remove when https://github.com/digdir/designsystem/issues/1292 is resolved. */
-}

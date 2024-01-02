@@ -50,7 +50,7 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
-      <Accordion color='subtle' className={classes.accordion}>
+      <Accordion color='subtle'>
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
             {t('right_menu.content')}
