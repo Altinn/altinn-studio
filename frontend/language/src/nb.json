@@ -939,7 +939,7 @@
   "right_menu.rules_conditional_rendering": "Regel for vis/skjul felt",
   "right_menu.rules_conditional_rendering_add_alt": "Legg til regel for vis/skjul felt",
   "right_menu.rules_empty": "Ingen regler lagt til...",
-  "right_menu.show_old_dynamics": "Vis gammel editor for dynamikk",
+  "right_menu.show_old_dynamics": "Vis gammelt verktøy for dynamikk",
   "right_menu.warning_dynamics_deprecated": "Denne funksjonaliteten utgår og vi kommer ikke til å vedlikeholde den. Vi anbefaler å bruke <0 href=\"{{expressionDocs}}\" >dynamiske uttrykk.</0>",
   "schema_editor.active_languages": "Aktive språk:",
   "schema_editor.add": "Legg til",
