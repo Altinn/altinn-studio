@@ -12,7 +12,6 @@ import { Repository } from 'app-shared/types/Repository';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
-import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 export interface AltinnHeaderProps {
   menuItems: TopBarMenuItem[];
@@ -39,11 +38,6 @@ export const AltinnHeader = ({
 }: AltinnHeaderProps) => {
   const repositoryType = getRepositoryType(org, app);
 
-  const filteredMenuItems =
-    repositoryType === RepositoryType.Datamodels
-      ? [{ key: TopBarMenu.Datamodel, link: 'datamodel', isBeta: false, repositoryTypes: [] }]
-      : menuItems;
-
   return (
     <div id='altinn-header-container'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
@@ -58,7 +52,7 @@ export const AltinnHeader = ({
             </>
           )}
         </div>
-        <AltinnHeaderMenu menuItems={filteredMenuItems} />
+        <AltinnHeaderMenu menuItems={menuItems} />
         <div className={classes.rightContent}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>

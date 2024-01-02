@@ -9,7 +9,7 @@ export const topBarMenuItem: TopBarMenuItem[] = [
   {
     key: TopBarMenu.About,
     link: RoutePaths.Overview,
-    repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+    repositoryTypes: [RepositoryType.App],
   },
   {
     key: TopBarMenu.Create,
@@ -42,7 +42,8 @@ export const topBarMenuItem: TopBarMenuItem[] = [
 export const getFilteredTopBarMenu = (repositoryType: RepositoryType): TopBarMenuItem[] => {
   return topBarMenuItem
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
-    .filter(filterRoutesByFeatureFlag);
+    .filter(filterRoutesByFeatureFlag)
+    .filter(filterRoutesByDatamodel);
 };
 
 const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {
@@ -50,4 +51,10 @@ const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {
   if (!menuItem.featureFlagName) return true;
 
   return menuItem.featureFlagName && shouldDisplayFeature(menuItem.featureFlagName);
+};
+
+const filterRoutesByDatamodel = (menuItem: TopBarMenuItem) => {
+  if (menuItem.repositoryTypes.includes(RepositoryType.Datamodels))
+    menuItem.key === TopBarMenu.Datamodel;
+  return true;
 };

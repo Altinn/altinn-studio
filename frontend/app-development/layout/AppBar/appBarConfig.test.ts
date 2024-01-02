@@ -12,13 +12,8 @@ describe('getTopBarMenu', () => {
     expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(menuLength);
   });
 
-  it('should return only menu items relevant for datamodelling repo when provided repo type is "Datamodels"', () => {
+  it('should return only menu item(datamodel) relevant for datamodelling repo when provided repo type is "Datamodels"', () => {
     const expected: TopBarMenuItem[] = [
-      {
-        key: TopBarMenu.About,
-        link: RoutePaths.Overview,
-        repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
-      },
       {
         key: TopBarMenu.Datamodel,
         link: RoutePaths.Datamodel,

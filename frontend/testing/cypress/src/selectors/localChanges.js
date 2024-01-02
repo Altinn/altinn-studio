@@ -1,8 +1,9 @@
 import * as texts from '@altinn-studio/language/src/nb.json';
 
 export const localChanges = {
+  getThreeDotsMenu: () => cy.findByRole('button', { name: texts['dashboard.gitea.menu'] }),
+  getLocalChangesElement: () => cy.get('li').contains(texts['dashboard.local_changes']),
   getHeader: () => cy.findByRole('heading', { name: texts['dashboard.local_changes'] }),
-  getTab: () => cy.findByText(texts['dashboard.local_changes']),
   getDownloadChangesLink: () =>
     cy.findByRole('link', {
       name: texts['settings_modal.local_changes_tab_download_only_changed_button'],
