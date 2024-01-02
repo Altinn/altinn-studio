@@ -3,12 +3,12 @@ import { IRuleModelFieldElement } from '../../types/global';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-type ruleModel = {
-  ruleHandlerObject: object;
-  conditionalRuleHandlerObject: object;
-  ruleHandlerHelper: object;
-  conditionalRuleHandlerHelper: object;
-};
+interface WindowWithRuleModel extends Window {
+  ruleHandlerObject?: object;
+  conditionalRuleHandlerObject?: object;
+  ruleHandlerHelper?: object;
+  conditionalRuleHandlerHelper?: object;
+}
 
 export const useRuleModelQuery = (
   org: string,
@@ -23,17 +23,17 @@ export const useRuleModelQuery = (
         const ruleModelFields: IRuleModelFieldElement[] = [];
 
         if (!ruleModel) {
-          if ((window as any).ruleHandlerObject) {
-            (window as any).ruleHandlerObject = undefined;
+          if ((window as WindowWithRuleModel).ruleHandlerObject) {
+            (window as WindowWithRuleModel).ruleHandlerObject = undefined;
           }
-          if ((window as any).ruleHandlerHelper) {
-            (window as any).ruleHandlerHelper = undefined;
+          if ((window as WindowWithRuleModel).ruleHandlerHelper) {
+            (window as WindowWithRuleModel).ruleHandlerHelper = undefined;
           }
-          if ((window as any).conditionalRuleHandlerObject) {
-            (window as any).conditionalRuleHandlerObject = undefined;
+          if ((window as WindowWithRuleModel).conditionalRuleHandlerObject) {
+            (window as WindowWithRuleModel).conditionalRuleHandlerObject = undefined;
           }
-          if ((window as any).conditionalRuleHandlerHelper) {
-            (window as any).conditionalRuleHandlerHelper = undefined;
+          if ((window as WindowWithRuleModel).conditionalRuleHandlerHelper) {
+            (window as WindowWithRuleModel).conditionalRuleHandlerHelper = undefined;
           }
           return ruleModelFields;
         }
@@ -49,7 +49,7 @@ export const useRuleModelQuery = (
           conditionalRuleHandlerObject,
           ruleHandlerHelper,
           conditionalRuleHandlerHelper,
-        } = window as unknown as ruleModel;
+        } = window as WindowWithRuleModel;
 
         // Add the rule handler functions to the rule model
         if (ruleHandlerObject) {
