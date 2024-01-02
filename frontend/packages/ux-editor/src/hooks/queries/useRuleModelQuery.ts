@@ -3,6 +3,13 @@ import { IRuleModelFieldElement } from '../../types/global';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
+type ruleModel = {
+  ruleHandlerObject: object;
+  conditionalRuleHandlerObject: object;
+  ruleHandlerHelper: object;
+  conditionalRuleHandlerHelper: object;
+};
+
 export const useRuleModelQuery = (
   org: string,
   app: string,
@@ -15,6 +22,22 @@ export const useRuleModelQuery = (
       getRuleModel(org, app, layoutSetName).then((ruleModel) => {
         const ruleModelFields: IRuleModelFieldElement[] = [];
 
+        if (!ruleModel) {
+          if ((window as any).ruleHandlerObject) {
+            (window as any).ruleHandlerObject = undefined;
+          }
+          if ((window as any).ruleHandlerHelper) {
+            (window as any).ruleHandlerHelper = undefined;
+          }
+          if ((window as any).conditionalRuleHandlerObject) {
+            (window as any).conditionalRuleHandlerObject = undefined;
+          }
+          if ((window as any).conditionalRuleHandlerHelper) {
+            (window as any).conditionalRuleHandlerHelper = undefined;
+          }
+          return ruleModelFields;
+        }
+
         // Add script file to DOM to make it possible to read from it
         const scriptFile = window.document.createElement('script');
         scriptFile.innerHTML = ruleModel;
@@ -26,12 +49,7 @@ export const useRuleModelQuery = (
           conditionalRuleHandlerObject,
           ruleHandlerHelper,
           conditionalRuleHandlerHelper,
-        } = window as unknown as {
-          ruleHandlerObject: object;
-          conditionalRuleHandlerObject: object;
-          ruleHandlerHelper: object;
-          conditionalRuleHandlerHelper: object;
-        };
+        } = window as unknown as ruleModel;
 
         // Add the rule handler functions to the rule model
         if (ruleHandlerObject) {
