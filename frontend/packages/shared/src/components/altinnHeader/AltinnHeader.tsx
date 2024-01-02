@@ -12,6 +12,7 @@ import { Repository } from 'app-shared/types/Repository';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 export interface AltinnHeaderProps {
   menuItems: TopBarMenuItem[];
@@ -22,6 +23,7 @@ export interface AltinnHeaderProps {
   org: string;
   app: string;
   variant?: AltinnHeaderVariant;
+  repoOwnerIsOrg?: boolean;
   buttonActions: AltinnButtonActionItem[];
 }
 
@@ -35,6 +37,7 @@ export const AltinnHeader = ({
   subMenuContent,
   buttonActions,
   variant = 'regular',
+  repoOwnerIsOrg,
 }: AltinnHeaderProps) => {
   const repositoryType = getRepositoryType(org, app);
 
@@ -56,11 +59,12 @@ export const AltinnHeader = ({
         <div className={classes.rightContent}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>
-              {buttonActions.map(
-                (action) =>
-                  repositoryType !== RepositoryType.Datamodels && (
-                    <AltinnHeaderButton key={action.menuKey} action={action} />
-                  ),
+              {buttonActions.map((action) =>
+                !repoOwnerIsOrg && action.menuKey === TopBarMenu.Deploy
+                  ? null
+                  : repositoryType !== RepositoryType.Datamodels && (
+                      <AltinnHeaderButton key={action.menuKey} action={action} />
+                    ),
               )}
             </div>
           )}
