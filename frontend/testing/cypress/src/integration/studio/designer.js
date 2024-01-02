@@ -6,6 +6,7 @@ import { designer } from '../../selectors/designer';
 import { header } from '../../selectors/header';
 
 const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerAppName')}`;
+const initialPageName = 'Side1';
 
 context('Designer', () => {
   before(() => {
@@ -30,22 +31,19 @@ context('Designer', () => {
     header.getCreateLink().click();
     cy.ensureCreatePageIsLoaded();
 
-    // Add new page and ensure updated data is loaded
-    designer.getAddPageButton().click();
-
-    cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
-    cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
+    designer.getPageHeaderButton(initialPageName).should('be.visible');
+    designer.getPageHeaderButton(initialPageName).click();
 
     // Add an input component
     designer.getToolbarItemByText(texts['ux_editor.component_title.Input']).trigger('dragstart');
     designer.getDroppableList().trigger('drop');
     cy.wait(500);
     designer
-      .getPageAccordionByName('Side1')
+      .getPageAccordionByName(initialPageName)
       .findByRole('treeitem', { name: texts['ux_editor.component_title.Input'] });
 
     // Do not need to confirm alert.confirm dialog, since Cypress default to click "Ok".
-    cy.findByTitle(texts['general.delete_item'].replace('{{item}}', 'Side1')).click({
+    cy.findByTitle(texts['general.delete_item'].replace('{{item}}', initialPageName)).click({
       force: true,
     });
   });

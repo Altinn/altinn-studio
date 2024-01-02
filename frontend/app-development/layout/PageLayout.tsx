@@ -1,10 +1,11 @@
 import React from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
-import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioCenter, StudioPageSpinner, StudioNotFoundPage } from '@studio/components';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
+import { useOrgListQuery } from '../hooks/queries';
 
 /**
  * Displays the layout for the app development pages
@@ -13,6 +14,10 @@ export const PageLayout = (): React.ReactNode => {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
+
+  const { data: orgs, isPending: orgsPending } = useOrgListQuery();
+  const { data: repository } = useRepoMetadataQuery(org, app);
+  const repoOwnerIsOrg = !orgsPending && Object.keys(orgs.orgs).includes(repository?.owner.login);
 
   const {
     data: repoStatus,
@@ -47,6 +52,7 @@ export const PageLayout = (): React.ReactNode => {
         app={app}
         showSubMenu={!repoStatus?.hasMergeConflict}
         user={user}
+        repoOwnerIsOrg={repoOwnerIsOrg}
         isRepoError={repoStatusError !== null}
       />
       {renderPages()}
