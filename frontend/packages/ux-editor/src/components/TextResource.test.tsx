@@ -250,7 +250,6 @@ const renderAndOpenSearchSection = async () => {
 };
 
 const waitForData = async (resources: ITextResource[]) => {
-  const getTextLanguages = jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock));
   const { result } = renderHookWithMockStore(
     {},
     {
@@ -260,7 +259,7 @@ const waitForData = async (resources: ITextResource[]) => {
           resources,
         }),
       ),
-      getTextLanguages,
+      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
     },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())

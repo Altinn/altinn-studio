@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppBar, Grid, Toolbar, Typography } from '@mui/material';
-import type { IGiteaOrganisation } from '../../types/global';
+import type { Organization } from '../../types/Organization';
 import type { User } from '../../types/Repository';
 import AltinnStudioLogo from './AltinnStudioLogo';
 import { HeaderMenu } from './HeaderMenu';
@@ -13,7 +13,7 @@ export enum SelectedContextType {
 }
 
 export interface IHeaderContext {
-  selectableOrgs?: IGiteaOrganisation[];
+  selectableOrgs?: Organization[];
   user: User;
 }
 
@@ -22,12 +22,12 @@ export const HeaderContext = React.createContext<IHeaderContext>({
   user: undefined,
 });
 
-export const getOrgNameByUsername = (username: string, orgs: IGiteaOrganisation[]) => {
+export const getOrgNameByUsername = (username: string, orgs: Organization[]) => {
   const org = orgs?.find((o) => o.username === username);
   return org?.full_name || org?.username;
 };
 
-export const getOrgUsernameByUsername = (username: string, orgs: IGiteaOrganisation[]) => {
+export const getOrgUsernameByUsername = (username: string, orgs: Organization[]) => {
   const org = orgs?.find((o) => o.username === username);
   return org?.username;
 };

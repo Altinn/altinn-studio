@@ -7,12 +7,9 @@ import { textMock } from '../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
-import { privateRepositoryMock, repositoryMock } from '../test/repositoryMock';
 
 const mockOrg: string = 'org';
 const mockApp: string = 'app';
-
-const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve(repositoryMock));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -68,9 +65,7 @@ describe('PageLayout', () => {
   });
 
   it('renders header with no publish button when repoOwner is a private person', async () => {
-    await resolveAndWaitForSpinnerToDisappear({
-      getRepoMetadata: () => Promise.resolve(privateRepositoryMock),
-    });
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(screen.getByRole('button', { name: textMock('top_menu.preview') })).toBeInTheDocument();
 
@@ -86,13 +81,8 @@ const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesCont
 };
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  const allQueries: ServicesContextProps = {
-    getRepoMetadata,
-    ...queries,
-  };
-
   renderWithProviders(<PageLayout />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
-    queries: allQueries,
+    queries,
   });
 };

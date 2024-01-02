@@ -11,6 +11,7 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { Organization } from 'app-shared/types/Organization';
+import { organization } from 'app-shared/mocks/mocks';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
@@ -75,13 +76,9 @@ describe('ResourceDashBoardPage', () => {
     const getOrganizations = jest.fn().mockImplementation(() =>
       Promise.resolve<Organization[]>([
         {
-          avatar_url: 'http://studio.localhost/repos/avatars/5d076e5c3d34cb8bb08e54a4bb7e223e',
-          description: 'Internt organisasjon for test av løsning',
+          ...organization,
           full_name: 'Testdepartementet',
-          id: 3,
-          location: '',
           username: 'ttd',
-          website: '',
         },
       ]),
     );

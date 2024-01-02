@@ -9,6 +9,7 @@ import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import * as testids from '../../../../../../testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { repoStatus } from 'app-shared/mocks/mocks';
 
 const user = userEvent.setup();
 const org = 'test-org';
@@ -29,25 +30,20 @@ jest.mock('react-router-dom', () => ({
  * for instance the `renderWithProviders` method.
  */
 const okRepoStatus: RepoStatus = {
-  aheadBy: 0,
-  behindBy: 0,
-  contentStatus: [],
-  hasMergeConflict: false,
+  ...repoStatus,
   repositoryStatus: 'Ok',
 };
 
 const aheadRepoStatus: RepoStatus = {
+  ...repoStatus,
   aheadBy: 1,
-  behindBy: 0,
-  contentStatus: [],
-  hasMergeConflict: false,
   repositoryStatus: 'Ok',
 };
 
 const mergeConflictRepoStatus: RepoStatus = {
+  ...repoStatus,
   aheadBy: 1,
   behindBy: 1,
-  contentStatus: [],
   hasMergeConflict: true,
   repositoryStatus: 'CheckoutConflict',
 };

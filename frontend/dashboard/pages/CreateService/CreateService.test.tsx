@@ -3,59 +3,17 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { CreateService } from './CreateService';
-import { Repository, User } from 'app-shared/types/Repository';
-import { IGiteaOrganisation } from 'app-shared/types/global';
+import { User } from 'app-shared/types/Repository';
+import { Organization } from 'app-shared/types/Organization';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { repository, user as userMock } from 'app-shared/mocks/mocks';
 
-const orgMock: IGiteaOrganisation = {
+const orgMock: Organization = {
   avatar_url: '',
   id: 1,
   username: 'unit-test',
   full_name: 'unit-test',
-};
-
-const repositoryMock: Repository = {
-  clone_url: '',
-  description: '',
-  full_name: 'test',
-  html_url: '',
-  id: 0,
-  is_cloned_to_local: false,
-  name: 'test',
-  owner: {
-    avatar_url: '',
-    full_name: '',
-    login: '',
-    email: '',
-    id: 0,
-    userType: 0,
-  },
-  updated_at: '',
-  created_at: '',
-  default_branch: '',
-  empty: false,
-  fork: false,
-  forks_count: 0,
-  mirror: false,
-  open_issues_count: 0,
-  permissions: undefined,
-  private: false,
-  repositoryCreatedStatus: 0,
-  size: 0,
-  ssh_url: '',
-  stars_count: 0,
-  watchers_count: 0,
-  website: '',
-};
-
-const userMock: User = {
-  id: 1,
-  avatar_url: '',
-  email: 'tester@tester.test',
-  full_name: 'Tester Testersen',
-  login: 'tester',
-  userType: 0,
 };
 
 jest.mock('react-router-dom', () => ({
@@ -65,7 +23,7 @@ jest.mock('react-router-dom', () => ({
 
 const renderWithMockServices = (
   services?: Partial<ServicesContextProps>,
-  organizations?: IGiteaOrganisation[],
+  organizations?: Organization[],
   user?: User,
 ) => {
   render(
@@ -219,12 +177,19 @@ describe('CreateService', () => {
         addRepo: () =>
           new Promise((resolve) =>
             setTimeout(() => {
-              resolve(repositoryMock);
+              resolve({
+                ...repository,
+                full_name: 'test',
+                name: 'test',
+              });
             }, 2),
           ),
       },
       [orgMock],
-      userMock,
+      {
+        ...userMock,
+        login: 'tester',
+      },
     );
 
     const createBtn: HTMLElement = screen.getByRole('button', {
@@ -271,10 +236,13 @@ describe('CreateService', () => {
 
     renderWithMockServices(
       {
-        addRepo: () => Promise.resolve(repositoryMock),
+        addRepo: () => Promise.resolve(repository),
       },
       [orgMock],
-      userMock,
+      {
+        ...userMock,
+        login: 'tester',
+      },
     );
 
     const createBtn: HTMLElement = screen.getByRole('button', {

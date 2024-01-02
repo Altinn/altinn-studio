@@ -5,7 +5,12 @@ import type { ITextResources, ITextResourcesWithLanguage } from 'app-shared/type
 import userEvent from '@testing-library/user-event';
 import { TextResourceEdit } from './TextResourceEdit';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore, renderWithMockStore, queryClientMock } from '../testing/mocks';
+import {
+  renderHookWithMockStore,
+  renderWithMockStore,
+  queryClientMock,
+  textLanguagesMock,
+} from '../testing/mocks';
 import { appDataMock, textResourcesMock } from '../testing/stateMocks';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
@@ -174,7 +179,7 @@ const render = async (
   const { result } = renderHookWithMockStore(
     { appData },
     {
-      getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
+      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
       getTextResources: (_o, _a, lang) =>
         Promise.resolve<ITextResourcesWithLanguage>({
           language: lang,

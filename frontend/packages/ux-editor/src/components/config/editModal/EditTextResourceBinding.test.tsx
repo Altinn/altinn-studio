@@ -2,7 +2,11 @@ import React from 'react';
 import { EditTextResourceBinding, EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
+import {
+  renderHookWithMockStore,
+  renderWithMockStore,
+  textLanguagesMock,
+} from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
@@ -110,7 +114,7 @@ describe('EditTextResourceBindings component', () => {
     const { result } = renderHookWithMockStore(
       {},
       {
-        getTextLanguages: () => Promise.resolve(['nb', 'nn', 'en']),
+        getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
         getTextResources: (_o, _a, lang) =>
           Promise.resolve<ITextResourcesWithLanguage>({
             language: lang,

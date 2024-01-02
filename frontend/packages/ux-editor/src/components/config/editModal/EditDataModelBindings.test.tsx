@@ -7,8 +7,9 @@ import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
+import { DatamodelMetadataResponse } from 'app-shared/types/api';
 
-const datamodelMetadata = {
+const datamodelMetadata: DatamodelMetadataResponse = {
   elements: {
     testModel: {
       id: 'testModel',

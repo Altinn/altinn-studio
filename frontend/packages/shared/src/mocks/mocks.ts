@@ -174,7 +174,7 @@ export const repository: Repository = {
     avatar_url: '',
     email: '',
     full_name: '',
-    id: 0,
+    id: 1,
     login: '',
     userType: 0,
   },

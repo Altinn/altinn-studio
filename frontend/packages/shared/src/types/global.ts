@@ -26,16 +26,6 @@ export enum RepositoryType {
   Unknown = 'Unknown',
 }
 
-export interface IGiteaOrganisation {
-  avatar_url: string;
-  description?: string;
-  id: number;
-  location?: string;
-  username: string;
-  website?: string;
-  full_name?: string;
-}
-
 export interface IContentStatus {
   filePath: string;
   fileStatus: string;
