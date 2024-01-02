@@ -54,7 +54,8 @@ const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {
 };
 
 const filterRoutesByDatamodel = (menuItem: TopBarMenuItem) => {
-  if (menuItem.repositoryTypes.includes(RepositoryType.Datamodels))
-    menuItem.key === TopBarMenu.Datamodel;
+  if (menuItem.repositoryTypes.includes(RepositoryType.Datamodels)) {
+    return menuItem.key === TopBarMenu.Datamodel;
+  }
   return true;
 };
