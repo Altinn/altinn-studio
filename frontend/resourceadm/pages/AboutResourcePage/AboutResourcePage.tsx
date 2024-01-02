@@ -325,18 +325,20 @@ export const AboutResourcePage = ({
             value={resourceData.availableForType ?? []}
           />
         )}
+        {resourceData.resourceType === 'MaskinportenSchema' && (
+          <ResourceReferenceFields
+            resourceReferenceList={resourceData.resourceReferences}
+            onResourceReferenceFieldChanged={(resourceReferences: ResourceReference[]) => {
+              handleSave({ ...resourceData, resourceReferences: resourceReferences });
+            }}
+            showErrors={showAllErrors}
+          />
+        )}
         <ResourceContactPointFields
           contactPointList={resourceData.contactPoints}
           onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>
             handleSave({ ...resourceData, contactPoints: contactPoints })
           }
-          showErrors={showAllErrors}
-        />
-        <ResourceReferenceFields
-          resourceReferenceList={resourceData.resourceReferences}
-          onResourceReferenceFieldChanged={(resourceReferences: ResourceReference[]) => {
-            handleSave({ ...resourceData, resourceReferences: resourceReferences });
-          }}
           showErrors={showAllErrors}
         />
         <ResourceSwitchInput

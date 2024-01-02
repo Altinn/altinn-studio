@@ -310,7 +310,7 @@ describe('AboutResourcePage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('does not display fields for resourceType MaskinportenSchema', () => {
+  it('should display correct fields for resourceType MaskinportenSchema', () => {
     render(
       <AboutResourcePage
         {...defaultProps}
@@ -327,5 +327,6 @@ describe('AboutResourcePage', () => {
     expect(
       screen.queryByLabelText(textMock('resourceadm.about_resource_available_for_legend')),
     ).not.toBeInTheDocument();
+    expect(screen.getByText(textMock('resourceadm.about_resource_references'))).toBeInTheDocument();
   });
 });
