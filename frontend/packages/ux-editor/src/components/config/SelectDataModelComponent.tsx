@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Select } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import { FormField } from '../FormField';
 import { Option } from 'packages/text-editor/src/types';
@@ -62,7 +62,7 @@ export const SelectDataModelComponent = ({
       helpText={helpText}
       label={label}
       renderField={({ fieldProps }) => (
-        <Select
+        <LegacySelect
           {...fieldProps}
           onChange={(e: any) => fieldProps.onChange(e)}
           options={dataModelElementNames}

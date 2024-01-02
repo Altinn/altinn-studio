@@ -1739,24 +1739,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.40.0":
-  version: 0.40.0
-  resolution: "@digdir/design-system-react@npm:0.40.0"
+"@digdir/design-system-react@npm:0.42.0":
+  version: 0.42.0
+  resolution: "@digdir/design-system-react@npm:0.42.0"
   dependencies:
     "@altinn/figma-design-tokens": "npm:^6.0.1"
-    "@digdir/design-system-tokens": "npm:^0.10.0"
-    "@floating-ui/react": "npm:0.25.2"
-    "@navikt/aksel-icons": "npm:^3.2.4"
-    cssnano: "npm:^6.0.1"
-    react-number-format: "npm:5.2.2"
+    "@digdir/design-system-tokens": "npm:^0.11.0"
+    "@floating-ui/react": "npm:0.26.4"
+    "@navikt/aksel-icons": "npm:^5.12.1"
+    react-number-format: "npm:5.3.1"
   peerDependencies:
     react: ">=18.2.0"
     react-dom: ">=18.2.0"
-  checksum: fe7ac01a6b8927663e657264215cbef16cc5041b7976aa7d000e9a091b96bec5f55f6be26361a3c9ddd8a141f9d07881aad332993ddf9b1c779bde67fd09d921
+  checksum: 8624c5048710229983373fe5f8e5dc390be1e751edc5d275cac5880a736df0c670ffc1fcea8c46bdb8ce9682292d644eae90948a72c1f7088d968825cac5cfb1
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.11.0":
+"@digdir/design-system-tokens@npm:0.11.0, @digdir/design-system-tokens@npm:^0.11.0":
   version: 0.11.0
   resolution: "@digdir/design-system-tokens@npm:0.11.0"
   checksum: 2151fbaa32c4c933f18b6f8be56e982d6920c76856ce91ad3267f7a64dc8c5b00cc5fbe746fb30709128c640eb4edd3c72a6ce2cd36dec72031fc3d1fa8ce1d7
@@ -2224,7 +2223,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react-dom@npm:^2.0.4":
+"@floating-ui/react-dom@npm:^2.0.3, @floating-ui/react-dom@npm:^2.0.4":
   version: 2.0.4
   resolution: "@floating-ui/react-dom@npm:2.0.4"
   dependencies:
@@ -2264,10 +2263,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@floating-ui/react@npm:0.26.4":
+  version: 0.26.4
+  resolution: "@floating-ui/react@npm:0.26.4"
+  dependencies:
+    "@floating-ui/react-dom": "npm:^2.0.3"
+    "@floating-ui/utils": "npm:^0.1.5"
+    tabbable: "npm:^6.0.1"
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: dda933ec2abee0b09360eaec889462e072967340837fd55a91ef76f78a034c57b73f8174fa9f37d62141037ab651b1e02dcd996ee12b66dcc6a8b0e8516821c9
+  languageName: node
+  linkType: hard
+
 "@floating-ui/utils@npm:^0.1.1":
   version: 0.1.1
   resolution: "@floating-ui/utils@npm:0.1.1"
   checksum: ba1a6d073f8af4290f9d0ecf2ca73f97a742ed9bae060bf4aec604db5642a6cc7aa38041c2c1a1ffb0dd1c99549bbfde3dc61202ad7cb91a963d2b2eea747719
+  languageName: node
+  linkType: hard
+
+"@floating-ui/utils@npm:^0.1.5":
+  version: 0.1.6
+  resolution: "@floating-ui/utils@npm:0.1.6"
+  checksum: 450ec4ecc1dd8161b1904d4e1e9d95e653cc06f79af6c3b538b79efb10541d90bcc88646ab3cdffc5b92e00c4804ca727b025d153ad285f42dbbb39aec219ec9
   languageName: node
   linkType: hard
 
@@ -3101,7 +3121,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:5.12.2, @navikt/aksel-icons@npm:^5.6.1":
+"@navikt/aksel-icons@npm:5.12.2, @navikt/aksel-icons@npm:^5.12.1, @navikt/aksel-icons@npm:^5.6.1":
   version: 5.12.2
   resolution: "@navikt/aksel-icons@npm:5.12.2"
   checksum: 3458af6d88726a6572f8de01fed89da627e15cf81e7dc21a6f26cae52b137d9f2025efcdea22582cb985ab42c50cf963385bac3435c51d5af42ad1e5bf26d775
@@ -5385,7 +5405,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": "npm:0.30.0"
     "@altinn/figma-design-tokens": "npm:6.0.1"
-    "@digdir/design-system-react": "npm:0.40.0"
+    "@digdir/design-system-react": "npm:0.42.0"
     "@digdir/design-system-tokens": "npm:0.11.0"
     "@emotion/react": "npm:11.11.3"
     "@emotion/styled": "npm:11.11.0"
@@ -14159,6 +14179,18 @@ __metadata:
     react: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
   checksum: 5cb219b50ec221c74f1bf893df3425c5f80038242df2b9de255324023b972156c6105c7c7ebb59d2f62f1e38e8025ae51596f8c0491e49cab6949d2d2bf43d41
+  languageName: node
+  linkType: hard
+
+"react-number-format@npm:5.3.1":
+  version: 5.3.1
+  resolution: "react-number-format@npm:5.3.1"
+  dependencies:
+    prop-types: "npm:^15.7.2"
+  peerDependencies:
+    react: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: 117c068ed656fd8542ce89f0e0e4a01c835d00122a2c7bd556bf43f541d55c7d9925b08903e02f04b04197def10e94f1a009cf6ebe360a0db144f9b40aad590c
   languageName: node
   linkType: hard
 
