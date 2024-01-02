@@ -328,17 +328,4 @@ describe('AboutResourcePage', () => {
       screen.queryByLabelText(textMock('resourceadm.about_resource_available_for_legend')),
     ).not.toBeInTheDocument();
   });
-
-  it('does not display fields for resourceType BrokerService', () => {
-    render(
-      <AboutResourcePage
-        {...defaultProps}
-        resourceData={{ ...mockResource1, resourceType: 'BrokerService' }}
-      />,
-    );
-
-    expect(
-      screen.queryByLabelText(textMock('resourceadm.about_resource_available_for_legend')),
-    ).not.toBeInTheDocument();
-  });
 });

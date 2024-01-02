@@ -313,19 +313,18 @@ export const AboutResourcePage = ({
             toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
           />
         )}
-        {resourceData.resourceType !== 'MaskinportenSchema' &&
-          resourceData.resourceType !== 'BrokerService' && (
-            <ResourceCheckboxGroup
-              options={availableForOptions}
-              legend={t('resourceadm.about_resource_available_for_legend')}
-              description={t('resourceadm.about_resource_available_for_description')}
-              showErrors={showAllErrors}
-              onChange={(selected: ResourceAvailableForTypeOption[]) =>
-                handleSave({ ...resourceData, availableForType: selected })
-              }
-              value={resourceData.availableForType ?? []}
-            />
-          )}
+        {resourceData.resourceType !== 'MaskinportenSchema' && (
+          <ResourceCheckboxGroup
+            options={availableForOptions}
+            legend={t('resourceadm.about_resource_available_for_legend')}
+            description={t('resourceadm.about_resource_available_for_description')}
+            showErrors={showAllErrors}
+            onChange={(selected: ResourceAvailableForTypeOption[]) =>
+              handleSave({ ...resourceData, availableForType: selected })
+            }
+            value={resourceData.availableForType ?? []}
+          />
+        )}
         <ResourceContactPointFields
           contactPointList={resourceData.contactPoints}
           onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>
