@@ -7,32 +7,32 @@ export const findEffectiveGridSize = (
   currentViewSize: ViewSize,
 ): GridSize => {
   switch (currentViewSize) {
-    case ViewSize.xs:
-      return selectedViewSizes[ViewSize.xs] || 12;
-    case ViewSize.sm:
-      return selectedViewSizes[ViewSize.sm] || selectedViewSizes[ViewSize.xs] || 12;
-    case ViewSize.md:
+    case ViewSize.Xs:
+      return selectedViewSizes[ViewSize.Xs] || 12;
+    case ViewSize.Sm:
+      return selectedViewSizes[ViewSize.Sm] || selectedViewSizes[ViewSize.Xs] || 12;
+    case ViewSize.Md:
       return (
-        selectedViewSizes[ViewSize.md] ||
-        selectedViewSizes[ViewSize.sm] ||
-        selectedViewSizes[ViewSize.xs] ||
+        selectedViewSizes[ViewSize.Md] ||
+        selectedViewSizes[ViewSize.Sm] ||
+        selectedViewSizes[ViewSize.Xs] ||
         12
       );
-    case ViewSize.lg:
+    case ViewSize.Lg:
       return (
-        selectedViewSizes[ViewSize.lg] ||
-        selectedViewSizes[ViewSize.md] ||
-        selectedViewSizes[ViewSize.sm] ||
-        selectedViewSizes[ViewSize.xs] ||
+        selectedViewSizes[ViewSize.Lg] ||
+        selectedViewSizes[ViewSize.Md] ||
+        selectedViewSizes[ViewSize.Sm] ||
+        selectedViewSizes[ViewSize.Xs] ||
         12
       );
-    case ViewSize.xl:
+    case ViewSize.Xl:
       return (
-        selectedViewSizes[ViewSize.xl] ||
-        selectedViewSizes[ViewSize.lg] ||
-        selectedViewSizes[ViewSize.md] ||
-        selectedViewSizes[ViewSize.sm] ||
-        selectedViewSizes[ViewSize.xs] ||
+        selectedViewSizes[ViewSize.Xl] ||
+        selectedViewSizes[ViewSize.Lg] ||
+        selectedViewSizes[ViewSize.Md] ||
+        selectedViewSizes[ViewSize.Sm] ||
+        selectedViewSizes[ViewSize.Xs] ||
         12
       );
   }
