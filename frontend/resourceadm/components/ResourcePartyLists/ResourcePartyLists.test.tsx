@@ -36,6 +36,8 @@ const defaultProps = {
     identifier: 'res1',
     title: {
       nb: 'Resource 1',
+      nn: '',
+      en: '',
     },
   },
 };

@@ -102,7 +102,7 @@ export const ResourcePartyLists = ({
       </Heading>
       <Checkbox.Group
         legend={t('resourceadm.listadmin_resource_list_checkbox_header')}
-        size='small'
+        size='medium'
         onChange={(newValues: string[]) => {
           if (selectedLists.length < newValues.length) {
             // list was added
