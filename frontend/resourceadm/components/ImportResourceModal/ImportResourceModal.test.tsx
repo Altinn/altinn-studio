@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ImportResourceModal, ImportResourceModalProps } from './ImportResourceModal';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -40,7 +40,7 @@ describe('ImportResourceModal', () => {
     const importButton = screen.queryByRole('button', { name: importButtonText });
     expect(importButton).not.toBeInTheDocument();
 
-    const [, environmentSelect] = screen.getAllByLabelText(
+    const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
     await act(() => user.click(environmentSelect));
@@ -49,11 +49,15 @@ describe('ImportResourceModal', () => {
     expect(environmentSelect).toHaveValue('AT21');
     expect(importButton).not.toBeInTheDocument();
 
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
-    );
+    // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
+    // (sometimes the spinner disappears) too quick and the test will fail
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(textMock('resourceadm.dashboard_import_modal_select_service')),
+      ).toBeInTheDocument();
+    });
 
-    const [, serviceSelect] = screen.getAllByLabelText(
+    const serviceSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
     await act(() => user.click(serviceSelect));
@@ -84,15 +88,21 @@ describe('ImportResourceModal', () => {
     const user = userEvent.setup();
     render();
 
-    const [, environmentSelect] = screen.getAllByLabelText(
+    const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
     await act(() => user.click(environmentSelect));
     await act(() => user.click(screen.getByRole('option', { name: 'AT21' })));
-    await waitForElementToBeRemoved(
-      screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
-    );
-    const [, serviceSelect] = screen.getAllByLabelText(
+
+    // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
+    // (sometimes the spinner disappears) too quick and the test will fail
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(textMock('resourceadm.dashboard_import_modal_select_service')),
+      ).toBeInTheDocument();
+    });
+
+    const serviceSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
     await act(() => user.click(serviceSelect));

@@ -100,7 +100,11 @@ export const ServiceContent = ({
                 : undefined
             }
             label={t('resourceadm.dashboard_import_modal_select_service')}
-            onValueChange={(newValue: string[]) => handleSelectService(newValue[0])}
+            onValueChange={(newValue: string[]) => {
+              if (newValue?.length) {
+                handleSelectService(newValue[0]);
+              }
+            }}
           >
             {mapAltinn2LinkServiceToSelectOption(altinn2LinkServices).map((ls) => {
               return (

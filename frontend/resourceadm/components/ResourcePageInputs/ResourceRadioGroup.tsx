@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Label, Combobox, Paragraph } from '@digdir/design-system-react';
+import { Radio } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
-type ResourceDropdownProps = {
+type ResourceRadioGroupProps = {
   /**
    * Flag for if the component has spacing at the top
    */
@@ -61,7 +61,7 @@ type ResourceDropdownProps = {
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceDropdown = ({
+export const ResourceRadioGroup = ({
   spacingTop = false,
   label,
   description,
@@ -71,13 +71,11 @@ export const ResourceDropdown = ({
   onFocus,
   onBlur,
   errorText,
-}: ResourceDropdownProps): React.ReactNode => {
+}: ResourceRadioGroupProps): React.ReactNode => {
   const [selected, setSelected] = useState(value);
 
   const handleChangeInput = (val: string) => {
-    if (val) {
-      setSelected(val);
-    }
+    setSelected(val);
   };
 
   const error = hasError && (selected === null || selected === undefined);
@@ -85,32 +83,25 @@ export const ResourceDropdown = ({
   return (
     <>
       {spacingTop && <div className={classes.divider} />}
-      <Label size='small' spacing>
-        {label}
-      </Label>
-      <Paragraph short size='small'>
-        {description}
-      </Paragraph>
       <div className={classes.inputWrapper}>
-        <Combobox
+        <Radio.Group
           size='small'
-          hideLabel
-          label={label}
+          onChange={handleChangeInput}
+          value={selected}
+          legend={label}
           description={description}
-          onValueChange={(newValue: string[]) => handleChangeInput(newValue[0])}
-          value={selected ? [selected] : undefined}
           onFocus={onFocus}
           error={error}
           onBlur={() => onBlur(selected)}
         >
           {options.map((opt) => {
             return (
-              <Combobox.Option key={opt.value} value={opt.value}>
+              <Radio key={opt.value} value={opt.value}>
                 {opt.label}
-              </Combobox.Option>
+              </Radio>
             );
           })}
-        </Combobox>
+        </Radio.Group>
         {error && <InputFieldErrorMessage message={errorText} />}
       </div>
     </>

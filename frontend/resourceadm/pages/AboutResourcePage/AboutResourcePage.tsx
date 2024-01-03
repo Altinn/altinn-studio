@@ -27,7 +27,7 @@ import {
   ResourceLanguageTextField,
   ResourceSwitchInput,
   ResourceTextField,
-  ResourceDropdown,
+  ResourceRadioGroup,
 } from 'resourceadm/components/ResourcePageInputs';
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
 
@@ -132,7 +132,7 @@ export const AboutResourcePage = ({
         <Heading size='large' spacing level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
-        <ResourceDropdown
+        <ResourceRadioGroup
           label={t('resourceadm.about_resource_resource_type')}
           description={t('resourceadm.about_resource_resource_type_label')}
           value={resourceData.resourceType}
@@ -268,7 +268,7 @@ export const AboutResourcePage = ({
             handleSave({ ...resourceData, keywords: mapKeywordStringToKeywordTypeArray(val) })
           }
         />
-        <ResourceDropdown
+        <ResourceRadioGroup
           spacingTop
           label={t('resourceadm.about_resource_status_label')}
           description={t('resourceadm.about_resource_status_text')}
