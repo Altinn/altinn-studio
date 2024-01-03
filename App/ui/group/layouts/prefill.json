@@ -41,6 +41,27 @@
         ]
       },
       {
+        "id": "prefill-enabled",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Aktiver preutfylling?",
+          "description": "Skru denne av for å deaktivere preutfylling. Legg merke til at dette ikke fungerer ved å direkte skru av preutfylling, men å jukse til skriving av `PrefillValuesShadow` slik at preutfyllingskoden ikke kjører i `ProcessDataWrite`. Dette gjør vi for å teste at ruleHandler kan skrive til stier i datamodellen som ikke er knyttet til komponenter."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PrefillValuesEnabled"
+        },
+        "options": [
+          {
+              "label": "Ja",
+              "value": "true"
+          },
+          {
+              "label": "Nei",
+              "value": "false"
+          }
+        ]
+      },
+      {
         "id": "nav-buttons-prefill",
         "type": "NavigationButtons",
         "textResourceBindings": {

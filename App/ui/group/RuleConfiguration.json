@@ -1,6 +1,18 @@
 ﻿{
     "data": {
-        "ruleConnection": {},
+        "ruleConnection": {
+            "cheat-in-prefill-values-shadow": {
+                "selectedFunction": "copyToPrefillShadow",
+                "inputParams": {
+                    "values": "PrefillValues",
+                    "shadow": "PrefillValuesShadow",
+                    "enabled": "PrefillValuesEnabled"
+                },
+                "outParams": {
+                    "outParam0": "PrefillValuesShadow"
+                }
+            }
+        },
         "conditionalRendering": {
             "22c73880-5c97-11ea-a95f-056c5a78cd14": {
                 "selectedFunction": "biggerThan10",

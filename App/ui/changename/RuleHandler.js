@@ -13,7 +13,7 @@ var ruleHandlerObject = {
     nyttNavn: function(obj) {
         obj.fornavn = obj.fornavn ? obj.fornavn + ' ' : '';
         obj.mellomnavn = obj.mellomnavn ? obj.mellomnavn + ' ' : '';
-        obj.etternavn = obj.etternavn ? obj.etternavn : '';        
+        obj.etternavn = obj.etternavn ? obj.etternavn : '';
         return obj.fornavn + obj.mellomnavn + obj.etternavn;
     }
 }

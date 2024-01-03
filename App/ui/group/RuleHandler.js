@@ -7,21 +7,11 @@ var ruleHandlerObject = {
 
   fullName: function(obj) {
     return obj.first + ' ' + obj.last;
-  }
-}
-var ruleHandlerHelper = {
-  fullName: function() {
-    return {
-      first: "first name",
-      last: "last name"
-    };
   },
 
-  sum: function() {
-    return {
-      a: "a",
-      b: "b",
-    }
+  copyToPrefillShadow: function (obj) {
+    const enabled = obj.enabled === 'true' || obj.enabled === true || obj.enabled === undefined || obj.enabled === null;
+    return enabled ? obj.shadow : obj.values;
   }
 }
 
@@ -51,41 +41,5 @@ var conditionalRuleHandlerObject = {
 
   hideCommentField: function (obj) {
     return (obj.value === 'Ja');
-  }
-}
-var conditionalRuleHandlerHelper = {
-  biggerThan10: function() {
-    return {
-      number: "number"
-    };
-  },
-
-  smallerThan10: function() {
-    return {
-      number: "number"
-    }
-  },
-
-  lengthBiggerThan4: function() {
-    return {
-      value: "value"
-    }
-  },
-
-  showGroup: function() {
-    return {
-        value: "value"
-    }
-  },
-
-  showExtraOptions: function () {
-    return {
-      value: 'value'
-    }
-  },
-  hideCommentField: function () {
-    return {
-      value: 'value'
-    }
   }
 }

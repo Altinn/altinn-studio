@@ -67,6 +67,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("PrefillValuesShadow")]
     public string PrefillValuesShadow { get; set; }
 
+    [XmlElement("PrefillValuesEnabled")]
+    [JsonProperty("PrefillValuesEnabled")]
+    [JsonPropertyName("PrefillValuesEnabled")]
+    public bool PrefillValuesEnabled { get; set; } = true;
+
     [XmlElement("Group2Teller")]
     [JsonProperty("Group2Teller")]
     [JsonPropertyName("Group2Teller")]

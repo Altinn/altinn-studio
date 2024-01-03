@@ -149,6 +149,9 @@
         },
         "PrefillValuesShadow": {
           "type": "string"
+        },
+        "PrefillValuesEnabled": {
+          "type": "string"
         }
       },
       "required": [
