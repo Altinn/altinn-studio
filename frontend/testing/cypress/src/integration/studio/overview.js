@@ -34,16 +34,16 @@ context('Designer', () => {
     );
   });
 
-  it('loads the overview page when navigating to app for user with no environments', () => {
+  it('loads the overview page when navigating to app owned by a private person', () => {
     cy.visit('/editor/' + designerAppId);
     cy.findByText(Cypress.env('designerAppName')).should('be.visible');
-    cy.findByText(texts['app_publish.no_env_title']).should('be.visible');
+    cy.findByText(texts['app_publish.private_app_owner']).should('be.visible');
     cy.findByText(texts['overview.navigation_title']).should('be.visible');
     cy.findByText(texts['overview.documentation.title']).should('be.visible');
     cy.findByText(texts['overview.news_title']).should('be.visible');
   });
 
-  it('loads the overview page when navigating to app for org with environments', () => {
+  it('loads the overview page when navigating to app owned by org that is deployed to environments', () => {
     cy.visit('/editor/' + orgAppId);
     cy.findByText(Cypress.env('designerAppName')).should('be.visible');
     cy.findByRole('heading', { name: 'tt02' }).should('be.visible');
