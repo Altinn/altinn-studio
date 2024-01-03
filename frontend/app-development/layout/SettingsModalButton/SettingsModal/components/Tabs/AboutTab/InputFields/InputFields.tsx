@@ -31,6 +31,14 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
 
   const [appConfigState, setAppConfigState] = useState<AppConfig>(appConfig);
 
+  const handleBlur = () => {
+    const isServiceNameValid = appConfigState.serviceName.length > 0;
+
+    if (isServiceNameValid) {
+      onSave(appConfigState);
+    }
+  };
+
   return (
     <div className={classes.wrapper}>
       <InputField
@@ -46,7 +54,7 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
         description={t('settings_modal.about_tab_name_description')}
         value={appConfigState.serviceName}
         onChange={(serviceName: string) => setAppConfigState((ac) => ({ ...ac, serviceName }))}
-        onBlur={() => onSave(appConfigState)}
+        onBlur={handleBlur}
         isValid={appConfigState.serviceName.length > 0}
         errorText={t('settings_modal.about_tab_name_error')}
       />
@@ -56,7 +64,7 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
         description={t('settings_modal.about_tab_alt_id_description')}
         value={appConfigState?.serviceId ?? ''}
         onChange={(serviceId: string) => setAppConfigState((ac) => ({ ...ac, serviceId }))}
-        onBlur={() => onSave(appConfigState)}
+        onBlur={handleBlur}
       />
     </div>
   );
