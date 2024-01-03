@@ -236,11 +236,13 @@
       "variables": [
         {
           "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
-          "dataSource": "dataModel.nested-group"
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "???"
         },
         {
-          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value",
-          "dataSource": "dataModel.nested-group"
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "???"
         }
       ]
     },
