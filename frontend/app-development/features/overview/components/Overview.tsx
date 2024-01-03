@@ -12,6 +12,8 @@ import { Navigation } from './Navigation';
 import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import { StudioCenter, StudioSpinner } from '@studio/components';
+import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
 
 export const Overview = () => {
   const { org, app } = useStudioUrlParams();
@@ -20,7 +22,7 @@ export const Overview = () => {
     isPending: isPendingOrgs,
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
-
+  const { data: repository } = useRepoMetadataQuery(org, app);
   const selectedOrg = orgs?.orgs[org];
   const hasEnvironments = selectedOrg?.environments?.length > 0;
 
@@ -43,6 +45,9 @@ export const Overview = () => {
     );
   }
 
+  // If repo-owner is an organisation
+  const repoOwnerIsOrg = orgs && Object.keys(orgs.orgs).includes(repository?.owner.login);
+
   return (
     <PageContainer>
       <div className={classes.container}>
@@ -53,9 +58,9 @@ export const Overview = () => {
           <div className={classes.content}>
             <main className={classes.main}>
               <section className={classes.mainSection}>
-                <AppEnvironments />
+                {repoOwnerIsOrg ? <AppEnvironments /> : <RepoOwnedByPersonInfo />}
               </section>
-              {hasEnvironments && (
+              {repoOwnerIsOrg && hasEnvironments && (
                 <section className={classes.mainSection}>
                   <AppLogs />
                 </section>

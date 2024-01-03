@@ -41,7 +41,7 @@ declare namespace Cypress {
 
     /**
      * Custom command to create an app from studio dashboard
-     * @example cy.createApp(ttd, testApp)
+     * @example cy.createApp(Testdepartementet, testApp)
      */
     createApp(orgName: string, appName: string): Chainable<Element>;
 
