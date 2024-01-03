@@ -4,7 +4,7 @@ import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
 import { Elements } from '../components/Elements';
-import { FormContextProvider } from './FormContext';
+import { useFormContext } from './FormContext';
 import { useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
@@ -18,7 +18,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
-import { addItemOfType, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
+import { addItemOfType, getItem, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { useSearchParams } from 'react-router-dom';
@@ -55,6 +55,7 @@ export const FormDesigner = ({
     selectedLayoutSet,
   );
   const [searchParams] = useSearchParams();
+  const { handleEdit } = useFormContext();
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
@@ -112,6 +113,7 @@ export const FormDesigner = ({
       const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
       if (validateDepth(updatedLayout)) {
         addItemToLayout({ componentType: type, newId, parentId, index });
+        handleEdit(getItem(updatedLayout, newId));
       } else triggerDepthAlert();
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
@@ -124,10 +126,8 @@ export const FormDesigner = ({
         <div className={classes.root}>
           <div className={classes.container}>
             <Elements />
-            <FormContextProvider>
-              <DesignView />
-              <Properties />
-            </FormContextProvider>
+            <DesignView />
+            <Properties />
             <Preview />
           </div>
         </div>

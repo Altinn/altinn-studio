@@ -41,11 +41,6 @@ context('Designer', () => {
     designer
       .getPageAccordionByName(initialPageName)
       .findByRole('treeitem', { name: texts['ux_editor.component_title.Input'] });
-
-    // Do not need to confirm alert.confirm dialog, since Cypress default to click "Ok".
-    cy.findByTitle(texts['general.delete_item'].replace('{{item}}', initialPageName)).click({
-      force: true,
-    });
   });
 
   it('should add navigation buttons when adding more than one page', () => {
@@ -57,12 +52,7 @@ context('Designer', () => {
     header.getCreateLink().click();
     cy.ensureCreatePageIsLoaded();
 
-    // Add two new pages to ensure that navigation-buttons will be added to page
-    designer.getAddPageButton().click();
-
-    cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
-    cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
-
+    // Add an additional page to ensure that navigation-buttons will be added to page
     designer.getAddPageButton().click();
 
     cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
