@@ -683,7 +683,7 @@
         "id": "testing-custom-button",
         "actions": [
           {
-            "name": "fill",
+            "id": "fill",
             "type": "ServerAction"
           }
         ],
@@ -718,11 +718,23 @@
         "id": "testing-custom-button-2",
         "actions": [
           {
-            "name": "navigateToPage",
+            "id": "fill",
+            "type": "ServerAction"
+          },
+          {
+            "id": "navigateToPage",
             "type": "ClientAction",
             "metadata": {
               "page": "grid"
             }
+          },
+          {
+            "id": "previousPage",
+            "type": "ClientAction"
+          },
+          {
+            "id": "previousPage",
+            "type": "ClientAction"
           }
         ],
         "type": "CustomButton",
@@ -741,6 +753,14 @@
       },
       {
         "id": "toSummary",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "Neste"
+        },
+        "triggers": ["validatePage"]
+      },
+      {
+        "id": "toSummary2",
         "type": "NavigationButtons",
         "textResourceBindings": {
           "next": "Neste"
