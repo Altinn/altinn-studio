@@ -41,33 +41,29 @@ context('datamodel', () => {
     datamodel.getProperty('name0').should('exist');
     datamodel.getNameField().clear().type('test').blur();
     datamodel.getNameField().invoke('val').should('eq', 'test');
-    datamodel.getProperty(/^test($| )/).should('exist');
+    datamodel.getProperty('test').should('exist').click();
 
     const addFieldToTestObject = () => {
-      datamodel
-        .getProperty(/^test($| )/)
-        .within(() =>
-          cy
-            .findAllByRole('button', {name: texts['schema_editor.open_action_menu']})
-            .first()
-            .click(),
-        );
-      cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] })
-        .should('exist')
-        .click()
+      datamodel.getProperty(/^test($| )/).focus();
+      cy.findAllByRole('button', { name: texts['schema_editor.add_node_of_type'] }).click();
+      cy.findByRole('menuitem', { name: texts['schema_editor.add_field'] }).should('exist').click();
     };
 
     // Add text1
     addFieldToTestObject();
-    datamodel.getProperty('name0').should('exist');
-    datamodel.getNameField().clear().type('text1').blur();
+    datamodel.getProperty('name0').should('exist').click();
+    const nameField = datamodel.getNameField();
+    nameField.clear().type('text1');
+    nameField.blur();
     datamodel.getNameField().invoke('val').should('eq', 'text1');
     datamodel.getProperty('text1').should('exist');
 
     // Add text2
     addFieldToTestObject();
     datamodel.getProperty('name0').should('exist');
-    datamodel.getNameField().clear().type('text2').blur();
+    const nameField2 = datamodel.getNameField();
+    nameField2.clear().type('text2');
+    nameField2.blur();
     datamodel.getNameField().invoke('val').should('eq', 'text2');
     datamodel.getProperty('text2').should('exist');
 
@@ -77,7 +73,9 @@ context('datamodel', () => {
     datamodel.getTypeField().click();
     cy.findByRole('option', { name: texts['schema_editor.integer'] }).should('exist').click();
     datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
-    datamodel.getNameField().clear().type('number1').blur();
+    const nameField3 = datamodel.getNameField();
+    nameField3.clear().type('number1');
+    nameField3.blur();
     datamodel.getProperty('number1').should('exist');
 
     // Ensure changes are saved

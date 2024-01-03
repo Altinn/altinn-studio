@@ -2,52 +2,23 @@ import {
   createNavigationTab,
   getIsActiveTab,
   getMissingInputLanguageString,
-  getResourcePageTextfieldError,
   mapLanguageKeyToLanguageText,
+  mapKeywordStringToKeywordTypeArray,
 } from './resourceUtils';
-import type { SupportedLanguage } from 'resourceadm/types/global';
-import type { SupportedLanguageKey } from 'app-shared/types/ResourceAdm';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
 import React from 'react';
+import { SupportedLanguage } from 'app-shared/types/ResourceAdm';
 
-describe('getResourcePageTextfieldError', () => {
-  it('returns false when the field have valid data', () => {
-    const resourcePageTextfieldInputMock1: SupportedLanguageKey<string> = {
-      nb: 'Valid',
-      nn: 'Valid',
-      en: 'Valid',
-    };
-    const hasError: boolean = getResourcePageTextfieldError(resourcePageTextfieldInputMock1);
-    expect(hasError).toBeFalsy();
-  });
-
-  it('returns true when the a language field is empty', () => {
-    const defaultMock = { nb: '', nn: '', en: '' };
-
-    const hasErrorMissingNB: boolean = getResourcePageTextfieldError({
-      ...defaultMock,
-      nb: 'Valid',
-    });
-    const hasErrorMissingNN: boolean = getResourcePageTextfieldError({
-      ...defaultMock,
-      nn: 'Valid',
-    });
-    const hasErrorMissingEN: boolean = getResourcePageTextfieldError({
-      ...defaultMock,
-      en: 'Valid',
-    });
-
-    expect(hasErrorMissingNB).toBeTruthy();
-    expect(hasErrorMissingNN).toBeTruthy();
-    expect(hasErrorMissingEN).toBeTruthy();
-  });
-
-  it('returns true when the field is undefined or null', () => {
-    const hasErrorUndef: boolean = getResourcePageTextfieldError(undefined);
-    const hasErrorNull: boolean = getResourcePageTextfieldError(null);
-    expect(hasErrorUndef).toBeTruthy();
-    expect(hasErrorNull).toBeTruthy();
+describe('mapKeywordStringToKeywordTypeArray', () => {
+  it('should split keywords correctly', () => {
+    const keywords = mapKeywordStringToKeywordTypeArray('test,,,,comma, hei,meh,');
+    expect(keywords).toStrictEqual([
+      { word: 'test', language: 'nb' },
+      { word: 'comma', language: 'nb' },
+      { word: 'hei', language: 'nb' },
+      { word: 'meh', language: 'nb' },
+    ]);
   });
 });
 
@@ -66,6 +37,48 @@ describe('mapLanguageKeyToLanguageText', () => {
 });
 
 describe('getMissingInputLanguageString', () => {
+  it('to map a language with no empty fields to correct string', () => {
+    const translationFunctionMock = (key: string) => {
+      return key;
+    };
+
+    const languageStringMock: SupportedLanguage = {
+      nb: 'Test tekst',
+      nn: 'Test',
+      en: 'Test',
+    };
+
+    const result = getMissingInputLanguageString(
+      languageStringMock,
+      'test',
+      translationFunctionMock,
+    );
+    expect(result).toEqual('');
+  });
+
+  it('to map a language with 1 non-empty field to correct string', () => {
+    const translationFunctionMock = (key: string) => {
+      if (key === 'resourceadm.about_resource_langauge_error_missing_1')
+        return 'Du mangler oversettelse for test på Engelsk.';
+      return key;
+    };
+
+    const languageStringMock: SupportedLanguage = {
+      nb: 'Test tekst',
+      nn: 'Test',
+      en: '',
+    };
+    const missingInputLanguageStringTestMock: string =
+      'Du mangler oversettelse for test på Engelsk.';
+
+    const result = getMissingInputLanguageString(
+      languageStringMock,
+      'test',
+      translationFunctionMock,
+    );
+    expect(result).toEqual(missingInputLanguageStringTestMock);
+  });
+
   it('to map a language with 2 non-empty fields to correct string', () => {
     const translationFunctionMock = (key: string) => {
       if (key === 'resourceadm.about_resource_langauge_error_missing_2')
@@ -88,40 +101,40 @@ describe('getMissingInputLanguageString', () => {
     );
     expect(result).toEqual(missingInputLanguageStringTestMock);
   });
+});
 
-  describe('getIsActiveTab', () => {
-    it('returns true when current page and tab id mathces', () => {
-      const isActive = getIsActiveTab('about', 'about');
-      expect(isActive).toBeTruthy();
-    });
-
-    it('returns false when current page and tab id does not match', () => {
-      const isActive = getIsActiveTab('about', 'policy');
-      expect(isActive).toBeFalsy();
-    });
+describe('getIsActiveTab', () => {
+  it('returns true when current page and tab id mathces', () => {
+    const isActive = getIsActiveTab('about', 'about');
+    expect(isActive).toBeTruthy();
   });
 
-  describe('createNavigationTab', () => {
-    const mockOnClick = jest.fn();
+  it('returns false when current page and tab id does not match', () => {
+    const isActive = getIsActiveTab('about', 'policy');
+    expect(isActive).toBeFalsy();
+  });
+});
 
-    const mockTo: string = '/about';
+describe('createNavigationTab', () => {
+  const mockOnClick = jest.fn();
 
-    const mockTab: LeftNavigationTab = {
-      icon: <TestFlaskIcon />,
-      tabName: 'resourceadm.left_nav_bar_about',
-      tabId: 'about',
-      action: {
-        type: 'link',
-        onClick: mockOnClick,
-        to: mockTo,
-      },
-      isActiveTab: true,
-    };
+  const mockTo: string = '/about';
 
-    it('creates a new tab when the function is called', () => {
-      const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
+  const mockTab: LeftNavigationTab = {
+    icon: <TestFlaskIcon />,
+    tabName: 'resourceadm.left_nav_bar_about',
+    tabId: 'about',
+    action: {
+      type: 'link',
+      onClick: mockOnClick,
+      to: mockTo,
+    },
+    isActiveTab: true,
+  };
 
-      expect(newTab).toEqual(mockTab);
-    });
+  it('creates a new tab when the function is called', () => {
+    const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
+
+    expect(newTab).toEqual(mockTab);
   });
 });

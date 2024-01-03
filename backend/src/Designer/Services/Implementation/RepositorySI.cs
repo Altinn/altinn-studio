@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -33,6 +34,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class RepositorySI : IRepository
     {
+        // Using Norwegian name of initial page to be consistent
+        // with automatic naming from frontend when adding new page
+        private const string InitialLayout = "Side1";
+
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -41,9 +46,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ILogger _logger;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IApplicationMetadataService _applicationMetadataService;
+        private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly ITextsService _textsService;
         private readonly IResourceRegistry _resourceRegistryService;
-        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
+        private readonly JsonSerializerOptions _serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -56,6 +62,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
+        /// <param name="appDevelopmentService">The service for handling files concerning app-development</param>
         /// <param name="textsService">The service for handling texts</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
         public RepositorySI(
@@ -67,6 +74,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ILogger<RepositorySI> logger,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IApplicationMetadataService applicationMetadataService,
+            IAppDevelopmentService appDevelopmentService,
             ITextsService textsService,
             IResourceRegistry resourceRegistryService)
         {
@@ -78,6 +86,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _logger = logger;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
+            _appDevelopmentService = appDevelopmentService;
             _textsService = textsService;
             _resourceRegistryService = resourceRegistryService;
         }
@@ -272,6 +281,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer);
+                await _appDevelopmentService.SaveFormLayout(editingContext, null, InitialLayout, GetInitialLayout());
+                await _appDevelopmentService.SaveLayoutSettings(editingContext, GetInitialLayoutSettings(InitialLayout), null);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
@@ -280,6 +292,34 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
+        }
+
+        private static JsonNode GetInitialLayout()
+        {
+            var layout = new JsonObject
+            {
+                ["schema"] = AltinnAppGitRepository.LayoutSchemaUrl,
+                ["data"] = new JsonObject
+                {
+                    ["layout"] = new JsonArray()
+                }
+            };
+            return layout;
+        }
+
+        private static JsonNode GetInitialLayoutSettings(string initialLayout)
+        {
+
+            var layoutSettings = new JsonObject
+            {
+                ["schema"] = AltinnAppGitRepository.LayoutSettingsSchemaUrl,
+                ["pages"] = new JsonObject
+                {
+                    ["order"] = new JsonArray { initialLayout }
+                }
+            };
+
+            return layoutSettings;
         }
 
         private async Task CreateRepositorySettings(string org, string repository, string developer)

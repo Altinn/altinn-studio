@@ -40,6 +40,20 @@ class ResizeObserver {
 }
 window.ResizeObserver = ResizeObserver;
 
+// document.getAnimations must be mocked because it is used by the design system, but it is not supported by React Testing Library.
+Object.defineProperty(document, 'getAnimations', {
+  value: () => [],
+  writable: true,
+});
+
+// Workaround for the known issue. For more info, see this: https://github.com/jsdom/jsdom/issues/3294#issuecomment-1268330372
+HTMLDialogElement.prototype.showModal = jest.fn(function mock(this: HTMLDialogElement) {
+  this.open = true;
+});
+HTMLDialogElement.prototype.close = jest.fn(function mock(this: HTMLDialogElement) {
+  this.open = false;
+});
+
 // I18next mocks. The useTranslation and Trans mocks apply the textMock function on the text key, so that it can be used to address the texts in the tests.
 jest.mock('i18next', () => ({ use: () => ({ init: jest.fn() }) }));
 jest.mock('react-i18next', () => ({

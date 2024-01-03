@@ -103,6 +103,18 @@ export const childPointerOfCombinationsHaveCombinationPointer = (uiSchema: UiSch
     });
 }
 
+/** Verifies that the names of combination children correspond to their indices */
+export const combinationChildrenHaveIndexNames = (uiSchema: UiSchemaNodes) => {
+  uiSchema
+    .filter(isCombination)
+    .filter(isNotTheRootNode)
+    .forEach(({ children }) => {
+      children.forEach((childPointer, index) => {
+        expect(childPointer).toMatch(new RegExp(`\\/${index}$`));
+      });
+    });
+}
+
 /**
  * Runs all the functions above.
  * @param uiSchema The schema to validate.
@@ -119,6 +131,7 @@ export const validateTestUiSchema = (uiSchema: UiSchemaNodes) => {
   childPointersOfArraysHaveItemsPointer(uiSchema);
   childPointerOfCombinationsHaveCombinationPointer(uiSchema);
   rootNodeIsObjectOrCombination(uiSchema);
+  combinationChildrenHaveIndexNames(uiSchema);
 };
 
 export const testSchemaNodes = (schemaNodes: UiSchemaNodes) =>{
@@ -131,5 +144,6 @@ export const testSchemaNodes = (schemaNodes: UiSchemaNodes) =>{
   test('All child pointers of objects have a property pointer', () => childPointersOfObjectsHavePropertyPointer(schemaNodes));
   test('Child pointers of arrays have an items pointer', () => childPointersOfArraysHaveItemsPointer(schemaNodes));
   test('All child pointers of combinations have the correct combination pointer', () => childPointerOfCombinationsHaveCombinationPointer(schemaNodes));
-  test('The root node is an object', () => rootNodeIsObjectOrCombination(schemaNodes));
+  test('All child pointers of combinations ends withe their corresponding index', () => combinationChildrenHaveIndexNames(schemaNodes));
+  test('The root node is an object or combination', () => rootNodeIsObjectOrCombination(schemaNodes));
 };

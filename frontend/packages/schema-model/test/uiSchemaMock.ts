@@ -4,26 +4,27 @@ import {
   FieldNode,
   FieldType,
   ObjectKind,
+  ReferenceNode,
   UiSchemaNode,
-  UiSchemaNodes
+  UiSchemaNodes,
 } from '../src';
-import { ReferenceNode } from '../src';
 import { defaultReferenceNode } from '../src/config/default-nodes';
 
 const rootNodePointer = '#';
 const parentNodePointer = '#/properties/test';
-const stringNodePointer = '#/properties/test/anyOf/stringNode';
-const numberNodePointer = '#/properties/test/anyOf/numberNode';
-const enumNodePointer = '#/properties/test/anyOf/enumNode';
-const arrayNodePointer = '#/properties/test/anyOf/arrayNode';
-const optionalNodePointer = '#/properties/test/anyOf/optionalNode';
-const requiredNodePointer = '#/properties/test/anyOf/requiredNode';
+const stringNodePointer = '#/properties/test/properties/stringNode';
+const numberNodePointer = '#/properties/test/properties/numberNode';
+const enumNodePointer = '#/properties/test/properties/enumNode';
+const arrayNodePointer = '#/properties/test/properties/arrayNode';
+const optionalNodePointer = '#/properties/test/properties/optionalNode';
+const requiredNodePointer = '#/properties/test/properties/requiredNode';
 const defNodePointer = '#/$defs/testDef';
 const allOfNodePointer = '#/properties/allOfNode';
-const allOfNodeChildPointer = '#/properties/allOfNode/allOf/someNode';
-const referenceNodePointer = '#/properties/test/anyOf/referenceNode';
-const subParentNodePointer = '#/properties/test/anyOf/subParent';
-const subSubNodePointer = '#/properties/test/anyOf/subParent/properties/subSubNode';
+const allOfNodeChildPointer = '#/properties/allOfNode/allOf/0';
+const referenceNodePointer = '#/properties/test/properties/referenceNode';
+const subParentNodePointer = '#/properties/test/properties/subParent';
+const subSubNodePointer = '#/properties/test/properties/subParent/properties/subSubNode';
+const nodeWithSameNameAsStringNodePointer = '#/properties/stringNode';
 
 const simpleParentNodePointer = '#/properties/simpleParent';
 const simpleChildNodePointer = '#/properties/simpleParent/properties/simpleChild';
@@ -36,6 +37,13 @@ const defNodeWithChildrenGrandchildPointer = '#/$defs/parentDef/properties/child
 const referenceToObjectNodePointer = '#/properties/referenceToParent';
 
 const unusedDefinitionPointer = '#/$defs/unusedDef';
+const unusedDefinitionWithSameNameAsExistingObjectPointer = '#/$defs/test';
+const referenceDefinitionPointer = '#/$defs/referenceDef';
+
+const combinationNodeWithMultipleChildrenPointer = '#/properties/combinationNodeWithMultipleChildren';
+const combinationNodeChild1Pointer = '#/properties/combinationNodeWithMultipleChildren/anyOf/0';
+const combinationNodeChild2Pointer = '#/properties/combinationNodeWithMultipleChildren/anyOf/1';
+const combinationNodeChild3Pointer = '#/properties/combinationNodeWithMultipleChildren/anyOf/2';
 
 export const nodeMockBase: UiSchemaNode = {
   objectKind: ObjectKind.Field,
@@ -65,13 +73,17 @@ export const rootNodeMock: FieldNode = {
     defNodeWithChildrenPointer,
     referenceToObjectNodePointer,
     unusedDefinitionPointer,
+    unusedDefinitionWithSameNameAsExistingObjectPointer,
+    referenceDefinitionPointer,
+    nodeWithSameNameAsStringNodePointer,
+    combinationNodeWithMultipleChildrenPointer,
   ],
 };
 
-export const parentNodeMock: CombinationNode = {
+export const parentNodeMock: FieldNode = {
   ...nodeMockBase,
-  objectKind: ObjectKind.Combination,
-  combinationType: CombinationKind.AnyOf,
+  objectKind: ObjectKind.Field,
+  fieldType: FieldType.Object,
   pointer: parentNodePointer,
   children: [
     stringNodePointer,
@@ -215,6 +227,54 @@ export const unusedDefinitionMock: UiSchemaNode = {
   pointer: unusedDefinitionPointer,
 };
 
+export const unusedDefinitionWithSameNameAsExistingObjectMock: UiSchemaNode = {
+  ...nodeMockBase,
+  pointer: unusedDefinitionWithSameNameAsExistingObjectPointer,
+};
+
+export const referenceDefinitionMock: ReferenceNode = {
+  ...defaultReferenceNode,
+  pointer: referenceDefinitionPointer,
+  reference: defNodePointer,
+};
+
+export const nodeWithSameNameAsStringNodeMock: FieldNode = {
+  ...nodeMockBase,
+  pointer: nodeWithSameNameAsStringNodePointer,
+  fieldType: FieldType.String,
+};
+
+export const combinationNodeWithMultipleChildrenMock: CombinationNode = {
+  ...nodeMockBase,
+  pointer: combinationNodeWithMultipleChildrenPointer,
+  objectKind: ObjectKind.Combination,
+  combinationType: CombinationKind.AnyOf,
+  children: [
+    combinationNodeChild1Pointer,
+    combinationNodeChild2Pointer,
+    combinationNodeChild3Pointer,
+  ],
+};
+
+export const combinationNodeChild1Mock: FieldNode = {
+  ...nodeMockBase,
+  pointer: combinationNodeChild1Pointer,
+  title: 'Child 1',
+};
+
+
+export const combinationNodeChild2Mock: FieldNode = {
+  ...nodeMockBase,
+  pointer: combinationNodeChild2Pointer,
+  title: 'Child 2',
+};
+
+export const combinationNodeChild3Mock: FieldNode = {
+  ...nodeMockBase,
+  pointer: combinationNodeChild3Pointer,
+  title: 'Child 3',
+};
+
 export const uiSchemaMock: UiSchemaNodes = [
   rootNodeMock,
   parentNodeMock,
@@ -239,4 +299,11 @@ export const uiSchemaMock: UiSchemaNodes = [
   defNodeWithChildrenGrandchildMock,
   referenceToObjectNodeMock,
   unusedDefinitionMock,
+  unusedDefinitionWithSameNameAsExistingObjectMock,
+  referenceDefinitionMock,
+  nodeWithSameNameAsStringNodeMock,
+  combinationNodeWithMultipleChildrenMock,
+  combinationNodeChild1Mock,
+  combinationNodeChild2Mock,
+  combinationNodeChild3Mock,
 ];

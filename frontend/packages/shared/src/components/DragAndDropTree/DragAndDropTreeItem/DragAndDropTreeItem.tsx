@@ -15,6 +15,7 @@ export interface DragAndDropTreeItemProps {
   label: string;
   labelWrapper?: (children: ReactNode) => ReactNode;
   nodeId: string;
+  title?: string;
 }
 
 export const DragAndDropTreeItem = ({
@@ -25,6 +26,7 @@ export const DragAndDropTreeItem = ({
   label,
   labelWrapper,
   nodeId,
+  title,
 }: DragAndDropTreeItemProps) => {
   const { hoveredNodeParent, setHoveredNodeParent } = useContext(DragAndDropTreeRootContext);
   const { nodeId: parentId } = useContext(DragAndDropTreeItemContext);
@@ -53,6 +55,7 @@ export const DragAndDropTreeItem = ({
                 {renderLabel(node)}
               </div>
             )}
+            title={title}
           >
             {isExpandable && renderChildren(children, emptyMessage)}
           </TreeView.Item>

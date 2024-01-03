@@ -9,7 +9,7 @@ export type StudioPageSpinnerProps = {
 export const StudioPageSpinner = forwardRef<HTMLDivElement, StudioPageSpinnerProps>(
   ({ spinnerText }, ref): JSX.Element => {
     return (
-      <StudioCenter ref={ref}>
+      <StudioCenter ref={ref} className={classes.container}>
         <StudioSpinner spinnerText={spinnerText} size='xlarge' className={classes.spinnerText} />
       </StudioCenter>
     );

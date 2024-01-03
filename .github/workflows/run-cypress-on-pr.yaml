@@ -12,6 +12,7 @@ on:
       - 'Dockerfile'
       - 'gitea/**'
       - 'package.json'
+      - 'development/**'
   workflow_dispatch:
 
 jobs:

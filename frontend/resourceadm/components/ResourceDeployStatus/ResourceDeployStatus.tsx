@@ -1,7 +1,8 @@
 import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
-import type { DeployError, NavigationBarPage } from 'resourceadm/types/global';
+import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
+import type { DeployError } from 'resourceadm/types/DeployError';
 import { Alert, Label, Paragraph } from '@digdir/design-system-react';
 import { LinkButton } from '../LinkButton';
 import { useTranslation } from 'react-i18next';

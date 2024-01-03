@@ -9,12 +9,15 @@ import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
 import { User } from 'app-shared/types/User';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { privateRepositoryMock, repositoryMock } from '../test/repositoryMock';
 
 const mockOrg: string = 'org';
 const mockApp: string = 'app';
 
 const getRepoStatus = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getUser = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve(repositoryMock));
+const getOrgList = jest.fn().mockImplementation(() => Promise.resolve({ orgs: [] }));
 
 const mockRepoStatus: RepoStatus = {
   aheadBy: 0,
@@ -83,7 +86,7 @@ describe('PageLayout', () => {
     ).toBeInTheDocument();
   });
 
-  it('renderes the page content and no errors when there are no errors', async () => {
+  it('renders the page content and no errors when there are no errors', async () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(
@@ -92,6 +95,18 @@ describe('PageLayout', () => {
 
     expect(
       screen.queryByRole('heading', { name: textMock('merge_conflict.headline'), level: 1 }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders header with no publish button when repoOwner is a private person', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getRepoMetadata: () => Promise.resolve(privateRepositoryMock),
+    });
+
+    expect(screen.getByRole('button', { name: textMock('top_menu.preview') })).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole('button', { name: textMock('top_menu.deploy') }),
     ).not.toBeInTheDocument();
   });
 });
@@ -109,6 +124,8 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
     ...queriesMock,
     getRepoStatus,
     getUser,
+    getOrgList,
+    getRepoMetadata,
     ...queries,
   };
 
