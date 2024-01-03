@@ -37,7 +37,7 @@ describe('LocalChanges', () => {
     const hrefToOnlyFilesYouHaveChanged = repoDownloadPath(mockOrg, mockApp);
 
     const downloadOnlyChangedFilesLink = screen.getByRole('link', {
-      name: textMock('settings_modal.local_changes_tab_download_only_changed_button'),
+      name: textMock('local_changes.modal_download_only_changed_button'),
     });
     expect(downloadOnlyChangedFilesLink).toHaveAttribute('href', hrefToOnlyFilesYouHaveChanged);
   });
@@ -48,7 +48,7 @@ describe('LocalChanges', () => {
     const hrefToAllFilesInRepo = repoDownloadPath(mockOrg, mockApp, true);
 
     const downloadOnlyChangedFilesLink = screen.getByRole('link', {
-      name: textMock('settings_modal.local_changes_tab_download_all_button'),
+      name: textMock('local_changes_modal.download_all_button'),
     });
     expect(downloadOnlyChangedFilesLink).toHaveAttribute('href', hrefToAllFilesInRepo);
   });
@@ -57,7 +57,7 @@ describe('LocalChanges', () => {
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteModalHeading = screen.queryByRole('heading', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_title'),
+      name: textMock('local_changes.modal_delete_modal_title'),
       level: 1,
     });
     expect(deleteModalHeading).not.toBeInTheDocument();
@@ -67,12 +67,12 @@ describe('LocalChanges', () => {
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_button'),
+      name: textMock('local_changes.modal_delete_button'),
     });
     await act(() => user.click(deleteButton));
 
     const deleteModalHeading = screen.getByRole('heading', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_title'),
+      name: textMock('local_changes.modal_delete_modal_title'),
       level: 1,
     });
     expect(deleteModalHeading).toBeInTheDocument();
@@ -82,22 +82,22 @@ describe('LocalChanges', () => {
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_button'),
+      name: textMock('local_changes.modal_delete_button'),
     });
     await act(() => user.click(deleteButton));
 
     const deleteModalDeleteButton = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_delete_button'),
+      name: textMock('local_changes.modal_confirm_delete_button'),
     });
     expect(deleteModalDeleteButton).toBeDisabled();
 
     const textfield = screen.getByLabelText(
-      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label'),
     );
     await act(() => user.type(textfield, mockApp));
 
     const deleteModalDeleteButtonAfterTyping = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_delete_button'),
+      name: textMock('local_changes.modal_confirm_delete_button'),
     });
     expect(deleteModalDeleteButton).not.toBeDisabled();
     await act(() => user.click(deleteModalDeleteButtonAfterTyping));
@@ -109,12 +109,12 @@ describe('LocalChanges', () => {
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_button'),
+      name: textMock('local_changes.modal_delete_button'),
     });
     await act(() => user.click(deleteButton));
 
     const deleteModalHeading = screen.getByRole('heading', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_title'),
+      name: textMock('local_changes.modal_delete_modal_title'),
       level: 1,
     });
     expect(deleteModalHeading).toBeInTheDocument();
@@ -125,7 +125,7 @@ describe('LocalChanges', () => {
     await act(() => user.click(deleteModalCancelButton));
 
     const deleteModalHeadingAfterClose = screen.queryByRole('heading', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_title'),
+      name: textMock('local_changes.modal_delete_modal_title'),
       level: 1,
     });
     expect(deleteModalHeadingAfterClose).not.toBeInTheDocument();

@@ -29,7 +29,7 @@ export const LocalChangesModal = ({
         <div className={classes.headingWrapper}>
           <MonitorIcon className={classes.icon} />
           <Heading level={1} size='small'>
-            {t('dashboard.local_changes')}
+            {t('sync_header.local_changes')}
           </Heading>
         </div>
       }

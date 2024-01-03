@@ -42,12 +42,10 @@ const defaultProps: LocalChangesModalProps = {
 
 const render = (
   props: Partial<LocalChangesModalProps> = defaultProps,
-  queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    ...queries,
   };
   return rtlRender(
     <MemoryRouter>

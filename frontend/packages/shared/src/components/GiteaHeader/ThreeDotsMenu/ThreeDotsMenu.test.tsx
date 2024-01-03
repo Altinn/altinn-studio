@@ -7,7 +7,7 @@ import { textMock } from '../../../../../../testing/mocks/i18nMock';
 const user = userEvent.setup();
 const cloneTextMock = textMock('sync_header.clone');
 const repositoryTextMock = textMock('dashboard.repository');
-const localChangesTextMock = textMock('dashboard.local_changes');
+const localChangesTextMock = textMock('sync_header.local_changes');
 const localChangesModalMock = 'LocalChangesModal';
 
 jest.mock(
@@ -22,7 +22,7 @@ describe('ThreeDotsMenu', () => {
 
   it('should show the menu items when open', async () => {
     await render();
-    const threeDotsMenu = screen.getByText(textMock('dashboard.gitea.menu'));
+    const threeDotsMenu = screen.getByText(textMock('sync_header.gitea_menu'));
     expect(threeDotsMenu).toBeInTheDocument();
 
     await act(() => user.click(threeDotsMenu));
@@ -39,7 +39,7 @@ describe('ThreeDotsMenu', () => {
   it('should not show the clone option when onlyShowRepository is true', async () => {
     await render({ onlyShowRepository: true });
 
-    const threeDotsMenu = screen.getByText(textMock('dashboard.gitea.menu'));
+    const threeDotsMenu = screen.getByText(textMock('sync_header.gitea_menu'));
     expect(threeDotsMenu).toBeInTheDocument();
 
     await act(() => user.click(threeDotsMenu));
@@ -50,7 +50,7 @@ describe('ThreeDotsMenu', () => {
 
   it('should render local changes modal', async () => {
     await render();
-    const threeDotsMenu = screen.getByLabelText(textMock('dashboard.gitea.menu'));
+    const threeDotsMenu = screen.getByLabelText(textMock('sync_header.gitea_menu'));
     expect(threeDotsMenu).toBeInTheDocument();
 
     await act(() => user.click(threeDotsMenu));

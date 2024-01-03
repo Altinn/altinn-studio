@@ -34,7 +34,7 @@ export const ThreeDotsMenu = ({
         className={classes.popover}
         trigger={
           <Button
-            icon={<MenuElipsisVerticalIcon title={t('dashboard.gitea.menu')} />}
+            icon={<MenuElipsisVerticalIcon title={t('sync_header.gitea_menu')} />}
             variant='tertiary'
             color='inverted'
             size='small'
@@ -65,7 +65,7 @@ export const ThreeDotsMenu = ({
               <span className={classes.iconWrapper}>
                 <MonitorIcon className={classes.icon} />
               </span>
-              <span>{t('dashboard.local_changes')}</span>
+              <span>{t('sync_header.local_changes')}</span>
             </div>
           </li>
           {localChangesModalIsOpen && (
