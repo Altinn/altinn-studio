@@ -52,21 +52,17 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
       size='small'
     >
       <Tabs.List className={classes.tabs}>
-        {Object.keys(ViewSize).map((viewSize: ViewSize) => {
+        {Object.values(ViewSize).map((viewSize: ViewSize) => {
           return (
-            <Tabs.Tab
-              key={viewSize}
-              value={viewSize.toLowerCase()}
-              icon={iconMapping[viewSize] || null}
-            >
-              {t(`ux_editor.modal_properties_grid_size_${viewSize.toLowerCase()}`)}
+            <Tabs.Tab key={viewSize} value={viewSize} icon={iconMapping[viewSize] || null}>
+              {t(`ux_editor.modal_properties_grid_size_${viewSize}`)}
             </Tabs.Tab>
           );
         })}
       </Tabs.List>
-      {Object.keys(ViewSize).map((viewSize: ViewSize) => {
+      {Object.values(ViewSize).map((viewSize: ViewSize) => {
         return (
-          <Tabs.Content key={viewSize} value={viewSize.toLowerCase()}>
+          <Tabs.Content key={viewSize} value={viewSize}>
             <EditGridForGivenViewSize
               handleUpdateGrid={(newGridValues: GridSizes) => handleUpdateGrid(newGridValues)}
               gridValues={gridValues}

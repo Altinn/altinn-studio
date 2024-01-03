@@ -1,9 +1,9 @@
 .sliderContainer {
   position: relative;
   --outline: 1px solid var(--fds-semantic-border-action-active);
-  --outline-offset: 2px;
+  --outline-offset: 1px;
   --border-radius: var(--fds-border_radius-small);
-  --selected-square-colour: var(--fds-semantic-surface-action-default);
+  --selected-square-colour: var(--fds-semantic-surface-action-second-default);
   --unselected-square-colour: var(--fds-semantic-surface-action-second-no_fill-active);
   --thumb-width: calc(100% / 12);
 }
@@ -86,7 +86,8 @@ datalist {
 }
 
 .option.outside {
-  color: var(--primary-color-700);
+  color: var(--fds-semantic-surface-action-second-default);
 }
 
-.option.inside {}
+.option.inside {
+}
