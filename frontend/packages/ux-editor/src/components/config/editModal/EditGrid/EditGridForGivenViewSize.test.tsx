@@ -21,7 +21,7 @@ type RenderProps = {
 
 const render = async ({
   gridValues = { xs: 3, md: 10 },
-  viewSize = ViewSize.Md,
+  viewSize = ViewSize.md,
   handleUpdateGrid = jest.fn(),
 }: RenderProps = {}) => {
   await waitForData();
@@ -55,7 +55,7 @@ describe('EditGridForGivenViewSize', () => {
   });
 
   it('should show that default value, 12, is set for grid when gridValue is not set for mobile viewSize', async () => {
-    await render({ gridValues: { md: 3 }, viewSize: ViewSize.Sm });
+    await render({ gridValues: { md: 3 }, viewSize: ViewSize.sm });
 
     const lockIconMobile = screen.getByRole('img', { name: 'lockIcon' });
     expect(lockIconMobile).toBeInTheDocument();

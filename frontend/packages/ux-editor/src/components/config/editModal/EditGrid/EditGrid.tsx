@@ -25,7 +25,7 @@ const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => 
 export const EditGrid = ({ handleComponentChange, component }: IGenericEditComponent) => {
   const [gridValues, setGridValues] = useState<GridSizes>(component.grid ?? {});
   const [selectedViewSizeForGridProp, setSelectedViewSizeForGridProp] = useState<ViewSize>(
-    ViewSize.Xs,
+    ViewSize.xs,
   );
   const { t } = useTranslation();
 
@@ -36,11 +36,11 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
   };
 
   const iconMapping: Record<ViewSize, ReactNode> = {
-    [ViewSize.Xs]: <MobileSmallIcon />,
-    [ViewSize.Sm]: <MobileIcon />,
-    [ViewSize.Md]: <TabletIcon />,
-    [ViewSize.Lg]: <LaptopIcon />,
-    [ViewSize.Xl]: <MonitorIcon />,
+    [ViewSize.xs]: <MobileSmallIcon />,
+    [ViewSize.sm]: <MobileIcon />,
+    [ViewSize.md]: <TabletIcon />,
+    [ViewSize.lg]: <LaptopIcon />,
+    [ViewSize.xl]: <MonitorIcon />,
   };
 
   return (
@@ -54,19 +54,15 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
       <Tabs.List className={classes.tabs}>
         {Object.keys(ViewSize).map((viewSize: ViewSize) => {
           return (
-            <Tabs.Tab
-              key={viewSize}
-              value={viewSize.toLowerCase()}
-              icon={iconMapping[viewSize] || null}
-            >
-              {t(`ux_editor.modal_properties_grid_size_${viewSize.toLowerCase()}`)}
+            <Tabs.Tab key={viewSize} value={viewSize} icon={iconMapping[viewSize] || null}>
+              {t(`ux_editor.modal_properties_grid_size_${viewSize}`)}
             </Tabs.Tab>
           );
         })}
       </Tabs.List>
       {Object.keys(ViewSize).map((viewSize: ViewSize) => {
         return (
-          <Tabs.Content key={viewSize} value={viewSize.toLowerCase()}>
+          <Tabs.Content key={viewSize} value={viewSize}>
             <EditGridForGivenViewSize
               handleUpdateGrid={(newGridValues: GridSizes) => handleUpdateGrid(newGridValues)}
               gridValues={gridValues}
