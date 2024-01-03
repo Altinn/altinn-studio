@@ -6,7 +6,7 @@ import type * as CBTypes from 'src/layout/CustomButton/config.generated';
  * be used to make sure that all functions have been defined.
  */
 export type ClientActionHandlers = {
-  [Action in CBTypes.ClientAction as Action['name']]: Action extends { metadata: infer Metadata }
+  [Action in CBTypes.ClientAction as Action['id']]: Action extends { metadata: infer Metadata }
     ? (params: Metadata) => Promise<void>
     : () => Promise<void>;
 };
@@ -17,7 +17,7 @@ export type ClientActionHandlers = {
  * function receives correct parameters with type safety.
  */
 type ActionMap = {
-  [Action in CBTypes.ClientAction as Action['name']]: Action;
+  [Action in CBTypes.ClientAction as Action['id']]: Action;
 };
 
 type ActionType<T extends keyof ActionMap> = T extends keyof ActionMap ? ActionMap[T] : never;
@@ -27,7 +27,7 @@ type ActionType<T extends keyof ActionMap> = T extends keyof ActionMap ? ActionM
  * isSpecificClientAction('navigateToPage', action) will
  * cast the action to NavigateToPageAction.
  */
-export const isSpecificClientAction = <ActionName extends keyof ActionMap>(
-  type: ActionName,
+export const isSpecificClientAction = <ActionId extends keyof ActionMap>(
+  type: ActionId,
   action: CBTypes.CustomAction,
-): action is ActionType<ActionName> => action.name === type;
+): action is ActionType<ActionId> => action.id === type;

@@ -58,9 +58,9 @@ function useHandleClientActions(): UseHandleClientActions {
 
   const handleClientAction = async (action: CBTypes.ClientAction) => {
     if (isSpecificClientAction('navigateToPage', action)) {
-      return await frontendActions[action.name](action.metadata);
+      return await frontendActions[action.id](action.metadata);
     }
-    await frontendActions[action.name]();
+    await frontendActions[action.id]();
   };
 
   return {
@@ -97,7 +97,7 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
       if (!instanceGuid || !partyId) {
         throw Error('Cannot perform action without partyId and instanceGuid');
       }
-      return doPerformAction.call(partyId, instanceGuid, { action: action.name, buttonId });
+      return doPerformAction.call(partyId, instanceGuid, { action: action.id, buttonId });
     },
   });
 
@@ -145,7 +145,9 @@ export const CustomButtonComponent = ({ node }: Props) => {
   const { handleClientActions } = useHandleClientActions();
   const { handleServerAction, mutation } = useHandleServerActionMutation(lockTools);
 
-  const isPermittedToPerformActions = actions.reduce((acc, action) => acc || isAuthorized(action.name), true);
+  const isPermittedToPerformActions = actions
+    .filter((action) => action.type === 'ServerAction')
+    .reduce((acc, action) => acc && isAuthorized(action.id), true);
   const disabled = !isPermittedToPerformActions || mutation.isLoading;
 
   const onClick = async () => {

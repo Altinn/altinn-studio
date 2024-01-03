@@ -95,9 +95,11 @@ export const useNavigatePage = () => {
     (page?: string, options?: NavigateToPageOptions) => {
       const replace = options?.replace ?? false;
       if (!page) {
+        window.logWarn('navigateToPage called without page');
         return;
       }
       if (!order.includes(page)) {
+        window.logWarn('navigateToPage called with invalid page:', `"${page}"`);
         return;
       }
 
@@ -191,9 +193,11 @@ export const useNavigatePage = () => {
    */
   const navigateToNextPage = () => {
     const nextPage = getNextPage();
-    if (nextPage) {
-      navigateToPage(nextPage);
+    if (!nextPage) {
+      window.logWarn('Tried to navigate to next page when standing on the last page.');
+      return;
     }
+    navigateToPage(nextPage);
   };
   /**
    * This function fetches the previous page index on
@@ -203,9 +207,12 @@ export const useNavigatePage = () => {
    */
   const navigateToPreviousPage = () => {
     const previousPage = getPreviousPage();
-    if (previousPage) {
-      navigateToPage(previousPage);
+
+    if (!previousPage) {
+      window.logWarn('Tried to navigate to previous page when standing on the first page.');
+      return;
     }
+    navigateToPage(previousPage);
   };
 
   return {
