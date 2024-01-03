@@ -727,14 +727,6 @@
             "metadata": {
               "page": "grid"
             }
-          },
-          {
-            "id": "previousPage",
-            "type": "ClientAction"
-          },
-          {
-            "id": "previousPage",
-            "type": "ClientAction"
           }
         ],
         "type": "CustomButton",
