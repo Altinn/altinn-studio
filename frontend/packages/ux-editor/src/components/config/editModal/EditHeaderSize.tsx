@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
@@ -39,7 +39,7 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
             ?.value
         }
         propertyPath={`${component.propertyPath}/properties/size`}
-        renderField={({ fieldProps }) => <Select {...fieldProps} options={sizes} />}
+        renderField={({ fieldProps }) => <LegacySelect {...fieldProps} options={sizes} />}
       />
     </div>
   );

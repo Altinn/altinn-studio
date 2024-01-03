@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Select } from '@digdir/design-system-react';
+import { Button, LegacySelect } from '@digdir/design-system-react';
 import {
   DataSource,
   expressionDataSourceTexts,
@@ -66,7 +66,7 @@ export const SubExpressionContent = ({
           size='small'
         />
       </div>
-      <Select // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
+      <LegacySelect // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         label={t('right_menu.expressions_function')}
         hideLabel={true}
         onChange={(func: string) => addFunction(func)}
@@ -80,7 +80,7 @@ export const SubExpressionContent = ({
       />
       {allowToSpecifyExpression && (
         <div className={classes.subExpression}>
-          <Select
+          <LegacySelect
             label={t('right_menu.expressions_data_source')}
             hideLabel={true}
             onChange={(dataSource: string) => addDataSource(dataSource, false)}
@@ -107,7 +107,7 @@ export const SubExpressionContent = ({
           <p className={classes.expressionFunction}>
             {expressionFunctionTexts(t)[subExpression.function]}
           </p>
-          <Select
+          <LegacySelect
             label={t('right_menu.expressions_comparable_data_source')}
             hideLabel={true}
             onChange={(compDataSource: string) => addDataSource(compDataSource, true)}
