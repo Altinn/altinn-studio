@@ -129,6 +129,16 @@ namespace Altinn.App.logic.DataProcessing
                         model.numAboveLimit = newNumAboveLimit;
                     }
                 }
+
+                // Look at Group2, and increment the counter when encountering a new row without a row number
+                if (model.Endringsmeldinggrp9786.Gruppe2 != null)
+                {
+                    foreach (var row in model.Endringsmeldinggrp9786.Gruppe2.Where(row => row.Teller is null or 0))
+                    {
+                        model.Group2Teller++;
+                        row.Teller = model.Group2Teller;
+                    }
+                }
             }
 
             if (data.GetType() == typeof(Skjema))

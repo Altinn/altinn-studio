@@ -175,11 +175,33 @@
           "items": {
             "$ref": "#/definitions/OversiktOverEndringene-grp-9788"
           }
+        },
+        "Gruppe2": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 999,
+            "items": {
+                "$ref": "#/definitions/Gruppe2"
+            }
         }
       },
       "required": [
         "gruppeid"
       ]
+    },
+    "Gruppe2": {
+      "type": "object",
+      "properties": {
+        "gruppeid": {
+          "const": 2
+        },
+        "felt1": {
+          "$ref": "#/definitions/SkattemeldingEndringEtterFristPost-datadef-37130"
+        },
+        "teller": {
+          "type": "integer"
+        }
+      }
     },
     "Avgiver-grp-9787": {
       "properties": {

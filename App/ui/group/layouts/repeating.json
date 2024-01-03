@@ -494,11 +494,24 @@
         },
         "textResourceBindings": {
           "summaryTitle": "Gruppe2",
-          "add_button": "referanse"
+          "add_button": "referanse",
+          "title": "Referansegruppe"
         },
-        "tableHeaders": ["group2-input"],
-        "children": ["group2-input", "group-reference"],
+        "tableHeaders": ["group2-teller", "group2-input"],
+        "children": ["group2-teller", "group2-input", "group-reference"],
         "maxCount": 999
+      },
+      {
+        "id": "group2-teller",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Rad-nummer",
+          "description": "Her skal det dukke opp en automatisk teller som viser radnummeret. Hvis du sletter en rad og legger til en ny blir ikke tallene gjenbrukt, siden backend legger til nye rader med nye id-er."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Gruppe2.teller"
+        },
+        "readOnly": true
       },
       {
         "id": "group2-input",

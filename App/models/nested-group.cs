@@ -67,6 +67,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("PrefillValuesShadow")]
     public string PrefillValuesShadow { get; set; }
 
+    [XmlElement("Group2Teller")]
+    [JsonProperty("Group2Teller")]
+    [JsonPropertyName("Group2Teller")]
+    public decimal Group2Teller { get; set; } = 0;
   }
   public class Endringsmeldinggrp9786{
     [Range(1,Int32.MaxValue)]
@@ -236,6 +240,11 @@ namespace Altinn.App.Models
     [JsonProperty("felt1")]
     [JsonPropertyName("felt1")]
     public SkattemeldingEndringEtterFristPostdatadef37130 Felt1 { get; set; }
+
+    [XmlElement("teller")]
+    [JsonProperty("teller")]
+    [JsonPropertyName("teller")]
+    public decimal? Teller { get; set; }
   }
 
   public class SkattemeldingEndringEtterFristPostdatadef37130{
