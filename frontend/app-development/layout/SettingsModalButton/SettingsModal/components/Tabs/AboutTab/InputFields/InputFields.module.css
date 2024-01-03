@@ -1,3 +1,7 @@
 .wrapper {
   max-width: 500px;
 }
+
+.wrapper > div {
+  padding-bottom: 30px;
+}
