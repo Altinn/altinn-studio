@@ -758,14 +758,6 @@
           "next": "Neste"
         },
         "triggers": ["validatePage"]
-      },
-      {
-        "id": "toSummary2",
-        "type": "NavigationButtons",
-        "textResourceBindings": {
-          "next": "Neste"
-        },
-        "triggers": ["validatePage"]
       }
     ]
   }
