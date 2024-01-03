@@ -57,7 +57,12 @@ describe('InputFields', () => {
 
     await act(() => user.type(appName, mockNewText));
     await act(() => user.tab());
-
     expect(mockOnSave).toHaveBeenCalledTimes(1);
+
+    await act(() => user.clear(appName));
+    // Reset mock count and simulate a blur event with an empty input
+    mockOnSave.mockClear();
+    await act(() => user.tab());
+    expect(mockOnSave).toHaveBeenCalledTimes(0);
   });
 });
