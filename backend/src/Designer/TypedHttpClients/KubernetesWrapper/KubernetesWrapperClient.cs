@@ -33,7 +33,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         try
         {
             _logger.LogInformation("Requesting: {PathToAzureEnv}", pathToAzureEnv);
-            HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
+            using HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsAsync<List<Deployment>>();
         }
