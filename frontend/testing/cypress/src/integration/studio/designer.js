@@ -27,7 +27,7 @@ context('Designer', () => {
     cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
 
     // Navigate to designerApp
-    cy.visit('/editor/' + designerAppId);
+    cy.goToApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
     header.getCreateLink().click();
     cy.ensureCreatePageIsLoaded();
 
@@ -53,7 +53,7 @@ context('Designer', () => {
     cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
 
     // Navigate to designerApp
-    cy.visit('/editor/' + designerAppId);
+    cy.goToApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
     header.getCreateLink().click();
     cy.ensureCreatePageIsLoaded();
 
