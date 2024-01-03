@@ -3,6 +3,7 @@ import { Switch } from '@digdir/design-system-react';
 import { ConditionalRendering } from './ConditionalRendering';
 import { Expressions } from '../config/Expressions';
 import { useText } from '../../hooks';
+import { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
 
 interface DynamicsProps {
   formId: string;
@@ -16,11 +17,12 @@ export const Dynamics = ({ formId }: DynamicsProps) => {
     setShowOldExpressions(event.target.checked);
   };
 
-  const ruleHandlerExist = (window as any).ruleHandlerObject !== undefined;
+  const conditionalRulesExist =
+    (window as WindowWithRuleModel).conditionalRuleHandlerObject !== undefined;
 
   return (
     <>
-      {ruleHandlerExist && (
+      {conditionalRulesExist && (
         <Switch
           name={'new-dynamics-switch'}
           onChange={handleToggleOldDynamics}

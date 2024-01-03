@@ -3,7 +3,7 @@ import { IRuleModelFieldElement } from '../../types/global';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-interface WindowWithRuleModel extends Window {
+export interface WindowWithRuleModel extends Window {
   ruleHandlerObject?: object;
   conditionalRuleHandlerObject?: object;
   ruleHandlerHelper?: object;
@@ -20,20 +20,21 @@ export const useRuleModelQuery = (
     queryKey: [QueryKey.RuleHandler, org, app, layoutSetName],
     queryFn: () =>
       getRuleModel(org, app, layoutSetName).then((ruleModel) => {
+        const windowWithRuleModel = window as WindowWithRuleModel;
         const ruleModelFields: IRuleModelFieldElement[] = [];
 
         if (!ruleModel) {
-          if ((window as WindowWithRuleModel).ruleHandlerObject) {
-            (window as WindowWithRuleModel).ruleHandlerObject = undefined;
+          if (windowWithRuleModel.ruleHandlerObject) {
+            windowWithRuleModel.ruleHandlerObject = undefined;
           }
-          if ((window as WindowWithRuleModel).ruleHandlerHelper) {
-            (window as WindowWithRuleModel).ruleHandlerHelper = undefined;
+          if (windowWithRuleModel.ruleHandlerHelper) {
+            windowWithRuleModel.ruleHandlerHelper = undefined;
           }
-          if ((window as WindowWithRuleModel).conditionalRuleHandlerObject) {
-            (window as WindowWithRuleModel).conditionalRuleHandlerObject = undefined;
+          if (windowWithRuleModel.conditionalRuleHandlerObject) {
+            windowWithRuleModel.conditionalRuleHandlerObject = undefined;
           }
-          if ((window as WindowWithRuleModel).conditionalRuleHandlerHelper) {
-            (window as WindowWithRuleModel).conditionalRuleHandlerHelper = undefined;
+          if (windowWithRuleModel.conditionalRuleHandlerHelper) {
+            windowWithRuleModel.conditionalRuleHandlerHelper = undefined;
           }
           return ruleModelFields;
         }
@@ -49,7 +50,7 @@ export const useRuleModelQuery = (
           conditionalRuleHandlerObject,
           ruleHandlerHelper,
           conditionalRuleHandlerHelper,
-        } = window as WindowWithRuleModel;
+        } = windowWithRuleModel;
 
         // Add the rule handler functions to the rule model
         if (ruleHandlerObject) {

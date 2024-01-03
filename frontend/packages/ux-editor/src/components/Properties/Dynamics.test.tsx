@@ -6,6 +6,7 @@ import { renderWithMockStore } from '../../testing/mocks';
 import { formContextProviderMock } from '../../testing/formContextMocks';
 import { Dynamics } from './Dynamics';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
 
 const user = userEvent.setup();
 
@@ -39,7 +40,7 @@ describe('Dynamics', () => {
   });
 
   it('should render default unchecked switch if ruleHandler is found', async () => {
-    (window as any).ruleHandlerObject = 'mockedValue';
+    (window as WindowWithRuleModel).conditionalRuleHandlerObject = {};
     await render();
     const oldDynamicsSwitch = screen.getByRole('checkbox', {
       name: textMock('right_menu.show_old_dynamics'),
@@ -49,7 +50,7 @@ describe('Dynamics', () => {
   });
 
   it('should render old dynamics when enabling switch if ruleHandler is found', async () => {
-    (window as any).ruleHandlerObject = 'mockedValue';
+    (window as WindowWithRuleModel).conditionalRuleHandlerObject = {};
     await render();
     const oldDynamicsSwitch = screen.getByRole('checkbox', {
       name: textMock('right_menu.show_old_dynamics'),
