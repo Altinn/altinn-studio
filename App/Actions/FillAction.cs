@@ -48,7 +48,8 @@ public class FillAction : IUserAction
 
         if (data.TestCustomButtonInput == "Generate frontend actions")
         {
-            return UserActionResult.SuccessResult(new List<ClientAction>() { ClientAction.NextPage() });
+            return UserActionResult.SuccessResult(new List<ClientAction>()
+                { ClientAction.NextPage(), ClientAction.PreviousPage(), ClientAction.NavigateToPage("grid") });
         }
 
         data.TestCustomButtonReadOnlyInput = "Her kommer det data fra backend";
