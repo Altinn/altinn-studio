@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Select, Textfield } from '@digdir/design-system-react';
+import { LegacySelect, Textfield } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
@@ -53,7 +53,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
               renderField={({ fieldProps }) => (
-                <Select
+                <LegacySelect
                   onChange={fieldProps.onChange}
                   options={optionListIds.map((option) => ({
                     label: option,

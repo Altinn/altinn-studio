@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioSpinner } from '@studio/components';
-import { Button, Select } from '@digdir/design-system-react';
+import { Button, LegacySelect } from '@digdir/design-system-react';
 import { DeploymentStatus, ImageOption } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
@@ -47,7 +47,7 @@ export const DeployDropdown = ({
       <div>{t('app_deploy_messages.choose_version')}</div>
       <div className={classes.select} id={`deploy-select-${envName.toLowerCase()}`}>
         {imageOptions.length > 0 && (
-          <Select
+          <LegacySelect
             key={imageOptions.length}
             options={imageOptions || []}
             onChange={(value: string) => setSelectedImageTag(value)}
