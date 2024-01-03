@@ -3,9 +3,9 @@ const fs = require('fs');
 const os = require('os');
 const getCommit = require('./git-commit-hash');
 const randomPass = () =>
-  [Math.random().toString(36).substring(2, 5), Math.random().toString(36).substring(2, 5)].join(
-    'DIG@',
-  );
+  [Math.random().toString(36).substring(2, 5), Math.random().toString(36).substring(2, 5)]
+    .join('DIG@')
+    .concat(Math.floor(Math.random() * 10).toString());
 
 const defaultEnvVars = {
   CYPRESS_TEST_APP: 'autodeploy-v3',
