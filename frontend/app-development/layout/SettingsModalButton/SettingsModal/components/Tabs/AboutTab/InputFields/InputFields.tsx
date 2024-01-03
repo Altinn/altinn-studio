@@ -56,14 +56,15 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
   return (
     <form className={classes.wrapper} onBlur={handleAppConfigFormBlur}>
       <Textfield
+        className={classes.fieldBottomSpacing}
         label={t('settings_modal.about_tab_repo_label')}
         description={t('settings_modal.about_tab_repo_description')}
         size='small'
         defaultValue={appConfig.repositoryName}
         readOnly
-        className={classes.inputWrapper}
       />
       <Textfield
+        className={classes.fieldBottomSpacing}
         label={t('settings_modal.about_tab_name_label')}
         description={t('settings_modal.about_tab_name_description')}
         size='small'
@@ -72,6 +73,7 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
         defaultValue={appConfig.serviceName}
       />
       <Textfield
+        className={classes.fieldBottomSpacing}
         label={t('settings_modal.about_tab_alt_id_label')}
         description={t('settings_modal.about_tab_alt_id_description')}
         size='small'

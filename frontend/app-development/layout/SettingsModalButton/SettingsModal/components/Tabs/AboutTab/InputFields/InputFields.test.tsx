@@ -52,17 +52,22 @@ describe('InputFields', () => {
   it('calls onSave when "AppName" input field is blurred and it is valid', async () => {
     const user = userEvent.setup();
     render(<InputFields {...defaultProps} />);
-
     const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
 
     await act(() => user.type(appName, mockNewText));
     await act(() => user.tab());
     expect(mockOnSave).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onSave when "AppName" input field is blurred and it is invalid', async () => {
+    const user = userEvent.setup();
+    render(<InputFields {...defaultProps} />);
+    const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
 
     await act(() => user.clear(appName));
-    // Reset mock count and simulate a blur event with an empty input
-    mockOnSave.mockClear();
     await act(() => user.tab());
+
     expect(mockOnSave).toHaveBeenCalledTimes(0);
+    expect(screen.getByText(textMock('settings_modal.about_tab_name_error'))).toBeInTheDocument();
   });
 });
