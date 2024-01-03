@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Label, LegacySelect, Paragraph } from '@digdir/design-system-react';
+import { Label, Combobox, Paragraph } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 type ResourceDropdownProps = {
@@ -40,10 +40,6 @@ type ResourceDropdownProps = {
    */
   onBlur: (selected: string) => void;
   /**
-   * The id of the field
-   */
-  id: string;
-  /**
    * The error text to be shown
    */
   errorText?: string;
@@ -61,7 +57,6 @@ type ResourceDropdownProps = {
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {boolean}[hasError] - If the dropdown has an error
  * @property {function}[onBlur] - Function to be executed on blur
- * @property {string}[id] - The id of the field
  * @property {string}[errorText] - The error text to be shown
  *
  * @returns {React.ReactNode} - The rendered component
@@ -75,13 +70,14 @@ export const ResourceDropdown = ({
   hasError = false,
   onFocus,
   onBlur,
-  id,
   errorText,
 }: ResourceDropdownProps): React.ReactNode => {
   const [selected, setSelected] = useState(value);
 
   const handleChangeInput = (val: string) => {
-    setSelected(val);
+    if (val) {
+      setSelected(val);
+    }
   };
 
   const error = hasError && (selected === null || selected === undefined);
@@ -89,22 +85,32 @@ export const ResourceDropdown = ({
   return (
     <>
       {spacingTop && <div className={classes.divider} />}
-      <Label size='small' spacing htmlFor={id}>
+      <Label size='small' spacing>
         {label}
       </Label>
+      <Paragraph short size='small'>
+        {description}
+      </Paragraph>
       <div className={classes.inputWrapper}>
-        <Paragraph spacing short size='small'>
-          {description}
-        </Paragraph>
-        <LegacySelect
-          options={options}
-          onChange={handleChangeInput}
-          value={selected}
+        <Combobox
+          size='small'
+          hideLabel
+          label={label}
+          description={description}
+          onValueChange={(newValue: string[]) => handleChangeInput(newValue[0])}
+          value={selected ? [selected] : undefined}
           onFocus={onFocus}
           error={error}
           onBlur={() => onBlur(selected)}
-          inputId={id}
-        />
+        >
+          {options.map((opt) => {
+            return (
+              <Combobox.Option key={opt.value} value={opt.value}>
+                {opt.label}
+              </Combobox.Option>
+            );
+          })}
+        </Combobox>
         {error && <InputFieldErrorMessage message={errorText} />}
       </div>
     </>

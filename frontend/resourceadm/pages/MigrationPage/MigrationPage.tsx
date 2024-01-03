@@ -11,7 +11,7 @@ import {
   Spinner,
   Label,
   Link,
-  LegacySelect,
+  Radio,
 } from '@digdir/design-system-react';
 import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
@@ -109,10 +109,10 @@ export const MigrationPage = ({
               validatePolicyData === undefined
                 ? t('resourceadm.migration_no_access_rules')
                 : validatePolicyData.status === 200
-                ? t('resourceadm.migration_access_rules_ready_for_migration')
-                : t('resourceadm.migration_step_access_rules_errors', {
-                    validationErrors: validatePolicyData.errors.length,
-                  })
+                  ? t('resourceadm.migration_access_rules_ready_for_migration')
+                  : t('resourceadm.migration_step_access_rules_errors', {
+                      validationErrors: validatePolicyData.errors.length,
+                    })
             }
             isSuccess={validatePolicyData?.status === 200 ?? false}
             onNavigateToPageWithError={navigateToPageWithError}
@@ -135,14 +135,21 @@ export const MigrationPage = ({
           </Label>
           <Paragraph size='small'>{t('resourceadm.migration_select_environment_body')}</Paragraph>
           <div className={classes.selectEnv}>
-            <LegacySelect
-              label={t('resourceadm.migration_select_environment_label')}
-              hideLabel
-              options={envOptions}
+            <Radio.Group
+              hideLegend
+              onChange={setSelectedEnv}
               value={selectedEnv}
-              onChange={(o: string) => setSelectedEnv(o)}
-              inputId='selectEnvDropdown'
-            />
+              legend={t('resourceadm.migration_select_environment_header')}
+              description={t('resourceadm.migration_select_environment_body')}
+            >
+              {envOptions.map((env) => {
+                return (
+                  <Radio key={env.value} value={env.value}>
+                    {env.label}
+                  </Radio>
+                );
+              })}
+            </Radio.Group>
           </div>
           {selectedEnv !== '' && (
             <>

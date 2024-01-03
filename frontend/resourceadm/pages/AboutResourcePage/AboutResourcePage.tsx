@@ -144,7 +144,6 @@ export const AboutResourcePage = ({
           onBlur={(selected: ResourceTypeOption) =>
             handleSave({ ...resourceData, resourceType: selected })
           }
-          id='aboutResourceType'
           errorText={t('resourceadm.about_resource_resource_type_error')}
         />
         <ResourceLanguageTextField
@@ -280,7 +279,6 @@ export const AboutResourcePage = ({
           onBlur={(selected: ResourceStatusOption) =>
             handleSave({ ...resourceData, status: selected })
           }
-          id='aboutResourceStatus'
           errorText={t('resourceadm.about_resource_status_error')}
         />
         <ResourceSwitchInput
