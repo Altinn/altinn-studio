@@ -8,7 +8,7 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import { Fieldset, Select, LegacyTextArea, Textfield, Switch } from '@digdir/design-system-react';
+import { Fieldset, LegacyTextArea, Textfield, Switch, LegacySelect } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import {
@@ -139,7 +139,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         />
       )}
       {isField(schemaNode) && (
-        <Select
+        <LegacySelect
           label={t('schema_editor.type')}
           onChange={(type: FieldType) => onChangeFieldType(type)}
           options={typeOptions}
@@ -166,7 +166,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
         </Switch>
       )}
       {isCombination(schemaNode) && (
-        <Select
+        <LegacySelect
           label={t('schema_editor.type')}
           onChange={(combination: string) =>
             onChangeCombinationType(combination as CombinationKind)
