@@ -14,7 +14,7 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
         public async Task Get_ShouldUseCache(byte[] expectedResponse)
         {
             IMemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
-            CachingDelegatingHandler handler = new CachingDelegatingHandler(memoryCache, 10)
+            using CachingDelegatingHandler handler = new CachingDelegatingHandler(memoryCache, 10)
             {
                 InnerHandler = new HttpClientHandler()
                 {
@@ -22,7 +22,7 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
                 }
             };
 
-            HttpClient client = new HttpClient(handler);
+            using HttpClient client = new HttpClient(handler);
 
             CachingDelegatingHandler.CacheResponseDataEntry cacheResponseDataEntry = new CachingDelegatingHandler.CacheResponseDataEntry()
             {
@@ -42,7 +42,7 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
         public async Task Get_ShouldBeCached()
         {
             IMemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
-            CachingDelegatingHandler handler = new CachingDelegatingHandler(memoryCache, 120)
+            using CachingDelegatingHandler handler = new CachingDelegatingHandler(memoryCache, 120)
             {
                 InnerHandler = new HttpClientHandler()
                 {
@@ -50,7 +50,7 @@ namespace Designer.Tests.TypedHttpClients.DelegatingHandlers
                 }
             };
 
-            HttpClient client = new HttpClient(handler);
+            using HttpClient client = new HttpClient(handler);
 
             var response = await client.GetAsync("https://info.altinn.no/");
 
