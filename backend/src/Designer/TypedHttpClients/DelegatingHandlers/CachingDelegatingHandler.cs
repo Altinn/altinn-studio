@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
     public class CachingDelegatingHandler : DelegatingHandler
     {
         /// If needed add headers to the cache key
-        internal class CacheEntry
+        internal class CacheResponseDataEntry
         {
             public byte[] Data { get; set; }
             public HttpStatusCode StatusCode { get; set; }
@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         {
             string cacheKey = $"{request.Method}_{request.RequestUri}";
 
-            if (IsEligibleForCaching(request) && _memoryCache.TryGetValue(cacheKey, out CacheEntry cacheEntry))
+            if (IsEligibleForCaching(request) && _memoryCache.TryGetValue(cacheKey, out CacheResponseDataEntry cacheEntry))
             {
                 return GetCachedResponseMessage(cacheEntry);
             }
@@ -41,7 +41,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
                 return response;
             }
 
-            var newCacheEntry = new CacheEntry()
+            var newCacheEntry = new CacheResponseDataEntry()
             {
                 Data = await response.Content.ReadAsByteArrayAsync(cancellationToken),
                 StatusCode = response.StatusCode
@@ -56,10 +56,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// </summary>
         private static bool IsEligibleForCaching(HttpRequestMessage requestMessage) => requestMessage.Method == HttpMethod.Get;
 
-        private static HttpResponseMessage GetCachedResponseMessage(CacheEntry cacheEntry)
+        private static HttpResponseMessage GetCachedResponseMessage(CacheResponseDataEntry cacheResponseDataEntry)
         {
-            HttpResponseMessage responseMessage = new HttpResponseMessage(cacheEntry.StatusCode);
-            responseMessage.Content = new ByteArrayContent(cacheEntry.Data);
+            HttpResponseMessage responseMessage = new HttpResponseMessage(cacheResponseDataEntry.StatusCode);
+            responseMessage.Content = new ByteArrayContent(cacheResponseDataEntry.Data);
             return responseMessage;
         }
     }
