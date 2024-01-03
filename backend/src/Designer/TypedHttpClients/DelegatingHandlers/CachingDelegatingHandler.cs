@@ -29,31 +29,26 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         {
             string cacheKey = $"{request.Method}_{request.RequestUri}";
 
-            if(_memoryCache.TryGetValue(cacheKey, out CacheEntry cacheEntry))
+            if (IsEligibleForCaching(request) && _memoryCache.TryGetValue(cacheKey, out CacheEntry cacheEntry))
             {
                 return PrepareResponseMessage(cacheEntry);
             }
 
             var response = await base.SendAsync(request, cancellationToken);
 
-            if (!IsEligibleForCaching(request))
+            if (!IsEligibleForCaching(request) || !response.IsSuccessStatusCode)
             {
                 return response;
             }
 
-            if (response.IsSuccessStatusCode)
+            var newCacheEntry = new CacheEntry()
             {
-                var newCacheEntry = new CacheEntry()
-                {
-                    Data = await response.Content.ReadAsByteArrayAsync(cancellationToken),
-                    StatusCode = response.StatusCode
-                };
-                _memoryCache.Set(cacheKey, newCacheEntry, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(_cacheExpiryInSeconds)));
-                response.Dispose();
-                return PrepareResponseMessage(newCacheEntry);
-            }
-
-            return response;
+                Data = await response.Content.ReadAsByteArrayAsync(cancellationToken),
+                StatusCode = response.StatusCode
+            };
+            _memoryCache.Set(cacheKey, newCacheEntry, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(_cacheExpiryInSeconds)));
+            response.Dispose();
+            return PrepareResponseMessage(newCacheEntry);
         }
 
         /// <summary>
