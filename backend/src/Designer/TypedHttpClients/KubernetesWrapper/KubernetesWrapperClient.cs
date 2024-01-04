@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Models;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
@@ -32,7 +31,6 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         string pathToAzureEnv = baseUrl + $"{PATH_TO_AZURE_ENV}";
         try
         {
-            _logger.LogInformation("Requesting: {PathToAzureEnv}", pathToAzureEnv);
             using HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsAsync<List<Deployment>>();
