@@ -7,8 +7,13 @@ import { header } from '../../selectors/header';
 context('WCAG', () => {
   before(() => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteApp(
+      Cypress.env('orgUserName'),
+      Cypress.env('designerAppName'),
+      Cypress.env('accessToken'),
+    );
     cy.studioLogin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.createApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
+    cy.createApp(Cypress.env('orgFullName'), Cypress.env('designerAppName'));
   });
 
   beforeEach(() => {
@@ -24,6 +29,11 @@ context('WCAG', () => {
 
   after(() => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+    cy.deleteApp(
+      Cypress.env('orgUserName'),
+      Cypress.env('designerAppName'),
+      Cypress.env('accessToken'),
+    );
   });
 
   it('accessibility test for dashboard', () => {

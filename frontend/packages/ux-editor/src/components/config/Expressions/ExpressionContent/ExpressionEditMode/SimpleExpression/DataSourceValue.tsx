@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-  Select,
-  SingleSelectOption,
+  LegacySelect,
+  LegacySingleSelectOption,
   LegacyToggleButtonGroup,
   LegacyTextField,
 } from '@digdir/design-system-react';
@@ -41,7 +41,7 @@ export const DataSourceValue = ({
   const currentValue = isComparableValue ? subExpression.comparableValue : subExpression.value;
   const selectedValueForDisplayIfBoolean = currentValue ? 'true' : 'false';
 
-  const getCorrespondingDataSourceValues = (dataSource: DataSource): SingleSelectOption[] => {
+  const getCorrespondingDataSourceValues = (dataSource: DataSource): LegacySingleSelectOption[] => {
     switch (dataSource) {
       case DataSource.Component:
         return getComponentIds(formLayoutsData);
@@ -66,7 +66,7 @@ export const DataSourceValue = ({
     case DataSource.InstanceContext:
     case DataSource.ApplicationSettings:
       return (
-        <Select
+        <LegacySelect
           label={
             isComparableValue
               ? t('right_menu.expressions_data_source_comparable_value')

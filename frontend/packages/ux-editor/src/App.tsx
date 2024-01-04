@@ -11,6 +11,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './hooks/useAppContext';
+import { FormContextProvider } from '../../ux-editor/src/containers/FormContext';
 
 /**
  * This is the main React component responsible for controlling
@@ -80,7 +81,11 @@ export function App() {
   }
 
   if (componentIsReady) {
-    return <FormDesigner selectedLayout={selectedLayout} selectedLayoutSet={selectedLayoutSet} />;
+    return (
+      <FormContextProvider>
+        <FormDesigner selectedLayout={selectedLayout} selectedLayoutSet={selectedLayoutSet} />
+      </FormContextProvider>
+    );
   }
   return <StudioPageSpinner />;
 }
