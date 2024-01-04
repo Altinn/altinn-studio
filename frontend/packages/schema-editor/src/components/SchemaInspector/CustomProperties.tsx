@@ -11,8 +11,6 @@ import {
 import { TrashIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
-import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
-import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface CustomPropertiesProps {
@@ -22,9 +20,11 @@ export interface CustomPropertiesProps {
 const inputId = (key: string) => `custom-property-${key}`;
 
 export const CustomProperties = ({ path }: CustomPropertiesProps) => {
-  const { schemaModel, save } = useSchemaEditorAppContext();
+  const { schemaModel, save, selectedNodePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
-  const { custom } = useSchemaAndReduxSelector(selectedItemSelector);
+
+  const selectedItem = schemaModel.getNode(selectedNodePointer);
+  const { custom } = selectedItem;
 
   function changeProperties(properties: KeyValuePairs) {
     save(setCustomProperties(schemaModel, { path, properties }));

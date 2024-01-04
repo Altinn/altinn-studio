@@ -1,18 +1,14 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
-import {
-  setSelectedAndFocusedNode,
-  setSelectedNode,
-} from '@altinn/schema-editor/features/editor/schemaEditorSlice';
 
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType, ObjectKind, isCombination } from '@altinn/schema-model';
+import { FieldType, ObjectKind } from '@altinn/schema-model';
 
 import { useTranslation } from 'react-i18next';
 import { ActionMenu } from '../common/ActionMenu';
 import { IconImage } from '../common/Icon';
 import { useAddProperty } from '../../hooks/useAddProperty';
 import { SchemaTree } from '../SchemaTree';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export type TypesPanelProps = {
   uiSchemaNode: UiSchemaNode;
@@ -20,17 +16,13 @@ export type TypesPanelProps = {
 export const TypesPanel = ({ uiSchemaNode }: TypesPanelProps) => {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
-  const dispatch = useDispatch();
+  const { setSelectedNodePointer } = useSchemaEditorAppContext();
   const addProperty = useAddProperty();
 
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newPointer = addProperty(objectKind, fieldType, uiSchemaNode.pointer);
     if (newPointer) {
-      dispatch(
-        isCombination(uiSchemaNode)
-          ? setSelectedNode(newPointer)
-          : setSelectedAndFocusedNode(newPointer),
-      );
+      setSelectedNodePointer(newPointer);
     }
   };
 
