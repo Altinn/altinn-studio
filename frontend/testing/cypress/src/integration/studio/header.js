@@ -1,8 +1,6 @@
 import * as texts from '../../../../../language/src/nb.json';
 import { localChanges } from '../../selectors/localChanges';
 
-const designerAppId = `${Cypress.env('autoTestUser')}/${Cypress.env('designerAppName')}`;
-
 context('Header', () => {
   before(() => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
