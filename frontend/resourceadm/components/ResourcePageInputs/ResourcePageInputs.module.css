@@ -1,14 +1,14 @@
 .divider {
-  margin-top: 30px;
+  margin-top: var(--fds-spacing-7);
 }
 
 .inputWrapper {
-  width: 500px;
+  width: 32rem;
   position: relative;
 }
 
 .warningCardWrapper {
-  margin-top: 5px;
+  margin-top: var(--fds-spacing-1);
 }
 
 .toggleTextActive {
@@ -20,7 +20,7 @@
 }
 
 .checkboxParagraph {
-  margin-left: 0.5rem;
+  margin-left: var(--fds-spacing-2);
 }
 
 .description {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
@@ -28,6 +28,7 @@ import {
 } from '@navikt/aksel-icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
  * @component
@@ -40,8 +41,7 @@ export const ResourcePage = (): React.ReactNode => {
 
   const navigate = useNavigate();
 
-  const { pageType, resourceId, selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { pageType, resourceId, selectedContext, repo } = useUrlParams();
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
 

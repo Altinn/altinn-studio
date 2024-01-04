@@ -82,13 +82,10 @@ describe('AboutResourcePage', () => {
   it('handles resource type change', async () => {
     render(<AboutResourcePage {...defaultProps} />);
 
-    const [resourceTypeSelect] = screen.getAllByLabelText(
-      textMock('resourceadm.about_resource_resource_type'),
-    );
-    await act(() => user.click(resourceTypeSelect));
-    await act(() => user.click(screen.getByRole('option', { name: mockResourceType })));
+    const resourceTypeRadio = screen.getByLabelText(mockResourceType);
+    await act(() => user.click(resourceTypeRadio));
 
-    expect(resourceTypeSelect).toHaveValue(mockResourceType);
+    expect(resourceTypeRadio).toBeChecked();
   });
 
   it('handles title input change', async () => {
@@ -204,13 +201,10 @@ describe('AboutResourcePage', () => {
   it('handles status change', async () => {
     render(<AboutResourcePage {...defaultProps} />);
 
-    const [statusSelect] = screen.getAllByLabelText(
-      textMock('resourceadm.about_resource_status_label'),
-    );
-    await act(() => user.click(statusSelect));
-    await act(() => user.click(screen.getByRole('option', { name: mockStatus })));
+    const statusRadio = screen.getByLabelText(mockStatus);
+    await act(() => user.click(statusRadio));
 
-    expect(statusSelect).toHaveValue(mockStatus);
+    expect(statusRadio).toBeChecked();
   });
 
   it('handles self identifiable switch changes', async () => {

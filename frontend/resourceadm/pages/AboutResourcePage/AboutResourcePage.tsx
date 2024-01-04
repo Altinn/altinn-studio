@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { Heading } from '@digdir/design-system-react';
-import { useParams } from 'react-router-dom';
 import type { Translation } from 'resourceadm/types/Translation';
 import type {
   Resource,
@@ -28,10 +27,11 @@ import {
   ResourceLanguageTextField,
   ResourceSwitchInput,
   ResourceTextField,
-  ResourceDropdown,
+  ResourceRadioGroup,
 } from 'resourceadm/components/ResourcePageInputs';
 import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
 import { ResourceReferenceFields } from 'resourceadm/components/ResourceReferenceFields';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
  * Initial value for languages with empty fields
@@ -64,7 +64,7 @@ export const AboutResourcePage = ({
 }: AboutResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { resourceId } = useParams();
+  const { resourceId } = useUrlParams();
 
   /**
    * Resource type options
@@ -134,7 +134,7 @@ export const AboutResourcePage = ({
         <Heading size='large' spacing level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
-        <ResourceDropdown
+        <ResourceRadioGroup
           label={t('resourceadm.about_resource_resource_type')}
           description={t('resourceadm.about_resource_resource_type_label')}
           value={resourceData.resourceType}
@@ -146,7 +146,6 @@ export const AboutResourcePage = ({
           onBlur={(selected: ResourceTypeOption) =>
             handleSave({ ...resourceData, resourceType: selected })
           }
-          id='aboutResourceType'
           errorText={t('resourceadm.about_resource_resource_type_error')}
         />
         <ResourceLanguageTextField
@@ -271,7 +270,7 @@ export const AboutResourcePage = ({
             handleSave({ ...resourceData, keywords: mapKeywordStringToKeywordTypeArray(val) })
           }
         />
-        <ResourceDropdown
+        <ResourceRadioGroup
           spacingTop
           label={t('resourceadm.about_resource_status_label')}
           description={t('resourceadm.about_resource_status_text')}
@@ -282,7 +281,6 @@ export const AboutResourcePage = ({
           onBlur={(selected: ResourceStatusOption) =>
             handleSave({ ...resourceData, status: selected })
           }
-          id='aboutResourceStatus'
           errorText={t('resourceadm.about_resource_status_error')}
         />
         {resourceData.resourceType !== 'MaskinportenSchema' && (

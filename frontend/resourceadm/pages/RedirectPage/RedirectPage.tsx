@@ -1,7 +1,8 @@
 import React from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import classes from './RedirectPage.module.css';
 import { ErrorPage } from '../ErrorPage';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
  * @component
@@ -10,7 +11,7 @@ import { ErrorPage } from '../ErrorPage';
  * @returns {React.ReactNode} - The rendered component
  */
 export const RedirectPage = (): React.ReactNode => {
-  const { selectedContext } = useParams();
+  const { selectedContext } = useUrlParams();
 
   return (
     <div className={classes.pageWrapper}>

@@ -1,1 +1,1 @@
-export * from './useSelectedContext';
+export * from './useUrlParams';
