@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent, MouseEvent, useEffect, useRef, useState } from 'react';
 import classes from './StudioGridSelector.module.css';
 import cn from 'classnames';
 import { GridSize } from './types/GridSize';
@@ -38,19 +38,21 @@ export const StudioGridSelector = ({
     return cn(classes.option, variableClassName);
   };
 
+  const sliderIsHovered = hoverValue > 0;
   const backgroundCss =
-    'linear-gradient(\n' + generateLinearGradient(selectedValue, hoverValue) + ')';
+    'linear-gradient(\n' +
+    generateLinearGradient(sliderIsHovered ? hoverValue : selectedValue, sliderIsHovered) +
+    ')';
 
   const inputRef = useRef(null);
 
-  const handleHover = (event) => {
+  const handleHover = (event: MouseEvent<HTMLInputElement>) => {
     const dataListElement = inputRef.current.list;
     const optionPositionsX: OptionData[] = calculateOptionPositionsX(dataListElement);
-    optionPositionsX.forEach((optionPosX) => {
-      if (optionPosX.positionX < event.clientX) {
-        setHoverValue(optionPosX.value);
-      }
-    });
+    const hoverOption = [...optionPositionsX]
+      .reverse()
+      .find((optionPosX) => optionPosX.positionX < event.clientX);
+    setHoverValue(hoverOption?.value || 0);
   };
 
   return (
@@ -92,12 +94,11 @@ export const StudioGridSelector = ({
   );
 };
 
-const generateLinearGradient = (selectedGridValue: number, hoverValue: number): string => {
+const generateLinearGradient = (gridValue: number, hover: boolean): string => {
   const gradientLines: string[] = ['to right'];
   const gap = '1px';
-  const insideColour = 'var(--selected-square-colour)';
+  const insideColour = hover ? 'var(--hover-square-color)' : 'var(--selected-square-colour)';
   const outsideColour = 'var(--unselected-square-colour)';
-  const hoverColour = 'var(--hover-square-color)';
   const gapColour = 'white';
   const totalBgWidth = `(100% + ${gap})`;
 
@@ -105,10 +106,7 @@ const generateLinearGradient = (selectedGridValue: number, hoverValue: number): 
     const startSquarePosition = `calc(${totalBgWidth} * ${option - 1} / 12)`;
     const endSquarePosition = `calc(${totalBgWidth} * ${option} / 12 - ${gap})`;
     const endGapPosition = `calc(${totalBgWidth} * ${option} / 12)`;
-    let squareColour = option <= selectedGridValue ? insideColour : outsideColour;
-    if (hoverValue > 0) {
-      squareColour = option <= hoverValue ? hoverColour : outsideColour;
-    }
+    const squareColour = option <= gridValue ? insideColour : outsideColour;
     const startSquareLine = `${squareColour} ${startSquarePosition}`;
     const endSquareLine = `${squareColour} ${endSquarePosition}`;
     const startGapLine = `${gapColour} ${endSquarePosition}`;
@@ -128,14 +126,14 @@ const convertToGridSize = (value: string): GridSize => {
   return int as GridSize;
 };
 
-const calculateOptionPositionsX = (datalistElement): OptionData[] => {
+const calculateOptionPositionsX = (datalistElement: HTMLDataListElement): OptionData[] => {
   if (datalistElement) {
-    return Array.from(datalistElement.options).map((option: HTMLOptionElement) => {
+    return Array.from(datalistElement.options).map((option: HTMLOptionElement): OptionData => {
       const optionRect = option.getBoundingClientRect();
       return {
         value: parseInt(option.value) as GridSize,
         positionX: optionRect.x,
-      } as OptionData;
+      };
     });
   }
 };
