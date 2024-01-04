@@ -50,13 +50,14 @@ export const Overview = () => {
 
   return (
     <PageContainer>
-      <div className={classes.container}>
-        <header className={classes.header}>
-          <Heading size='xlarge'>{appConfigData?.serviceName || app}</Heading>
+      <main className={classes.container}>
+        <header className={classes.header} role='generic'>
+          {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
+          <Heading level={1} size='xlarge'>{appConfigData?.serviceName || app}</Heading>
         </header>
         <div className={classes.panel}>
           <div className={classes.content}>
-            <main className={classes.main}>
+            <div className={classes.main}>
               <section className={classes.mainSection}>
                 {repoOwnerIsOrg ? <AppEnvironments /> : <RepoOwnedByPersonInfo />}
               </section>
@@ -68,7 +69,7 @@ export const Overview = () => {
               <section className={classes.mainSection}>
                 <Navigation />
               </section>
-            </main>
+            </div>
             <aside className={classes.aside}>
               <section className={classes.asideSection}>
                 <Documentation />
@@ -82,7 +83,7 @@ export const Overview = () => {
             <Link href='/contact'>{t('general.contact')}</Link>
           </footer>
         </div>
-      </div>
+      </main>
     </PageContainer>
   );
 };

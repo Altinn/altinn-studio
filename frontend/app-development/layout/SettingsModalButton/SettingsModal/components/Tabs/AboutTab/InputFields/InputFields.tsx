@@ -1,8 +1,10 @@
-import React, { ReactNode, useState } from 'react';
+import React, { FormEvent, ReactNode, useState } from 'react';
 import classes from './InputFields.module.css';
 import { useTranslation } from 'react-i18next';
 import { AppConfig } from 'app-shared/types/AppConfig';
-import { InputField } from './InputField';
+import { Textfield } from '@digdir/design-system-react';
+
+type AppConfigForm = Pick<AppConfig, 'serviceName' | 'serviceId'>;
 
 export type InputFieldsProps = {
   /**
@@ -29,35 +31,55 @@ export type InputFieldsProps = {
 export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode => {
   const { t } = useTranslation();
 
-  const [appConfigState, setAppConfigState] = useState<AppConfig>(appConfig);
+  const [appConfigFormErrors, setAppConfigFormErrors] = useState<
+    Pick<AppConfigForm, 'serviceName'>
+  >({ serviceName: '' });
+
+  const handleAppConfigFormBlur = (event: FormEvent<HTMLFormElement>) => {
+    const formData = new FormData(event.currentTarget);
+    const form = Object.fromEntries(formData) as AppConfigForm;
+    const isFormValid = validateForm(form);
+    if (isFormValid) {
+      onSave({ ...appConfig, ...form });
+    }
+  };
+
+  const validateForm = (form: AppConfigForm): Boolean => {
+    if (form.serviceName.length <= 0) {
+      setAppConfigFormErrors({ serviceName: t('settings_modal.about_tab_name_error') });
+      return false;
+    }
+    setAppConfigFormErrors({ serviceName: '' });
+    return true;
+  };
 
   return (
-    <div className={classes.wrapper}>
-      <InputField
+    <form className={classes.wrapper} onBlur={handleAppConfigFormBlur}>
+      <Textfield
+        className={classes.fieldBottomSpacing}
         label={t('settings_modal.about_tab_repo_label')}
         description={t('settings_modal.about_tab_repo_description')}
-        id='aboutRepoName'
-        value={appConfig.repositoryName}
+        size='small'
+        defaultValue={appConfig.repositoryName}
         readOnly
       />
-      <InputField
-        id='aboutNameField'
+      <Textfield
+        className={classes.fieldBottomSpacing}
         label={t('settings_modal.about_tab_name_label')}
         description={t('settings_modal.about_tab_name_description')}
-        value={appConfigState.serviceName}
-        onChange={(serviceName: string) => setAppConfigState((ac) => ({ ...ac, serviceName }))}
-        onBlur={() => onSave(appConfigState)}
-        isValid={appConfigState.serviceName.length > 0}
-        errorText={t('settings_modal.about_tab_name_error')}
+        size='small'
+        name='serviceName'
+        error={appConfigFormErrors.serviceName}
+        defaultValue={appConfig.serviceName}
       />
-      <InputField
-        id='aboutAltIdField'
+      <Textfield
+        className={classes.fieldBottomSpacing}
         label={t('settings_modal.about_tab_alt_id_label')}
         description={t('settings_modal.about_tab_alt_id_description')}
-        value={appConfigState?.serviceId ?? ''}
-        onChange={(serviceId: string) => setAppConfigState((ac) => ({ ...ac, serviceId }))}
-        onBlur={() => onSave(appConfigState)}
+        size='small'
+        name='serviceId'
+        defaultValue={appConfig.serviceId}
       />
-    </div>
+    </form>
   );
 };
