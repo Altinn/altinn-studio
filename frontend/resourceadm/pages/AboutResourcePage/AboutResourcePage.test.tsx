@@ -69,6 +69,8 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('AboutResourcePage', () => {
+  afterEach(jest.clearAllMocks);
+
   const user = userEvent.setup();
   const mockOnSaveResource = jest.fn();
 
@@ -97,10 +99,15 @@ describe('AboutResourcePage', () => {
     expect(titleNbInput).toHaveValue(mockResource1.title.nb);
 
     await act(() => user.type(titleNbInput, mockNewTitleInput));
+    await act(() => titleNbInput.blur());
 
-    expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_resource_title_label')),
-    ).toHaveValue(`${mockResource1.title.nb}${mockNewTitleInput}`);
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      title: {
+        ...mockResource1.title,
+        nb: `${mockResource1.title.nb}${mockNewTitleInput}`,
+      },
+    });
   });
 
   it('calls onSaveResource when going from one input field to another', async () => {
@@ -128,10 +135,15 @@ describe('AboutResourcePage', () => {
     expect(descriptionNbInput).toHaveValue(mockResource1.description.nb);
 
     await act(() => user.type(descriptionNbInput, mockNewDescriptionInput));
+    await act(() => descriptionNbInput.blur());
 
-    expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_resource_description_label')),
-    ).toHaveValue(`${mockResource1.description.nb}${mockNewDescriptionInput}`);
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      description: {
+        ...mockResource1.description,
+        nb: `${mockResource1.description.nb}${mockNewDescriptionInput}`,
+      },
+    });
   });
 
   it('handles homepage input change', async () => {
