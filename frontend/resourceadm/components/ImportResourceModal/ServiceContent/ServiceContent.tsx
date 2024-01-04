@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import classes from './ServiceContent.module.css';
-import { Alert, ErrorMessage, LegacySelect, Paragraph, Spinner } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/design-system-react';
 import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from 'resourceadm/hooks/queries';
@@ -93,16 +93,27 @@ export const ServiceContent = ({
       }
       return (
         <div className={classes.contentWrapper}>
-          <LegacySelect
-            options={mapAltinn2LinkServiceToSelectOption(altinn2LinkServices)}
-            onChange={handleSelectService}
+          <Combobox
             value={
               selectedService
-                ? `${selectedService.externalServiceCode}-${selectedService.externalServiceEditionCode}-${selectedService.serviceName}`
-                : ''
+                ? mapAltinn2LinkServiceToSelectOption([selectedService]).map((ls) => ls.value)
+                : undefined
             }
             label={t('resourceadm.dashboard_import_modal_select_service')}
-          />
+            onValueChange={(newValue: string[]) => {
+              if (newValue?.length) {
+                handleSelectService(newValue[0]);
+              }
+            }}
+          >
+            {mapAltinn2LinkServiceToSelectOption(altinn2LinkServices).map((ls) => {
+              return (
+                <Combobox.Option key={ls.value} value={ls.value}>
+                  {ls.label}
+                </Combobox.Option>
+              );
+            })}
+          </Combobox>
           {selectedService && (
             <ResourceContent
               altinn2LinkService={selectedService}
