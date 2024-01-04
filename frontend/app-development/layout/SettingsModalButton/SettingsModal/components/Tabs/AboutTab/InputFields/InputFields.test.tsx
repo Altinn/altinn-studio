@@ -49,25 +49,40 @@ describe('InputFields', () => {
     expect(altId).toHaveValue(`${mockAppConfig.serviceId}${mockNewText}`);
   });
 
-  it('calls onSave when "AppName" input field is blurred and it is valid', async () => {
+  describe('InputFields Validation', () => {
     const user = userEvent.setup();
-    render(<InputFields {...defaultProps} />);
-    const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
+    const appNameLabel = textMock('settings_modal.about_tab_name_label');
 
-    await act(() => user.type(appName, mockNewText));
-    await act(() => user.tab());
-    expect(mockOnSave).toHaveBeenCalledTimes(1);
-  });
+    it('should save changes when the form is valid', async () => {
+      render(<InputFields {...defaultProps} />);
+      const appName = screen.getByLabelText(appNameLabel);
 
-  it('does not call onSave when "AppName" input field is blurred and it is invalid', async () => {
-    const user = userEvent.setup();
-    render(<InputFields {...defaultProps} />);
-    const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
+      await act(() => user.type(appName, mockNewText));
+      await act(() => user.tab());
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+    });
 
-    await act(() => user.clear(appName));
-    await act(() => user.tab());
+    it('should not save changes when form is invalid', async () => {
+      render(<InputFields {...defaultProps} />);
+      const appName = screen.getByLabelText(appNameLabel);
 
-    expect(mockOnSave).toHaveBeenCalledTimes(0);
-    expect(screen.getByText(textMock('settings_modal.about_tab_name_error'))).toBeInTheDocument();
+      await act(() => user.clear(appName));
+      await act(() => user.tab());
+      expect(mockOnSave).toHaveBeenCalledTimes(0);
+    });
+
+    it('should toggle error message based on form validation', async () => {
+      render(<InputFields {...defaultProps} />);
+      const appName = screen.getByLabelText(appNameLabel);
+      const errorMessage = textMock('settings_modal.about_tab_name_error');
+
+      await act(() => user.clear(appName));
+      await act(() => user.tab());
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+
+      await act(() => user.type(appName, mockNewText));
+      await act(() => user.tab());
+      expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
+    });
   });
 });
