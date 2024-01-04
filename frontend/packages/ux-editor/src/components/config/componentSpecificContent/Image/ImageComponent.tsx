@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, Textfield } from '@digdir/design-system-react';
+import { LegacySelect, Textfield } from '@digdir/design-system-react';
 import { Fieldset } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
@@ -118,7 +118,7 @@ export const ImageComponent = ({
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
           renderField={({ fieldProps }) => (
-            <Select {...fieldProps} options={alignOptions} inputId={placementSelectId} />
+            <LegacySelect {...fieldProps} options={alignOptions} inputId={placementSelectId} />
           )}
         />
       </div>

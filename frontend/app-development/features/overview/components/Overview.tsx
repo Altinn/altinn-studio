@@ -12,6 +12,8 @@ import { Navigation } from './Navigation';
 import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import { StudioCenter, StudioSpinner } from '@studio/components';
+import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
 
 export const Overview = () => {
   const { org, app } = useStudioUrlParams();
@@ -20,7 +22,7 @@ export const Overview = () => {
     isPending: isPendingOrgs,
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
-
+  const { data: repository } = useRepoMetadataQuery(org, app);
   const selectedOrg = orgs?.orgs[org];
   const hasEnvironments = selectedOrg?.environments?.length > 0;
 
@@ -43,19 +45,23 @@ export const Overview = () => {
     );
   }
 
+  // If repo-owner is an organisation
+  const repoOwnerIsOrg = orgs && Object.keys(orgs.orgs).includes(repository?.owner.login);
+
   return (
     <PageContainer>
-      <div className={classes.container}>
-        <header className={classes.header}>
-          <Heading size='xlarge'>{appConfigData?.serviceName || app}</Heading>
+      <main className={classes.container}>
+        <header className={classes.header} role='generic'>
+          {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
+          <Heading level={1} size='xlarge'>{appConfigData?.serviceName || app}</Heading>
         </header>
         <div className={classes.panel}>
           <div className={classes.content}>
-            <main className={classes.main}>
+            <div className={classes.main}>
               <section className={classes.mainSection}>
-                <AppEnvironments />
+                {repoOwnerIsOrg ? <AppEnvironments /> : <RepoOwnedByPersonInfo />}
               </section>
-              {hasEnvironments && (
+              {repoOwnerIsOrg && hasEnvironments && (
                 <section className={classes.mainSection}>
                   <AppLogs />
                 </section>
@@ -63,7 +69,7 @@ export const Overview = () => {
               <section className={classes.mainSection}>
                 <Navigation />
               </section>
-            </main>
+            </div>
             <aside className={classes.aside}>
               <section className={classes.asideSection}>
                 <Documentation />
@@ -77,7 +83,7 @@ export const Overview = () => {
             <Link href='/contact'>{t('general.contact')}</Link>
           </footer>
         </div>
-      </div>
+      </main>
     </PageContainer>
   );
 };

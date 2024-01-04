@@ -5,6 +5,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { queriesMock } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
+import { privateRepositoryMock, repositoryMock } from '../../../test/repositoryMock';
 
 // Test data
 const org = 'org';
@@ -28,12 +29,13 @@ describe('Overview', () => {
   it('renders component', async () => {
     render({
       getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),
-      getOrgList: jest.fn().mockImplementation(() => Promise.resolve({ orgs: [] })),
+      getOrgList: jest.fn().mockImplementation(() => Promise.resolve({ orgs: [org] })),
       getAppConfig: jest.fn().mockImplementation(() =>
         Promise.resolve({
           serviceName: title,
         }),
       ),
+      getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve(repositoryMock)),
     });
 
     expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument();
@@ -55,14 +57,6 @@ describe('Overview', () => {
 
   it('should display AppLogs if environments exist', async () => {
     render({
-      getAppConfig: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          repositoryName: app,
-          serviceName: app,
-          serviceId: null,
-          serviceDescription: null,
-        }),
-      ),
       getOrgList: jest.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {
@@ -72,6 +66,7 @@ describe('Overview', () => {
           },
         }),
       ),
+      getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve(repositoryMock)),
       getDeployments: jest.fn().mockImplementation(() =>
         Promise.resolve({
           results: [
@@ -94,37 +89,43 @@ describe('Overview', () => {
           ],
         }),
       ),
-      getEnvironments: jest.fn().mockImplementation(() =>
-        Promise.resolve([
-          {
-            appsUrl: '',
-            platformUrl: '',
-            hostname: '',
-            appPrefix: '',
-            platformPrefix: '',
-            name: '',
-            type: '',
-          },
-        ]),
-      ),
+      getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([{}])),
     });
     expect(
       await screen.findByRole('heading', { name: textMock('overview.activity') }),
     ).toBeInTheDocument();
   });
 
-  it('should not display AppLogs if environments do not exist', async () => {
+  it('should not display AppLogs if environments do not exist for repo owned by org', async () => {
     render({
-      getAppConfig: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve(repositoryMock)),
+      getOrgList: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          orgs: {
+            [org]: {
+              environments: [],
+            },
+          },
+        }),
+      ),
+      getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),
+    });
+    expect(await screen.findByText(textMock('app_publish.no_env_title'))).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: textMock('overview.activity') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should display RepoOwnedByPersonInfo if repo is not owned by an org', async () => {
+    render({
       getOrgList: jest.fn().mockImplementation(() =>
         Promise.resolve({
           orgs: {},
         }),
       ),
+      getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve(privateRepositoryMock)),
     });
-    expect(
-      screen.queryByRole('heading', { name: textMock('overview.activity') }),
-    ).not.toBeInTheDocument();
+    expect(await screen.findByText(textMock('app_publish.private_app_owner'))).toBeInTheDocument();
   });
 });
 

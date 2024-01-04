@@ -5,12 +5,12 @@ import { MigrationStep } from 'resourceadm/components/MigrationStep';
 import {
   Button,
   Textfield,
-  Select,
   Heading,
   Paragraph,
   Spinner,
   Label,
   Link,
+  LegacySelect,
 } from '@digdir/design-system-react';
 import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
@@ -134,7 +134,7 @@ export const MigrationPage = ({
           </Label>
           <Paragraph size='small'>{t('resourceadm.migration_select_environment_body')}</Paragraph>
           <div className={classes.selectEnv}>
-            <Select
+            <LegacySelect
               label={t('resourceadm.migration_select_environment_label')}
               hideLabel
               options={envOptions}

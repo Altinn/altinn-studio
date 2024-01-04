@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
-import { Button, Select } from '@digdir/design-system-react';
+import { Button, LegacySelect } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { EnvironmentType } from 'resourceadm/types/EnvironmentType';
 import { useNavigate } from 'react-router-dom';
@@ -92,7 +92,7 @@ export const ImportResourceModal = ({
       contentClassName={classes.contentWidth}
     >
       <div className={classes.dropdownWraper}>
-        <Select
+        <LegacySelect
           options={environmentOptions.map((e) => ({ value: e, label: e }))}
           onChange={(e: EnvironmentType) => setSelectedEnv(e)}
           value={selectedEnv}
