@@ -1,12 +1,12 @@
 .headingWrapper {
   display: flex;
   align-items: center;
-  padding-block: 10px;
-  padding-inline: 32px;
+  padding-block: var(--fds-spacing-2);
+  padding-inline: var(--fds-spacing-8);
 }
 
 .content {
-  min-width: 600px;
-  padding-inline: 32px;
-  padding-bottom: 32px;
+  min-width: 37.5rem;
+  padding-inline: var(--fds-spacing-8);
+  padding-bottom: var(--fds-spacing-8);
 }

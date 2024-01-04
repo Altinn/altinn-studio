@@ -43,35 +43,29 @@ export const ResourceDeployEnvCard = ({
         <Spinner title={t('resourceadm.deploy_deploying')}></Spinner>
       ) : (
         <>
-          <Paragraph size='small' className={classes.envName}>
+          <Paragraph size='small'>
             <strong>{envName}</strong>
           </Paragraph>
-          <Paragraph size='small' className={classes.versionNumberText}>
-            {t('resourceadm.deploy_version_number_text')}
-          </Paragraph>
+          <Paragraph size='small'>{t('resourceadm.deploy_version_number_text')}</Paragraph>
           <div className={classes.envWrapper}>
             <Tag color='neutral' variant='secondary' size='small'>
               {currentEnvVersion}
             </Tag>
             {newEnvVersion && (
               <>
-                <div className={classes.arrowWrapper}>
-                  <ArrowRightIcon
-                    title={t('resourceadm.deploy_card_arrow_icon', { env: envName })}
-                    fontSize='1.5rem'
-                  />
-                </div>
+                <ArrowRightIcon
+                  title={t('resourceadm.deploy_card_arrow_icon', { env: envName })}
+                  fontSize='1.5rem'
+                />
                 <Tag color='success' variant='secondary' size='small'>
                   {newEnvVersion}
                 </Tag>
               </>
             )}
           </div>
-          <div className={classes.buttonWrapper}>
-            <Button disabled={!isDeployPossible} onClick={onClick} size='small'>
-              {t('resourceadm.deploy_card_publish', { env: envName })}
-            </Button>
-          </div>
+          <Button disabled={!isDeployPossible} onClick={onClick} size='small'>
+            {t('resourceadm.deploy_card_publish', { env: envName })}
+          </Button>
         </>
       )}
     </div>
