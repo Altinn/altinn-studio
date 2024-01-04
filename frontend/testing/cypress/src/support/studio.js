@@ -93,6 +93,10 @@ Cypress.Commands.add('searchAndOpenApp', (appName) => {
     .click();
 });
 
+Cypress.Commands.add('goToApp', (userName, appName) => {
+  cy.visit(`/editor/${userName}/${appName}`);
+});
+
 /**
  * Select an element in the application list
  */
