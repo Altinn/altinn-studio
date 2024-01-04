@@ -1,10 +1,9 @@
 .contentWrapper {
-  padding: 40px;
-  width: calc(var(--modal-max-width) - var(--modal-border-size));
-  height: calc(
-    var(--modal-content-max-height) - var(--heading-height) - var(--modal-border-radius)
-  );
-  overflow: scroll;
+  box-sizing: border-box;
+  padding: var(--fds-spacing-8);
+  height: 70vh;
+  width: 70vw;
+  overflow: auto;
 }
 
 .downloadIcon {
