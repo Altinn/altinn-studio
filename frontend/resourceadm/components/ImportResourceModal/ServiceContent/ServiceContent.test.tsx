@@ -105,9 +105,9 @@ describe('ServiceContent', () => {
     const user = userEvent.setup();
     await resolveAndWaitForSpinnerToDisappear();
 
-    const select = screen.getAllByLabelText(
+    const select = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
-    )[0];
+    );
     await act(() => user.click(select));
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
 

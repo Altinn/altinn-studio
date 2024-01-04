@@ -1,13 +1,14 @@
 .divider {
-  margin-top: 30px;
+  margin-top: var(--fds-spacing-7);
 }
 
 .fieldset {
-  width: 500px;
-  margin-top: 10px;
+  width: 32rem;
+  margin-top: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-3);
   position: relative;
 }
 
 .buttonWrapper {
-  margin-top: 10px;
+  margin-top: var(--fds-spacing-2);
 }
