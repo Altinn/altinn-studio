@@ -13,5 +13,5 @@
 export const focusableNodeId = (
   focusedId: string | undefined,
   selectedId: string | undefined,
-  firstItemId: string | null
-): string | null => focusedId ?? selectedId ?? firstItemId;
+  firstItemId: string | null,
+): string | null => focusedId || selectedId || firstItemId;
