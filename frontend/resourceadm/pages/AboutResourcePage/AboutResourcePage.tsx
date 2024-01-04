@@ -317,6 +317,7 @@ export const AboutResourcePage = ({
             legend={t('resourceadm.about_resource_available_for_legend')}
             description={t('resourceadm.about_resource_available_for_description')}
             showErrors={showAllErrors}
+            onFocus={() => setTranslationType('none')}
             onChange={(selected: ResourceAvailableForTypeOption[]) =>
               handleSave({ ...resourceData, availableForType: selected })
             }
@@ -325,6 +326,7 @@ export const AboutResourcePage = ({
         )}
         {resourceData.resourceType === 'MaskinportenSchema' && (
           <ResourceReferenceFields
+            onFocus={() => setTranslationType('none')}
             resourceReferenceList={resourceData.resourceReferences}
             onResourceReferenceFieldChanged={(resourceReferences: ResourceReference[]) => {
               handleSave({ ...resourceData, resourceReferences: resourceReferences });
@@ -333,6 +335,7 @@ export const AboutResourcePage = ({
           />
         )}
         <ResourceContactPointFields
+          onFocus={() => setTranslationType('none')}
           contactPointList={resourceData.contactPoints}
           onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>
             handleSave({ ...resourceData, contactPoints: contactPoints })

@@ -22,6 +22,11 @@ export type ResourceReferenceFieldsProps = {
    */
   onResourceReferenceFieldChanged: (resourceReference: ResourceReference[]) => void;
   /**
+   * Function to be executed when the field is focused
+   * @returns void
+   */
+  onFocus: () => void;
+  /**
    * If the error should be shown
    */
   showErrors: boolean;
@@ -33,6 +38,7 @@ export type ResourceReferenceFieldsProps = {
  *
  * @property {ResourceReference[]}[resourceReferenceList] - The current resource references list
  * @property {function}[onResourceReferenceFieldChanged] - Function to be executed when resource references are changed
+ * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - If the error should be shown
  *
  * @returns {React.ReactNode} - The rendered component
@@ -40,6 +46,7 @@ export type ResourceReferenceFieldsProps = {
 export const ResourceReferenceFields = ({
   resourceReferenceList,
   onResourceReferenceFieldChanged,
+  onFocus,
   showErrors,
 }: ResourceReferenceFieldsProps): React.ReactNode => {
   return (
@@ -59,6 +66,7 @@ export const ResourceReferenceFields = ({
           <ResourceReferenceFieldset
             resourceReference={item}
             onChangeResourceReferenceField={onChange}
+            onFocus={onFocus}
             showErrors={showErrors}
           />
         );

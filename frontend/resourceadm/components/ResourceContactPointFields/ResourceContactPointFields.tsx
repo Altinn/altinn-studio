@@ -23,6 +23,11 @@ export type ResourceContactPointFieldsProps = {
    */
   onContactPointsChanged: (contactPoints: ResourceContactPoint[]) => void;
   /**
+   * Function to be executed when the field is focused
+   * @returns void
+   */
+  onFocus: () => void;
+  /**
    * If the error should be shown
    */
   showErrors: boolean;
@@ -35,6 +40,7 @@ export type ResourceContactPointFieldsProps = {
  *
  * @property {ResourceContactPoint[]}[contactPointList] - The current contact point list
  * @property {function}[onContactPointsChanged] - Function to be executed when contact points are changed
+ * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - If the error should be shown
  *
  * @returns {React.ReactNode} - The rendered component
@@ -42,6 +48,7 @@ export type ResourceContactPointFieldsProps = {
 export const ResourceContactPointFields = ({
   contactPointList,
   onContactPointsChanged,
+  onFocus,
   showErrors,
 }: ResourceContactPointFieldsProps): React.ReactNode => {
   return (
@@ -64,6 +71,7 @@ export const ResourceContactPointFields = ({
           <ResourceContactPointFieldset
             contactPoint={contactPoint}
             onLeaveTextFields={onChange}
+            onFocus={onFocus}
             showErrors={showErrors}
           />
         );

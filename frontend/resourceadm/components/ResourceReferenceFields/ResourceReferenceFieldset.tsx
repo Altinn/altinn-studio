@@ -70,6 +70,11 @@ type ResourceReferenceFieldsetProps = {
    */
   onChangeResourceReferenceField: (resourceReference: ResourceReference) => void;
   /**
+   * Function to be executed when the field is focused
+   * @returns void
+   */
+  onFocus: () => void;
+  /**
    * If the error should be shown
    */
   showErrors: boolean;
@@ -81,6 +86,7 @@ type ResourceReferenceFieldsetProps = {
  *
  * @property {ResourceReference}[resourceReference] - The resourceReference to display in the fieldset
  * @property {function}[onChangeResourceReferenceField] - Function to be executed when resourceReference is changed
+ * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - If errors should be shown or not
  *
  * @returns {React.ReactNode} - The rendered component
@@ -88,6 +94,7 @@ type ResourceReferenceFieldsetProps = {
 export const ResourceReferenceFieldset = ({
   resourceReference,
   onChangeResourceReferenceField,
+  onFocus,
   showErrors,
 }: ResourceReferenceFieldsetProps): React.ReactNode => {
   const { t } = useTranslation();
@@ -116,6 +123,7 @@ export const ResourceReferenceFieldset = ({
           value={referenceSource}
           legend={t('resourceadm.about_resource_reference_source')}
           error={hasError}
+          onFocus={onFocus}
           onBlur={() => {
             onChangeResourceReferenceField({ ...resourceReference, referenceSource });
           }}
@@ -134,6 +142,7 @@ export const ResourceReferenceFieldset = ({
           value={referenceType}
           legend={t('resourceadm.about_resource_reference_type')}
           error={hasError}
+          onFocus={onFocus}
           onBlur={() => {
             onChangeResourceReferenceField({ ...resourceReference, referenceType });
           }}
@@ -152,6 +161,7 @@ export const ResourceReferenceFieldset = ({
           value={reference}
           onChange={(e) => setReference(e.target.value)}
           error={hasError}
+          onFocus={onFocus}
           onBlur={() => {
             onChangeResourceReferenceField({ ...resourceReference, reference });
           }}
