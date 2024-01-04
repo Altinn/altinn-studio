@@ -91,7 +91,7 @@ export const ResourceRadioGroup = ({
           legend={label}
           description={description}
           onFocus={onFocus}
-          error={error}
+          error={error ? <InputFieldErrorMessage message={errorText} /> : undefined}
           onBlur={() => onBlur(selected)}
         >
           {options.map((opt) => {
@@ -102,7 +102,6 @@ export const ResourceRadioGroup = ({
             );
           })}
         </Radio.Group>
-        {error && <InputFieldErrorMessage message={errorText} />}
       </div>
     </>
   );
