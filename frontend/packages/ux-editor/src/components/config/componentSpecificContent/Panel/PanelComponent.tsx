@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, Select } from '@digdir/design-system-react';
+import { Switch, LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
@@ -50,7 +50,7 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
         onChange={handleVariantClick}
         propertyPath={`${component.propertyPath}/properties/variant`}
         renderField={({ fieldProps }) => (
-          <Select
+          <LegacySelect
             {...fieldProps}
             options={Object.values(FormPanelVariant).map((value: FormPanelVariant) => ({
               label: t(`ux_editor.${value}`),

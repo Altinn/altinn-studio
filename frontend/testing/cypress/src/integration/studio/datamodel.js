@@ -15,7 +15,7 @@ context('datamodel', () => {
 
   beforeEach(() => {
     cy.visit('/dashboard');
-    cy.searchAndOpenApp(Cypress.env('designerAppName'));
+    cy.goToApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
 
     // Navigate to datamodels page and close dialog
     header.getDatamodelLink().click();
@@ -88,8 +88,10 @@ context('datamodel', () => {
     );
 
     // Delete datamodel
+    cy.findByRole('option', { name: 'datamodel' }).should('exist');
     cy.findByRole('button', { name: texts['schema_editor.delete_data_model'] }).click();
     cy.findByRole('button', { name: texts['schema_editor.confirm_deletion'] }).click();
+    cy.findByRole('option', { name: 'datamodel' }).should('not.exist');
   });
 
   it('Allows to upload and then delete an XSD file', () => {

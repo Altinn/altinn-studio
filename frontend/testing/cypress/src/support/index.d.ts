@@ -41,7 +41,7 @@ declare namespace Cypress {
 
     /**
      * Custom command to create an app from studio dashboard
-     * @example cy.createApp(ttd, testApp)
+     * @example cy.createApp(Testdepartementet, testApp)
      */
     createApp(orgName: string, appName: string): Chainable<Element>;
 
@@ -79,6 +79,11 @@ declare namespace Cypress {
      * @example cy.searchAndOpenApp('appName')
      */
     searchAndOpenApp(appName: string): Chainable<Element>;
+
+    /**
+     * Custom command to go directly to an app using url
+     */
+    goToApp(userName: string, appName: string): Chainable<Element>;
 
     /**
      * Switch selected context in dashboard

@@ -18,7 +18,8 @@
     "@mui/x-data-grid",
     "@microsoft/applicationinsights-web",
     "@microsoft/applicationinsights-react-js",
-    "Moq"
+    "Moq",
+    "Altinn.App.Core"
   ],
   "schedule": ["before 07:00 on Monday"]
 }

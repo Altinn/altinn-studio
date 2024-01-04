@@ -10,6 +10,7 @@ import classnames from 'classnames';
 import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
 import { Repository } from 'app-shared/types/Repository';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 export interface AltinnHeaderProps {
   menuItems: TopBarMenuItem[];
@@ -20,6 +21,7 @@ export interface AltinnHeaderProps {
   org: string;
   app: string;
   variant?: AltinnHeaderVariant;
+  repoOwnerIsOrg?: boolean;
   buttonActions: AltinnButtonActionItem[];
 }
 
@@ -33,9 +35,10 @@ export const AltinnHeader = ({
   subMenuContent,
   buttonActions,
   variant = 'regular',
+  repoOwnerIsOrg,
 }: AltinnHeaderProps) => {
   return (
-    <div id='altinn-header-container'>
+    <div role='banner'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
         <div className={classes.leftContent}>
           <a href='/'>
@@ -52,9 +55,11 @@ export const AltinnHeader = ({
         <div className={classes.rightContent}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>
-              {buttonActions.map((action) => (
-                <AltinnHeaderButton key={action.menuKey} action={action} />
-              ))}
+              {buttonActions.map((action) =>
+                !repoOwnerIsOrg && action.menuKey === TopBarMenu.Deploy ? null : (
+                  <AltinnHeaderButton key={action.menuKey} action={action} />
+                ),
+              )}
             </div>
           )}
           <AltinnHeaderProfile org={org} repository={repository} user={user} />

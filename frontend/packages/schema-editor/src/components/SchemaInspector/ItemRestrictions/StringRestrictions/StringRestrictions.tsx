@@ -5,11 +5,11 @@ import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
 import {
   Fieldset,
-  Select,
   LegacyTextField,
   Label,
   Switch,
   Textfield,
+  LegacySelect,
 } from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
@@ -78,7 +78,7 @@ export function StringRestrictions({
   return (
     <>
       <Divider marginless />
-      <Select
+      <LegacySelect
         inputId='format-select-input'
         label={t('format')}
         onChange={(value: string) => setRestriction(StrRestrictionKey.format, value)}

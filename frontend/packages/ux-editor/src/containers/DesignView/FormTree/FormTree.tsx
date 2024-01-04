@@ -12,13 +12,17 @@ export type FormTreeProps = {
 };
 
 export const FormTree = ({ layout }: FormTreeProps) => {
-  const { handleEdit } = useFormContext();
+  const { handleEdit, formId } = useFormContext();
   const { t } = useTranslation();
 
   const handleSelect = async (id: string) => handleEdit(getItem(layout, id));
 
   return (
-    <DragAndDropTree.Root onSelect={handleSelect} emptyMessage={t('ux_editor.container_empty')}>
+    <DragAndDropTree.Root
+      onSelect={handleSelect}
+      emptyMessage={t('ux_editor.container_empty')}
+      selectedId={formId}
+    >
       {renderItemList(layout, BASE_CONTAINER_ID)}
     </DragAndDropTree.Root>
   );
