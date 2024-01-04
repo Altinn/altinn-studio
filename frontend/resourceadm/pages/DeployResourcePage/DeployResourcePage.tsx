@@ -12,7 +12,6 @@ import {
   Alert,
   ErrorMessage,
 } from '@digdir/design-system-react';
-import { useParams } from 'react-router-dom';
 import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import type { DeployError } from 'resourceadm/types/DeployError';
 import {
@@ -25,6 +24,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { usePublishResourceMutation } from 'resourceadm/hooks/mutations';
 import { toast } from 'react-toastify';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -52,8 +52,7 @@ export const DeployResourcePage = ({
 }: DeployResourcePageProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { selectedContext, resourceId } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { selectedContext, repo, resourceId } = useUrlParams();
 
   const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
 
@@ -287,19 +286,15 @@ export const DeployResourcePage = ({
                 </Trans>
               </Paragraph>
               <div className={classes.newVersionWrapper}>
-                <div className={classes.textAndButton}>
-                  <div className={classes.textfield}>
-                    <Textfield
-                      label={t('resourceadm.deploy_version_label')}
-                      description={t('resourceadm.deploy_version_text')}
-                      size='small'
-                      value={newVersionText}
-                      onChange={(e) => setNewVersionText(e.target.value)}
-                      onBlur={() => onSaveVersion(newVersionText)}
-                      error={resourceVersionText === ''}
-                    />
-                  </div>
-                </div>
+                <Textfield
+                  label={t('resourceadm.deploy_version_label')}
+                  description={t('resourceadm.deploy_version_text')}
+                  size='small'
+                  value={newVersionText}
+                  onChange={(e) => setNewVersionText(e.target.value)}
+                  onBlur={() => onSaveVersion(newVersionText)}
+                  error={resourceVersionText === ''}
+                />
               </div>
               <Label size='medium' spacing>
                 {t('resourceadm.deploy_select_env_label')}
