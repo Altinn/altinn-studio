@@ -105,7 +105,7 @@ export const FieldsetWrapper = <T,>({
    * Render each list item with renderItem() and display a delete button for each
    */
   const displayFields = listItems.map((listItem: T, pos: number) => (
-    <div key={`${JSON.stringify(listItem)}-${pos}`} className={classes.fieldset}>
+    <div key={`${pos}/${listItems.length}`} className={classes.fieldset}>
       <div className={classes.divider} />
       {renderItem(listItem, (item: T) => {
         onChangeListItemField(item, pos);
