@@ -71,7 +71,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         {
             return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>()
-                .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 120));
+                .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
         }
 
         private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services,

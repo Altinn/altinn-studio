@@ -19,7 +19,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         private readonly IMemoryCache _memoryCache;
         private readonly int _cacheExpiryInSeconds;
 
-        public CachingDelegatingHandler(IMemoryCache memoryCache, int cacheExpiryInSeconds = 60 * 60 * 2)
+        public CachingDelegatingHandler(IMemoryCache memoryCache, int cacheExpiryInSeconds = 10 * 60)
         {
             _memoryCache = memoryCache;
             _cacheExpiryInSeconds = cacheExpiryInSeconds;
