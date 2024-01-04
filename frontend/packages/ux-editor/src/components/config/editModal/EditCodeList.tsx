@@ -55,6 +55,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               renderField={({ fieldProps }) => (
                 <LegacySelect
                   onChange={fieldProps.onChange}
+                  value={component.optionsId}
                   options={optionListIds.map((option) => ({
                     label: option,
                     value: option,
