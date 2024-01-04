@@ -1178,7 +1178,7 @@
   "sync_header.fetch_changes": "Hent endringer",
   "sync_header.fetch_changes_btn": "Pull",
   "sync_header.fetching_latest_version": "Henter den siste versjonen av appen din",
-  "sync_header.gitea_menu": "Gitea menu",
+  "sync_header.gitea_menu": "Gitea-meny",
   "sync_header.local_changes": "Lokale endringer",
   "sync_header.merge_conflict": "Mergekonflikt",
   "sync_header.merge_conflict_btn": "Løs konflikt",

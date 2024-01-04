@@ -11,7 +11,7 @@ context('Header', () => {
   });
   beforeEach(() => {
     cy.visit('/dashboard');
-    cy.visit('/editor/' + designerAppId);
+    cy.goToApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
   });
   after(() => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));

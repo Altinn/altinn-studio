@@ -7,7 +7,7 @@
   --modal-translate: calc(var(--modal-position) * -1);
   --heading-height: 60px;
   --modal-border-size: 1px;
-  --modal-border-radius: 20px;
+  --modal-border-radius: var(--fds-border_radius-medium);
   --modal-content-max-height: calc(var(--modal-max-height) - var(--heading-height)) -
     var(--modal-border-size);
 

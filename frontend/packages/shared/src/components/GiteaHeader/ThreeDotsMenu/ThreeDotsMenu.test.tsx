@@ -54,11 +54,8 @@ describe('ThreeDotsMenu', () => {
     expect(threeDotsMenu).toBeInTheDocument();
 
     await act(() => user.click(threeDotsMenu));
-    const localchangesText = await screen.findByText(localChangesTextMock);
-    expect(localchangesText).toBeInTheDocument();
-
-    await act(() => user.click(localchangesText));
-
+    const localChangesText = await screen.findByText(localChangesTextMock);
+    await act(() => user.click(localChangesText));
     const localChangesModal = screen.getByTestId(localChangesModalMock);
     expect(localChangesModal).toBeInTheDocument();
   });

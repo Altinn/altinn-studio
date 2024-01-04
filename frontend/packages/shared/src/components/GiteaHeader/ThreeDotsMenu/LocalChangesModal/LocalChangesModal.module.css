@@ -7,12 +7,12 @@
 .headingWrapper {
   display: flex;
   align-items: center;
-  padding-block: 10px;
-  padding-inline: 20px;
+  padding-block: var(--fds-spacing-1);
+  padding-inline: var(--fds-spacing-8);
 }
 
 .headingWrapper > :first-child {
-  margin-right: 10px;
+  margin-right: var(--fds-spacing-2);
 }
 
 .icon {

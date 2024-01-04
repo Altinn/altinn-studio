@@ -14,15 +14,6 @@ export type LocalChangesProps = {
   app: string;
 };
 
-/**
- * @component
- *    Displays the tab rendering the local changes for an app
- *
- * @property {string}[org] - The org
- * @property {string}[app] - The app
- *
- * @returns {ReactNode} - The rendered component
- */
 export const LocalChanges = ({ org, app }: LocalChangesProps): ReactNode => {
   const { t } = useTranslation();
 

@@ -21,10 +21,12 @@ describe('LocalChangesModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('opens and closes the modal based on isOpen prop', () => {
+  it('Close the modal when isOpen is false', () => {
     render({ isOpen: false });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
 
+  it('Open the modal when isOpen is true', () => {
     render({ isOpen: true });
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
