@@ -1,6 +1,6 @@
 .pageWrapper {
   padding-inline: 10%;
-  padding-block: 20px;
+  padding-block: var(--fds-spacing-5);
   flex-grow: 1;
 }
 
@@ -16,24 +16,20 @@
 }
 
 .verticalDivider {
-  border: 1px solid #bdbdbd;
-  height: 20px;
-  margin-inline: 10px;
+  border: 1px solid var(--fds-semantic-border-neutral-subtle);
+  height: 1.5rem;
+  margin-inline: var(--fds-spacing-2);
 }
 
 .horizontalDivider {
-  border: 1px solid #bdbdbd;
-  margin-block: 20px;
+  border: 1px solid var(--fds-semantic-border-neutral-subtle);
+  margin-block: var(--fds-spacing-5);
 }
 
 .componentWrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-block: 20px;
-  padding-block: 20px;
-}
-
-.noResultText {
-  margin-top: 20px;
+  margin-block: var(--fds-spacing-5);
+  padding-block: var(--fds-spacing-5);
 }

@@ -286,19 +286,15 @@ export const DeployResourcePage = ({
                 </Trans>
               </Paragraph>
               <div className={classes.newVersionWrapper}>
-                <div className={classes.textAndButton}>
-                  <div className={classes.textfield}>
-                    <Textfield
-                      label={t('resourceadm.deploy_version_label')}
-                      description={t('resourceadm.deploy_version_text')}
-                      size='small'
-                      value={newVersionText}
-                      onChange={(e) => setNewVersionText(e.target.value)}
-                      onBlur={() => onSaveVersion(newVersionText)}
-                      error={resourceVersionText === ''}
-                    />
-                  </div>
-                </div>
+                <Textfield
+                  label={t('resourceadm.deploy_version_label')}
+                  description={t('resourceadm.deploy_version_text')}
+                  size='small'
+                  value={newVersionText}
+                  onChange={(e) => setNewVersionText(e.target.value)}
+                  onBlur={() => onSaveVersion(newVersionText)}
+                  error={resourceVersionText === ''}
+                />
               </div>
               <Label size='medium' spacing>
                 {t('resourceadm.deploy_select_env_label')}

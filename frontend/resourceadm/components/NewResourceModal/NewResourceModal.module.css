@@ -1,11 +1,8 @@
 .buttonWrapper {
   display: flex;
   justify-content: flex-end;
-  margin-top: 10px;
-}
-
-.closeButton {
-  margin-right: 10px;
+  gap: var(--fds-spacing-2);
+  margin-top: var(--fds-spacing-2);
 }
 
 p,
@@ -14,9 +11,9 @@ h2 {
 }
 
 .resourceNameAndId {
-  margin-top: 20px;
+  margin-top: var(--fds-spacing-5);
 }
 
 .contentWidth {
-  max-width: 600px;
+  max-width: 37.5rem;
 }
