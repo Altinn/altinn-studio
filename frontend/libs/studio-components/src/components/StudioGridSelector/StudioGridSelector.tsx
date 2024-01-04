@@ -1,7 +1,12 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import classes from './StudioGridSelector.module.css';
 import cn from 'classnames';
 import { GridSize } from './types/GridSize';
+
+type OptionData = {
+  value: GridSize;
+  positionX: number;
+};
 
 type StudioGridSelectorProps = {
   disabled?: boolean;
@@ -18,16 +23,35 @@ export const StudioGridSelector = ({
   sliderValue = 12,
   handleSliderChange,
 }: StudioGridSelectorProps) => {
-  const [value, setValue] = useState<number>(sliderValue);
+  const [hoverValue, setHoverValue] = useState<number>(0);
+  const [selectedValue, setSelectedValue] = useState<number>(sliderValue);
   const gridValues: GridSize[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   useEffect(() => {
-    setValue(sliderValue);
+    setSelectedValue(sliderValue);
   }, [sliderValue]);
 
-  const optionClassName = (gridValue: number) =>
-    cn(classes.option, gridValue > value ? classes.outside : classes.inside);
+  const optionClassName = (gridValue: number) => {
+    let variableClassName = gridValue > selectedValue ? classes.outside : classes.inside;
+    if (hoverValue > 0) {
+      variableClassName = gridValue > hoverValue ? classes.outside : classes.inside;
+    }
+    return cn(classes.option, variableClassName);
+  };
 
-  const backgroundCss = 'linear-gradient(\n' + generateLinearGradient(value) + ')';
+  const backgroundCss =
+    'linear-gradient(\n' + generateLinearGradient(selectedValue, hoverValue) + ')';
+
+  const inputRef = useRef(null);
+
+  const handleHover = (event) => {
+    const dataListElement = inputRef.current.list;
+    const optionPositionsX: OptionData[] = calculateOptionPositionsX(dataListElement);
+    optionPositionsX.forEach((optionPosX) => {
+      if (optionPosX.positionX < event.clientX) {
+        setHoverValue(optionPosX.value);
+      }
+    });
+  };
 
   return (
     <div
@@ -35,6 +59,7 @@ export const StudioGridSelector = ({
       style={{ '--background': backgroundCss } as React.CSSProperties}
     >
       <input
+        ref={inputRef}
         className={classes.range}
         type='range'
         min='1'
@@ -45,8 +70,13 @@ export const StudioGridSelector = ({
         onChange={(event: ChangeEvent<HTMLInputElement>) =>
           handleSliderChange(convertToGridSize(event.target.value))
         }
-        onInput={(event: ChangeEvent<HTMLInputElement>) => setValue(parseInt(event.target.value))}
+        onInput={(event: ChangeEvent<HTMLInputElement>) => {
+          setSelectedValue(parseInt(event.target.value));
+          setHoverValue(0);
+        }}
         disabled={disabled}
+        onMouseMove={handleHover}
+        onMouseLeave={() => setHoverValue(0)}
       />
       <datalist id='gridValues'>
         {gridValues.map((gridValue) => (
@@ -62,11 +92,12 @@ export const StudioGridSelector = ({
   );
 };
 
-const generateLinearGradient = (gridValue: number): string => {
+const generateLinearGradient = (selectedGridValue: number, hoverValue: number): string => {
   const gradientLines: string[] = ['to right'];
-  const gap = '2px';
+  const gap = '1px';
   const insideColour = 'var(--selected-square-colour)';
   const outsideColour = 'var(--unselected-square-colour)';
+  const hoverColour = 'var(--hover-square-color)';
   const gapColour = 'white';
   const totalBgWidth = `(100% + ${gap})`;
 
@@ -74,7 +105,10 @@ const generateLinearGradient = (gridValue: number): string => {
     const startSquarePosition = `calc(${totalBgWidth} * ${option - 1} / 12)`;
     const endSquarePosition = `calc(${totalBgWidth} * ${option} / 12 - ${gap})`;
     const endGapPosition = `calc(${totalBgWidth} * ${option} / 12)`;
-    const squareColour = option <= gridValue ? insideColour : outsideColour;
+    let squareColour = option <= selectedGridValue ? insideColour : outsideColour;
+    if (hoverValue > 0) {
+      squareColour = option <= hoverValue ? hoverColour : outsideColour;
+    }
     const startSquareLine = `${squareColour} ${startSquarePosition}`;
     const endSquareLine = `${squareColour} ${endSquarePosition}`;
     const startGapLine = `${gapColour} ${endSquarePosition}`;
@@ -92,4 +126,16 @@ const generateLinearGradient = (gridValue: number): string => {
 const convertToGridSize = (value: string): GridSize => {
   const int = parseInt(value);
   return int as GridSize;
+};
+
+const calculateOptionPositionsX = (datalistElement): OptionData[] => {
+  if (datalistElement) {
+    return Array.from(datalistElement.options).map((option: HTMLOptionElement) => {
+      const optionRect = option.getBoundingClientRect();
+      return {
+        value: parseInt(option.value) as GridSize,
+        positionX: optionRect.x,
+      } as OptionData;
+    });
+  }
 };

@@ -5,6 +5,7 @@
   --border-radius: var(--fds-border_radius-small);
   --selected-square-colour: var(--fds-semantic-surface-action-second-default);
   --unselected-square-colour: var(--fds-semantic-surface-action-second-no_fill-active);
+  --hover-square-color: var(--fds-semantic-surface-action-hover);
   --thumb-width: calc(100% / 12);
 }
 
