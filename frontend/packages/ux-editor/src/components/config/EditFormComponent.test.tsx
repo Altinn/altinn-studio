@@ -208,7 +208,7 @@ describe('EditFormComponent', () => {
   it('should notify users when the component is unrecognized and cannot be configured in Studio', async () => {
     await render({
       componentProps: {
-        // Cast the type to avoid TypeScript error. due to components that does not exists within ComponentType.
+        // Cast the type to avoid TypeScript error due to components that does not exists within ComponentType.
         type: 'UnknownComponent' as unknown as any,
       },
     });
