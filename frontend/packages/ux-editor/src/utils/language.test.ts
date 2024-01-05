@@ -1,46 +1,56 @@
-import { getComponentHelperTextByComponentType, getComponentTitleByComponentType, getTextResource } from './language';
+import {
+  getComponentHelperTextByComponentType,
+  getComponentTitleByComponentType,
+  getTextResource,
+} from './language';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 describe('Designer > utils/language', () => {
   describe('getComponentHelperTextByComponentType', () => {
     const componentHelpTexts = {
-      'ux_editor.component_helpText.default': 'Default help text',
+      'ux_editor.component_help_text.default': 'Default help text',
     };
     Object.values(ComponentType).forEach((componentType) => {
-      componentHelpTexts[`ux_editor.component_helpText.${componentType}`] = `Help text for ${componentType}`;
+      componentHelpTexts[
+        `ux_editor.component_help_text.${componentType}`
+      ] = `Help text for ${componentType}`;
     });
 
     const { t } = mockUseTranslation(componentHelpTexts);
     it('should return specific help text when component type is known', () => {
       Object.values(ComponentType).forEach((componentType) => {
         expect(getComponentHelperTextByComponentType(componentType, t)).toBe(
-          `Help text for ${componentType}`
+          `Help text for ${componentType}`,
         );
       });
     });
 
-  it('should return default help text when component type is unknown', () => {
-    expect(getComponentHelperTextByComponentType(undefined, t)).toBe('Default help text');
+    it('should return default help text when component type is unknown', () => {
+      expect(getComponentHelperTextByComponentType(undefined, t)).toBe('Default help text');
+    });
   });
-});
 
   describe('getComponentTitleByComponentType', () => {
     const componentTitleTexts = {};
     Object.values(ComponentType).forEach((componentType) => {
-      componentTitleTexts[`ux_editor.component_title.${componentType}`] = `Title text for ${componentType}`;
+      componentTitleTexts[
+        `ux_editor.component_title.${componentType}`
+      ] = `Title text for ${componentType}`;
     });
 
     it('should return specific title text it exists', () => {
       const { t } = mockUseTranslation(componentTitleTexts);
       Object.values(ComponentType).forEach((componentType) => {
-        expect(getComponentTitleByComponentType(componentType, t)).toBe(`Title text for ${componentType}`);
+        expect(getComponentTitleByComponentType(componentType, t)).toBe(
+          `Title text for ${componentType}`,
+        );
       });
     });
 
     it('should return component type when title text does not exist', () => {
       const { t } = mockUseTranslation({
-        [`ux_editor.component_title.${ComponentType.Accordion}`]: `Title text for ${ComponentType.Accordion}`
+        [`ux_editor.component_title.${ComponentType.Accordion}`]: `Title text for ${ComponentType.Accordion}`,
       });
       expect(getComponentTitleByComponentType(ComponentType.Input, t)).toBe(ComponentType.Input);
     });
@@ -59,7 +69,7 @@ describe('Designer > utils/language', () => {
     it('should return undefined when resources are empty', () => {
       expect(getTextResource(textResource.id, [])).toBeUndefined();
     });
-    it('should return undefined when the text resource doesn\'t exist', () => {
+    it("should return undefined when the text resource doesn't exist", () => {
       expect(getTextResource('wrong-id', textResources)).toBeUndefined();
     });
   });
