@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner, Heading } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@navikt/aksel-icons';
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
  * @component
@@ -23,9 +24,8 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceDashboardPage = (): React.ReactNode => {
-  const { selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
+  const { selectedContext, repo } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
   const { t } = useTranslation();

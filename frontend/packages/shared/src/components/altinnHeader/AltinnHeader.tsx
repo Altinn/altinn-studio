@@ -38,7 +38,7 @@ export const AltinnHeader = ({
   repoOwnerIsOrg,
 }: AltinnHeaderProps) => {
   return (
-    <div id='altinn-header-container'>
+    <div role='banner'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
         <div className={classes.leftContent}>
           <a href='/'>

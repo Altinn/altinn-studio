@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
@@ -31,6 +31,7 @@ import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
 import { ResourcePartyLists } from 'resourceadm/components/ResourcePartyLists/ResourcePartyLists';
 import { PartyListDetail } from 'resourceadm/components/PartyListDetails/PartyListDetail';
 import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
  * @component
@@ -43,8 +44,7 @@ export const ResourcePage = (): React.ReactNode => {
 
   const navigate = useNavigate();
 
-  const { pageType, resourceId, selectedContext, env, listId } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { pageType, resourceId, selectedContext, repo, env, listId } = useUrlParams();
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
 

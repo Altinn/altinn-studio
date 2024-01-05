@@ -3,7 +3,7 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import { Button, Checkbox, Fieldset } from '@digdir/design-system-react';
+import { Button, Checkbox, Fieldset, Heading } from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { useTranslation } from 'react-i18next';
@@ -44,9 +44,9 @@ export const RightMenu = ({
   return (
     <aside className={classes.RightMenu__sidebar}>
       <div className={classes.RightMenu__verticalContent}>
-        <header>
-          <div className={classes['LangEditor__title-md']}>{t('schema_editor.language')}</div>
-        </header>
+        <Heading level={2} size='small'>
+          {t('schema_editor.language')}
+        </Heading>
         <div> {t('schema_editor.language_info_melding')}</div>
       </div>
       <div className={classes.RightMenu__verticalContent}>

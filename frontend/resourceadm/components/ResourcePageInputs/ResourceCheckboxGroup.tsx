@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Checkbox, Paragraph } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
@@ -70,22 +70,21 @@ export const ResourceCheckboxGroup = ({
       <div className={classes.inputWrapper}>
         <Checkbox.Group
           legend={legend}
+          description={description}
           size='small'
-          error={showErrors && value.length === 0}
+          error={
+            showErrors && value.length === 0 ? (
+              <InputFieldErrorMessage
+                message={t('resourceadm.about_resource_available_for_error_message')}
+              />
+            ) : undefined
+          }
           onChange={onChange}
           value={value}
         >
-          <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
-            {description}
-          </Paragraph>
           {displayAvailableForCheckboxes()}
         </Checkbox.Group>
       </div>
-      {showErrors && value.length === 0 && (
-        <InputFieldErrorMessage
-          message={t('resourceadm.about_resource_available_for_error_message')}
-        />
-      )}
     </>
   );
 };

@@ -81,6 +81,11 @@ declare namespace Cypress {
     searchAndOpenApp(appName: string): Chainable<Element>;
 
     /**
+     * Custom command to go directly to an app using url
+     */
+    goToApp(userName: string, appName: string): Chainable<Element>;
+
+    /**
      * Switch selected context in dashboard
      * @param context The context to switch to. Either 'self', 'all', or org user name.
      * @example cy.searchAndOpenApp('self')
