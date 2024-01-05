@@ -7,8 +7,7 @@ export const header = {
   getAvatar: () => cy.findByAltText(texts['shared.header_button_alt']),
   getCreateLink: () =>
     cy.findByRole('banner').findByRole('link', { name: texts['top_menu.create'] }),
-  getDatamodelLink: () =>
-    cy.findByRole('banner').findByRole('link', { name: texts['top_menu.datamodel'] }),
+  getDatamodelLink: () => cy.findByRole('banner').findByRole('link', { name: texts['top_menu.datamodel'] }),
   getDeployButton: () => cy.findByRole('button', { name: texts['top_menu.deploy'] }),
   getDescribeChangesField: () =>
     cy.findByRole('textbox', { name: texts['sync_header.describe_and_validate'] }),
