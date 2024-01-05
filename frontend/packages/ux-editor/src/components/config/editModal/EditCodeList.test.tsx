@@ -39,7 +39,7 @@ describe('EditCodeList', () => {
       },
     });
 
-    expect(await screen.findByText('test-2')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toHaveValue('test-2');
   });
 });
 
