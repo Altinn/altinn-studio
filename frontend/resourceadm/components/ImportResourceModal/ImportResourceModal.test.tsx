@@ -38,7 +38,7 @@ describe('ImportResourceModal', () => {
 
     const importButtonText = textMock('resourceadm.dashboard_import_modal_import_button');
     const importButton = screen.queryByRole('button', { name: importButtonText });
-    expect(importButton).not.toBeInTheDocument();
+    expect(importButton).toBeDisabled();
 
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
@@ -47,7 +47,7 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(screen.getByRole('option', { name: 'AT21' })));
 
     expect(environmentSelect).toHaveValue('AT21');
-    expect(importButton).not.toBeInTheDocument();
+    expect(importButton).toBeDisabled();
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -64,7 +64,7 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
 
     expect(serviceSelect).toHaveValue(mockOption);
-    expect(screen.getByRole('button', { name: importButtonText })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: importButtonText })).not.toBeDisabled();
   });
 
   it('calls onClose function when close button is clicked', async () => {
