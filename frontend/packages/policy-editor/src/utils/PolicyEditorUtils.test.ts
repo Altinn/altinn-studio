@@ -1,4 +1,3 @@
-import { PolicyAction, PolicyRule, PolicySubject } from '@altinn/policy-editor';
 import {
   mapPolicySubjectToSubjectTitle,
   mapResourceFromBackendToResource,
@@ -17,6 +16,7 @@ import {
 import {
   mockAction1,
   mockAction2,
+  mockAction3,
   mockActionTitle1,
   mockActionTitle2,
   mockActions,
@@ -30,6 +30,9 @@ import {
   mockResourceType1,
   mockResourecId1,
   mockRuleId1,
+  mockSubject1,
+  mockSubject2,
+  mockSubject3,
   mockSubjectBackendString1,
   mockSubjectBackendString3,
   mockSubjectTitle1,
@@ -120,85 +123,19 @@ describe('PolicyEditorUtils', () => {
       expect(result).toEqual(mockResource3);
     });
   });
-});
 
-const mockActionId1: string = 'action1';
-const mockActionId2: string = 'action2';
-const mockActionId3: string = 'action3';
-
-const mockPolicyRulesActions: PolicyRule[] = [
-  {
-    ruleId: '1',
-    description: '',
-    subject: [],
-    actions: [mockActionId1, mockActionId2],
-    resources: [],
-  },
-  {
-    ruleId: '2',
-    description: '',
-    subject: [],
-    actions: [mockActionId3],
-    resources: [],
-  },
-];
-const mockPolicyActions: PolicyAction[] = [
-  { actionId: mockActionId1, actionTitle: 'Action 1', actionDescription: '' },
-  { actionId: mockActionId2, actionTitle: 'Action 2', actionDescription: '' },
-];
-
-const mockSubjectId1: string = 'subject1';
-const mockSubjectId2: string = 'subject2';
-const mockSubjectId3: string = 'subject3';
-const mockSubjectSourceRolecode: string = 'urn:altinn:rolecode';
-const mockSubjectSourceRolecodeWithoutUrn: string = 'altinn:rolecode';
-const mockSubjectSourceOrg: string = 'urn:altinn:org';
-
-const mockPolicySubject1: PolicySubject = {
-  subjectId: mockSubjectId1,
-  subjectTitle: 'Subject 1',
-  subjectSource: mockSubjectSourceRolecode,
-  subjectDescription: '',
-};
-const mockPolicySubject2: PolicySubject = {
-  subjectId: mockSubjectId2,
-  subjectTitle: 'Subject 2',
-  subjectSource: mockSubjectSourceOrg,
-  subjectDescription: '',
-};
-const mockPolicySubjects: PolicySubject[] = [mockPolicySubject1, mockPolicySubject2];
-
-const mockSubjectString1: string = `${mockSubjectSourceRolecode}:${mockSubjectId1}`;
-
-const mockPolicyRulesSubject: PolicyRule[] = [
-  {
-    ruleId: '1',
-    description: '',
-    subject: [mockSubjectString1, `${mockSubjectSourceOrg}:${mockSubjectId2}`],
-    actions: [],
-    resources: [],
-  },
-  {
-    ruleId: '2',
-    description: '',
-    subject: [`${mockSubjectSourceRolecode}:${mockSubjectId3}`],
-    actions: [],
-    resources: [],
-  },
-];
-describe('policyTabUtils', () => {
   describe('mergeActionsFromPolicyWithActionOptions', () => {
     it('merges actions from policy rules with existing action options', () => {
       const mergedActions = mergeActionsFromPolicyWithActionOptions(
-        mockPolicyRulesActions,
-        mockPolicyActions,
+        [mockPolicyRule1],
+        [mockAction3],
       );
 
       expect(mergedActions).toHaveLength(3);
       expect(mergedActions.map((action) => action.actionId)).toEqual([
-        mockActionId1,
-        mockActionId2,
-        mockActionId3,
+        mockAction3.actionId,
+        mockAction1.actionId,
+        mockAction2.actionId,
       ]);
     });
   });
@@ -206,43 +143,43 @@ describe('policyTabUtils', () => {
   describe('mergeSubjectsFromPolicyWithSubjectOptions', () => {
     it('merges subjects from policy rules with existing subject options', () => {
       const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(
-        mockPolicyRulesSubject,
-        mockPolicySubjects,
+        [mockPolicyRule1],
+        [mockSubject2],
       );
 
       expect(mergedSubjects).toHaveLength(3);
       expect(mergedSubjects.map((subject) => subject.subjectId)).toEqual([
-        mockSubjectId1,
-        mockSubjectId2,
-        mockSubjectId3,
+        mockSubject2.subjectId,
+        mockSubject1.subjectId,
+        mockSubject3.subjectId,
       ]);
     });
   });
 
   describe('convertSubjectStringToSubjectId', () => {
     it('converts subject string to subject ID correctly', () => {
-      const subjectId = convertSubjectStringToSubjectId(mockSubjectString1);
+      const subjectId = convertSubjectStringToSubjectId(mockSubjectBackendString1);
 
-      expect(subjectId).toBe(mockSubjectId1);
+      expect(subjectId).toBe(mockSubject1.subjectId);
     });
   });
 
   describe('createNewSubjectFromSubjectString', () => {
     it('creates a new subject from subject string correctly', () => {
-      const newSubject = createNewSubjectFromSubjectString(mockSubjectString1);
+      const newSubject = createNewSubjectFromSubjectString(mockSubjectBackendString1);
 
       expect(newSubject).toEqual({
-        ...mockPolicySubject1,
-        subjectSource: mockSubjectSourceRolecodeWithoutUrn,
-        subjectTitle: mockSubjectId1,
+        ...mockSubject1,
+        subjectSource: mockSubject1.subjectSource,
+        subjectTitle: mockSubject1.subjectId,
       });
     });
   });
 
   describe('convertSubjectStringToSubjectSource', () => {
     it('converts subject string to subject source correctly', () => {
-      const subjectSource = convertSubjectStringToSubjectSource(mockSubjectString1);
-      expect(subjectSource).toBe(mockSubjectSourceRolecodeWithoutUrn);
+      const subjectSource = convertSubjectStringToSubjectSource(mockSubjectBackendString1);
+      expect(subjectSource).toBe(mockSubject1.subjectSource);
     });
   });
 });
