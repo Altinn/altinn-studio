@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux';
 import { useText } from '../../hooks';
 import { getComponentPropertyLabel } from '../../utils/language';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
+import { EditGrid } from './editModal/EditGrid';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -48,11 +49,15 @@ export const FormComponentConfig = ({
     hasCustomFileEndings,
     validFileEndings,
     children,
+    grid,
     ...rest
   } = schema.properties;
 
   // children property is not supported in component config - it should be part of container config.
-  const unsupportedPropertyKeys: string[] = getUnsupportedPropertyTypes(rest, children ? ['children'] : undefined);
+  const unsupportedPropertyKeys: string[] = getUnsupportedPropertyTypes(
+    rest,
+    children ? ['children'] : undefined,
+  );
   return (
     <>
       {id && (
@@ -98,9 +103,19 @@ export const FormComponentConfig = ({
           })}
         </>
       )}
-      {!hideUnsupported && <Heading level={3} size='xxsmall'>
-            {'Andre innstillinger'}
-          </Heading>}
+      {grid && (
+        <div>
+          <Heading level={3} size='xxsmall'>
+            {t('ux_editor.component_properties.grid')}
+          </Heading>
+          <EditGrid component={component} handleComponentChange={handleComponentUpdate} />
+        </div>
+      )}
+      {!hideUnsupported && (
+        <Heading level={3} size='xxsmall'>
+          {'Andre innstillinger'}
+        </Heading>
+      )}
       {options && optionsId && (
         <EditOptions
           component={component as any}
@@ -153,6 +168,7 @@ export const FormComponentConfig = ({
           handleComponentChange={handleComponentUpdate}
         />
       )}
+
       {Object.keys(rest).map((propertyKey) => {
         if (!rest[propertyKey]) return null;
         if (
@@ -214,19 +230,19 @@ export const FormComponentConfig = ({
                   {rest[propertyKey]?.description && (
                     <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
                   )}
-                <FormComponentConfig
-                key={propertyKey}
-                schema={rest[propertyKey]}
-                component={component[propertyKey] || {}}
-                handleComponentUpdate={(updatedComponent: FormComponent) => {
-                  handleComponentUpdate({
-                    ...component,
-                    [propertyKey]: updatedComponent,
-                  });
-                }}
-                editFormId={editFormId}
-                hideUnsupported
-              />
+                  <FormComponentConfig
+                    key={propertyKey}
+                    schema={rest[propertyKey]}
+                    component={component[propertyKey] || {}}
+                    handleComponentUpdate={(updatedComponent: FormComponent) => {
+                      handleComponentUpdate({
+                        ...component,
+                        [propertyKey]: updatedComponent,
+                      });
+                    }}
+                    editFormId={editFormId}
+                    hideUnsupported
+                  />
                 </Accordion.Content>
               </Accordion.Item>
             </Accordion>

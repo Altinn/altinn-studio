@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner, Heading } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
@@ -14,6 +14,7 @@ import { filterTableData } from 'resourceadm/utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
  * @component
@@ -22,8 +23,7 @@ import { getReposLabel } from 'dashboard/utils/repoUtils';
  * @returns {React.ReactNode} - The rendered component
  */
 export const ResourceDashboardPage = (): React.ReactNode => {
-  const { selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { selectedContext, repo } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
   const { t } = useTranslation();

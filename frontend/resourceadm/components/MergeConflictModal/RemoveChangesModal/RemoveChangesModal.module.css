@@ -1,13 +1,13 @@
 .modalHeader {
-  margin-bottom: 20px;
+  margin-bottom: var(--fds-spacing-5);
 }
 
 .textFieldWrapper {
-  margin-block: 20px;
+  margin-block: var(--fds-spacing-5);
 }
 
 .buttonWrapper {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: var(--fds-spacing-5);
 }

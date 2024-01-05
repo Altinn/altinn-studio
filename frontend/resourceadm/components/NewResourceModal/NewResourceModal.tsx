@@ -4,12 +4,13 @@ import { Button } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { replaceWhiteSpaceWithHyphens } from 'resourceadm/utils/stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 export type NewResourceModalProps = {
   isOpen: boolean;
@@ -30,8 +31,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
 
   const navigate = useNavigate();
 
-  const { selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { selectedContext, repo } = useUrlParams();
 
   const [id, setId] = useState('');
   const [title, setTitle] = useState('');
@@ -143,11 +143,9 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
         className={classes.resourceNameAndId}
       />
       <div className={classes.buttonWrapper}>
-        <div className={classes.closeButton}>
-          <Button onClick={onClose} color='first' variant='tertiary' size='small'>
-            {t('general.cancel')}
-          </Button>
-        </div>
+        <Button onClick={onClose} color='first' variant='tertiary' size='small'>
+          {t('general.cancel')}
+        </Button>
         <Button
           onClick={() =>
             !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined

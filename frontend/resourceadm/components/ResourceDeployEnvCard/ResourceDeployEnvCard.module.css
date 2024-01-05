@@ -2,31 +2,17 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 260px;
-  padding: 20px;
+  width: 16rem;
+  padding: var(--fds-spacing-5);
   margin: 0;
   background-color: var(--fds-semantic-surface-neutral-default);
   border-radius: 12px;
+  gap: var(--fds-spacing-3);
   border: solid 1px var(--fds-semantic-border-divider-default);
-}
-
-.envName {
-  margin-bottom: 10px;
-}
-
-.versionNumberText {
-  margin-bottom: 5px;
-}
-
-.buttonWrapper {
-  margin-top: 20px;
 }
 
 .envWrapper {
   display: flex;
   align-items: center;
-}
-
-.arrowWrapper {
-  padding-inline: 10px;
+  gap: var(--fds-spacing-3);
 }
