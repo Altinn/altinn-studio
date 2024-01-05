@@ -72,6 +72,7 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
         </Modal.Content>
         <Modal.Footer>
           <Button
+            size='small'
             aria-disabled={isSaveButtonDisabled}
             onClick={() => {
               if (!isSaveButtonDisabled) {
@@ -81,7 +82,7 @@ export const NewPartyListModal = forwardRef<HTMLDialogElement, NewPartyListModal
           >
             {t('resourceadm.listadmin_confirm_create_list')}
           </Button>
-          <Button variant='tertiary' onClick={() => onClose()}>
+          <Button size='small' variant='tertiary' onClick={() => onClose()}>
             {t('general.cancel')}
           </Button>
         </Modal.Footer>

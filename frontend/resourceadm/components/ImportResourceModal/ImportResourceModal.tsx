@@ -116,16 +116,17 @@ export const ImportResourceModal = ({
         />
       )}
       <div className={classes.buttonWrapper}>
+        <Button
+          onClick={handleImportResource}
+          color='first'
+          size='small'
+          disabled={!selectedEnv || !selectedService}
+        >
+          {t('resourceadm.dashboard_import_modal_import_button')}
+        </Button>
         <Button onClick={handleClose} color='first' variant='tertiary' size='small'>
           {t('general.cancel')}
         </Button>
-        {selectedEnv && selectedService && (
-          <div className={classes.importButton}>
-            <Button onClick={handleImportResource} color='first' size='small'>
-              {t('resourceadm.dashboard_import_modal_import_button')}
-            </Button>
-          </div>
-        )}
       </div>
     </Modal>
   );

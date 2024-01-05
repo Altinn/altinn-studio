@@ -1,5 +1,4 @@
 import React, { forwardRef, useState } from 'react';
-import classes from './NewResourceModal.module.css';
 import { Button, Paragraph, Modal } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
@@ -94,21 +93,19 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
           />
         </Modal.Content>
         <Modal.Footer>
-          <div className={classes.buttonWrapper}>
-            <Button onClick={handleClose} color='first' variant='tertiary' size='small'>
-              {t('general.cancel')}
-            </Button>
-            <Button
-              onClick={() =>
-                !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
-              }
-              color='first'
-              aria-disabled={id.length === 0 || title.length === 0}
-              size='small'
-            >
-              {t('resourceadm.dashboard_create_modal_create_button')}
-            </Button>
-          </div>
+          <Button
+            onClick={() =>
+              !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
+            }
+            color='first'
+            aria-disabled={id.length === 0 || title.length === 0}
+            size='small'
+          >
+            {t('resourceadm.dashboard_create_modal_create_button')}
+          </Button>
+          <Button onClick={handleClose} color='first' variant='tertiary' size='small'>
+            {t('general.cancel')}
+          </Button>
         </Modal.Footer>
       </Modal>
     );
