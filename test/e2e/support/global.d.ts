@@ -1,7 +1,7 @@
 import type { CyUser } from 'test/e2e/support/auth';
 
+import type { ILayoutSets } from 'src/layout/common.generated';
 import type { CompOrGroupExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
-import type { ILayoutSets } from 'src/types';
 
 export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist' | 'confirm';
 export type FillableFrontendTasks = Exclude<FrontendTestTask, 'message' | 'confirm'>;

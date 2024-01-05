@@ -6,6 +6,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstance } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IMapping, IOption } from 'src/layout/common.generated';
 
@@ -32,7 +33,10 @@ export const useGetOptionsQuery = (
 
   return useQuery({
     queryKey: ['fetchOptions', url],
-    queryFn: () => fetchOptions(url),
+    queryFn: async () => {
+      const result = await fetchOptions(url);
+      return { ...result, data: castOptionsToStrings(result.data) };
+    },
     enabled: !!optionsId,
   });
 };

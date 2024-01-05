@@ -3,60 +3,6 @@ import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/ty
 import type { IComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
 import type { RootState } from 'src/redux/store';
 
-export interface ILayoutSets {
-  sets: ILayoutSet[];
-  uiSettings?: Omit<IPagesSettings, 'order'>;
-}
-
-export interface ILayoutSet {
-  id: string;
-  dataType: string;
-  tasks?: string[];
-}
-
-export interface ILayoutSettings {
-  pages: IPagesSettings;
-  components?: IComponentsSettings;
-  hideCloseButton?: boolean;
-  showLanguageSelector?: boolean;
-  showExpandWidthButton?: boolean;
-  showProgress?: boolean;
-  receiptLayoutName?: string;
-}
-
-export interface IPagesSettings {
-  order: string[];
-  triggers?: Triggers[];
-  hideCloseButton?: boolean;
-  showProgress?: boolean;
-  showLanguageSelector?: boolean;
-  showExpandWidthButton?: boolean;
-  excludeFromPdf?: string[];
-  pdfLayoutName?: string;
-  autoSaveBehavior?: 'onChangePage' | 'onChangeFormData';
-}
-
-export interface IComponentsSettings {
-  excludeFromPdf?: string[];
-}
-
-export interface IRepeatingGroup {
-  // index: number;
-  // baseGroupId?: string;
-  // dataModelBinding?: string;
-  editIndex: number;
-  deletingIndex: number[];
-  multiPageIndex: number;
-}
-
-export interface IRepeatingGroups {
-  [id: string]: IRepeatingGroup;
-}
-
-export interface IRules {
-  [id: string]: () => Record<string, string>;
-}
-
 export type RuleFunc<T extends Record<string, any>> = (argObject: T) => T;
 
 export interface IRuleObject {
@@ -64,7 +10,6 @@ export interface IRuleObject {
 }
 
 export type IRuntimeState = RootState;
-export type IRuntimeStore = IRuntimeState;
 
 export interface ISimpleInstance {
   id: string;

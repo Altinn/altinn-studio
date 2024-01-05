@@ -2,6 +2,7 @@ import deepEqual from 'fast-deep-equal';
 import type { JSONSchema7 } from 'json-schema';
 
 import type { MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
+import type { SchemaFile } from 'src/codegen/SchemaFile';
 
 /**
  * This code relies on the fact that the code generator will generate one file at a time, and reset the context
@@ -55,13 +56,11 @@ export class CodeGeneratorContext {
     return { result: parts.join('\n\n') };
   }
 
-  public static async generateJsonSchema(
-    targetFile: string,
-    fn: () => JSONSchema7 | Promise<JSONSchema7>,
-  ): Promise<{ result: JSONSchema7 }> {
+  public static async generateJsonSchema(baseFilePath: string, file: SchemaFile): Promise<{ result: JSONSchema7 }> {
+    const targetFile = baseFilePath + file.getFileName();
     const instance = new CodeGeneratorFileContext(targetFile, 'jsonSchema');
     CodeGeneratorContext.fileInstance = instance;
-    const functionOutput = await fn();
+    const functionOutput = await file.getSchema();
     const symbols: SymbolTable<'jsonSchema'> = {};
     while (Object.keys(instance.symbols).length) {
       const newSymbols = instance.getSymbols(symbols);
@@ -75,29 +74,37 @@ export class CodeGeneratorContext {
       functionOutput.definitions[symbol] = symbols[symbol];
     }
 
-    //   const foundRefs = new Set<string>();
-    //   const allRefs = new Set<string>(Object.keys(schemaDefs));
-    //   for (const value of Object.values(schemaDefs)) {
-    //     const asJson = JSON.stringify(value);
-    //     const refRegex = /"\$ref":\s*"([^"]+)"/g;
-    //     const refMatches = asJson.match(refRegex);
-    //     if (refMatches) {
-    //       for (const ref of refMatches) {
-    //         const result = ref.replace('"$ref":', '').replace(/"/g, '').trim().replace('#/definitions/', '');
-    //         foundRefs.add(result);
-    //       }
-    //       // foundRefs.add(refMatches[1].replace('#/definitions/', ''));
-    //     } else if (asJson.includes('$ref')) {
-    //       throw new Error(`Could not find ref in ${asJson}`);
-    //     }
-    //   }
-    //
-    //   const notFoundRefs = [...allRefs].filter((ref) => !foundRefs.has(ref));
-    //   const notFoundExceptComponents = notFoundRefs.filter((ref) => !ref.startsWith('Comp'));
-    //   const finalSchemaDefs = structuredClone(schemaDefs);
-    //   for (const key of notFoundExceptComponents) {
-    //     delete finalSchemaDefs[key];
-    //   }
+    if (file.shouldCleanDefinitions() && functionOutput.definitions) {
+      let removedLastRound: number | undefined = undefined;
+      while (removedLastRound === undefined || removedLastRound > 0) {
+        const { definitions, ...rest } = functionOutput;
+        const foundRefs = new Set<string>();
+        const allRefs = new Set<string>(Object.keys(definitions));
+        const defs = [...Object.values(definitions), rest];
+        for (const value of defs) {
+          const asJson = JSON.stringify(value);
+          const refRegex = /"\$ref":\s*"([^"]+)"/g;
+          const refMatches = asJson.match(refRegex);
+          if (refMatches) {
+            for (const ref of refMatches) {
+              const result = ref.replace('"$ref":', '').replace(/"/g, '').trim().replace('#/definitions/', '');
+              foundRefs.add(result);
+            }
+          } else if (asJson.includes('$ref')) {
+            throw new Error(`Could not find ref in ${asJson}`);
+          }
+        }
+
+        const notFoundRefs = [...allRefs].filter((ref) => !foundRefs.has(ref));
+        const finalSchemaDefs = structuredClone(definitions);
+        removedLastRound = 0;
+        for (const key of notFoundRefs) {
+          delete finalSchemaDefs[key];
+          removedLastRound++;
+        }
+        functionOutput.definitions = finalSchemaDefs;
+      }
+    }
 
     CodeGeneratorContext.fileInstance = undefined;
 

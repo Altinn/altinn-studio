@@ -8,15 +8,7 @@ const { resolvedNodesInLayouts } = _private;
 
 describe('conditionalRendering', () => {
   beforeAll(() => {
-    const mockRuleHandlerHelper = {
-      biggerThan10: () => ({
-        number: 'number',
-      }),
-      lengthBiggerThan4: () => ({
-        value: 'value',
-      }),
-    };
-    const mockRuleHandler = {
+    window.conditionalRuleHandlerObject = {
       biggerThan10: (obj) => {
         obj.number = +obj.number;
         return obj.number > 10;
@@ -28,9 +20,6 @@ describe('conditionalRendering', () => {
         return obj.value.length >= 4;
       },
     };
-
-    window.conditionalRuleHandlerHelper = mockRuleHandlerHelper;
-    window.conditionalRuleHandlerObject = mockRuleHandler;
   });
 
   const layout: ILayout = [

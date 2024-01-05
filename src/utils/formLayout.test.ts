@@ -1,5 +1,5 @@
 import { behavesLikeDataTask } from 'src/utils/formLayout';
-import type { ILayoutSets } from 'src/types';
+import type { ILayoutSets } from 'src/layout/common.generated';
 
 describe('behavesLikeDataTask', () => {
   const layoutSets: ILayoutSets = {

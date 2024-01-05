@@ -1,11 +1,14 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { JSONSchema7 } from 'json-schema';
 
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
-import { generateAllCommonTypes, generateCommonSchema, generateCommonTypeScript } from 'src/codegen/Common';
+import { generateAllCommonTypes, generateCommonTypeScript } from 'src/codegen/Common';
+import { LayoutSchemaV1 } from 'src/codegen/schemas/layout.schema.v1';
+import { LayoutSetsSchemaV1 } from 'src/codegen/schemas/layout-sets.schema.v1';
+import { LayoutSettingsSchemaV1 } from 'src/codegen/schemas/layoutSettings.schema.v1';
 import { saveFile, saveTsFile } from 'src/codegen/tools';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
+import type { SchemaFileProps } from 'src/codegen/SchemaFile';
 
 async function getComponentList() {
   const out: { [folder: string]: string } = {};
@@ -73,19 +76,19 @@ async function getComponentList() {
     promises.push(saveTsFile(tsPathDef, defClass));
   }
 
-  const schemaPath = 'schemas/json/layout/layout.schema.v1.json';
-  const schema = await CodeGeneratorContext.generateJsonSchema(schemaPath, () => {
-    generateCommonSchema();
-    const base = generateFullSchema(sortedKeys, componentList);
-    for (const key of sortedKeys) {
-      const config = configMap[key];
-      base.definitions = base.definitions || {};
-      base.definitions[`Comp${key}`] = config.toJsonSchema();
-    }
+  const schemaProps: SchemaFileProps = { configMap, componentList, sortedKeys };
+  const schemas = [
+    new LayoutSchemaV1(schemaProps),
+    new LayoutSetsSchemaV1(schemaProps),
+    new LayoutSettingsSchemaV1(schemaProps),
+  ];
 
-    return base;
-  });
-  promises.push(saveFile(schemaPath, JSON.stringify(schema.result, null, 2)));
+  const schemaPathBase = 'schemas/json/';
+  for (const file of schemas) {
+    const schemaPath = schemaPathBase + file.getFileName();
+    const schema = await CodeGeneratorContext.generateJsonSchema(schemaPathBase, file);
+    promises.push(saveFile(schemaPath, JSON.stringify(schema.result, null, 2)));
+  }
 
   const commonTsPath = 'src/layout/common.generated.ts';
   promises.push(
@@ -100,27 +103,3 @@ async function getComponentList() {
 
   await Promise.all(promises);
 })();
-
-function generateFullSchema(sortedKeys: string[], componentList: { [p: string]: string }): JSONSchema7 {
-  return {
-    $ref: '#/definitions/ILayoutFile',
-    definitions: {
-      AnyComponent: {
-        type: 'object',
-        properties: {
-          type: {
-            // This is a trick to make the type property required, but still override the type with a const value
-            // in each of the component schemas (not normally possible with this code generator)
-            title: 'Type',
-            description: 'The component type',
-            enum: sortedKeys.map((key) => componentList[key]),
-          },
-        },
-        allOf: sortedKeys.map((key) => ({
-          if: { properties: { type: { const: componentList[key] } } },
-          then: { $ref: `#/definitions/Comp${key}` },
-        })),
-      },
-    },
-  };
-}

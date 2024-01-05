@@ -17,33 +17,22 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
 
-const defaultSelectedOptions: string[] = [];
-
 export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: ICheckboxContainerProps) => {
-  const { id, layout, readOnly, textResourceBindings, dataModelBindings, required, labelSettings, alertOnChange } =
-    node.item;
+  const { id, layout, readOnly, textResourceBindings, required, labelSettings, alertOnChange } = node.item;
   const { langAsString } = useLanguage();
 
-  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
-  const setData = FD.useSetForBindings(dataModelBindings);
   const debounce = FD.useDebounceImmediately();
 
-  const selected = value && value.length > 0 ? value.split(',') : defaultSelectedOptions;
-  const { options: calculatedOptions, isFetching } = useGetOptions({
+  const {
+    options: calculatedOptions,
+    isFetching,
+    setData,
+    current,
+    currentStringy,
+  } = useGetOptions({
+    valueType: 'multi',
     ...node.item,
     node,
-    metadata: {
-      setValue: (metadata) => {
-        setData('metadata', metadata);
-      },
-    },
-    formData: {
-      type: 'multi',
-      values: selected,
-      setValues: (values) => {
-        setData('simpleBinding', values.join(','));
-      },
-    },
   });
 
   const labelTextGroup = (
@@ -85,7 +74,7 @@ export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: I
         hideLegend={overrideDisplay?.renderLegend === false}
         error={!isValid}
         aria-label={ariaLabel}
-        value={selected}
+        value={currentStringy}
         data-testid='checkboxes-fieldset'
       >
         {calculatedOptions.map((option) => (
@@ -95,10 +84,10 @@ export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: I
             option={option}
             hideLabel={hideLabel}
             alertOnChange={alertOnChange}
-            selected={selected}
-            value={value || ''}
-            setValue={(newValue) => {
-              setData('simpleBinding', newValue);
+            checked={current.includes(option)}
+            setChecked={(isChecked) => {
+              const newData = isChecked ? [...current, option] : current.filter((o) => o !== option);
+              setData(newData);
             }}
           />
         ))}

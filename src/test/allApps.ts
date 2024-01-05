@@ -4,9 +4,8 @@ import path from 'node:path';
 
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
-import type { ILayoutFileExternal } from 'src/layout/common.generated';
+import type { ILayoutFileExternal, ILayoutSet, ILayoutSets } from 'src/layout/common.generated';
 import type { ILayouts } from 'src/layout/layout';
-import type { ILayoutSet, ILayoutSets } from 'src/types';
 import type { IDataType } from 'src/types/shared';
 
 interface AppLayoutSet {

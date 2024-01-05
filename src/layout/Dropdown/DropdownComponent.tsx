@@ -12,27 +12,16 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
 
 export function DropdownComponent({ node, isValid, overrideDisplay }: IDropdownProps) {
-  const { id, readOnly, textResourceBindings, dataModelBindings } = node.item;
+  const { id, readOnly, textResourceBindings } = node.item;
   const { langAsString } = useLanguage();
 
-  const saveValue = FD.useSetForBindings(dataModelBindings);
   const debounce = FD.useDebounceImmediately();
-  const selected = FD.usePickFreshString(dataModelBindings?.simpleBinding);
 
-  const { options, isFetching } = useGetOptions({
+  const { options, isFetching, currentStringy, setData } = useGetOptions({
     ...node.item,
     node,
-    metadata: {
-      setValue: (metadata) => {
-        saveValue('metadata', metadata);
-      },
-    },
-    formData: {
-      type: 'single',
-      value: selected,
-      setValue: (newValue) => saveValue('simpleBinding', newValue),
-    },
     removeDuplicates: true,
+    valueType: 'single',
   });
 
   const formattedOptions = useFormattedOptions(options);
@@ -46,9 +35,9 @@ export function DropdownComponent({ node, isValid, overrideDisplay }: IDropdownP
       label={langAsString('general.choose')}
       hideLabel={true}
       inputId={id}
-      onChange={(newValue) => saveValue('simpleBinding', newValue)}
+      onChange={(newValue) => setData(newValue)}
       onBlur={debounce}
-      value={selected}
+      value={currentStringy}
       disabled={readOnly}
       error={!isValid}
       options={formattedOptions}

@@ -5,14 +5,14 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
-import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useNodes } from 'src/utils/layout/NodesContext';
 
 export const DevNavigationButtons = () => {
   const { navigateToPage, currentPageId } = useNavigatePage();
   const { hidden } = usePageNavigationContext();
-  const { orderWithHidden } = useUiConfigContext();
+  const orderWithHidden = useLayoutSettings().pages.order;
   const ctx = useNodes();
   const order = orderWithHidden ?? [];
   const allPages = ctx?.allPageKeys() || [];

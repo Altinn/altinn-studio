@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
@@ -7,14 +7,10 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
-import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { getRuleModelFields } from 'src/utils/rules';
 
 const RULES_SCRIPT_ID = 'rules-script';
 
 const useRulesQuery = () => {
-  const dispatch = useAppDispatch();
   const { fetchRuleHandler } = useAppQueries();
   const layoutSetId = useCurrentLayoutSetId();
 
@@ -27,26 +23,17 @@ const useRulesQuery = () => {
     },
   });
 
-  const ruleModelFields = useMemo(() => {
+  useEffect(() => {
+    clearExistingRules();
     if (utils.data) {
-      clearExistingRules();
       const rulesScript = window.document.createElement('script');
       rulesScript.innerHTML = utils.data;
       rulesScript.id = RULES_SCRIPT_ID;
       window.document.body.appendChild(rulesScript);
-      const ruleModelFields = getRuleModelFields();
-
-      dispatch(FormRulesActions.fetchFulfilled({ ruleModel: ruleModelFields }));
-      return ruleModelFields;
     }
+  }, [utils.data]);
 
-    return null;
-  }, [dispatch, utils.data]);
-
-  return {
-    ...utils,
-    data: ruleModelFields,
-  };
+  return utils;
 };
 
 function clearExistingRules() {
@@ -56,7 +43,7 @@ function clearExistingRules() {
   }
 }
 
-const { Provider, useCtx } = delayedContext(() =>
+const { Provider } = delayedContext(() =>
   createQueryContext({
     name: 'RulesContext',
     required: true,
@@ -65,4 +52,3 @@ const { Provider, useCtx } = delayedContext(() =>
 );
 
 export const RulesProvider = Provider;
-export const useRuleModelFields = () => useCtx();

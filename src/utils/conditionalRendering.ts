@@ -13,7 +13,7 @@ export function runConditionalRenderingRules(
   nodes: LayoutPages,
 ): Set<string> {
   const componentsToHide = new Set<string>();
-  if (!window.conditionalRuleHandlerHelper) {
+  if (!window.conditionalRuleHandlerObject) {
     // rules have not been initialized
     return componentsToHide;
   }
@@ -61,11 +61,11 @@ function runConditionalRenderingRule(
   hiddenFields: Set<string>,
 ) {
   const functionToRun = rule.selectedFunction;
-  const objectToUpdate = window.conditionalRuleHandlerHelper[functionToRun]();
+  const inputKeys = Object.keys(rule.inputParams);
   const formData = node?.getDataSources().formData || {};
 
   const inputObj = {} as Record<string, string | number | boolean | null>;
-  for (const key of Object.keys(objectToUpdate)) {
+  for (const key of inputKeys) {
     const param = rule.inputParams[key].replace(/{\d+}/g, '');
     const transposed = node?.transposeDataModel(param) ?? param;
     const value = dot.pick(transposed, formData);

@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
-
 import { pick } from 'dot-object';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { asExpression } from 'src/features/expressions/validation';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAppSelector } from 'src/hooks/useAppSelector';
-import { convertDataBindingToModel, getKeyWithoutIndexIndicators } from 'src/utils/databindings';
+import { useAsRef } from 'src/hooks/useAsRef';
+import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
 import { memoize } from 'src/utils/memoize';
@@ -21,8 +22,18 @@ interface IUseSourceOptionsArgs {
 
 export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOption[] | undefined => {
   const dataSources = useAppSelector(selectDataSourcesFromState);
+  // Hack to make sure langTools use the correct text resources in unit tests (the ones from the query/context, not
+  // the ones from the redux store). Remove this when redux is removed.
+  const language = useLanguage();
+  if (window.inUnitTest) {
+    dataSources.langTools = language;
+  }
+  const nodeAsRef = useAsRef(node);
 
-  return useMemo(() => getSourceOptions({ source, node, dataSources }), [source, node, dataSources]);
+  return useMemoDeepEqual(
+    () => getSourceOptions({ source, node: nodeAsRef.current, dataSources }),
+    [source, nodeAsRef, dataSources],
+  );
 };
 
 interface IGetSourceOptionsArgs extends IUseSourceOptionsArgs {
@@ -39,11 +50,10 @@ export function getSourceOptions({ source, node, dataSources }: IGetSourceOption
   const cleanValue = getKeyWithoutIndexIndicators(value);
   const cleanGroup = getKeyWithoutIndexIndicators(group);
   const groupPath = node.transposeDataModel(cleanGroup) || group;
-  const formDataAsObject = convertDataBindingToModel(formData);
   const output: IOption[] = [];
 
   if (groupPath) {
-    const groupData = pick(groupPath, formDataAsObject);
+    const groupData = pick(groupPath, formData);
     if (groupData && Array.isArray(groupData)) {
       for (const idx in groupData) {
         const path = `${groupPath}[${idx}]`;
@@ -81,22 +91,25 @@ export function getSourceOptions({ source, node, dataSources }: IGetSourceOption
         const helpTextExpression = memoizedAsExpression(helpText, config);
 
         output.push({
-          value: pick(valuePath, formDataAsObject),
-          label: !Array.isArray(label)
-            ? langTools.langAsStringUsingPathInDataModel(label, path)
-            : Array.isArray(labelExpression)
-              ? evalExpr(labelExpression, node, modifiedDataSources)
-              : null,
-          description: !Array.isArray(description)
-            ? langTools.langAsStringUsingPathInDataModel(description, path)
-            : Array.isArray(descriptionExpression)
-              ? evalExpr(descriptionExpression, node, modifiedDataSources)
-              : null,
-          helpText: !Array.isArray(helpText)
-            ? langTools.langAsStringUsingPathInDataModel(helpText, path)
-            : Array.isArray(helpTextExpression)
-              ? evalExpr(helpTextExpression, node, modifiedDataSources)
-              : null,
+          value: String(pick(valuePath, formData)),
+          label:
+            label && !Array.isArray(label)
+              ? langTools.langAsStringUsingPathInDataModel(label, path)
+              : Array.isArray(labelExpression)
+                ? evalExpr(labelExpression, node, modifiedDataSources)
+                : undefined,
+          description:
+            description && !Array.isArray(description)
+              ? langTools.langAsStringUsingPathInDataModel(description, path)
+              : Array.isArray(descriptionExpression)
+                ? evalExpr(descriptionExpression, node, modifiedDataSources)
+                : undefined,
+          helpText:
+            helpText && !Array.isArray(helpText)
+              ? langTools.langAsStringUsingPathInDataModel(helpText, path)
+              : Array.isArray(helpTextExpression)
+                ? evalExpr(helpTextExpression, node, modifiedDataSources)
+                : undefined,
         });
       }
     }

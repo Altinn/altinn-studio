@@ -16,7 +16,7 @@ export class RadioButtons extends RadioButtonsDef {
   }
 
   getDisplayData(node: LayoutNode<'RadioButtons'>, { langTools, options }: DisplayDataProps): string {
-    const value = node.getFormData().simpleBinding ?? '';
+    const value = String(node.getFormData().simpleBinding ?? '');
     const optionList = options[node.item.id] || [];
     return getSelectedValueToText(value, langTools, optionList) || '';
   }

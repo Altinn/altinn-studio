@@ -7,7 +7,7 @@ import { createValidator, getSchemaValidationErrors } from 'src/utils/validation
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IJsonSchemas } from 'src/features/datamodel';
 import type { IFormData } from 'src/features/formData';
-import type { ILayoutSets } from 'src/types';
+import type { ILayoutSets } from 'src/layout/common.generated';
 import type { IDataType, IInstance, IProcess, ITask } from 'src/types/shared';
 
 function runGetSchemaValidationErrors(formData: IFormData, schema: object) {

@@ -16,33 +16,18 @@ interface IWrappedCheckboxProps {
   option: IOption;
   hideLabel?: boolean;
   alertOnChange?: boolean;
-  selected: string[];
-  value: string;
-  setValue: (value: string) => void;
+  checked: boolean;
+  setChecked: (checked: boolean) => void;
 }
 
-export function WrappedCheckbox({
-  id,
-  option,
-  hideLabel,
-  alertOnChange,
-  selected,
-  value,
-  setValue,
-}: IWrappedCheckboxProps) {
+export function WrappedCheckbox({ id, option, hideLabel, alertOnChange, checked, setChecked }: IWrappedCheckboxProps) {
   const { langAsString, elementAsString } = useLanguage();
-
-  const handleCheckboxStateChange = (isChecked: boolean) => {
-    const checkedItems = isChecked ? [...selected, option.value] : selected.filter((item) => item !== option.value);
-    const checkedItemsString = checkedItems.join(',');
-    checkedItemsString !== value && setValue(checkedItems.join(','));
-  };
 
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange } = useAlertOnChange(
     Boolean(alertOnChange),
-    handleCheckboxStateChange,
+    setChecked,
     // Only alert when unchecking
-    (isChecked) => isChecked === false,
+    (isChecked) => !isChecked,
   );
 
   return (
@@ -67,7 +52,7 @@ export function WrappedCheckbox({
         name={option.value}
         description={option.description && <Lang id={option.description} />}
         value={option.value}
-        checked={selected.includes(option.value)}
+        checked={checked}
         size='small'
         onChange={(e) => handleChange(e.target.checked)}
       >

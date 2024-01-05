@@ -7,6 +7,7 @@ import {
   shouldUpdate,
 } from 'src/features/form/dynamics/conditionalRenderingSagas';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { useHiddenLayoutsExpressions } from 'src/features/form/layout/LayoutsContext';
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useAppDispatch } from 'src/hooks/useAppDispatch';
@@ -93,7 +94,8 @@ function useLegacyHiddenComponents(resolvedNodes: LayoutPages | undefined) {
   const rules = useAppSelector((state) => state.formDynamics.conditionalRendering);
   const _dataSources = useAppSelector(selectDataSourcesFromState);
   const dataSources: HierarchyDataSources = useMemo(() => ({ ..._dataSources, formData }), [_dataSources, formData]);
-  const { setHiddenPages, hidden, hiddenExpr } = usePageNavigationContext();
+  const { setHiddenPages, hidden } = usePageNavigationContext();
+  const hiddenExpr = useHiddenLayoutsExpressions();
   const dispatch = useAppDispatch();
 
   useEffect(() => {

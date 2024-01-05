@@ -1,5 +1,5 @@
 import { LayoutStyle } from 'src/layout/common.generated';
-import type { ILayoutSet, ILayoutSets } from 'src/types';
+import type { ILayoutSet, ILayoutSets } from 'src/layout/common.generated';
 import type { IProcess } from 'src/types/shared';
 
 export function getLayoutSetForDataElement(

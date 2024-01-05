@@ -3,7 +3,7 @@ import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
 import type { IApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/index';
-import type { ILayoutSets } from 'src/types';
+import type { ILayoutSets } from 'src/layout/common.generated';
 import type { IInstance, IProcess } from 'src/types/shared';
 
 interface TheCommonThreeProps {

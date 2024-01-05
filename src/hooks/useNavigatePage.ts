@@ -5,8 +5,7 @@ import type { NavigateOptions } from 'react-router-dom';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useIsStatelessApp } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useHiddenPages } from 'src/features/form/layout/PageNavigationContext';
-import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
-import { useLaxLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useLaxLayoutSettings, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
 import { ProcessTaskType } from 'src/types';
@@ -41,6 +40,8 @@ export const useNavigationParams = () => {
   };
 };
 
+const emptyArray: never[] = [];
+
 export const useNavigatePage = () => {
   const navigate = useNavigate();
   const isStatelessApp = useIsStatelessApp();
@@ -49,10 +50,9 @@ export const useNavigatePage = () => {
   const lastTaskId = processTasks?.slice(-1)[0]?.elementId;
 
   const { partyId, instanceGuid, taskId, pageKey, queryKeys } = useNavigationParams();
-  const { orderWithHidden } = useUiConfigContext();
-  const layoutSettings = useLaxLayoutSettings();
-  const autoSaveBehavior =
-    (layoutSettings !== ContextNotProvided && layoutSettings.pages.autoSaveBehavior) || undefined;
+  const maybeLayoutSettings = useLaxLayoutSettings();
+  const orderWithHidden = maybeLayoutSettings === ContextNotProvided ? emptyArray : maybeLayoutSettings.pages.order;
+  const { autoSaveBehavior } = usePageSettings();
 
   const hidden = useHiddenPages();
   const taskType = useTaskType(taskId);

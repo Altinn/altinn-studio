@@ -1,4 +1,4 @@
-import type { ILayoutSets } from 'src/types';
+import type { ILayoutSets } from 'src/layout/common.generated';
 
 export function getLayoutSetsMock(): ILayoutSets {
   return {

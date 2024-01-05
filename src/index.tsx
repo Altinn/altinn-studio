@@ -22,8 +22,8 @@ import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { WindowTitleProvider } from 'src/core/ui/WindowTitleProvider';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
-import { DevTools } from 'src/features/devtools/DevTools';
 import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
+import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
@@ -59,7 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <AppWrapper>
             <LanguageProvider>
               <ThemeWrapper>
-                <RouterProvider router={router} />
+                <UiConfigProvider>
+                  <RouterProvider router={router} />
+                </UiConfigProvider>
               </ThemeWrapper>
             </LanguageProvider>
           </AppWrapper>
@@ -82,15 +84,13 @@ function Root() {
                     <TextResourcesProvider>
                       <KeepAliveProvider>
                         <WindowTitleProvider>
-                          <DevTools>
-                            <App />
-                            <ToastContainer
-                              position='top-center'
-                              theme='colored'
-                              transition={Slide}
-                              draggable={false}
-                            />
-                          </DevTools>
+                          <App />
+                          <ToastContainer
+                            position='top-center'
+                            theme='colored'
+                            transition={Slide}
+                            draggable={false}
+                          />
                         </WindowTitleProvider>
                       </KeepAliveProvider>
                     </TextResourcesProvider>

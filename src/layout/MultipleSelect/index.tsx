@@ -27,7 +27,7 @@ export class MultipleSelect extends MultipleSelectDef {
       return {};
     }
 
-    const value = node.getFormData().simpleBinding ?? '';
+    const value = String(node.getFormData().simpleBinding ?? '');
     const optionList = options[node.item.id] || [];
     return getCommaSeparatedOptionsToText(value, optionList, langTools);
   }

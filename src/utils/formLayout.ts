@@ -1,5 +1,5 @@
+import type { ILayoutSets } from 'src/layout/common.generated';
 import type { IGroupEditPropertiesLikert } from 'src/layout/Group/config.generated';
-import type { ILayoutSets } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 

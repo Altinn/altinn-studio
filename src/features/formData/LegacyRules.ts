@@ -14,19 +14,22 @@ export function runLegacyRules(ruleConnections: IRuleConnections | null, oldForm
     return changes;
   }
 
-  for (const connection of Object.keys(ruleConnections)) {
-    if (!connection) {
+  for (const ruleKey of Object.keys(ruleConnections)) {
+    const rule = ruleConnections[ruleKey];
+    if (!ruleKey || !rule) {
       continue;
     }
 
-    const connectionDef = ruleConnections[connection];
-    const functionToRun: string = connectionDef.selectedFunction;
+    const functionToRun = rule.selectedFunction;
     let shouldRunFunction = false;
+    const inputKeys: string[] = [];
 
-    for (const inputPath of Object.values(connectionDef.inputParams)) {
+    for (const inputKey of Object.keys(rule.inputParams)) {
+      const inputPath = rule.inputParams[inputKey];
       if (!inputPath) {
         continue;
       }
+      inputKeys.push(inputKey);
       const oldVal = dot.pick(inputPath, oldFormData);
       const newVal = dot.pick(inputPath, newFormData);
       if (!deepEqual(oldVal, newVal)) {
@@ -34,7 +37,7 @@ export function runLegacyRules(ruleConnections: IRuleConnections | null, oldForm
       }
     }
 
-    for (const outParam of Object.keys(connectionDef.outParams)) {
+    for (const outParam of Object.keys(rule.outParams)) {
       if (!outParam) {
         shouldRunFunction = false;
       }
@@ -44,28 +47,24 @@ export function runLegacyRules(ruleConnections: IRuleConnections | null, oldForm
       continue;
     }
 
-    const objectToUpdate = window.ruleHandlerHelper[functionToRun]();
-    if (Object.keys(objectToUpdate).length < 1) {
+    if (inputKeys.length <= 0) {
       continue;
     }
 
-    const newObj = Object.keys(objectToUpdate).reduce((acc, elem) => {
-      const inputParamBinding = connectionDef.inputParams[elem];
+    const newObj = {} as Record<string, string | number | boolean | null>;
+    for (const key of inputKeys) {
+      const inputParamBinding = rule.inputParams[key];
       const value = dot.pick(inputParamBinding, newFormData);
-      acc[elem] =
-        typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
-          ? String(value)
-          : undefined;
-      return acc;
-    }, {});
+      newObj[key] = typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? value : null;
+    }
 
     const result = window.ruleHandlerObject[functionToRun](newObj);
-    const updatedDataBinding = connectionDef.outParams.outParam0;
+    const updatedDataBinding = rule.outParams.outParam0;
 
     if (updatedDataBinding) {
       changes.push({
         path: updatedDataBinding,
-        newValue: result.toString(),
+        newValue: result,
       });
     }
   }

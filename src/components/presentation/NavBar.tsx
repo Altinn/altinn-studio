@@ -8,6 +8,7 @@ import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
 import classes from 'src/components/presentation/NavBar.module.css';
 import { useReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
@@ -27,8 +28,8 @@ export const NavBar = ({ type }: INavBarProps) => {
   const { navigateToPage, previous } = useNavigatePage();
   const returnToView = useReturnToView();
   const party = useCurrentParty();
-  const { hideCloseButton, showLanguageSelector, showExpandWidthButton, expandedWidth, toggleExpandedWidth } =
-    useUiConfigContext();
+  const { expandedWidth, toggleExpandedWidth } = useUiConfigContext();
+  const { hideCloseButton, showLanguageSelector, showExpandWidthButton } = usePageSettings();
 
   const handleBackArrowButton = () => {
     if (returnToView) {

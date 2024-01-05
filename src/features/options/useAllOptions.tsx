@@ -199,10 +199,8 @@ function DummyOptionsSaver({ node, loadingDone }: { node: LayoutNode; loadingDon
   const { options: calculatedOptions, isFetching } = useGetOptions({
     ...node.item,
     node,
-    formData: {
-      // No need to implement support for preselectedOptionsIndex
-      disable: 'I have read the code and know that core functionality will be missing',
-    },
+    valueType: 'single',
+    dataModelBindings: undefined,
   });
 
   useEffect(() => {

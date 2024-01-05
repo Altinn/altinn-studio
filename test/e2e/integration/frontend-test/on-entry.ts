@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+
 const appFrontend = new AppFrontend();
 
 describe('On Entry', () => {
@@ -26,6 +28,23 @@ describe('On Entry', () => {
       },
     ]);
   });
+
+  function interceptAppMetadata(defaultSelectedOption: number) {
+    cy.intercept('**/applicationmetadata', (req) => {
+      req.on('response', (res) => {
+        const body = res.body as IApplicationMetadata;
+        body.onEntry = {
+          show: 'select-instance',
+          instanceSelection: {
+            sortDirection: 'desc',
+            rowsPerPageOptions: [1, 2, 3],
+            defaultSelectedOption,
+          },
+        };
+        res.send(body);
+      });
+    });
+  }
 
   it('is possible to select an existing instance', () => {
     cy.startAppInstance(appFrontend.apps.frontendTest);
@@ -62,25 +81,8 @@ describe('On Entry', () => {
     cy.get(appFrontend.instanceErrorCode).should('have.text', '403 - Forbidden');
   });
 
-  const createIntercept = (defaultSelectedOption: number) => ({
-    id: 'ttd/frontend-test',
-    org: 'ttd',
-    title: {
-      nb: 'frontend-test',
-      en: 'frontend-test ENGLISH',
-    },
-    dataTypes: [],
-    onEntry: {
-      show: 'select-instance',
-      instanceSelection: {
-        sortDirection: 'desc',
-        rowsPerPageOptions: [1, 2, 3],
-        defaultSelectedOption,
-      },
-    },
-  });
   it('is possible to paginate the instances and select default rows per page', () => {
-    cy.intercept('**/applicationmetadata', createIntercept(1));
+    interceptAppMetadata(1);
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
@@ -115,9 +117,10 @@ describe('On Entry', () => {
   });
 
   it('will utilize index 0 when defaultSelectedOption is assigned an invalid index number', () => {
-    cy.intercept('**/applicationmetadata', createIntercept(5));
+    interceptAppMetadata(5);
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.selectInstance.tableBody).find('tr').should('have.length', 1);
+    cy.get(appFrontend.closeButton).should('be.visible');
   });
 
   it('is possible to create a new instance', () => {
@@ -131,5 +134,27 @@ describe('On Entry', () => {
 
     cy.get(appFrontend.instanceErrorCode).should('not.exist');
     cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
+  });
+
+  it('language selector and other page settings still work during instance selection', () => {
+    cy.interceptLayoutSetsUiSettings({
+      hideCloseButton: true,
+      showExpandWidthButton: true,
+      showProgress: false,
+      showLanguageSelector: true,
+    });
+    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.get(appFrontend.selectInstance.header).should('contain.text', texts.alreadyStartedForm);
+    cy.get(appFrontend.closeButton).should('not.exist');
+
+    cy.findByRole('combobox', { name: 'Språk' }).click();
+    cy.findByRole('option', { name: 'Engelsk' }).click();
+    cy.get(appFrontend.selectInstance.header).should('contain.text', 'You have already started filling out this form');
+
+    cy.get('[data-testid="presentation"]').should('have.attr', 'data-expanded', 'false');
+    cy.findByRole('button', { name: 'Expand form' }).click();
+    cy.get('[data-testid="presentation"]').should('have.attr', 'data-expanded', 'true');
+
+    cy.snapshot('wide-instance-selection');
   });
 });

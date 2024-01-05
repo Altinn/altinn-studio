@@ -682,4 +682,146 @@ describe('Group', () => {
     cy.get(appFrontend.group.editContainer).findAllByRole('button').eq(1).should('have.text', 'Lagre og åpne neste');
     cy.get(appFrontend.group.editContainer).findAllByRole('button').eq(2).should('have.text', 'Lagre og lukk');
   });
+
+  it('adding group rows should trigger backend calculations + selecting options from source', () => {
+    cy.goto('group');
+    cy.get(appFrontend.group.prefill.liten).dsCheck();
+    cy.get(appFrontend.group.prefill.middels).dsCheck();
+
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+
+    // The title and description is set to the same text resource binding, and duplicates the text we need to
+    // put in `name` for this to work
+    const selectedOption = 'Endre fra: 120, Endre til: 350';
+    const longSelectedText = `${selectedOption} Fungerer kalkulatoren din? ${selectedOption} Fungerer kalkulatoren din?`;
+
+    // First make sure to check the second item in the bottom-most radio group. This should also change the items
+    // in the two dropdowns above.
+    cy.get('#reduxOptions-expressions-radiobuttons').findByRole('radio', { name: longSelectedText }).click();
+    cy.get('[data-componentid="reduxOptions-expressions"] input').should(
+      'have.value',
+      `${selectedOption} Gjør du leksene dine?`,
+    );
+    cy.get('[data-componentid="reduxOptions"] input').should('have.value', selectedOption);
+
+    cy.get(appFrontend.group.secondGroup_add).click();
+    cy.get('#group2-teller-0').should('have.value', '1');
+    cy.dsSelect('#group2-input-0', 'Endre fra: 1, Endre til: 5');
+
+    cy.get(appFrontend.group.secondGroup).findByRole('button', { name: 'Lagre og lukk' }).clickAndGone();
+    cy.get(appFrontend.group.secondGroup_add).click();
+    cy.get('#group2-teller-1').should('have.value', '2');
+    cy.dsSelect('#group2-input-1', 'Endre fra: 120, Endre til: 350');
+    cy.get(appFrontend.group.secondGroup).findByRole('button', { name: 'Lagre og lukk' }).clickAndGone();
+
+    cy.get(appFrontend.group.secondGroup).find('tbody > tr').should('have.length', 2);
+    cy.get(appFrontend.group.secondGroup).find('tbody > tr').eq(0).should('contain.text', 'Endre fra: 1, Endre til: 5');
+    cy.get(appFrontend.group.secondGroup)
+      .find('tbody > tr')
+      .eq(1)
+      .should('contain.text', 'Endre fra: 120, Endre til: 350');
+
+    cy.get(appFrontend.group.secondGroup).findByRole('button', { name: 'Slett-1' }).click();
+    cy.get(appFrontend.group.secondGroup).find('tbody > tr').should('have.length', 1);
+    cy.get(appFrontend.group.secondGroup_add).click();
+    cy.get('#group2-teller-1').should('have.value', '3');
+    cy.dsSelect('#group2-input-1', 'Endre fra: 1, Endre til: 5');
+    cy.get(appFrontend.group.secondGroup).findByRole('button', { name: 'Lagre og lukk' }).clickAndGone();
+
+    cy.get(appFrontend.group.secondGroup).find('tbody > tr').should('have.length', 2);
+    cy.get(appFrontend.group.secondGroup)
+      .find('tbody > tr')
+      .eq(0)
+      .should('contain.text', 'Endre fra: 120, Endre til: 350');
+    cy.get(appFrontend.group.secondGroup).find('tbody > tr').eq(1).should('contain.text', 'Endre fra: 1, Endre til: 5');
+
+    // Adding a new row to the main group adds a new option
+    cy.gotoNavPage('prefill');
+    cy.get(appFrontend.group.prefill.stor).dsCheck();
+    cy.gotoNavPage('repeating');
+
+    cy.get(appFrontend.group.secondGroup).find('tbody > tr').should('have.length', 2);
+    cy.get(appFrontend.group.secondGroup)
+      .find('tbody > tr')
+      .eq(0)
+      .should('contain.text', 'Endre fra: 120, Endre til: 350');
+    cy.get(appFrontend.group.secondGroup).find('tbody > tr').eq(1).should('contain.text', 'Endre fra: 1, Endre til: 5');
+
+    // Also make sure the options we selected at first are still selected
+    cy.get('#reduxOptions-expressions-radiobuttons')
+      .findByRole('radio', { name: longSelectedText })
+      .should('be.checked');
+    cy.get('[data-componentid="reduxOptions-expressions"] input').should(
+      'have.value',
+      `${selectedOption} Gjør du leksene dine?`,
+    );
+    cy.get('[data-componentid="reduxOptions"] input').should('have.value', selectedOption);
+  });
+
+  it('openByDefault = first should work even if the first row is hidden', () => {
+    cy.interceptLayout('group', (c) => {
+      if (c.type === 'Group' && c.id === 'mainGroup' && groupIsRepeatingExt(c) && c.edit) {
+        c.edit.openByDefault = 'first';
+      }
+    });
+
+    cy.goto('group');
+    cy.get(appFrontend.group.prefill.svaer).dsCheck();
+    cy.get(appFrontend.group.prefill.stor).dsCheck();
+    cy.get(appFrontend.group.prefill.middels).dsCheck();
+    cy.get(appFrontend.group.prefill.liten).dsCheck();
+
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.editContainer).find('input').first().should('have.value', 'NOK 80 323');
+
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
+    cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+
+    // Navigating between pages should clear the state for which group row is editing, so now the
+    // first one (that is not hidden) should be open
+    cy.gotoNavPage('prefill');
+    cy.gotoNavPage('repeating');
+
+    cy.get(appFrontend.group.editContainer).find('input').first().should('have.value', 'NOK 120');
+  });
+
+  it('should be possible do disable prefilling, and write to data model paths that are not in the layout', () => {
+    cy.goto('group');
+
+    // This should be checked by default. This tests that the data model definition on the backend can set a default
+    // value using C# default values in the strict model.
+    cy.get('#prefill-enabled').findByRole('radio', { name: 'Ja' }).should('be.checked');
+
+    cy.get(appFrontend.group.prefill.liten).dsCheck();
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 1);
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(0).should('contain.text', 'NOK 1');
+
+    cy.gotoNavPage('prefill');
+    cy.get('#prefill-enabled').findByRole('radio', { name: 'Nei' }).click();
+    cy.get(appFrontend.group.prefill.middels).dsCheck();
+
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 1);
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(0).should('contain.text', 'NOK 1');
+
+    cy.gotoNavPage('prefill');
+    cy.get('#prefill-enabled').findByRole('radio', { name: 'Ja' }).click();
+    cy.get(appFrontend.group.prefill.stor).dsCheck();
+
+    // When we temporarily disabled the prefilling functionality, ruleHandler tricked the backend by
+    // setting PrefillValuesShadow to the same value as PrefillValues, making the backend think the 'middels' row we
+    // wanted was already present in the main repeating group. When we now re-enable prefilling, that value will
+    // persist in PrefillValuesShadow, still making the backend think the 'middels' row exists - so it still won't
+    // add it at this point.
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 2);
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(0).should('contain.text', 'NOK 1');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(1).should('contain.text', 'NOK 1 233');
+  });
 });

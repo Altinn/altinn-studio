@@ -9,41 +9,22 @@ import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
-const defaultSelectedOptions: string[] = [];
 export function MultipleSelectComponent({ node, isValid, overrideDisplay }: IMultipleSelectProps) {
-  const { id, readOnly, textResourceBindings, dataModelBindings } = node.item;
-  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
-  const saveValue = FD.useSetForBindings(dataModelBindings);
+  const { id, readOnly, textResourceBindings } = node.item;
   const debounce = FD.useDebounceImmediately();
-  const selected = value && value.length > 0 ? value.split(',') : defaultSelectedOptions;
-  const { options: calculatedOptions } = useGetOptions({
+  const {
+    options: calculatedOptions,
+    currentStringy,
+    setData,
+  } = useGetOptions({
     ...node.item,
     node,
-    metadata: {
-      setValue: (metadata) => {
-        saveValue('metadata', metadata);
-      },
-    },
-    formData: {
-      type: 'multi',
-      values: selected,
-      setValues: (values) => {
-        saveValue('simpleBinding', values.join(','));
-      },
-    },
     removeDuplicates: true,
+    valueType: 'multi',
   });
   const { langAsString } = useLanguage();
 
   const formattedOptions = useFormattedOptions(calculatedOptions, true);
-
-  const handleChange = (values: string[]) => {
-    saveValue('simpleBinding', values.join(','));
-  };
-
-  const selectedValues = calculatedOptions
-    ?.filter((option) => value?.split(',').includes(option.value))
-    .map((option) => option.value);
 
   return (
     <Select
@@ -55,9 +36,9 @@ export function MultipleSelectComponent({ node, isValid, overrideDisplay }: IMul
       inputId={id}
       disabled={readOnly}
       error={!isValid}
-      onChange={handleChange}
+      onChange={setData}
       onBlur={debounce}
-      value={selectedValues}
+      value={currentStringy}
       aria-label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
     />
   );

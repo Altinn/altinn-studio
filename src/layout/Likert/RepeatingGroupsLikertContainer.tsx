@@ -25,9 +25,8 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
   const { options: calculatedOptions, isFetching } = useGetOptions({
     ...(firstLikertChild?.item || {}),
     node,
-    formData: {
-      disable: 'I have read the code and know that core functionality will be missing',
-    },
+    valueType: 'single',
+    dataModelBindings: undefined,
   });
 
   const id = node.item.id;

@@ -14,6 +14,7 @@ import { Progress } from 'src/components/presentation/Progress';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { Footer } from 'src/features/footer/Footer';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
@@ -44,7 +45,11 @@ export const PresentationComponent = ({ header, type, children, renderNavBar = t
 
   return (
     <DevTools>
-      <div className={cn(classes.container, { [classes.expanded]: expandedWidth })}>
+      <div
+        data-testid='presentation'
+        data-expanded={JSON.stringify(expandedWidth)}
+        className={cn(classes.container, { [classes.expanded]: expandedWidth })}
+      >
         <AltinnAppHeader
           party={party}
           userParty={userParty}
@@ -76,8 +81,7 @@ export const PresentationComponent = ({ header, type, children, renderNavBar = t
 };
 
 function ProgressBar({ type }: { type: ProcessTaskType | PresentationType }) {
-  const { showProgress } = useUiConfigContext();
-
+  const { showProgress } = usePageSettings();
   const enabled = type !== ProcessTaskType.Archived && showProgress;
 
   if (!enabled) {

@@ -1,7 +1,7 @@
 import type { IFormData } from 'src/features/formData';
-import type { Triggers } from 'src/layout/common.generated';
+import type { ILayoutSets, ILayoutSettings, Triggers } from 'src/layout/common.generated';
 import type { ILayouts } from 'src/layout/layout';
-import type { IHiddenLayoutsExternal, ILayoutSets, ILayoutSettings, TriggersPageValidation } from 'src/types';
+import type { IHiddenLayoutsExternal, TriggersPageValidation } from 'src/types';
 
 export interface IFormLayoutActionRejected {
   error: Error | null;

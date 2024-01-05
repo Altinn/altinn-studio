@@ -6,7 +6,7 @@ import {
   getLayoutSetIdForApplication,
   isStatelessApp,
 } from 'src/features/applicationMetadata/appMetadataUtils';
-import type { ILayoutSets } from 'src/types';
+import type { ILayoutSets } from 'src/layout/common.generated';
 import type { IData, IProcess, ITask } from 'src/types/shared';
 
 describe('appMetadata.ts', () => {

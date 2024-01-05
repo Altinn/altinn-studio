@@ -54,9 +54,8 @@ export function FileUploadComponent({ componentValidations, node }: IFileUploadW
   const { options } = useGetOptions({
     ...node.item,
     node,
-    formData: {
-      disable: 'I have read the code and know that core functionality will be missing',
-    },
+    valueType: 'single',
+    dataModelBindings: undefined,
   });
 
   // Get data from validations based on hasTag.

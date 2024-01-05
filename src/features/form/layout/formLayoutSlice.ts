@@ -1,9 +1,10 @@
 import { removeHiddenValidationsSaga } from 'src/features/form/dynamics/conditionalRenderingSagas';
 import { createSagaSlice } from 'src/redux/sagaSlice';
 import type * as LayoutTypes from 'src/features/form/layout/formLayoutTypes';
+import type { ILayoutSets, IPagesSettings } from 'src/layout/common.generated';
 import type { ILayouts } from 'src/layout/layout';
 import type { ActionsFromSlice, MkActionType } from 'src/redux/sagaSlice';
-import type { ILayoutSets, IPagesSettings, IUiConfig } from 'src/types';
+import type { IUiConfig } from 'src/types';
 
 export interface ILayoutState {
   layouts: ILayouts | null;

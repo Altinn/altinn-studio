@@ -25,7 +25,7 @@ export class Likert extends LikertDef {
       return '';
     }
 
-    const value = node.getFormData().simpleBinding ?? '';
+    const value = String(node.getFormData().simpleBinding ?? '');
     const optionList = options[node.item.id] || [];
     return getSelectedValueToText(value, langTools, optionList) || '';
   }

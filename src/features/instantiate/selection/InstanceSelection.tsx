@@ -172,7 +172,7 @@ function InstanceSelection() {
                     variant='tertiary'
                     size='small'
                     color='second'
-                    icon={<EditIcon />}
+                    icon={<EditIcon title={langAsString('instance_selection.continue')} />}
                     iconPlacement='right'
                     onClick={(ev) => openInstance(instance.id, ev)}
                   >
