@@ -83,6 +83,16 @@ export const ResourceLanguageTextField = ({
 
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
+  const onBlurField = () => {
+    onBlur(translations);
+  };
+
+  const onChangeNbField = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    setTranslations((oldTranslations) => {
+      return { ...oldTranslations, nb: event.target.value };
+    });
+  };
+
   return (
     <>
       <div className={classes.divider} />
@@ -93,14 +103,10 @@ export const ResourceLanguageTextField = ({
             description={description}
             size='small'
             value={translations['nb']}
-            onChange={(e) =>
-              setTranslations((oldTranslations) => {
-                return { ...oldTranslations, nb: e.target.value };
-              })
-            }
+            onChange={onChangeNbField}
             onFocus={onFocus}
             error={errorText ? getMissingInputLanguageString(translations, errorText, t) : ''}
-            onBlur={() => onBlur(translations)}
+            onBlur={onBlurField}
             rows={5}
           />
         ) : (
@@ -109,14 +115,10 @@ export const ResourceLanguageTextField = ({
             description={description}
             size='small'
             value={translations['nb']}
-            onChange={(e) =>
-              setTranslations((oldTranslations) => {
-                return { ...oldTranslations, nb: e.target.value };
-              })
-            }
+            onChange={onChangeNbField}
             onFocus={onFocus}
             error={errorText ? getMissingInputLanguageString(translations, errorText, t) : ''}
-            onBlur={() => onBlur(translations)}
+            onBlur={onBlurField}
           />
         )}
       </div>
@@ -127,7 +129,7 @@ export const ResourceLanguageTextField = ({
           onLanguageChange={setTranslations}
           usesTextArea={useTextArea}
           showErrors={!!errorText}
-          onBlur={() => onBlur(translations)}
+          onBlur={onBlurField}
         />
       )}
     </>
