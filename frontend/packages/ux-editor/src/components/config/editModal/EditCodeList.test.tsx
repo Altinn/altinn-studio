@@ -31,6 +31,16 @@ describe('EditCodeList', () => {
     await act(() => user.click(screen.getByRole('option', { name: 'test-1' })));
     await waitFor(() => expect(handleComponentChangeMock).toHaveBeenCalled());
   });
+
+  it('displays selected option list on component render', async () => {
+    await render({
+      componentProps: {
+        optionsId: 'test-2',
+      },
+    });
+
+    expect(await screen.findByText('test-2')).toBeInTheDocument();
+  });
 });
 
 const waitForData = async () => {
@@ -39,7 +49,11 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async ({ handleComponentChange = jest.fn(), queries = {} } = {}) => {
+const render = async ({
+  handleComponentChange = jest.fn(),
+  queries = {},
+  componentProps = {},
+} = {}) => {
   await waitForData();
 
   renderWithMockStore(
@@ -57,6 +71,7 @@ const render = async ({ handleComponentChange = jest.fn(), queries = {} } = {}) 
         itemType: 'COMPONENT',
         dataModelBindings: {},
         optionsId: '',
+        ...componentProps,
       }}
     />,
   );
