@@ -834,6 +834,25 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Action for getting data list for a given data list id for a given instance
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="dataListId">The id of the data list</param>
+        /// <param name="language">The language for the data list</param>
+        /// <param name="size">The number of items to return</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The options list if it exists, otherwise nothing</returns>
+        [HttpGet]
+        [Route("instances/{partyId}/{instanceGuid}/datalists/{dataListId}")]
+        public async Task<ActionResult<string>> GetDatalistsForInstance(string org, string app, string dataListId, [FromQuery] string language, [FromQuery] string size, CancellationToken cancellationToken)
+        {
+            // TODO: Should look into whether we can get some actual data here, or if we can make an "informed" mock based on the setup.
+            // For now, we just return an empty list.
+            return Ok("[]");
+        }
+
+        /// <summary>
         /// Action for updating data model with tag for attachment component // TODO: Figure out what actually happens here
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
