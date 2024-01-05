@@ -90,7 +90,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
                 size='small'
               />
             </div>
-            <TypesPanel uiSchemaNode={selectedType} />
+            <TypesPanel uiSchemaNode={selectedType}/>
           </div>
         ) : (
           <div id='schema-editor' className={classes.editor}>

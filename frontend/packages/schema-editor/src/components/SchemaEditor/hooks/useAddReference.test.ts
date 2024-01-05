@@ -7,7 +7,7 @@ import {
 import {
   definitionNodeMock,
   combinationNodeMock,
-  uiSchemaNodesMock,
+  uiSchemaNodesMock
 } from '../../../../test/mocks/uiSchemaMock';
 import { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
 import { renderHookWithProviders } from '../../../../test/renderHookWithProviders';

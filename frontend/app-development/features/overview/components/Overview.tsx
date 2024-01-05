@@ -53,9 +53,7 @@ export const Overview = () => {
       <main className={classes.container}>
         <header className={classes.header} role='generic'>
           {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
-          <Heading level={1} size='xlarge'>
-            {appConfigData?.serviceName || app}
-          </Heading>
+          <Heading level={1} size='xlarge'>{appConfigData?.serviceName || app}</Heading>
         </header>
         <div className={classes.panel}>
           <div className={classes.content}>
