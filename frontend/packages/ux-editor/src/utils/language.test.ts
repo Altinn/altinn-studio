@@ -12,8 +12,9 @@ describe('Designer > utils/language', () => {
       'ux_editor.component_help_text.default': 'Default help text',
     };
     Object.values(ComponentType).forEach((componentType) => {
-      componentHelpTexts[`ux_editor.component_help_text.${componentType}`] =
-        `Help text for ${componentType}`;
+      componentHelpTexts[
+        `ux_editor.component_help_text.${componentType}`
+      ] = `Help text for ${componentType}`;
     });
 
     const { t } = mockUseTranslation(componentHelpTexts);
@@ -33,8 +34,9 @@ describe('Designer > utils/language', () => {
   describe('getComponentTitleByComponentType', () => {
     const componentTitleTexts = {};
     Object.values(ComponentType).forEach((componentType) => {
-      componentTitleTexts[`ux_editor.component_title.${componentType}`] =
-        `Title text for ${componentType}`;
+      componentTitleTexts[
+        `ux_editor.component_title.${componentType}`
+      ] = `Title text for ${componentType}`;
     });
 
     it('should return specific title text it exists', () => {

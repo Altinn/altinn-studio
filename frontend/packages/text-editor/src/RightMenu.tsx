@@ -44,9 +44,7 @@ export const RightMenu = ({
   return (
     <aside className={classes.RightMenu__sidebar}>
       <div className={classes.RightMenu__verticalContent}>
-        <Heading level={2} size='small'>
-          {t('schema_editor.language')}
-        </Heading>
+        <Heading level={2} size='small'>{t('schema_editor.language')}</Heading>
         <div> {t('schema_editor.language_info_melding')}</div>
       </div>
       <div className={classes.RightMenu__verticalContent}>

@@ -17,8 +17,7 @@ export interface TypesInspectorProps {
 export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { schemaModel, save, selectedTypePointer, setSelectedTypePointer } =
-    useSchemaEditorAppContext();
+  const { schemaModel, save, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();

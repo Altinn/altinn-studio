@@ -3,13 +3,7 @@ import { dataMock } from '../../mockData';
 import { screen } from '@testing-library/react';
 
 import { TypesPanel, TypesPanelProps } from './TypesPanel';
-import {
-  buildUiSchema,
-  FieldType,
-  ObjectKind,
-  ROOT_POINTER,
-  SchemaModel,
-} from '@altinn/schema-model';
+import { buildUiSchema, FieldType, ObjectKind, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { SchemaState } from '@altinn/schema-editor/types';
@@ -60,7 +54,7 @@ const render = (props?: Partial<TypesPanelProps>) => {
   })(
     <DragAndDropTree.Provider onAdd={jest.fn()} onMove={jest.fn()} rootId={ROOT_POINTER}>
       <TypesPanel {...defaultProps} {...props} />
-    </DragAndDropTree.Provider>,
+    </DragAndDropTree.Provider>
   );
 };
 

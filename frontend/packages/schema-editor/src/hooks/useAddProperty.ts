@@ -9,7 +9,7 @@ export const useAddProperty = () => {
   const addProperty = (
     objectKind: ObjectKind,
     fieldType?: FieldType,
-    parentPointer: string = ROOT_POINTER,
+    parentPointer: string = ROOT_POINTER
   ): string | undefined => {
     const target: NodePosition = { parentPointer, index: -1 };
     const name = savableModel.generateUniqueChildName(parentPointer, 'name');
@@ -46,4 +46,4 @@ export const useAddProperty = () => {
   };
 
   return addProperty;
-};
+}

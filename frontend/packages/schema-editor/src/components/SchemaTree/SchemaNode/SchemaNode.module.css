@@ -4,8 +4,7 @@
   gap: var(--fds-spacing-1);
 }
 
-.schemaNodeLabel:hover,
-.schemaNodeLabel:focus-within {
+.schemaNodeLabel:hover, .schemaNodeLabel:focus-within {
   background-color: color-mix(
     in srgb,
     var(--fds-semantic-surface-action-first-no_fill-hover),
