@@ -7,6 +7,7 @@ import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useItemTitle } from './useItemTitle';
 import { useTranslation } from 'react-i18next';
+import { QuestionmarkDiamondIcon } from '@studio/icons';
 
 export type FormItemProps = {
   layout: IInternalLayout;
@@ -18,7 +19,11 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
   const { t } = useTranslation();
 
   const item = getItem(layout, id);
-  const Icon = formItemConfigs[item.type]?.icon;
+  const isUnknownInternalComponent: boolean = !formItemConfigs[item.type];
+
+  const Icon = isUnknownInternalComponent
+    ? QuestionmarkDiamondIcon
+    : formItemConfigs[item.type]?.icon;
   const labelWrapper = (label: string) => <FormItemTitle formItem={item}>{label}</FormItemTitle>;
 
   return (
