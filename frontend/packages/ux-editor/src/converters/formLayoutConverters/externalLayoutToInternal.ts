@@ -25,11 +25,8 @@ import {
 
 export const externalLayoutToInternal = (
   externalLayout: ExternalFormLayout | null,
-): IInternalLayout => {
-  const result = externalLayout ? convertExternalLayout(externalLayout) : createEmptyLayout();
-  console.log({ result });
-  return result;
-};
+): IInternalLayout =>
+  externalLayout ? convertExternalLayout(externalLayout) : createEmptyLayout();
 
 const convertExternalLayout = (externalLayout: ExternalFormLayout): IInternalLayout => {
   const customRootProperties = getCustomRootProperties(externalLayout);
@@ -157,10 +154,6 @@ const findPageIndexOfComponent = (
 ): number | null => {
   const parentContainer = findParent(externalComponents, id);
   if (!parentContainer?.edit?.multiPage) return null;
-  console.log({
-    name: 'findPageIndexOfComponent',
-    parentContainerChildren: parentContainer.children,
-  });
   return findPageIndexInChildList(id, parentContainer.children);
 };
 
