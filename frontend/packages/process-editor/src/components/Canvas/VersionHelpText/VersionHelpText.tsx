@@ -28,7 +28,10 @@ export const VersionHelpText = (): JSX.Element => {
         <Paragraph size='small' spacing>
           <Trans i18nKey={t('process_editor.help_text_and_links')}>
             Trenger du hjelp til å oppgradere, kan du{' '}
-            <Link href='/contact'>ta kontakte med oss</Link>.
+            <Link href='https://docs.altinn.studio/nb/app/maintainance/dependencies/'>
+              lese mer her
+            </Link>{' '}
+            eller <Link href='/contact'>ta kontakt med oss</Link>.
           </Trans>
         </Paragraph>
       </HelpText>
