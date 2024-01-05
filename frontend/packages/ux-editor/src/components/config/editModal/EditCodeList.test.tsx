@@ -32,7 +32,7 @@ describe('EditCodeList', () => {
     await waitFor(() => expect(handleComponentChangeMock).toHaveBeenCalled());
   });
 
-  it('displays selected option list on component render', async () => {
+  it('should render the selected option list item upon component initialization', async () => {
     await render({
       componentProps: {
         optionsId: 'test-2',
