@@ -50,11 +50,9 @@ export const NavigationModal = ({
         {t('resourceadm.resource_navigation_modal_text')}
       </Paragraph>
       <div className={classes.buttonWrapper}>
-        <div className={classes.closeButton}>
-          <Button onClick={onClose} color='first' variant='tertiary' size='small'>
-            {t('resourceadm.resource_navigation_modal_button_stay')}
-          </Button>
-        </div>
+        <Button onClick={onClose} color='first' variant='tertiary' size='small'>
+          {t('resourceadm.resource_navigation_modal_button_stay')}
+        </Button>
         <Button onClick={onNavigate} color='first' size='small'>
           {t('resourceadm.resource_navigation_modal_button_move_on')}
         </Button>

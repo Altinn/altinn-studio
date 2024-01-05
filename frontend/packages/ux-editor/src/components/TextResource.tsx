@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Button, Paragraph, Select, SingleSelectOption } from '@digdir/design-system-react';
+import {
+  Button,
+  LegacySelect,
+  LegacySingleSelectOption,
+  Paragraph,
+} from '@digdir/design-system-react';
 import {
   MagnifyingGlassIcon,
   PencilIcon,
@@ -93,7 +98,7 @@ export const TextResource = ({
     handleRemoveTextResource();
   };
 
-  const searchOptions: SingleSelectOption[] = prepend<SingleSelectOption>(
+  const searchOptions: LegacySingleSelectOption[] = prepend<LegacySingleSelectOption>(
     textResources.map((tr) => ({
       label: tr.id,
       value: tr.id,
@@ -117,7 +122,7 @@ export const TextResource = ({
       {isSearchMode && (
         <span className={classes.searchContainer}>
           <span className={classes.select}>
-            <Select
+            <LegacySelect
               hideLabel={true}
               label={t('ux_editor.search_text_resources_label')}
               onChange={(id) => handleIdChange(id === '' ? undefined : id)}

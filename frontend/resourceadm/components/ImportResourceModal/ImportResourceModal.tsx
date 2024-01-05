@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
-import { Button, Select } from '@digdir/design-system-react';
+import { Button, Combobox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { EnvironmentType } from 'resourceadm/types/EnvironmentType';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ServiceContent } from './ServiceContent';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { useImportResourceFromAltinn2Mutation } from 'resourceadm/hooks/mutations';
@@ -12,6 +12,7 @@ import { Resource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
@@ -40,8 +41,7 @@ export const ImportResourceModal = ({
 }: ImportResourceModalProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { selectedContext, repo } = useUrlParams();
 
   const navigate = useNavigate();
 
@@ -92,12 +92,17 @@ export const ImportResourceModal = ({
       contentClassName={classes.contentWidth}
     >
       <div className={classes.dropdownWraper}>
-        <Select
-          options={environmentOptions.map((e) => ({ value: e, label: e }))}
-          onChange={(e: EnvironmentType) => setSelectedEnv(e)}
-          value={selectedEnv}
+        <Combobox
+          value={selectedEnv ? [selectedEnv] : undefined}
           label={t('resourceadm.dashboard_import_modal_select_env')}
-        />
+          onValueChange={(newValue: EnvironmentType[]) => setSelectedEnv(newValue[0])}
+        >
+          {environmentOptions.map((env) => (
+            <Combobox.Option key={env} value={env}>
+              {env}
+            </Combobox.Option>
+          ))}
+        </Combobox>
       </div>
       {selectedEnv && (
         <ServiceContent

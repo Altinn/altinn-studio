@@ -10,7 +10,7 @@ const FeatureFlagEnum = Object.freeze({
   ProcessEditor: 'processEditor',
 });
 
-context('Designer', () => {
+context('Overview', () => {
   before(() => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
     cy.deleteApp(

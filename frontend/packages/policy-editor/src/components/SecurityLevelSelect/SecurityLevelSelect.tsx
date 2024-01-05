@@ -1,6 +1,6 @@
 import React, { ReactNode, useMemo } from 'react';
 import classes from './SecurityLevelSelect.module.css';
-import { Select, Heading, Label, Paragraph, HelpText, Link } from '@digdir/design-system-react';
+import { Heading, Label, Paragraph, HelpText, Link, LegacySelect } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { RequiredAuthLevel } from '../../types';
 
@@ -68,7 +68,7 @@ export const SecurityLevelSelect = ({
             </Link>
           </HelpText>
         </div>
-        <Select
+        <LegacySelect
           options={authLevelOptionKeysAsDisplayStrings}
           onChange={(authLevel: RequiredAuthLevel) => onSave(authLevel)}
           value={requiredAuthenticationLevelEndUser}
