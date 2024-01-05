@@ -845,11 +845,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The options list if it exists, otherwise nothing</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuid}/datalists/{dataListId}")]
-        public async Task<ActionResult<string>> GetDatalistsForInstance(string org, string app, string dataListId, [FromQuery] string language, [FromQuery] string size, CancellationToken cancellationToken)
+        public async Task<ActionResult<List<string>>> GetDatalistsForInstance(string org, string app, string dataListId, [FromQuery] string language, [FromQuery] string size, CancellationToken cancellationToken)
         {
             // TODO: Should look into whether we can get some actual data here, or if we can make an "informed" mock based on the setup.
             // For now, we just return an empty list.
-            return Ok("[]");
+            return Ok(new List<string>());
         }
 
         /// <summary>
