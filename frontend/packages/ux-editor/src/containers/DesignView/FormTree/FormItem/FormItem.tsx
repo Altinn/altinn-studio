@@ -7,6 +7,7 @@ import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useItemTitle } from './useItemTitle';
 import { useTranslation } from 'react-i18next';
+import { UnknownReferencedItem } from '../UnknownItem/UnknownItem';
 
 export type FormItemProps = {
   layout: IInternalLayout;
@@ -17,16 +18,21 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
   const itemTitle = useItemTitle();
   const { t } = useTranslation();
 
-  const item = getItem(layout, id);
-  const Icon = formItemConfigs[item.type]?.icon;
-  const labelWrapper = (label: string) => <FormItemTitle formItem={item}>{label}</FormItemTitle>;
+  const formItem = getItem(layout, id);
+
+  if (!formItem) {
+    return <UnknownReferencedItem id={id} />;
+  }
+
+  const Icon = formItemConfigs[formItem.type]?.icon;
+  const labelWrapper = (label: string) => <FormItemTitle formItem={formItem}>{label}</FormItemTitle>;
 
   return (
     <DragAndDropTree.Item
       icon={Icon && <Icon />}
       emptyMessage={t('ux_editor.container_empty')}
       expandable={isContainer(layout, id)}
-      label={itemTitle(item)}
+      label={itemTitle(formItem)}
       labelWrapper={labelWrapper}
       nodeId={id}
     >

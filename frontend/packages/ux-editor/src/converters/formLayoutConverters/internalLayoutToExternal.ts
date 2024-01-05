@@ -59,8 +59,8 @@ const getComponentIdWithPageIndex = (
   internalLayout: IInternalLayout,
   componentId: string,
 ): string => {
-  const { pageIndex } = getComponentById(internalLayout, componentId);
-  return pageIndex === null ? componentId : addPageIndexPrefix(componentId, pageIndex);
+  const component = getComponentById(internalLayout, componentId);
+  return !component?.pageIndex ? componentId : addPageIndexPrefix(componentId, component.pageIndex);
 };
 
 const getComponentById = (
