@@ -8,6 +8,7 @@ import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useItemTitle } from './useItemTitle';
 import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownItem/UnknownItem';
+import { QuestionmarkDiamondIcon } from '@studio/icons';
 
 export type FormItemProps = {
   layout: IInternalLayout;
@@ -21,11 +22,18 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
   const formItem = getItem(layout, id);
 
   if (!formItem) {
-    return <UnknownReferencedItem id={id} />;
+    return <UnknownReferencedItem id={id} layout={layout} />;
   }
 
-  const Icon = formItemConfigs[formItem.type]?.icon;
-  const labelWrapper = (label: string) => <FormItemTitle formItem={formItem}>{label}</FormItemTitle>;
+  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
+
+  const Icon = isUnknownInternalComponent
+    ? QuestionmarkDiamondIcon
+    : formItemConfigs[formItem.type]?.icon;
+
+  const labelWrapper = (label: string) => (
+    <FormItemTitle formItem={formItem}>{label}</FormItemTitle>
+  );
 
   return (
     <DragAndDropTree.Item

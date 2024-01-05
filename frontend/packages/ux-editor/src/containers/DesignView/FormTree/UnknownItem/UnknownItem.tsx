@@ -2,14 +2,22 @@
 import { useTranslation } from 'react-i18next';
 import { Button, HelpText } from '@digdir/design-system-react';
 import { QuestionmarkDiamondIcon, TrashIcon } from '@studio/icons';
+import { IInternalLayout } from '../../../../types/global';
+import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentReference';
 
 import classes from './UnknownReferencedItem.module.css';
 
 type UnknownReferencedItemProps = {
   id: string;
+  layout: IInternalLayout;
 };
-export const UnknownReferencedItem = ({ id }: UnknownReferencedItemProps) => {
+export const UnknownReferencedItem = ({ id, layout }: UnknownReferencedItemProps) => {
   const { t } = useTranslation();
+  const deleteUnknownComponentReference = useDeleteUnknownComponentReference();
+
+  const handleDelete = async (): Promise<void> => {
+    await deleteUnknownComponentReference(layout, id);
+  };
 
   return (
     <div className={classes.unknownReferencedItem}>
@@ -21,7 +29,7 @@ export const UnknownReferencedItem = ({ id }: UnknownReferencedItemProps) => {
         <Button
           color='danger'
           icon={<TrashIcon />}
-          // onClick={handleDelete}
+          onClick={handleDelete}
           size='small'
           title={t('general.delete')}
           variant='tertiary'
