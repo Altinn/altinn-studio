@@ -1,5 +1,9 @@
 import React, { ReactNode } from 'react';
-import { PolicyEditor as PolicyEditorImpl } from '@altinn/policy-editor';
+import {
+  PolicyEditor as PolicyEditorImpl,
+  mergeActionsFromPolicyWithActionOptions,
+  mergeSubjectsFromPolicyWithSubjectOptions,
+} from '@altinn/policy-editor';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
@@ -13,10 +17,6 @@ import {
 } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { TabContent } from '../../TabContent';
-import {
-  mergeActionsFromPolicyWithActionOptions,
-  mergeSubjectsFromPolicyWithSubjectOptions,
-} from '../../../utils/tabUtils/policyTabUtils';
 
 export type PolicyTabProps = {
   org: string;

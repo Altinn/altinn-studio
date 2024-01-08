@@ -7,3 +7,7 @@ export type {
   PolicyRuleResource,
   RequiredAuthLevel,
 } from './types';
+export {
+  mergeActionsFromPolicyWithActionOptions,
+  mergeSubjectsFromPolicyWithSubjectOptions,
+} from './utils';
