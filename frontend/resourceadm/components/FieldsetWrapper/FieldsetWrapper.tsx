@@ -117,7 +117,6 @@ export const FieldsetWrapper = <T,>({
           aria-disabled={listItems.length < 2}
           onClick={() => {
             if (listItems.length > 1) {
-              // TODO: can the last item be deleted??
               deleteModalRef.current?.showModal();
               setDeleteId(pos);
             }
