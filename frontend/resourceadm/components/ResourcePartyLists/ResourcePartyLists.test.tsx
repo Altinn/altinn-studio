@@ -111,14 +111,27 @@ describe('ResourcePartyLists', () => {
 
     expect(uncheckListMock).toHaveBeenCalled();
   });
+
+  it('should show error when loading fails', async () => {
+    render(true);
+
+    const spinnerTitle = screen.queryByText(textMock('general.loading'));
+    await waitForElementToBeRemoved(spinnerTitle);
+
+    expect(screen.getByText(textMock('resourceadm.listadmin_load_list_error'))).toBeInTheDocument();
+  });
 });
 
-const render = () => {
+const render = (hasLoadError?: boolean) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     removeResourcePartyList: uncheckListMock,
     addResourcePartyList: checkListMock,
-    getPartyLists: jest.fn().mockImplementation(() => Promise.resolve(partyListsResponse)),
+    getPartyLists: jest
+      .fn()
+      .mockImplementation(() =>
+        hasLoadError ? Promise.reject({}) : Promise.resolve(partyListsResponse),
+      ),
     getResourcePartyLists: jest
       .fn()
       .mockImplementation(() => Promise.resolve(connectedListsResponse)),
