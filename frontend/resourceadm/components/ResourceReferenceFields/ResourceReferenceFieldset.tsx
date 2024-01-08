@@ -14,10 +14,6 @@ const referenceSourceOptions = [
     label: 'Default',
   },
   {
-    value: 'Altinn1',
-    label: 'Altinn1',
-  },
-  {
     value: 'Altinn2',
     label: 'Altinn2',
   },

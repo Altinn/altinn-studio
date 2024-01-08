@@ -72,12 +72,7 @@ export interface Validation {
   errors: any;
 }
 
-export type ResourceReferenceSource =
-  | 'Default'
-  | 'Altinn1'
-  | 'Altinn2'
-  | 'Altinn3'
-  | 'ExternalPlatform';
+export type ResourceReferenceSource = 'Default' | 'Altinn2' | 'Altinn3' | 'ExternalPlatform';
 export type ResourceReferenceType =
   | 'Default'
   | 'Uri'
