@@ -2,7 +2,6 @@ import React, { HTMLAttributes, forwardRef, useId } from 'react';
 import { Paragraph, Spinner } from '@digdir/design-system-react';
 import type { SpinnerProps } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { StudioCenter } from '../StudioCenter/StudioCenter';
 import classes from './StudioSpinner.module.css';
 
 export type StudioSpinnerProps = {
