@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -11,13 +11,13 @@ import {
 import { StudioSpinner } from '@studio/components';
 import classes from './ListAdminPage.module.css';
 import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
-import { NewPartyListModal } from '../../components/NewPartyListModal/NewPartyListModal';
-import { getPartyListPageUrl, getResourceDashboardURL } from 'resourceadm/utils/urlUtils/urlUtils';
+import { NewPartyListModal } from '../../components/NewPartyListModal';
+import { getPartyListPageUrl, getResourceDashboardURL } from 'resourceadm/utils/urlUtils';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 export const ListAdminPage = (): React.ReactNode => {
   const { t } = useTranslation();
-  const { selectedContext, env: selectedEnv } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { selectedContext, repo, env: selectedEnv } = useUrlParams();
 
   const { data: envListData, isLoading: isLoadingEnvListData } = useGetPartyListsQuery(
     selectedContext,

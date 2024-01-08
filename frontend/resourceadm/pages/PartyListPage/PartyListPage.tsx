@@ -1,16 +1,15 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
-import { PartyListDetail } from 'resourceadm/components/PartyListDetails/PartyListDetail';
+import { PartyListDetail } from 'resourceadm/components/PartyListDetails';
 import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
-import { getPartyListPageUrl } from 'resourceadm/utils/urlUtils/urlUtils';
+import { getPartyListPageUrl } from 'resourceadm/utils/urlUtils';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 export const PartyListPage = (): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { selectedContext, env, listId } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { selectedContext, repo, env, listId } = useUrlParams();
 
   const { data: list, isLoading: isLoadingList } = useGetPartyListQuery(
     selectedContext,

@@ -24,6 +24,7 @@ import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
 import { useDeletePartyListMutation } from 'resourceadm/hooks/mutations/useDeletePartyListMutation';
 import { PartyListSearch } from '../PartyListSearch/PartyListSearch';
 
+const COLUMN_SPAN = 100;
 export interface PartyListDetailProps {
   org: string;
   env: string;
@@ -79,7 +80,6 @@ export const PartyListDetail = ({
     editPartyList(createReplacePatch<Partial<PartyList>>(diff));
   };
 
-  // slett, må gjøres utenfor? Evt ha en back-funksjon
   const handleDelete = (): void => {
     deletePartyList(undefined, {
       onSuccess: () => navigate(backUrl),
@@ -164,11 +164,11 @@ export const PartyListDetail = ({
           </TableHeader>
           <TableBody>
             {listItems.length === 0 && (
-              <tr>
-                <td colSpan={100}>
+              <TableRow>
+                <TableCell colSpan={COLUMN_SPAN}>
                   <Alert severity='info'>{t('resourceadm.listadmin_empty_list')}</Alert>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {listItems.map((item) => {
               return (
@@ -200,7 +200,7 @@ export const PartyListDetail = ({
               );
             })}
             <TableRow>
-              <TableCell colSpan={100}>
+              <TableCell colSpan={COLUMN_SPAN}>
                 <PartyListSearch existingMembers={listItems} handleAddMember={handleAddMember} />
               </TableCell>
             </TableRow>

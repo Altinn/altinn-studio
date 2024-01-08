@@ -28,8 +28,8 @@ import {
 } from '@navikt/aksel-icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
-import { ResourcePartyLists } from 'resourceadm/components/ResourcePartyLists/ResourcePartyLists';
-import { PartyListDetail } from 'resourceadm/components/PartyListDetails/PartyListDetail';
+import { ResourcePartyLists } from 'resourceadm/components/ResourcePartyLists';
+import { PartyListDetail } from 'resourceadm/components/PartyListDetails';
 import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 

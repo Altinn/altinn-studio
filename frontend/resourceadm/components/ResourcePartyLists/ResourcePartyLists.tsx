@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './ResourcePartyLists.module.css';
@@ -9,8 +9,9 @@ import { useGetResourcePartyListsQuery } from 'resourceadm/hooks/queries/useGetR
 import { useAddResourcePartyListMutation } from 'resourceadm/hooks/mutations/useAddResourcePartyListMutation';
 import { useRemoveResourcePartyListMutation } from 'resourceadm/hooks/mutations/useRemoveResourcePartyListMutation';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
-import { NewPartyListModal } from '../NewPartyListModal/NewPartyListModal';
+import { NewPartyListModal } from '../NewPartyListModal';
 import { Resource } from 'app-shared/types/ResourceAdm';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 interface ResourcePartyListsProps {
   env: string;
@@ -23,8 +24,7 @@ export const ResourcePartyLists = ({
 }: ResourcePartyListsProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { selectedContext, repo } = useUrlParams();
   const createPartyListModalRef = useRef<HTMLDialogElement>(null);
 
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
@@ -105,7 +105,6 @@ export const ResourcePartyLists = ({
         size='medium'
         onChange={(newValues: string[]) => {
           if (selectedLists.length < newValues.length) {
-            // list was added
             const addedListIdentifier = newValues[newValues.length - 1];
             handleAdd(addedListIdentifier);
           } else {
