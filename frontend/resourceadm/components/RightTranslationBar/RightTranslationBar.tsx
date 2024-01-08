@@ -85,17 +85,15 @@ export const RightTranslationBar = ({
             title={t('resourceadm.right_translation_bar_translation')}
             className={classes.icon}
           />
-          <Heading size='xsmall' level={2} className={classes.topText}>
+          <Heading size='xsmall' level={2}>
             {t('resourceadm.right_translation_bar_title')}
           </Heading>
         </div>
-        <div className={classes.bodyWrapper}>
-          <Alert severity='info'>
-            <Paragraph size='small'>{t('resourceadm.right_translation_bar_alert')}</Paragraph>
-          </Alert>
-          <div className={classes.inputWrapper}>{displayNField('nn')}</div>
-          <div className={classes.inputWrapper}>{displayNField('en')}</div>
-        </div>
+        <Alert severity='info'>
+          <Paragraph size='small'>{t('resourceadm.right_translation_bar_alert')}</Paragraph>
+        </Alert>
+        <div className={classes.inputWrapper}>{displayNField('nn')}</div>
+        <div className={classes.inputWrapper}>{displayNField('en')}</div>
       </div>
     </div>
   );

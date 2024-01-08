@@ -3,6 +3,13 @@ import { IRuleModelFieldElement } from '../../types/global';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
+export interface WindowWithRuleModel extends Window {
+  ruleHandlerObject?: object;
+  conditionalRuleHandlerObject?: object;
+  ruleHandlerHelper?: object;
+  conditionalRuleHandlerHelper?: object;
+}
+
 export const useRuleModelQuery = (
   org: string,
   app: string,
@@ -13,7 +20,24 @@ export const useRuleModelQuery = (
     queryKey: [QueryKey.RuleHandler, org, app, layoutSetName],
     queryFn: () =>
       getRuleModel(org, app, layoutSetName).then((ruleModel) => {
+        const windowWithRuleModel = window as WindowWithRuleModel;
         const ruleModelFields: IRuleModelFieldElement[] = [];
+
+        if (!ruleModel) {
+          if (windowWithRuleModel.ruleHandlerObject) {
+            windowWithRuleModel.ruleHandlerObject = undefined;
+          }
+          if (windowWithRuleModel.ruleHandlerHelper) {
+            windowWithRuleModel.ruleHandlerHelper = undefined;
+          }
+          if (windowWithRuleModel.conditionalRuleHandlerObject) {
+            windowWithRuleModel.conditionalRuleHandlerObject = undefined;
+          }
+          if (windowWithRuleModel.conditionalRuleHandlerHelper) {
+            windowWithRuleModel.conditionalRuleHandlerHelper = undefined;
+          }
+          return ruleModelFields;
+        }
 
         // Add script file to DOM to make it possible to read from it
         const scriptFile = window.document.createElement('script');
@@ -26,12 +50,7 @@ export const useRuleModelQuery = (
           conditionalRuleHandlerObject,
           ruleHandlerHelper,
           conditionalRuleHandlerHelper,
-        } = window as unknown as {
-          ruleHandlerObject: object;
-          conditionalRuleHandlerObject: object;
-          ruleHandlerHelper: object;
-          conditionalRuleHandlerHelper: object;
-        };
+        } = windowWithRuleModel;
 
         // Add the rule handler functions to the rule model
         if (ruleHandlerObject) {

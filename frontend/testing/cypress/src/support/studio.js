@@ -93,6 +93,10 @@ Cypress.Commands.add('searchAndOpenApp', (appName) => {
     .click();
 });
 
+Cypress.Commands.add('goToApp', (userName, appName) => {
+  cy.visit(`/editor/${userName}/${appName}`);
+});
+
 /**
  * Select an element in the application list
  */
@@ -101,10 +105,6 @@ Cypress.Commands.add('selectElementInApplicationList', (appListHeaderText, eleme
 });
 
 Cypress.Commands.add('ensureCreatePageIsLoaded', () => {
-  cy.intercept('GET', '**/app-development/form-layouts?**').as('formLayouts');
-  cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
-  cy.wait('@formLayouts').its('response.statusCode').should('eq', 200);
-  cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
   cy.findByRole('button', { name: `${texts['ux_editor.pages_add']}` }).should('be.visible');
 });
 

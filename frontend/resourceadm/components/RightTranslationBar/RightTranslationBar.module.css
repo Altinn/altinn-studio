@@ -6,6 +6,7 @@
   right: 0;
   border: 1px solid var(--fds-semantic-border-divider-default);
   border-top: none;
+  padding: var(--fds-spacing-5);
 }
 
 .rightWrapper {
@@ -19,12 +20,8 @@
 .topWrapper {
   display: flex;
   align-items: center;
-  padding: 20px;
-  padding-bottom: 0;
-}
-
-.topText {
-  margin-left: 10px;
+  gap: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-2);
 }
 
 .icon {
@@ -33,10 +30,5 @@
 }
 
 .inputWrapper {
-  margin-block: 30px;
-}
-
-.bodyWrapper {
-  padding-inline: 20px;
-  margin-top: 20px;
+  margin-block: var(--fds-spacing-7);
 }

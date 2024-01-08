@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Label, LegacySelect, Paragraph } from '@digdir/design-system-react';
+import { Radio } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
-type ResourceDropdownProps = {
+type ResourceRadioGroupProps = {
   /**
    * Flag for if the component has spacing at the top
    */
@@ -40,10 +40,6 @@ type ResourceDropdownProps = {
    */
   onBlur: (selected: string) => void;
   /**
-   * The id of the field
-   */
-  id: string;
-  /**
    * The error text to be shown
    */
   errorText?: string;
@@ -61,12 +57,11 @@ type ResourceDropdownProps = {
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {boolean}[hasError] - If the dropdown has an error
  * @property {function}[onBlur] - Function to be executed on blur
- * @property {string}[id] - The id of the field
  * @property {string}[errorText] - The error text to be shown
  *
  * @returns {React.ReactNode} - The rendered component
  */
-export const ResourceDropdown = ({
+export const ResourceRadioGroup = ({
   spacingTop = false,
   label,
   description,
@@ -75,9 +70,8 @@ export const ResourceDropdown = ({
   hasError = false,
   onFocus,
   onBlur,
-  id,
   errorText,
-}: ResourceDropdownProps): React.ReactNode => {
+}: ResourceRadioGroupProps): React.ReactNode => {
   const [selected, setSelected] = useState(value);
 
   const handleChangeInput = (val: string) => {
@@ -89,23 +83,25 @@ export const ResourceDropdown = ({
   return (
     <>
       {spacingTop && <div className={classes.divider} />}
-      <Label size='small' spacing htmlFor={id}>
-        {label}
-      </Label>
       <div className={classes.inputWrapper}>
-        <Paragraph spacing short size='small'>
-          {description}
-        </Paragraph>
-        <LegacySelect
-          options={options}
+        <Radio.Group
+          size='small'
           onChange={handleChangeInput}
           value={selected}
+          legend={label}
+          description={description}
           onFocus={onFocus}
-          error={error}
+          error={error ? <InputFieldErrorMessage message={errorText} /> : undefined}
           onBlur={() => onBlur(selected)}
-          inputId={id}
-        />
-        {error && <InputFieldErrorMessage message={errorText} />}
+        >
+          {options.map((opt) => {
+            return (
+              <Radio key={opt.value} value={opt.value}>
+                {opt.label}
+              </Radio>
+            );
+          })}
+        </Radio.Group>
       </div>
     </>
   );
