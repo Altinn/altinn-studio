@@ -30,6 +30,7 @@ describe('ResourceContactPointFields', () => {
   const defaultProps: ResourceContactPointFieldsProps = {
     contactPointList: mockContactPointList,
     onContactPointsChanged: mockOnContactPointsChanged,
+    onFocus: jest.fn(),
     showErrors: false,
   };
 
