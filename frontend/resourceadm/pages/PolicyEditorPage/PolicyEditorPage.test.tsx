@@ -47,8 +47,8 @@ const mockSubjects: PolicySubject[] = [
 ];
 
 const getPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve([]));
+const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve([]));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
