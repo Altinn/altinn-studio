@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Fieldset, Radio, Textfield } from '@digdir/design-system-react';
+import { Fieldset, Textfield, NativeSelect } from '@digdir/design-system-react';
 import type {
   ResourceReference,
   ResourceReferenceSource,
@@ -113,11 +113,11 @@ export const ResourceReferenceFieldset = ({
         description={t('resourceadm.about_resource_references_description')}
         size='small'
       >
-        <Radio.Group
+        <NativeSelect
           size='small'
-          onChange={(value: ResourceReferenceSource) => setReferenceSource(value)}
+          onChange={(event) => setReferenceSource(event.target.value as ResourceReferenceSource)}
           value={referenceSource}
-          legend={t('resourceadm.about_resource_reference_source')}
+          label={t('resourceadm.about_resource_reference_source')}
           error={hasError}
           onFocus={onFocus}
           onBlur={() => {
@@ -126,17 +126,17 @@ export const ResourceReferenceFieldset = ({
         >
           {referenceSourceOptions.map((opt) => {
             return (
-              <Radio key={opt.value} value={opt.value}>
+              <option key={opt.value} value={opt.value}>
                 {opt.label}
-              </Radio>
+              </option>
             );
           })}
-        </Radio.Group>
-        <Radio.Group
+        </NativeSelect>
+        <NativeSelect
           size='small'
-          onChange={(value: ResourceReferenceType) => setReferenceType(value)}
+          onChange={(event) => setReferenceType(event.target.value as ResourceReferenceType)}
           value={referenceType}
-          legend={t('resourceadm.about_resource_reference_type')}
+          label={t('resourceadm.about_resource_reference_type')}
           error={hasError}
           onFocus={onFocus}
           onBlur={() => {
@@ -145,12 +145,12 @@ export const ResourceReferenceFieldset = ({
         >
           {referenceTypeOptions.map((opt) => {
             return (
-              <Radio key={opt.value} value={opt.value}>
+              <option key={opt.value} value={opt.value}>
                 {opt.label}
-              </Radio>
+              </option>
             );
           })}
-        </Radio.Group>
+        </NativeSelect>
         <Textfield
           label={t('resourceadm.about_resource_reference')}
           size='small'

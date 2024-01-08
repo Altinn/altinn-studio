@@ -14,7 +14,6 @@ const mockReference1: ResourceReference = {
 
 const mockReferenceList: ResourceReference[] = [mockReference1];
 const mockReferenceInput = 'hei';
-const user = userEvent.setup();
 
 describe('ResourceReferenceFields', () => {
   const mockOnResourceReferenceFieldChanged = jest.fn();
@@ -30,14 +29,18 @@ describe('ResourceReferenceFields', () => {
     render(<ResourceReferenceFields {...defaultProps} resourceReferenceList={undefined} />);
 
     const referenceField = screen.getByLabelText(textMock('resourceadm.about_resource_reference'));
-    const radioFields = screen.getAllByLabelText('Default');
+    const typeField = screen.getByLabelText(textMock('resourceadm.about_resource_reference_type'));
+    const sourceField = screen.getByLabelText(
+      textMock('resourceadm.about_resource_reference_source'),
+    );
 
     expect(referenceField).toHaveValue('');
-    expect(radioFields[0]).toBeChecked();
-    expect(radioFields[1]).toBeChecked();
+    expect(typeField).toHaveValue('Default');
+    expect(sourceField).toHaveValue('Default');
   });
 
   it('should set value of reference field', async () => {
+    const user = userEvent.setup();
     render(<ResourceReferenceFields {...defaultProps} />);
 
     const referenceField = screen.getByLabelText(textMock('resourceadm.about_resource_reference'));
@@ -47,30 +50,35 @@ describe('ResourceReferenceFields', () => {
   });
 
   it('should set value of reference source field', async () => {
+    const user = userEvent.setup();
     render(<ResourceReferenceFields {...defaultProps} />);
 
-    const sourceOption = screen.getByLabelText('Altinn3');
+    const sourceField = screen.getByLabelText(
+      textMock('resourceadm.about_resource_reference_source'),
+    );
 
-    expect(sourceOption).not.toBeChecked();
+    expect(sourceField).toHaveValue('Default');
 
-    await act(() => user.click(sourceOption));
+    await act(() => user.selectOptions(sourceField, 'Altinn3'));
 
-    expect(sourceOption).toBeChecked();
+    expect(sourceField).toHaveValue('Altinn3');
   });
 
   it('should set value of reference type field', async () => {
+    const user = userEvent.setup();
     render(<ResourceReferenceFields {...defaultProps} />);
 
-    const typeOption = screen.getByLabelText('MaskinportenScope');
+    const typeField = screen.getByLabelText(textMock('resourceadm.about_resource_reference_type'));
 
-    expect(typeOption).not.toBeChecked();
+    expect(typeField).toHaveValue('Default');
 
-    await act(() => user.click(typeOption));
+    await act(() => user.selectOptions(typeField, 'MaskinportenScope'));
 
-    expect(typeOption).toBeChecked();
+    expect(typeField).toHaveValue('MaskinportenScope');
   });
 
   it('should save reference value when field is changed', async () => {
+    const user = userEvent.setup();
     render(<ResourceReferenceFields {...defaultProps} />);
 
     const referenceField = screen.getByLabelText(textMock('resourceadm.about_resource_reference'));
@@ -86,11 +94,12 @@ describe('ResourceReferenceFields', () => {
   });
 
   it('should save reference type value when field is changed', async () => {
+    const user = userEvent.setup();
     render(<ResourceReferenceFields {...defaultProps} />);
 
-    const typeOption = screen.getByLabelText('ServiceEditionCode');
-    await act(() => user.click(typeOption));
-    await act(() => typeOption.blur());
+    const typeField = screen.getByLabelText(textMock('resourceadm.about_resource_reference_type'));
+    await act(() => user.selectOptions(typeField, 'ServiceEditionCode'));
+    await act(() => typeField.blur());
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {
@@ -101,11 +110,14 @@ describe('ResourceReferenceFields', () => {
   });
 
   it('should save reference source value when field is changed', async () => {
+    const user = userEvent.setup();
     render(<ResourceReferenceFields {...defaultProps} />);
 
-    const sourceOption = screen.getByLabelText('Altinn3');
-    await act(() => user.click(sourceOption));
-    await act(() => sourceOption.blur());
+    const sourceField = screen.getByLabelText(
+      textMock('resourceadm.about_resource_reference_source'),
+    );
+    await act(() => user.selectOptions(sourceField, 'Altinn3'));
+    await act(() => sourceField.blur());
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {
