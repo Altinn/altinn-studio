@@ -2,6 +2,8 @@ import React, { HTMLAttributes, forwardRef, useId } from 'react';
 import { Paragraph, Spinner } from '@digdir/design-system-react';
 import type { SpinnerProps } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { StudioCenter } from '../StudioCenter/StudioCenter';
+import classes from './StudioSpinner.module.css';
 
 export type StudioSpinnerProps = {
   spinnerText?: string;
@@ -16,7 +18,7 @@ export const StudioSpinner = forwardRef<HTMLDivElement, StudioSpinnerProps>(
     const spinnerDescriptionId = useId();
 
     return (
-      <div ref={ref} {...rest}>
+      <div className={classes.spinnerWrapper} ref={ref} {...rest}>
         <Spinner
           title={!spinnerText && t('general.loading')}
           size={size}
