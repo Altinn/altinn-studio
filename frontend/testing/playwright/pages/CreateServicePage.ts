@@ -6,8 +6,12 @@ export class CreateServicePage extends BasePage {
     super(page);
   }
 
-  public async goToCreateAppForm(): Promise<void> {
+  public async loadCreateAppFormPage(): Promise<void> {
     await this.page.goto(this.getRoute('dashboardCreateApp'));
+  }
+
+  public createAppFormIsVisible(): void {
+    this.page.getByLabel('Navn');
   }
 
   public async writeAppName(appName: string): Promise<void> {
@@ -19,7 +23,7 @@ export class CreateServicePage extends BasePage {
     await this.page.getByRole('button', { name: 'Opprett applikasjon' }).click();
   }
 
-  public async redirectedToEditorOverview(): Promise<void> {
+  public async verifyIsOverviewPage(): Promise<void> {
     await this.page.waitForURL(this.getRoute('editorOverview'));
   }
 }

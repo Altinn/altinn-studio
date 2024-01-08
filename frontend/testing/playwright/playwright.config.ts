@@ -1,14 +1,6 @@
-import { defineConfig, devices, test as base } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 import { config } from 'dotenv';
-
-type ExtendedTestOptions = {
-  testAppName: string;
-};
-
-// Extends the default test to support custom parameters such as appName for our test app
-export const test = base.extend<ExtendedTestOptions>({
-  testAppName: [process.env.PLAYWRIGHT_DESIGNER_APP_NAME, { option: true }],
-});
+import { ExtendedTestOptions } from './extenders/testExtend';
 
 config();
 
