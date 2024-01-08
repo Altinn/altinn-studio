@@ -34,7 +34,7 @@ export const LocalChangesModal = ({
         </div>
       }
     >
-      <div className={classes.modalContent}>
+      <div className={classes.localChangesContent}>
         <LocalChanges org={org} app={app} />
       </div>
     </StudioModal>

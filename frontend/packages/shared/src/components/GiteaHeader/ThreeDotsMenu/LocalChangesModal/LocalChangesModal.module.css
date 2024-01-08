@@ -1,7 +1,8 @@
-.modalContent {
+.localChangesContent {
   display: flex;
-  height: auto;
-  width: 50vw;
+  height: calc(var(--modal-content-max-height));
+  width: 70vw;
+  overflow: hidden;
 }
 
 .headingWrapper {
