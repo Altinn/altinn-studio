@@ -6,7 +6,8 @@ export const externalSimpleComponentToInternal = (
   externalComponent: ExternalSimpleComponent,
   pageIndex: number | null,
 ): FormComponent => {
-  const { propertyPath } = formItemConfigs[externalComponent.type].defaultProperties;
+  const defaultProperties = formItemConfigs[externalComponent.type]?.defaultProperties;
+  const propertyPath = defaultProperties?.propertyPath;
   return {
     ...(propertyPath ? { propertyPath } : {}),
     ...externalComponent,

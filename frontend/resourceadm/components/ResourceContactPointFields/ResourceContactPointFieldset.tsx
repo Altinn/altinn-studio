@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import classes from './ResourceContactPointFields.module.css';
 import type { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
 import { Fieldset } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +17,11 @@ type ResourceContactPointFieldsetProps = {
    */
   onLeaveTextFields: (contactPoint: ResourceContactPoint) => void;
   /**
+   * Function to be executed when the field is focused
+   * @returns void
+   */
+  onFocus: () => void;
+  /**
    * If the error should be shown
    */
   showErrors: boolean;
@@ -29,6 +33,7 @@ type ResourceContactPointFieldsetProps = {
  *
  * @property {ResourceContactPoint}[contactPoint] - The contact point to display in the fieldset
  * @property {function}[onLeaveTextFields] - Function to be executed when leaving a text field
+ * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - Function to be executed when leaving a text field
  *
  * @returns {React.ReactNode} - The rendered component
@@ -36,6 +41,7 @@ type ResourceContactPointFieldsetProps = {
 export const ResourceContactPointFieldset = ({
   contactPoint,
   onLeaveTextFields,
+  onFocus,
   showErrors,
 }: ResourceContactPointFieldsetProps): React.ReactNode => {
   const { t } = useTranslation();
@@ -50,17 +56,16 @@ export const ResourceContactPointFieldset = ({
 
   return (
     <>
-      <div className={classes.divider} />
       <Fieldset
         legend={t('resourceadm.about_resource_contact_legend')}
         description={t('resourceadm.about_resource_contact_description')}
         size='small'
-        className={classes.fieldset}
       >
         <ResourceContactPointTextField
           label={t('resourceadm.about_resource_contact_label_category')}
           value={category}
           onChange={(value: string) => setCategory(value)}
+          onFocus={onFocus}
           onBlur={() => {
             onLeaveTextFields({ ...contactPoint, category });
           }}
@@ -70,6 +75,7 @@ export const ResourceContactPointFieldset = ({
           label={t('resourceadm.about_resource_contact_label_email')}
           value={email}
           onChange={(value: string) => setEmail(value)}
+          onFocus={onFocus}
           onBlur={() => {
             onLeaveTextFields({ ...contactPoint, email });
           }}
@@ -79,6 +85,7 @@ export const ResourceContactPointFieldset = ({
           label={t('resourceadm.about_resource_contact_label_telephone')}
           value={telephone}
           onChange={(value: string) => setTelephone(value)}
+          onFocus={onFocus}
           onBlur={() => {
             onLeaveTextFields({ ...contactPoint, telephone });
           }}
@@ -88,6 +95,7 @@ export const ResourceContactPointFieldset = ({
           label={t('resourceadm.about_resource_contact_label_contactpage')}
           value={contactPage}
           onChange={(value: string) => setContactPage(value)}
+          onFocus={onFocus}
           onBlur={() => {
             onLeaveTextFields({ ...contactPoint, contactPage });
           }}

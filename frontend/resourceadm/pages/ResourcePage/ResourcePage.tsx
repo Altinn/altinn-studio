@@ -176,12 +176,11 @@ export const ResourcePage = (): React.ReactNode => {
   /**
    * Decide if the migration page should be accessible or not
    */
-  const getShowMigrate = () => {
-    if (resourceData) {
-      if (resourceData.resourceReferences) return true;
-      return false;
-    }
-    return false;
+  const isMigrateEnabled = (): boolean => {
+    const hasAltinn2ReferenceSource = resourceData?.resourceReferences?.some(
+      (ref) => ref.referenceSource === 'Altinn2',
+    );
+    return hasAltinn2ReferenceSource;
   };
 
   const aboutPageId = 'about';
@@ -228,7 +227,7 @@ export const ResourcePage = (): React.ReactNode => {
    * @returns the tabs to display in the LeftNavigationBar
    */
   const getTabs = (): LeftNavigationTab[] => {
-    if (getShowMigrate() && !leftNavigationTabs.includes(migrationTab)) {
+    if (isMigrateEnabled() && !leftNavigationTabs.includes(migrationTab)) {
       return [...leftNavigationTabs, migrationTab];
     } else {
       return leftNavigationTabs;
@@ -289,7 +288,7 @@ export const ResourcePage = (): React.ReactNode => {
               id='page-content-deploy'
             />
           )}
-          {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
+          {currentPage === 'migration' && isMigrateEnabled() && (
             <MigrationPage
               navigateToPageWithError={navigateToPageWithError}
               id='page-content-migration'

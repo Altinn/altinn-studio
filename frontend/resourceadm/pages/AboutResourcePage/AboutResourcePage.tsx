@@ -10,9 +10,8 @@ import type {
   ResourceAvailableForTypeOption,
   ResourceContactPoint,
   SupportedLanguage,
+  ResourceReference,
 } from 'app-shared/types/ResourceAdm';
-import { RightTranslationBar } from 'resourceadm/components/RightTranslationBar';
-import { getMissingInputLanguageString } from 'resourceadm/utils/resourceUtils';
 import {
   availableForTypeMap,
   resourceStatusMap,
@@ -23,7 +22,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import {
   ResourceCheckboxGroup,
-  ResourceLanguageTextArea,
   ResourceLanguageTextField,
   ResourceSwitchInput,
   ResourceTextField,
@@ -33,11 +31,7 @@ import { ResourceContactPointFields } from 'resourceadm/components/ResourceConta
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
-
-/**
- * Initial value for languages with empty fields
- */
-const emptyLanguages: SupportedLanguage = { nb: '', nn: '', en: '' };
+import { ResourceReferenceFields } from 'resourceadm/components/ResourceReferenceFields';
 
 export type AboutResourcePageProps = {
   showAllErrors: boolean;
@@ -91,31 +85,8 @@ export const AboutResourcePage = ({
     label: t(availableForTypeMap[key]),
   }));
 
-  // States to store the different input values
-  const [title, setTitle] = useState<SupportedLanguage>(resourceData.title ?? emptyLanguages);
-  const [description, setDescription] = useState<SupportedLanguage>(
-    resourceData.description ?? emptyLanguages,
-  );
-  const [rightDescription, setRightDescription] = useState<SupportedLanguage>(
-    resourceData.rightDescription ?? emptyLanguages,
-  );
-
   // To handle which translation value is shown in the right menu
   const [translationType, setTranslationType] = useState<Translation>('none');
-
-  /**
-   * Function that saves the resource to backend
-   */
-  const handleSaveResource = () => {
-    const editedResourceObject: Resource = {
-      ...resourceData,
-      identifier: resourceId,
-      title,
-      description,
-      rightDescription,
-    };
-    handleSave(editedResourceObject);
-  };
 
   /**
    * Saves the resource object passed in
@@ -152,66 +123,30 @@ export const AboutResourcePage = ({
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_title_label')}
           description={t('resourceadm.about_resource_resource_title_text')}
-          value={title['nb']}
+          translationDescription={t('resourceadm.about_resource_translation_title')}
+          value={resourceData.title}
           onFocus={() => setTranslationType('title')}
-          onChangeValue={(value: string) =>
-            setTitle((oldTitle) => {
-              return { ...oldTitle, nb: value };
-            })
+          isTranslationPanelOpen={translationType === 'title'}
+          onBlur={(translations: SupportedLanguage) =>
+            handleSave({ ...resourceData, title: translations })
           }
-          onBlur={handleSaveResource}
-          errorText={
-            showAllErrors
-              ? getMissingInputLanguageString(
-                  title,
-                  t('resourceadm.about_resource_error_usage_string_title'),
-                  t,
-                )
-              : ''
-          }
+          errorText={showAllErrors ? t('resourceadm.about_resource_error_usage_string_title') : ''}
         />
-        {translationType === 'title' && (
-          <RightTranslationBar
-            title={t('resourceadm.about_resource_translation_title')}
-            value={title}
-            onLanguageChange={setTitle}
-            usesTextArea={false}
-            showErrors={showAllErrors}
-            onBlur={handleSaveResource}
-          />
-        )}
-        <ResourceLanguageTextArea
+        <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_description_label')}
           description={t('resourceadm.about_resource_resource_description_text')}
-          value={description['nb']}
+          translationDescription={t('resourceadm.about_resource_translation_description')}
+          isTranslationPanelOpen={translationType === 'description'}
+          useTextArea
+          value={resourceData.description}
           onFocus={() => setTranslationType('description')}
-          id='aboutNBDescription'
-          onChangeValue={(value: string) => {
-            setDescription((oldDescription) => {
-              return { ...oldDescription, nb: value };
-            });
-          }}
-          onBlur={handleSaveResource}
+          onBlur={(translations: SupportedLanguage) =>
+            handleSave({ ...resourceData, description: translations })
+          }
           errorText={
-            showAllErrors
-              ? getMissingInputLanguageString(
-                  description,
-                  t('resourceadm.about_resource_error_usage_string_description'),
-                  t,
-                )
-              : ''
+            showAllErrors ? t('resourceadm.about_resource_error_usage_string_description') : ''
           }
         />
-        {translationType === 'description' && (
-          <RightTranslationBar
-            title={t('resourceadm.about_resource_translation_description')}
-            value={description}
-            onLanguageChange={setDescription}
-            usesTextArea={true}
-            showErrors={showAllErrors}
-            onBlur={handleSaveResource}
-          />
-        )}
         <ResourceTextField
           label={t('resourceadm.about_resource_homepage_label')}
           description={t('resourceadm.about_resource_homepage_text')}
@@ -233,34 +168,20 @@ export const AboutResourcePage = ({
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_rights_description_label')}
           description={t('resourceadm.about_resource_rights_description_text')}
-          value={rightDescription['nb']}
+          translationDescription={t('resourceadm.about_resource_translation_right_description')}
+          isTranslationPanelOpen={translationType === 'rightDescription'}
+          value={resourceData.rightDescription}
           onFocus={() => setTranslationType('rightDescription')}
-          onChangeValue={(value: string) =>
-            setRightDescription((oldRightsDescription) => {
-              return { ...oldRightsDescription, nb: value };
-            })
+          onBlur={(translations: SupportedLanguage) =>
+            handleSave({ ...resourceData, rightDescription: translations })
           }
-          onBlur={handleSaveResource}
           errorText={
             showAllErrors && resourceData.delegable
-              ? getMissingInputLanguageString(
-                  rightDescription,
-                  t('resourceadm.about_resource_error_usage_string_rights_description'),
-                  t,
-                )
+              ? t('resourceadm.about_resource_error_usage_string_rights_description')
               : ''
           }
         />
-        {translationType === 'rightDescription' && (
-          <RightTranslationBar
-            title={t('resourceadm.about_resource_translation_right_description')}
-            value={rightDescription}
-            onLanguageChange={setRightDescription}
-            usesTextArea={false}
-            showErrors={resourceData.delegable && showAllErrors}
-            onBlur={handleSaveResource}
-          />
-        )}
+
         <ResourceTextField
           label={t('resourceadm.about_resource_keywords_label')}
           description={t('resourceadm.about_resource_keywords_text')}
@@ -284,41 +205,59 @@ export const AboutResourcePage = ({
           }
           errorText={t('resourceadm.about_resource_status_error')}
         />
-        <ResourceSwitchInput
-          label={t('resourceadm.about_resource_self_identified_label')}
-          description={t('resourceadm.about_resource_self_identified_text')}
-          value={resourceData.selfIdentifiedUserEnabled ?? false}
-          onFocus={() => setTranslationType('none')}
-          onBlur={(isChecked: boolean) =>
-            handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
-          }
-          id='selfIdentifiedUsersEnabledSwitch'
-          descriptionId='selfIdentifiedUsersEnabledSwitchDescription'
-          toggleTextTranslationKey='resourceadm.about_resource_self_identified_show_text'
-        />
-        <ResourceSwitchInput
-          label={t('resourceadm.about_resource_enterprise_label')}
-          description={t('resourceadm.about_resource_enterprise_text')}
-          value={resourceData.enterpriseUserEnabled ?? false}
-          onFocus={() => setTranslationType('none')}
-          onBlur={(isChecked: boolean) =>
-            handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
-          }
-          id='enterpriseUserEnabledSwitch'
-          descriptionId='enterpriseUserEnabledSwitchDescription'
-          toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
-        />
-        <ResourceCheckboxGroup
-          options={availableForOptions}
-          legend={t('resourceadm.about_resource_available_for_legend')}
-          description={t('resourceadm.about_resource_available_for_description')}
-          showErrors={showAllErrors}
-          onChange={(selected: ResourceAvailableForTypeOption[]) =>
-            handleSave({ ...resourceData, availableForType: selected })
-          }
-          value={resourceData.availableForType ?? []}
-        />
+        {resourceData.resourceType !== 'MaskinportenSchema' && (
+          <ResourceSwitchInput
+            label={t('resourceadm.about_resource_self_identified_label')}
+            description={t('resourceadm.about_resource_self_identified_text')}
+            value={resourceData.selfIdentifiedUserEnabled ?? false}
+            onFocus={() => setTranslationType('none')}
+            onBlur={(isChecked: boolean) =>
+              handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
+            }
+            id='selfIdentifiedUsersEnabledSwitch'
+            descriptionId='selfIdentifiedUsersEnabledSwitchDescription'
+            toggleTextTranslationKey='resourceadm.about_resource_self_identified_show_text'
+          />
+        )}
+        {resourceData.resourceType !== 'MaskinportenSchema' && (
+          <ResourceSwitchInput
+            label={t('resourceadm.about_resource_enterprise_label')}
+            description={t('resourceadm.about_resource_enterprise_text')}
+            value={resourceData.enterpriseUserEnabled ?? false}
+            onFocus={() => setTranslationType('none')}
+            onBlur={(isChecked: boolean) =>
+              handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
+            }
+            id='enterpriseUserEnabledSwitch'
+            descriptionId='enterpriseUserEnabledSwitchDescription'
+            toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
+          />
+        )}
+        {resourceData.resourceType !== 'MaskinportenSchema' && (
+          <ResourceCheckboxGroup
+            options={availableForOptions}
+            legend={t('resourceadm.about_resource_available_for_legend')}
+            description={t('resourceadm.about_resource_available_for_description')}
+            showErrors={showAllErrors}
+            onFocus={() => setTranslationType('none')}
+            onChange={(selected: ResourceAvailableForTypeOption[]) =>
+              handleSave({ ...resourceData, availableForType: selected })
+            }
+            value={resourceData.availableForType ?? []}
+          />
+        )}
+        {resourceData.resourceType === 'MaskinportenSchema' && (
+          <ResourceReferenceFields
+            onFocus={() => setTranslationType('none')}
+            resourceReferenceList={resourceData.resourceReferences}
+            onResourceReferenceFieldChanged={(resourceReferences: ResourceReference[]) => {
+              handleSave({ ...resourceData, resourceReferences: resourceReferences });
+            }}
+            showErrors={showAllErrors}
+          />
+        )}
         <ResourceContactPointFields
+          onFocus={() => setTranslationType('none')}
           contactPointList={resourceData.contactPoints}
           onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>
             handleSave({ ...resourceData, contactPoints: contactPoints })

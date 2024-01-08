@@ -73,16 +73,18 @@ export interface Validation {
   errors: any;
 }
 
+export type ResourceReferenceSource = 'Default' | 'Altinn2' | 'Altinn3' | 'ExternalPlatform';
+export type ResourceReferenceType =
+  | 'Default'
+  | 'Uri'
+  | 'DelegationSchemeId'
+  | 'MaskinportenScope'
+  | 'ServiceCode'
+  | 'ServiceEditionCode';
 export interface ResourceReference {
-  referenceSource?: 'Default' | 'Altinn1' | 'Altinn2' | 'Altinn3' | 'ExternalPlatform';
+  referenceSource?: ResourceReferenceSource;
   reference?: string;
-  referenceType?:
-    | 'Default'
-    | 'Uri'
-    | 'DelegationSchemeId'
-    | 'MaskinportenScope'
-    | 'ServiceCode'
-    | 'ServiceEditionCode';
+  referenceType?: ResourceReferenceType;
 }
 
 export interface BrregOrganizationResult {
