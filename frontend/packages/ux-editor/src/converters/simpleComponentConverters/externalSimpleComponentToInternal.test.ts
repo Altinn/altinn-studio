@@ -29,4 +29,21 @@ describe('externalSimpleComponentToInternal', () => {
       });
     },
   );
+
+  it('should convert unknown components', () => {
+    const externalComponent = {
+      id: '2',
+      type: 'UnknownComponent',
+      customProperty: null,
+    } as unknown as ExternalSimpleComponent;
+
+    const result = externalSimpleComponentToInternal(externalComponent, 1);
+    expect(result).toEqual({
+      customProperty: null,
+      id: '2',
+      itemType: 'COMPONENT',
+      pageIndex: 1,
+      type: 'UnknownComponent',
+    });
+  });
 });

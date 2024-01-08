@@ -1,3 +1,4 @@
+import { deepCopy } from 'app-shared/pure';
 import type {
   PolicyAction,
   PolicyEditorUsage,
@@ -215,4 +216,89 @@ export const createNewPolicyResource = (
     return [{ type: resourceType, id: resourceId }];
   }
   return [];
+};
+
+/**
+ * Merges actions from policy rules with existing action options.
+ *
+ * @param {PolicyRule[]} rules - The policy rules containing actions to be merged.
+ * @param {PolicyAction[]} actions - The existing policy actions to merge with.
+ *
+ * @returns {PolicyAction[]} - The merged policy actions.
+ */
+export const mergeActionsFromPolicyWithActionOptions = (
+  rules: PolicyRule[],
+  actions: PolicyAction[],
+): PolicyAction[] => {
+  const existingActionIds = actions.map((action) => action.actionId);
+  const copiedActions = deepCopy(actions);
+
+  rules.forEach((rule) => {
+    rule.actions.forEach((actionString) => {
+      if (!existingActionIds.includes(actionString)) {
+        const newAction: PolicyAction = {
+          actionId: actionString,
+          actionTitle: actionString,
+          actionDescription: null,
+        };
+        copiedActions.push(newAction);
+        existingActionIds.push(actionString);
+      }
+    });
+  });
+
+  return copiedActions;
+};
+
+/**
+ * Merges subjects from policy rules with existing subject options.
+ *
+ * @param {PolicyRule[]} rules - The policy rules containing subjects to be merged.
+ * @param {PolicySubject[]} subjects - The existing policy subjects to merge with.
+ *
+ * @returns {PolicySubject[]} - The merged policy subjects.
+ */
+export const mergeSubjectsFromPolicyWithSubjectOptions = (
+  rules: PolicyRule[],
+  subjects: PolicySubject[],
+): PolicySubject[] => {
+  const existingSubjectIds = subjects.map((subject) => subject.subjectId);
+  const copiedSubjects = deepCopy(subjects);
+
+  rules.forEach((rule) => {
+    rule.subject.forEach((subjectString) => {
+      const subjectId = convertSubjectStringToSubjectId(subjectString);
+
+      if (!existingSubjectIds.includes(subjectId)) {
+        const newSubject: PolicySubject = createNewSubjectFromSubjectString(subjectString);
+        copiedSubjects.push(newSubject);
+        existingSubjectIds.push(subjectId);
+      }
+    });
+  });
+
+  return copiedSubjects;
+};
+
+export const convertSubjectStringToSubjectId = (subjectString: string): string => {
+  const lastColonIndex = subjectString.lastIndexOf(':');
+  // The final element is the id
+  return subjectString.slice(lastColonIndex + 1);
+};
+
+export const createNewSubjectFromSubjectString = (subjectString: string): PolicySubject => {
+  const subjectId: string = convertSubjectStringToSubjectId(subjectString);
+  return {
+    subjectId: subjectId,
+    subjectTitle: subjectId,
+    subjectSource: convertSubjectStringToSubjectSource(subjectString),
+    subjectDescription: '',
+  };
+};
+
+export const convertSubjectStringToSubjectSource = (subjectString: string): string => {
+  const firstColonIndex = subjectString.indexOf(':');
+  const lastColonIndex = subjectString.lastIndexOf(':');
+  // Starting at 1 to remove 'urn', and excluding the final to remove the id
+  return subjectString.slice(firstColonIndex + 1, lastColonIndex);
 };
