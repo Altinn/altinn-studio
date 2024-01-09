@@ -94,8 +94,6 @@
       {
         "id": "nav2",
         "type": "NavigationButtons",
-        "componentType": "NavigationButtons",
-        "dataModelBindings": {},
         "showBackButton": true,
         "textResourceBindings": {
           "next": "Skjul_felter.nav2.next",

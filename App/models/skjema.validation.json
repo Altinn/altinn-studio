@@ -4,9 +4,10 @@
     "root.alder": [
       {
         "message": "Kandidater under 18 år må ha foresattes skriftlige samtykke",
-        "severity": "warnings",
+        "severity": "warning",
         "condition": [
           "and",
+          ["greaterThan", ["stringLength", ["dataModel", ["argv", 0]]], 0],
           ["greaterThanEq", ["dataModel", ["argv", 0]], 15],
           ["lessThan", ["dataModel", ["argv", 0]], 18]
         ]
@@ -15,28 +16,41 @@
     "root.telefonnummer": [
       {
         "message": "Telefonnummer må starte med '9'",
-        "condition": ["not", ["startsWith", ["dataModel", ["argv", 0]], "9"]]
+        "condition": [
+          "and",
+          ["greaterThan", ["stringLength", ["dataModel", ["argv", 0]]], 0],
+          ["not", ["startsWith", ["dataModel", ["argv", 0]], "9"]]
+        ]
       }
     ],
     "root.epost": [
       {
         "message": "E-post må slutte med '@altinn.no'",
         "condition": [
-          "not",
-          ["endsWith", ["dataModel", ["argv", 0]], "@altinn.no"]
+          "and",
+          ["greaterThan", ["stringLength", ["dataModel", ["argv", 0]]], 0],
+          ["not", ["endsWith", ["dataModel", ["argv", 0]], "@altinn.no"]]
         ]
       }
     ],
     "root.arbeidserfaring.beskrivelse": [
       {
         "message": "Beskrivelse kan ikke være flink",
-        "condition": ["equals", ["dataModel", ["argv", 0]], "flink"]
+        "condition": [
+          "and",
+          ["greaterThan", ["stringLength", ["dataModel", ["argv", 0]]], 0],
+          ["equals", ["dataModel", ["argv", 0]], "flink"]
+        ]
       }
     ],
     "root.arbeidserfaring.prosjekter.beskrivelse": [
       {
         "message": "Beskrivelse kan ikke være kult",
-        "condition": ["equals", ["dataModel", ["argv", 0]], "kult"]
+        "condition": [
+          "and",
+          ["greaterThan", ["stringLength", ["dataModel", ["argv", 0]]], 0],
+          ["equals", ["dataModel", ["argv", 0]], "kult"]
+        ]
       }
     ]
   },
