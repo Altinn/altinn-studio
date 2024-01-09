@@ -80,7 +80,7 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
           >
             {t('resourceadm.listadmin_confirm_create_list')}
           </Button>
-          <Button size='small' variant='tertiary' onClick={() => onClose()}>
+          <Button size='small' variant='tertiary' onClick={onClose}>
             {t('general.cancel')}
           </Button>
         </Modal.Footer>

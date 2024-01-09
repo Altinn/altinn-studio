@@ -8,6 +8,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { NewAccessListModal } from './NewAccessListModal';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockButtonText: string = 'Mock Button';
 const closeModalMock = jest.fn();
@@ -64,7 +65,7 @@ describe('NewAccessListModal', () => {
     await renderAndOpenModal(user, {
       createAccessList: jest
         .fn()
-        .mockImplementation(() => Promise.reject({ response: { status: 409 } })),
+        .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
     });
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
