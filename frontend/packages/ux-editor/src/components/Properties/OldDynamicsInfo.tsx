@@ -4,11 +4,15 @@ import { ExternalLinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export const OldDynamicsInfo = () => {
   const { t } = useTranslation();
+  const { selectedLayoutSet } = useAppContext();
   const { app, org } = useStudioUrlParams();
-  const dynamicLocation = `App/ui/RuleHandler.js`;
+  const dynamicLocation = selectedLayoutSet
+    ? `App/ui/${selectedLayoutSet}/RuleHandler.js`
+    : 'App/ui/RuleHandler.js';
   return (
     <div>
       <div className={classes.header}>{t('right_menu.dynamics')}</div>
@@ -28,7 +32,12 @@ export const OldDynamicsInfo = () => {
             </span>
           </a>
         </p>
-        <a className={classes.textLink} href={giteaEditLink(org, app, dynamicLocation)} target='_blank' rel='noreferrer'>
+        <a
+          className={classes.textLink}
+          href={giteaEditLink(org, app, dynamicLocation)}
+          target='_blank'
+          rel='noreferrer'
+        >
           {t('right_menu.dynamics_edit')}
         </a>{' '}
         ({t('right_menu.dynamics_edit_comment')})
