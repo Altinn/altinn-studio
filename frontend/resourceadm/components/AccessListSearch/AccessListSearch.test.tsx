@@ -84,9 +84,42 @@ describe('AccessListSearch', () => {
 
     const searchField = screen.getByTestId('party-search');
     await act(() => user.type(searchField, 'Digdir'));
+
     await waitFor(() => {
-      expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('resourceadm.listadmin_search_no_parties')),
+      ).toBeInTheDocument();
     });
+  });
+
+  it('should search with special request when searching for a 9-digit number', async () => {
+    const getPartiesMock = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        _embedded: {
+          enheter: [{ organisasjonsnummer: '123456789', navn: 'Digdir' }],
+        },
+      }),
+    );
+    render({
+      getParties: getPartiesMock,
+      getSubParties: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          _embedded: {
+            underenheter: [{ organisasjonsnummer: testSubParty.orgNr, navn: testSubParty.orgName }],
+          },
+        }),
+      ),
+    });
+
+    const searchField = screen.getByTestId('party-search');
+    await act(() => user.type(searchField, '123456789'));
+
+    const subPartyString = `${testSubParty.orgNr} - ${testSubParty.orgName}`;
+    await waitFor(() => screen.findByText(subPartyString));
+
+    expect(getPartiesMock).toHaveBeenCalledWith(
+      'https://data.brreg.no/enhetsregisteret/api/enheter?organisasjonsnummer=123456789&sort=navn,ASC',
+    );
   });
 });
 

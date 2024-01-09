@@ -10,6 +10,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient } from '@tanstack/react-query';
+import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
@@ -239,6 +240,16 @@ describe('ResourceDashBoardPage', () => {
 
     expect(
       screen.getByText(textMock('resourceadm.dashboard_no_resources_result')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show access list button when feature is enabled', () => {
+    addFeatureFlagToLocalStorage('resourceAccessLists');
+
+    render();
+
+    expect(
+      screen.getByText(textMock('resourceadm.dashboard_change_organization_lists')),
     ).toBeInTheDocument();
   });
 });
