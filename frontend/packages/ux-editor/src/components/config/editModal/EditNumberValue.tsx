@@ -9,6 +9,7 @@ import { StudioDecimalInput } from '@studio/components';
 export interface EditNumberValueProps extends IGenericEditComponent {
   propertyKey: string;
   helpText?: string;
+  required?: boolean;
 }
 
 export const EditNumberValue = ({
@@ -16,11 +17,12 @@ export const EditNumberValue = ({
   handleComponentChange,
   propertyKey,
   helpText,
+  required,
 }: EditNumberValueProps) => {
   const { t } = useTranslation();
 
   const handleValueChange = (newValue: number) => {
-    if (newValue === undefined || newValue === null) return;
+    if (required && (newValue === undefined || newValue === null)) return;
     handleComponentChange(setComponentProperty(component, propertyKey, newValue));
   };
 
@@ -31,6 +33,7 @@ export const EditNumberValue = ({
       onChange={handleValueChange}
       propertyPath={component.propertyPath}
       helpText={helpText}
+      customRequired={required}
       renderField={({ fieldProps }) => (
         <StudioDecimalInput
           {...fieldProps}
