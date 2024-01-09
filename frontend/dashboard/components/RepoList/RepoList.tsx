@@ -98,10 +98,10 @@ export const RepoList = ({
 
   const handlePaginationModelChange = (newPaginationModel) => {
     if (newPaginationModel.page !== paginationModel.page) {
-      onPageChange(newPaginationModel.page);
+      onPageChange?.(newPaginationModel.page);
     }
     if (newPaginationModel.pageSize !== paginationModel.pageSize) {
-      onPageSizeChange(newPaginationModel.pageSize);
+      onPageSizeChange?.(newPaginationModel.pageSize);
     }
     setPaginationModel(newPaginationModel);
   };
