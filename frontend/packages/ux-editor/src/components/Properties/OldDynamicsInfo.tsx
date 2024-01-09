@@ -40,7 +40,7 @@ export const OldDynamicsInfo = () => {
         >
           {t('right_menu.dynamics_edit')}
         </a>{' '}
-        ({t('right_menu.dynamics_edit_comment')})
+        {t('right_menu.dynamics_edit_comment')}
       </div>
     </div>
   );
