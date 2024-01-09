@@ -23,7 +23,6 @@ mockDeleteLocalChangesyMutation.mockReturnValue({
 } as unknown as UseMutationResult<any, Error, void, unknown>);
 
 describe('LocalChangesTab', () => {
-  const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
 
   const defaultProps: LocalChangesTabProps = {
@@ -64,6 +63,7 @@ describe('LocalChangesTab', () => {
   });
 
   it('opens the delete modal when delete button is clicked', async () => {
+    const user = userEvent.setup();
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteButton = screen.getByRole('button', {
@@ -79,6 +79,7 @@ describe('LocalChangesTab', () => {
   });
 
   it('calls the handleDelete function, and closes the modal, when delete button is clicked in delete modal', async () => {
+    const user = userEvent.setup();
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteButton = screen.getByRole('button', {
@@ -106,6 +107,7 @@ describe('LocalChangesTab', () => {
   });
 
   it('closes the delete modal when cancel button is clicked in delete modal', async () => {
+    const user = userEvent.setup();
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteButton = screen.getByRole('button', {

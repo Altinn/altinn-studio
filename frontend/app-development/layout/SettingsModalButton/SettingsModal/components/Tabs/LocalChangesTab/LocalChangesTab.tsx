@@ -6,8 +6,6 @@ import { Paragraph } from '@digdir/design-system-react';
 import { DownloadIcon, TrashIcon } from '@navikt/aksel-icons';
 import { LocalChangesActionButton } from './LocalChangesActionButton';
 import { DeleteModal } from './DeleteModal';
-import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
-import { toast } from 'react-toastify';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { TabContent } from '../../TabContent';
 
@@ -28,18 +26,7 @@ export type LocalChangesTabProps = {
 export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode => {
   const { t } = useTranslation();
 
-  const { mutate: deleteLocalChanges } = useResetRepositoryMutation(org, app);
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-
-  const handleDelete = () => {
-    deleteLocalChanges(undefined, {
-      onSuccess: () => {
-        setDeleteModalOpen(false);
-        toast.success(t('settings_modal.local_changes_tab_deleted_success'));
-      },
-    });
-  };
 
   return (
     <TabContent>
@@ -72,8 +59,8 @@ export const LocalChangesTab = ({ org, app }: LocalChangesTabProps): ReactNode =
       <DeleteModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        onDelete={handleDelete}
-        appName={app}
+        app={app}
+        org={org}
       />
     </TabContent>
   );

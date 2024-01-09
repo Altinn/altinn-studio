@@ -1,15 +1,17 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioModal } from '@studio/components';
+import { StudioModal, StudioSpinner } from '@studio/components';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { Button, Heading, Paragraph, Textfield } from '@digdir/design-system-react';
+import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
+import { toast } from 'react-toastify';
 
 export type DeleteModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onDelete: () => void;
-  appName: string;
+  org: string;
+  app: string;
 };
 
 /**
@@ -19,29 +21,39 @@ export type DeleteModalProps = {
  *
  * @property {boolean}[isOpen] - If the modal is open or not
  * @property {function}[onClose] - Function to execute on close
- * @property {function}[onDelete] - Function to execute on click delete
- * @property {string}[appName] - The name of the app to delete changes on
+ * @property {string}[app] - The app
+ * @property {string}[org] - The org
  *
  * @returns {ReactNode} - The rendered component
  */
-export const DeleteModal = ({
-  isOpen,
-  onClose,
-  onDelete,
-  appName,
-}: DeleteModalProps): ReactNode => {
+export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): ReactNode => {
   const { t } = useTranslation();
 
+  const { mutate: deleteLocalChanges } = useResetRepositoryMutation(org, app);
+
   const [nameToDelete, setNameToDelete] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleClose = () => {
     setNameToDelete('');
     onClose();
   };
 
-  const handleDelete = () => {
+  const reset = () => {
+    setIsLoading(false);
     setNameToDelete('');
-    onDelete();
+    onClose();
+  };
+
+  const handleDelete = () => {
+    setIsLoading(true);
+    deleteLocalChanges(undefined, {
+      onSuccess: () => {
+        reset();
+        toast.success(t('settings_modal.local_changes_tab_deleted_success'));
+      },
+      onError: () => setIsLoading(false),
+    });
   };
 
   return (
@@ -58,29 +70,35 @@ export const DeleteModal = ({
       }
     >
       <div className={classes.contentWrapper}>
-        <Paragraph size='small' spacing>
-          {t('settings_modal.local_changes_tab_delete_modal_text')}
-        </Paragraph>
-        <Textfield
-          label={t('settings_modal.local_changes_tab_delete_modal_textfield_label')}
-          size='small'
-          value={nameToDelete}
-          onChange={(e) => setNameToDelete(e.target.value)}
-        />
-        <div className={classes.buttonWrapper}>
-          <Button
-            variant='secondary'
-            color='danger'
-            onClick={handleDelete}
-            disabled={appName !== nameToDelete}
-            size='small'
-          >
-            {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
-          </Button>
-          <Button variant='secondary' onClick={handleClose} size='small'>
-            {t('general.cancel')}
-          </Button>
-        </div>
+        {isLoading ? (
+          <StudioSpinner />
+        ) : (
+          <>
+            <Paragraph size='small' spacing>
+              {t('settings_modal.local_changes_tab_delete_modal_text')}
+            </Paragraph>
+            <Textfield
+              label={t('settings_modal.local_changes_tab_delete_modal_textfield_label')}
+              size='small'
+              value={nameToDelete}
+              onChange={(e) => setNameToDelete(e.target.value)}
+            />
+            <div className={classes.buttonWrapper}>
+              <Button
+                variant='secondary'
+                color='danger'
+                onClick={handleDelete}
+                disabled={app !== nameToDelete}
+                size='small'
+              >
+                {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
+              </Button>
+              <Button variant='secondary' onClick={handleClose} size='small'>
+                {t('general.cancel')}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </StudioModal>
   );
