@@ -25,7 +25,7 @@ import {
   InformationSquareIcon,
   MigrationIcon,
   UploadIcon,
-} from '@navikt/aksel-icons';
+} from '@studio/icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
 import { ResourceAccessLists } from 'resourceadm/components/ResourceAccessLists';

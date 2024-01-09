@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
-import { ArrowRightIcon } from '@navikt/aksel-icons';
+import { ArrowRightIcon } from '@studio/icons';
 import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import type { DeployError } from 'resourceadm/types/DeployError';
 import { Alert, Label, Paragraph } from '@digdir/design-system-react';

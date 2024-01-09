@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './RightTranslationBar.module.css';
-import { GlobeIcon } from '@navikt/aksel-icons';
+import { GlobeIcon } from '@studio/icons';
 import { Textfield, Alert, Paragraph, Heading, Textarea } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { mapLanguageKeyToLanguageText } from 'resourceadm/utils/resourceUtils';

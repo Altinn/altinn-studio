@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { Button, Spinner, Heading } from '@digdir/design-system-react';
-import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@navikt/aksel-icons';
+import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from 'resourceadm/hooks/queries';

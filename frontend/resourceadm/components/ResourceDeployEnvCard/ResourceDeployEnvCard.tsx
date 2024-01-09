@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ResourceDeployEnvCard.module.css';
 import { Button, Tag, Paragraph, Spinner } from '@digdir/design-system-react';
-import { ArrowRightIcon } from '@navikt/aksel-icons';
+import { ArrowRightIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 
 export type ResourceDeployEnvCardProps = {

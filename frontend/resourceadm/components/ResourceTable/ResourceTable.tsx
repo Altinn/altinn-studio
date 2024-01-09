@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import cn from 'classnames';
 import classes from './ResourceTable.module.css';
-import { PencilIcon } from '@navikt/aksel-icons';
+import { PencilIcon } from '@studio/icons';
 import { Tag } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';

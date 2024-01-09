@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import classes from './ResourceNameAndId.module.css';
 import { Button, Textfield, Paragraph } from '@digdir/design-system-react';
-import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
+import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { FieldWrapper } from 'resourceadm/components/FieldWrapper/FieldWrapper';
 
