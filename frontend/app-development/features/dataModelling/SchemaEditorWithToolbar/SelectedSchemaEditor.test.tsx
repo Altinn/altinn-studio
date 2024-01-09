@@ -10,6 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { dataMock } from '@altinn/schema-editor/mockData';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { SchemaEditorAppProps } from '@altinn/schema-editor/SchemaEditorApp';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const user = userEvent.setup();
 
@@ -66,7 +67,7 @@ describe('SelectedSchemaEditor', () => {
     await act(() => user.click(button));
     expect(saveDatamodel).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    act(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
     await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
     expect(saveDatamodel).toHaveBeenCalledWith(
       org,
@@ -76,7 +77,7 @@ describe('SelectedSchemaEditor', () => {
     );
   });
 
-  it('Autosaves when changing model', async () => {
+  it('Autosaves when changing between models that are not present in the cache', async () => {
     const saveDatamodel = jest.fn();
     const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
     const { renderResult: { rerender } } = render({ getDatamodel, saveDatamodel });
@@ -86,6 +87,30 @@ describe('SelectedSchemaEditor', () => {
     const updatedProps = {
       ...defaultProps,
       modelPath: 'newModel',
+    };
+    rerender(<SelectedSchemaEditor {...updatedProps} />);
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
+    expect(saveDatamodel).toHaveBeenCalledWith(
+      org,
+      app,
+      datamodelNameMock,
+      dataMock,
+    );
+  });
+
+  it('Autosaves when changing between models that are already present in the cache', async () => {
+    const saveDatamodel = jest.fn();
+    const queryClient = createQueryClientMock();
+    const newModelPath = 'newModel';
+    queryClient.setQueryData([QueryKey.JsonSchema, org, app, datamodelNameMock], dataMock);
+    queryClient.setQueryData([QueryKey.JsonSchema, org, app, newModelPath], dataMock);
+    const { renderResult: { rerender } } = render({ saveDatamodel }, queryClient);
+    expect(saveDatamodel).not.toHaveBeenCalled();
+
+    const updatedProps = {
+      ...defaultProps,
+      modelPath: newModelPath,
     };
     rerender(<SelectedSchemaEditor {...updatedProps} />);
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
