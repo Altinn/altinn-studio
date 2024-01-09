@@ -134,11 +134,11 @@ export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${or
 export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}?env=${env}`; // Get
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
-export const partyListsPath = (org, env) => `${basePath}/${org}/resources/partylist/?env=${env}`; // Get, Post
-export const partyListPath = (org, listId, env) => `${basePath}/${org}/resources/partylist/${listId}?env=${env}`; // Get, Patch, Delete
-export const partyListMemberPath = (org, listId, orgnr, env) => `${basePath}/${org}/resources/partylist/${listId}/members/${orgnr}?env=${env}`; // Post, Delete
-export const resourcePartyListsPath = (org, resourceId, env) => `${basePath}/${org}/resources/${resourceId}/partylists/?env=${env}`; // Get
-export const resourcePartyListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/partylists/${listId}?env=${env}`; // Post, Delete, Patch
+export const accessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; // Get, Post
+export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete
+export const accessListMemberPath = (org, listId, orgnr, env) => `${basePath}/${org}/resources/accesslist/${listId}/members/${orgnr}?env=${env}`; // Post, Delete
+export const resourceAccessListsPath = (org, resourceId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}`; // Get
+export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;

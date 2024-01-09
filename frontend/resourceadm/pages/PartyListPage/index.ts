@@ -1,1 +1,0 @@
-export { PartyListPage } from './PartyListPage';

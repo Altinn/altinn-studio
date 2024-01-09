@@ -34,13 +34,13 @@ export const getResourcePageURL = (
   return `/${organisation}/${repo}/resource/${resourceId}/${resourcePage}`;
 };
 
-export const getPartyListPageUrl = (
+export const getAccessListPageUrl = (
   organisation: string,
   repo: string,
   environment: string,
   listIdentifier: string = '',
 ): string => {
-  return `/${organisation}/${repo}/listadmin/${environment}/${listIdentifier}`;
+  return `/${organisation}/${repo}/accesslists/${environment}/${listIdentifier}`;
 };
 
 export const getPartiesQueryUrl = (search: string, isSubParty?: boolean): string => {

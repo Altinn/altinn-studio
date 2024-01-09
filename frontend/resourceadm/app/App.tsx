@@ -15,7 +15,7 @@ import { SearchField } from '@altinn/altinn-design-system';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
 import { ListAdminPage } from 'resourceadm/pages/ListAdminPage/ListAdminPage';
 import { useTranslation } from 'react-i18next';
-import { PartyListPage } from 'resourceadm/pages/PartyListPage/PartyListPage';
+import { AccessListPage } from 'resourceadm/pages/AccessListPage';
 
 export const App = (): JSX.Element => {
   const { data: user, isError: isUserError } = useUserQuery();
@@ -61,10 +61,13 @@ export const App = (): JSX.Element => {
         <Routes>
           <Route element={<PageLayout />}>
             <Route path={basePath} element={<ResourceDashboardPage />} />
-            <Route path={`${basePath}/listadmin/:env?`} element={<ListAdminPage />} />
-            <Route path={`${basePath}/listadmin/:env/:listId`} element={<PartyListPage />} />
+            <Route path={`${basePath}/accesslists/:env?`} element={<ListAdminPage />} />
             <Route
-              path={`${basePath}/resource/:resourceId/:pageType/:env?/:listId?`}
+              path={`${basePath}/accesslists/:env/:accessListId`}
+              element={<AccessListPage />}
+            />
+            <Route
+              path={`${basePath}/resource/:resourceId/:pageType/:env?/:accessListId?`}
               element={<ResourcePage />}
             />
             <Route path='/' element={<ErrorPage />} />

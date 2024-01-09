@@ -9,7 +9,7 @@ export type SupportedFeatureFlags =
   | 'processEditor'
   | 'configureLayoutSet'
   | 'shouldOverrideAppLibCheck'
-  | 'resourcePartyLists';
+  | 'resourceAccessLists';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

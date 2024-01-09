@@ -1,1 +1,0 @@
-export { ResourcePartyLists } from './ResourcePartyLists';

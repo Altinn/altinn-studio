@@ -28,9 +28,9 @@ import {
 } from '@navikt/aksel-icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
-import { ResourcePartyLists } from 'resourceadm/components/ResourcePartyLists';
-import { PartyListDetail } from 'resourceadm/components/PartyListDetails';
-import { useGetPartyListQuery } from 'resourceadm/hooks/queries/useGetPartyList';
+import { ResourceAccessLists } from 'resourceadm/components/ResourceAccessLists';
+import { AccessListDetail } from 'resourceadm/components/AccessListDetails';
+import { useGetAccessListQuery } from 'resourceadm/hooks/queries/useGetAccessList';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
@@ -44,7 +44,7 @@ export const ResourcePage = (): React.ReactNode => {
 
   const navigate = useNavigate();
 
-  const { pageType, resourceId, selectedContext, repo, env, listId } = useUrlParams();
+  const { pageType, resourceId, selectedContext, repo, env, accessListId } = useUrlParams();
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
 
@@ -82,7 +82,7 @@ export const ResourcePage = (): React.ReactNode => {
     isPending: resourcePending,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
 
-  const { data: partyList } = useGetPartyListQuery(selectedContext, listId, env);
+  const { data: accessList } = useGetAccessListQuery(selectedContext, accessListId, env);
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
@@ -294,19 +294,19 @@ export const ResourcePage = (): React.ReactNode => {
               id='page-content-migration'
             />
           )}
-          {currentPage === 'partylists' && env && !listId && (
-            <ResourcePartyLists env={env} resourceData={resourceData} />
+          {currentPage === 'accesslists' && env && !accessListId && (
+            <ResourceAccessLists env={env} resourceData={resourceData} />
           )}
-          {currentPage === 'partylists' && env && partyList && (
-            <PartyListDetail
+          {currentPage === 'accesslists' && env && accessList && (
+            <AccessListDetail
               org={selectedContext}
               env={env}
-              list={partyList}
+              list={accessList}
               backUrl={`${getResourcePageURL(
                 selectedContext,
                 repo,
                 resourceId,
-                'partylists',
+                'accesslists',
               )}/${env}`}
             />
           )}

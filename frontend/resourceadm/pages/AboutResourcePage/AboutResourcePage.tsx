@@ -274,7 +274,7 @@ export const AboutResourcePage = ({
           descriptionId='isVisibleSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
-        {shouldDisplayFeature('resourcePartyLists') && (
+        {shouldDisplayFeature('resourceAccessLists') && (
           <>
             <ResourceSwitchInput
               label={t('resourceadm.about_resource_limited_by_rrr_label')}
@@ -299,7 +299,7 @@ export const AboutResourcePage = ({
                           selectedContext,
                           repo,
                           resourceId,
-                          'partylists',
+                          'accesslists',
                         )}/${env}/`}
                       >
                         {t('resourceadm.about_resource_edit_rrr', { env: env.toUpperCase() })}

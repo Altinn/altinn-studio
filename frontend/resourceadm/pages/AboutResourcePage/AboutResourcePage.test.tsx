@@ -324,8 +324,8 @@ describe('AboutResourcePage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should display party list links when RRR is enabled', () => {
-    addFeatureFlagToLocalStorage('resourcePartyLists');
+  it('should display access list links when RRR is enabled', () => {
+    addFeatureFlagToLocalStorage('resourceAccessLists');
 
     render(
       <MemoryRouter>

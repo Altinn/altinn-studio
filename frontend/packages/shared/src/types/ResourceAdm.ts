@@ -103,23 +103,23 @@ export interface BrregOrganization {
   navn: string;
 }
 
-export interface PartyListMember {
+export interface AccessListMember {
   orgNr: string;
   orgName: string;
   isSubParty: boolean;
 }
 
-export interface PartyList {
+export interface AccessList {
   env: string;
   identifier: string;
   name: string;
   description?: string;
-  members?: PartyListMember[];
+  members?: AccessListMember[];
 }
 
-export interface PartyListResourceLink {
+export interface AccessListResourceLink {
   resourceIdentifier: string;
-  partyListName: string;
-  partyListIdentifier: string;
+  accessListName: string;
+  accessListIdentifier: string;
   actions: string[];
 }

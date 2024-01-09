@@ -99,7 +99,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           })}
         </Heading>
         <div className={classes.topRightWrapper}>
-          {shouldDisplayFeature('resourcePartyLists') && (
+          {shouldDisplayFeature('resourceAccessLists') && (
             <>
               <Button
                 as={Link}
@@ -107,7 +107,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
                 color='second'
                 icon={<TasklistIcon />}
                 iconPlacement='right'
-                to={`${getResourceDashboardURL(selectedContext, repo)}/listadmin`}
+                to={`${getResourceDashboardURL(selectedContext, repo)}/accesslists`}
                 size='medium'
               >
                 <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>

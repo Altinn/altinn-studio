@@ -10,22 +10,22 @@ import {
 } from '@digdir/design-system-react';
 import { StudioSpinner } from '@studio/components';
 import classes from './ListAdminPage.module.css';
-import { useGetPartyListsQuery } from 'resourceadm/hooks/queries/useGetPartyLists';
-import { NewPartyListModal } from '../../components/NewPartyListModal';
-import { getPartyListPageUrl, getResourceDashboardURL } from 'resourceadm/utils/urlUtils';
+import { useGetAccessListsQuery } from 'resourceadm/hooks/queries/useGetAccessLists';
+import { NewAccessListModal } from '../../components/NewAccessListModal';
+import { getAccessListPageUrl, getResourceDashboardURL } from 'resourceadm/utils/urlUtils';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 export const ListAdminPage = (): React.ReactNode => {
   const { t } = useTranslation();
   const { selectedContext, repo, env: selectedEnv } = useUrlParams();
 
-  const { data: envListData, isLoading: isLoadingEnvListData } = useGetPartyListsQuery(
+  const { data: envListData, isLoading: isLoadingEnvListData } = useGetAccessListsQuery(
     selectedContext,
     selectedEnv,
   );
 
   const navigate = useNavigate();
-  const createPartyListModalRef = useRef<HTMLDialogElement>(null);
+  const createAccessListModalRef = useRef<HTMLDialogElement>(null);
 
   const envs = ['tt02', 'prod', 'at22', 'at23'];
 
@@ -40,7 +40,7 @@ export const ListAdminPage = (): React.ReactNode => {
       <Paragraph size='small'>{t('resourceadm.listadmin_select_environment')}</Paragraph>
       <div className={classes.environmentSelectorWrapper}>
         <ToggleGroup
-          onChange={(newValue) => navigate(getPartyListPageUrl(selectedContext, repo, newValue))}
+          onChange={(newValue) => navigate(getAccessListPageUrl(selectedContext, repo, newValue))}
           value={selectedEnv}
         >
           {envs.map((environment) => {
@@ -54,12 +54,12 @@ export const ListAdminPage = (): React.ReactNode => {
       </div>
       {selectedEnv && (
         <div className={classes.environmentLinkWrapper}>
-          <NewPartyListModal
-            ref={createPartyListModalRef}
+          <NewAccessListModal
+            ref={createAccessListModalRef}
             org={selectedContext}
             env={selectedEnv}
-            navigateUrl={getPartyListPageUrl(selectedContext, repo, selectedEnv)}
-            onClose={() => createPartyListModalRef.current?.close()}
+            navigateUrl={getAccessListPageUrl(selectedContext, repo, selectedEnv)}
+            onClose={() => createAccessListModalRef.current?.close()}
           />
           {isLoadingEnvListData && <StudioSpinner />}
           {!!envListData &&
@@ -68,14 +68,14 @@ export const ListAdminPage = (): React.ReactNode => {
                 <div key={x.identifier}>
                   <DigdirLink
                     as={Link}
-                    to={getPartyListPageUrl(selectedContext, repo, selectedEnv, x.identifier)}
+                    to={getAccessListPageUrl(selectedContext, repo, selectedEnv, x.identifier)}
                   >
                     {x.name}
                   </DigdirLink>
                 </div>
               );
             })}
-          <Button variant='secondary' onClick={() => createPartyListModalRef.current?.showModal()}>
+          <Button variant='secondary' onClick={() => createAccessListModalRef.current?.showModal()}>
             {t('resourceadm.listadmin_create_list')}
           </Button>
         </div>

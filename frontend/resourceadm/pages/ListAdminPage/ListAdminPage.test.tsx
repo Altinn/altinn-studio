@@ -9,7 +9,7 @@ import { ListAdminPage } from './ListAdminPage';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-const partyListResults = [
+const accessListResults = [
   { env: 'tt02', identifier: 'listid', name: 'Test-list', description: 'Test-list description' },
 ];
 
@@ -58,7 +58,7 @@ describe('ListAdminPage', () => {
 const render = () => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getPartyLists: jest.fn().mockImplementation(() => Promise.resolve(partyListResults)),
+    getAccessLists: jest.fn().mockImplementation(() => Promise.resolve(accessListResults)),
   };
 
   return rtlRender(

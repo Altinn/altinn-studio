@@ -1,6 +1,6 @@
 export {
   getResourcePageURL,
   getResourceDashboardURL,
-  getPartyListPageUrl,
+  getAccessListPageUrl,
   getPartiesQueryUrl,
 } from './urlUtils';

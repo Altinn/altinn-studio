@@ -19,8 +19,8 @@ import {
   layoutSettingsPath,
   optionListIdsPath,
   orgsListPath,
-  partyListsPath,
-  partyListPath,
+  accessListsPath,
+  accessListPath,
   processEditorPath,
   releasesPath,
   repoInitialCommitPath,
@@ -44,7 +44,7 @@ import {
   userCurrentPath,
   userStarredListPath,
   widgetSettingsPath,
-  resourcePartyListsPath,
+  resourceAccessListsPath,
 } from './paths';
 import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -64,7 +64,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
-import type { BrregOrganizationResult, BrregUnderOrganizationResult, PartyList, PartyListResourceLink, Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
+import type { BrregOrganizationResult, BrregUnderOrganizationResult, AccessList, AccessListResourceLink, Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -123,9 +123,9 @@ export const getResource = (org: string, repo: string, id: string) => get<Resour
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
 export const getAltinn2LinkServices = (org: string, environment: string) => get<Altinn2LinkService[]>(altinn2LinkServicesPath(org, environment));
-export const getPartyLists = (org: string, environment: string) => get<PartyList[]>(partyListsPath(org, environment));
-export const getPartyList = (org: string, listId: string, environment: string) => get<PartyList>(partyListPath(org, listId, environment));
-export const getResourcePartyLists = (org: string, resourceId: string, environment: string) => get<PartyListResourceLink[]>(resourcePartyListsPath(org, resourceId, environment));
+export const getAccessLists = (org: string, environment: string) => get<AccessList[]>(accessListsPath(org, environment));
+export const getAccessList = (org: string, listId: string, environment: string) => get<AccessList>(accessListPath(org, listId, environment));
+export const getResourceAccessLists = (org: string, resourceId: string, environment: string) => get<AccessListResourceLink[]>(resourceAccessListsPath(org, resourceId, environment));
 export const getParties = (url: string) => get<BrregOrganizationResult>(url);
 export const getSubParties = (url: string) => get<BrregUnderOrganizationResult>(url);
 
