@@ -345,7 +345,7 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
-            HttpContent content = new StringContent(string.Empty);
+            HttpContent content = new StringContent("not a pdf");
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=test.pdf");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
@@ -372,7 +372,7 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
-            HttpContent content = new StringContent(string.Empty);
+            HttpContent content = new StringContent("not-an-actual-pdf");
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=test.pdf");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
@@ -480,13 +480,13 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
             TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
             string token = PrincipalUtil.GetOrgToken("nav", "160694123");
-            string expectedMsg = "Invalid data provided. Error: Invalid content type: text/xml. Please try another file. Permitted content types include: application/pdf, image/png, application/json";
+            string expectedMsg = "Invalid data provided. Error: Invalid content type: application/xml. Please try another file. Permitted content types include: application/pdf, image/png, application/json";
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
-            HttpContent content = new StringContent(string.Empty);
+            HttpContent content = new StringContent("<root>content</root>");
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.xml");
 
@@ -515,7 +515,7 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
-            HttpContent content = new StringContent(string.Empty);
+            HttpContent content = new StringContent("not-an-actual-pdf");
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
 
@@ -543,7 +543,7 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
-            HttpContent content = new StringContent(string.Empty);
+            HttpContent content = new StringContent("{\"test\":\"test\"}");
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=\"appsettings.development.json\"");
 
@@ -571,7 +571,7 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
-            HttpContent content = new StringContent(string.Empty);
+            HttpContent content = new StringContent("{\"test\":\"test\"}");
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=\"appsettings.development.json\"; filename*=UTF-8''appsettings.staging.json");
 
