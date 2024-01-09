@@ -81,6 +81,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
         anchorEl={settingsRef.current}
         open={dropdownOpen}
         onClose={() => setDropdownOpen(false)}
+        portal
         size='small'
         className={classes.dropdownMenu}
       >

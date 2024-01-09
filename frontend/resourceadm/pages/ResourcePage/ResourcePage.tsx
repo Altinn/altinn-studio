@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
@@ -28,6 +28,7 @@ import {
 } from '@navikt/aksel-icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
  * @component
@@ -40,8 +41,7 @@ export const ResourcePage = (): React.ReactNode => {
 
   const navigate = useNavigate();
 
-  const { pageType, resourceId, selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { pageType, resourceId, selectedContext, repo } = useUrlParams();
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
 
@@ -170,12 +170,11 @@ export const ResourcePage = (): React.ReactNode => {
   /**
    * Decide if the migration page should be accessible or not
    */
-  const getShowMigrate = () => {
-    if (resourceData) {
-      if (resourceData.resourceReferences) return true;
-      return false;
-    }
-    return false;
+  const isMigrateEnabled = (): boolean => {
+    const hasAltinn2ReferenceSource = resourceData?.resourceReferences?.some(
+      (ref) => ref.referenceSource === 'Altinn2',
+    );
+    return hasAltinn2ReferenceSource;
   };
 
   const aboutPageId = 'about';
@@ -222,7 +221,7 @@ export const ResourcePage = (): React.ReactNode => {
    * @returns the tabs to display in the LeftNavigationBar
    */
   const getTabs = (): LeftNavigationTab[] => {
-    if (getShowMigrate() && !leftNavigationTabs.includes(migrationTab)) {
+    if (isMigrateEnabled() && !leftNavigationTabs.includes(migrationTab)) {
       return [...leftNavigationTabs, migrationTab];
     } else {
       return leftNavigationTabs;
@@ -283,7 +282,7 @@ export const ResourcePage = (): React.ReactNode => {
               id='page-content-deploy'
             />
           )}
-          {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
+          {currentPage === 'migration' && isMigrateEnabled() && (
             <MigrationPage
               navigateToPageWithError={navigateToPageWithError}
               id='page-content-migration'

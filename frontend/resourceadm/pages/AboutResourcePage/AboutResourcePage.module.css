@@ -5,35 +5,8 @@
 
 .pageWrapper {
   margin: 0;
-  padding: 40px;
-  padding-bottom: 100px;
+  padding: var(--fds-spacing-10);
+  padding-bottom: var(--fds-spacing-26);
   flex: 1;
   position: relative;
-}
-
-.divider {
-  margin-top: 30px;
-}
-
-.inputWrapper {
-  width: 500px;
-  margin-top: 10px;
-  position: relative;
-}
-
-.buttonWrapper {
-  margin-block: 30px;
-}
-
-p,
-h2 {
-  margin: 0;
-}
-
-.warningCardWrapper {
-  margin-top: 5px;
-}
-
-.checkboxParagraph {
-  padding-left: 0.5rem;
 }
