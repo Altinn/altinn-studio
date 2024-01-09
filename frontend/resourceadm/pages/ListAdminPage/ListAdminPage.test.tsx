@@ -25,8 +25,6 @@ jest.mock('react-router-dom', () => ({
   },
 }));
 
-const user = userEvent.setup();
-
 describe('ListAdminPage', () => {
   it('should show lists after environment is selected', async () => {
     render();
@@ -35,6 +33,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should change environment on toggle button click', async () => {
+    const user = userEvent.setup();
     render();
 
     const prodEnvButton = screen.getByText('PROD');
@@ -44,6 +43,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should show create dialog when create new button is clicked', async () => {
+    const user = userEvent.setup();
     render();
 
     const createNewButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));

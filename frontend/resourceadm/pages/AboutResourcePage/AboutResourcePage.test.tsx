@@ -73,7 +73,6 @@ jest.mock('react-router-dom', () => ({
 describe('AboutResourcePage', () => {
   afterEach(jest.clearAllMocks);
 
-  const user = userEvent.setup();
   const mockOnSaveResource = jest.fn();
 
   const defaultProps: AboutResourcePageProps = {
@@ -84,6 +83,7 @@ describe('AboutResourcePage', () => {
   };
 
   it('handles resource type change', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const resourceTypeRadio = screen.getByLabelText(mockResourceType);
@@ -93,6 +93,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles title input change', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const titleNbInput = screen.getByLabelText(
@@ -113,6 +114,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('calls onSaveResource when going from one input field to another', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const titleNbInput = screen.getByLabelText(
@@ -129,6 +131,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles description input change', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const descriptionNbInput = screen.getByLabelText(
@@ -149,6 +152,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles homepage input change', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const homepageInput = screen.getByLabelText(
@@ -165,6 +169,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles delegable switch changes', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const delegableInput = screen.getByLabelText(
@@ -181,6 +186,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles keyword input change', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const keywordInput = screen.getByLabelText(
@@ -197,6 +203,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles rights description input change', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const rightDescriptionInput = screen.getByLabelText(
@@ -213,6 +220,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles status change', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const statusRadio = screen.getByLabelText(mockStatus);
@@ -222,6 +230,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles self identifiable switch changes', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const input = screen.getByLabelText(
@@ -238,6 +247,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles enterprise switch changes', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const input = screen.getByLabelText(textMock('resourceadm.about_resource_enterprise_label'));
@@ -252,6 +262,7 @@ describe('AboutResourcePage', () => {
   });
 
   it('handles visible switch changes', async () => {
+    const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
     const input = screen.getByLabelText(textMock('resourceadm.about_resource_visible_label'));

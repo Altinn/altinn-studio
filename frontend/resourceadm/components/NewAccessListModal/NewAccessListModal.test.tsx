@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render as rtlRender, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import userEvent, { UserEvent } from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -25,18 +25,18 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockedNavigate,
 }));
 
-const user = userEvent.setup();
-
 describe('NewAccessListModal', () => {
   it('should disable create button when name or id is empty', async () => {
-    await renderAndOpenModal();
+    const user = userEvent.setup();
+    await renderAndOpenModal(user);
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
     expect(createButton).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('should close modal on cancel click', async () => {
-    await renderAndOpenModal();
+    const user = userEvent.setup();
+    await renderAndOpenModal(user);
 
     const closeButton = screen.getByText(textMock('general.cancel'));
     await act(() => user.click(closeButton));
@@ -45,7 +45,8 @@ describe('NewAccessListModal', () => {
   });
 
   it('should navigate after access list is created', async () => {
-    await renderAndOpenModal();
+    const user = userEvent.setup();
+    await renderAndOpenModal(user);
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
     await act(() => user.type(nameField, 'nytt navn'));
@@ -59,7 +60,8 @@ describe('NewAccessListModal', () => {
   });
 
   it('should show error message when trying to create an access list with an existing identifier', async () => {
-    await renderAndOpenModal({
+    const user = userEvent.setup();
+    await renderAndOpenModal(user, {
       createAccessList: jest
         .fn()
         .mockImplementation(() => Promise.reject({ response: { status: 409 } })),
@@ -92,7 +94,10 @@ const render = (queryMocks: Partial<ServicesContextProps>) => {
   );
 };
 
-const renderAndOpenModal = async (queryMocks: Partial<ServicesContextProps> = {}) => {
+const renderAndOpenModal = async (
+  user: UserEvent,
+  queryMocks: Partial<ServicesContextProps> = {},
+) => {
   render(queryMocks);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });

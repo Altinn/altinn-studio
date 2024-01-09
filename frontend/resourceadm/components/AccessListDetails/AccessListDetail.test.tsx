@@ -38,8 +38,6 @@ const defaultProps = {
   backUrl: '/listadmin',
 };
 
-const user = userEvent.setup();
-
 describe('AccessListDetail', () => {
   it('should show special name if name is not found', () => {
     render();
@@ -52,6 +50,7 @@ describe('AccessListDetail', () => {
   });
 
   it('should call service to remove member', async () => {
+    const user = userEvent.setup();
     const removeAccessListMemberMock = jest.fn();
     render({}, { removeAccessListMember: removeAccessListMemberMock });
 
@@ -62,6 +61,7 @@ describe('AccessListDetail', () => {
   });
 
   it('should call service to add member if member is added back', async () => {
+    const user = userEvent.setup();
     const addAccessListMemberMock = jest.fn();
     render({}, { addAccessListMember: addAccessListMemberMock });
 
@@ -75,6 +75,7 @@ describe('AccessListDetail', () => {
   });
 
   it('should call service to update name', async () => {
+    const user = userEvent.setup();
     const updateAccessListMock = jest.fn();
     render({}, { updateAccessList: updateAccessListMock });
 
@@ -88,6 +89,7 @@ describe('AccessListDetail', () => {
   });
 
   it('should call service to update description', async () => {
+    const user = userEvent.setup();
     const updateAccessListMock = jest.fn();
     render({}, { updateAccessList: updateAccessListMock });
 
@@ -103,6 +105,7 @@ describe('AccessListDetail', () => {
   });
 
   it('should call service to remove description', async () => {
+    const user = userEvent.setup();
     const updateAccessListMock = jest.fn();
     render({}, { updateAccessList: updateAccessListMock });
 
@@ -118,6 +121,7 @@ describe('AccessListDetail', () => {
   });
 
   it('should navigate back after list is deleted', async () => {
+    const user = userEvent.setup();
     const addAccessListMemberMock = jest.fn();
     render({}, { addAccessListMember: addAccessListMemberMock });
 
@@ -131,6 +135,7 @@ describe('AccessListDetail', () => {
   });
 
   it('should close modal on cancel delete', async () => {
+    const user = userEvent.setup();
     const addAccessListMemberMock = jest.fn();
     render({}, { addAccessListMember: addAccessListMemberMock });
 

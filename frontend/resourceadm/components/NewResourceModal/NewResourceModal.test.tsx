@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import userEvent, { UserEvent } from '@testing-library/user-event';
 import { NewResourceModal, NewResourceModalProps } from './NewResourceModal';
 import { act } from 'react-dom/test-utils'; // Import act if needed
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -27,8 +27,6 @@ jest.mock('react-router-dom', () => ({
   },
 }));
 
-const user = userEvent.setup();
-
 describe('NewResourceModal', () => {
   afterEach(jest.clearAllMocks);
 
@@ -39,7 +37,8 @@ describe('NewResourceModal', () => {
   });
 
   it('calls onClose function when close button is clicked', async () => {
-    await renderAndOpenModal();
+    const user = userEvent.setup();
+    await renderAndOpenModal(user);
 
     const closeButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await act(() => user.click(closeButton));
@@ -48,7 +47,8 @@ describe('NewResourceModal', () => {
   });
 
   test('that create button should be disabled until the form is valid', async () => {
-    await renderAndOpenModal();
+    const user = userEvent.setup();
+    await renderAndOpenModal(user);
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
@@ -57,7 +57,8 @@ describe('NewResourceModal', () => {
   });
 
   test('that create button should be enabled when the form is valid', async () => {
-    await renderAndOpenModal();
+    const user = userEvent.setup();
+    await renderAndOpenModal(user);
 
     const titleInput = screen.getByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
@@ -71,7 +72,8 @@ describe('NewResourceModal', () => {
   });
 
   test('should navigate after creating new resource', async () => {
-    await renderAndOpenModal();
+    const user = userEvent.setup();
+    await renderAndOpenModal(user);
 
     const titleInput = screen.getByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
@@ -97,7 +99,7 @@ const render = (props: Partial<NewResourceModalProps> = {}) => {
   );
 };
 
-const renderAndOpenModal = async (props: Partial<NewResourceModalProps> = {}) => {
+const renderAndOpenModal = async (user: UserEvent, props: Partial<NewResourceModalProps> = {}) => {
   render(props);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });

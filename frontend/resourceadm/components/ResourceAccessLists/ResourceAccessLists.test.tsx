@@ -52,8 +52,6 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
-const user = userEvent.setup();
-
 describe('ResourceAccessLists', () => {
   it('should show show spinner on loading', () => {
     render();
@@ -75,6 +73,7 @@ describe('ResourceAccessLists', () => {
   });
 
   it('should show create access list modal when create button is pressed', async () => {
+    const user = userEvent.setup();
     render();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
@@ -89,6 +88,7 @@ describe('ResourceAccessLists', () => {
   });
 
   it('should call add when checkbox is checked', async () => {
+    const user = userEvent.setup();
     render();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
@@ -101,6 +101,7 @@ describe('ResourceAccessLists', () => {
   });
 
   it('should call remove when checkbox is unchecked', async () => {
+    const user = userEvent.setup();
     render();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
