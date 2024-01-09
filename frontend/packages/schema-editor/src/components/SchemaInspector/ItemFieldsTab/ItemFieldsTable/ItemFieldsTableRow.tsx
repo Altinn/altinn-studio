@@ -8,7 +8,7 @@ import { Button, NativeSelect, Switch } from '@digdir/design-system-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { setRequired, setPropertyName } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { TrashIcon } from '@navikt/aksel-icons';
+import { TrashIcon } from '@studio/icons';
 import { StudioCenter } from '@studio/components';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';

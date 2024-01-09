@@ -8,7 +8,7 @@ import { ActionMenu } from '../common/ActionMenu';
 import { IconImage } from '../common/Icon';
 import { useAddProperty } from '../../hooks/useAddProperty';
 import { SchemaTree } from '../SchemaTree';
-import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 
 export type TypesPanelProps = {
   uiSchemaNode: UiSchemaNode;

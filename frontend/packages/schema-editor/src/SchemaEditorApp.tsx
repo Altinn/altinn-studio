@@ -5,10 +5,10 @@ import '@digdir/design-system-tokens/brand/altinn/tokens.css';
 import {
   SchemaEditorAppContext,
   SchemaEditorAppContextProps
-} from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+} from './contexts/SchemaEditorAppContext';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
-import { SchemaEditor } from '@altinn/schema-editor/components/SchemaEditor';
+import { SchemaEditor } from './components/SchemaEditor';
 
 export type SchemaEditorAppProps = {
   jsonSchema: JsonSchema;

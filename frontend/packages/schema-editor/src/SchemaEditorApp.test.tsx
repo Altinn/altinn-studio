@@ -6,8 +6,6 @@ import { jsonSchemaMock } from '../test/mocks/jsonSchemaMock';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
-const user = userEvent.setup();
-
 // Mocks:
 const saveMock = jest.fn();
 const initialProps = {
@@ -28,6 +26,7 @@ describe('SchemaEditorApp', () => {
   });
 
   it('Calls the save function when something is changed', async () => {
+    const user = userEvent.setup();
     render();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const firstDeleteButton = screen.getAllByRole('button', { name: textMock('general.delete') })[0];

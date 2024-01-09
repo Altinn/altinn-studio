@@ -4,7 +4,7 @@ import { renderSchemaNodeList } from './renderSchemaNodeList';
 import { useTranslation } from 'react-i18next';
 import { SchemaNode } from './SchemaNode';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
-import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 
 export interface SchemaTreeProps {
   pointer?: string;
