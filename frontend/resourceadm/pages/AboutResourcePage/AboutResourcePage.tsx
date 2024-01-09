@@ -18,6 +18,7 @@ import {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
+  getAvailableEnvironments,
 } from 'resourceadm/utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -290,9 +291,9 @@ export const AboutResourcePage = ({
             />
             {resourceData.limitedByRRR && (
               <div>
-                {['tt02', 'prod', 'at22', 'at23'].map((env) => {
+                {getAvailableEnvironments(selectedContext).map((env) => {
                   return (
-                    <div key={env}>
+                    <div key={env.id}>
                       <DigdirLink
                         as={Link}
                         to={`${getResourcePageURL(
@@ -300,9 +301,9 @@ export const AboutResourcePage = ({
                           repo,
                           resourceId,
                           'accesslists',
-                        )}/${env}/`}
+                        )}/${env.id}/`}
                       >
-                        {t('resourceadm.about_resource_edit_rrr', { env: env.toUpperCase() })}
+                        {t('resourceadm.about_resource_edit_rrr', { env: t(env.label) })}
                       </DigdirLink>
                     </div>
                   );

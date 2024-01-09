@@ -36,7 +36,7 @@ describe('ListAdminPage', () => {
     const user = userEvent.setup();
     render();
 
-    const prodEnvButton = screen.getByText('PROD');
+    const prodEnvButton = screen.getByText(textMock('resourceadm.deploy_prod_env'));
     await act(() => user.click(prodEnvButton));
 
     expect(mockedNavigate).toHaveBeenCalled();

@@ -1,10 +1,11 @@
 .cardWrapper {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 16rem;
+  width: 38%;
+  margin-right: var(--fds-spacing-5);
+  margin-bottom: var(--fds-spacing-5);
   padding: var(--fds-spacing-5);
-  margin: 0;
   background-color: var(--fds-semantic-surface-neutral-default);
   border-radius: 12px;
   gap: var(--fds-spacing-3);

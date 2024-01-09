@@ -348,7 +348,11 @@ describe('AboutResourcePage', () => {
     );
 
     expect(
-      screen.getByText(textMock('resourceadm.about_resource_edit_rrr', { env: 'TT02' })),
+      screen.getByText(
+        textMock('resourceadm.about_resource_edit_rrr', {
+          env: textMock('resourceadm.deploy_test_env'),
+        }),
+      ),
     ).toBeInTheDocument();
   });
 

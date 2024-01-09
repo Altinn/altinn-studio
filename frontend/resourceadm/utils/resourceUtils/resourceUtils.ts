@@ -41,6 +41,44 @@ export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string>
   SelfRegisteredUser: 'resourceadm.about_resource_available_for_type_self_registered',
 };
 
+export type EnvId = 'tt02' | 'prod' | 'at22' | 'at23';
+export type EnvType = 'test' | 'prod';
+export const getAvailableEnvironments = (
+  org: string,
+): {
+  id: EnvId;
+  label: string;
+  envType: EnvType;
+}[] => {
+  const availableEnvs = [
+    {
+      id: 'tt02' as EnvId,
+      label: 'resourceadm.deploy_test_env',
+      envType: 'test' as EnvType,
+    },
+    {
+      id: 'prod' as EnvId,
+      label: 'resourceadm.deploy_prod_env',
+      envType: 'prod' as EnvType,
+    },
+  ];
+  if (org === 'ttd') {
+    availableEnvs.push(
+      {
+        id: 'at22' as EnvId,
+        label: 'resourceadm.deploy_at22_env',
+        envType: 'test' as EnvType,
+      },
+      {
+        id: 'at23' as EnvId,
+        label: 'resourceadm.deploy_at23_env',
+        envType: 'test' as EnvType,
+      },
+    );
+  }
+  return availableEnvs;
+};
+
 /**
  * Converts the resource type key to the correct displayable string
  *

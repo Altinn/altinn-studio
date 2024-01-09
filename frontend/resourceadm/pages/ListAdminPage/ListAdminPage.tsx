@@ -14,6 +14,7 @@ import { useGetAccessListsQuery } from 'resourceadm/hooks/queries/useGetAccessLi
 import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from 'resourceadm/utils/urlUtils';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { getAvailableEnvironments } from 'resourceadm/utils/resourceUtils/resourceUtils';
 
 export const ListAdminPage = (): React.ReactNode => {
   const { t } = useTranslation();
@@ -26,8 +27,6 @@ export const ListAdminPage = (): React.ReactNode => {
 
   const navigate = useNavigate();
   const createAccessListModalRef = useRef<HTMLDialogElement>(null);
-
-  const envs = ['tt02', 'prod', 'at22', 'at23'];
 
   return (
     <div className={classes.listAdminPageWrapper}>
@@ -43,10 +42,10 @@ export const ListAdminPage = (): React.ReactNode => {
           onChange={(newValue) => navigate(getAccessListPageUrl(selectedContext, repo, newValue))}
           value={selectedEnv}
         >
-          {envs.map((environment) => {
+          {getAvailableEnvironments(selectedContext).map((environment) => {
             return (
-              <ToggleGroup.Item key={environment} value={environment}>
-                {environment.toUpperCase()}
+              <ToggleGroup.Item key={environment.id} value={environment.id}>
+                {t(environment.label)}
               </ToggleGroup.Item>
             );
           })}

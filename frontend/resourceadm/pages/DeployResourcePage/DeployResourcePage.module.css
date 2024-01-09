@@ -8,12 +8,6 @@
   width: 40rem;
 }
 
-.deployCardsWrapper {
-  display: flex;
-  justify-content: space-between;
-  margin-top: var(--fds-spacing-6);
-}
-
 .informationText {
   margin-top: var(--fds-spacing-7);
 }
