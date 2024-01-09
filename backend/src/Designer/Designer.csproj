@@ -78,6 +78,7 @@
     <Watch Remove="Enums\ReferenceType.cs" />
     <Watch Remove="Enums\ResourceType.cs" />
     <Watch Remove="Enums\ServiceType.cs" />
+    <Watch Remove="Exceptions\HttpStatusException.cs" />
     <Watch Remove="Helpers\OrgUtil.cs" />
     <Watch Remove="Helpers\ResourceAdminHelper.cs" />
     <Watch Remove="Models\AvailableService.cs" />
