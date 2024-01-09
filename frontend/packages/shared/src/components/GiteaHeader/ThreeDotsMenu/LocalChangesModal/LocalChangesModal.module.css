@@ -8,8 +8,7 @@
 .headingWrapper {
   display: flex;
   align-items: center;
-  padding-block: var(--fds-spacing-1);
-  padding-inline: var(--fds-spacing-8);
+  margin-left: var(--fds-spacing-7);
 }
 
 .headingWrapper > :first-child {

@@ -1,8 +1,6 @@
 .contentWrapper {
   box-sizing: border-box;
   padding: var(--fds-spacing-8);
-  height: 70vh;
-  width: 70vw;
   overflow: auto;
 }
 
