@@ -18,6 +18,7 @@ jest.mock('react-router-dom', () => ({
 const testOrg = 'ttd';
 const testEnv = 'tt02';
 const testListIdentifier = 'listid';
+const testMemberPartyId = '123456789';
 
 const defaultProps = {
   org: testOrg,
@@ -29,7 +30,7 @@ const defaultProps = {
     description: 'This is a description',
     members: [
       {
-        orgNr: '123456789',
+        orgNr: testMemberPartyId,
         orgName: '',
         isSubParty: false,
       },
@@ -57,7 +58,12 @@ describe('AccessListDetail', () => {
     const removeButton = screen.getByText(textMock('resourceadm.listadmin_remove_from_list'));
     await act(() => user.click(removeButton));
 
-    expect(removeAccessListMemberMock).toHaveBeenCalled();
+    expect(removeAccessListMemberMock).toHaveBeenCalledWith(
+      testOrg,
+      testListIdentifier,
+      testMemberPartyId,
+      testEnv,
+    );
   });
 
   it('should call service to add member if member is added back', async () => {
@@ -71,7 +77,12 @@ describe('AccessListDetail', () => {
     const reAddButton = screen.getByText(textMock('resourceadm.listadmin_undo_remove_from_list'));
     await act(() => user.click(reAddButton));
 
-    expect(addAccessListMemberMock).toHaveBeenCalled();
+    expect(addAccessListMemberMock).toHaveBeenCalledWith(
+      testOrg,
+      testListIdentifier,
+      testMemberPartyId,
+      testEnv,
+    );
   });
 
   it('should call service to update name', async () => {

@@ -9,31 +9,39 @@ import { ResourceAccessLists } from './ResourceAccessLists';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
+const resourceId = 'res1';
+const org = 'ttd';
+const env = 'tt02';
+const list1Id = 'list1';
+const list1Name = 'List 1';
+const list2Id = 'list2';
+const list2Name = 'List 2';
+
 const accessListsResponse = [
   {
-    env: 'tt02',
-    identifier: 'list1',
-    name: 'List 1',
+    env: env,
+    identifier: list1Id,
+    name: list1Name,
   },
   {
-    env: 'tt02',
-    identifier: 'list2',
-    name: 'List 2',
+    env: env,
+    identifier: list2Id,
+    name: list2Name,
   },
 ];
 
 const connectedListsResponse = [
   {
-    resourceIdentifier: 'res1',
-    accessListName: 'List 2',
-    accessListIdentifier: 'list2',
+    resourceIdentifier: resourceId,
+    accessListName: list2Name,
+    accessListIdentifier: list2Id,
   },
 ];
 
 const defaultProps = {
-  env: 'tt02',
+  env: env,
   resourceData: {
-    identifier: 'res1',
+    identifier: resourceId,
     title: {
       nb: 'Resource 1',
       nn: '',
@@ -48,7 +56,7 @@ const uncheckListMock = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    selectedContext: 'org1',
+    selectedContext: org,
   }),
 }));
 
@@ -65,10 +73,10 @@ describe('ResourceAccessLists', () => {
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitForElementToBeRemoved(spinnerTitle);
 
-    const checkbox1 = screen.getByLabelText('List 1');
+    const checkbox1 = screen.getByLabelText(list1Name);
     expect(checkbox1).not.toBeChecked();
 
-    const checkbox2 = screen.getByLabelText('List 2');
+    const checkbox2 = screen.getByLabelText(list2Name);
     expect(checkbox2).toBeChecked();
   });
 
@@ -83,7 +91,9 @@ describe('ResourceAccessLists', () => {
     await act(() => user.click(createButton));
 
     expect(
-      screen.getByText(textMock('resourceadm.listadmin_create_list_header', { env: 'TT02' })),
+      screen.getByText(
+        textMock('resourceadm.listadmin_create_list_header', { env: env.toUpperCase() }),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -94,10 +104,10 @@ describe('ResourceAccessLists', () => {
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitForElementToBeRemoved(spinnerTitle);
 
-    const checkbox1 = screen.getByLabelText('List 1');
+    const checkbox1 = screen.getByLabelText(list1Name);
     await act(() => user.click(checkbox1));
 
-    expect(checkListMock).toHaveBeenCalled();
+    expect(checkListMock).toHaveBeenCalledWith(org, resourceId, list1Id, env);
   });
 
   it('should call remove when checkbox is unchecked', async () => {
@@ -107,10 +117,10 @@ describe('ResourceAccessLists', () => {
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitForElementToBeRemoved(spinnerTitle);
 
-    const checkbox2 = screen.getByLabelText('List 2');
+    const checkbox2 = screen.getByLabelText(list2Name);
     await act(() => user.click(checkbox2));
 
-    expect(uncheckListMock).toHaveBeenCalled();
+    expect(uncheckListMock).toHaveBeenCalledWith(org, resourceId, list2Id, env);
   });
 
   it('should show error when loading fails', async () => {

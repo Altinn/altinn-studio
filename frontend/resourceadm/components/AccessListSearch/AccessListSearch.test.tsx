@@ -22,6 +22,11 @@ const defaultProps = {
   handleAddMember: handleAddMemberMock,
 };
 
+const testSubParty = {
+  orgNr: '987654321',
+  orgName: 'Under Digdir',
+};
+
 const user = userEvent.setup();
 
 describe('AccessListSearch', () => {
@@ -37,7 +42,7 @@ describe('AccessListSearch', () => {
       getSubParties: jest.fn().mockImplementation(() =>
         Promise.resolve({
           _embedded: {
-            underenheter: [{ organisasjonsnummer: '987654321', navn: 'Under Digdir' }],
+            underenheter: [{ organisasjonsnummer: testSubParty.orgNr, navn: testSubParty.orgName }],
           },
         }),
       ),
@@ -46,11 +51,16 @@ describe('AccessListSearch', () => {
     const searchField = screen.getByTestId('party-search');
     await act(() => user.type(searchField, 'Digdir'));
 
-    await waitFor(() => screen.findByText('987654321 - Under Digdir'));
-    const searchResultsButton = screen.getByText('987654321 - Under Digdir');
+    const subPartyString = `${testSubParty.orgNr} - ${testSubParty.orgName}`;
+    await waitFor(() => screen.findByText(subPartyString));
+    const searchResultsButton = screen.getByText(subPartyString);
     await act(() => user.click(searchResultsButton));
 
-    expect(handleAddMemberMock).toHaveBeenCalled();
+    expect(handleAddMemberMock).toHaveBeenCalledWith({
+      orgNr: testSubParty.orgNr,
+      orgName: testSubParty.orgName,
+      isSubParty: true,
+    });
   });
 
   it('should show spinner when loading parties', async () => {
