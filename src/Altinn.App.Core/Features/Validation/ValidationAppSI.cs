@@ -127,7 +127,7 @@ namespace Altinn.App.Core.Features.Validation
                 // The condition for completion is met if there are no errors (or other weirdnesses).
                 CanCompleteTask = messages.Count == 0 ||
                                   messages.All(m => m.Severity != ValidationIssueSeverity.Error && m.Severity != ValidationIssueSeverity.Unspecified),
-                Timestamp = DateTime.Now
+                Timestamp = DateTime.UtcNow
             };
 
             await _instanceClient.UpdateProcess(instance);

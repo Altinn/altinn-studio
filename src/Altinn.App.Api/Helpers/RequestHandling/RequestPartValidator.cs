@@ -41,15 +41,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
             }
             else
             {
-                Console.WriteLine($"// {DateTime.Now} // Debug // Part : {part}");
-                Console.WriteLine($"// {DateTime.Now} // Debug // Part name: {part.Name}");
-                Console.WriteLine($"// {DateTime.Now} // Debug // appinfo : {appInfo}");
-                Console.WriteLine($"// {DateTime.Now} // Debug // appinfo.Id : {appInfo.Id}");
-
                 DataType? dataType = appInfo.DataTypes.Find(e => e.Id == part.Name);
-
-                Console.WriteLine($"// {DateTime.Now} // Debug // elementType : {dataType}");
-
                 if (dataType == null)
                 {
                     return $"Multipart section named, '{part.Name}' does not correspond to an element type in application metadata";

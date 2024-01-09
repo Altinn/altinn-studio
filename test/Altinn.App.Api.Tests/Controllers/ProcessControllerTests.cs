@@ -65,7 +65,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                                  "altinnTaskType": "data",
                                  "ended": null,
                                  "validated": {
-                                   "timestamp": "2020-02-07T10:46:36.985894+01:00",
+                                   "timestamp": "2020-02-07T10:46:36.985894Z",
                                    "canCompleteTask": false
                                  },
                                  "flowType": null

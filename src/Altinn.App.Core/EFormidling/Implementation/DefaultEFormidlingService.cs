@@ -2,6 +2,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Models;
@@ -9,8 +10,6 @@ using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -23,7 +22,7 @@ public class DefaultEFormidlingService : IEFormidlingService
 {
     private readonly ILogger<DefaultEFormidlingService> _logger;
     private readonly IAccessTokenGenerator? _tokenGenerator;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserTokenProvider _userTokenProvider;
     private readonly AppSettings? _appSettings;
     private readonly PlatformSettings? _platformSettings;
     private readonly IEFormidlingClient? _eFormidlingClient;
@@ -38,7 +37,7 @@ public class DefaultEFormidlingService : IEFormidlingService
     /// </summary>    
     public DefaultEFormidlingService(
         ILogger<DefaultEFormidlingService> logger,
-        IHttpContextAccessor httpContextAccessor,
+        IUserTokenProvider userTokenProvider,
         IAppMetadata appMetadata,
         IDataClient dataClient,
         IEFormidlingReceivers eFormidlingReceivers,
@@ -51,9 +50,9 @@ public class DefaultEFormidlingService : IEFormidlingService
     {
         _logger = logger;
         _tokenGenerator = tokenGenerator;
-        _httpContextAccessor = httpContextAccessor;
         _appSettings = appSettings?.Value;
         _platformSettings = platformSettings?.Value;
+        _userTokenProvider = userTokenProvider;
         _eFormidlingClient = eFormidlingClient;
         _eFormidlingMetadata = eFormidlingMetadata;
         _appMetadata = appMetadata;
@@ -76,7 +75,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
         string accessToken = _tokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App);
-        string authzToken = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
+        string authzToken = _userTokenProvider.GetUserToken();
 
         var requestHeaders = new Dictionary<string, string>
         {
@@ -114,7 +113,7 @@ public class DefaultEFormidlingService : IEFormidlingService
     private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(string instanceGuid,
         Instance instance)
     {
-        DateTime completedTime = DateTime.Now;
+        DateTime completedTime = DateTime.UtcNow;
 
         Sender digdirSender = new Sender
         {

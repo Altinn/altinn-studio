@@ -197,7 +197,7 @@ namespace App.IntegrationTests.Mocks.Services
                 serializer.Serialize(stream, dataToSerialize);
             }
 
-            dataElement.LastChanged = DateTime.Now;
+            dataElement.LastChanged = DateTime.UtcNow;
             WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
 
             return Task.FromResult(dataElement);

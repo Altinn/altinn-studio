@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -14,7 +15,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -91,15 +91,119 @@ public class ValidationAppSITests
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileScanPending").Should().BeNull();
     }
 
-    private static ValidationAppSI ConfigureMockServicesForValidation()
+    [Fact]
+    public async Task ValidateAndUpdateProcess_set_canComplete_validationstatus_and_return_empty_list()
+    {
+        const string taskId = "Task_1";
+        
+        // Mock setup
+        var appMetadataMock = new Mock<IAppMetadata>();
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes = new List<DataType>
+            {
+                new DataType
+                {
+                    Id = "data",
+                    TaskId = taskId,
+                    MaxCount = 0,
+                }
+            }
+        };
+        appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        ValidationAppSI validationAppSI = ConfigureMockServicesForValidation(appMetadataMock.Object);
+        
+        // Testdata
+        var instance = new Instance
+        {
+            Data =
+            [
+                new DataElement
+                {
+                    DataType = "data",
+                    ContentType = "application/json"
+                },
+            ],
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    Name = "Task_1"
+                }
+            }
+        };
+        
+        var issues = await validationAppSI.ValidateAndUpdateProcess(instance, taskId);
+        issues.Should().BeEmpty();
+        instance.Process?.CurrentTask?.Validated.CanCompleteTask.Should().BeTrue();
+        instance.Process?.CurrentTask?.Validated.Timestamp.Should().NotBeNull();
+    }
+    
+    [Fact]
+    public async Task ValidateAndUpdateProcess_set_canComplete_false_validationstatus_and_return_list_of_issues()
+    {
+        const string taskId = "Task_1";
+        
+        // Mock setup
+        var appMetadataMock = new Mock<IAppMetadata>();
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes = new List<DataType>
+            {
+                new DataType
+                {
+                    Id = "data",
+                    TaskId = taskId,
+                    MaxCount = 1,
+                }
+            }
+        };
+        appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        ValidationAppSI validationAppSI = ConfigureMockServicesForValidation(appMetadataMock.Object);
+        
+        // Testdata
+        var instance = new Instance
+        {
+            Data =
+            [
+                new DataElement
+                {
+                    Id = "3C8B52A9-9602-4B2E-A217-B4E816ED8DEB",
+                    DataType = "data",
+                    ContentType = "application/json"
+                },
+                new DataElement
+                {
+                    Id = "3C8B52A9-9602-4B2E-A217-B4E816ED8DEC",
+                    DataType = "data",
+                    ContentType = "application/json"
+                },
+            ],
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    Name = "Task_1"
+                }
+            }
+        };
+        
+        var issues = await validationAppSI.ValidateAndUpdateProcess(instance, taskId);
+        issues.Should().HaveCount(1);
+        issues.Should().ContainSingle(i => i.Code == ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType);
+        instance.Process?.CurrentTask?.Validated.CanCompleteTask.Should().BeFalse();
+        instance.Process?.CurrentTask?.Validated.Timestamp.Should().NotBeNull();
+    }
+
+    private static ValidationAppSI ConfigureMockServicesForValidation(IAppMetadata? appMetadataInput = null, IInstanceValidator? instanceValidatorInput = null)
     {
         Mock<ILogger<ValidationAppSI>> loggerMock = new();
         var dataMock = new Mock<IDataClient>();
         var instanceMock = new Mock<IInstanceClient>();
-        var instanceValidator = new Mock<IInstanceValidator>();
+        var instanceValidator = instanceValidatorInput ?? new Mock<IInstanceValidator>().Object;
         var appModelMock = new Mock<IAppModel>();
         var appResourcesMock = new Mock<IAppResources>();
-        var appMetadataMock = new Mock<IAppMetadata>();
+        var appMetadata = appMetadataInput ?? new Mock<IAppMetadata>().Object;
         var objectModelValidatorMock = new Mock<IObjectModelValidator>();
         var layoutEvaluatorStateInitializer = new LayoutEvaluatorStateInitializer(appResourcesMock.Object, Microsoft.Extensions.Options.Options.Create(new Configuration.FrontEndSettings()));
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
@@ -110,10 +214,10 @@ public class ValidationAppSITests
             loggerMock.Object,
             dataMock.Object,
             instanceMock.Object,
-            instanceValidator.Object,
+            instanceValidator,
             appModelMock.Object,
             appResourcesMock.Object,
-            appMetadataMock.Object,
+            appMetadata,
             objectModelValidatorMock.Object,
             layoutEvaluatorStateInitializer,
             httpContextAccessorMock.Object,
