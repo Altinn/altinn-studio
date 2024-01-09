@@ -129,7 +129,10 @@
       {
         "id": "pageNext",
         "type": "NavigationButtons",
-        "triggers": ["validatePage"]
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        }
       }
     ]
   }
