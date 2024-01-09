@@ -21,6 +21,13 @@
 
     <!-- Runtime CSS -->
     <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.css">
+
+    <!-- Access react dev tools in cypress -->
+    <script>
+      if (window.Cypress) {
+        window["__REACT_DEVTOOLS_GLOBAL_HOOK__"] = window.parent["__REACT_DEVTOOLS_GLOBAL_HOOK__"];
+      }
+    </script>
 </head>
 
 <body>

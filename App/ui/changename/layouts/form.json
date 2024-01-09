@@ -30,7 +30,7 @@
         },
         "required": true,
         "readOnly": false,
-        "triggers": ["validation"],
+        "showValidations": ["AllExceptRequired"],
         "maxLength": 4,
         "grid": {
           "labelGrid": {
@@ -53,6 +53,7 @@
         },
         "required": true,
         "readOnly": false,
+        "showValidations": ["AllExceptRequired"],
         "grid": {
           "labelGrid": {
             "md": 6
@@ -73,7 +74,7 @@
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value"
         },
         "readOnly": false,
-        "triggers": ["validation"],
+        "showValidations": ["AllExceptRequired"],
         "labelSettings": { "optionalIndicator": false },
         "grid": {
           "labelGrid": {
@@ -150,7 +151,17 @@
           "body": "Ved å bekrefte navneendring bekrefter du at du ønsker å endre navnet ditt."
         },
         "severity": "danger",
-        "hidden": ["not", ["equals", ["dataModel", "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"], "Ja"]]
+        "hidden": [
+          "not",
+          [
+            "equals",
+            [
+              "dataModel",
+              "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value"
+            ],
+            "Ja"
+          ]
+        ]
       },
       {
         "id": "reason",
@@ -560,10 +571,7 @@
       {
         "id": "accordion-group",
         "type": "AccordionGroup",
-        "children": [
-          "accordion-test",
-          "second-accordion"
-        ]
+        "children": ["accordion-test", "second-accordion"]
       },
       {
         "id": "accordion-test",
@@ -580,9 +588,7 @@
       {
         "id": "second-accordion",
         "type": "Accordion",
-        "children": [
-          "test-accordion-paragraph-4"
-        ],
+        "children": ["test-accordion-paragraph-4"],
         "textResourceBindings": {
           "title": "Dette er enda en Accordion 2"
         }
@@ -590,9 +596,7 @@
       {
         "id": "third-accordion",
         "type": "Accordion",
-        "children": [
-          "test-accordion-paragraph-3"
-        ],
+        "children": ["test-accordion-paragraph-3"],
         "textResourceBindings": {
           "title": "Dette er enda en Accordion 3"
         }
@@ -749,7 +753,10 @@
         "textResourceBindings": {
           "next": "Neste"
         },
-        "triggers": ["validatePage"]
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        }
       }
     ]
   }

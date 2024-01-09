@@ -37,8 +37,8 @@
           "title": "Har du kredittkort?"
         },
         "options": [
-          {"label":  "Ja", "value":  "ja" },
-          {"label":  "Nei", "value":  "nei" }
+          { "label": "Ja", "value": "ja" },
+          { "label": "Nei", "value": "nei" }
         ],
         "grid": {
           "md": 4
@@ -108,17 +108,20 @@
               },
               { "component": "fordeling-total" },
               {},
-              { "futureText": [
-                "if",
-                ["and",
-                  ["equals", ["component", "innhentet-bolig"], "ja"],
-                  ["equals", ["component", "innhentet-studie"], "ja"],
-                  ["equals", ["component", "innhentet-kredittkort"], "ja"]
-                ],
-                "Alle OK",
-                "else",
-                "Mangler verifisering"
-              ] }
+              {
+                "futureText": [
+                  "if",
+                  [
+                    "and",
+                    ["equals", ["component", "innhentet-bolig"], "ja"],
+                    ["equals", ["component", "innhentet-studie"], "ja"],
+                    ["equals", ["component", "innhentet-kredittkort"], "ja"]
+                  ],
+                  "Alle OK",
+                  "else",
+                  "Mangler verifisering"
+                ]
+              }
             ]
           }
         ]
@@ -242,9 +245,7 @@
         "textResourceBindings": {
           "title": "Er fordelingen av boliglånsgjeld verifisert?"
         },
-        "options": [
-          {"label":  "Ja", "value":  "ja" }
-        ]
+        "options": [{ "label": "Ja", "value": "ja" }]
       },
       {
         "id": "innhentet-studie",
@@ -256,9 +257,9 @@
           "title": "Er fordelingen av studielånsgjeld verifisert?"
         },
         "options": [
-          {"label":  "Ja", "value":  "ja" },
-          {"label":  "Nei", "value":  "nei" },
-          {"label":  "Kanskje", "value":  "kanskje" }
+          { "label": "Ja", "value": "ja" },
+          { "label": "Nei", "value": "nei" },
+          { "label": "Kanskje", "value": "kanskje" }
         ]
       },
       {
@@ -270,9 +271,7 @@
         "textResourceBindings": {
           "title": "Er fordelingen av kredittkortgjeld verifisert?"
         },
-        "options": [
-          {"label":  "Ja", "value":  "ja" }
-        ],
+        "options": [{ "label": "Ja", "value": "ja" }],
         "hidden": ["equals", ["component", "has-credit-card"], "nei"]
       },
       {
@@ -303,8 +302,8 @@
           "title": "Vis alle komponentene i Grid?"
         },
         "options": [
-          {"label":  "Ja", "value":  "ja" },
-          {"label":  "Nei", "value":  "nei" }
+          { "label": "Ja", "value": "ja" },
+          { "label": "Nei", "value": "nei" }
         ]
       },
       {
@@ -314,10 +313,7 @@
         "rows": [
           {
             "header": true,
-            "cells": [
-              { "text":  "Komponenttype" },
-              { "text":  "Eksempel" }
-            ]
+            "cells": [{ "text": "Komponenttype" }, { "text": "Eksempel" }]
           },
           {
             "cells": [

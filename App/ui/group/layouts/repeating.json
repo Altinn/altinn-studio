@@ -32,10 +32,12 @@
           "body": [
             "concat",
             "Oida, noen av radene har forsvunnet! De ble skjult fordi de har en fra-verdi som er høyere enn ",
-            ["component", "hideRepeatingGroupRow"], " NOK. ",
+            ["component", "hideRepeatingGroupRow"],
+            " NOK. ",
             "Ta en titt på neste side, så finner du dem igjen der. For å få dem tilbake hit, senk fra-verdien til ",
             "noe lavere enn ",
-            ["component", "hideRepeatingGroupRow"], " NOK"
+            ["component", "hideRepeatingGroupRow"],
+            " NOK"
           ]
         },
         "variant": "warning",
@@ -107,7 +109,7 @@
             "showInExpandedEdit": true
           }
         },
-        "triggers": ["validation"],
+        "validateOnSaveRow": ["All"],
         "hiddenRow": [
           "greaterThanEq",
           [
@@ -176,7 +178,14 @@
         "textResourceBindings": {
           "title": [
             "if",
-            ["equals", ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"], null],
+            [
+              "equals",
+              [
+                "dataModel",
+                "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+              ],
+              null
+            ],
             "2\\. Endre verdi til",
             "else",
             "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label"
@@ -202,7 +211,7 @@
           },
           "align": "right"
         },
-        "triggers": ["validation"]
+        "showValidations": ["AllExceptRequired"]
       },
       {
         "id": "mainUploaderSingle",
@@ -318,7 +327,7 @@
           "nestedDynamics",
           "nestedOptions"
         ],
-        "triggers": ["validation"],
+        "validateOnSaveRow": ["All"],
         "edit": {
           "filter": [
             {
@@ -339,20 +348,10 @@
         "rowsAfter": [
           {
             "header": true,
-            "cells": [
-              { "text": "Annen informasjon" },
-              {},
-              {},
-              {}
-            ]
+            "cells": [{ "text": "Annen informasjon" }, {}, {}, {}]
           },
           {
-            "cells": [
-              { "text": "nested.isParentPrefill" },
-              {},
-              {},
-              {}
-            ]
+            "cells": [{ "text": "nested.isParentPrefill" }, {}, {}, {}]
           }
         ]
       },
@@ -451,7 +450,7 @@
         "required": false,
         "readOnly": false,
         "labelSettings": { "optionalIndicator": false },
-        "triggers": ["validation"]
+        "showValidations": ["AllExceptRequired"]
       },
       {
         "id": "hideComment",
@@ -603,7 +602,11 @@
         "required": false,
         "source": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
-          "label": ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-1"]]],
+          "label": [
+            "concat",
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-1"]]
+          ],
           "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
         }
       },
@@ -619,9 +622,21 @@
         "required": false,
         "source": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
-          "label": ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-2"]]],
-          "description": ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-2"]]],
-          "helpText":  ["concat",["text", "optionsFromRepeatingGroup"], ["concat", " ", ["text", "question-2"]]],
+          "label": [
+            "concat",
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
+          ],
+          "description": [
+            "concat",
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
+          ],
+          "helpText": [
+            "concat",
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
+          ],
           "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
         }
       },
@@ -651,9 +666,11 @@
           "next": "Neste",
           "back": "Forrige"
         },
-        "dataModelBindings": {},
         "showBackButton": true,
-        "triggers": ["calculatePageOrder", "validatePage"]
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        }
       }
     ]
   }

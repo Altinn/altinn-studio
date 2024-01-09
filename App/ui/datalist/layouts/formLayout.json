@@ -30,9 +30,9 @@
           "age": "Alder",
           "profession": "Yrke"
         },
-        "sortableColumns": [ "age" ],
+        "sortableColumns": ["age"],
         "pagination": {
-          "alternatives": [ 5, 10 ],
+          "alternatives": [5, 10],
           "default": 5
         },
         "mapping": {
@@ -43,12 +43,13 @@
       {
         "id": "toSummary",
         "type": "NavigationButtons",
-        "showPrev": false,
         "textResourceBindings": {
           "next": "Neste"
         },
-        "dataModelBindings": {},
-        "triggers": [ "validatePage" ]
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        }
       }
     ]
   }

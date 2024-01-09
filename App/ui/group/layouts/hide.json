@@ -4,7 +4,7 @@
     "layout": [
       {
         "id": "nav2",
-        "type": "NavigationBar"        
+        "type": "NavigationBar"
       },
       {
         "id": "sendersName",
@@ -17,7 +17,7 @@
         },
         "required": true,
         "readOnly": false,
-        "triggers": ["validation"],
+        "showValidations": ["AllExceptRequired"],
         "grid": {
           "xs": 12
         }
