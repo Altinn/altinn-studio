@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 import { AccessListDetail } from 'resourceadm/components/AccessListDetails';
-import { useGetAccessListQuery } from 'resourceadm/hooks/queries/useGetAccessList';
+import { useGetAccessListQuery } from 'resourceadm/hooks/queries/useGetAccessListQuery';
 import { getAccessListPageUrl } from 'resourceadm/utils/urlUtils';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 

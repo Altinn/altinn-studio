@@ -10,7 +10,7 @@ import {
 } from '@digdir/design-system-react';
 import { StudioSpinner } from '@studio/components';
 import classes from './ListAdminPage.module.css';
-import { useGetAccessListsQuery } from 'resourceadm/hooks/queries/useGetAccessLists';
+import { useGetAccessListsQuery } from 'resourceadm/hooks/queries/useGetAccessListsQuery';
 import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from 'resourceadm/utils/urlUtils';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';

@@ -30,7 +30,7 @@ import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
 import { ResourceAccessLists } from 'resourceadm/components/ResourceAccessLists';
 import { AccessListDetail } from 'resourceadm/components/AccessListDetails';
-import { useGetAccessListQuery } from 'resourceadm/hooks/queries/useGetAccessList';
+import { useGetAccessListQuery } from 'resourceadm/hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 /**
