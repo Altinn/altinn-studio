@@ -34,14 +34,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("orgNumber")]
     public string orgNumber { get; set; }
 
-    [Range(2000, 2022)]
+    [Range(2000d, Double.MaxValue)]
     [XmlElement("year", Order = 3)]
     [JsonProperty("year")]
     [JsonPropertyName("year")]
     [Required]
     public decimal? year { get; set; }
 
-    [Range(0,Double.MaxValue)]
+    [Range(0d, Double.MaxValue)]
     [XmlElement("income", Order = 4)]
     [JsonProperty("income")]
     [JsonPropertyName("income")]

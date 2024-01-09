@@ -37,7 +37,6 @@
         "year": {
           "type": "integer",
           "title": "År",
-          "maximum": 2022,
           "minimum": 2000
         },
         "income": {

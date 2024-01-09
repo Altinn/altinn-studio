@@ -24,8 +24,9 @@
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#",
-      "DisplayString": "data : [0..1] 0"
+      "JsonSchemaPointer": "",
+      "DisplayString": "data : [0..1] 0",
+      "Nillable": false
     },
     "data.form": {
       "ID": "data.form",
@@ -46,8 +47,9 @@
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/$defs/form",
-      "DisplayString": "data.form : [1..1] form"
+      "JsonSchemaPointer": "/$defs/form",
+      "DisplayString": "data.form : [1..1] form",
+      "Nillable": false
     },
     "data.form.name": {
       "ID": "data.form.name",
@@ -68,8 +70,9 @@
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/$defs/form/properties/name",
-      "DisplayString": "data.form.name : [1..1] String"
+      "JsonSchemaPointer": "/$defs/form/properties/name",
+      "DisplayString": "data.form.name : [1..1] String",
+      "Nillable": false
     },
     "data.form.orgNumber": {
       "ID": "data.form.orgNumber",
@@ -100,8 +103,9 @@
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/$defs/form/properties/orgNumber",
-      "DisplayString": "data.form.orgNumber : [1..1] String"
+      "JsonSchemaPointer": "/$defs/form/properties/orgNumber",
+      "DisplayString": "data.form.orgNumber : [1..1] String",
+      "Nillable": false
     },
     "data.form.year": {
       "ID": "data.form.year",
@@ -111,15 +115,12 @@
       "DataBindingName": "form.year",
       "XPath": "/data/form/year",
       "Restrictions": {
-        "maximum": {
-          "Value": "2022"
-        },
         "minimum": {
           "Value": "2000"
         }
       },
       "Type": 0,
-      "XsdValueType": 3,
+      "XsdValueType": 2,
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
@@ -129,8 +130,9 @@
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/$defs/form/properties/year",
-      "DisplayString": "data.form.year : [1..1] Integer"
+      "JsonSchemaPointer": "/$defs/form/properties/year",
+      "DisplayString": "data.form.year : [1..1] Integer",
+      "Nillable": false
     },
     "data.form.income": {
       "ID": "data.form.income",
@@ -145,7 +147,7 @@
         }
       },
       "Type": 0,
-      "XsdValueType": 16,
+      "XsdValueType": 2,
       "Texts": {},
       "CustomProperties": {},
       "MaxOccurs": 1,
@@ -155,8 +157,9 @@
       "FixedValue": null,
       "IsReadOnly": false,
       "XmlSchemaXPath": null,
-      "JsonSchemaPointer": "#/$defs/form/properties/income",
-      "DisplayString": "data.form.income : [1..1] Integer"
+      "JsonSchemaPointer": "/$defs/form/properties/income",
+      "DisplayString": "data.form.income : [1..1] Integer",
+      "Nillable": false
     }
   }
 }
