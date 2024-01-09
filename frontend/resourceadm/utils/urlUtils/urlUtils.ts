@@ -42,3 +42,10 @@ export const getPartyListPageUrl = (
 ): string => {
   return `/${organisation}/${repo}/listadmin/${environment}/${listIdentifier}`;
 };
+
+export const getPartiesQueryUrl = (search: string, isSubParty?: boolean): string => {
+  const partyType = isSubParty ? 'underenheter' : 'enheter';
+  const isOrgnrSearch = /^\d{9}$/.test(search); // regex for at search er eksakt 9 siffer
+  const searchTerm = isOrgnrSearch ? `organisasjonsnummer=${search}` : `navn=${search}`;
+  return `https://data.brreg.no/enhetsregisteret/api/${partyType}?${searchTerm}&sort=navn,ASC`;
+};

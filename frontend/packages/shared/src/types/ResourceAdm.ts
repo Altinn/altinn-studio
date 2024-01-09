@@ -106,7 +106,7 @@ export interface BrregOrganization {
 export interface PartyListMember {
   orgNr: string;
   orgName: string;
-  isUnderenhet: boolean;
+  isSubParty: boolean;
 }
 
 export interface PartyList {

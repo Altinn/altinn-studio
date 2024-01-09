@@ -126,8 +126,8 @@ export const getAltinn2LinkServices = (org: string, environment: string) => get<
 export const getPartyLists = (org: string, environment: string) => get<PartyList[]>(partyListsPath(org, environment));
 export const getPartyList = (org: string, listId: string, environment: string) => get<PartyList>(partyListPath(org, listId, environment));
 export const getResourcePartyLists = (org: string, resourceId: string, environment: string) => get<PartyListResourceLink[]>(resourcePartyListsPath(org, resourceId, environment));
-export const getEnheter = (url: string) => get<BrregOrganizationResult>(url);
-export const getUnderenheter = (url: string) => get<BrregUnderOrganizationResult>(url);
+export const getParties = (url: string) => get<BrregOrganizationResult>(url);
+export const getSubParties = (url: string) => get<BrregUnderOrganizationResult>(url);
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get(processEditorPath(org, app));

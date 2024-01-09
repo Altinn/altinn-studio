@@ -31,7 +31,7 @@ const defaultProps = {
       {
         orgNr: '123456789',
         orgName: '',
-        isUnderenhet: false,
+        isSubParty: false,
       },
     ],
   },

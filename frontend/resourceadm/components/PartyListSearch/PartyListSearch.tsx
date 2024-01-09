@@ -3,10 +3,8 @@ import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Spinner, Textfield } from '@digdir/design-system-react';
 import { BrregOrganization, PartyListMember } from 'app-shared/types/ResourceAdm';
-import {
-  useEnhetsregisterOrganizationQuery,
-  useEnhetsregisterUnderOrganizationQuery,
-} from 'resourceadm/hooks/queries/useEnhetsregisterOrganizationQuery';
+import { usePartiesRegistryQuery } from 'resourceadm/hooks/queries/usePartiesRegistryQuery';
+import { useSubPartiesRegistryQuery } from 'resourceadm/hooks/queries/useSubPartiesRegistryQuery';
 
 interface PartyListSearchProps {
   existingMembers: PartyListMember[];
@@ -23,32 +21,30 @@ export const PartyListSearch = ({
   const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   useDebounce(() => setDebouncedSearchText(searchText), 500, [searchText]);
 
-  const { data: enheterSearchData, isLoading: isLoadingEnheterSearch } =
-    useEnhetsregisterOrganizationQuery(debouncedSearchText);
-  const { data: underenheterSearchData, isLoading: isLoadingUnderenheterSearch } =
-    useEnhetsregisterUnderOrganizationQuery(debouncedSearchText);
+  const { data: partiesSearchData, isLoading: isLoadingPartiesSearch } =
+    usePartiesRegistryQuery(debouncedSearchText);
+  const { data: subPartiesSearchData, isLoading: isLoadingSubPartiesSearch } =
+    useSubPartiesRegistryQuery(debouncedSearchText);
 
-  const renderEnhetsliste = (
-    enheter: BrregOrganization[],
-    erUnderenhet: boolean,
+  const renderPartiesList = (
+    parties: BrregOrganization[],
+    isSubParty: boolean,
   ): React.ReactNode => {
-    if (enheter.length === 0) {
+    if (parties.length === 0) {
       return (
         <div>
-          {erUnderenhet
-            ? t('resourceadm.listadmin_search_no_underenheter')
-            : t('resourceadm.listadmin_search_no_enheter')}
+          {isSubParty
+            ? t('resourceadm.listadmin_search_no_sub_parties')
+            : t('resourceadm.listadmin_search_no_parties')}
         </div>
       );
     }
     return (
       <>
         <Heading level={2} size='medium'>
-          {erUnderenhet
-            ? t('resourceadm.listadmin_underenheter')
-            : t('resourceadm.listadmin_enheter')}
+          {isSubParty ? t('resourceadm.listadmin_sub_parties') : t('resourceadm.listadmin_parties')}
         </Heading>
-        {enheter.map((org) => {
+        {parties.map((org) => {
           return (
             <Button
               key={org.organisasjonsnummer}
@@ -59,7 +55,7 @@ export const PartyListSearch = ({
                 handleAddMember({
                   orgNr: org.organisasjonsnummer,
                   orgName: org.navn,
-                  isUnderenhet: erUnderenhet,
+                  isSubParty: isSubParty,
                 });
               }}
             >
@@ -74,22 +70,20 @@ export const PartyListSearch = ({
   return (
     <div>
       <Textfield
-        data-testid='enhet-search'
+        data-testid='party-search'
         value={searchText}
         placeholder={t('resourceadm.listadmin_search')}
         onChange={(event) => setSearchText(event.target.value)}
       />
-      {(isLoadingEnheterSearch || isLoadingUnderenheterSearch) && debouncedSearchText && (
+      {(isLoadingPartiesSearch || isLoadingSubPartiesSearch) && debouncedSearchText && (
         <Spinner size='xlarge' variant='interaction' title={t('general.loading')} />
       )}
-      {debouncedSearchText.length > 0 &&
-        !isLoadingEnheterSearch &&
-        !isLoadingUnderenheterSearch && (
-          <div>
-            {renderEnhetsliste(enheterSearchData?._embedded?.enheter || [], false)}
-            {renderEnhetsliste(underenheterSearchData?._embedded?.underenheter || [], true)}
-          </div>
-        )}
+      {debouncedSearchText.length > 0 && !isLoadingPartiesSearch && !isLoadingSubPartiesSearch && (
+        <div>
+          {renderPartiesList(partiesSearchData?._embedded?.enheter || [], false)}
+          {renderPartiesList(subPartiesSearchData?._embedded?.underenheter || [], true)}
+        </div>
+      )}
     </div>
   );
 };

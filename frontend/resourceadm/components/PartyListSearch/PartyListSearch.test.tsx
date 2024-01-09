@@ -16,7 +16,7 @@ const defaultProps = {
     {
       orgNr: '123456789',
       orgName: '',
-      isUnderenhet: false,
+      isSubParty: false,
     },
   ],
   handleAddMember: handleAddMemberMock,
@@ -25,16 +25,16 @@ const defaultProps = {
 const user = userEvent.setup();
 
 describe('PartyListSearch', () => {
-  it('should call handleAddMember when enhet is selected', async () => {
+  it('should call handleAddMember when party is selected', async () => {
     render({
-      getEnheter: jest.fn().mockImplementation(() =>
+      getParties: jest.fn().mockImplementation(() =>
         Promise.resolve({
           _embedded: {
             enheter: [{ organisasjonsnummer: '123456789', navn: 'Digdir' }],
           },
         }),
       ),
-      getUnderenheter: jest.fn().mockImplementation(() =>
+      getSubParties: jest.fn().mockImplementation(() =>
         Promise.resolve({
           _embedded: {
             underenheter: [{ organisasjonsnummer: '987654321', navn: 'Under Digdir' }],
@@ -43,7 +43,7 @@ describe('PartyListSearch', () => {
       ),
     });
 
-    const searchField = screen.getByTestId('enhet-search');
+    const searchField = screen.getByTestId('party-search');
     await act(() => user.type(searchField, 'Digdir'));
 
     await waitFor(() => screen.findByText('987654321 - Under Digdir'));
@@ -53,26 +53,26 @@ describe('PartyListSearch', () => {
     expect(handleAddMemberMock).toHaveBeenCalled();
   });
 
-  it('should show spinner when loading enheter', async () => {
+  it('should show spinner when loading parties', async () => {
     render({
-      getEnheter: jest.fn().mockImplementation(() => Promise.resolve({})),
-      getUnderenheter: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getParties: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getSubParties: jest.fn().mockImplementation(() => Promise.resolve({})),
     });
 
-    const searchField = screen.getByTestId('enhet-search');
+    const searchField = screen.getByTestId('party-search');
     await act(() => user.type(searchField, 'Digdir'));
     await waitFor(() => {
       expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
     });
   });
 
-  it('should show message when no enheter are found', async () => {
+  it('should show message when no parties are found', async () => {
     render({
-      getEnheter: jest.fn().mockImplementation(() => Promise.resolve({})),
-      getUnderenheter: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getParties: jest.fn().mockImplementation(() => Promise.resolve({})),
+      getSubParties: jest.fn().mockImplementation(() => Promise.resolve({})),
     });
 
-    const searchField = screen.getByTestId('enhet-search');
+    const searchField = screen.getByTestId('party-search');
     await act(() => user.type(searchField, 'Digdir'));
     await waitFor(() => {
       expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();

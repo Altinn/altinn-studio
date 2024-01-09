@@ -176,9 +176,9 @@ export const PartyListDetail = ({
                   <TableCell>{item.orgNr}</TableCell>
                   <TableCell>{item.orgName || t('resourceadm.listadmin_empty_name')}</TableCell>
                   <TableCell>
-                    {item.isUnderenhet
-                      ? t('resourceadm.listadmin_underenhet')
-                      : t('resourceadm.listadmin_enhet')}
+                    {item.isSubParty
+                      ? t('resourceadm.listadmin_sub_party')
+                      : t('resourceadm.listadmin_party')}
                   </TableCell>
                   <TableCell>
                     <Button

@@ -57,6 +57,6 @@ export enum QueryKey {
   PartyLists = 'PartyLists',
   PartyList = 'PartyList',
   ResourcePartyLists = 'ResourcePartyLists',
-  EnhetsregisterOrgenhetSearch = 'EnhetsregisterOrgenhetSearch',
-  EnhetsregisterUnderenhetSearch = 'EnhetsregisterUnderenhetSearch',
+  PartiesRegistrySearch = 'PartiesRegistrySearch',
+  SubPartiesRegistrySearch = 'SubPartiesRegistrySearch',
 }
