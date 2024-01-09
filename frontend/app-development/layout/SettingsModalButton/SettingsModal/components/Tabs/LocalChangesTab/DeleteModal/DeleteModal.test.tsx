@@ -6,20 +6,10 @@ import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
+import { QueryClient } from '@tanstack/react-query';
 
 const mockApp: string = 'TestApp';
 const mockOrg: string = 'TestOrg';
-
-jest.mock('../../../../../../../hooks/mutations/useResetRepositoryMutation');
-const deleteLocalChangesMutation = jest.fn();
-const mockDeleteLocalChangesyMutation = useResetRepositoryMutation as jest.MockedFunction<
-  typeof useResetRepositoryMutation
->;
-mockDeleteLocalChangesyMutation.mockReturnValue({
-  mutate: deleteLocalChangesMutation,
-} as unknown as UseMutationResult<any, Error, void, unknown>);
 
 const mockOnClose = jest.fn();
 
@@ -61,7 +51,10 @@ describe('DeleteModal', () => {
 
   it('calls the handleDelete function when the Delete button is clicked with a matching app name', async () => {
     const user = userEvent.setup();
-    render();
+
+    const mockDelete = jest.fn().mockImplementation(() => Promise.resolve());
+
+    render(null, { resetRepoChanges: mockDelete });
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('settings_modal.local_changes_tab_delete_modal_delete_button'),
@@ -72,14 +65,42 @@ describe('DeleteModal', () => {
       textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
     );
     await act(() => user.type(textfield, mockApp));
+    expect(deleteButton).not.toBeDisabled();
 
-    const deleteButtonAfterTypedInName = screen.getByRole('button', {
+    expect(mockDelete).toHaveBeenCalledTimes(0);
+    await act(() => user.click(deleteButton));
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+
+    const toastSuccessText = await screen.findByText(
+      textMock('settings_modal.local_changes_tab_deleted_success'),
+    );
+    expect(toastSuccessText).toBeInTheDocument();
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call the onClose function when the Delete button is clicked when an error is received', async () => {
+    const user = userEvent.setup();
+
+    const mockDelete = jest.fn().mockImplementation(() => Promise.reject());
+
+    render(null, { resetRepoChanges: mockDelete });
+
+    const deleteButton = screen.getByRole('button', {
       name: textMock('settings_modal.local_changes_tab_delete_modal_delete_button'),
     });
-    expect(deleteButtonAfterTypedInName).not.toBeDisabled();
+    expect(deleteButton).toBeDisabled();
 
+    const textfield = screen.getByLabelText(
+      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
+    );
+    await act(() => user.type(textfield, mockApp));
+    expect(deleteButton).not.toBeDisabled();
+
+    expect(mockDelete).toHaveBeenCalledTimes(0);
     await act(() => user.click(deleteButton));
-    expect(deleteLocalChangesMutation).toHaveBeenCalledTimes(1);
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+
+    expect(mockOnClose).toHaveBeenCalledTimes(0);
   });
 });
 
