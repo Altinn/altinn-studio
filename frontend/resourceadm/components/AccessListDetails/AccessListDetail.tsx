@@ -83,9 +83,6 @@ export const AccessListDetail = ({
   const handleDelete = (): void => {
     deleteAccessList(undefined, {
       onSuccess: () => navigate(backUrl),
-      onError: (_error: any) => {
-        // TODO
-      },
     });
   };
 
