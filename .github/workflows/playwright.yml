@@ -1,11 +1,20 @@
 name: Playwright Tests
 on:
-  push:
-    branches:
-      - master
+  pull_request:
+    branches: [ master ]
+    types: [opened, synchronize, reopened]
     paths:
       - 'frontend/**'
+      - '!frontend/stats/**'
+      - 'backend/**'
       - '.github/workflows/playwright.yml'
+      - 'docker-compose.yml'
+      - 'Dockerfile'
+      - 'gitea/**'
+      - 'package.json'
+      - 'development/**'
+  workflow_dispatch:
+
 jobs:
   test:
     timeout-minutes: 60
@@ -20,10 +29,13 @@ jobs:
     - name: Install Playwright Browsers
       run: yarn setup:playwright:ci
     - name: Run Playwright tests
-      run: yarn playwright-e2e
+      run: yarn test:all
       env:
         PLAYWRIGHT_TEST_BASE_URL: "https://dev.altinn.studio"
         PLAYWRIGHT_DESIGNER_APP_NAME: "auto-designer-app-dev"
+        PLAYWRIGHT_USER: "autoTestUser"
+        PLAYWRIGHT_PASS: ${{ secrets.AUTO_TEST_USER_PWD }}
+        GITEA_ACCESS_TOKEN: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
         CI: true
     - uses: actions/upload-artifact@v3
       if: always()
