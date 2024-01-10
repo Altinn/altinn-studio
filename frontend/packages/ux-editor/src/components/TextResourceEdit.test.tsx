@@ -5,12 +5,8 @@ import type { ITextResources, ITextResourcesWithLanguage } from 'app-shared/type
 import userEvent from '@testing-library/user-event';
 import { TextResourceEdit } from './TextResourceEdit';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import {
-  renderHookWithMockStore,
-  renderWithMockStore,
-  queryClientMock,
-  textLanguagesMock,
-} from '../testing/mocks';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderHookWithMockStore, renderWithMockStore, textLanguagesMock } from '../testing/mocks';
 import { appDataMock, textResourcesMock } from '../testing/stateMocks';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';

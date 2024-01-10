@@ -1,13 +1,9 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { TextResource, TextResourceProps } from './TextResource';
-import {
-  queryClientMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
-  textLanguagesMock,
-} from '../testing/mocks';
+import { renderHookWithMockStore, renderWithMockStore, textLanguagesMock } from '../testing/mocks';
 import { useLayoutSchemaQuery } from '../hooks/queries/useLayoutSchemaQuery';
 import { act, screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../testing/mocks/i18nMock';

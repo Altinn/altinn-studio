@@ -1,9 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import {
-  formLayoutSettingsMock,
-  renderHookWithMockStore,
-  queryClientMock,
-} from '../../testing/mocks';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useDeleteLayoutMutation } from './useDeleteLayoutMutation';
 import { externalLayoutsMock, layout2NameMock } from '../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';

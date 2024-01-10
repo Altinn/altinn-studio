@@ -1,5 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { queryClientMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
