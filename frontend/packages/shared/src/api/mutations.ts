@@ -50,10 +50,9 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
 import type { Policy } from '@altinn/policy-editor';
-import type { NewResource, AccessList, Resource } from 'app-shared/types/ResourceAdm';
+import type { NewResource, AccessList, Resource, JsonPatch } from 'app-shared/types/ResourceAdm';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { AppConfig } from 'app-shared/types/AppConfig';
-import { JsonPatch } from 'resourceadm/utils/jsonPatchUtils/jsonPatchUtils';
 
 const headers = {
   Accept: 'application/json',

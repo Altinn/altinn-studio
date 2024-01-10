@@ -1,8 +1,4 @@
-export interface JsonPatch {
-  op: 'replace' | 'add' | 'remove';
-  path: string;
-  value?: string | number;
-}
+import { JsonPatch } from 'app-shared/types/ResourceAdm';
 
 export const createReplacePatch = <T>(diff: T): JsonPatch[] => {
   return Object.keys(diff).map((key) => {

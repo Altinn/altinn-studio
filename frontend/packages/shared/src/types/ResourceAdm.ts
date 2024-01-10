@@ -123,3 +123,9 @@ export interface AccessListResourceLink {
   accessListIdentifier: string;
   actions: string[];
 }
+
+export interface JsonPatch {
+  op: 'replace' | 'add' | 'remove';
+  path: string;
+  value?: string | number;
+}
