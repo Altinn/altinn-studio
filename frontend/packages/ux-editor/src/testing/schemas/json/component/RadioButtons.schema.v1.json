@@ -46,7 +46,8 @@
     "preselectedOptionIndex": {
       "type": "integer",
       "title": "Preselected option index",
-      "description": "Sets a preselected index."
+      "description": "Sets a preselected index.",
+      "minimum": 0
     },
     "secure": {
       "type": "boolean",
