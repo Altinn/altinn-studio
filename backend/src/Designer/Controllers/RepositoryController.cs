@@ -559,8 +559,11 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest("User does not have a local clone of the repository.");
             }
 
-            var outStream = new MemoryStream();
-            using (var archive = new ZipArchive(outStream, ZipArchiveMode.Create, leaveOpen: true))
+            var zipType = full ? "full" : "changes";
+            var zipFileName = $"{org}-{repository}-{zipType}.zip";
+            var zipFilePath = Path.Combine(Path.GetTempPath(), zipFileName);
+
+            using (var archive = new ZipArchive(new FileStream(zipFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read), ZipArchiveMode.Create, leaveOpen: false))
             {
                 IEnumerable<string> changedFiles;
                 if (full)
@@ -573,8 +576,6 @@ namespace Altinn.Studio.Designer.Controllers
                         .Status(org, repository)
                         .Where(f => f.FileStatus != FileStatus.DeletedFromWorkdir)
                         .Select(f => f.FilePath);
-
-
                 };
 
                 foreach (var changedFile in changedFiles)
@@ -583,9 +584,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
-            outStream.Seek(0, SeekOrigin.Begin);
-
-            return File(outStream, "application/zip", $"{org}-{repository}.zip");
+            return File(System.IO.File.ReadAllBytes(zipFilePath), "application/zip", zipFileName);
         }
 
         private List<string> GetFilesInDirectory(string appRoot, DirectoryInfo currentDir)
