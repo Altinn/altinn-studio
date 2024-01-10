@@ -5,7 +5,7 @@ import { Dashboard } from './Dashboard';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { User } from 'app-shared/types/User';
 import { starredRepoMock } from '../../data-mocks/starredRepoMock';
-import { searchedRepos } from '../../data-mocks/searchedReposMock';
+import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryResponseMock';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
@@ -13,19 +13,18 @@ const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
   render(
     <MockServicesContextWrapper customServices={services}>
       <Dashboard organizations={[]} user={{} as User} />
-    </MockServicesContextWrapper>
+    </MockServicesContextWrapper>,
   );
 };
 
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    selectedContext: SelectedContextType.Self
+    selectedContext: SelectedContextType.Self,
   }),
 }));
 
 describe('Dashboard', () => {
-
   test('should display spinner while loading starred repositories', () => {
     renderWithMockServices();
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
@@ -39,12 +38,16 @@ describe('Dashboard', () => {
   test('should display favorite list with one item', async () => {
     renderWithMockServices({ getStarredRepos: () => Promise.resolve([starredRepoMock]) });
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
-    expect(await screen.findAllByRole('menuitem', { name: textMock('dashboard.unstar') })).toHaveLength(1);
+    expect(
+      await screen.findAllByRole('menuitem', { name: textMock('dashboard.unstar') }),
+    ).toHaveLength(1);
   });
 
   test('should display list of my application', async () => {
-    renderWithMockServices({ searchRepos: () => Promise.resolve(searchedRepos) });
+    renderWithMockServices({ searchRepos: () => Promise.resolve(searchRepositoryResponseMock) });
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
-    expect(await screen.findAllByRole('menuitem', { name: textMock('dashboard.star') })).toHaveLength(1);
+    expect(
+      await screen.findAllByRole('menuitem', { name: textMock('dashboard.star') }),
+    ).toHaveLength(5);
   });
 });
