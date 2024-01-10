@@ -1,6 +1,5 @@
 ﻿import { expect } from '@playwright/test';
-import { test } from '../../playwright.config';
-
+import { test } from '../../extenders/testExtend';
 import { Gitea } from '../../helpers/Gitea';
 
 test('should teardown simple-schema-app test', async ({ request, testAppName }) => {

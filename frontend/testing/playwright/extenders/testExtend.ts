@@ -10,12 +10,4 @@ export const test = base.extend<ExtendedTestOptions>({
 });
 
 const describe = test.describe;
-
-export {
-  describe as Scenario,
-  test as Given,
-  test as When,
-  test as And,
-  test as But,
-  test as Then,
-};
+export { describe };

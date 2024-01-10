@@ -10,6 +10,10 @@ export class CreateServicePage extends BasePage {
     await this.page.goto(this.getRoute('dashboardCreateApp'));
   }
 
+  public async verifyCreateAppFormPage(): Promise<void> {
+    await this.page.waitForURL(this.getRoute('dashboardCreateApp'));
+  }
+
   public createAppFormIsVisible(): void {
     this.page.getByLabel('Navn');
   }
@@ -23,7 +27,7 @@ export class CreateServicePage extends BasePage {
     await this.page.getByRole('button', { name: 'Opprett applikasjon' }).click();
   }
 
-  public async verifyIsOverviewPage(): Promise<void> {
+  public async verifyIsNavigatedToOverviewPage(): Promise<void> {
     await this.page.waitForURL(this.getRoute('editorOverview'));
   }
 }

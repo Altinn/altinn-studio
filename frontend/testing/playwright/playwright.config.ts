@@ -17,22 +17,23 @@ export default defineConfig<ExtendedTestOptions>({
   projects: [
     { name: 'setup', testMatch: /.*\.setup\.ts/ },
     {
-      name: 'simple-schema-app',
+      name: 'create-app-only',
       dependencies: ['setup'],
-      testDir: './integration/create-app-and-simple-schema/',
+      testDir: './integration/create-app-only/',
       testMatch: '*.spec.ts',
-      teardown: 'teardown-simple-schema-app',
+      teardown: 'teardown-create-app-only',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: 'simple-app-test',
+        headless: false,
       },
     },
     {
-      name: 'teardown-simple-schema-app',
-      testDir: './integration/create-app-and-simple-schema/',
-      testMatch: '*simple-app-test.teardown.ts',
+      name: 'teardown-create-app-only',
+      testDir: './integration/create-app-only/',
+      testMatch: '*create-app-only.teardown.ts',
       use: {
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         testAppName: 'simple-app-test',

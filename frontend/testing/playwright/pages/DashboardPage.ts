@@ -6,8 +6,11 @@ export class DashboardPage extends BasePage {
     super(page);
   }
 
-  public async loadAndVerifyDashboardPage(): Promise<void> {
+  public async loadDashboardPage(): Promise<void> {
     await this.page.goto(this.getRoute('dashboard'));
+  }
+
+  public async verifyDashboardPage(): Promise<void> {
     await this.page.waitForURL(this.getRoute('dashboard'));
   }
 
