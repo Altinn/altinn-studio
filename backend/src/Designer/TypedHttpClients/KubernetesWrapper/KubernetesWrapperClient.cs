@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Models;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
@@ -12,12 +11,10 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
 {
     private const string PATH_TO_AZURE_ENV = "/kuberneteswrapper/api/v1/deployments";
     private readonly HttpClient _client;
-    private readonly ILogger<KubernetesWrapperClient> _logger;
 
-    public KubernetesWrapperClient(HttpClient httpClient, ILogger<KubernetesWrapperClient> logger)
+    public KubernetesWrapperClient(HttpClient httpClient)
     {
         _client = httpClient;
-        _logger = logger;
     }
 
     public async Task<IList<Deployment>> GetDeploymentsInEnvAsync(string org, EnvironmentModel env)
