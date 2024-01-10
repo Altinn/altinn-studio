@@ -131,7 +131,7 @@ export const useNavigatePage = () => {
     if (taskType === ProcessTaskType.Archived) {
       return `/instance/${partyId}/${instanceGuid}/${TaskKeys.ProcessEnd}`;
     }
-    if (taskType !== ProcessTaskType.Data) {
+    if (taskType !== ProcessTaskType.Data && taskId !== undefined) {
       return `/instance/${partyId}/${instanceGuid}/${taskId}`;
     }
     const firstPage = order?.[0];
