@@ -31,9 +31,9 @@ jobs:
     - name: Run Playwright tests
       run: yarn playwright:test:all
       env:
-        PLAYWRIGHT_TEST_BASE_URL: "https://dev.altinn.studio"
-        PLAYWRIGHT_DESIGNER_APP_NAME: "auto-designer-app-dev"
-        PLAYWRIGHT_USER: "autoTestUser"
+        PLAYWRIGHT_TEST_BASE_URL: https://dev.altinn.studio
+        PLAYWRIGHT_DESIGNER_APP_NAME: auto-designer-app-dev
+        PLAYWRIGHT_USER: autoTestUser
         PLAYWRIGHT_PASS: ${{ secrets.AUTO_TEST_USER_PWD }}
         GITEA_ACCESS_TOKEN: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
         CI: true
