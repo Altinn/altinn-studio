@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../hooks/useAppContext';
+import { Link } from '@digdir/design-system-react';
 
 export const OldDynamicsInfo = () => {
   const { t } = useTranslation();
@@ -20,7 +21,7 @@ export const OldDynamicsInfo = () => {
         <p>
           {t('right_menu.dynamics_description')}
           <br />
-          <a
+          <Link
             className={classes.externalLink}
             href={altinnDocsUrl('/nb/app/development/logic/dynamic/')}
             rel='noopener noreferrer'
@@ -30,16 +31,16 @@ export const OldDynamicsInfo = () => {
             <span className={classes.externalLinkIcon}>
               <ExternalLinkIcon />
             </span>
-          </a>
+          </Link>
         </p>
-        <a
+        <Link
           className={classes.textLink}
           href={giteaEditLink(org, app, dynamicLocation)}
           target='_blank'
           rel='noreferrer'
         >
           {t('right_menu.dynamics_edit')}
-        </a>{' '}
+        </Link>{' '}
         {t('right_menu.dynamics_edit_comment')}
       </div>
     </div>
