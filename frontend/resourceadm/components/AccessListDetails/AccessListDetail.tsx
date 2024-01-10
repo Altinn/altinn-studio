@@ -56,7 +56,9 @@ export const AccessListDetail = ({
   // add member
   const handleAddMember = (memberToAdd: AccessListMember): void => {
     addListMember(memberToAdd.orgNr);
-    setListItems((old) => [...old, memberToAdd]);
+    setListItems((old) => {
+      return [...old.filter((item) => item.orgNr !== memberToAdd.orgNr), memberToAdd];
+    });
   };
 
   // remove member
@@ -64,14 +66,6 @@ export const AccessListDetail = ({
     removeListMember(memberIdToRemove);
     setListItems((old) =>
       old.map((x) => (x.orgNr === memberIdToRemove ? { ...x, isDeleted: true } : x)),
-    );
-  };
-
-  // undo remove member
-  const handleUndoRemoveMember = (memberIdToUndoRemove: string): void => {
-    addListMember(memberIdToUndoRemove);
-    setListItems((old) =>
-      old.map((x) => (x.orgNr === memberIdToUndoRemove ? { ...x, isDeleted: false } : x)),
     );
   };
 
@@ -181,9 +175,7 @@ export const AccessListDetail = ({
                     <Button
                       color={item.isDeleted ? 'second' : 'danger'}
                       onClick={() =>
-                        item.isDeleted
-                          ? handleUndoRemoveMember(item.orgNr)
-                          : handleRemoveMember(item.orgNr)
+                        item.isDeleted ? handleAddMember(item) : handleRemoveMember(item.orgNr)
                       }
                       variant='secondary'
                       size='small'
