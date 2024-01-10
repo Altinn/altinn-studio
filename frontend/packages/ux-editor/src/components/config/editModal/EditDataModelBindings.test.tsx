@@ -131,8 +131,7 @@ describe('EditDataModelBindings', () => {
     await render({ handleComponentChange });
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await act(() => user.click(linkIcon));
-    const select = screen.getByRole('combobox');
-    const option = within(select).getByText('');
+    const option = screen.getByText('testModel');
     await act(() => user.click(option));
     expect(handleComponentChange).toHaveBeenCalledWith({
       dataModelBindings: { simpleBinding: 'testModel' },
