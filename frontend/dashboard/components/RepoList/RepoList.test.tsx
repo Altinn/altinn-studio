@@ -71,9 +71,7 @@ describe('RepoList', () => {
     expect(gridActionsCellItem).toBeInTheDocument();
   });
 
-  test('should call onPageChange when opening a new page', async () => {
-    const newPage = 1;
-
+  test('should call onPageSizeChange when navigating to next / previous page', async () => {
     const onPageChange = jest.fn();
     renderWithMockServices({
       isServerSort: true,
@@ -86,7 +84,15 @@ describe('RepoList', () => {
     expect(nextPageButton).toBeInTheDocument();
     await act(() => user.click(nextPageButton));
 
-    expect(onPageChange).toHaveBeenCalledWith(newPage);
+    expect(onPageChange).toHaveBeenCalledWith(1);
+
+    const previousPageButton = screen.getByRole('button', {
+      name: 'Go to previous page',
+    });
+    expect(previousPageButton).toBeInTheDocument();
+    await act(() => user.click(previousPageButton));
+
+    expect(onPageChange).toHaveBeenCalledWith(1);
   });
 
   test('should call onPageSizeChange when selecting a new page size', async () => {
