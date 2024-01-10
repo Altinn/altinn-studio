@@ -256,7 +256,7 @@
         },
         {
           "key": "property2",
-          "dataSource": "dataModel.default"
+          "dataSource": "dataModel.task2"
         },
         {
           "key": "Sender",
@@ -264,7 +264,7 @@
         },
         {
           "key": "Reference",
-          "dataSource": "dataModel.default"
+          "dataSource": "dataModel.message"
         }
       ]
     }
