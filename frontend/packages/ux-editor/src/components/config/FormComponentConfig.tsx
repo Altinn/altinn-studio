@@ -192,7 +192,6 @@ export const FormComponentConfig = ({
         if (rest[propertyKey].type === 'number' || rest[propertyKey].type === 'integer') {
           return (
             <EditNumberValue
-              required={rest[propertyKey].minimum !== undefined}
               component={component}
               handleComponentChange={handleComponentUpdate}
               propertyKey={propertyKey}
