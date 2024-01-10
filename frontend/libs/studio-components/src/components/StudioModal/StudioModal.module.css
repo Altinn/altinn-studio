@@ -26,6 +26,7 @@
   padding-top: 20px;
   background-color: var(--fds-semantic-background-default);
   border: var(--modal-border-size) solid var(--fds-semantic-border-neutral-subtle);
+  overflow: auto;
 }
 
 .modalOverlay {
