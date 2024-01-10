@@ -14,7 +14,7 @@ import { setCurrentEditId } from '../features/appData/textResources/textResource
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
-import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../hooks/useAppContext';
@@ -146,7 +146,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
       clearTimeout(autoSaveTimeoutRef.current);
       autoSaveTimeoutRef.current = setTimeout(async () => {
         await handleSave(id, updatedForm);
-      }, AUTOSAVE_DEBOUNCE_INTERVAL);
+      }, AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     },
     [handleSave]
   );
