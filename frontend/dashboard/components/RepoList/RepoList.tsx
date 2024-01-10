@@ -45,8 +45,6 @@ export interface IRepoListProps {
   disableVirtualization?: boolean;
 }
 
-const defaultPageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS;
-
 const isRowSelectable = () => false;
 
 const defaultArray: IRepository[] = [];
@@ -87,7 +85,7 @@ export const RepoList = ({
   onPageChange,
   onSortModelChange,
   onPageSizeChange,
-  pageSizeOptions = defaultPageSizeOptions,
+  pageSizeOptions = [],
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {

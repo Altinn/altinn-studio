@@ -4,6 +4,7 @@ import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { IRepository } from 'app-shared/types/global';
+import { DATAGRID_PAGE_SIZE_OPTIONS } from 'dashboard/constants';
 
 type SearchResultReposList = {
   starredRepos: IRepository[];
@@ -39,6 +40,7 @@ export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResul
         onSortModelChange={setSortModel}
         sortModel={sortModel}
         pageSize={pageSize}
+        pageSizeOptions={DATAGRID_PAGE_SIZE_OPTIONS}
       />
     </div>
   );

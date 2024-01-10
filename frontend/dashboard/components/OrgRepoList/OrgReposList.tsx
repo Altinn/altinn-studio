@@ -10,7 +10,7 @@ import { IRepository } from 'app-shared/types/global';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
-import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
+import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from 'dashboard/constants';
 
 type OrgReposListProps = {
   user: User;
@@ -52,6 +52,7 @@ export const OrgReposList = ({ user, organizations, starredRepos }: OrgReposList
         onSortModelChange={setSortModel}
         sortModel={sortModel}
         pageSize={pageSize}
+        pageSizeOptions={DATAGRID_PAGE_SIZE_OPTIONS}
       />
     </div>
   );
