@@ -1,8 +1,3 @@
-.localChangesContent {
-  display: flex;
-  height: calc(var(--modal-content-max-height));
-}
-
 .headingWrapper {
   display: flex;
   align-items: center;

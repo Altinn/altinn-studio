@@ -10,49 +10,49 @@
   --modal-border-radius: var(--fds-border_radius-medium);
   --modal-content-max-height: calc(var(--modal-max-height) - var(--heading-height)) -
     var(--modal-border-size);
+  --modal-padding: var(--fds-spacing-4);
 
-  max-width: var(--modal-max-width);
-  min-width: var(--modal-min-width);
-  width: max-content;
-  max-height: var(--modal-max-height);
-  min-height: var(--modal-min-height);
-  height: max-content;
+  background-color: var(--fds-semantic-background-default);
   border-radius: var(--modal-border-radius);
+  border: var(--modal-border-size) solid var(--fds-semantic-border-neutral-subtle);
+  display: flex;
+  flex-direction: column;
+  height: max-content;
+  left: var(--modal-position);
+  max-height: var(--modal-max-height);
+  max-width: var(--modal-max-width);
+  min-height: var(--modal-min-height);
+  min-width: var(--modal-min-width);
   position: absolute;
   top: var(--modal-position);
-  left: var(--modal-position);
   transform: translate(var(--modal-translate), var(--modal-translate));
-  padding: 0;
-  padding-top: 20px;
-  background-color: var(--fds-semantic-background-default);
-  border: var(--modal-border-size) solid var(--fds-semantic-border-neutral-subtle);
-  overflow: auto;
+  width: max-content;
 }
 
 .modalOverlay {
-  position: fixed;
-  top: 0;
-  right: 0;
+  background-color: rgba(30, 43, 60, 0.5);
   bottom: 0;
   left: 0;
-  background-color: rgba(30, 43, 60, 0.5);
+  position: fixed;
+  right: 0;
+  top: 0;
   z-index: 1000;
 }
 
 .headingWrapper {
-  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
-  height: var(--heading-height);
-  position: sticky;
-  top: 0;
+  align-items: center;
   background-color: var(--fds-semantic-background-default);
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  display: flex;
+  padding: var(--modal-padding);
 }
 
 .contentWrapper {
-  max-height: var(--modal-content-max-height);
+  flex: 1;
+  overflow: auto;
+  padding: var(--modal-padding);
 }
 
-.closeButtonWrapper {
-  position: absolute;
-  top: -0.5rem;
-  right: 0.5rem;
+.title {
+  flex: 1;
 }

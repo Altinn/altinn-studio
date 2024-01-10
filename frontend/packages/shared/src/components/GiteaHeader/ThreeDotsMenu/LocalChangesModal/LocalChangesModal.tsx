@@ -34,9 +34,7 @@ export const LocalChangesModal = ({
         </div>
       }
     >
-      <div className={classes.localChangesContent}>
-        <LocalChanges org={org} app={app} />
-      </div>
+      <LocalChanges org={org} app={app} />
     </StudioModal>
   );
 };
