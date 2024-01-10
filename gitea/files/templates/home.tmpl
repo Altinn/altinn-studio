@@ -1,58 +1,55 @@
 {{template "base/head" .}}
-<div class="page-content home">
-	<div class="ui stackable middle very relaxed page grid">
-		<div class="sixteen wide center aligned centered column">
-			<div>
-				<img class="logo" style="margin:2em 0; height:73px;" src="{{AssetUrlPrefix}}/img/gitea-lg.svg" alt="" />
-			</div>
+<div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}" class="page-content home">
+	<div class="gt-mb-5 gt-px-5">
+		<div class="center">
+			<img class="logo" width="220" height="220" src="{{AssetUrlPrefix}}/img/logo.svg" alt="{{ctx.Locale.Tr "logo"}}">
 			<div class="hero">
 				<h1 class="ui icon header title">
 					{{AppName}}
-        </h1>
-        <h2>Git for dine apps</h2>
+				</h1>
+				<h2>Git for dine apps</h2>
 			</div>
 		</div>
 	</div>
-
-  <div class="ui stackable middle very relaxed page grid">
-      <div class="eight wide center column">
-          <h1 class="hero ui icon header">
-            {{svg "octicon-comment-discussion"}} Samarbeid i teams
-          </h1>
-          <p class="large">
-              <a href="{{AppSubUrl}}/explore/users">Utviklere</a> kan samarbeide og diskutere,
+	<div class="ui stackable middle very relaxed page grid">
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-flame"}} {{ctx.Locale.Tr "startpage.install"}}
+			</h1>
+			<p class="large">
+				<a href="{{AppSubUrl}}/explore/users">Utviklere</a> kan samarbeide og diskutere,
               med tilgang til bl.a. full Git versjonshistorikk, backlog, milepæler, varsler og wiki.
-          </p>
-      </div>
-      <div class="eight wide center column">
-          <h1 class="hero ui icon header">
-            {{svg "octicon-organization"}} Samarbeid på tvers
-          </h1>
-          <p class="large">
-              <a href="{{AppSubUrl}}/explore/organizations">Organisasjoner</a> kan samarbeide med hverandre om
+			</p>
+		</div>
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-device-desktop"}} Samarbeid på tvers
+			</h1>
+			<p class="large">
+				<a href="{{AppSubUrl}}/explore/organizations">Organisasjoner</a> kan samarbeide med hverandre om
               gjenbrukbare løsninger og komponenter.
-          </p>
-      </div>
-  </div>
-  <div class="ui stackable middle very relaxed page grid">
-      <div class="eight wide center column">
-          <h1 class="hero ui icon header">
-            {{svg "octicon-tools"}} Enkel å integrere
-          </h1>
-          <p class="large">
-              <a href="{{AppSubUrl}}/explore/repos">Appene</a> som utvikles er tilgjengelige via Git, og i tillegg
+			</p>
+		</div>
+	</div>
+	<div class="ui stackable middle very relaxed page grid">
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-rocket"}} {{ctx.Locale.Tr "startpage.lightweight"}}
+			</h1>
+			<p class="large">
+				<a href="{{AppSubUrl}}/explore/repos">Appene</a> som utvikles er tilgjengelige via Git, og i tillegg
               så er alt av funksjonalitet eksponert via et <a href="{{AppSubUrl}}/api/swagger">API</a>.
-          </p>
-      </div>
-      <div class="eight wide center column">
-          <h1 class="hero ui icon header">
-            {{svg "octicon-code"}} Åpen kildekode
-          </h1>
-          <p class="large">
-              Altinn Studio deles som <a href="https://github.com/Altinn/altinn-studio">åpen kildekode på Github</a>,
+			</p>
+		</div>
+		<div class="eight wide center column">
+			<h1 class="hero ui icon header">
+				{{svg "octicon-code"}} Åpen kildekode
+			</h1>
+			<p class="large">
+				Altinn Studio deles som <a href="https://github.com/Altinn/altinn-studio">åpen kildekode på Github</a>,
               slik at alle som ønsker kan bidra til å forbedre løsningen.
-          </p>
-      </div>
-  </div>
+			</p>
+		</div>
+	</div>
 </div>
 {{template "base/footer" .}}
