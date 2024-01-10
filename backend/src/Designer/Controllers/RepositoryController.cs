@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -568,8 +569,13 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 else
                 {
-                    changedFiles = _sourceControl.Status(org, repository).Select(f => f.FilePath);
-                }
+                    changedFiles = _sourceControl
+                        .Status(org, repository)
+                        .Where(f => f.FileStatus != FileStatus.DeletedFromWorkdir)
+                        .Select(f => f.FilePath);
+
+
+                };
 
                 foreach (var changedFile in changedFiles)
                 {
