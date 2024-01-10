@@ -72,8 +72,8 @@ describe('TextEditor', () => {
       user.click(
         screen.getByRole('button', {
           name: textMock('schema_editor.language_confirm_deletion'),
-        })
-      )
+        }),
+      ),
     );
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
@@ -95,8 +95,8 @@ describe('TextEditor', () => {
       user.click(
         screen.getByRole('button', {
           name: textMock('schema_editor.language_confirm_deletion'),
-        })
-      )
+        }),
+      ),
     );
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
@@ -120,6 +120,22 @@ describe('TextEditor', () => {
     await act(() => user.click(englishCheckbox));
 
     expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb', 'en']);
+  });
+
+  it('centers the new selected language', async () => {
+    // Need to mock the scrollIntoView function
+    const mockScrollIntoView = jest.fn();
+    window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
+    renderTextEditor({
+      availableLanguages: ['nb', 'en', 'tw', 'ku'],
+      selectedLangCodes: ['nb', 'en', 'tw'],
+    });
+    const kurdishCheckbox = screen.getByRole('checkbox', {
+      name: /kurdisk/i,
+    });
+    await act(() => user.click(kurdishCheckbox));
+
+    expect(mockScrollIntoView).toHaveBeenCalledTimes(1);
   });
 
   it('signals correctly when a translation is changed', async () => {
@@ -158,8 +174,8 @@ describe('TextEditor', () => {
         user.click(
           screen.getByRole('button', {
             name: textMock('schema_editor.textRow-deletion-confirm'),
-          })
-        )
+          }),
+        ),
       );
 
       await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });

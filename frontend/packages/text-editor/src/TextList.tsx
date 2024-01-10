@@ -33,7 +33,9 @@ export const TextList = ({
         <TableRow>
           <TableCell></TableCell>
           {selectedLanguages.map((language) => (
-            <TableCell key={'header-lang' + language}>{getLangName({ code: language })}</TableCell>
+            <TableCell id={'header-lang' + language} key={'header-lang' + language}>
+              {getLangName({ code: language })}
+            </TableCell>
           ))}
           <TableCell>Tekstnøkkel</TableCell>
           <TableCell>Variabler</TableCell>

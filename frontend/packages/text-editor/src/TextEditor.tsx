@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import classes from './TextEditor.module.css';
 import type {
   LangCode,
@@ -43,10 +43,27 @@ export const TextEditor = ({
 }: TextEditorProps) => {
   const { t } = useTranslation();
   const resourceRows = mapResourceFilesToTableRows(textResourceFiles);
+
+  const previousSelectedLanguages = useRef<string[]>([]);
+
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages],
   );
+
+  useEffect(() => {
+    const addedLanguage = selectedLangCodes.find(
+      (lang) => !previousSelectedLanguages.current.includes(lang),
+    );
+
+    if (addedLanguage) {
+      const elementToFocus: HTMLElement = document.getElementById('header-lang' + addedLanguage);
+      if (elementToFocus) {
+        elementToFocus.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+      }
+    }
+    previousSelectedLanguages.current = selectedLangCodes;
+  }, [selectedLangCodes.length]);
 
   const handleAddNewEntryClick = () => {
     const textId = `id_${getRandNumber()}`;
