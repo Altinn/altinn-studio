@@ -29,7 +29,7 @@ jobs:
     - name: Install Playwright Browsers
       run: yarn setup:playwright:ci
     - name: Run Playwright tests
-      run: yarn test:all
+      run: yarn playwright:test:all
       env:
         PLAYWRIGHT_TEST_BASE_URL: "https://dev.altinn.studio"
         PLAYWRIGHT_DESIGNER_APP_NAME: "auto-designer-app-dev"
