@@ -57,6 +57,18 @@ describe('NewResourceModal', () => {
     expect(createButton).toHaveAttribute('aria-disabled', 'true');
   });
 
+  test('that create button should not create new resource when input fields are empty', async () => {
+    const user = userEvent.setup();
+    const createResourceMock = jest.fn();
+    await renderAndOpenModal(user, { createResource: createResourceMock });
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('resourceadm.dashboard_create_modal_create_button'),
+    });
+    await act(() => user.click(createButton));
+    expect(createResourceMock).not.toHaveBeenCalled();
+  });
+
   test('that create button should be enabled when the form is valid', async () => {
     const user = userEvent.setup();
     await renderAndOpenModal(user);

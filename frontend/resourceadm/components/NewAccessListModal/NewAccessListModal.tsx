@@ -1,7 +1,6 @@
 import React, { useState, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components';
 import { useCreateAccessListMutation } from 'resourceadm/hooks/mutations/useCreateAccessListMutation';
 import { Button, Modal, Paragraph } from '@digdir/design-system-react';
 import { ResourceNameAndId } from 'resourceadm/components/ResourceNameAndId';
@@ -23,10 +22,9 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
     const [name, setName] = useState<string>('');
     const [errorMessage, setErrorMessage] = useState<string>('');
 
-    const { mutate: createAccessList, isPending: isCreatingAccessList } =
-      useCreateAccessListMutation(org, env);
+    const { mutate: createAccessList } = useCreateAccessListMutation(org, env);
 
-    const isSaveButtonDisabled = !id.trim().length || !name.trim().length || isCreatingAccessList;
+    const isSaveButtonDisabled = !id.trim().length || !name.trim().length;
 
     const handleCreateNewAccessList = (newId: string, newName: string) => {
       setErrorMessage('');
@@ -65,7 +63,6 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
               onTitleChange={(newTitle: string) => setName(newTitle)}
               conflictErrorMessage={errorMessage}
             />
-            {isCreatingAccessList && <StudioSpinner />}
           </div>
         </Modal.Content>
         <Modal.Footer>
