@@ -6,7 +6,8 @@ import { last } from 'app-shared/utils/arrayUtils';
  * @param separator The separator to search for.
  * @returns The substring after the last occurrence of the given separator.
  */
-export const substringAfterLast = (str: string, separator: string): string => last(str.split(separator)) || '';
+export const substringAfterLast = (str: string, separator: string): string =>
+  last(str.split(separator)) || '';
 
 /**
  * Returns substring before last occurrence of separator.
@@ -25,8 +26,12 @@ export const substringBeforeLast = (str: string, separator: string): string =>
  * @param replacement The replacement to replace the substring with.
  * @returns The string with the substring replaced at the start.
  */
-export const replaceStart = (str: string, substring: string, replacement: string): string =>
-  str.replace(new RegExp('^' + substring), replacement);
+export const replaceStart = (str: string, substring: string, replacement: string): string => {
+  if (str.startsWith(substring)) {
+    return replacement + str.slice(substring.length);
+  }
+  return str;
+};
 
 /**
  * Replaces the given substring with the given replacement at the end of the string.
@@ -53,7 +58,7 @@ export const removeStart = (str: string, ...substrings: string[]): string => {
     }
   }
   return str;
-}
+};
 
 /**
  * Removes any of the given substrings from the end of the string.
@@ -71,4 +76,4 @@ export const removeEnd = (str: string, ...substrings: string[]): string => {
     }
   }
   return str;
-}
+};

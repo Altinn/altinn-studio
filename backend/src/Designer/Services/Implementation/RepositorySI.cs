@@ -298,7 +298,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var layout = new JsonObject
             {
-                ["schema"] = AltinnAppGitRepository.LayoutSchemaUrl,
+                ["$schema"] = AltinnAppGitRepository.LayoutSchemaUrl,
                 ["data"] = new JsonObject
                 {
                     ["layout"] = new JsonArray()
@@ -312,7 +312,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var layoutSettings = new JsonObject
             {
-                ["schema"] = AltinnAppGitRepository.LayoutSettingsSchemaUrl,
+                ["$schema"] = AltinnAppGitRepository.LayoutSettingsSchemaUrl,
                 ["pages"] = new JsonObject
                 {
                     ["order"] = new JsonArray { initialLayout }

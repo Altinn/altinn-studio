@@ -14,6 +14,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { QueryClient } from '@tanstack/react-query';
 import { AppContext, AppContextProps } from '../AppContext';
 import { appContextMock } from './appContextMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -25,12 +26,6 @@ export const formLayoutSettingsMock: ILayoutSettings = {
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
 export const optionListIdsMock: string[] = ['test-1', 'test-2'];
-
-export const queryClientMock = new QueryClient({
-  defaultOptions: {
-    queries: { staleTime: Infinity },
-  },
-});
 
 type WrapperArgs = {
   appContextProps: Partial<AppContextProps>;

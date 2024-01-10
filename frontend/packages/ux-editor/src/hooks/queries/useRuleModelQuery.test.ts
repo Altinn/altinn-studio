@@ -1,6 +1,6 @@
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
-import { useRuleModelQuery } from './useRuleModelQuery';
+import { useRuleModelQuery, WindowWithRuleModel } from './useRuleModelQuery';
 import ruleHandlerMock, {
   condition1Input1Label,
   condition1Input1Name,
@@ -22,6 +22,7 @@ import ruleHandlerMock, {
   rule2Input2Name,
   rule2Name,
 } from '../../testing/ruleHandlerMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 // Test data:
@@ -32,14 +33,17 @@ const selectedLayoutSet = 'test-layout-set';
 const getRuleModel = jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
 
 describe('useRuleModelQuery', () => {
+  afterAll(() => {
+    delete global.window;
+  });
   it('Calls getRuleModel with correct parameters', async () => {
-    await renderAndWaitForSuccess();
+    await renderAndWaitForSuccess({ getRuleModel });
     expect(getRuleModel).toHaveBeenCalledTimes(1);
     expect(getRuleModel).toHaveBeenCalledWith(org, app, selectedLayoutSet);
   });
 
   it('Parses file correctly and returns an array of rules and conditions', async () => {
-    const { result } = await renderAndWaitForSuccess();
+    const { result } = await renderAndWaitForSuccess({ getRuleModel });
     expect(result.current.data).toEqual([
       {
         name: rule1Name,
@@ -74,12 +78,32 @@ describe('useRuleModelQuery', () => {
       },
     ]);
   });
+
+  it('sets all ruleModel related objects to "undefined" in window object if ruleHandler does not exist in repo', async () => {
+    const globalWindowWithRuleModel = global.window as WindowWithRuleModel;
+
+    await renderAndWaitForSuccess({ getRuleModel });
+    expect(globalWindowWithRuleModel.ruleHandlerObject).toBeDefined();
+    expect(globalWindowWithRuleModel.ruleHandlerHelper).toBeDefined();
+    expect(globalWindowWithRuleModel.conditionalRuleHandlerObject).toBeDefined();
+    expect(globalWindowWithRuleModel.conditionalRuleHandlerHelper).toBeDefined();
+
+    await renderAndWaitForSuccess({ getRuleModel: () => Promise.resolve(null) });
+    expect(globalWindowWithRuleModel.ruleHandlerObject).toBeUndefined();
+    expect(globalWindowWithRuleModel.ruleHandlerHelper).toBeUndefined();
+    expect(globalWindowWithRuleModel.conditionalRuleHandlerObject).toBeUndefined();
+    expect(globalWindowWithRuleModel.conditionalRuleHandlerHelper).toBeUndefined();
+  });
 });
 
-const renderAndWaitForSuccess = async (queries: Partial<ServicesContextProps> = {}) => {
+const renderAndWaitForSuccess = async (
+  queries: Partial<ServicesContextProps> = {},
+  queryClient = createQueryClientMock(),
+) => {
   const { renderHookResult } = renderHookWithMockStore(
     {},
-    { getRuleModel },
+    queries,
+    queryClient,
   )(() => useRuleModelQuery(org, app, selectedLayoutSet));
   await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
   return renderHookResult;

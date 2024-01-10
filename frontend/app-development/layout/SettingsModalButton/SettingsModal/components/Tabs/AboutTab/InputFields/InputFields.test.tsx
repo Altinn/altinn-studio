@@ -48,4 +48,41 @@ describe('InputFields', () => {
 
     expect(altId).toHaveValue(`${mockAppConfig.serviceId}${mockNewText}`);
   });
+
+  describe('InputFields Validation', () => {
+    const user = userEvent.setup();
+    const appNameLabel = textMock('settings_modal.about_tab_name_label');
+
+    it('should save changes when the form is valid', async () => {
+      render(<InputFields {...defaultProps} />);
+      const appName = screen.getByLabelText(appNameLabel);
+
+      await act(() => user.type(appName, mockNewText));
+      await act(() => user.tab());
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not save changes when form is invalid', async () => {
+      render(<InputFields {...defaultProps} />);
+      const appName = screen.getByLabelText(appNameLabel);
+
+      await act(() => user.clear(appName));
+      await act(() => user.tab());
+      expect(mockOnSave).toHaveBeenCalledTimes(0);
+    });
+
+    it('should toggle error message based on form validation', async () => {
+      render(<InputFields {...defaultProps} />);
+      const appName = screen.getByLabelText(appNameLabel);
+      const errorMessage = textMock('settings_modal.about_tab_name_error');
+
+      await act(() => user.clear(appName));
+      await act(() => user.tab());
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+
+      await act(() => user.type(appName, mockNewText));
+      await act(() => user.tab());
+      expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
+    });
+  });
 });

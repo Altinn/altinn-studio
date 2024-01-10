@@ -13,7 +13,7 @@ import { deepCopy } from 'app-shared/pure';
 import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { IFormLayouts, LayoutItemType } from '../types/global';
 import { FormComponent } from '../types/FormComponent';
-import { SingleSelectOption } from '@digdir/design-system-react';
+import { LegacySingleSelectOption } from '@digdir/design-system-react';
 import { FormContainer } from '../types/FormContainer';
 import { UseText } from '../hooks';
 
@@ -438,7 +438,7 @@ export const getNonOverlappingElementsFromTwoLists = (list1: any[], list2: any[]
 // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855
 export const getDataModelElementNames = (
   dataModelElements: DatamodelFieldElement[],
-): SingleSelectOption[] => {
+): LegacySingleSelectOption[] => {
   return dataModelElements
     .filter((element) => element.dataBindingName)
     .map((element) => ({
@@ -447,7 +447,7 @@ export const getDataModelElementNames = (
     }));
 };
 
-export const getComponentIds = (formLayouts: IFormLayouts): SingleSelectOption[] => {
+export const getComponentIds = (formLayouts: IFormLayouts): LegacySingleSelectOption[] => {
   // TODO: Make sure all components from the layout set are included, also those inside groups. Issue #10855
   const components = Object.values(formLayouts).flatMap((layout) =>
     Object.values(layout.components),

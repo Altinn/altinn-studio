@@ -1,7 +1,10 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
-import { useParams } from 'react-router-dom';
-import { PolicyEditor } from '@altinn/policy-editor';
+import {
+  PolicyEditor,
+  mergeActionsFromPolicyWithActionOptions,
+  mergeSubjectsFromPolicyWithSubjectOptions,
+} from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import { useResourcePolicyQuery } from 'resourceadm/hooks/queries';
@@ -11,6 +14,7 @@ import {
   useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
+import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 
 export type PolicyEditorPageProps = {
   showAllErrors: boolean;
@@ -29,8 +33,7 @@ export type PolicyEditorPageProps = {
 export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const { resourceId, selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { resourceId, selectedContext, repo } = useUrlParams();
 
   // Get the data
   const { data: policyData, isPending: isPolicyPending } = useResourcePolicyQuery(
@@ -80,11 +83,15 @@ export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): 
         </div>
       );
     }
+
+    const mergedActions = mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
+    const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjectData);
+
     return (
       <PolicyEditor
         policy={policyData}
-        actions={actionData}
-        subjects={subjectData}
+        actions={mergedActions}
+        subjects={mergedSubjects}
         resourceId={resourceId}
         onSave={handleSavePolicy}
         showAllErrors={showAllErrors}

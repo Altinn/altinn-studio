@@ -4,7 +4,7 @@ import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
 import { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
-import { Select } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
 
 export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
 
@@ -54,7 +54,7 @@ export const EditTextResourceBindings = ({
         />
       ))}
       {keysToAdd.length > 0 && <div className={classes.addContainer}>
-        <Select
+        <LegacySelect
           options={keysToAdd.map((key) => ({
             label: t(`ux_editor.modal_properties_textResourceBindings_${key}`),
             value: key,

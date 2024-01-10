@@ -20,7 +20,7 @@ const mockResource1: Resource = {
     { language: 'nb', word: 'Key 2' },
   ],
   visible: false,
-  resourceReferences: [{ reference: 'ref', referenceType: 'Default', referenceSource: 'Default' }],
+  resourceReferences: [{ reference: 'ref', referenceType: 'Default', referenceSource: 'Altinn2' }],
 };
 
 const mockResource2: Resource = {

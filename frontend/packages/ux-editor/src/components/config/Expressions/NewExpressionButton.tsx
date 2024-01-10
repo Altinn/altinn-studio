@@ -12,40 +12,41 @@ export interface NewExpressionButtonProps {
 }
 
 export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionButtonProps) => {
-  const [showDropDown, setShowDropDown] = React.useState<boolean>(false);
+  const [showDropdown, setShowDropdown] = React.useState<boolean>(false);
   const t = useText();
   const anchorEl = useRef(null);
 
   return (
     <>
       <Button
-        title={t('right_menu.expressions_add')}
+        aria-expanded={showDropdown}
+        aria-haspopup='menu'
         color='first'
         fullWidth
         icon={<PlusIcon />}
-        id='right_menu.dynamics_add'
-        size='small'
-        variant='secondary'
+        onClick={() => setShowDropdown(!showDropdown)}
         ref={anchorEl}
-        aria-haspopup='menu'
-        aria-expanded={showDropDown}
-        onClick={() => setShowDropDown(!showDropDown)}
+        size='small'
+        title={t('right_menu.expressions_add')}
+        variant='secondary'
       >
         {t('right_menu.expressions_add')}
       </Button>
       <DropdownMenu
         anchorEl={anchorEl.current}
-        placement='bottom'
-        size='medium'
-        open={showDropDown}
         className={classes.dropdownMenu}
+        onClose={() => setShowDropdown(false)}
+        open={showDropdown}
+        placement='bottom'
+        portal
+        size='small'
       >
         <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
           {options.map((o) => (
             <DropdownMenu.Item
               key={o}
               onClick={() => {
-                setShowDropDown(false);
+                setShowDropdown(false);
                 onAddExpression(o);
               }}
             >
