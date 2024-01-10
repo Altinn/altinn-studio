@@ -1,4 +1,4 @@
-FROM gitea/gitea:1.20.6-rootless
+FROM gitea/gitea:1.21.3-rootless
 USER 0:0
 RUN apk --no-cache upgrade expat git libxml2 libcurl curl
 USER 1000:1000
@@ -7,5 +7,5 @@ RUN mkdir -p /var/lib/gitea/git -p /var/lib/gitea/db -p /var/lib/gitea/avatars -
 # copy configuration file
 COPY --chown=git:git ./files/conf/app.ini /etc/gitea/app.ini
 COPY --chown=git:git ./files/options /var/lib/gitea/custom/options/
-COPY --chown=git:git ./files/public/img /var/lib/gitea/custom/public/img
+COPY --chown=git:git ./files/public/img /var/lib/gitea/custom/public/assets/img
 COPY --chown=git:git ./files/templates /var/lib/gitea/custom/templates

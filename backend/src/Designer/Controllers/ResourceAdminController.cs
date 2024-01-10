@@ -9,11 +9,13 @@ using Altinn.ResourceRegistry.Core.Enums.Altinn2;
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
+using Humanizer.Localisation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -266,7 +268,26 @@ namespace Altinn.Studio.Designer.Controllers
             if (!_memoryCache.TryGetValue(cacheKey, out List<AvailableService> linkServices))
             {
 
-                List<AvailableService> unfiltered = await _altinn2MetadataClient.AvailableServices(1044, environment);
+                List<AvailableService> unfiltered = new List<AvailableService>();
+                List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(environment.ToLower());
+
+                foreach (ServiceResource resource in allResources)
+                {
+                    if (resource?.HasCompetentAuthority.Orgcode != null
+                        && resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode)))
+                    {
+                        AvailableService service = new AvailableService();
+                        if (resource.Title.ContainsKey("nb"))
+                        {
+                            service.ServiceName = resource.Title["nb"];
+                        }
+
+                        service.ExternalServiceCode = resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceCode)).Reference;
+                        service.ExternalServiceEditionCode = Convert.ToInt32(resource.ResourceReferences.First(r => r.ReferenceType.Equals(ReferenceType.ServiceEditionCode)).Reference);
+                        service.ServiceOwnerCode = resource.HasCompetentAuthority.Orgcode;
+                        unfiltered.Add(service);
+                    }
+                }
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
@@ -274,11 +295,11 @@ namespace Altinn.Studio.Designer.Controllers
 
                 if (OrgUtil.IsTestEnv(org))
                 {
-                    linkServices = unfiltered.Where(a => a.ServiceType.Equals(ServiceType.Link) && (a.ServiceOwnerCode.ToLower().Equals(org.ToLower()) || a.ServiceOwnerCode.ToLower().Equals("acn"))).ToList();
+                    linkServices = unfiltered.Where(a => a.ServiceOwnerCode.ToLower().Equals(org.ToLower()) || a.ServiceOwnerCode.ToLower().Equals("acn")).ToList();
                 }
                 else
                 {
-                    linkServices = unfiltered.Where(a => a.ServiceType.Equals(ServiceType.Link) && a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
+                    linkServices = unfiltered.Where(a => a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
                 }
 
                 _memoryCache.Set(cacheKey, linkServices, cacheEntryOptions);

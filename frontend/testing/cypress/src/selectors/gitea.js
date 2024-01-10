@@ -4,7 +4,7 @@ export const gitea = {
   getAltinnLogo: () => cy.findByAltText(/altinn(|-| )logo/i),
   getDeleteButton: () => cy.findByRole('button', { name: /delete this repository/i }),
   getDeleteRepositoryModal,
-  getDeleteRepositoryNameField: () => cy.get('#delete-repo-modal #repo_name'),
+  getDeleteRepositoryNameField: () => cy.get('#delete-repo-modal #repo_name_to_delete'),
   getLanguageMenu: () => cy.findByRole('menu'),
   getLanguageMenuItem: (language) => cy.findByRole('menuitem', { name: language }),
   getLoginButton: () => cy.findByRole('button', { name: /logg inn/i }),

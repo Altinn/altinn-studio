@@ -1,6 +1,4 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../../mockData';
 import { act, screen, waitFor } from '@testing-library/react';
@@ -42,26 +40,14 @@ const setSelectedTypePointer = jest.fn();
 
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
   const schemaModel = SchemaModel.fromArray(uiSchemaMap);
-  const store = configureStore()({
-    selectedDefinitionNodeId: selectedItem?.pointer,
-    selectedEditorTab: 'definitions',
-  });
-
   return renderWithProviders({
-    state: {
-      selectedDefinitionNodeId: selectedItem?.pointer,
-      selectedEditorTab: 'definitions',
-    },
     appContextProps: {
       schemaModel,
       save: saveDatamodel,
       setSelectedTypePointer,
+      selectedNodePointer: selectedItem?.pointer,
     },
-  })(
-    <Provider store={store}>
-      <SchemaInspector />
-    </Provider>,
-  );
+  })(<SchemaInspector />);
 };
 
 // Mocks:
