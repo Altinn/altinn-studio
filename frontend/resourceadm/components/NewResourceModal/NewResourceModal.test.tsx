@@ -6,8 +6,9 @@ import { act } from 'react-dom/test-utils'; // Import act if needed
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { MemoryRouter } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockButtonText: string = 'Mock Button';
 const org = 'orgname';
@@ -87,20 +88,47 @@ describe('NewResourceModal', () => {
     await act(() => user.click(createButton));
     expect(mockedNavigate).toHaveBeenCalledWith(`/${org}/${org}-resources/resource/test/about`);
   });
+
+  test('should show error message if resource id is already in use', async () => {
+    const user = userEvent.setup();
+    await renderAndOpenModal(user, {
+      createResource: jest
+        .fn()
+        .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
+    });
+
+    const titleInput = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
+    );
+    await act(() => user.type(titleInput, 'test'));
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('resourceadm.dashboard_create_modal_create_button'),
+    });
+    await act(() => user.click(createButton));
+
+    expect(
+      screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
+    ).toBeInTheDocument();
+  });
 });
 
-const render = (props: Partial<NewResourceModalProps> = {}) => {
+const render = (queries: Partial<ServicesContextProps> = {}) => {
+  const allQueries = {
+    ...queriesMock,
+    ...queries,
+  };
   return rtlRender(
     <MemoryRouter>
-      <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-        <TestComponentWithButton {...defaultProps} {...props} />
+      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+        <TestComponentWithButton {...defaultProps} />
       </ServicesContextProvider>
     </MemoryRouter>,
   );
 };
 
-const renderAndOpenModal = async (user: UserEvent, props: Partial<NewResourceModalProps> = {}) => {
-  render(props);
+const renderAndOpenModal = async (user: UserEvent, queries: Partial<ServicesContextProps> = {}) => {
+  render(queries);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });
   await act(() => user.click(openModalButton));
