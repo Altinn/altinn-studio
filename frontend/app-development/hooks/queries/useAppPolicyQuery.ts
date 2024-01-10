@@ -3,7 +3,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { Policy } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { AxiosError } from 'axios';
-import { PolicyRule, RequiredAuthLevel } from '@altinn/policy-editor';
+import { RequiredAuthLevel } from '@altinn/policy-editor';
 
 const DEFAULT_AUTH_LEVEL: RequiredAuthLevel = '3';
 
@@ -25,20 +25,10 @@ export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Poli
   });
 };
 const mapAppPolicyResponse = (appPolicy: Policy): Policy => {
-  const policyRules: PolicyRule[] = ruleSubjectToLowerCase(appPolicy.rules);
   return {
-    rules: policyRules,
+    rules: appPolicy?.rules ?? [],
     requiredAuthenticationLevelEndUser:
       appPolicy?.requiredAuthenticationLevelEndUser ?? DEFAULT_AUTH_LEVEL,
     requiredAuthenticationLevelOrg: DEFAULT_AUTH_LEVEL,
   };
-};
-
-const ruleSubjectToLowerCase = (policyRules: PolicyRule[] = []) => {
-  return policyRules.map(
-    (rule: PolicyRule): PolicyRule => ({
-      ...rule,
-      subject: rule.subject.map((subject: string) => subject.toLowerCase()),
-    }),
-  );
 };
