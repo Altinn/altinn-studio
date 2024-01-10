@@ -14,11 +14,7 @@ import type { IRepository } from 'app-shared/types/global';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
-import {
-  DATAGRID_DEFAULT_PAGE_SIZE,
-  DATAGRID_PAGE_SIZE_OPTIONS,
-  DATAGRID_PAGE_SIZE_TYPE,
-} from '../../constants';
+import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import classes from './RepoList.module.css';
 import { User } from 'app-shared/types/User';
 import { useSetStarredRepoMutation } from '../../hooks/mutations';
@@ -85,7 +81,7 @@ export const RepoList = ({
   onPageChange,
   onSortModelChange,
   onPageSizeChange,
-  pageSizeOptions = [],
+  pageSizeOptions = [DATAGRID_DEFAULT_PAGE_SIZE],
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
