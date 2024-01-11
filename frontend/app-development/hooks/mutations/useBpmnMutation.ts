@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateBpmnXml } from 'app-shared/api/queries';
+import { updateBpmnXml } from 'app-shared/api/mutations';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 type UseBpmnMutationPayload = {
