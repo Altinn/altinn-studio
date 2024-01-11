@@ -67,7 +67,7 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
               <ul className={classes.errorList}>
                 {taskErrors.map((error) => (
                   <li
-                    key={`unmapped-${error.message}`}
+                    key={JSON.stringify(error)}
                     style={{ listStyleImage: listStyleImg }}
                   >
                     <Lang
@@ -78,7 +78,7 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
                 ))}
                 {formErrors.map((error) => (
                   <li
-                    key={`mapped-${error.componentId}-${error.message}`}
+                    key={JSON.stringify(error)}
                     style={{ listStyleImage: listStyleImg }}
                   >
                     <button
