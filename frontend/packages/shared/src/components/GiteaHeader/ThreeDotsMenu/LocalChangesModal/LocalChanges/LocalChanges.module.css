@@ -1,6 +1,5 @@
 .contentWrapper {
   box-sizing: border-box;
-  padding: var(--fds-spacing-8);
   overflow: auto;
 }
 
