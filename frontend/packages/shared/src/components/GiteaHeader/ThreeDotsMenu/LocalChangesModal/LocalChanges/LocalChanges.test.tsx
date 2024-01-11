@@ -3,7 +3,6 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import { LocalChanges, LocalChangesProps } from './LocalChanges';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
@@ -133,15 +132,10 @@ describe('LocalChanges', () => {
 });
 
 const render = (
-  queries: Partial<ServicesContextProps> = {},
+  allQueries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
   props: LocalChangesProps,
 ) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <LocalChanges {...props} />

@@ -8,6 +8,7 @@ import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
+import { DatamodelMetadataResponse } from 'app-shared/types/api';
 
 const user = userEvent.setup();
 
@@ -37,7 +38,7 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
 }));
 
 const getDatamodelMetadata = () =>
-  Promise.resolve({
+  Promise.resolve<DatamodelMetadataResponse>({
     elements: {
       testModel: {
         id: 'testModel',

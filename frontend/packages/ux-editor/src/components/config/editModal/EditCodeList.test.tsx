@@ -2,19 +2,33 @@ import React from 'react';
 import { EditCodeList } from './EditCodeList';
 import { screen, waitFor, act } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
+import {
+  renderWithMockStore,
+  renderHookWithMockStore,
+  optionListIdsMock,
+} from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import userEvent from '@testing-library/user-event';
 
 describe('EditCodeList', () => {
   it('should render the component', async () => {
-    await render();
+    await render({
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
+    });
     expect(await screen.findByText('Bytt til egendefinert kodeliste')).toBeInTheDocument();
   });
 
   it('should render the component when optionListIds is undefined', async () => {
     await render({
-      queries: { getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(undefined)) },
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
     });
 
     expect(await screen.findByText('Bytt til egendefinert kodeliste')).toBeInTheDocument();

@@ -1,7 +1,7 @@
-import { IRepository } from 'app-shared/types/global';
+import { Repository } from 'app-shared/types/Repository';
 
 export interface SearchRepositoryResponse {
-  data: IRepository[];
+  data: Repository[];
   ok: boolean;
   totalCount: number;
   totalPages: number;

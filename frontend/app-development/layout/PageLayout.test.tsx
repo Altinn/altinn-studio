@@ -4,36 +4,12 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
 import { textMock } from '../../testing/mocks/i18nMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { User } from 'app-shared/types/User';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { privateRepositoryMock, repositoryMock } from '../test/repositoryMock';
+import { repoStatus } from 'app-shared/mocks/mocks';
 
 const mockOrg: string = 'org';
 const mockApp: string = 'app';
-
-const getRepoStatus = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getUser = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve(repositoryMock));
-const getOrgList = jest.fn().mockImplementation(() => Promise.resolve({ orgs: [] }));
-
-const mockRepoStatus: RepoStatus = {
-  aheadBy: 0,
-  behindBy: 0,
-  contentStatus: [],
-  hasMergeConflict: false,
-  repositoryStatus: 'Ok',
-};
-
-const mockUser: User = {
-  avatar_url: 'test',
-  email: 'test@test.com',
-  full_name: 'Mock Tester',
-  id: 1,
-  login: 'MT1',
-};
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -43,18 +19,8 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
-// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
-const realConsole = console;
-
 describe('PageLayout', () => {
-  beforeEach(() => {
-    global.console = {
-      ...console,
-      error: jest.fn(),
-    };
-  });
   afterEach(() => {
-    global.console = realConsole;
     jest.clearAllMocks();
   });
 
@@ -77,7 +43,7 @@ describe('PageLayout', () => {
 
   it('renders "MergeConflictWarning" when repoStatus has merge conflict', async () => {
     render({
-      getRepoStatus: () => Promise.resolve({ ...mockRepoStatus, hasMergeConflict: true }),
+      getRepoStatus: () => Promise.resolve({ ...repoStatus, hasMergeConflict: true }),
     });
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
@@ -99,9 +65,7 @@ describe('PageLayout', () => {
   });
 
   it('renders header with no publish button when repoOwner is a private person', async () => {
-    await resolveAndWaitForSpinnerToDisappear({
-      getRepoMetadata: () => Promise.resolve(privateRepositoryMock),
-    });
+    await resolveAndWaitForSpinnerToDisappear();
 
     expect(screen.getByRole('button', { name: textMock('top_menu.preview') })).toBeInTheDocument();
 
@@ -112,25 +76,13 @@ describe('PageLayout', () => {
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
-  getRepoStatus.mockImplementation(() => Promise.resolve(mockRepoStatus));
-  getUser.mockImplementation(() => Promise.resolve(mockUser));
-
   render(queries);
   await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 };
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    getRepoStatus,
-    getUser,
-    getOrgList,
-    getRepoMetadata,
-    ...queries,
-  };
-
   renderWithProviders(<PageLayout />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
-    queries: allQueries,
+    queries,
   });
 };

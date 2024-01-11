@@ -907,7 +907,7 @@
   "right_menu.dynamics": "Dynamikk",
   "right_menu.dynamics_description": "Rediger dynamikk som kan brukes i reglene for beregninger og visning av felter.",
   "right_menu.dynamics_edit": "Rediger dynamikk",
-  "right_menu.dynamics_edit_comment": "Denne lenken åpnes i Gitea",
+  "right_menu.dynamics_edit_comment": "(Denne lenken åpnes i Gitea)",
   "right_menu.dynamics_link": "Mer info",
   "right_menu.expression_delete": "Slett uttrykk",
   "right_menu.expression_edit": "Rediger uttrykk",
