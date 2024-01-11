@@ -60,6 +60,7 @@ export const EditDataModelBindings = ({
 
   return (
     <div key={uniqueKey || ''}>
+      <p style={{ border: '1px solid red' }}>HALLAAAA</p>
       {!selectedOption && !dataModelSelectVisible ? (
         <Button
           onClick={() => setDataModelSelectVisible(true)}
