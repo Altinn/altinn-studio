@@ -3,7 +3,6 @@ import { SchemaModel, UiSchemaNode } from '@altinn/schema-model';
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { SchemaState } from '@altinn/schema-editor/types';
 import {
   fieldNode1Mock,
   nodeWithCustomPropsMock,
@@ -20,47 +19,34 @@ const user = userEvent.setup();
 // Test data:
 const saveDatamodel = jest.fn();
 const defaultNode: UiSchemaNode = combinationNodeMock;
-const defaultState: Partial<SchemaState> = {
-  selectedEditorTab: 'properties',
-  selectedPropertyNodeId: combinationNodeMock.pointer,
-};
 
-const renderItemDataComponent = (
-  schemaNode: UiSchemaNode = defaultNode,
-  state: Partial<SchemaState> = {}
-) => {
+const renderItemDataComponent = (schemaNode: UiSchemaNode = defaultNode) => {
   const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   return renderWithProviders({
-    state: { ...defaultState, ...state },
     appContextProps: {
       schemaModel,
       save: saveDatamodel,
+      selectedNodePointer: schemaNode.pointer,
     },
-  })(<ItemDataComponent schemaNode={schemaNode}/>);
+  })(<ItemDataComponent schemaNode={schemaNode} />);
 };
 
 describe('ItemDataComponent', () => {
   afterEach(jest.clearAllMocks);
 
   test('"Multiple answers" checkbox should appear if selected item is field', async () => {
-    renderItemDataComponent(
-      fieldNode1Mock,
-      { selectedPropertyNodeId: fieldNode1Mock.pointer }
-    );
+    renderItemDataComponent(fieldNode1Mock);
     expect(await screen.findByLabelText(textMock('schema_editor.multiple_answers'))).toBeDefined();
   });
 
   test('"Multiple answers" checkbox should not appear if selected item is combination', async () => {
     renderItemDataComponent();
     await screen.findByLabelText(textMock('schema_editor.name'));
-    expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull()
+    expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull();
   });
 
   test('Model is saved when "multiple answers" checkbox is checked', async () => {
-    renderItemDataComponent(
-      toggableNodeMock,
-      { selectedPropertyNodeId: toggableNodeMock.pointer }
-    );
+    renderItemDataComponent(toggableNodeMock);
     const checkbox = screen.queryByLabelText(textMock('schema_editor.multiple_answers'));
     if (checkbox === null) fail();
     await act(() => user.click(checkbox));
@@ -73,10 +59,7 @@ describe('ItemDataComponent', () => {
   });
 
   test('"Nullable" checkbox should not appear if selected item is not combination', async () => {
-    renderItemDataComponent(
-      fieldNode1Mock,
-      { selectedPropertyNodeId: fieldNode1Mock.pointer }
-    );
+    renderItemDataComponent(fieldNode1Mock);
     await screen.findAllByRole('combobox');
     expect(screen.queryByLabelText(textMock('schema_editor.nullable'))).toBeNull();
   });
@@ -130,14 +113,11 @@ describe('ItemDataComponent', () => {
   });
 
   it('Renders custom properties section if there are custom properties', async () => {
-    renderItemDataComponent(
-      nodeWithCustomPropsMock,
-      { selectedPropertyNodeId: nodeWithCustomPropsMock.pointer }
-    );
+    renderItemDataComponent(nodeWithCustomPropsMock);
     expect(await screen.findByText(textMock('schema_editor.custom_props'))).toBeInTheDocument();
   });
 
-  test('should handleChangeNodeName prevent showing an error message when there is no changing in text', async () => {
+  test('Does not render an error message when there is no change in text', async () => {
     renderItemDataComponent();
     const inputField = screen.getByLabelText(textMock('schema_editor.name'));
     await act(() => user.type(inputField, 'test'));

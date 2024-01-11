@@ -111,6 +111,7 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
       full_name: 'Test Testesen',
       id: 1,
       login: 'username',
+      userType: 0,
     },
     repository: {
       clone_url: 'clone_url',
@@ -126,7 +127,7 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
         login: 'test-org',
         email: 'test-email',
         id: 1,
-        UserType: 1,
+        userType: 1,
       },
       updated_at: 'never',
       created_at: 'now',

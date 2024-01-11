@@ -1,18 +1,25 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { renderWithMockStore } from './testing/mocks';
+import { formLayoutSettingsMock, renderWithMockStore } from './testing/mocks';
 import { App } from './App';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appStateMock } from './testing/stateMocks';
 import { AppContextProps } from './AppContext';
+import ruleHandlerMock from './testing/ruleHandlerMock';
+import { layoutSetsMock } from './testing/layoutMock';
 
 const { selectedLayoutSet } = appStateMock.formDesigner.layout;
 const removeSelectedLayoutSetMock = jest.fn();
 const render = (selectedLayoutSetForRender: string) => {
   const queries: Partial<ServicesContextProps> = {
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
+    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
+    getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
+    getFormLayoutSettings: jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
   };
   const appContextProps: Partial<AppContextProps> = {
     selectedLayoutSet: selectedLayoutSetForRender,

@@ -10,12 +10,11 @@ const renderWithMockServices = (services: Partial<ServicesContextProps> = {}) =>
   render(
     <MockServicesContextWrapper customServices={services}>
       <App />
-    </MockServicesContextWrapper>
+    </MockServicesContextWrapper>,
   );
 };
 
 describe('App', () => {
-
   test('should display spinner while loading', () => {
     renderWithMockServices();
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
@@ -27,7 +26,7 @@ describe('App', () => {
       await screen.findByRole('heading', {
         level: 1,
         name: 'Feil oppstod ved innlasting av brukerdata',
-      })
+      }),
     ).toBeInTheDocument();
   });
 
@@ -38,13 +37,12 @@ describe('App', () => {
       await screen.findByRole('heading', {
         level: 1,
         name: 'Feil oppstod ved innlasting av organisasjoner',
-      })
+      }),
     );
   });
 
   test('should display dashboard page if successfully loading data', async () => {
     renderWithMockServices();
-    await waitForElementToBeRemoved(screen.queryByText(textMock('general.loading')));
     await waitForElementToBeRemoved(screen.queryByText(textMock('general.loading')));
     expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.favourites') }));
     expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.my_apps') }));

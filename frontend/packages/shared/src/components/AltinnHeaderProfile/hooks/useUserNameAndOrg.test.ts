@@ -1,6 +1,6 @@
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { useUserNameAndOrg } from './useUserNameAndOrg';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { Repository } from 'app-shared/types/Repository';
 
 const mockOrg: string = 'org';
@@ -11,6 +11,7 @@ const mockUser: User = {
   id: 1,
   login: 'testUser',
   full_name: 'Test User',
+  userType: 0,
 };
 
 const mockRepository: Repository = {
@@ -34,7 +35,7 @@ const mockRepository: Repository = {
     full_name: 'Name Test',
     id: 0,
     login: '',
-    UserType: 0,
+    userType: 0,
   },
   permissions: {
     admin: true,

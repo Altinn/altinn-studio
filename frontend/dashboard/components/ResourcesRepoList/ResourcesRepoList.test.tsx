@@ -5,7 +5,7 @@ import { ResourcesRepoList } from './ResourcesRepoList';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { useParams } from 'react-router-dom';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 
 const originalWindowLocation = window.location;

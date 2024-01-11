@@ -5,11 +5,10 @@ import {
   ROOT_POINTER,
   SchemaModel,
   UiSchemaNode,
-  UiSchemaNodes
+  UiSchemaNodes,
 } from '@altinn/schema-model';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { act, screen } from '@testing-library/react';
-import { SchemaState } from '@altinn/schema-editor/types';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
@@ -48,10 +47,7 @@ const rootNode: UiSchemaNode = {
   children: [defaultPath],
 };
 const uiSchema: UiSchemaNodes = [rootNode, node];
-const defaultSchemaState: Partial<SchemaState> = {
-  selectedDefinitionNodeId: defaultPath,
-  selectedEditorTab: 'definitions',
-};
+const schemaModel = SchemaModel.fromArray(uiSchema);
 const saveDatamodel = jest.fn();
 
 describe('CustomProperties', () => {
@@ -151,8 +147,11 @@ describe('CustomProperties', () => {
   });
 });
 
-const render = (path: string = defaultPath, schemaState: Partial<SchemaState> = {}) =>
+const render = (path: string = defaultPath) =>
   renderWithProviders({
-    appContextProps: { schemaModel: SchemaModel.fromArray(uiSchema), save: saveDatamodel },
-    state: { ...defaultSchemaState, ...schemaState },
+    appContextProps: {
+      schemaModel,
+      save: saveDatamodel,
+      selectedNodePointer: path,
+    },
   })(<CustomProperties path={path} />);

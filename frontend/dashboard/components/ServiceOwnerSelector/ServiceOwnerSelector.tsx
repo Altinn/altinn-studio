@@ -2,7 +2,7 @@ import React, { useId } from 'react';
 import { Label, NativeSelect } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { Organization } from 'app-shared/types/Organization';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 
 type ServiceOwnerSelectorProps = {
   selectedOrgOrUser: string;

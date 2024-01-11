@@ -1,4 +1,5 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import {
