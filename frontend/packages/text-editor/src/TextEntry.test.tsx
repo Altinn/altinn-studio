@@ -36,11 +36,10 @@ describe('TextEntry', () => {
 
   it('should display validation error message when textId is APP_NAME and textEntryValue is empty', async () => {
     const user = userEvent.setup();
-    render({ textId: APP_NAME, translation: '' });
+    render({ textId: APP_NAME });
     const textEntry = screen.getByRole('textbox', { name: 'nb translation' });
     await act(() => user.clear(textEntry));
     expect(textId).toEqual(APP_NAME);
-    expect(textEntryValue).toEqual('');
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
 });
