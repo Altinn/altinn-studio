@@ -12,6 +12,7 @@ import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { buildJsonSchema } from '@altinn/schema-model';
 import { renderWithMockStore } from '../../../../test/mocks';
 import { useQueryClient } from '@tanstack/react-query';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const user = userEvent.setup();
 
@@ -44,7 +45,6 @@ const defaultProps: TopToolbarProps = {
 };
 const org = 'org';
 const app = 'app';
-const generateModels = jest.fn().mockImplementation(() => Promise.resolve());
 const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
 
 const renderToolbar = (
@@ -60,10 +60,7 @@ const renderToolbar = (
     return <TopToolbar {...defaultProps} {...props} />;
   };
 
-  return renderWithMockStore(
-    {},
-    { generateModels, ...servicesContextProps },
-  )(<TopToolbarWithInitData />);
+  return renderWithMockStore({}, { ...servicesContextProps })(<TopToolbarWithInitData />);
 };
 
 // Mocks:
@@ -93,7 +90,7 @@ describe('TopToolbar', () => {
     const generateButton = screen.getByRole('button', { name: generateText });
     expect(generateButton).toBeDefined();
     await act(() => user.click(generateButton));
-    expect(generateModels).toHaveBeenCalledTimes(1);
+    expect(queriesMock.generateModels).toHaveBeenCalledTimes(1);
   });
 
   it('Does not show any error by default', () => {

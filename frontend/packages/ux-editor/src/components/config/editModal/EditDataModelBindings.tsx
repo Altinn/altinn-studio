@@ -61,7 +61,12 @@ export const EditDataModelBindings = ({
   return (
     <div key={uniqueKey || ''}>
       {!selectedOption && !dataModelSelectVisible ? (
-        <Button onClick={() => setDataModelSelectVisible(true)} variant='tertiary' size='medium'>
+        <Button
+          onClick={() => setDataModelSelectVisible(true)}
+          variant='tertiary'
+          size='medium'
+          fullWidth
+        >
           <div className={classes.datamodelLink}>
             <LinkIcon className={classes.linkIcon} />
             {t('ux_editor.modal_properties_data_model_link')}

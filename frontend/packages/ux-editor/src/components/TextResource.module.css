@@ -1,7 +1,7 @@
 .root {
   --frame-offset: 4px;
   border-radius: 2px;
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   gap: 1rem;
 }

@@ -5,7 +5,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../../utils/networking';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../../api/paths';
 import { useTranslation } from 'react-i18next';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Button } from '@digdir/design-system-react';
 import * as testids from '../../../../../../testing/testids';

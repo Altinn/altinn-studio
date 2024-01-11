@@ -27,7 +27,7 @@ const wrapper = ({
   queries = {},
 }: {
   children: React.JSX.Element;
-  queries: Partial<ServicesContextProps>;
+  queries?: Partial<ServicesContextProps>;
 }) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -40,7 +40,6 @@ describe('ServicesContext', () => {
   it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     jest.spyOn(global, 'setTimeout');
-    const logout = jest.fn().mockImplementation(() => Promise.resolve());
     renderHook(
       () =>
         useQuery({
@@ -50,14 +49,14 @@ describe('ServicesContext', () => {
         }),
       {
         wrapper: ({ children }) => {
-          return wrapper({ children, queries: { logout } });
+          return wrapper({ children });
         },
       },
     );
     expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
     jest.runAllTimers();
     await waitFor(() => {
-      expect(logout).toHaveBeenCalledTimes(1);
+      expect(queriesMock.logout).toHaveBeenCalledTimes(1);
     });
 
     expect(mockConsoleError).toHaveBeenCalled();
