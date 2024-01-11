@@ -48,35 +48,41 @@ export const langOptions: Option[] = ISO6391.getAllCodes()
 export const filterFunction = (
   id: string | undefined,
   textTableRowEntries: TextTableRowEntry[] | undefined,
-  searchQuery: string | undefined
+  searchQuery: string | undefined,
 ) =>
   !searchQuery ||
   searchQuery.length < 1 ||
   id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
   textTableRowEntries.filter((entry) => entry.translation.includes(searchQuery)).length > 0;
 
-export const mapResourceFilesToTableRows = (files: ITextResources): TextTableRow[] => {
+export const mapResourceFilesToTableRows = (
+  files: ITextResources,
+  sortAlphabetically: boolean,
+): TextTableRow[] => {
   const rows = new Map();
-  Object.entries(files).forEach(([lang, resources]) =>
-    resources
-      .sort((a, b) => alphabeticalCompareFunction(a.id, b.id))
-      .forEach((resource) => {
-        if (!rows.has(resource.id)) {
-          rows.set(resource.id, {
-            textKey: resource.id,
-            variables: resource.variables,
-            translations: [],
-          });
-        }
-        if (rows.has(resource.id) && !rows.has(resource.variables) && resource.variables) {
-          rows.get(resource.id).variables = resource.variables;
-        }
-        rows.get(resource.id).translations.push({
-          lang,
-          translation: resource.value,
+  Object.entries(files).forEach(([lang, resources]) => {
+    const orderedResources = sortAlphabetically
+      ? [...resources].sort((a, b) =>
+          alphabeticalCompareFunction(a.id.toLowerCase(), b.id.toLowerCase()),
+        )
+      : resources;
+    orderedResources.forEach((resource) => {
+      if (!rows.has(resource.id)) {
+        rows.set(resource.id, {
+          textKey: resource.id,
+          variables: resource.variables,
+          translations: [],
         });
-      })
-  );
+      }
+      if (rows.has(resource.id) && !rows.has(resource.variables) && resource.variables) {
+        rows.get(resource.id).variables = resource.variables;
+      }
+      rows.get(resource.id).translations.push({
+        lang,
+        translation: resource.value,
+      });
+    });
+  });
   return Array.from(rows.values());
 };
 

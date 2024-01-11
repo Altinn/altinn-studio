@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import classes from './TextEditor.module.css';
 import type {
   LangCode,
@@ -7,7 +7,8 @@ import type {
   UpsertTextResourceMutation,
 } from './types';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Button } from '@digdir/design-system-react';
+import { Button, Chip } from '@digdir/design-system-react';
+import { ArrowsUpDownIcon } from '@navikt/aksel-icons';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
@@ -42,10 +43,10 @@ export const TextEditor = ({
   upsertTextResource,
 }: TextEditorProps) => {
   const { t } = useTranslation();
-  const resourceRows = mapResourceFilesToTableRows(textResourceFiles);
-
+  const [sortTextsAlphabetically, setSortTextsAlphabetically] = useState<boolean>(false);
+  const resourceRows = mapResourceFilesToTableRows(textResourceFiles, sortTextsAlphabetically);
   const previousSelectedLanguages = useRef<string[]>([]);
-
+  
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages],
@@ -97,13 +98,26 @@ export const TextEditor = ({
           <Button variant='primary' color='first' onClick={handleAddNewEntryClick} size='small'>
             {t('text_editor.new_text')}
           </Button>
-          <div>
-            <SearchField
-              id='text-editor-search'
-              label={t('text_editor.search_for_text')}
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
+          <div className={classes.TextEditor__topRow__filter}>
+            <Chip.Toggle
+              onClick={() => setSortTextsAlphabetically(!sortTextsAlphabetically)}
+              selected={sortTextsAlphabetically}
+            >
+              {
+                <div className={classes.sortAlphabetically}>
+                  {t('text_editor.sort_alphabetically')}
+                  <ArrowsUpDownIcon />
+                </div>
+              }
+            </Chip.Toggle>
+            <div>
+              <SearchField
+                id='text-editor-search'
+                label={t('text_editor.search_for_text')}
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </div>
           </div>
         </div>
         <div className={classes.TextEditor__body}>

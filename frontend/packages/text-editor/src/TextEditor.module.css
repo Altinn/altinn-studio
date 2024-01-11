@@ -53,6 +53,19 @@
   justify-content: space-between;
 }
 
+.TextEditor__topRow__filter {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.sortAlphabetically {
+  gap: 1rem;
+  display: flex;
+  align-items: center;
+}
+
 .TextEditor__body {
   margin-left: 2rem;
   overflow: auto;
