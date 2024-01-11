@@ -22,3 +22,7 @@
   margin: 10px 0 10px 0;
   min-width: 340px;
 }
+
+.buttonGroup {
+  justify-content: space-between;
+}

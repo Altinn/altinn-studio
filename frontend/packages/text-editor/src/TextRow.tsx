@@ -115,9 +115,9 @@ export const TextRow = ({
         );
       })}
       <TableCell>
-        <ButtonContainer>
+        <ButtonContainer className={classes.buttonGroup}>
           {textIdEditOpen ? (
-            <div>
+            <>
               <LegacyTextField
                 aria-label={'tekst key edit'}
                 isValid={!keyError}
@@ -127,7 +127,7 @@ export const TextRow = ({
                 onChange={handleTextIdChange}
               />
               {keyError ? <ErrorMessage role='alertdialog'>{keyError}</ErrorMessage> : null}
-            </div>
+            </>
           ) : (
             <div role='text' aria-readonly className={classes.textId}>
               <span>{textIdValue}</span>
