@@ -9,7 +9,7 @@ export const header = {
     cy.findByRole('banner').findByRole('link', { name: texts['top_menu.create'] }),
   getDatamodelLink: () =>
     cy.findByRole('banner').findByRole('link', { name: texts['top_menu.datamodel'] }),
-  getDeployButton: () => cy.findByRole('link', { name: texts['top_menu.deploy'] }),
+  getDeployButton: () => cy.findByRole('button', { name: texts['top_menu.deploy'] }),
   getDescribeChangesField: () =>
     cy.findByRole('textbox', { name: texts['sync_header.describe_and_validate'] }),
   getMenuItem,
