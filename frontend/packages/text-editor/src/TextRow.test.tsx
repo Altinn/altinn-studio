@@ -105,7 +105,7 @@ describe('TextRow', () => {
         },
       ],
     });
-    const textFields = await screen.findAllByTestId('InputWrapper');
+    const textFields = await screen.findAllByRole('textbox');
     expect(textFields.length).toBe(3);
   });
 
