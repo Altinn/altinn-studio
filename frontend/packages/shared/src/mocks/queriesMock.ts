@@ -15,8 +15,8 @@ import { Repository } from 'app-shared/types/Repository';
 import {
   AccessList,
   AccessListResourceLink,
-  BrregOrganizationResult,
-  BrregUnderOrganizationResult,
+  BrregPartySearchResult,
+  BrregSubPartySearchResult,
   Resource,
   ResourceListItem,
   ResourceVersionStatus,
@@ -149,10 +149,10 @@ export const queriesMock: ServicesContextProps = {
   getResourceAccessLists: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AccessListResourceLink[]>([])),
-  getParties: jest.fn().mockImplementation(() => Promise.resolve<BrregOrganizationResult>(null)),
+  getParties: jest.fn().mockImplementation(() => Promise.resolve<BrregPartySearchResult>(null)),
   getSubParties: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<BrregUnderOrganizationResult>(null)),
+    .mockImplementation(() => Promise.resolve<BrregSubPartySearchResult>(null)),
 
   // Queries - PrgetBpmnFile
   getAppLibVersion: jest

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Spinner, Textfield } from '@digdir/design-system-react';
-import { BrregOrganization, AccessListMember } from 'app-shared/types/ResourceAdm';
+import { BrregParty, AccessListMember } from 'app-shared/types/ResourceAdm';
 import { usePartiesRegistryQuery } from 'resourceadm/hooks/queries/usePartiesRegistryQuery';
 import { useSubPartiesRegistryQuery } from 'resourceadm/hooks/queries/useSubPartiesRegistryQuery';
 
@@ -26,10 +26,7 @@ export const AccessListSearch = ({
   const { data: subPartiesSearchData, isLoading: isLoadingSubPartiesSearch } =
     useSubPartiesRegistryQuery(debouncedSearchText);
 
-  const renderPartiesList = (
-    parties: BrregOrganization[],
-    isSubParty: boolean,
-  ): React.ReactNode => {
+  const renderPartiesList = (parties: BrregParty[], isSubParty: boolean): React.ReactNode => {
     if (parties.length === 0) {
       return (
         <div>

@@ -87,18 +87,18 @@ export interface ResourceReference {
   referenceType?: ResourceReferenceType;
 }
 
-export interface BrregOrganizationResult {
+export interface BrregPartySearchResult {
   _embedded?: {
-    enheter: BrregOrganization[];
+    enheter: BrregParty[];
   };
 }
 
-export interface BrregUnderOrganizationResult {
+export interface BrregSubPartySearchResult {
   _embedded?: {
-    underenheter: BrregOrganization[];
+    underenheter: BrregParty[];
   };
 }
-export interface BrregOrganization {
+export interface BrregParty {
   organisasjonsnummer: string;
   navn: string;
 }

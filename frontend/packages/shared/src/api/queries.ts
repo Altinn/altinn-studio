@@ -64,7 +64,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
-import type { BrregOrganizationResult, BrregUnderOrganizationResult, AccessList, AccessListResourceLink, Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
+import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, AccessListResourceLink, Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -126,8 +126,8 @@ export const getValidateResource = (org: string, repo: string, id: string) => ge
 export const getAccessLists = (org: string, environment: string) => get<AccessList[]>(accessListsPath(org, environment));
 export const getAccessList = (org: string, listId: string, environment: string) => get<AccessList>(accessListPath(org, listId, environment));
 export const getResourceAccessLists = (org: string, resourceId: string, environment: string) => get<AccessListResourceLink[]>(resourceAccessListsPath(org, resourceId, environment));
-export const getParties = (url: string) => get<BrregOrganizationResult>(url);
-export const getSubParties = (url: string) => get<BrregUnderOrganizationResult>(url);
+export const getParties = (url: string) => get<BrregPartySearchResult>(url);
+export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
 
 // ProcessEditor
 export const getAppLibVersion = (org: string, app: string) => get<AppLibVersion>(appLibVersionPath(org, app));
