@@ -2,7 +2,6 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import mockAxios from 'jest-mock-axios';
 
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -33,6 +32,10 @@ const render = async ({
     genericProps: {
       isValid: true,
       ...genericProps,
+    },
+    queries: {
+      fetchPostPlace: () => Promise.resolve({ valid: true, result: 'OSLO' }),
+      ...rest.queries,
     },
     ...rest,
   });
@@ -100,26 +103,31 @@ describe('AddressComponent', () => {
     expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
   });
 
-  it.skip('should show error message on blur if zipcode is invalid, and not call setLeafValue', async () => {
-    const { formDataMethods } = await render({
+  it('should show error message on blur if zipcode is invalid', async () => {
+    await render({
       component: {
+        showValidations: ['Component'],
         required: true,
-        simplified: false,
+        simplified: true,
+      },
+      queries: {
+        fetchFormData: async () => ({ address: 'initial address', zipCode: '0001' }),
+        fetchPostPlace: (zipCode: string) =>
+          zipCode === '0001'
+            ? Promise.resolve({ valid: true, result: 'OSLO' })
+            : Promise.resolve({ valid: false, result: '' }),
       },
     });
 
-    const field = screen.getByRole('textbox', { name: 'Postnr *' });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-    await userEvent.type(field, '1');
+    await userEvent.type(screen.getByRole('textbox', { name: 'Postnr *' }), '1');
     await userEvent.tab();
 
-    const errorMessage = screen.getByText(/Postnummer er ugyldig\. Et postnummer består kun av 4 siffer\./i);
-
-    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
-    expect(errorMessage).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Postnummer er ugyldig. Et postnummer består kun av 4 siffer.');
   });
 
-  it.skip('should update postplace on mount', async () => {
+  it('should update postplace on mount', async () => {
     const { formDataMethods } = await render({
       component: {
         required: true,
@@ -129,16 +137,6 @@ describe('AddressComponent', () => {
         fetchFormData: async () => ({ address: 'initial address', zipCode: '0001' }),
       },
     });
-
-    mockAxios.mockResponseFor(
-      { url: 'https://api.bring.com/shippingguide/api/postalCode.json' },
-      {
-        data: {
-          valid: true,
-          result: 'OSLO',
-        },
-      },
-    );
 
     await screen.findByDisplayValue('OSLO');
 
@@ -175,7 +173,7 @@ describe('AddressComponent', () => {
     });
 
     expect(screen.getByDisplayValue('0001')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Oslo')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('OSLO')).toBeInTheDocument();
 
     await userEvent.clear(screen.getByRole('textbox', { name: 'Postnr' }));
     await userEvent.tab();
@@ -188,25 +186,6 @@ describe('AddressComponent', () => {
       path: 'postPlace',
       newValue: '',
     });
-  });
-
-  it.skip('should display error message coming from props', async () => {
-    const errorMessage = 'cannot be empty;';
-    await render({
-      genericProps: {
-        componentValidations: {
-          address: {
-            errors: [errorMessage],
-          },
-        },
-      },
-      component: {
-        required: true,
-        simplified: false,
-      },
-    });
-
-    expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
   it('should display no extra markings when required is false, and labelSettings.optionalIndicator is not true', async () => {

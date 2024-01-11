@@ -4,7 +4,7 @@ import { screen, waitFor } from '@testing-library/react';
 import fs from 'node:fs';
 import type { JSONSchema7 } from 'json-schema';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { isStatelessApp } from 'src/features/applicationMetadata/appMetadataUtils';
 import {
@@ -24,19 +24,19 @@ describe('All known apps should work with layout validation', () => {
 
   const allLayoutSets = getAllLayoutSets(dir);
   it.each(allLayoutSets)('$appName/$setName', async ({ layouts, setName }) => {
-    const firstKey = Object.keys(layouts)[0];
-    const reduxState = getInitialStateMock();
-    reduxState.formLayout.layouts = layouts;
-    reduxState.formLayout.uiConfig.currentView = firstKey;
-    reduxState.devTools.isOpen = true;
-    reduxState.applicationMetadata.applicationMetadata!.onEntry = {
-      show: setName,
-    };
-
+    // TODO: Make sure devTools panel is open in tests
     await renderWithInstanceAndLayout({
       renderer: () => <DummyValidateApp />,
-      reduxState,
-      queries: { fetchLayoutSchema: () => Promise.resolve(layoutSchema) },
+      queries: {
+        fetchLayouts: async () => layouts,
+        fetchLayoutSchema: async () => layoutSchema,
+        fetchApplicationMetadata: async () =>
+          getApplicationMetadataMock((a) => {
+            a.onEntry = {
+              show: setName,
+            };
+          }),
+      },
     });
 
     await waitFor(async () => expect(await screen.findByTestId('loading')).not.toBeInTheDocument());

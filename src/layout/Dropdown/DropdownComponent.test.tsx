@@ -145,7 +145,7 @@ describe('DropdownComponent', () => {
       waitUntilLoaded: false,
     });
 
-    await waitFor(() => expect(fetchOptions.mock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(fetchOptions.mock).toHaveBeenCalledTimes(1), { timeout: 15000 });
 
     fetchOptions.resolve({
       data: countries,

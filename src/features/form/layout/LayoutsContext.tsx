@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-
 import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
@@ -7,12 +5,10 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { preProcessItem } from 'src/features/expressions/validation';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { useHasInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import type { ExprObjConfig, ExprVal } from 'src/features/expressions/types';
 import type { ILayoutFileExternal } from 'src/layout/common.generated';
@@ -30,9 +26,8 @@ function useLayoutQuery() {
   const hasInstance = useHasInstance();
   const process = useLaxProcessData();
   const currentLayoutSetId = useLayoutSetId();
-  const dispatch = useAppDispatch();
 
-  const query = useQuery({
+  return useQuery({
     // Waiting to fetch layouts until we have an instance, if we're supposed to have one
     // We don't want to fetch form layouts for a process step which we are currently not on
     enabled: hasInstance ? !!process : true,
@@ -42,22 +37,6 @@ function useLayoutQuery() {
       window.logError('Fetching form layout failed:\n', error);
     },
   });
-
-  useEffect(() => {
-    if (!query.data) {
-      return;
-    }
-
-    dispatch(
-      FormLayoutActions.fetchFulfilled({
-        layouts: query.data.layouts,
-        hiddenLayoutsExpressions: query.data.hiddenLayoutsExpressions,
-        layoutSetId: currentLayoutSetId || null,
-      }),
-    );
-  }, [query.data, currentLayoutSetId, dispatch]);
-
-  return query;
 }
 const { Provider, useCtx } = delayedContext(() =>
   createQueryContext({

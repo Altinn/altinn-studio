@@ -10,29 +10,18 @@ import { Fieldset } from 'src/components/form/Fieldset';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { Triggers } from 'src/layout/common.generated';
+import { ComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import classes from 'src/layout/Group/RepeatingGroupContainer.module.css';
 import { useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
 import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
 import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
 import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { TriggerList } from 'src/layout/common.generated';
 
 export interface IGroupProps {
   containerDivRef?: MutableRefObject<HTMLDivElement | null>;
 }
-
-const getValidationMethod = (triggers: TriggerList) => {
-  // Validation for whole group takes precedent over single-row validation if both are present.
-  if (triggers.includes(Triggers.Validation)) {
-    return Triggers.Validation;
-  }
-  if (triggers.includes(Triggers.ValidateRow)) {
-    return Triggers.ValidateRow;
-  }
-};
 
 export function RepeatingGroupContainer({ containerDivRef }: IGroupProps): JSX.Element | null {
   const { triggerFocus } = useRepeatingGroupsFocusContext();
@@ -45,6 +34,7 @@ export function RepeatingGroupContainer({ containerDivRef }: IGroupProps): JSX.E
   const firstIndex = visibleRowIndexes[0];
   const lastIndex = visibleRowIndexes[numRows - 1];
   const { lang, langAsString } = useLanguage();
+  const validations = useUnifiedValidationsForNode(node);
 
   const AddButton = (): JSX.Element => (
     <Button
@@ -160,7 +150,10 @@ export function RepeatingGroupContainer({ containerDivRef }: IGroupProps): JSX.E
         item={true}
         xs={12}
       >
-        {node.getValidations('group') && renderValidationMessagesForComponent(node.getValidations('group'), id)}
+        <ComponentValidations
+          validations={validations}
+          node={node}
+        />
       </Grid>
     </Grid>
   );

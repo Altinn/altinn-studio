@@ -5,7 +5,6 @@ import { screen } from '@testing-library/react';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
-import { AttachmentsProvider, AttachmentsStoreProvider } from 'src/features/attachments/AttachmentsContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
@@ -78,11 +77,7 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
   await renderWithoutInstanceAndLayout({
     renderer: () => (
       <InstanceProvider>
-        <AttachmentsStoreProvider>
-          <AttachmentsProvider>
-            <ReceiptContainer />
-          </AttachmentsProvider>
-        </AttachmentsStoreProvider>
+        <ReceiptContainer />
       </InstanceProvider>
     ),
     router: ({ children }) => (

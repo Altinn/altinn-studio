@@ -2,8 +2,8 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 
-import { Triggers } from 'src/layout/common.generated';
 import { groupIsRepeatingExt } from 'src/layout/Group/tools';
+import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
@@ -107,43 +107,33 @@ describe('Group', () => {
     cy.get(appFrontend.group.newValueLabel).should('contain.text', '2. Endre verdi 1338 til');
   });
 
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will be fixed in combination with #1506.
-   */
-  it.skip('Validation on group', () => {
+  it('Validation on group', () => {
     init();
     cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue).type('1');
     cy.get(appFrontend.group.newValue).type('0');
-    cy.get(appFrontend.fieldValidation('newValue')).should('have.text', texts.zeroIsNotValid);
+    cy.get(appFrontend.fieldValidation('newValue-0')).should('have.text', texts.zeroIsNotValid);
     cy.snapshot('group:validation');
     cy.get(appFrontend.group.newValue).clear();
     cy.get(appFrontend.group.newValue).type('1');
-    cy.get(appFrontend.fieldValidation('newValue')).should('not.exist');
-    cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
+    cy.get(appFrontend.fieldValidation('newValue-0')).should('not.exist');
+    cy.get(appFrontend.fieldValidation('mainGroup')).should('not.exist');
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.addNewItem).should('not.exist');
     cy.get(appFrontend.group.comments).type('test');
     cy.get(appFrontend.group.comments).blur();
-    cy.get(appFrontend.fieldValidation('comments')).should('have.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.fieldValidation('comments-0-0')).should('have.text', texts.testIsNotValidValue);
     cy.get(appFrontend.group.comments).clear();
     cy.get(appFrontend.group.comments).type('automation');
-    cy.get(appFrontend.fieldValidation('comments')).should('not.exist');
-    cy.get(appFrontend.group.subGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
-    cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
+    cy.get(appFrontend.fieldValidation('comments-0-0')).should('not.exist');
+    cy.get(appFrontend.fieldValidation('subGroup-0')).should('not.exist');
+    cy.get(appFrontend.fieldValidation('mainGroup')).should('not.exist');
     cy.get(appFrontend.group.saveSubGroup).clickAndGone();
     cy.get(appFrontend.group.saveMainGroup).clickAndGone();
   });
 
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will be fixed in combination with #1506.
-   */
-  it.skip('Validation on repeating group for minCount', () => {
+  it('Validation on repeating group for minCount', () => {
     // set minCount to 3 on main group
     cy.interceptLayout('group', (c) => {
       if (c.type === 'Group' && groupIsRepeatingExt(c) && c.edit && c.id === 'mainGroup') {
@@ -161,7 +151,8 @@ describe('Group', () => {
     cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
     // assert error message to exist
-    cy.get(appFrontend.group.tableErrors).should('have.text', texts.minCountError);
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.fieldValidation('mainGroup')).should('have.text', texts.minCountError);
 
     // add row to main group
     cy.get(appFrontend.group.addNewItem).click();
@@ -170,7 +161,8 @@ describe('Group', () => {
     cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
     // assert error message to exist
-    cy.get(appFrontend.group.tableErrors).should('have.text', texts.minCountError);
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.fieldValidation('mainGroup')).should('have.text', texts.minCountError);
 
     // add row to main group
     cy.get(appFrontend.group.addNewItem).click();
@@ -179,76 +171,60 @@ describe('Group', () => {
     cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
     // assert error message to not exist
-    cy.get(appFrontend.group.tableErrors).should('not.exist');
+    cy.get(appFrontend.fieldValidation('mainGroup')).should('not.exist');
 
     // remove row from main group
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.delete).first().click();
 
-    // attempt to move to next page
-    cy.get(appFrontend.nextButton).click();
-
     // assert error message to exist
-    cy.get(appFrontend.group.tableErrors).should('have.text', texts.minCountError);
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.fieldValidation('mainGroup')).should('have.text', texts.minCountError);
   });
 
-  [Triggers.Validation, Triggers.ValidateRow].forEach((trigger) => {
-    it.skip(`Validates group using triggers = ['${trigger}']`, () => {
-      cy.intercept('GET', '**/instances/*/*/data/*/validate').as('validate');
+  it('Validates group on row save', () => {
+    cy.intercept('GET', '**/instances/*/*/data/*/validate').as('validate');
 
-      cy.interceptLayout('group', (component) => {
-        // Set trigger on main group
-        if (component.id === 'mainGroup' && component.type === 'Group' && groupIsRepeatingExt(component)) {
-          component.triggers = [trigger];
-        }
-        // Remove component triggers and set required
-        if (['currentValue', 'newValue'].includes(component.id) && component.type === 'Input') {
-          component.triggers = undefined;
-          component.required = true;
-        }
-      });
-      init();
-
-      cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
-
-      cy.get(appFrontend.group.addNewItem).click();
-      cy.get(appFrontend.group.currentValue).type('123');
-      cy.get(appFrontend.group.newValue).type('1');
-      cy.get(appFrontend.group.saveMainGroup).click();
-
-      cy.get(appFrontend.group.addNewItem).click();
-      cy.get(appFrontend.group.currentValue).type('123');
-
-      cy.get(appFrontend.group.row(0).editBtn).click();
-      cy.get(appFrontend.group.saveMainGroup).click();
-
-      cy.wait('@validate');
-
-      if (trigger === 'validation') {
-        cy.get(appFrontend.errorReport)
-          .should('contain.text', texts.requiredFieldToValue)
-          .should('not.contain.text', texts.requiredFieldFromValue);
-      } else {
-        cy.get(appFrontend.errorReport).should('not.exist');
-        cy.get(appFrontend.group.saveMainGroup).should('not.exist');
+    const layoutMutator = (component: CompExternal) => {
+      // Remove component triggers and set required
+      if (['currentValue', 'newValue'].includes(component.id) && component.type === 'Input') {
+        component.showValidations = undefined;
+        component.required = true;
       }
+    };
+    cy.interceptLayout('group', layoutMutator);
 
-      cy.get(appFrontend.group.row(0).editBtn).click();
-      cy.get(appFrontend.group.currentValue).clear();
-      cy.get(appFrontend.group.currentValue).should('have.value', '');
-      cy.get(appFrontend.group.saveMainGroup).click();
+    init();
 
-      cy.wait('@validate');
+    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
 
-      if (trigger === 'validation') {
-        cy.get(appFrontend.errorReport)
-          .should('contain.text', texts.requiredFieldToValue)
-          .should('contain.text', texts.requiredFieldFromValue);
-      } else {
-        cy.get(appFrontend.errorReport)
-          .should('contain.text', texts.requiredFieldFromValue)
-          .should('not.contain.text', texts.requiredFieldToValue);
-      }
-    });
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.currentValue).type('123');
+    cy.get(appFrontend.group.newValue).type('1');
+    cy.get(appFrontend.group.saveMainGroup).click();
+
+    cy.intercept('PUT', '**/data/**').as('saveData');
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.currentValue).type('123');
+    cy.wait('@saveData');
+
+    // Sneaky way to avoid triggering validation on closing the row
+    cy.interceptLayout('group', layoutMutator);
+    cy.reloadAndWait();
+
+    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.get(appFrontend.group.saveMainGroup).click();
+
+    cy.get(appFrontend.group.saveMainGroup).should('not.exist');
+    cy.get(appFrontend.errorReport).should('not.exist');
+
+    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.get(appFrontend.group.currentValue).clear();
+    cy.get(appFrontend.group.currentValue).should('have.value', '');
+    cy.get(appFrontend.group.saveMainGroup).click();
+
+    cy.get(appFrontend.errorReport)
+      .should('contain.text', texts.requiredFieldFromValue)
+      .should('not.contain.text', texts.requiredFieldToValue);
   });
 
   // TODO: This should be probably deleted, as the functionality is slated for removal
@@ -346,12 +322,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
   });
 
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will be fixed in combination with #1506.
-   */
-  it.skip('Delete group row after validation', () => {
+  it('Delete group row after validation', () => {
     cy.interceptLayout('group', (component) => {
       if (['currentValue', 'newValue'].includes(component.id) && component.type === 'Input') {
         // Sets these two components to required

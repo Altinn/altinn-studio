@@ -5,7 +5,6 @@ import { userEvent } from '@testing-library/user-event';
 import ResizeObserverModule from 'resize-observer-polyfill';
 
 import { getFormLayoutGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
 import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
@@ -162,9 +161,8 @@ describe('RepeatingGroupTable', () => {
     });
   });
 
-  const render = async (layout = getLayout(group, components)) => {
-    const reduxState = getInitialStateMock();
-    return await renderWithNode<true, LayoutNodeForGroup<CompGroupRepeatingInternal>>({
+  const render = async (layout = getLayout(group, components)) =>
+    await renderWithNode<true, LayoutNodeForGroup<CompGroupRepeatingInternal>>({
       nodeId: group.id,
       inInstance: true,
       renderer: ({ node }) => (
@@ -193,9 +191,7 @@ describe('RepeatingGroupTable', () => {
           ],
         }),
       },
-      reduxState,
     });
-  };
 });
 
 function LeakEditIndex() {

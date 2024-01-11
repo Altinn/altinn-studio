@@ -11,9 +11,7 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useForcePromptForParty, usePromptForParty } from 'src/hooks/usePromptForParty';
-import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import type { IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -49,15 +47,10 @@ const useCurrentPartyQuery = (enabled: boolean) => {
 };
 
 const useSetCurrentPartyMutation = () => {
-  const dispatch = useAppDispatch();
   const { doSetCurrentParty } = useAppMutations();
   return useMutation({
     mutationKey: ['doSetCurrentParty'],
-    mutationFn: async (party: IParty) => {
-      const result = await doSetCurrentParty.call(party.partyId);
-      dispatch(DeprecatedActions.setSelectedPartyId(party.partyId));
-      return result;
-    },
+    mutationFn: (party: IParty) => doSetCurrentParty.call(party.partyId),
     onSuccess: (result) => {
       doSetCurrentParty.setLastResult(result);
     },

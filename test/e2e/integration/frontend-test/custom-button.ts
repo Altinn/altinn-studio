@@ -1,3 +1,7 @@
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+
+const appFrontend = new AppFrontend();
+
 describe('Custom Button', () => {
   it('Should perform action and update the frontend with the updated datamodel', () => {
     cy.goto('changename');
@@ -19,7 +23,7 @@ describe('Custom Button', () => {
     cy.wait('@saveData');
 
     cy.findByRole('button', { name: 'Fyll ut skjema' }).click();
-    cy.findByRole('alert').should('have.text', 'Her kommer det en feilmelding');
+    cy.get(appFrontend.toast).should('have.text', 'Her kommer det en feilmelding');
   });
 
   it('It should execute frontend actions that are sendt as a result with the action', () => {
@@ -32,6 +36,9 @@ describe('Custom Button', () => {
 
   it('It should execute frontend actions that are specified in the component', () => {
     cy.goto('changename');
+
+    cy.intercept('PUT', '**/data/**').as('saveData');
+    cy.wait('@saveData');
 
     cy.findByRole('button', { name: 'Trigger frontend actions' }).click();
     cy.findByRole('textbox', { name: /Hvor mye gjeld har du?/ }).should('be.visible');

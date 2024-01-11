@@ -14,7 +14,12 @@ export type GroupRendererProps = PropsFromGenericComponent<'Group'>;
 
 export function GroupRenderer({ node, containerDivRef }: GroupRendererProps) {
   if (node.isRepGroupLikert()) {
-    return <RepeatingGroupsLikertContainer node={node} />;
+    return (
+      <RepeatingGroupsLikertContainer
+        node={node}
+        ref={containerDivRef}
+      />
+    );
   }
 
   if (node.isRepGroup()) {
@@ -33,6 +38,7 @@ export function GroupRenderer({ node, containerDivRef }: GroupRendererProps) {
       <PanelReferenceGroupContainer
         key={node.item.id}
         node={node}
+        ref={containerDivRef}
       />
     );
   }
@@ -43,6 +49,7 @@ export function GroupRenderer({ node, containerDivRef }: GroupRendererProps) {
       <PanelGroupContainer
         key={node.item.id}
         node={node}
+        ref={containerDivRef}
       />
     );
   }
@@ -52,6 +59,7 @@ export function GroupRenderer({ node, containerDivRef }: GroupRendererProps) {
     return (
       <DisplayGroupContainer
         key={node.item.id}
+        ref={containerDivRef}
         groupNode={node}
         renderLayoutNode={(n) => (
           <GenericComponent

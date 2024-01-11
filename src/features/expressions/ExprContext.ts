@@ -7,17 +7,26 @@ import type { EvalExprOptions } from 'src/features/expressions/index';
 import type { ExprConfig, Expression, ExprPositionalArgs } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { AllOptionsMap } from 'src/features/options/useAllOptions';
-import type { IUiConfig } from 'src/types';
+import type { ILayoutSettings } from 'src/layout/common.generated';
+import type { IHiddenLayoutsExternal } from 'src/types';
 import type { IApplicationSettings, IAuthContext, IInstanceDataSources } from 'src/types/shared';
 import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
+
+export type PageNavigationConfig = {
+  currentView?: string;
+  order?: string[];
+  hidden: string[];
+  hiddenExpr: IHiddenLayoutsExternal;
+};
 
 export interface ContextDataSources {
   instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
   formData: object;
   attachments: IAttachments;
-  uiConfig: IUiConfig;
+  layoutSettings: ILayoutSettings;
+  pageNavigationConfig: PageNavigationConfig;
   options: AllOptionsMap;
   authContext: Partial<IAuthContext> | null;
   hiddenFields: Set<string>;

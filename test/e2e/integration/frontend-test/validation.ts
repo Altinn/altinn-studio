@@ -2,34 +2,29 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 
-import { Triggers } from 'src/layout/common.generated';
-import { BackendValidationSeverity } from 'src/utils/validation/backendValidationSeverity';
-import type { BackendValidationIssue } from 'src/utils/validation/types';
+import { BackendValidationSeverity } from 'src/features/validation';
+import { groupIsRepeatingExt } from 'src/layout/Group/tools';
+import type { BackendValidationIssue } from 'src/features/validation';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Validation', () => {
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will be fixed in combination with #1506.
-   */
-  it.skip('Required field validation should be visible on submit, not on blur', () => {
+  it('Required field validation should be visible on submit, not on blur', () => {
     cy.goto('changename');
 
-    // This field has server-side validations marking it as required, overriding the frontend validation functionality
-    // which normally postpones the empty fields validation until the page validation runs. We need to type something,
-    // send it to the server and clear the value to show this validation error.
-    cy.get(appFrontend.changeOfName.newFirstName).type('Some value');
-    cy.get(appFrontend.changeOfName.newFirstName).blur();
-    cy.get(appFrontend.changeOfName.newFirstName).clear();
+    // This field has server-side validations marking it as required,
+    // Since this component shows backend validations immediately, it should show up
+    // TODO(Validation): Once it is possible to treat custom validations as required, this test should be updated
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
       'have.text',
       texts.requiredFieldFromBackend,
     );
+    cy.get(appFrontend.changeOfName.newFirstName).type('Some value');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should('not.exist');
+    cy.get(appFrontend.changeOfName.newFirstName).clear();
 
-    // Doing the same for any other field (without server-side required validation) should not show an error
     cy.get(appFrontend.changeOfName.newMiddleName).type('Some value');
     cy.get(appFrontend.changeOfName.newMiddleName).blur();
     cy.get(appFrontend.changeOfName.newMiddleName).focus();
@@ -37,7 +32,6 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newMiddleName).blur();
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should('not.exist');
 
-    cy.get(appFrontend.changeOfName.newFirstName).type('Some first name');
     cy.get(appFrontend.changeOfName.newMiddleName).type('Some middle name');
 
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
@@ -47,7 +41,14 @@ describe('Validation', () => {
 
     cy.get(appFrontend.nextButton).click();
 
-    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should('not.exist');
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
+      'contain.text',
+      texts.requiredFieldFirstName,
+    );
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
+      'contain.text',
+      texts.requiredFieldFromBackend,
+    );
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should('not.exist');
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newLastName)).should(
       'have.text',
@@ -55,7 +56,7 @@ describe('Validation', () => {
     );
   });
 
-  it.skip('Custom field validation - warning/info/success', () => {
+  it('Custom field validation - warning/info/success', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
 
@@ -97,12 +98,7 @@ describe('Validation', () => {
     }
   });
 
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will be fixed in combination with #1506.
-   */
-  it.skip('Page validation on clicking next', () => {
+  it('Page validation on clicking next', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
@@ -120,11 +116,11 @@ describe('Validation', () => {
       .should('contain.text', texts.next);
 
     // Make sure all the buttons in the form are now inside errorReport, not outside of it.
-    // - 5 of the button roles belong to each of the errors in the report
-    // - 2 of the button roles belong to the buttons on the bottom of the form (print, next)
+    // - 4 of the button roles belong to each of the errors in the report
+    // - 3 of the button roles belong to the buttons on the bottom of the form (print, next, custom)
     cy.get(appFrontend.errorReport)
       .findAllByRole('button')
-      .should('have.length', 5 + 2);
+      .should('have.length', 4 + 3);
 
     const lastNameError = appFrontend.fieldValidation(appFrontend.changeOfName.newLastName);
     cy.get(lastNameError).should('exist').should('not.be.inViewport');
@@ -157,10 +153,10 @@ describe('Validation', () => {
   it('Validation on uploaded attachment type', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.png', { force: true });
-    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.upload)).should('contain.text', texts.attachmentError);
+    cy.get(appFrontend.toast).should('contain.text', texts.attachmentError);
   });
 
-  it.skip('Validation on uploaded attachment type with tag', () => {
+  it('Validation on uploaded attachment type with tag', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click({ multiple: true });
@@ -173,7 +169,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('not.contain.text', appFrontend.changeOfName.uploadWithTag.unwantedChar);
   });
 
-  it.skip('Client side validation from json schema', () => {
+  it('Client side validation from json schema', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('a');
 
@@ -204,6 +200,10 @@ describe('Validation', () => {
 
     const expectedErrors = [
       {
+        text: 'Må summeres opp til 100%',
+        shouldFocus: 'fordeling-total',
+      },
+      {
         text: 'Bruk 60 eller færre tegn',
         shouldFocus: 'changeNameTo_æøå',
       },
@@ -230,17 +230,17 @@ describe('Validation', () => {
     }
   });
 
-  it.skip('Task validation', () => {
+  it('Task validation', () => {
     cy.intercept('**/active', []).as('noActiveInstances');
-    cy.startAppInstance(appFrontend.apps.frontendTest);
-    cy.get(appFrontend.closeButton).should('be.visible');
     cy.intercept('GET', '**/validate', [
       {
         severity: 1,
         code: 'error',
         description: 'task validation',
       },
-    ]);
+    ]).as('validate');
+    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.get(appFrontend.closeButton).should('be.visible');
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'task validation');
   });
@@ -252,12 +252,11 @@ describe('Validation', () => {
         description: 'Tullevalidering',
         field: 'Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value',
         severity: BackendValidationSeverity.Error,
-        scope: null,
-        targetId: 'sendersName',
+        source: 'Custom',
       },
     ] as BackendValidationIssue[]);
   }
-  it.skip('Validations are removed for hidden fields', () => {
+  it('Validations are removed for hidden fields', () => {
     // Init and add data to group
     cy.goto('group');
     cy.get(appFrontend.nextButton).click();
@@ -269,20 +268,20 @@ describe('Validation', () => {
     // Create validation error
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.comments).type('test');
-    cy.get(appFrontend.fieldValidation('comments')).should('have.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.fieldValidation('comments-0-0')).should('have.text', texts.testIsNotValidValue);
     cy.get(appFrontend.errorReport).should('exist').should('be.visible');
 
     // Hide field that contains validation error and verify validation messages are gone
     cy.get(appFrontend.group.hideCommentField).find('input').dsCheck();
     cy.get(appFrontend.group.comments).should('not.exist');
-    cy.get(appFrontend.fieldValidation('comments')).should('not.exist');
+    cy.get(appFrontend.fieldValidation('comments-0-0')).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
 
     // Setting single field validation to trigger on the 'sendersName' component
     cy.changeLayout((component) => {
       if (component.id === 'sendersName' && component.type === 'Input') {
         // Make sure changing this field triggers single field validation
-        component.triggers = [Triggers.Validation];
+        component.showValidations = ['AllExceptRequired'];
       }
     });
 
@@ -297,12 +296,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
   });
 
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will be fixed in combination with #1506.
-   */
-  it.skip('List component: validation messages should only show up once', () => {
+  it('List component: validation messages should only show up once', () => {
     cy.goto('datalist');
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.errorReport)
@@ -311,18 +305,20 @@ describe('Validation', () => {
       .should('contain.text', texts.next);
     cy.get(appFrontend.errorReport).find('li:contains("Du må fylle ut hvem gjelder saken?")').should('have.length', 1);
   });
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will be fixed in combination with #1506.
-   */
-  it.skip('Clicking the error report should focus the correct field', () => {
+
+  it('Clicking the error report should focus the correct field', () => {
     cy.interceptLayout('group', (component) => {
       if (
         (component.id === 'comments' || component.id === 'newValue' || component.id === 'currentValue') &&
         (component.type === 'Input' || component.type === 'TextArea')
       ) {
         component.required = true;
+      }
+      if (component.type === 'Group' && groupIsRepeatingExt(component) && component.id === 'mainGroup') {
+        component.validateOnSaveRow = ['All'];
+      }
+      if (component.type === 'NavigationButtons') {
+        component.validateOnNext = { page: 'current', show: ['All'] };
       }
     });
     cy.goto('group');
@@ -361,6 +357,14 @@ describe('Validation', () => {
 
     // Validation message should now have changed, since we filled out currentValue and saved
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi 123 til').should('be.visible');
+
+    // TODO: Remove this wait when validation and saving happens in the same request. When we change the
+    // currentValue to 123 above, and then immediately delete row afterwards, the validation request that started
+    // running (but did not finish, as often happens on tt02 + github) results in a race condition where the
+    // validation result may no longer be applicable to the current form data.
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(3000);
+
     cy.get(appFrontend.group.row(2).deleteBtn).click();
 
     // Check that nested group with multipage gets focus
@@ -454,7 +458,7 @@ describe('Validation', () => {
       if (component.type === 'NavigationButtons') {
         // When components are visible in the table, the validation trigger on the group itself stops having an effect,
         // as there is no way for the user to say they're 'done' editing a row.
-        component.triggers = [Triggers.ValidatePage];
+        component.validateOnNext = { page: 'current', show: ['All'] };
       }
     });
 
@@ -563,16 +567,15 @@ describe('Validation', () => {
       .should('exist');
 
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.png', { force: true });
-    cy.get(appFrontend.changeOfName.uploadError).should('contain.text', texts.invalidFileExtension);
+    cy.get(appFrontend.toast).should('contain.text', texts.invalidFileExtension);
     cy.get(appFrontend.changeOfName.uploadedTable).find('tbody > tr').should('have.length', 1);
 
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test-invalid.pdf', { force: true });
-    cy.get(appFrontend.changeOfName.uploadError).should('contain.text', texts.invalidMimeType);
-    cy.get(appFrontend.errorReport).should('contain.text', texts.invalidMimeType);
+    cy.get(appFrontend.toast).should('contain.text', texts.invalidMimeType);
     cy.get(appFrontend.changeOfName.uploadedTable).find('tbody > tr').should('have.length', 1);
   });
 
-  it.skip('Submitting should be rejected if validation fails on field hidden by pageOrderConfig', () => {
+  it('Submitting should be rejected if validation fails on field hidden by pageOrderConfig', () => {
     cy.goto('changename');
     cy.fillOut('changename');
 
@@ -590,12 +593,13 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('contain.text', 'Valideringsmelding på felt som aldri vises');
   });
 
-  it.skip('Submitting should be rejected if validation fails on field hidden using expression', () => {
+  it('Submitting should be rejected if validation fails on field hidden using expression', () => {
     cy.interceptLayout('group', (c) => {
       if (c.type === 'Input' && c.id === 'sendersName') {
         c.hidden = ['equals', ['component', 'comments'], 'hideSendersName'];
       }
     });
+    injectErrorOnSendersName();
 
     cy.goto('group');
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
@@ -606,18 +610,14 @@ describe('Validation', () => {
     cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page is still visible
     cy.navPage('hide').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.sendersName).should('not.exist');
+    cy.get(appFrontend.errorReport).should('not.exist');
 
-    injectErrorOnSendersName();
     cy.gotoNavPage('summary');
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
-
-    // Two errors show up, because there is one error on the page where the field is hidden using expression, and one
-    // on the page that was never even visible.
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
   });
 
-  it.skip('Submitting should be rejected if validation fails on a field hidden using legacy dynamics', () => {
+  it('Submitting should be rejected if validation fails on a field hidden using legacy dynamics', () => {
     cy.intercept('POST', '**/pages/order*', (req) => {
       req.reply((res) => {
         res.send({
@@ -651,6 +651,8 @@ describe('Validation', () => {
       });
     });
 
+    injectErrorOnSendersName();
+
     cy.goto('group');
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
     cy.gotoNavPage('repeating');
@@ -660,18 +662,14 @@ describe('Validation', () => {
     cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page should be visible and active
     cy.navPage('hide').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.sendersName).should('not.exist');
+    cy.get(appFrontend.errorReport).should('not.exist');
 
-    injectErrorOnSendersName();
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
-
-    // Two errors show up, because there is one error on the page where the field is hidden using legacy dynamics, and
-    // one on the page that was never even visible.
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
   });
 
-  it.skip('Submitting should be rejected if validation fails on page hidden using expression', () => {
+  it('Submitting should be rejected if validation fails on page hidden using expression', () => {
     cy.interceptLayout(
       'group',
       () => undefined,
@@ -679,6 +677,7 @@ describe('Validation', () => {
         layoutSet.hide.data.hidden = ['equals', ['component', 'comments'], 'hidePage'];
       },
     );
+    injectErrorOnSendersName();
 
     cy.goto('group');
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
@@ -687,23 +686,14 @@ describe('Validation', () => {
     cy.addItemToGroup(2, 3, 'hidePage');
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.navMenuButtons).should('have.length', 3); // 'hide' page is now invisible
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
 
-    injectErrorOnSendersName();
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
-
-    // Two errors show up, because there is one error on the page hidden using expressions, and one on the page
-    // that was never even visible.
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
   });
 
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will be fixed in combination with #1506.
-   */
-  it.skip('Navigating to one task and navigating back should not produce error messages for hidden pages', () => {
+  it('Navigating to one task and navigating back should not produce error messages for hidden pages', () => {
     cy.goto('group');
     cy.gotoNavPage('summary');
     cy.get(appFrontend.sendinButton).click();
@@ -714,6 +704,7 @@ describe('Validation', () => {
     });
 
     cy.url().should('satisfy', (url) => url.endsWith('/Task_5/summary'));
+    cy.findByRole('button', { name: /gå til riktig prosessteg/i }).should('be.visible');
 
     cy.url().then((url) => {
       cy.visit(url.replace('Task_5', 'Task_3'));
@@ -725,11 +716,11 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
   });
 
-  it.skip('should navigate and scroll to correct component when clicking error report', () => {
+  it('should navigate and scroll to correct component when clicking error report', () => {
     cy.goto('changename');
     cy.gotoNavPage('grid');
     cy.get(appFrontend.sendinButton).click();
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 4);
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 6);
     cy.findByText('Du må fylle ut dato for navneendring').click();
     cy.findByLabelText(/Når vil du at navnendringen skal skje?/).should('be.inViewport');
   });

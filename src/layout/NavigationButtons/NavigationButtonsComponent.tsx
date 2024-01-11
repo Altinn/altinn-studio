@@ -4,27 +4,22 @@ import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
-import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { Lang } from 'src/features/language/Lang';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
+import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
-import { reducePageValidations } from 'src/types';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';
 export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 
 export function NavigationButtonsComponent({ node }: INavigationButtons) {
-  const { id, showBackButton, textResourceBindings, triggers } = node.item;
-  const dispatch = useAppDispatch();
-  const { navigateToPage, next, previous } = useNavigatePage();
-  const { returnToView, setReturnToView, scrollPosition, setScrollPosition } = usePageNavigationContext();
+  const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = node.item;
+  const { navigateToPage, next, previous, maybeSaveOnPageChange } = useNavigatePage();
+  const { returnToView, setReturnToView } = usePageNavigationContext();
 
   const refPrev = React.useRef<HTMLButtonElement>(null);
   const refNext = React.useRef<HTMLButtonElement>(null);
 
-  const pageTriggers = useLayoutSettings().pages.triggers;
-  const activeTriggers = triggers || pageTriggers;
   const nextTextKey = returnToView ? 'form_filler.back_to_summary' : textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
 
@@ -33,51 +28,64 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const disablePrevious = previous === undefined;
   const disableNext = next === undefined;
 
-  const onClickPrevious = () => {
-    if (previous && !disablePrevious) {
-      navigateToPage(previous);
-    }
-  };
+  const onPageNavigationValidation = useOnPageNavigationValidation();
 
   const getScrollPosition = React.useCallback(
-    () => (refNext.current || refPrev.current)?.getClientRects().item(0)?.y,
-    [],
+    () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,
+    [id],
   );
 
-  const OnClickNext = () => {
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    const runValidations = reducePageValidations(activeTriggers);
-    const goToView = returnToView || next;
-
-    if (!(goToView && !disableNext)) {
+  /**
+   * If validation fails the ErrorReport will move the buttons down.
+   * This resets the scroll position so that the buttons are in the same place.
+   */
+  const resetScrollPosition = async (prevScrollPosition: number | undefined) => {
+    if (prevScrollPosition === undefined) {
       return;
     }
-    // const keepScrollPosAction: IComponentScrollPos = {
-    //   componentId: id,
-    //   offsetTop: getScrollPosition(),
-    // };
-
-    /**
-     * TODO(1508): set this only if there are validation messages
-     */
-    // setScrollPosition(keepScrollPosAction);
-    setReturnToView(undefined);
-    navigateToPage(goToView);
+    window.requestAnimationFrame(() => {
+      const newScrollPosition = getScrollPosition();
+      if (typeof prevScrollPosition === 'number' && typeof newScrollPosition === 'number') {
+        window.scrollBy({ top: newScrollPosition - prevScrollPosition });
+      }
+    });
   };
 
-  React.useLayoutEffect(() => {
-    if (!scrollPosition || typeof scrollPosition.offsetTop !== 'number' || scrollPosition.componentId !== id) {
+  const onClickPrevious = async () => {
+    if (!previous || disablePrevious) {
       return;
     }
 
-    const currentPos = getScrollPosition();
-    if (typeof currentPos !== 'number') {
+    maybeSaveOnPageChange();
+
+    const prevScrollPosition = getScrollPosition();
+    if (validateOnPrevious && (await onPageNavigationValidation(node.top, validateOnPrevious))) {
+      // Block navigation if validation fails
+      resetScrollPosition(prevScrollPosition);
       return;
     }
 
-    window.scrollBy({ top: currentPos - scrollPosition.offsetTop });
-    setScrollPosition(undefined);
-  }, [scrollPosition, dispatch, id, getScrollPosition, setScrollPosition]);
+    navigateToPage(previous, { skipAutoSave: true });
+  };
+
+  const OnClickNext = async () => {
+    const goToView = returnToView || next;
+    if (!goToView || disableNext) {
+      return;
+    }
+
+    maybeSaveOnPageChange();
+
+    const prevScrollPosition = getScrollPosition();
+    if (validateOnNext && (await onPageNavigationValidation(node.top, validateOnNext)) && !returnToView) {
+      // Block navigation if validation fails, unless returnToView is set (Back to summary)
+      resetScrollPosition(prevScrollPosition);
+      return;
+    }
+
+    setReturnToView(undefined);
+    navigateToPage(goToView, { skipAutoSave: true });
+  };
 
   return (
     <div

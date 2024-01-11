@@ -15,6 +15,7 @@ import {
   getCreateInstancesUrl,
   getCustomValidationConfigUrl,
   getDataElementUrl,
+  getDataValidationUrl,
   getFetchFormDynamicsUrl,
   getFileTagUrl,
   getFileUploadUrl,
@@ -43,6 +44,7 @@ import type { IFormDynamics } from 'src/features/form/dynamics';
 import type { Instantiation } from 'src/features/instantiate/InstantiationContext';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IPdfFormat } from 'src/features/pdf/types';
+import type { BackendValidationIssue, IExpressionValidationConfig } from 'src/features/validation';
 import type { ILayoutSets, ILayoutSettings, IOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -59,7 +61,6 @@ import type {
   IProcess,
   IProfile,
 } from 'src/types/shared';
-import type { IExpressionValidationConfig } from 'src/utils/validation/types';
 
 const cleanUpInstanceData = async (_instance: IInstance | Promise<IInstance>) => {
   const instance = await _instance;
@@ -219,6 +220,11 @@ export const fetchRuleHandler = (layoutSetId?: string): Promise<string | null> =
 export const fetchTextResources = (selectedLanguage: string): Promise<ITextResourceResult> =>
   httpGet(textResourcesUrl(selectedLanguage));
 
+export const fetchBackendValidations = (
+  instanceId: string,
+  currentDataElementId: string,
+): Promise<BackendValidationIssue[]> => httpGet(getDataValidationUrl(instanceId, currentDataElementId));
+
 export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
   // Hacky (and only) way to get the correct CDN url
   const schemaBaseUrl = document
@@ -232,3 +238,11 @@ export const fetchLayoutSchema = async (): Promise<JSONSchema7 | undefined> => {
 
   return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? undefined;
 };
+
+export const fetchPostPlace = (zipCode: string): Promise<{ result: string; valid: boolean }> =>
+  httpGet('https://api.bring.com/shippingguide/api/postalCode.json', {
+    params: {
+      clientUrl: window.location.href,
+      pnr: zipCode,
+    },
+  });

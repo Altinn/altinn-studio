@@ -20,4 +20,5 @@ export const Config = new CG.component({
         .setDescription('Change appearance of navbar as compact in desktop view'),
     ),
   )
-  .addProperty(new CG.prop('triggers', CG.common('TriggerList').optional()));
+  .addProperty(new CG.prop('validateOnForward', CG.common('PageValidation').optional()))
+  .addProperty(new CG.prop('validateOnBackward', CG.common('PageValidation').optional()));

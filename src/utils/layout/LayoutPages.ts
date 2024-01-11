@@ -1,9 +1,7 @@
 import type { $Values } from 'utility-types';
 
-import { runValidationOnNodes } from 'src/utils/validation/validation';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { IValidationObject, ValidationContextGenerator } from 'src/utils/validation/types';
 
 /**
  * A tool when you have more than one LayoutPage (i.e. a full layout set). It can help you look up components
@@ -104,12 +102,5 @@ export class LayoutPages<
         .map((key) => this.objects[key])
         .flat(),
     ] as $Values<Omit<Collection, L>>[];
-  }
-
-  /**
-   * Runs frontend validations for all nodes in the layout set, and returns an array of IValidationObject.
-   */
-  public runValidations(validationCtxGenerator: ValidationContextGenerator): IValidationObject[] {
-    return runValidationOnNodes(this.allNodes(), validationCtxGenerator);
   }
 }

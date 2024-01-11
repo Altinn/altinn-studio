@@ -1,14 +1,9 @@
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
-import { AsciiUnitSeparator } from 'src/layout/FileUpload/utils/asciiUnitSeparator';
 import {
   getColumnStyles,
   getColumnStylesRepeatingGroups,
   getFieldName,
-  getFileUploadComponentValidations,
   gridBreakpoints,
-  isAttachmentError,
-  isNotAttachmentError,
-  parseFileUploadComponentWithTagValidationObject,
   smartLowerCaseFirst,
 } from 'src/utils/formComponentUtils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
@@ -18,46 +13,6 @@ import type { CompExternal, CompInternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 describe('formComponentUtils', () => {
-  describe('isAttachmentError', () => {
-    it('should return true when error has attachmentId', () => {
-      const error = {
-        id: 'mockUUID',
-        message: 'mockMessage',
-      };
-      const result = isAttachmentError(error);
-      expect(result).toEqual(true);
-    });
-
-    it('should return false when error does not have attachmentId', () => {
-      const error = {
-        id: null,
-        message: 'mockMessage',
-      };
-      const result = isAttachmentError(error);
-      expect(result).toEqual(false);
-    });
-  });
-
-  describe('isNotAttachmentError', () => {
-    it('should return true when error does not have attachmentId', () => {
-      const error = {
-        id: null,
-        message: 'mockMessage',
-      };
-      const result = isNotAttachmentError(error);
-      expect(result).toEqual(true);
-    });
-
-    it('should return false when error has attachmentId', () => {
-      const error = {
-        id: 'mockUUID',
-        message: 'mockMessage',
-      };
-      const result = isNotAttachmentError(error);
-      expect(result).toEqual(false);
-    });
-  });
-
   describe('getFieldName', () => {
     const textResources = {
       title: { value: 'Component name' },
@@ -124,88 +79,6 @@ describe('formComponentUtils', () => {
       { input: '', expected: '' },
     ])('Should convert $input to $expected', ({ input, expected }) => {
       expect(smartLowerCaseFirst(input)).toEqual(expected);
-    });
-  });
-
-  describe('getFileUploadWithTagComponentValidations', () => {
-    it('should return correct validation', () => {
-      const mockLanguage = {
-        language: {
-          form_filler: {
-            file_uploader_validation_error_delete: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
-            file_uploader_validation_error_upload: 'Noe gikk galt under opplastingen av filen, prøv igjen senere.',
-            file_uploader_validation_error_update:
-              'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
-          },
-        },
-      };
-      const langTools = staticUseLanguageForTests({ language: mockLanguage.language });
-
-      const uploadValidation = getFileUploadComponentValidations('upload', langTools);
-      expect(uploadValidation).toEqual({
-        simpleBinding: {
-          errors: ['Noe gikk galt under opplastingen av filen, prøv igjen senere.'],
-          warnings: [],
-        },
-      });
-
-      const updateValidation = getFileUploadComponentValidations('update', langTools);
-      expect(updateValidation).toEqual({
-        simpleBinding: {
-          errors: ['Noe gikk galt under oppdatering av filens merking, prøv igjen senere.'],
-          warnings: [],
-        },
-      });
-
-      const updateValidationWithId = getFileUploadComponentValidations('update', langTools, 'mock-attachment-id');
-      expect(updateValidationWithId).toEqual({
-        simpleBinding: {
-          errors: [
-            `mock-attachment-id${AsciiUnitSeparator}Noe gikk galt under oppdatering av filens merking, prøv igjen senere.`,
-          ],
-          warnings: [],
-        },
-      });
-
-      const deleteValidation = getFileUploadComponentValidations('delete', langTools);
-      expect(deleteValidation).toEqual({
-        simpleBinding: {
-          errors: ['Noe gikk galt under slettingen av filen, prøv igjen senere.'],
-          warnings: [],
-        },
-      });
-    });
-  });
-
-  describe('parseFileUploadComponentWithTagValidationObject', () => {
-    it('should return correct validation array', () => {
-      const mockValidations = [
-        'Noe gikk galt under opplastingen av filen, prøv igjen senere.',
-        'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
-        `mock-attachment-id${AsciiUnitSeparator}Noe gikk galt under oppdatering av filens merking, prøv igjen senere.`,
-        'Noe gikk galt under slettingen av filen, prøv igjen senere.',
-      ];
-      const expectedResult = [
-        {
-          id: '',
-          message: 'Noe gikk galt under opplastingen av filen, prøv igjen senere.',
-        },
-        {
-          id: '',
-          message: 'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
-        },
-        {
-          id: 'mock-attachment-id',
-          message: 'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
-        },
-        {
-          id: '',
-          message: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
-        },
-      ];
-
-      const validationArray = parseFileUploadComponentWithTagValidationObject(mockValidations);
-      expect(validationArray).toEqual(expectedResult);
     });
   });
 

@@ -8,6 +8,7 @@ import { ensureAppsDirIsSet, getAllLayoutSetsWithDataModelSchema, parseJsonToler
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import { getRootElementPath } from 'src/utils/schemaUtils';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
+import type { ILayouts } from 'src/layout/layout';
 
 describe('Data model lookups in real apps', () => {
   const dir = ensureAppsDirIsSet();
@@ -22,8 +23,17 @@ describe('Data model lookups in real apps', () => {
     // TODO: We should generate some sensible form data for repeating groups (and their nodes) to work, so that
     // we can test those as well. It could be as simple as analyzing the layout and generating a form data object
     // with one entry for each repeating group.
+    const processedLayouts: ILayouts = {};
+    for (const page of Object.keys(layouts)) {
+      processedLayouts[page] = layouts[page].data.layout;
+    }
 
-    const nodes = generateEntireHierarchy(layouts, firstKey, getHierarchyDataSourcesMock(), getLayoutComponentObject);
+    const nodes = generateEntireHierarchy(
+      processedLayouts,
+      firstKey,
+      getHierarchyDataSourcesMock(),
+      getLayoutComponentObject,
+    );
 
     const schema = parseJsonTolerantly(fs.readFileSync(modelPath, 'utf-8'));
     const rootPath = getRootElementPath(schema, dataTypeDef);

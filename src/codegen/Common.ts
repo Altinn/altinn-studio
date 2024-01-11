@@ -103,20 +103,6 @@ const common = {
       .setTitle('Grid')
       .setDescription('Settings for the components grid. Used for controlling horizontal alignment'),
 
-  // Triggers on components:
-  Triggers: () =>
-    new CG.enum(
-      'validation',
-      'validatePage',
-      'validateCurrentAndPreviousPages',
-      'validateAllPages',
-      'validateRow',
-    ).asRealEnum((value) => value.charAt(0).toUpperCase() + value.slice(1)),
-  TriggerList: () =>
-    new CG.arr(CG.common('Triggers'))
-      .setTitle('Triggers')
-      .setDescription('List of actions to trigger when the user interacts with the component'),
-
   // Panel display mode:
   IPanelBase: () =>
     new CG.obj(
@@ -426,7 +412,7 @@ const common = {
             'Boolean value or expression indicating if the component should be required. Defaults to false.',
           ),
       ),
-      new CG.prop('triggers', CG.common('TriggerList').optional()),
+      new CG.prop('showValidations', CG.common('AllowedValidationMasks').optional()),
     ),
   SummarizableComponentProps: () =>
     new CG.obj(
@@ -533,6 +519,24 @@ const common = {
 
   HeadingLevel: () => new CG.enum(2, 3, 4, 5, 6),
 
+  AllowedValidationMasks: () =>
+    new CG.arr(
+      new CG.enum('Schema', 'Component', 'Expression', 'CustomBackend', 'Required', 'AllExceptRequired', 'All'),
+    )
+      .setTitle('Validation types')
+      .setDescription('List of validation types to show'),
+
+  PageValidation: () =>
+    new CG.obj(
+      new CG.prop(
+        'page',
+        new CG.enum('current', 'currentAndPrevious', 'all')
+          .setTitle('Page')
+          .setDescription('Which pages should be validated when the next button is clicked.'),
+      ),
+      new CG.prop('show', CG.common('AllowedValidationMasks')),
+    ),
+
   // Layout settings:
   IComponentsSettings: () =>
     new CG.obj(
@@ -599,15 +603,6 @@ const common = {
           .optional()
           .setTitle('Exclude from PDF')
           .setDescription('List of pages to exclude from the PDF generation'),
-      ),
-      new CG.prop(
-        'triggers',
-        new CG.arr(CG.common('Triggers'))
-          .optional()
-          .setTitle('Triggers')
-          .setDescription(
-            'Triggers that apply for all navigation components across all pages. Can be overridden at the component level.',
-          ),
       ),
       new CG.prop(
         'pdfLayoutName',

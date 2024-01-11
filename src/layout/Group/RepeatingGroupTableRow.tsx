@@ -9,6 +9,8 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
+import { hasValidationErrors } from 'src/features/validation/utils';
 import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
 import { useDisplayDataProps } from 'src/hooks/useDisplayData';
 import { useIsMobile } from 'src/hooks/useIsMobile';
@@ -31,7 +33,6 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export interface IRepeatingGroupTableRowProps {
   className?: string;
   index: number;
-  rowHasErrors: boolean;
   getTableNodes: (index: number) => LayoutNode[] | undefined;
   mobileView: boolean;
   displayEditColumn: boolean;
@@ -72,7 +73,6 @@ function getEditButtonText(
 export function RepeatingGroupTableRow({
   className,
   index,
-  rowHasErrors,
   getTableNodes,
   mobileView,
   displayEditColumn,
@@ -97,6 +97,9 @@ export function RepeatingGroupTableRow({
     ...group.textResourceBindings,
     ...expressionsForRow?.textResourceBindings,
   } as CompGroupRepeatingInternal['textResourceBindings'];
+
+  const rowValdiations = useDeepValidationsForNode(node, true, index);
+  const rowHasErrors = hasValidationErrors(rowValdiations);
 
   const alertOnDelete = useAlertOnChange(Boolean(edit?.alertOnDelete), deleteRow);
 

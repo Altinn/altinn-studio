@@ -2,19 +2,17 @@ import React from 'react';
 
 import { Fieldset, ToggleGroup } from '@digdir/design-system-react';
 
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useComponentRefs } from 'src/features/devtools/hooks/useComponentRefs';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useNodes } from 'src/utils/layout/NodesContext';
 import type { IDevToolsState } from 'src/features/devtools/data/types';
 
 const pseudoHiddenCssFilter = 'contrast(0.75)';
 
 export function DevHiddenFunctionality() {
-  const state = useAppSelector((state) => state.devTools.hiddenComponents);
+  const state = useDevToolsStore((state) => state.hiddenComponents);
+  const setShowHiddenComponents = useDevToolsStore((state) => state.actions.setShowHiddenComponents);
   const hierarchy = useNodes();
-  const dispatch = useAppDispatch();
 
   useComponentRefs({
     callback: (id, ref) => {
@@ -39,13 +37,7 @@ export function DevHiddenFunctionality() {
       <div>
         <ToggleGroup
           size='small'
-          onChange={(selectedValue) =>
-            dispatch(
-              DevToolsActions.setShowHiddenComponents({
-                value: selectedValue as IDevToolsState['hiddenComponents'],
-              }),
-            )
-          }
+          onChange={(selectedValue) => setShowHiddenComponents(selectedValue as IDevToolsState['hiddenComponents'])}
           value={state}
         >
           <ToggleGroup.Item value='hide'>Skjul</ToggleGroup.Item>

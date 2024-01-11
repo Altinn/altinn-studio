@@ -167,7 +167,7 @@ describe('FileUploadWithTagComponent', () => {
       const dropZone = screen.getByTestId(`altinn-drop-zone-${id}`).querySelector('input') as HTMLInputElement;
       await userEvent.upload(dropZone, file);
 
-      expect(screen.getByText('Laster innhold')).toBeInTheDocument();
+      await screen.findByText('Laster innhold');
     });
 
     it('should not show spinner when file status has uploaded=true', async () => {

@@ -4,6 +4,8 @@ import type { PropsWithChildren } from 'react';
 import { createContext } from 'src/core/contexts/context';
 import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAttachmentDeletionInRepGroups';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
+import { useOnDeleteGroupRow } from 'src/features/validation/validationContext';
 import { useAsRef, useAsRefObject } from 'src/hooks/useAsRef';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useWaitForState } from 'src/hooks/useWaitForState';
@@ -103,6 +105,8 @@ function useRepeatingGroupState(node: LayoutNodeForGroup<CompGroupRepeatingInter
   const appendToList = FD.useAppendToList();
   const removeIndexFromList = FD.useRemoveIndexFromList();
   const { onBeforeRowDeletion } = useAttachmentDeletionInRepGroups(node);
+  const onDeleteGroupRow = useOnDeleteGroupRow();
+  const onGroupCloseValidation = useOnGroupCloseValidation();
   const pureStates = usePureStates(node);
   const setEditingIndex = pureStates.setEditingIndex;
   const {
@@ -118,6 +122,15 @@ function useRepeatingGroupState(node: LayoutNodeForGroup<CompGroupRepeatingInter
   const waitForRows = useWaitForState(node.item.rows);
   const nodeRef = useAsRef(node);
 
+  const validateOnSaveRow = nodeRef.current.item.validateOnSaveRow;
+
+  const maybeValidateRow = useCallback(() => {
+    if (!validateOnSaveRow || editingAll.current || editingNone.current || editingIndex.current === undefined) {
+      return Promise.resolve(false);
+    }
+    return onGroupCloseValidation(nodeRef.current, editingIndex.current, validateOnSaveRow);
+  }, [editingAll, editingIndex, editingNone, nodeRef, onGroupCloseValidation, validateOnSaveRow]);
+
   // Figure out if the row we were editing is now hidden, and in that case, reset the editing state
   useEffect(() => {
     if (pureStates.editingIndex !== undefined && pureStates.hiddenRowIndexes.has(pureStates.editingIndex)) {
@@ -126,27 +139,36 @@ function useRepeatingGroupState(node: LayoutNodeForGroup<CompGroupRepeatingInter
   }, [pureStates.editingIndex, pureStates.hiddenRowIndexes, node, setEditingIndex]);
 
   const toggleEditing = useCallback(
-    (index: number) => {
+    async (index: number) => {
       if (editingAll.current || editingNone.current || !editableRowIndexes.current.includes(index)) {
+        return;
+      }
+      if (await maybeValidateRow()) {
         return;
       }
       setEditingIndex((prev) => (prev === index ? undefined : index));
     },
-    [editableRowIndexes, editingAll, editingNone, setEditingIndex],
+    [editableRowIndexes, editingAll, editingNone, maybeValidateRow, setEditingIndex],
   );
 
   const openForEditing = useCallback(
-    (index: number) => {
+    async (index: number) => {
       if (editingAll.current || editingNone.current || !editableRowIndexes.current.includes(index)) {
+        return;
+      }
+      if (await maybeValidateRow()) {
         return;
       }
       setEditingIndex(index);
     },
-    [editableRowIndexes, editingAll, editingNone, setEditingIndex],
+    [editableRowIndexes, editingAll, editingNone, maybeValidateRow, setEditingIndex],
   );
 
-  const openNextForEditing = useCallback(() => {
+  const openNextForEditing = useCallback(async () => {
     if (editingAll.current || editingNone.current) {
+      return;
+    }
+    if (await maybeValidateRow()) {
       return;
     }
     setEditingIndex((prev) => {
@@ -159,16 +181,18 @@ function useRepeatingGroupState(node: LayoutNodeForGroup<CompGroupRepeatingInter
       }
       return editableRowIndexes.current[editableRowIndexes.current.indexOf(prev) + 1];
     });
-  }, [editableRowIndexes, editingAll, editingNone, setEditingIndex]);
+  }, [editableRowIndexes, editingAll, editingNone, maybeValidateRow, setEditingIndex]);
 
   const closeForEditing = useCallback(
-    (index: number) => {
+    async (index: number) => {
       if (editingAll.current || editingNone.current) {
         return;
       }
-      setEditingIndex((prev) => (prev === index ? undefined : prev));
+      if (editingIndex.current === index && !(await maybeValidateRow())) {
+        setEditingIndex(undefined);
+      }
     },
-    [editingAll, editingNone, setEditingIndex],
+    [editingAll, editingIndex, editingNone, maybeValidateRow, setEditingIndex],
   );
 
   const isEditing = useCallback(
@@ -185,7 +209,7 @@ function useRepeatingGroupState(node: LayoutNodeForGroup<CompGroupRepeatingInter
   );
 
   const addRow = useCallback(async () => {
-    if (binding.current) {
+    if (binding.current && !(await maybeValidateRow())) {
       const nextIndex = nodeRef.current.item.rows.length;
       const nextLength = nextIndex + 1;
       appendToList({
@@ -195,7 +219,7 @@ function useRepeatingGroupState(node: LayoutNodeForGroup<CompGroupRepeatingInter
       await waitForRows((rows) => rows.length === nextLength);
       openForEditing(nextIndex);
     }
-  }, [appendToList, binding, nodeRef, openForEditing, waitForRows]);
+  }, [appendToList, binding, maybeValidateRow, nodeRef, openForEditing, waitForRows]);
 
   const deleteRow = useCallback(
     async (index: number) => {
@@ -211,6 +235,7 @@ function useRepeatingGroupState(node: LayoutNodeForGroup<CompGroupRepeatingInter
       });
       const attachmentDeletionSuccessful = await onBeforeRowDeletion(index);
       if (attachmentDeletionSuccessful && binding.current) {
+        onDeleteGroupRow(nodeRef.current, index);
         removeIndexFromList({
           path: binding.current,
           index,
@@ -235,7 +260,16 @@ function useRepeatingGroupState(node: LayoutNodeForGroup<CompGroupRepeatingInter
 
       return false;
     },
-    [binding, deletableRowIndexes, onBeforeRowDeletion, removeIndexFromList, setDeletingIndexes, setEditingIndex],
+    [
+      binding,
+      deletableRowIndexes,
+      nodeRef,
+      onBeforeRowDeletion,
+      onDeleteGroupRow,
+      removeIndexFromList,
+      setDeletingIndexes,
+      setEditingIndex,
+    ],
   );
 
   const isDeleting = useCallback((index: number) => deletingIndexes.current.includes(index), [deletingIndexes]);

@@ -5,16 +5,14 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground.module.css';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { asExpression } from 'src/features/expressions/validation';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
-import { selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
-import { useNodes } from 'src/utils/layout/NodesContext';
+import { useExpressionDataSources } from 'src/utils/layout/hierarchy';
+import { useHiddenComponents, useNodes } from 'src/utils/layout/NodesContext';
 import type { ExprConfig, Expression, ExprFunction } from 'src/features/expressions/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -31,10 +29,13 @@ function getTabKeyAndValue(i: number, output: ExpressionResult) {
 }
 
 export const ExpressionPlayground = () => {
-  const input = useAppSelector((state) => state.devTools.exprPlayground.expression);
-  const forPage = useAppSelector((state) => state.devTools.exprPlayground.forPage);
-  const forComponentId = useAppSelector((state) => state.devTools.exprPlayground.forComponentId);
-  const dispatch = useAppDispatch();
+  const input = useDevToolsStore((state) => state.exprPlayground.expression);
+  const forPage = useDevToolsStore((state) => state.exprPlayground.forPage);
+  const forComponentId = useDevToolsStore((state) => state.exprPlayground.forComponentId);
+  const setExpression = useDevToolsStore((state) => state.actions.exprPlaygroundSetExpression);
+  const setContext = useDevToolsStore((state) => state.actions.exprPlaygroundSetContext);
+  const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
+  const nodeInspectorSet = useDevToolsStore((state) => state.actions.nodeInspectorSet);
 
   const [showAllSteps, setShowAllSteps] = React.useState(false);
   const [activeOutputTab, setActiveOutputTab] = React.useState('Gjeldende resultat');
@@ -46,7 +47,9 @@ export const ExpressionPlayground = () => {
   ]);
   const nodes = useNodes();
   const { currentPageId } = useNavigatePage();
-  const dataSources = useAppSelector(selectDataSourcesFromState);
+
+  const hidden = useHiddenComponents();
+  const dataSources = useExpressionDataSources(hidden);
 
   const setOutputWithHistory = useCallback(
     (newValue: string, isError: boolean): boolean => {
@@ -142,7 +145,7 @@ export const ExpressionPlayground = () => {
           <textarea
             className={cn(classes.textbox, classes.input)}
             value={input}
-            onChange={(e) => dispatch(DevToolsActions.exprPlaygroundSetExpression({ expression: e.target.value }))}
+            onChange={(e) => setExpression(e.target.value)}
             placeholder={'Skriv inn et dynamisk uttrykk...\nEksempel: ["equals", ["component", "firstName"], "Ola"]'}
           />
           {outputs.length === 1 && (
@@ -203,7 +206,7 @@ export const ExpressionPlayground = () => {
               value={`${forPage}|${forComponentId}`}
               onChange={(value) => {
                 const [forPage, forComponentId] = value.split('|', 2);
-                dispatch(DevToolsActions.exprPlaygroundSetContext({ forPage, forComponentId }));
+                setContext(forPage, forComponentId);
               }}
               options={Object.values(nodes?.all() || [])
                 .map((page) => page.flat(true))
@@ -216,8 +219,8 @@ export const ExpressionPlayground = () => {
                 href={'#'}
                 onClick={(e) => {
                   e.preventDefault();
-                  dispatch(DevToolsActions.nodeInspectorSet({ selectedNodeId: forComponentId }));
-                  dispatch(DevToolsActions.setActiveTab({ tabName: DevToolsTab.Components }));
+                  setActiveTab(DevToolsTab.Components);
+                  nodeInspectorSet(forComponentId);
                 }}
               >
                 Vis i komponent-utforskeren

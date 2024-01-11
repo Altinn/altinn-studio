@@ -17,26 +17,9 @@ export interface FileTableProps {
   attachments: IAttachment[];
   mobileView: boolean;
   options?: IOption[];
-  attachmentValidations?: {
-    id: string;
-    message: string;
-  }[];
-  validationsWithTag?: {
-    id: string;
-    message: string;
-  }[];
-  setValidationsWithTag?: (validationArray: { id: string; message: string }[]) => void;
 }
 
-export function FileTable({
-  attachments,
-  mobileView,
-  node,
-  attachmentValidations,
-  options,
-  validationsWithTag,
-  setValidationsWithTag,
-}: FileTableProps): React.JSX.Element | null {
+export function FileTable({ attachments, mobileView, node, options }: FileTableProps): React.JSX.Element | null {
   const { textResourceBindings, type } = node.item;
   const hasTag = type === 'FileUploadWithTag';
   const [editIndex, setEditIndex] = React.useState<number>(-1);
@@ -131,13 +114,8 @@ export function FileTable({
                   <EditWindowComponent
                     node={node as PropsFromGenericComponent<'FileUploadWithTag'>['node']}
                     attachment={attachment}
-                    attachmentValidations={[
-                      ...new Map(attachmentValidations?.map((validation) => [validation['id'], validation])).values(),
-                    ]}
                     mobileView={mobileView}
                     options={options}
-                    validationsWithTag={validationsWithTag ?? []}
-                    setValidationsWithTag={setValidationsWithTag ?? (() => {})}
                   />
                 </td>
               </tr>

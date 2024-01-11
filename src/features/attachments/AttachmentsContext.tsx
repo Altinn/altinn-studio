@@ -5,8 +5,6 @@ import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { usePostUpload } from 'src/features/attachments/utils/postUpload';
 import { usePreUpload } from 'src/features/attachments/utils/preUpload';
 import { mergeAndSort } from 'src/features/attachments/utils/sorting';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import type {
   AttachmentActionRemove,
   AttachmentActionUpdate,
@@ -58,11 +56,9 @@ export const AttachmentsProvider = ({ children }: PropsWithChildren) => {
 
   const attachments = useMemo(() => mergeAndSort(preUpload, postUpload), [preUpload, postUpload]);
 
-  const dispatch = useAppDispatch();
   useEffect(() => {
     setAttachments(attachments);
-    dispatch(DeprecatedActions.setLastKnownAttachments(attachments));
-  }, [attachments, dispatch, setAttachments]);
+  }, [attachments, setAttachments]);
 
   return (
     <MethodsProvider

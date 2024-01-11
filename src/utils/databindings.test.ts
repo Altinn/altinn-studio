@@ -1,19 +1,10 @@
-import {
-  filterOutInvalidData,
-  flattenObject,
-  getKeyIndex,
-  getKeyWithoutIndex,
-  mapFormData,
-} from 'src/utils/databindings';
+import { flattenObject, getKeyIndex, getKeyWithoutIndex, mapFormData } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/formData';
 import type { IMapping } from 'src/layout/common.generated';
-import type { ILayout } from 'src/layout/layout';
 
 describe('utils/databindings.ts', () => {
   let testObj: any;
   let testFormData: any;
-  let testLayout: ILayout;
-  let testGroupId: string;
 
   beforeEach(() => {
     testObj = {};
@@ -34,76 +25,6 @@ describe('utils/databindings.ts', () => {
       'Group[2].Group2[0].group2prop': 'group2-2-1-value',
       'Group[2].Group2[1].group2prop': 'group2-2-2-value',
     };
-    testGroupId = 'group-1';
-
-    testLayout = [
-      {
-        id: testGroupId,
-        type: 'Group',
-        dataModelBindings: {
-          group: 'Group',
-        },
-        children: ['field1', 'field2', 'field3', 'group2'],
-        maxCount: 3,
-      },
-      {
-        id: 'group2',
-        type: 'Group',
-        dataModelBindings: {
-          group: 'Group.Group2',
-        },
-        maxCount: 4,
-        children: ['field4'],
-      },
-      {
-        id: 'field1',
-        type: 'Input',
-        dataModelBindings: {
-          simpleBinding: 'Group.prop1',
-        },
-        textResourceBindings: {
-          title: 'Title',
-        },
-        readOnly: false,
-        required: false,
-      },
-      {
-        id: 'field2',
-        type: 'Input',
-        dataModelBindings: {
-          simpleBinding: 'Group.prop2',
-        },
-        textResourceBindings: {
-          title: 'Title',
-        },
-        readOnly: false,
-        required: false,
-      },
-      {
-        id: 'field3',
-        type: 'Input',
-        dataModelBindings: {
-          simpleBinding: 'Group.prop3',
-        },
-        textResourceBindings: {
-          title: 'Title',
-        },
-        readOnly: false,
-        required: false,
-      },
-      {
-        id: 'field4',
-        type: 'Input',
-        dataModelBindings: {
-          simpleBinding: 'Group.Group2.group2prop',
-        },
-        textResourceBindings: {
-          title: 'Title',
-        },
-        readOnly: false,
-        required: false,
-      },
-    ];
   });
 
   describe('getKeyIndex', () => {
@@ -307,46 +228,6 @@ describe('utils/databindings.ts', () => {
         someOtherField: 'someOtherValue',
       };
       expect(mapFormData(formData, mapping as any)).toEqual(formData);
-    });
-  });
-
-  describe('filterOutInvalidData', () => {
-    it('should remove keys listed in the invalidKeys object', () => {
-      const formData = {
-        field1: 'value1',
-        'group[0].field': 'someValue',
-        'group[1].field': 'another value',
-      };
-      const result = filterOutInvalidData({
-        data: formData,
-        invalidKeys: ['group[0].field'],
-      });
-
-      expect(result).toEqual({
-        field1: 'value1',
-        'group[1].field': 'another value',
-      });
-    });
-
-    [undefined, null].forEach((value) => {
-      it(`should not crash when invalidKeys is ${value}`, () => {
-        const formData = {
-          field1: 'value1',
-          'group[0].field': 'someValue',
-          'group[1].field': 'another value',
-        };
-
-        const result = filterOutInvalidData({
-          data: formData,
-          invalidKeys: value as any,
-        });
-
-        expect(result).toEqual({
-          field1: 'value1',
-          'group[0].field': 'someValue',
-          'group[1].field': 'another value',
-        });
-      });
     });
   });
 });

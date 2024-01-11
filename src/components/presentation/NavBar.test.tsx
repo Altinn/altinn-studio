@@ -4,8 +4,6 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
-import { getFormLayoutStateMock } from 'src/__mocks__/getFormLayoutStateMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { NavBar } from 'src/components/presentation/NavBar';
 import { mockWindow } from 'src/test/mockWindow';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -36,10 +34,6 @@ const render = async ({
 }: RenderNavBarProps) => {
   await renderWithInstanceAndLayout({
     renderer: () => <NavBar type={type} />,
-    reduxState: {
-      ...getInitialStateMock(),
-      formLayout: getFormLayoutStateMock({}),
-    },
     initialPage,
     queries: {
       fetchAppLanguages: () =>
@@ -48,7 +42,6 @@ const render = async ({
       fetchLayoutSettings: () =>
         Promise.resolve({ pages: { hideCloseButton, showLanguageSelector, order: ['1', '2', '3'] } }),
     },
-    reduxGateKeeper: (action) => 'type' in action && action.type === 'deprecated/setCurrentLanguage',
   });
 };
 

@@ -85,6 +85,10 @@ export abstract class CodeGenerator<T> {
     return this.internal.source?.containsVariationDifferences() || false;
   }
 
+  shouldUseParens(): boolean {
+    return false;
+  }
+
   abstract toJsonSchema(): JSONSchema7;
   abstract toTypeScript(): string;
 }

@@ -1,36 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { LegacyTextField } from '@digdir/design-system-react';
 
 import { Label } from 'src/components/form/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
+import { ComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
+import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
+import { hasValidationErrors } from 'src/features/validation/utils';
+import { usePostPlaceQuery } from 'src/hooks/queries/usePostPlaceQuery';
+import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import classes from 'src/layout/Address/AddressComponent.module.css';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IDataModelBindingsForAddressInternal } from 'src/layout/Address/config.generated';
 
 export type IAddressComponentProps = PropsFromGenericComponent<'AddressComponent'>;
 
-type AddressKey = keyof IDataModelBindingsForAddressInternal;
-
 export function AddressComponent({ node }: IAddressComponentProps) {
   const { id, required, readOnly, labelSettings, simplified, saveWhileTyping } = node.item;
+
+  const bindingValidations = useBindingValidationsForNode(node);
+  const componentValidations = useComponentValidationsForNode(node);
 
   const bindings = ('dataModelBindings' in node.item && node.item.dataModelBindings) || {};
   const saveData = FD.useSetForBindings(bindings, saveWhileTyping);
   const debounce = FD.useDebounceImmediately();
   const { address, careOf, postPlace, zipCode, houseNumber } = FD.usePickFreshStrings(bindings);
 
-  const onSaveField = React.useCallback(
-    (key: AddressKey, value: any) => {
-      saveData(key, value);
-      if (key === 'zipCode' && !value) {
-        // if we are removing a zip code, also remove post place from form data
-        saveData('postPlace', '');
-      }
-    },
-    [saveData],
-  );
+  const updatePostPlace = useEffectEvent((newPostPlace) => {
+    if (newPostPlace != null && newPostPlace != postPlace) {
+      saveData('postPlace', newPostPlace);
+    }
+  });
+  const postPlaceQueryData = usePostPlaceQuery(zipCode, !hasValidationErrors(bindingValidations?.zipCode));
+  useEffect(() => updatePostPlace(postPlaceQueryData), [postPlaceQueryData, updatePostPlace]);
 
   return (
     <div
@@ -48,13 +51,17 @@ export function AddressComponent({ node }: IAddressComponentProps) {
         />
         <LegacyTextField
           id={`address_address_${id}`}
-          isValid={true} // TODO: Fix in validation rewrite
+          isValid={!hasValidationErrors(bindingValidations?.address)}
           value={address}
           onChange={(ev) => saveData('address', ev.target.value)}
           onBlur={debounce}
           readOnly={readOnly}
           required={required}
           autoComplete={simplified ? 'street-address' : 'address-line1'}
+        />
+        <ComponentValidations
+          validations={bindingValidations?.address}
+          node={node}
         />
       </div>
 
@@ -70,12 +77,16 @@ export function AddressComponent({ node }: IAddressComponentProps) {
           />
           <LegacyTextField
             id={`address_care_of_${id}`}
-            isValid={true} // TODO: Fix in validation rewrite
+            isValid={!hasValidationErrors(bindingValidations?.careOf)}
             value={careOf}
             onChange={(ev) => saveData('careOf', ev.target.value)}
             onBlur={debounce}
             readOnly={readOnly}
             autoComplete='address-line2'
+          />
+          <ComponentValidations
+            validations={bindingValidations?.careOf}
+            node={node}
           />
         </div>
       )}
@@ -93,9 +104,9 @@ export function AddressComponent({ node }: IAddressComponentProps) {
           <div className={classes.addressComponentSmallInputs}>
             <LegacyTextField
               id={`address_zip_code_${id}`}
-              isValid={true} // TODO: Fix in validation rewrite
+              isValid={!hasValidationErrors(bindingValidations?.zipCode)}
               value={zipCode}
-              onChange={(ev) => onSaveField('zipCode', ev.target.value)}
+              onChange={(ev) => saveData('zipCode', ev.target.value)}
               onBlur={debounce}
               readOnly={readOnly}
               required={required}
@@ -116,13 +127,21 @@ export function AddressComponent({ node }: IAddressComponentProps) {
           />
           <LegacyTextField
             id={`address_post_place_${id}`}
-            isValid={true} // TODO: Fix in validation rewrite
+            isValid={!hasValidationErrors(bindingValidations?.postPlace)}
             value={postPlace}
             readOnly={true}
             required={required}
             autoComplete='address-level1'
           />
         </div>
+        <ComponentValidations
+          validations={bindingValidations?.zipCode}
+          node={node}
+        />
+        <ComponentValidations
+          validations={bindingValidations?.postPlace}
+          node={node}
+        />
       </div>
 
       {!simplified && (
@@ -141,7 +160,7 @@ export function AddressComponent({ node }: IAddressComponentProps) {
           <div className={classes.addressComponentSmallInputs}>
             <LegacyTextField
               id={`address_house_number_${id}`}
-              isValid={true} // TODO: Fix in validation rewrite
+              isValid={!hasValidationErrors(bindingValidations?.houseNumber)}
               value={houseNumber}
               onChange={(ev) => saveData('houseNumber', ev.target.value)}
               onBlur={debounce}
@@ -149,8 +168,17 @@ export function AddressComponent({ node }: IAddressComponentProps) {
               autoComplete='address-line3'
             />
           </div>
+          <ComponentValidations
+            validations={bindingValidations?.houseNumber}
+            node={node}
+          />
         </div>
       )}
+
+      <ComponentValidations
+        validations={componentValidations}
+        node={node}
+      />
     </div>
   );
 }

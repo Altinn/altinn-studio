@@ -18,7 +18,7 @@ interface TheCommonFourProps extends TheCommonThreeProps {
 
 interface GetDataTypeByLayoutSetIdProps {
   layoutSetId: string | undefined;
-  layoutSets: ILayoutSets;
+  layoutSets: Omit<ILayoutSets, 'uiSettings'>;
   appMetaData: IApplicationMetadata;
 }
 
@@ -137,11 +137,6 @@ export function isStatelessApp(application: IApplicationMetadata) {
   }
   const show = application.onEntry?.show;
   return typeof show === 'string' && !onEntryValuesThatHaveState.includes(show);
-}
-
-export function useIsStatelessApp() {
-  const application = useApplicationMetadata();
-  return isStatelessApp(application);
 }
 
 export const getCurrentTaskDataElementId = (props: TheCommonFourProps) => {

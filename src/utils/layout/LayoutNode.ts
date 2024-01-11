@@ -4,7 +4,6 @@ import { getLayoutComponentObject } from 'src/layout';
 import { convertDataBindingToModel } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { runValidationOnNodes } from 'src/utils/validation/validation';
 import type { CompClassMap } from 'src/layout';
 import type { CompCategory } from 'src/layout/common';
 import type { ComponentTypeConfigs } from 'src/layout/components.generated';
@@ -20,14 +19,6 @@ import type {
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
-import type {
-  IComponentBindingValidation,
-  IComponentValidations,
-  IValidationObject,
-  ValidationContextGenerator,
-  ValidationKeyOrAny,
-} from 'src/utils/validation/types';
-import type { IValidationOptions } from 'src/utils/validation/validation';
 
 export interface IsHiddenOptions {
   respectLegacy?: boolean;
@@ -167,7 +158,7 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
     const { respectLegacy = true, respectDevTools = true, respectTracks = false } = options;
 
     const hiddenList = respectLegacy ? this.dataSources.hiddenFields : new Set();
-    if (respectDevTools && this.dataSources.devTools.isOpen && this.dataSources.devTools.hiddenComponents !== 'hide') {
+    if (respectDevTools && this.dataSources.devToolsIsOpen && this.dataSources.devToolsHiddenComponents !== 'hide') {
       return false;
     }
 
@@ -214,7 +205,7 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
     if (
       respectTracks &&
       this.parent instanceof LayoutPage &&
-      this.parent.isHiddenViaTracks(this.dataSources.uiConfig)
+      this.parent.isHiddenViaTracks(this.dataSources.layoutSettings, this.dataSources.pageNavigationConfig)
     ) {
       return true;
     }
@@ -266,93 +257,6 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
   }
 
   /**
-   * Returns all the current validations for this node. There will be different validations per binding.
-   */
-  public getValidations(binding: string): IComponentBindingValidation;
-  public getValidations(binding?: undefined): IComponentValidations;
-  public getValidations(binding?: string): IComponentBindingValidation | IComponentValidations {
-    const pageKey = this.pageKey();
-    const page = this.dataSources.validations[pageKey] || {};
-    const component = page[this.item.id] || {};
-
-    if (binding) {
-      return component[binding] || {};
-    }
-
-    return component;
-  }
-
-  /**
-   * Returns all the current validations for this node, regardless of the data binding.
-   */
-  public getUnifiedValidations(): IComponentBindingValidation {
-    const out: IComponentBindingValidation = {};
-    const validations = this.getValidations();
-    for (const bindingKey of Object.keys(validations)) {
-      const binding = validations[bindingKey] || {};
-      for (const type of Object.keys(binding) as (keyof IComponentBindingValidation)[]) {
-        const messages = binding[type] || [];
-        if (!messages.length) {
-          continue;
-        }
-        if (type in out && Array.isArray(out[type])) {
-          out[type]?.push(...messages);
-        } else {
-          out[type] = [...messages];
-        }
-      }
-    }
-
-    return out;
-  }
-
-  /**
-   * Get specific validation messages (either unified, from all data model bindings, or from a specific one)
-   */
-  public getValidationMessages(type: ValidationKeyOrAny, bindingKey?: string): string[] {
-    if (bindingKey) {
-      const validations = this.getValidations();
-      const binding = validations[bindingKey] || {};
-      return this.typeFromValidations(binding, type);
-    }
-
-    const validations = this.getUnifiedValidations();
-    return this.typeFromValidations(validations, type);
-  }
-
-  /**
-   * Checks if there are any validation messages for a given type
-   */
-  public hasValidationMessages(type: ValidationKeyOrAny = 'errors'): boolean {
-    return this.getValidationMessages(type).length > 0;
-  }
-
-  /**
-   * Speciality function to check if the component (or possibly any of its child components) has validation any errors
-   */
-  public hasDeepValidationMessages(type: ValidationKeyOrAny = 'errors'): boolean {
-    const thisHasMessages = this.hasValidationMessages(type);
-    const childrenHasMessages =
-      this.children()
-        .map((n) => n.hasDeepValidationMessages(type))
-        .find((b) => b) || false;
-
-    return thisHasMessages || childrenHasMessages;
-  }
-
-  private typeFromValidations(validations: IComponentBindingValidation, type: ValidationKeyOrAny): string[] {
-    if (type === 'any') {
-      const out: string[] = [];
-      for (const key of Object.keys(validations)) {
-        out.push(...(validations[key] || []));
-      }
-      return out;
-    }
-
-    return validations[type] || [];
-  }
-
-  /**
    * Gets the current form data for this component
    */
   public getFormData(): IComponentFormData<Type> {
@@ -394,16 +298,6 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
 
   public getDataSources(): HierarchyDataSources {
     return this.dataSources;
-  }
-
-  /**
-   * Runs frontend validations for this node and returns an array of IValidationObject
-   */
-  runValidations(
-    validationCtxGenerator: ValidationContextGenerator,
-    options?: IValidationOptions,
-  ): IValidationObject[] {
-    return runValidationOnNodes([this as LayoutNode], validationCtxGenerator, options);
   }
 }
 

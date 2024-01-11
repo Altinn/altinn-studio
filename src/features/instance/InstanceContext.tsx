@@ -10,8 +10,6 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { IInstance } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -81,8 +79,6 @@ const InnerInstanceProvider = ({
   partyId: string;
   instanceGuid: string;
 }) => {
-  const reduxDispatch = useAppDispatch();
-
   const [forceFetching, setForceFetching] = useState(false);
   const [data, setData] = useState<IInstance | undefined>(undefined);
   const [error, setError] = useState<AxiosError | undefined>(undefined);
@@ -92,19 +88,15 @@ const InnerInstanceProvider = ({
   const fetchEnabled = forceFetching || !instantiation.lastResult;
   const fetchQuery = useGetInstanceDataQuery(fetchEnabled, partyId, instanceGuid);
 
-  const changeData: ChangeInstanceData = useCallback(
-    (callback) => {
-      setData((prev) => {
-        const next = callback(prev);
-        if (next) {
-          reduxDispatch(DeprecatedActions.setLastKnownInstance(next));
-          return next;
-        }
-        return prev;
-      });
-    },
-    [reduxDispatch],
-  );
+  const changeData: ChangeInstanceData = useCallback((callback) => {
+    setData((prev) => {
+      const next = callback(prev);
+      if (next) {
+        return next;
+      }
+      return prev;
+    });
+  }, []);
 
   // Update data
   useEffect(() => {

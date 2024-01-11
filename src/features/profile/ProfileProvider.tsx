@@ -6,14 +6,11 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useSetCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { ProfileActions } from 'src/features/profile/profileSlice';
 import { useAllowAnonymousIs } from 'src/features/stateless/getAllowAnonymous';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { IProfile } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const useProfileQuery = () => {
-  const dispatch = useAppDispatch();
   const enabled = useShouldFetchProfile();
   const { updateProfile } = useSetCurrentLanguage();
 
@@ -22,9 +19,6 @@ const useProfileQuery = () => {
     enabled,
     queryKey: ['fetchUserProfile'],
     queryFn: () => fetchUserProfile(),
-    onSuccess: (profile) => {
-      dispatch(ProfileActions.fetchFulfilled({ profile }));
-    },
     onError: (error: HttpClientError) => {
       window.logError('Fetching user profile failed:\n', error);
     },

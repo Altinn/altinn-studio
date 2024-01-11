@@ -2,29 +2,27 @@ import React, { useCallback, useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { OpenDevToolsButton } from 'src/features/devtools/components/OpenDevToolsButton/OpenDevToolsButton';
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsPanel } from 'src/features/devtools/DevToolsPanel';
 import { useLayoutValidation } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useIsDev } from 'src/hooks/useIsDev';
 
 export const DevTools = ({ children }: PropsWithChildren) => {
   const isDev = useIsDev();
-  const panelOpen = useAppSelector((state) => state.devTools.isOpen);
-  const dispatch = useAppDispatch();
+  const panelOpen = useDevToolsStore((state) => state.isOpen);
+  const { open: openPanel, close: closePanel } = useDevToolsStore((state) => state.actions);
 
   useLayoutValidation();
 
   const setPanelOpen = useCallback(
     (open: boolean) => {
       if (open) {
-        dispatch(DevToolsActions.open());
+        openPanel();
       } else {
-        dispatch(DevToolsActions.close());
+        closePanel();
       }
     },
-    [dispatch],
+    [closePanel, openPanel],
   );
 
   useEffect(() => {

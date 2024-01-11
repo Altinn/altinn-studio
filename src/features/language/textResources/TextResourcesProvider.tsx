@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-
 import type { AxiosError } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
@@ -8,10 +6,8 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
-import { TextResourcesActions } from 'src/features/language/textResources/textResourcesSlice';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useAllowAnonymousIs } from 'src/features/stateless/getAllowAnonymous';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
 
 const convertResult = (result: ITextResourceResult): TextResourceMap => {
@@ -20,7 +16,6 @@ const convertResult = (result: ITextResourceResult): TextResourceMap => {
 };
 
 const useTextResourcesQuery = () => {
-  const dispatch = useAppDispatch();
   const { fetchTextResources } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
 
@@ -29,7 +24,7 @@ const useTextResourcesQuery = () => {
   const isAnonymous = useAllowAnonymousIs(true);
   const enabled = isAnonymous || profile !== undefined;
 
-  const utils = {
+  return {
     ...useQueryWithStaleData({
       enabled,
       queryKey: ['fetchTextResources', selectedLanguage],
@@ -40,14 +35,6 @@ const useTextResourcesQuery = () => {
     }),
     enabled,
   };
-
-  useEffect(() => {
-    if (utils.data) {
-      dispatch(TextResourcesActions.fetchFulfilled({ resources: utils.data.resources, language: utils.data.language }));
-    }
-  }, [dispatch, utils.data]);
-
-  return utils;
 };
 
 const { Provider, useCtx, useHasProvider } = delayedContext(() =>

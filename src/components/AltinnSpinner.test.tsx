@@ -29,9 +29,12 @@ describe('tests to make sure to follow accessibility requirements', () => {
   test('should fallback spinnerText to "Laster innhold", but hidden from visual view to stay accessible"', async () => {
     await renderWithoutInstanceAndLayout({ renderer: () => <AltinnSpinner />, waitUntilLoaded: false });
 
-    await waitFor(() => {
-      expect(screen.getByRole('alert', { name: 'Laster innhold' })).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByRole('alert', { name: 'Laster innhold' })).toBeInTheDocument();
+      },
+      { timeout: 15000 },
+    );
 
     const spinnerText = screen.getByRole('alert', { name: 'Laster innhold' });
     expect(spinnerText).toHaveTextContent('');

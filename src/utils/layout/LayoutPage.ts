@@ -1,10 +1,9 @@
-import { runValidationOnNodes } from 'src/utils/validation/validation';
+import type { PageNavigationConfig } from 'src/features/expressions/ExprContext';
+import type { ILayoutSettings } from 'src/layout/common.generated';
 import type { CompExceptGroup, CompInternal } from 'src/layout/layout';
-import type { IUiConfig } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
-import type { IValidationObject, ValidationContextGenerator } from 'src/utils/validation/types';
 
 /**
  * The layout page is a class containing an entire page/form layout, with all components/nodes within it. It
@@ -134,34 +133,25 @@ export class LayoutPage implements LayoutObject {
     };
   }
 
-  /**
-   * Runs frontend validations for all nodes in the layout, and returns an array of IValidationObject.
-   */
-  public runValidations(validationCtxGenerator: ValidationContextGenerator): IValidationObject[] {
-    return runValidationOnNodes(this.allChildren, validationCtxGenerator);
-  }
-
-  public isHiddenViaTracks(
-    uiConfig: Pick<IUiConfig, 'currentView' | 'receiptLayoutName' | 'pdfLayoutName' | 'pageOrderConfig'>,
-  ): boolean {
+  public isHiddenViaTracks(layoutSettings: ILayoutSettings, pageNavigationConfig: PageNavigationConfig): boolean {
     const myKey = this.top.myKey;
-    if (myKey === uiConfig.currentView) {
+    if (myKey === pageNavigationConfig.currentView) {
       // If this is the current view, then it's never hidden. This avoids settings fields as hidden when
       // code caused this to be the current view even if it's not in the common order.
       return false;
     }
 
-    if (myKey === uiConfig.receiptLayoutName) {
+    if (layoutSettings.receiptLayoutName && myKey === layoutSettings.receiptLayoutName) {
       // If this is the custom receipt layout, then it's never hidden.
       return false;
     }
 
-    if (myKey === uiConfig.pdfLayoutName) {
+    if (layoutSettings.pages.pdfLayoutName && myKey === layoutSettings.pages.pdfLayoutName) {
       // If this is the pdf layout, then it's never hidden.
       return false;
     }
 
-    const { order } = uiConfig.pageOrderConfig || {};
+    const { order } = pageNavigationConfig;
     if (!order) {
       // If no pageOrderConfig is provided, then we can't determine if this is hidden or not
       return false;

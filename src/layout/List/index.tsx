@@ -1,16 +1,18 @@
 import React from 'react';
 import type { JSX } from 'react';
 
+import dot from 'dot-object';
+
+import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { ListDef } from 'src/layout/List/config.def.generated';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { getFieldName } from 'src/utils/formComponentUtils';
-import { buildValidationObject } from 'src/utils/validation/validationHelpers';
+import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
+import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
 export class List extends ListDef {
   render(props: PropsFromGenericComponent<'List'>): JSX.Element | null {
@@ -34,32 +36,49 @@ export class List extends ListDef {
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  runEmptyFieldValidation(node: LayoutNode<'List'>, { formData, langTools }: IValidationContext): IValidationObject[] {
-    if (node.isHidden() || !node.item.required) {
+  runEmptyFieldValidation(node: LayoutNode<'List'>, { formData }: ValidationDataSources): ComponentValidation[] {
+    if (!node.item.required || !node.item.dataModelBindings) {
       return [];
     }
 
-    const { langAsNonProcessedString } = langTools;
+    const fields = Object.values(node.item.dataModelBindings);
+
+    const validations: ComponentValidation[] = [];
+
     const textResourceBindings = node.item.textResourceBindings;
-    const validationObjects: IValidationObject[] = [];
 
-    const bindings = Object.values(node.item.dataModelBindings ?? {});
     let listHasErrors = false;
-    for (const field of bindings) {
-      const data = formData[field as string];
+    for (const field of fields) {
+      const data = dot.pick(field, formData);
+      const dataAsString =
+        typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : undefined;
 
-      if (!data?.length) {
+      if (!dataAsString?.length) {
         listHasErrors = true;
       }
     }
     if (listHasErrors) {
-      const fieldName = getFieldName(node.item.textResourceBindings, langTools, undefined);
-      const message = textResourceBindings?.requiredValidation
-        ? langAsNonProcessedString(textResourceBindings?.requiredValidation, [fieldName])
-        : langAsNonProcessedString('form_filler.error_required', [fieldName]);
-      validationObjects.push(buildValidationObject(node, 'errors', message));
+      const key = textResourceBindings?.requiredValidation
+        ? textResourceBindings?.requiredValidation
+        : 'form_filler.error_required';
+
+      const fieldNameReference = {
+        key: getFieldNameKey(node.item.textResourceBindings, undefined),
+        makeLowerCase: true,
+      };
+
+      validations.push({
+        message: {
+          key,
+          params: [fieldNameReference],
+        },
+        severity: 'error',
+        componentId: node.item.id,
+        group: FrontendValidationSource.EmptyField,
+        category: ValidationMask.Required,
+      });
     }
-    return validationObjects;
+    return validations;
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'List'>): string[] {

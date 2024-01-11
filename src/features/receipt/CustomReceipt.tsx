@@ -4,17 +4,18 @@ import Grid from '@material-ui/core/Grid';
 
 import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import classes from 'src/features/receipt/CustomReceipt.module.css';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { extractBottomButtons } from 'src/utils/formLayout';
 import { useNodes } from 'src/utils/layout/NodesContext';
-import { getFormHasErrors } from 'src/utils/validation/validation';
 
 export function CustomReceipt() {
-  const receiptLayoutName = useAppSelector((state) => state.formLayout.uiConfig.receiptLayoutName);
+  const receiptLayoutName = useLayoutSettings().receiptLayoutName;
   const page = useNodes()?.findLayout(receiptLayoutName);
-  const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
+  const { formErrors, taskErrors } = useTaskErrors();
+  const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
 
   const [mainNodes, errorReportNodes] = React.useMemo(() => {
     if (!page) {

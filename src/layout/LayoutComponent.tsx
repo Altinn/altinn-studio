@@ -1,26 +1,35 @@
 import React from 'react';
 
+import dot from 'dot-object';
 import type { ErrorObject } from 'ajv';
 import type { JSONSchema7 } from 'json-schema';
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
+import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { useDisplayDataProps } from 'src/hooks/useDisplayData';
 import { CompCategory } from 'src/layout/common';
-import {
-  type DisplayData,
-  type DisplayDataProps,
-  type EmptyFieldValidation,
-  type PropsFromGenericComponent,
-  type SchemaValidation,
-} from 'src/layout/index';
+import { runAllValidations } from 'src/layout/componentValidation';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
-import { getFieldName } from 'src/utils/formComponentUtils';
+import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import { SimpleComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
-import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { IFormData } from 'src/features/formData';
+import type {
+  ComponentValidation,
+  FieldValidation,
+  FormValidations,
+  ISchemaValidationError,
+  ValidationDataSources,
+} from 'src/features/validation';
+import type {
+  DisplayData,
+  DisplayDataProps,
+  PropsFromGenericComponent,
+  ValidateAny,
+  ValidateEmptyField,
+  ValidateSchema,
+} from 'src/layout/index';
 import type {
   CompExternalExact,
   CompInternal,
@@ -32,8 +41,6 @@ import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
-import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
 const defaultGenerator = new SimpleComponentHierarchyGenerator();
 
@@ -288,57 +295,69 @@ export abstract class ActionComponent<Type extends CompTypes> extends AnyCompone
 
 export abstract class FormComponent<Type extends CompTypes>
   extends _FormComponent<Type>
-  implements EmptyFieldValidation, SchemaValidation
+  implements ValidateAny, ValidateEmptyField, ValidateSchema
 {
   readonly type = CompCategory.Form;
 
-  runEmptyFieldValidation(
-    node: LayoutNode<Type>,
-    { formData, langTools }: IValidationContext,
-    overrideFormData?: IFormData,
-  ): IValidationObject[] {
-    if (!('required' in node.item) || !node.item.required) {
-      return [];
-    }
-    const { langAsNonProcessedString } = langTools;
-
-    const formDataToValidate = { ...formData, ...overrideFormData };
-    const validationObjects: IValidationObject[] = [];
-
-    const bindings = Object.entries(node.item.dataModelBindings || {});
-    for (const [bindingKey, _field] of bindings) {
-      const field = _field as string;
-      const data = formDataToValidate[field];
-      const trb: ITextResourceBindings = 'textResourceBindings' in node.item ? node.item.textResourceBindings : {};
-
-      if (!data?.length) {
-        const fieldName = getFieldName(trb, langTools, bindingKey);
-        const errorMessage =
-          trb && 'requiredValidation' in trb && trb.requiredValidation
-            ? langAsNonProcessedString(trb?.requiredValidation, [fieldName])
-            : langAsNonProcessedString('form_filler.error_required', [fieldName]);
-
-        validationObjects.push(buildValidationObject(node, 'errors', errorMessage, bindingKey));
-      }
-    }
-    return validationObjects;
+  runValidations(
+    node: LayoutNode,
+    ctx: ValidationDataSources,
+    schemaErrors: ISchemaValidationError[],
+  ): FormValidations {
+    return runAllValidations(node, ctx, schemaErrors);
   }
 
-  runSchemaValidation(node: LayoutNode<Type>, schemaErrors: ISchemaValidationError[]): IValidationObject[] {
-    const validationObjects: IValidationObject[] = [];
-    for (const error of schemaErrors) {
-      if ('dataModelBindings' in node.item && node.item.dataModelBindings) {
-        const bindings = Object.entries(node.item.dataModelBindings);
-        for (const [bindingKey, bindingField] of bindings) {
-          if (bindingField === error.bindingField) {
-            validationObjects.push(
-              buildValidationObject(node, 'errors', error.message, bindingKey, error.invalidDataType),
-            );
+  runEmptyFieldValidation(node: LayoutNode<Type>, { formData }: ValidationDataSources): ComponentValidation[] {
+    if (!('required' in node.item) || !node.item.required || !node.item.dataModelBindings) {
+      return [];
+    }
+
+    const validations: ComponentValidation[] = [];
+
+    for (const [bindingKey, field] of Object.entries(node.item.dataModelBindings) as [string, string][]) {
+      const data = dot.pick(field, formData);
+      const asString =
+        typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : '';
+      const trb: ITextResourceBindings = 'textResourceBindings' in node.item ? node.item.textResourceBindings : {};
+
+      if (asString.length === 0) {
+        const key =
+          trb && 'requiredValidation' in trb && trb.requiredValidation
+            ? trb.requiredValidation
+            : 'form_filler.error_required';
+        const fieldReference = { key: getFieldNameKey(trb, bindingKey), makeLowerCase: true };
+
+        validations.push({
+          componentId: node.item.id,
+          group: FrontendValidationSource.EmptyField,
+          bindingKey,
+          message: { key, params: [fieldReference] },
+          severity: 'error',
+          category: ValidationMask.Required,
+        });
+      }
+    }
+    return validations;
+  }
+
+  runSchemaValidation(node: LayoutNode<Type>, schemaErrors: ISchemaValidationError[]): FieldValidation[] {
+    const validations: FieldValidation[] = [];
+    if ('dataModelBindings' in node.item && node.item.dataModelBindings) {
+      for (const field of Object.values(node.item.dataModelBindings)) {
+        for (const error of schemaErrors) {
+          if (field === error.bindingField) {
+            validations.push({
+              field,
+              group: FrontendValidationSource.Schema,
+              message: error.message,
+              severity: 'error',
+              category: ValidationMask.Schema,
+            });
           }
         }
       }
     }
-    return validationObjects;
+    return validations;
   }
 }
 

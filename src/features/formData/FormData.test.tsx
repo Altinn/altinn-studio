@@ -14,8 +14,8 @@ import { LayoutSettingsProvider } from 'src/features/form/layoutSettings/LayoutS
 import { RulesProvider } from 'src/features/form/rules/RulesContext';
 import { FormDataReadWriteProvider } from 'src/features/formData/FormDataReadWrite';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { FormDataWriteGatekeepersProvider } from 'src/features/formData/FormDataWriteGatekeepers';
-import { makeDefaultFormDataMethodMocks, renderWithMinimalProviders } from 'src/test/renderWithProviders';
+import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
+import { makeFormDataMethodProxies, renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
 interface DataModelFlat {
   'obj1.prop1': string;
@@ -53,11 +53,13 @@ function NavigateBackButton() {
 }
 
 async function genericRender(props: Partial<Parameters<typeof renderWithMinimalProviders>[0]> = {}) {
-  const formDataMethods = makeDefaultFormDataMethodMocks();
+  const initialRenderRef = { current: true };
+  const { mocks: formDataMethods, proxies: formDataProxies } = makeFormDataMethodProxies(initialRenderRef);
   return {
     formDataMethods,
     ...(await renderWithMinimalProviders({
       ...props,
+      initialRenderRef,
       router: ({ children }: PropsWithChildren) => (
         <MemoryRouter>
           <Routes>
@@ -84,9 +86,9 @@ async function genericRender(props: Partial<Parameters<typeof renderWithMinimalP
               <LayoutSettingsProvider>
                 <DynamicsProvider>
                   <RulesProvider>
-                    <FormDataWriteGatekeepersProvider value={formDataMethods}>
+                    <FormDataWriteProxyProvider value={formDataProxies}>
                       <FormDataReadWriteProvider>{props.renderer && props.renderer()}</FormDataReadWriteProvider>
-                    </FormDataWriteGatekeepersProvider>
+                    </FormDataWriteProxyProvider>
                   </RulesProvider>
                 </DynamicsProvider>
               </LayoutSettingsProvider>

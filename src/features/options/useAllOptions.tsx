@@ -7,9 +7,6 @@ import { createContext } from 'src/core/contexts/context';
 import { Loader } from 'src/core/loading/Loader';
 import { useLaxProcessData, useRealTaskType } from 'src/features/instance/ProcessContext';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
-import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import { ProcessTaskType } from 'src/types';
 import { useNodes } from 'src/utils/layout/NodesContext';
 import type { IOption } from 'src/layout/common.generated';
@@ -125,21 +122,12 @@ export function AllOptionsStoreProvider({ children }: PropsWithChildren) {
 export function AllOptionsProvider({ children }: PropsWithChildren) {
   const nodes = useNodes();
   const currentTaskType = useRealTaskType();
-  const reduxDispatch = useAppDispatch();
   const { state, dispatch } = useCtx();
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
 
   useEffect(() => {
     dispatch({ type: 'setCurrentTask', currentTaskId });
   }, [currentTaskId, dispatch]);
-
-  const finishedResult = useMemoDeepEqual(() => (state.allInitiallyLoaded ? state.nodes : undefined), [state]);
-  useEffect(() => {
-    if (finishedResult) {
-      // Update the global as well, so that we can use it in expressions
-      reduxDispatch(DeprecatedActions.setAllOptions(finishedResult));
-    }
-  }, [reduxDispatch, finishedResult]);
 
   useEffect(() => {
     const nodesFound: string[] = [];

@@ -9,7 +9,7 @@ describe('Expression validation', () => {
     cy.startAppInstance(appFrontend.apps.expressionValidationTest);
   });
 
-  it.skip('should show validation messages', () => {
+  it('should show validation messages', () => {
     cy.findByRole('textbox', { name: /fornavn/i }).type('Per');
     cy.findByRole('textbox', { name: /etternavn/i }).type('Hansen');
 
@@ -57,7 +57,7 @@ describe('Expression validation', () => {
     cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
-  it.skip('should ignore hidden fields', () => {
+  it('should ignore hidden fields', () => {
     cy.findByRole('textbox', { name: /alder/i }).type('16');
     cy.findByRole('textbox', { name: /e-post/i }).type('test@test.test');
     cy.findByRole('textbox', { name: /telefonnummer/i }).type('45612378');
@@ -95,7 +95,7 @@ describe('Expression validation', () => {
     cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
-  it.skip('should show validation messages for repeating groups', () => {
+  it('should show validation messages for repeating groups', () => {
     cy.gotoNavPage('Skjul felter');
 
     cy.findByRole('checkbox', { name: /fornavn/i }).dsCheck();
@@ -155,11 +155,11 @@ describe('Expression validation', () => {
     cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
-  it.skip('should work with hiddenRow', () => {
+  it('should work with hiddenRow', () => {
     // Ability to save group row with errors
     cy.interceptLayout('skjema', (c) => {
       if (c.type === 'Group') {
-        (c as any).triggers = undefined;
+        (c as any).validateOnSaveRow = undefined;
       }
     });
 

@@ -37,6 +37,7 @@ export class AppFrontend {
   public logOut = '#logout-menu-item';
   public logOutLink = 'a[href$="/ui/authentication/LogOut"]';
   public printButton = 'button:contains("Print / Lagre PDF")';
+  public toast = '[role="alert"][class^="Toast"]';
 
   public helpText = {
     button: 'button[class^="fds-helptext"]',
@@ -116,8 +117,8 @@ export class AppFrontend {
 
   public feedback = '#FeedbackContainer';
 
-  public fieldValidation(field: string, errorType: 'error' | 'warning' | 'info' | 'success' = 'error') {
-    return `[id^="${errorType}_${field.replace(/^#/, '')}"]`;
+  public fieldValidation(field: string) {
+    return `[data-validation="${field.replace(/^#/, '')}"]`;
   }
 
   //selectors for ttd/frontend-test app
@@ -156,7 +157,7 @@ export class AppFrontend {
       tagsDropDown: 'input[id^="attachment-tag-dropdown"]',
       saveTag: '[id^="attachment-save-tag-button"]',
       uploaded: '#tagFile',
-      error: '[id^="attachment-error"]',
+      error: '[data-componentid="fileUploadWithTags-changename"] [data-validation]',
       unwantedChar: String.fromCharCode(31),
     },
     reasonRelationship: '#reasonRelationship',
@@ -193,7 +194,7 @@ export class AppFrontend {
     secondGroup_add: '[id^="add-button-group2"]',
     secondGroup_add_to_reference_group: '[id^="add-reference-button-group-reference"]',
     secondGroup_save: '[id^="save-reference-button-group-reference"]',
-    secondGroup_save_and_close: '[id^="add-button-grp-group2"]',
+    secondGroup_save_and_close: '[id^="save-button-group2"]',
     secondGroup_table: '[id^="group-group2-table"]',
     subGroup: '[id^="group-subGroup"]',
     currentValue: 'input[id^="currentValue"]',
@@ -203,8 +204,8 @@ export class AppFrontend {
     addNewItem: '[id^="add-button-mainGroup"]',
     addNewItemSubGroup: '[id*="add-button-subGroup"]',
     comments: 'input[id^="comments"]',
-    saveSubGroup: 'button[id*="add-button-grp-subGroup"]',
-    saveMainGroup: '#add-button-grp-mainGroup',
+    saveSubGroup: 'button[id*="save-button-subGroup"]',
+    saveMainGroup: '#save-button-mainGroup',
     saveAndNextMainGroup: '#next-button-grp-mainGroup',
     editContainer: '[data-testid=group-edit-container]',
     sendersName: '#sendersName',
@@ -215,7 +216,6 @@ export class AppFrontend {
     mainGroupTableBody: '#group-mainGroup-table-body',
     options: '#reduxOptions',
     hideRepeatingGroupRow: '#hideRepeatingGroupRow',
-    tableErrors: '#error_mainGroup',
     popOverDeleteButton: '[data-testid="warning-popover-delete-button"]',
     popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
     edit: '[data-testid=edit-button]',
@@ -244,7 +244,7 @@ export class AppFrontend {
           deleteBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:last-of-type button`,
         }),
         groupContainer: `#group-subGroup-${idx}`,
-        saveBtn: `#add-button-grp-subGroup-${idx}`,
+        saveBtn: `#save-button-subGroup-${idx}`,
       },
     }),
   };

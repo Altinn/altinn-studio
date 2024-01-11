@@ -1,7 +1,6 @@
 import type React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { AsciiUnitSeparator } from 'src/layout/FileUpload/utils/asciiUnitSeparator';
 import printStyles from 'src/styles/print.module.css';
 import type { IAttachment } from 'src/features/attachments';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
@@ -14,7 +13,6 @@ import type {
 import type { CompInternal, CompTypes, IDataModelBindings, ITextResourceBindings } from 'src/layout/layout';
 import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { IComponentValidations } from 'src/utils/validation/types';
 
 export type BindingToValues<B extends IDataModelBindings | undefined> = B extends undefined
   ? { [key: string]: undefined }
@@ -23,90 +21,6 @@ export type BindingToValues<B extends IDataModelBindings | undefined> = B extend
     : { [key in keyof B]: string | undefined };
 
 export type IComponentFormData<T extends CompTypes> = BindingToValues<CompInternal<T>['dataModelBindings']>;
-
-export function getFileUploadComponentValidations(
-  validationError: 'upload' | 'update' | 'delete' | null,
-  langTools: IUseLanguage,
-  attachmentId?: string,
-): IComponentValidations {
-  const { langAsNonProcessedString } = langTools;
-  const lang = langAsNonProcessedString;
-  const componentValidations: any = {
-    simpleBinding: {
-      errors: [],
-      warnings: [],
-    },
-  };
-  if (validationError === 'upload') {
-    componentValidations.simpleBinding.errors.push(lang('form_filler.file_uploader_validation_error_upload'));
-  } else if (validationError === 'update') {
-    if (attachmentId === undefined || attachmentId === '') {
-      componentValidations.simpleBinding.errors.push(lang('form_filler.file_uploader_validation_error_update'));
-    } else {
-      componentValidations.simpleBinding.errors.push(
-        // If validation has attachmentId, add to start of message and seperate using ASCII Universal Seperator
-        attachmentId + AsciiUnitSeparator + lang('form_filler.file_uploader_validation_error_update'),
-      );
-    }
-  } else if (validationError === 'delete') {
-    componentValidations.simpleBinding.errors.push(lang('form_filler.file_uploader_validation_error_delete'));
-  }
-  return componentValidations;
-}
-
-export function getFileUploadWithTagComponentValidations(
-  componentValidations: IComponentValidations | undefined,
-  validationState: Array<{ id: string; message: string }>,
-): {
-  attachmentValidationMessages: Array<{ id: string; message: string }>;
-  hasValidationMessages: boolean;
-  validationMessages: { errors: string[] };
-} {
-  let result: Array<{ id: string; message: string }> = [];
-  componentValidations = componentValidations && JSON.parse(JSON.stringify(componentValidations));
-  if (!componentValidations || !componentValidations.simpleBinding) {
-    componentValidations = {
-      simpleBinding: {
-        errors: [],
-        warnings: [],
-      },
-    };
-  }
-  if (componentValidations?.simpleBinding?.errors && componentValidations.simpleBinding.errors.length > 0) {
-    result = [...result, ...parseFileUploadComponentWithTagValidationObject(componentValidations.simpleBinding.errors)];
-  }
-  result = [...result, ...validationState];
-
-  return {
-    attachmentValidationMessages: result.filter(isAttachmentError),
-    hasValidationMessages: result.some((validation) => isNotAttachmentError(validation)),
-    validationMessages: {
-      errors: result.filter(isNotAttachmentError).map((el) => el.message),
-    },
-  };
-}
-
-export const parseFileUploadComponentWithTagValidationObject = (
-  validationArray: string[],
-): Array<{ id: string; message: string }> => {
-  if (validationArray === undefined || validationArray.length === 0) {
-    return [];
-  }
-  const obj: Array<{ id: string; message: string }> = [];
-  validationArray.forEach((validation) => {
-    const val = validation.toString().split(AsciiUnitSeparator);
-    if (val.length === 2) {
-      obj.push({ id: val[0], message: val[1] });
-    } else {
-      obj.push({ id: '', message: validation });
-    }
-  });
-  return obj;
-};
-
-export const isAttachmentError = (error: { id: string | null; message: string }): boolean => !!error.id;
-
-export const isNotAttachmentError = (error: { id: string | null; message: string }): boolean => !error.id;
 
 export const atLeastOneTagExists = (attachments: IAttachment[]): boolean => {
   let totalTagCount = 0;
@@ -139,6 +53,22 @@ export function getFieldName(
   }
 
   return langAsString('validation.generic_field');
+}
+
+export function getFieldNameKey(textResourceBindings: ITextResourceBindings, fieldKey?: string): string | undefined {
+  if (fieldKey && fieldKey !== 'simpleBinding') {
+    return `form_filler.${fieldKey}`;
+  }
+
+  if (textResourceBindings && 'shortName' in textResourceBindings && textResourceBindings.shortName) {
+    return textResourceBindings.shortName;
+  }
+
+  if (textResourceBindings && 'title' in textResourceBindings && textResourceBindings.title) {
+    return textResourceBindings.title;
+  }
+
+  return 'validation.generic_field';
 }
 
 /**

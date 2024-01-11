@@ -5,6 +5,7 @@ import cn from 'classnames';
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsMobile } from 'src/hooks/useIsMobile';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -105,25 +106,41 @@ const NavigationButton = React.forwardRef(
 NavigationButton.displayName = 'NavigationButton';
 
 export const NavigationBarComponent = ({ node }: INavigationBar) => {
-  const { compact } = node.item;
+  const { compact, validateOnForward, validateOnBackward } = node.item;
   const classes = useStyles();
   const [showMenu, setShowMenu] = React.useState(false);
   const isMobile = useIsMobile() || compact === true;
   const { langAsString } = useLanguage();
-  const { navigateToPage, currentPageId, order } = useNavigatePage();
+  const { navigateToPage, currentPageId, order, maybeSaveOnPageChange } = useNavigatePage();
+  const onPageNavigationValidation = useOnPageNavigationValidation();
 
   const firstPageLink = React.useRef<HTMLButtonElement>();
 
-  const handleNavigationClick = (pageId: string) => {
+  const handleNavigationClick = async (pageId: string) => {
     setShowMenu(false);
-    if (pageId === currentPageId) {
+    const currentIndex = order.indexOf(currentPageId);
+    const newIndex = order.indexOf(pageId);
+
+    const isForward = newIndex > currentIndex && currentIndex !== -1;
+    const isBackward = newIndex < currentIndex && currentIndex !== -1;
+
+    if (pageId === currentPageId || newIndex === -1) {
       return;
     }
 
-    /**
-     * TODO(1508): Need to run validations
-     */
-    navigateToPage(pageId);
+    maybeSaveOnPageChange();
+
+    if (isForward && validateOnForward && (await onPageNavigationValidation(node.top, validateOnForward))) {
+      // Block navigation if validation fails
+      return;
+    }
+
+    if (isBackward && validateOnBackward && (await onPageNavigationValidation(node.top, validateOnBackward))) {
+      // Block navigation if validation fails
+      return;
+    }
+
+    navigateToPage(pageId, { skipAutoSave: true });
   };
 
   const shouldShowMenu = !isMobile || showMenu;

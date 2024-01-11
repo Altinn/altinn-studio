@@ -5,7 +5,7 @@ import path from 'node:path';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { ILayoutFileExternal, ILayoutSet, ILayoutSets } from 'src/layout/common.generated';
-import type { ILayouts } from 'src/layout/layout';
+import type { ILayoutCollection } from 'src/layout/layout';
 import type { IDataType } from 'src/types/shared';
 
 interface AppLayoutSet {
@@ -13,7 +13,7 @@ interface AppLayoutSet {
   appRoot: string;
   setName: string;
   set: ILayoutSet | undefined;
-  layouts: ILayouts;
+  layouts: ILayoutCollection;
   entireFiles: { [key: string]: unknown };
 }
 
@@ -64,13 +64,19 @@ export function getAllLayoutSets(dir: string): AppLayoutSet[] {
         continue;
       }
 
-      const layouts: ILayouts = {};
+      const layouts: ILayoutCollection = {};
       const entireFiles: { [key: string]: unknown } = {};
       for (const layoutFile of layoutFiles.filter((s) => s.endsWith('.json'))) {
         const basename = path.basename(layoutFile).replace('.json', '');
         const fileContent = fs.readFileSync(path.join(...setPath, layoutFile));
         const layoutContent = parseJsonTolerantly<ILayoutFileExternal>(fileContent.toString().trim());
-        layouts[basename] = cleanLayout(layoutContent.data.layout, false);
+        layouts[basename] = {
+          ...layoutContent,
+          data: {
+            ...layoutContent.data,
+            layout: cleanLayout(layoutContent.data.layout, false),
+          },
+        };
         entireFiles[basename] = layoutContent;
       }
 

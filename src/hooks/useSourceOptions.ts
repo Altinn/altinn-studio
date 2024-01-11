@@ -3,13 +3,12 @@ import { pick } from 'dot-object';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { asExpression } from 'src/features/expressions/validation';
-import { useLanguage } from 'src/features/language/useLanguage';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
-import { selectDataSourcesFromState } from 'src/utils/layout/hierarchy';
+import { useExpressionDataSources } from 'src/utils/layout/hierarchy';
+import { useHiddenComponents } from 'src/utils/layout/NodesContext';
 import { memoize } from 'src/utils/memoize';
 import type { IOption, IOptionSourceExternal } from 'src/layout/common.generated';
 import type { HierarchyDataSources } from 'src/layout/layout';
@@ -21,13 +20,8 @@ interface IUseSourceOptionsArgs {
 }
 
 export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOption[] | undefined => {
-  const dataSources = useAppSelector(selectDataSourcesFromState);
-  // Hack to make sure langTools use the correct text resources in unit tests (the ones from the query/context, not
-  // the ones from the redux store). Remove this when redux is removed.
-  const language = useLanguage();
-  if (window.inUnitTest) {
-    dataSources.langTools = language;
-  }
+  const hidden = useHiddenComponents();
+  const dataSources = useExpressionDataSources(hidden);
   const nodeAsRef = useAsRef(node);
 
   return useMemoDeepEqual(

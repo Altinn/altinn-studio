@@ -1,21 +1,19 @@
 import React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
+import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { attachmentIsMissingTag, attachmentsValid } from 'src/features/validation/utils';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
-import { AsciiUnitSeparator } from 'src/layout/FileUpload/utils/asciiUnitSeparator';
 import { FileUploadWithTagDef } from 'src/layout/FileUploadWithTag/config.def.generated';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { attachmentIsMissingTag, attachmentsValid } from 'src/utils/validation/validation';
-import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { IFormData } from 'src/features/formData';
-import type { ComponentValidation, DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
+import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
+import type { DisplayDataProps, PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
-export class FileUploadWithTag extends FileUploadWithTagDef implements ComponentValidation {
+export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateComponent {
   render(props: PropsFromGenericComponent<'FileUploadWithTag'>): JSX.Element | null {
     return <FileUploadComponent {...props} />;
   }
@@ -33,16 +31,16 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements Component
   }
 
   // This component does not have empty field validation, so has to override its inherited method
-  runEmptyFieldValidation(): IValidationObject[] {
+  runEmptyFieldValidation(): ComponentValidation[] {
     return [];
   }
 
   runComponentValidation(
     node: LayoutNode<'FileUploadWithTag'>,
-    { attachments, langTools }: IValidationContext,
-    _overrideFormData?: IFormData,
-  ): IValidationObject[] {
-    const validations: IValidationObject[] = [];
+    { attachments }: ValidationDataSources,
+  ): ComponentValidation[] {
+    const validations: ComponentValidation[] = [];
+
     if (attachmentsValid(attachments, node.item)) {
       const missingTagAttachmentIds: string[] = [];
       for (const attachment of attachments[node.item.id] || []) {
@@ -52,20 +50,39 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements Component
       }
 
       if (missingTagAttachmentIds?.length > 0) {
-        missingTagAttachmentIds.forEach((missingId) => {
-          const message = `${
-            missingId +
-            AsciiUnitSeparator +
-            langTools.langAsString('form_filler.file_uploader_validation_error_no_chosen_tag')
-          } ${langTools.langAsString(node.item.textResourceBindings?.tagTitle).toLowerCase()}.`;
-          validations.push(buildValidationObject(node, 'errors', message));
+        missingTagAttachmentIds.forEach((attachmentId) => {
+          const tagKey = node.item.textResourceBindings?.tagTitle;
+          const tagReference = tagKey
+            ? {
+                key: tagKey,
+                makeLowerCase: true,
+              }
+            : 'tag';
+
+          validations.push({
+            message: {
+              key: 'form_filler.file_uploader_validation_error_no_chosen_tag',
+              params: [tagReference],
+            },
+            severity: 'error',
+            componentId: node.item.id,
+            group: FrontendValidationSource.Component,
+            meta: { attachmentId },
+            category: ValidationMask.Component,
+          });
         });
       }
     } else {
-      const message = `${langTools.langAsString('form_filler.file_uploader_validation_error_file_number_1')} ${
-        node.item.minNumberOfAttachments
-      } ${langTools.langAsString('form_filler.file_uploader_validation_error_file_number_2')}`;
-      validations.push(buildValidationObject(node, 'errors', message));
+      validations.push({
+        message: {
+          key: 'form_filler.file_uploader_validation_error_file_number',
+          params: [node.item.minNumberOfAttachments],
+        },
+        severity: 'error',
+        componentId: node.item.id,
+        group: FrontendValidationSource.Component,
+        category: ValidationMask.Component,
+      });
     }
     return validations;
   }

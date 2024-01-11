@@ -22,10 +22,10 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
     .should('have.length', 5 + headerRow);
   cy.get(appFrontend.group.hiddenRowsInfoMsg).should('not.exist');
 
-  // When hiding every row with value over 1, we only have the header row left
+  // When hiding every row with value over 1, all rows including the header should be hidden
   cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
   cy.get(appFrontend.group.hideRepeatingGroupRow).type('1');
-  cy.get(appFrontend.group.mainGroup).find('tr').should('have.length', headerRow);
+  cy.get(appFrontend.group.mainGroup).find('tr').should('not.exist');
   cy.get(appFrontend.group.hiddenRowsInfoMsg).should('exist');
 
   // Hiding rows with value over 1000 to split the group in two

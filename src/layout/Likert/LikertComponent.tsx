@@ -4,12 +4,13 @@ import { TableCell, TableRow } from '@digdir/design-system-react';
 import { Typography } from '@material-ui/core';
 
 import { RadioButton } from 'src/components/form/RadioButton';
+import { ComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { GenericComponentLegend } from 'src/layout/GenericComponentUtils';
 import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IControlledRadioGroupProps } from 'src/layout/RadioButtons/ControlledRadioGroup';
 
@@ -30,8 +31,9 @@ export const LikertComponent = (props: PropsFromGenericComponent<'Likert'>) => {
 };
 
 const RadioGroupTableRow = (props: IControlledRadioGroupProps) => {
-  const { node, componentValidations } = props;
+  const { node } = props;
   const { selected, handleChange, calculatedOptions, fetchingOptions } = useRadioButtons(props);
+  const validations = useUnifiedValidationsForNode(node);
 
   const id = node.item.id;
   const groupContainerId = node.closest((n) => n.type === 'Group')?.item.id;
@@ -52,7 +54,10 @@ const RadioGroupTableRow = (props: IControlledRadioGroupProps) => {
       >
         <Typography component={'div'}>
           <GenericComponentLegend />
-          {renderValidationMessagesForComponent(componentValidations?.simpleBinding, id)}
+          <ComponentValidations
+            validations={validations}
+            node={node}
+          />
         </Typography>
       </TableCell>
       {calculatedOptions?.map((option, colIndex) => {

@@ -3,15 +3,16 @@ import { useLocation, useMatch, useNavigate } from 'react-router-dom';
 import type { NavigateOptions } from 'react-router-dom';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useIsStatelessApp } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useHiddenPages } from 'src/features/form/layout/PageNavigationContext';
 import { useLaxLayoutSettings, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
 import { ProcessTaskType } from 'src/types';
+import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
 
 type NavigateToPageOptions = {
   replace?: boolean;
+  skipAutoSave?: boolean;
 };
 
 export enum TaskKeys {
@@ -42,6 +43,15 @@ export const useNavigationParams = () => {
 
 const emptyArray: never[] = [];
 
+export const useCurrentView = () => useNavigationParams().pageKey;
+export const useOrder = () => {
+  const maybeLayoutSettings = useLaxLayoutSettings();
+  const orderWithHidden = maybeLayoutSettings === ContextNotProvided ? emptyArray : maybeLayoutSettings.pages.order;
+  const hidden = useHiddenPages();
+  const hiddenPages = useMemo(() => new Set(hidden), [hidden]);
+  return useMemo(() => orderWithHidden?.filter((page) => !hiddenPages.has(page)), [orderWithHidden, hiddenPages]);
+};
+
 export const useNavigatePage = () => {
   const navigate = useNavigate();
   const isStatelessApp = useIsStatelessApp();
@@ -50,18 +60,10 @@ export const useNavigatePage = () => {
   const lastTaskId = processTasks?.slice(-1)[0]?.elementId;
 
   const { partyId, instanceGuid, taskId, pageKey, queryKeys } = useNavigationParams();
-  const maybeLayoutSettings = useLaxLayoutSettings();
-  const orderWithHidden = maybeLayoutSettings === ContextNotProvided ? emptyArray : maybeLayoutSettings.pages.order;
   const { autoSaveBehavior } = usePageSettings();
 
-  const hidden = useHiddenPages();
   const taskType = useTaskType(taskId);
-
-  const hiddenPages = useMemo(() => new Set(hidden), [hidden]);
-  const order = useMemo(
-    () => orderWithHidden?.filter((page) => !hiddenPages.has(page)),
-    [orderWithHidden, hiddenPages],
-  );
+  const order = useOrder();
 
   const currentPageId = pageKey ?? '';
   const currentPageIndex = order?.indexOf(currentPageId) ?? -1;
@@ -91,6 +93,12 @@ export const useNavigatePage = () => {
   }, [isStatelessApp, order, navigate, currentPageId, isValidPageId, queryKeys]);
 
   const waitForSave = FD.useWaitForSave();
+  const maybeSaveOnPageChange = useCallback(() => {
+    if (autoSaveBehavior === 'onChangePage') {
+      waitForSave(true).then();
+    }
+  }, [autoSaveBehavior, waitForSave]);
+
   const navigateToPage = useCallback(
     (page?: string, options?: NavigateToPageOptions) => {
       const replace = options?.replace ?? false;
@@ -103,8 +111,8 @@ export const useNavigatePage = () => {
         return;
       }
 
-      if (autoSaveBehavior === 'onChangePage') {
-        waitForSave(true).then();
+      if (options?.skipAutoSave !== true) {
+        maybeSaveOnPageChange();
       }
 
       if (isStatelessApp) {
@@ -114,15 +122,18 @@ export const useNavigatePage = () => {
       const url = `/instance/${partyId}/${instanceGuid}/${taskId}/${page}${queryKeys}`;
       navigate(url, { replace });
     },
-    [order, autoSaveBehavior, isStatelessApp, partyId, instanceGuid, taskId, queryKeys, navigate, waitForSave],
+    [instanceGuid, isStatelessApp, maybeSaveOnPageChange, navigate, order, partyId, queryKeys, taskId],
   );
 
   const navigateToTask = useCallback(
-    (taskId?: string, options?: NavigateOptions) => {
-      const url = `/instance/${partyId}/${instanceGuid}/${taskId ?? lastTaskId}${queryKeys}`;
+    (newTaskId?: string, options?: NavigateOptions) => {
+      if (newTaskId === taskId) {
+        return;
+      }
+      const url = `/instance/${partyId}/${instanceGuid}/${newTaskId ?? lastTaskId}${queryKeys}`;
       navigate(url, options);
     },
-    [partyId, instanceGuid, lastTaskId, queryKeys, navigate],
+    [partyId, instanceGuid, lastTaskId, queryKeys, navigate, taskId],
   );
 
   const isCurrentTask = useMemo(() => currentTaskId === taskId, [currentTaskId, taskId]);
@@ -232,5 +243,6 @@ export const useNavigatePage = () => {
     previous,
     navigateToNextPage,
     navigateToPreviousPage,
+    maybeSaveOnPageChange,
   };
 };

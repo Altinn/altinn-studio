@@ -2,11 +2,11 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { PDFView } from 'src/features/pdf/PDFView';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 
 export function PDFWrapper({ children }: PropsWithChildren) {
-  const previewPDF = useAppSelector((state) => state.devTools.pdfPreview);
+  const previewPDF = useDevToolsStore((state) => state.pdfPreview);
   const [searchParams] = useSearchParams();
   const renderInstead = searchParams.get('pdf') === '1';
 

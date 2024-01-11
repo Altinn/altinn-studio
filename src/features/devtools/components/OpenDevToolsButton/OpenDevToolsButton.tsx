@@ -1,14 +1,12 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
 
 import { Button } from '@digdir/design-system-react';
 import { CodeIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/OpenDevToolsButton/OpenDevToolsButton.module.css';
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 
 interface IOpenDevToolsButtonProps {
   isHidden: boolean;
@@ -16,14 +14,15 @@ interface IOpenDevToolsButtonProps {
 }
 
 export const OpenDevToolsButton = ({ isHidden, onClick }: IOpenDevToolsButtonProps) => {
-  const logs = useAppSelector((state) => state.devTools.logs);
-  const dispatch = useDispatch();
+  const logs = useDevToolsStore((state) => state.logs);
+  const open = useDevToolsStore((state) => state.actions.open);
+  const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
 
   const hasErrors = logs.some((log) => log.level === 'error');
 
   const onErrorClick = () => {
-    dispatch(DevToolsActions.open());
-    dispatch(DevToolsActions.setActiveTab({ tabName: DevToolsTab.Logs }));
+    open();
+    setActiveTab(DevToolsTab.Logs);
   };
 
   return (

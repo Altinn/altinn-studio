@@ -18,9 +18,9 @@ import { RepeatingGroupTableTitle } from 'src/layout/Group/RepeatingGroupTableTi
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { GridRowsInternal, ITableColumnFormatting } from 'src/layout/common.generated';
 
-export function RepeatingGroupTable(): JSX.Element | null {
+export function RepeatingGroupTable(): React.JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
-  const { node, isEditing } = useRepeatingGroup();
+  const { node, isEditing, visibleRowIndexes } = useRepeatingGroup();
   const rowsBefore = node.item.rowsBefore;
   const rowsAfter = node.item.rowsAfter;
 
@@ -56,10 +56,11 @@ export function RepeatingGroupTable(): JSX.Element | null {
   };
 
   const tableNodes = getTableNodes(0);
-  const numRows = node.item.rows.length;
+  const numRows = visibleRowIndexes.length;
+  const firstRowIndex = visibleRowIndexes[0];
 
   const isEmpty = numRows === 0;
-  const showTableHeader = numRows > 0 && !(numRows == 1 && isEditing(0));
+  const showTableHeader = numRows > 0 && !(numRows == 1 && isEditing(firstRowIndex));
 
   const showDeleteButtonColumns = new Set<boolean>();
   const showEditButtonColumns = new Set<boolean>();
@@ -193,53 +194,41 @@ export function RepeatingGroupTable(): JSX.Element | null {
           </TableHeader>
         )}
         <TableBody id={`group-${id}-table-body`}>
-          {numRows >= 1 &&
-            [...Array(numRows)].map((_x: any, index: number) => {
-              const children = node.children(undefined, index);
-              const rowHasErrors = !!children.find((c) => c.hasValidationMessages());
+          {visibleRowIndexes.map((index) => {
+            const isEditingRow = isEditing(index) && edit?.mode !== 'onlyTable';
 
-              const isTableRowHidden =
-                node.item.type === 'Group' && 'rows' in node.item && node.item.rows[index]?.groupExpressions?.hiddenRow;
-
-              if (isTableRowHidden) {
-                return null;
-              }
-
-              const isEditingRow = isEditing(index) && edit?.mode !== 'onlyTable';
-
-              return (
-                <React.Fragment key={index}>
-                  <RepeatingGroupTableRow
-                    className={cn({
-                      [classes.editingRow]: isEditingRow,
-                    })}
-                    index={index}
-                    rowHasErrors={rowHasErrors}
-                    getTableNodes={getTableNodes}
-                    mobileView={mobileView}
-                    displayDeleteColumn={displayDeleteColumn}
-                    displayEditColumn={displayEditColumn}
-                  />
-                  {isEditingRow && (
-                    <TableRow
-                      key={`edit-container-${index}`}
-                      className={classes.editContainerRow}
+            return (
+              <React.Fragment key={index}>
+                <RepeatingGroupTableRow
+                  className={cn({
+                    [classes.editingRow]: isEditingRow,
+                  })}
+                  index={index}
+                  getTableNodes={getTableNodes}
+                  mobileView={mobileView}
+                  displayDeleteColumn={displayDeleteColumn}
+                  displayEditColumn={displayEditColumn}
+                />
+                {isEditingRow && (
+                  <TableRow
+                    key={`edit-container-${index}`}
+                    className={classes.editContainerRow}
+                  >
+                    <TableCell
+                      style={{ padding: 0, borderTop: 0 }}
+                      colSpan={
+                        mobileView
+                          ? 2
+                          : tableNodes.length + 3 + (displayEditColumn ? 1 : 0) + (displayDeleteColumn ? 1 : 0)
+                      }
                     >
-                      <TableCell
-                        style={{ padding: 0, borderTop: 0 }}
-                        colSpan={
-                          mobileView
-                            ? 2
-                            : tableNodes.length + 3 + (displayEditColumn ? 1 : 0) + (displayDeleteColumn ? 1 : 0)
-                        }
-                      >
-                        {edit?.mode !== 'onlyTable' && <RepeatingGroupsEditContainer editIndex={index} />}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </React.Fragment>
-              );
-            })}
+                      {edit?.mode !== 'onlyTable' && <RepeatingGroupsEditContainer editIndex={index} />}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
+            );
+          })}
         </TableBody>
         <RenderExtraRows
           rows={rowsAfter}

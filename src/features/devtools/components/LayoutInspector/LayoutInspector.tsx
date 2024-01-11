@@ -1,6 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { Alert, Button } from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
@@ -8,19 +7,20 @@ import { Close } from '@navikt/ds-icons';
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInspector/LayoutInspectorItem';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { useNodes } from 'src/utils/layout/NodesContext';
 
 export const LayoutInspector = () => {
-  const selectedComponent = useAppSelector((state) => state.devTools.layoutInspector.selectedComponentId);
-  const { currentPageId } = useNavigatePage();
+  const selectedComponent = useDevToolsStore((state) => state.layoutInspector.selectedComponentId);
+  const setSelectedComponent = useDevToolsStore((state) => state.actions.layoutInspectorSet);
+  const setNodeInspectorSelectedNodeId = useDevToolsStore((state) => state.actions.nodeInspectorSet);
+  const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
+  const currentView = useCurrentView();
   const layouts = useLayouts();
   const [componentProperties, setComponentProperties] = useState<string | null>(null);
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
@@ -35,24 +35,13 @@ export const LayoutInspector = () => {
     }
   }, [componentProperties]);
 
-  const dispatch = useDispatch();
-  const setSelectedComponent = useCallback(
-    (selectedComponentId: string | undefined) =>
-      dispatch(
-        DevToolsActions.layoutInspectorSet({
-          selectedComponentId,
-        }),
-      ),
-    [dispatch],
-  );
-
-  const currentLayout = layouts?.[currentPageId];
+  const currentLayout = currentView ? layouts?.[currentView] : undefined;
   const matchingNodes = selectedComponent ? nodes?.findAllById(selectedComponent) || [] : [];
   const validationErrorsForPage = useLayoutValidationForPage() || {};
 
   useEffect(() => {
     setSelectedComponent(undefined);
-  }, [setSelectedComponent, currentPageId]);
+  }, [setSelectedComponent, currentView]);
 
   useEffect(() => {
     if (selectedComponent) {
@@ -71,7 +60,7 @@ export const LayoutInspector = () => {
     if (selectedComponent) {
       try {
         const updatedComponent = JSON.parse(componentProperties ?? '');
-        const updatedLayout = currentLayout?.map((component) => {
+        const _updatedLayout = currentLayout?.map((component) => {
           if (component.id === selectedComponent) {
             return updatedComponent;
           } else {
@@ -79,7 +68,11 @@ export const LayoutInspector = () => {
           }
         });
 
-        dispatch(FormLayoutActions.updateLayouts({ [currentPageId]: updatedLayout }));
+        if (currentView) {
+          // TODO: Fix this
+          alert('TODO: Update layout in tanstack query store');
+          // dispatch(FormLayoutActions.updateLayouts({ [currentView]: updatedLayout }));
+        }
 
         setPropertiesHaveChanged(false);
         return;
@@ -99,16 +92,8 @@ export const LayoutInspector = () => {
         href='#'
         onClick={(e) => {
           e.preventDefault();
-          dispatch(
-            DevToolsActions.nodeInspectorSet({
-              selectedNodeId: nodeId,
-            }),
-          );
-          dispatch(
-            DevToolsActions.setActiveTab({
-              tabName: DevToolsTab.Components,
-            }),
-          );
+          setNodeInspectorSelectedNodeId(nodeId);
+          setActiveTab(DevToolsTab.Components);
         }}
       >
         Utforsk {nodeId} i komponenter-fanen

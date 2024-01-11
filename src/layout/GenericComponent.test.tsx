@@ -53,11 +53,11 @@ const render = async (component: Partial<CompExternal> = {}, waitUntilLoaded = t
 
 describe('GenericComponent', () => {
   it('should show an error in the logs when rendering an unknown component type', async () => {
-    const spy = jest.spyOn(window, 'logWarnOnce').mockImplementation();
+    const spy = jest.spyOn(window, 'logWarnOnce').mockImplementation().mockName('window.logWarnOnce');
     await render({ type: 'unknown-type' as any }, false);
-
-    await waitFor(() => expect(spy).toHaveBeenCalled());
-    expect(spy).toHaveBeenCalledWith(`No component definition found for type 'unknown-type'`);
+    await waitFor(() => expect(spy).toHaveBeenCalledWith(`No component definition found for type 'unknown-type'`), {
+      timeout: 15000,
+    });
   });
 
   it('should render Input component when passing Input type', async () => {

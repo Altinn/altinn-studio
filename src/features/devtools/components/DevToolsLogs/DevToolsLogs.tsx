@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
 
 import { Button, Textfield } from '@digdir/design-system-react';
 import {
@@ -11,8 +10,7 @@ import {
 } from '@navikt/aksel-icons';
 
 import classes from 'src/features/devtools/components/DevToolsLogs/DevToolsLogs.module.css';
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
-import { useAppSelector } from 'src/hooks/useAppSelector';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 
 const colorMap = {
   error: 'red',
@@ -21,12 +19,11 @@ const colorMap = {
 };
 
 export const DevToolsLogs = () => {
-  const logs = useAppSelector((state) => state.devTools.logs);
+  const logs = useDevToolsStore((state) => state.logs);
   const [filter, setFilter] = useState('');
   const [showLevels, setShowLevels] = useState({ error: true, warn: true, info: true });
 
-  const dispatch = useDispatch();
-  const clearLogs = () => dispatch(DevToolsActions.logsClear());
+  const clearLogs = useDevToolsStore((state) => state.actions.logsClear);
   const toggleShow = (level: string) => setShowLevels({ ...showLevels, [level]: !showLevels[level] });
   const saveLogs = () => {
     const data = logs.map((log) => `${log.index}. - ${log.level.toUpperCase()}: ${log.message}`).join('\n\n');

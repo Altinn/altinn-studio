@@ -2,18 +2,15 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { SoftValidations } from 'src/components/form/SoftValidations';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ISoftValidationProps, SoftValidationVariant } from 'src/components/form/SoftValidations';
 import type { IFormComponentContext } from 'src/layout/FormComponentContext';
-import type { IRuntimeState } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const render = async (
   props: Partial<ISoftValidationProps> = {},
-  suppliedState: Partial<IRuntimeState> = {},
   suppliedContext: Partial<IFormComponentContext> = {},
 ) => {
   const allProps: ISoftValidationProps = {
@@ -35,10 +32,6 @@ const render = async (
         <SoftValidations {...allProps} />
       </FormComponentContextProvider>
     ),
-    reduxState: {
-      ...getInitialStateMock(),
-      ...suppliedState,
-    },
   });
 };
 

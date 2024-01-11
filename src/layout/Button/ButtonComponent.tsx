@@ -1,12 +1,14 @@
 import React from 'react';
 
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
-import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useLaxProcessData, useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
+import { ProcessTaskType } from 'src/types';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal } from 'src/layout/layout';
@@ -21,13 +23,18 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   const { langAsString } = useLanguage();
   const props: IButtonProvidedProps = { ...componentProps, ...node.item, node };
 
-  const currentTaskType = useLaxProcessData()?.currentTask?.altinnTaskType;
+  const currentTaskType = useTaskTypeFromBackend();
   const { actions, write } = useLaxProcessData()?.currentTask || {};
   const { next, canSubmit, busyWithId, attachmentsPending } = useProcessNavigation() || {};
   const { setReturnToView } = usePageNavigationContext() || {};
 
+  const onFormSubmitValidation = useOnFormSubmitValidation();
+
   const disabled =
-    !canSubmit || (currentTaskType === 'data' && !write) || (currentTaskType === 'confirmation' && !actions?.confirm);
+    !canSubmit ||
+    !next ||
+    (currentTaskType === ProcessTaskType.Data && !write) ||
+    (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);
 
   const parentIsPage = node.parent instanceof LayoutPage;
 
@@ -46,12 +53,16 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     );
   }
 
-  const submitTask = () => {
-    if (!disabled && next) {
+  const submitTask = async () => {
+    if (disabled) {
+      return;
+    }
+    const hasErrors = await onFormSubmitValidation(node.top.top.collection);
+    if (!hasErrors) {
       setReturnToView(undefined);
-      if (currentTaskType === 'data') {
+      if (currentTaskType === ProcessTaskType.Data) {
         next({ nodeId: node.item.id });
-      } else if (currentTaskType === 'confirmation') {
+      } else if (currentTaskType === ProcessTaskType.Confirm) {
         next({ nodeId: node.item.id, action: 'confirm' });
       }
     }
@@ -60,7 +71,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     <div style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}>
       <SubmitButton
         nodeId={node.item.id}
-        onClick={() => submitTask()}
+        onClick={submitTask}
         busyWithId={busyWithId}
         disabled={disabled}
         message={attachmentsPending ? langAsString('general.wait_for_attachments') : undefined}

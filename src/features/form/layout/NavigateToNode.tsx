@@ -5,7 +5,11 @@ import { createContext } from 'src/core/contexts/context';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type NavigationHandler = (node: LayoutNode) => boolean;
-type FinishNavigationHandler = (node: LayoutNode, shouldFocus: boolean) => Promise<NavigationResult | void>;
+type FinishNavigationHandler = (
+  node: LayoutNode,
+  shouldFocus: boolean,
+  whenHit: () => void,
+) => Promise<NavigationResult | void>;
 
 export enum NavigationResult {
   Timeout = 'timeout',
@@ -77,7 +81,13 @@ export function NavigateToNodeProvider({ children }: PropsWithChildren) {
             if (finished) {
               return;
             }
-            const result = await handler(node, shouldFocus);
+            const result = await handler(node, shouldFocus, () => {
+              // Mark as finished as soon as the component has been hit (i.e. rendered in GenericComponent), even if
+              // we haven't actually focused it yet. The focussing requires a ref to the actual rendered element, and
+              // it may take some time to reach that stage, and it may even fail if something downstream is hidden.
+              // Still, we don't want to keep running handlers after this point.
+              finished = true;
+            });
             if (result) {
               finished = true;
               resolve(result);

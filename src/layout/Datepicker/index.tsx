@@ -1,22 +1,26 @@
 import React from 'react';
 
+import dot from 'dot-object';
 import moment from 'moment';
 
+import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { getDateConstraint, getDateFormat } from 'src/utils/dateHelpers';
 import { formatISOString } from 'src/utils/formatDate';
-import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { IFormData } from 'src/features/formData';
-import type { ComponentValidation, DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
+import type {
+  ComponentValidation,
+  FieldValidation,
+  ISchemaValidationError,
+  ValidationDataSources,
+} from 'src/features/validation';
+import type { DisplayDataProps, PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
-import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
-export class Datepicker extends DatepickerDef implements ComponentValidation {
+export class Datepicker extends DatepickerDef implements ValidateComponent {
   render(props: PropsFromGenericComponent<'Datepicker'>): JSX.Element | null {
     return <DatepickerComponent {...props} />;
   }
@@ -43,15 +47,13 @@ export class Datepicker extends DatepickerDef implements ComponentValidation {
 
   runComponentValidation(
     node: LayoutNode<'Datepicker'>,
-    { formData, langTools, currentLanguage }: IValidationContext,
-    overrideFormData?: IFormData,
-  ): IValidationObject[] {
-    const formDataToValidate = { ...formData, ...overrideFormData };
-    const data = node.item.dataModelBindings?.simpleBinding
-      ? formDataToValidate[node.item.dataModelBindings.simpleBinding]
-      : undefined;
+    { formData, currentLanguage }: ValidationDataSources,
+  ): ComponentValidation[] {
+    const field = node.item.dataModelBindings?.simpleBinding;
+    const data = field ? dot.pick(field, formData) : undefined;
+    const dataAsString = typeof data === 'string' || typeof data === 'number' ? String(data) : undefined;
 
-    if (!data) {
+    if (!dataAsString) {
       return [];
     }
 
@@ -59,39 +61,62 @@ export class Datepicker extends DatepickerDef implements ComponentValidation {
     const maxDate = getDateConstraint(node.item.maxDate, 'max');
     const format = getDateFormat(node.item.format, currentLanguage);
 
-    const validations: IValidationObject[] = [];
-    const date = moment(data, moment.ISO_8601);
-    const lang = langTools.langAsNonProcessedString;
+    const validations: ComponentValidation[] = [];
+
+    const date = moment(dataAsString, moment.ISO_8601);
 
     if (!date.isValid()) {
-      validations.push(buildValidationObject(node, 'errors', lang('date_picker.invalid_date_message', [format])));
+      validations.push({
+        message: { key: 'date_picker.invalid_date_message', params: [format] },
+        severity: 'error',
+        componentId: node.item.id,
+        group: FrontendValidationSource.Component,
+        category: ValidationMask.Component,
+      });
     }
 
     if (date.isBefore(minDate)) {
-      validations.push(buildValidationObject(node, 'errors', lang('date_picker.min_date_exeeded')));
+      validations.push({
+        message: { key: 'date_picker.min_date_exeeded' },
+        severity: 'error',
+        componentId: node.item.id,
+        group: FrontendValidationSource.Component,
+        category: ValidationMask.Component,
+      });
     } else if (date.isAfter(maxDate)) {
-      validations.push(buildValidationObject(node, 'errors', lang('date_picker.max_date_exeeded')));
+      validations.push({
+        message: { key: 'date_picker.max_date_exeeded' },
+        severity: 'error',
+        componentId: node.item.id,
+        group: FrontendValidationSource.Component,
+        category: ValidationMask.Component,
+      });
     }
 
     return validations;
   }
 
   // Since the format is validated in component validations, it needs to be ignored in schema validation
-  runSchemaValidation(node: LayoutNode<'Datepicker'>, schemaErrors: ISchemaValidationError[]): IValidationObject[] {
-    const bindingField = node.item.dataModelBindings?.simpleBinding;
-    if (!bindingField) {
+  runSchemaValidation(node: LayoutNode<'Datepicker'>, schemaErrors: ISchemaValidationError[]): FieldValidation[] {
+    const field = node.item.dataModelBindings?.simpleBinding;
+    if (!field) {
       return [];
     }
 
-    const validationObjects: IValidationObject[] = [];
+    const validations: FieldValidation[] = [];
+
     for (const error of schemaErrors) {
-      if (bindingField === error.bindingField && error.keyword !== 'format') {
-        validationObjects.push(
-          buildValidationObject(node, 'errors', error.message, 'simpleBinding', error.invalidDataType),
-        );
+      if (field === error.bindingField && error.keyword !== 'format') {
+        validations.push({
+          message: error.message,
+          severity: 'error',
+          field,
+          group: FrontendValidationSource.Schema,
+          category: ValidationMask.Schema,
+        });
       }
     }
-    return validationObjects;
+    return validations;
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Datepicker'>): string[] {

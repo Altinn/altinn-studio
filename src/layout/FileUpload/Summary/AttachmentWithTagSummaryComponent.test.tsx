@@ -4,7 +4,6 @@ import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
@@ -112,15 +111,9 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
     minCount: 1,
   });
 
-  const reduxState = getInitialStateMock((state) => {
-    state.applicationMetadata.applicationMetadata = application;
-    addAttachment && state.deprecated.lastKnownInstance!.data.push(attachment);
-  });
-
   return await renderWithNode<true, LayoutNode<'FileUploadWithTag'>>({
     nodeId: 'myComponent',
     renderer: ({ node }) => <AttachmentSummaryComponent targetNode={node} />,
-    reduxState,
     inInstance: true,
     queries: {
       fetchApplicationMetadata: async () => application,

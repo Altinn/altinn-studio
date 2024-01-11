@@ -1,7 +1,6 @@
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
-import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import type { Variant } from 'src/codegen/CG';
 import type { CodeGenerator, Extract, MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
 
@@ -29,10 +28,9 @@ export class GenerateArray<Inner extends CodeGenerator<any>> extends Describable
   }
 
   toTypeScriptDefinition(symbol: string | undefined): string {
-    const out =
-      this.innerType instanceof GenerateUnion
-        ? `(${this.innerType.toTypeScript()})[]`
-        : `${this.innerType.toTypeScript()}[]`;
+    const out = this.innerType.shouldUseParens()
+      ? `(${this.innerType.toTypeScript()})[]`
+      : `${this.innerType.toTypeScript()}[]`;
 
     return symbol ? `type ${symbol} = ${out};` : out;
   }

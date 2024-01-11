@@ -15,6 +15,7 @@ export class Summary extends SummaryDef {
       <SummaryComponent
         summaryNode={props.node}
         overrides={props.overrideItemProps}
+        ref={props.containerDivRef}
       />
     );
   }

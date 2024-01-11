@@ -23,10 +23,6 @@ export interface IApplicationMetadata {
   logo?: ILogoOptions;
 }
 
-export interface IApplicationMetadataState {
-  applicationMetadata: IApplicationMetadata | null;
-}
-
 export interface IOnEntry {
   show: ShowTypes;
   instanceSelection?: IInstanceSelection;

@@ -10,20 +10,18 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
-import { useLanguage } from 'src/features/language/useLanguage';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { FrontendValidationSource } from 'src/features/validation';
+import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
+import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { getFieldName } from 'src/utils/formComponentUtils';
 import { extractBottomButtons, hasRequiredFields } from 'src/utils/formLayout';
 import { useNodes } from 'src/utils/layout/NodesContext';
-import { getFormHasErrors, missingFieldsInLayoutValidations } from 'src/utils/validation/validation';
 
 export function Form() {
+  const currentPageId = useCurrentView();
+  const { isValidPageId, navigateToPage } = useNavigatePage();
   const nodes = useNodes();
-  const langTools = useLanguage();
-  const { navigateToPage, currentPageId, isValidPageId } = useNavigatePage();
-  const validations = useAppSelector((state) => state.formValidations.validations);
+  const page = currentPageId && nodes?.all?.()?.[currentPageId];
   useRedirectToStoredPage();
 
   const { scrollPosition } = usePageNavigationContext();
@@ -42,25 +40,11 @@ export function Form() {
     return false;
   });
 
-  const page = nodes?.all?.()?.[currentPageId];
-  const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
-
-  const requiredFieldsMissing = React.useMemo(() => {
-    if (validations && validations[currentPageId]) {
-      const requiredValidationTextResources: string[] = [];
-      page?.flat(true).forEach((node) => {
-        const trb = node.item.textResourceBindings;
-        const fieldName = getFieldName(trb, langTools);
-        if ('required' in node.item && node.item.required && trb && 'requiredValidation' in trb) {
-          requiredValidationTextResources.push(langTools.langAsString(trb.requiredValidation, [fieldName]));
-        }
-      });
-
-      return missingFieldsInLayoutValidations(validations[currentPageId], requiredValidationTextResources, langTools);
-    }
-
-    return false;
-  }, [validations, currentPageId, page, langTools]);
+  const { formErrors, taskErrors } = useTaskErrors();
+  const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
+  const requiredFieldsMissing = formErrors.some(
+    (error) => error.group === FrontendValidationSource.EmptyField && error.pageKey === currentPageId,
+  );
 
   const [mainNodes, errorReportNodes] = React.useMemo(() => {
     if (!page) {

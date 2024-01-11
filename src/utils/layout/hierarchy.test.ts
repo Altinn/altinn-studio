@@ -1,8 +1,7 @@
+import { getFormLayoutMock } from 'src/__mocks__/getFormLayoutMock';
 import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getLayoutComponentObject } from 'src/layout';
-import { flattenObject } from 'src/utils/databindings';
-import { _private, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
+import { _private } from 'src/utils/layout/hierarchy';
 import { generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -12,7 +11,6 @@ import type { CompHeaderExternal } from 'src/layout/Header/config.generated';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
 import type { CompInternal, HierarchyDataSources, ILayout, ILayouts } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { IValidations } from 'src/utils/validation/types';
 
 const { resolvedNodesInLayouts } = _private;
 
@@ -412,7 +410,7 @@ describe('Hierarchical layout tools', () => {
     });
   });
 
-  describe('transposeDataModel', () => {
+  it('transposeDataModel', () => {
     const nodes = generateHierarchy(
       layout,
       { ...dataSources, formData: manyRepeatingGroupsFormData },
@@ -451,68 +449,14 @@ describe('Hierarchical layout tools', () => {
     expect(topHeaderNode?.transposeDataModel('Group2.Nested.Age')).toEqual('Group2.Nested.Age');
   });
 
-  describe('validation functions', () => {
-    const nestedId = `${components.group2ni.id}-1-2`;
-    const validations: IValidations = {
-      formLayout: {
-        [components.top1.id]: {
-          simpleBinding: {
-            errors: ['Some error'],
-            warnings: ['Some warning'],
-          },
-        },
-        [nestedId]: {
-          simpleBinding: {
-            errors: ['Some nested error'],
-            warnings: ['Some nested warning 1', 'Nested warning 2'],
-          },
-          otherBinding: {
-            warnings: ['Nested warning 3'],
-          },
-        },
-      },
+  it('find functions', () => {
+    const dataSources: HierarchyDataSources = {
+      ...getHierarchyDataSourcesMock(),
+      formData: manyRepeatingGroupsFormData,
     };
-    const page = generateHierarchy(
-      layout,
-      { ...dataSources, validations, formData: manyRepeatingGroupsFormData },
-      getLayoutComponentObject,
-    );
-    page.registerCollection('formLayout', new LayoutPages<any>());
-    const nestedNode = page.findById(nestedId);
-    const topHeaderNode = page.findById(components.top1.id);
 
-    expect(topHeaderNode?.getValidations()).toEqual(validations.formLayout[components.top1.id]);
-    expect(topHeaderNode?.getUnifiedValidations()).toEqual(validations.formLayout[components.top1.id].simpleBinding);
-    expect(topHeaderNode?.getValidationMessages('warnings')).toEqual(['Some warning']);
-
-    expect(nestedNode?.getValidations()).toEqual(validations.formLayout[nestedId]);
-    expect(nestedNode?.getUnifiedValidations()).toEqual({
-      errors: ['Some nested error'],
-      warnings: ['Some nested warning 1', 'Nested warning 2', 'Nested warning 3'],
-    });
-    expect(nestedNode?.getValidationMessages('warnings')).toEqual([
-      'Some nested warning 1',
-      'Nested warning 2',
-      'Nested warning 3',
-    ]);
-    expect(nestedNode?.getValidationMessages('warnings', 'simpleBinding')).toEqual([
-      'Some nested warning 1',
-      'Nested warning 2',
-    ]);
-
-    expect(nestedNode?.hasDeepValidationMessages()).toEqual(true);
-    expect(page.findById(`${components.group2n.id}-1`)?.hasDeepValidationMessages()).toEqual(true);
-    expect(page.findById(components.group2.id)?.hasDeepValidationMessages()).toEqual(true);
-    expect(page.findById(components.group2.id)?.hasDeepValidationMessages('info')).toEqual(false);
-    expect(page.findById(`${components.group2n.id}-1`)?.hasValidationMessages('errors')).toEqual(false);
-    expect(page.findById(components.group2.id)?.hasValidationMessages('errors')).toEqual(false);
-  });
-
-  describe('find functions', () => {
-    const state = getInitialStateMock();
-    (state.formLayout.layouts as any)['page2'] = layout;
-    state.deprecated.formData = flattenObject(manyRepeatingGroupsFormData);
-    const resolved = resolvedLayoutsFromState(state);
+    const layouts: ILayouts = { page2: layout, FormLayout: getFormLayoutMock() };
+    const resolved = resolvedNodesInLayouts(layouts, 'FormLayout', dataSources);
 
     const field3 = resolved?.findById('field3');
     expect(field3?.item.id).toEqual('field3');
@@ -600,15 +544,16 @@ describe('Hierarchical layout tools', () => {
         },
       },
     ])('$name', ({ layouts }) => {
-      const state = getInitialStateMock();
-      state.formLayout.layouts = layouts as ILayouts;
-      state.deprecated.formData = flattenObject({
-        MyModel: {
-          MainGroup: [{ Child: '1' }, { Child: '2' }, { Child: '3' }],
+      const dataSources = {
+        ...getHierarchyDataSourcesMock(),
+        formData: {
+          MyModel: {
+            MainGroup: [{ Child: '1' }, { Child: '2' }, { Child: '3' }],
+          },
         },
-      });
-      state.formLayout.uiConfig.currentView = 'page1';
-      const resolved = resolvedLayoutsFromState(state);
+      };
+      const resolved = resolvedNodesInLayouts(layouts, 'page1', dataSources);
+
       const dataBindingFor = (id: string) => {
         const item = resolved?.findById(id)?.item || undefined;
         const dmBindings = item && 'dataModelBindings' in item ? item?.dataModelBindings : undefined;

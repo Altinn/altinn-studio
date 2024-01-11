@@ -1,7 +1,9 @@
+export type DevToolsHiddenComponents = 'show' | 'disabled' | 'hide';
+
 export type IDevToolsState = {
   isOpen: boolean;
   pdfPreview: boolean;
-  hiddenComponents: 'show' | 'disabled' | 'hide';
+  hiddenComponents: DevToolsHiddenComponents;
   activeTab: DevToolsTab;
   layoutInspector: {
     selectedComponentId: string | undefined;
@@ -15,6 +17,20 @@ export type IDevToolsState = {
     forComponentId: string | undefined;
   };
   logs: IDevToolsLog[];
+};
+
+export type IDevToolsActions = {
+  open: () => void;
+  close: () => void;
+  setActiveTab: (tabName: DevToolsTab) => void;
+  setPdfPreview: (preview: boolean) => void;
+  setShowHiddenComponents: (value: DevToolsHiddenComponents) => void;
+  exprPlaygroundSetExpression: (expression: string | undefined) => void;
+  exprPlaygroundSetContext: (forPage: string | undefined, forComponentId: string | undefined) => void;
+  layoutInspectorSet: (selectedComponentId: string | undefined) => void;
+  nodeInspectorSet: (selectedNodeId: string | undefined) => void;
+  postLogs: (logs: IDevToolsLog[]) => void;
+  logsClear: () => void;
 };
 
 export type IDevToolsLog = {

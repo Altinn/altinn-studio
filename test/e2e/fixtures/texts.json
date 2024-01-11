@@ -16,6 +16,7 @@
   "requiredField": "Feltet er påkrevd",
   "requiredFieldFromBackend": "Feltet er påkrevd (fra backend)",
   "requiredFieldName": "Du må fylle ut navn",
+  "requiredFieldFirstName": "Du må fylle ut nytt fornavn",
   "requiredFieldLastName": "Du må fylle ut nytt etternavn",
   "requiredFieldDateFrom": "Du må fylle ut dato for navneendring",
   "requiredFieldFromValue": "Du må fylle ut 1. endre fra",
@@ -44,6 +45,6 @@
   "edit": "Rediger",
   "emptySummary": "Du har ikke lagt inn informasjon her",
   "minCountError": "Minst 3 rader er påkrevd",
-  "invalidFileExtension": "Det var et problem med filen test.png . Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse.",
+  "invalidFileExtension": "Det var et problem med filen test.png. Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse.",
   "invalidMimeType": "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være."
 }

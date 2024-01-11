@@ -46,4 +46,8 @@ export class GenerateEnum<T extends string | number> extends DescribableCodeGene
 
     return symbol ? `type ${symbol} = ${out};` : out;
   }
+
+  shouldUseParens(): boolean {
+    return this._asRealEnum === false;
+  }
 }

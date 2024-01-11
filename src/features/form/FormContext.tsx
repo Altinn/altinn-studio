@@ -13,6 +13,7 @@ import { FormDataReadWriteProvider } from 'src/features/formData/FormDataReadWri
 import { useHasProcessProvider } from 'src/features/instance/ProcessContext';
 import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
 import { AllOptionsProvider, AllOptionsStoreProvider } from 'src/features/options/useAllOptions';
+import { ValidationContext } from 'src/features/validation/validationContext';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
 
 /**
@@ -34,15 +35,17 @@ export function FormProvider({ children }: React.PropsWithChildren) {
                       <AllOptionsStoreProvider>
                         <NodesProvider>
                           <NavigateToNodeProvider>
-                            <AttachmentsProvider>
-                              <AllOptionsProvider>
-                                {hasProcess ? (
-                                  <ProcessNavigationProvider>{children}</ProcessNavigationProvider>
-                                ) : (
-                                  children
-                                )}
-                              </AllOptionsProvider>
-                            </AttachmentsProvider>
+                            <ValidationContext>
+                              <AttachmentsProvider>
+                                <AllOptionsProvider>
+                                  {hasProcess ? (
+                                    <ProcessNavigationProvider>{children}</ProcessNavigationProvider>
+                                  ) : (
+                                    children
+                                  )}
+                                </AllOptionsProvider>
+                              </AttachmentsProvider>
+                            </ValidationContext>
                           </NavigateToNodeProvider>
                         </NodesProvider>
                       </AllOptionsStoreProvider>

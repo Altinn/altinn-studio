@@ -5,10 +5,9 @@ import dot from 'dot-object';
 
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { useNodeInspectorContext } from 'src/features/devtools/components/NodeInspector/NodeInspectorContext';
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { canBeExpression } from 'src/features/expressions/validation';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -29,18 +28,15 @@ interface ValueProps extends React.PropsWithChildren {
 export function Value({ children, className, property, collapsible, wasExpression, exprText }: ValueProps) {
   const [collapsed, setCollapsed] = React.useState(false);
   const extraClasses = { [classes.collapsed]: collapsed, [classes.collapsible]: collapsible };
-  const dispatch = useAppDispatch();
   const context = useNodeInspectorContext();
+  const setExpression = useDevToolsStore((state) => state.actions.exprPlaygroundSetExpression);
+  const setExprContext = useDevToolsStore((state) => state.actions.exprPlaygroundSetContext);
+  const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
 
   const editExpression = () => {
-    dispatch(DevToolsActions.exprPlaygroundSetExpression({ expression: JSON.stringify(wasExpression, null, 2) }));
-    dispatch(
-      DevToolsActions.exprPlaygroundSetContext({
-        forPage: context.node?.top.top.myKey,
-        forComponentId: context.node?.item.id,
-      }),
-    );
-    dispatch(DevToolsActions.setActiveTab({ tabName: DevToolsTab.Expressions }));
+    setExpression(JSON.stringify(wasExpression, null, 2));
+    setExprContext(context.node?.top.top.myKey, context.node?.item.id);
+    setActiveTab(DevToolsTab.Expressions);
   };
 
   return (

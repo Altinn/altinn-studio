@@ -16,21 +16,6 @@ export function convertDataBindingToModel(formData: any): any {
   return object({ ...formData });
 }
 
-export function filterOutInvalidData({ data, invalidKeys = [] }: { data: IFormData; invalidKeys: string[] }) {
-  if (!invalidKeys) {
-    return data;
-  }
-
-  const result = {};
-  Object.keys(data).forEach((key) => {
-    if (Object.prototype.hasOwnProperty.call(data, key) && !invalidKeys.includes(key)) {
-      result[key] = data[key];
-    }
-  });
-
-  return result;
-}
-
 export const GLOBAL_INDEX_KEY_INDICATOR_REGEX = /\[{\d+}]/g;
 
 export function getKeyWithoutIndex(keyWithIndex: string): string {

@@ -9,12 +9,15 @@ import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsUpdater } from 'src/features/attachments/AttachmentsContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useOnAttachmentSave } from 'src/features/validation/callbacks/onAttachmentSave';
+import { ComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useAttachmentValidations } from 'src/features/validation/selectors/attachmentValidations';
+import { hasValidationErrors } from 'src/features/validation/utils';
 import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
-import { renderValidationMessages } from 'src/utils/render';
 import type { IAttachment } from 'src/features/attachments';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IOption } from 'src/layout/common.generated';
@@ -24,26 +27,9 @@ export interface EditWindowProps {
   attachment: IAttachment;
   mobileView: boolean;
   options?: IOption[];
-  attachmentValidations: {
-    id: string;
-    message: string;
-  }[];
-  validationsWithTag: {
-    id: string;
-    message: string;
-  }[];
-  setValidationsWithTag: (validationArray: { id: string; message: string }[]) => void;
 }
 
-export function EditWindowComponent({
-  attachment,
-  attachmentValidations,
-  mobileView,
-  node,
-  options,
-  validationsWithTag,
-  setValidationsWithTag,
-}: EditWindowProps): React.JSX.Element {
+export function EditWindowComponent({ attachment, mobileView, node, options }: EditWindowProps): React.JSX.Element {
   const { textResourceBindings, readOnly } = node.item;
   const { langAsString } = useLanguage();
   const { setEditIndex } = useFileTableRow();
@@ -54,6 +40,11 @@ export function EditWindowComponent({
   );
   const formattedOptions = useFormattedOptions(options);
   const updateAttachment = useAttachmentsUpdater();
+
+  const attachmentValidations = useAttachmentValidations(node, uploadedAttachment?.data.id);
+  const onAttachmentSave = useOnAttachmentSave();
+
+  const hasErrors = hasValidationErrors(attachmentValidations);
 
   const onDropdownDataChange = (value: string) => {
     if (value !== undefined) {
@@ -71,30 +62,17 @@ export function EditWindowComponent({
       return;
     }
 
-    const { id, tags: _tags } = uploadedAttachment.data;
+    const { tags: _tags } = uploadedAttachment.data;
     const existingTags = _tags || [];
 
-    if (chosenOption) {
-      if (chosenOption.value !== existingTags[0]) {
-        await setAttachmentTag(chosenOption);
-      }
-      setEditIndex(-1);
-      setValidationsWithTag(validationsWithTag.filter((obj) => obj.id !== id)); // Remove old validation if exists
-    } else {
-      const tmpValidations: { id: string; message: string }[] = [];
-      tmpValidations.push({
-        id,
-        message: `${langAsString('form_filler.file_uploader_validation_error_no_chosen_tag')} ${(
-          langAsString(textResourceBindings?.tagTitle || '') || ''
-        )
-          .toString()
-          .toLowerCase()}.`,
-      });
-      setValidationsWithTag(validationsWithTag.filter((obj) => obj.id !== tmpValidations[0].id).concat(tmpValidations));
+    if (chosenOption?.value !== existingTags[0]) {
+      await setAttachmentTag(chosenOption);
     }
+    setEditIndex(-1);
+    onAttachmentSave(node, uploadedAttachment.data.id);
   };
 
-  const setAttachmentTag = async (option: IOption) => {
+  const setAttachmentTag = async (option?: IOption) => {
     if (!isAttachmentUploaded(attachment)) {
       return;
     }
@@ -102,7 +80,7 @@ export function EditWindowComponent({
     await updateAttachment({
       attachment,
       node,
-      tags: [option.value],
+      tags: option?.value ? [option.value] : [],
     });
   };
 
@@ -197,7 +175,7 @@ export function EditWindowComponent({
               onChange={onDropdownDataChange}
               options={formattedOptions}
               disabled={saveIsDisabled}
-              error={attachmentValidations.filter((i) => i.id === uniqueId).length > 0}
+              error={hasErrors}
               label={langAsString('general.choose')}
               hideLabel={true}
               value={chosenOption?.value}
@@ -229,17 +207,16 @@ export function EditWindowComponent({
           </Grid>
         </Grid>
       </Grid>
-      {attachmentValidations.filter((i) => i.id === uniqueId).length > 0 ? (
+      {hasErrors ? (
         <div
           style={{
             whiteSpace: 'pre-wrap',
           }}
         >
-          {renderValidationMessages(
-            attachmentValidations.filter((i) => i.id === uniqueId).map((e) => e.message),
-            `attachment-error-${uniqueId}`,
-            'error',
-          )}
+          <ComponentValidations
+            validations={attachmentValidations}
+            node={node}
+          />
         </div>
       ) : undefined}
     </div>

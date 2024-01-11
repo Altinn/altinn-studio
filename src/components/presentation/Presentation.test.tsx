@@ -5,7 +5,6 @@ import { userEvent } from '@testing-library/user-event';
 import axios from 'axios';
 
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { mockWindowWithSearch } from 'src/test/mockWindow';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -14,7 +13,6 @@ import { ProcessTaskType } from 'src/types';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
-import type { IRuntimeState } from 'src/types';
 
 jest.mock('axios');
 
@@ -23,22 +21,6 @@ function flushPromises() {
 }
 
 const user = userEvent.setup();
-
-const stateWithErrorsAndWarnings = getInitialStateMock({
-  formValidations: {
-    validations: {
-      FormLayout: {
-        'mock-component-id': {
-          simpleBinding: {
-            errors: ['mock-error-message'],
-            warnings: ['mock-warning-message'],
-          },
-        },
-      },
-    },
-    invalidDataTypes: [],
-  },
-});
 
 describe('Presentation', () => {
   it('should change window.location.href to query parameter returnUrl if valid URL', async () => {
@@ -50,7 +32,7 @@ describe('Presentation', () => {
       status: HttpStatusCodes.Ok,
     });
 
-    await render({ type: ProcessTaskType.Data }, undefined, returnUrl);
+    await render({ type: ProcessTaskType.Data }, returnUrl);
 
     expect(window.location.href).not.toEqual(returnUrl);
 
@@ -74,7 +56,8 @@ describe('Presentation', () => {
       status: HttpStatusCodes.BadRequest,
     });
 
-    await render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
+    // TODO: Replicate stateWithErrorsAndWarnings?
+    await render({ type: ProcessTaskType.Data });
 
     expect(window.location.href).not.toEqual(returnUrlToMessagebox(origin, getPartyMock().partyId));
 
@@ -93,7 +76,8 @@ describe('Presentation', () => {
     const origin = 'https://local.altinn.cloud';
     const { mockAssign, clearWindow } = mockWindowWithSearch({ origin });
 
-    await render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
+    // TODO: Replicate stateWithErrorsAndWarnings?
+    await render({ type: ProcessTaskType.Data });
 
     expect(window.location.href).not.toEqual(returnUrlToMessagebox(origin, getPartyMock().partyId));
 
@@ -134,11 +118,7 @@ describe('Presentation', () => {
   });
 });
 
-const render = async (
-  props: Partial<IPresentationProvidedProps> = {},
-  reduxState?: IRuntimeState,
-  returnUrl?: string,
-) => {
+const render = async (props: Partial<IPresentationProvidedProps> = {}, returnUrl?: string) => {
   const allProps = {
     header: 'Header text',
     type: ProcessTaskType.Unknown,
@@ -149,6 +129,5 @@ const render = async (
     renderer: () => <PresentationComponent {...allProps} />,
     initialPage: `1?returnUrl=${returnUrl}`,
     taskId: 'Task_1',
-    reduxState,
   });
 };

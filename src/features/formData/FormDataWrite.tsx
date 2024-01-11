@@ -9,20 +9,18 @@ import deepEqual from 'fast-deep-equal';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
-import { useIsStatelessApp } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
 import { diffModels } from 'src/features/formData/diffModels';
-import { useFormDataWriteGatekeepers } from 'src/features/formData/FormDataWriteGatekeepers';
+import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useIsDev } from 'src/hooks/useIsDev';
 import { useWaitForState } from 'src/hooks/useWaitForState';
-import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import { flattenObject } from 'src/utils/databindings';
 import { isAxiosError } from 'src/utils/isAxiosError';
+import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
 import type { IRuleConnections } from 'src/features/form/dynamics';
-import type { FormDataWriteGatekeepers } from 'src/features/formData/FormDataWriteGatekeepers';
+import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type { FDNewValues, FormDataContext } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IFormData } from 'src/features/formData/index';
 import type { SaveWhileTyping } from 'src/layout/common.generated';
@@ -46,15 +44,15 @@ interface FormDataContextInitialProps {
   url: string;
   initialData: object;
   autoSaving: boolean;
-  gatekeepers: FormDataWriteGatekeepers;
+  proxies: FormDataWriteProxies;
   ruleConnections: IRuleConnections | null;
 }
 
 const { Provider, useSelector, useLaxSelector } = createZustandContext({
   name: 'FormDataWrite',
   required: true,
-  initialCreateStore: ({ url, initialData, autoSaving, gatekeepers, ruleConnections }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(url, initialData, autoSaving, gatekeepers, ruleConnections),
+  initialCreateStore: ({ url, initialData, autoSaving, proxies, ruleConnections }: FormDataContextInitialProps) =>
+    createFormDataWriteStore(url, initialData, autoSaving, proxies, ruleConnections),
 });
 
 function createFormDataRequestFromDiff(modelToSave: object, diff: object, pretty?: boolean) {
@@ -110,20 +108,14 @@ interface FormDataWriterProps extends PropsWithChildren {
 }
 
 export function FormDataWriteProvider({ url, initialData, autoSaving, children }: FormDataWriterProps) {
-  const gatekeepers = useFormDataWriteGatekeepers();
+  const proxies = useFormDataWriteProxies();
   const ruleConnections = useRuleConnections();
-
-  // Set the initial data in redux, so that it can be used by sagas and other legacy code
-  const dispatch = useAppDispatch();
-  useEffect(() => {
-    dispatch(DeprecatedActions.setFormData(initialData));
-  }, [initialData, dispatch]);
 
   return (
     <Provider
       url={url}
       autoSaving={autoSaving}
-      gatekeepers={gatekeepers}
+      proxies={proxies}
       initialData={initialData}
       ruleConnections={ruleConnections}
     >
@@ -211,14 +203,12 @@ function FormDataEffects({ url }: { url: string }) {
     [currentDataRef, lastSavedDataRef, performSave],
   );
 
-  // Sets the debounced data in redux, so that it can be used by sagas and other legacy code
-  const dispatch = useAppDispatch();
+  // Sets the debounced data in the window object, so that Cypress tests can access it.
   useEffect(() => {
-    dispatch(DeprecatedActions.setFormData(debouncedCurrentData));
     if (window.Cypress) {
       window.CypressState = { ...window.CypressState, formData: debouncedCurrentData };
     }
-  }, [debouncedCurrentData, dispatch]);
+  }, [debouncedCurrentData]);
 
   return null;
 }
@@ -244,6 +234,10 @@ const useDebounceImmediately = () => {
   }, [debounce]);
 };
 
+/**
+ * TODO: This is being called from a lot of places now, and it should be optimized. Instead of calculating it
+ * every time, we should probably store this in the zustand context.
+ */
 const useHasUnsavedChanges = () => {
   const result = useLaxSelector((s) => s.lastSavedData !== s.currentData && !deepEqual(s.lastSavedData, s.currentData));
   if (result === ContextNotProvided) {
@@ -281,6 +275,14 @@ export const FD = {
    */
   useDebounced(): object {
     return useSelector((v) => v.debouncedCurrentData);
+  },
+
+  /**
+   * This will return the form data as a deep object, just like the server sends it to us (and the way we send it back).
+   * This will always give you the latest data, which is always the data the backend has saved.
+   */
+  useLastSaved(): object {
+    return useSelector((v) => v.lastSavedData);
   },
 
   /**

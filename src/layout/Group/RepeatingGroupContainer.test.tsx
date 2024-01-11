@@ -4,7 +4,11 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getFormLayoutGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
-import { Triggers } from 'src/layout/common.generated';
+import {
+  type BackendValidationIssue,
+  BackendValidationSeverity,
+  ValidationIssueSources,
+} from 'src/features/validation';
 import { RepeatingGroupContainer } from 'src/layout/Group/RepeatingGroupContainer';
 import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
@@ -21,9 +25,10 @@ const mockContainer = getFormLayoutGroupMock({
 interface IRender {
   container?: Partial<CompGroupRepeatingExternal>;
   numRows?: number;
+  validationIssues?: BackendValidationIssue[];
 }
 
-async function render({ container, numRows = 3 }: IRender = {}) {
+async function render({ container, numRows = 3, validationIssues = [] }: IRender = {}) {
   const mockComponents: ILayout = [
     {
       id: 'field1',
@@ -117,6 +122,7 @@ async function render({ container, numRows = 3 }: IRender = {}) {
           checkboxBinding: ['option.value'],
         })),
       }),
+      fetchBackendValidations: async () => validationIssues,
     },
   });
 }
@@ -195,75 +201,61 @@ describe('RepeatingGroupContainer', () => {
     expect(within(editContainer).getByText('Title4')).toBeInTheDocument();
   });
 
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will need to be refactored in combination with #1506.
-   */
-  it.skip('should trigger validate when closing edit mode if validation trigger is present', async () => {
+  it('should trigger validate when saving if validateOnSaveRow is set', async () => {
     await render({
       container: {
-        triggers: [Triggers.Validation],
+        validateOnSaveRow: ['All'],
       },
+      validationIssues: [
+        {
+          customTextKey: 'Feltet er feil',
+          field: 'Group[0].prop1',
+          severity: BackendValidationSeverity.Error,
+          source: ValidationIssueSources.Custom,
+        } as BackendValidationIssue,
+      ],
     });
 
     await userEvent.click(
       screen.getAllByRole('button', {
-        name: /Lagre og lukk/i,
+        name: /Rediger/i,
       })[0],
     );
+
+    await userEvent.click(
+      screen.getAllByRole('button', {
+        name: /Lagre og lukk/i,
+      })[1],
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Feltet er feil');
   });
 
-  it.skip('should NOT trigger validate when closing edit mode if validation trigger is NOT present', async () => {
-    await render();
-
-    const editButton = screen.getAllByRole('button', {
-      name: /Lagre og lukk/i,
-    })[0];
-    await userEvent.click(editButton);
-
-    // TODO: How do we assert that validation did not happen?
-  });
-
-  it.skip('should trigger validate when saving if validation trigger is present', async () => {
+  it('should NOT trigger validate when saving if validation trigger is NOT present', async () => {
     await render({
-      container: {
-        triggers: [Triggers.Validation],
-      },
+      validationIssues: [
+        {
+          customTextKey: 'Feltet er feil',
+          field: 'Group[0].prop1',
+          severity: BackendValidationSeverity.Error,
+          source: ValidationIssueSources.Custom,
+        } as BackendValidationIssue,
+      ],
     });
 
-    const editButton = screen.getAllByRole('button', {
-      name: /Lagre og lukk/i,
-    })[1];
-    await userEvent.click(editButton);
+    await userEvent.click(
+      screen.getAllByRole('button', {
+        name: /Rediger/i,
+      })[0],
+    );
 
-    // TODO: How do we assert that validation happened?
-  });
+    await userEvent.click(
+      screen.getAllByRole('button', {
+        name: /Lagre og lukk/i,
+      })[1],
+    );
 
-  it.skip('should trigger validate when saving if validateRow trigger is present', async () => {
-    await render({
-      container: {
-        triggers: [Triggers.ValidateRow],
-      },
-    });
-
-    const editButton = screen.getAllByRole('button', {
-      name: /Lagre og lukk/i,
-    })[1];
-    await userEvent.click(editButton);
-
-    // TODO: How do we assert that validation happened?
-  });
-
-  it.skip('should NOT trigger validate when saving if validation trigger is NOT present', async () => {
-    await render();
-
-    const editButton = screen.getAllByRole('button', {
-      name: /Lagre og lukk/i,
-    })[1];
-    await userEvent.click(editButton);
-
-    // TODO: How do we assert that validation did not happen?
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('should display "Add new" button when edit.addButton is undefined', async () => {

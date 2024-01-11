@@ -1,15 +1,19 @@
 import React from 'react';
 import type { JSX } from 'react';
 
+import dot from 'dot-object';
+
+import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { AddressDef } from 'src/layout/Address/config.def.generated';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { PropsFromGenericComponent } from 'src/layout';
+import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
+import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class Address extends AddressDef {
+export class Address extends AddressDef implements ValidateComponent {
   render(props: PropsFromGenericComponent<'AddressComponent'>): JSX.Element | null {
     return <AddressComponent {...props} />;
   }
@@ -22,6 +26,54 @@ export class Address extends AddressDef {
   renderSummary({ targetNode }: SummaryRendererProps<'AddressComponent'>): JSX.Element | null {
     const data = this.useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={data} />;
+  }
+
+  renderDefaultValidations(): boolean {
+    return false;
+  }
+
+  runComponentValidation(
+    node: LayoutNode<'AddressComponent'>,
+    { formData }: ValidationDataSources,
+  ): ComponentValidation[] {
+    if (!node.item.dataModelBindings) {
+      return [];
+    }
+    const validations: ComponentValidation[] = [];
+
+    const zipCodeField = node.item.dataModelBindings.zipCode;
+    const zipCode = zipCodeField ? dot.pick(zipCodeField, formData) : undefined;
+    const zipCodeAsString = typeof zipCode === 'string' || typeof zipCode === 'number' ? String(zipCode) : undefined;
+
+    // TODO(Validation): Add better message for the special case of 0000 or add better validation for zipCodes that the API says are invalid
+    if (zipCodeAsString && (!zipCodeAsString.match(/^\d{4}$/) || zipCodeAsString === '0000')) {
+      validations.push({
+        message: { key: 'address_component.validation_error_zipcode' },
+        severity: 'error',
+        bindingKey: 'zipCode',
+        componentId: node.item.id,
+        group: FrontendValidationSource.Component,
+        category: ValidationMask.Component,
+      });
+    }
+
+    const houseNumberField = node.item.dataModelBindings.houseNumber;
+    const houseNumber = houseNumberField ? dot.pick(houseNumberField, formData) : undefined;
+    const houseNumberAsString =
+      typeof houseNumber === 'string' || typeof houseNumber === 'number' ? String(houseNumber) : undefined;
+
+    if (houseNumberAsString && !houseNumberAsString.match(/^[a-z,A-Z]\d{4}$/)) {
+      validations.push({
+        message: { key: 'address_component.validation_error_house_number' },
+        severity: 'error',
+        bindingKey: 'houseNumber',
+        componentId: node.item.id,
+        group: FrontendValidationSource.Component,
+        category: ValidationMask.Component,
+      });
+    }
+
+    return validations;
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'AddressComponent'>): string[] {

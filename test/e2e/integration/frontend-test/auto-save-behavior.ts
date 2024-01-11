@@ -2,7 +2,7 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 
-import { Triggers } from 'src/layout/common.generated';
+import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
@@ -79,19 +79,16 @@ describe('Auto save behavior', () => {
     });
   });
 
-  [Triggers.ValidatePage, Triggers.ValidateAllPages].forEach((trigger) => {
-    /**
-     * TODO(1508):
-     * This test is skipped because validation is not triggered by the new navigation refactor.
-     * This will be fixed in combination with #1506.
-     * Note: There may be a need to adjust the test to actually change some data before navigating to the next
-     * page, as was done for the tests above.
-     */
-    it.skip(`should run save before single field validation with navigation trigger ${trigger || 'undefined'}`, () => {
+  (['current', 'all'] as const).forEach((pages) => {
+    it(`should run save before single field validation with navigation trigger ${pages || 'undefined'}`, () => {
       cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
       cy.interceptLayout('changename', (component) => {
         if (component.type === 'NavigationButtons') {
-          component.triggers = trigger ? [trigger] : [];
+          component.validateOnNext = { page: pages, show: ['All'] };
+        }
+        if (component.id === 'newFirstName') {
+          // TODO(Validation): Once it is possible to treat custom validations as required, this can be removed.
+          (component as CompInputExternal).showValidations = undefined;
         }
       });
 
@@ -123,9 +120,9 @@ describe('Auto save behavior', () => {
       cy.navPage('form').should('have.attr', 'aria-current', 'page');
 
       let expectedErrors: string[] = [];
-      if (trigger == Triggers.ValidatePage) {
+      if (pages == 'current') {
         expectedErrors = ['Du må fylle ut nytt etternavn', texts.testIsNotValidValue];
-      } else if (trigger == Triggers.ValidateAllPages) {
+      } else if (pages == 'all') {
         expectedErrors = [
           'Du må fylle ut nytt etternavn',
           texts.testIsNotValidValue,

@@ -49,8 +49,6 @@ describe('ConfirmPage', () => {
             };
           }),
       },
-      reduxGateKeeper: (action) =>
-        !!('type' in action && (action.type.startsWith('deprecated/') || action.type === 'formData/submitReady')),
     });
 
     const submitBtnText = /send inn/i;

@@ -34,4 +34,5 @@ export const Config = new CG.component({
         .setDescription("Shows two buttons (back/next) instead of just 'next'."),
     ),
   )
-  .addProperty(new CG.prop('triggers', CG.common('TriggerList').optional()));
+  .addProperty(new CG.prop('validateOnNext', CG.common('PageValidation').optional()))
+  .addProperty(new CG.prop('validateOnPrevious', CG.common('PageValidation').optional()));

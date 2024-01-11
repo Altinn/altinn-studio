@@ -1,20 +1,19 @@
 import React from 'react';
 import type { JSX } from 'react';
 
+import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { attachmentsValid } from 'src/features/validation/utils';
 import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { attachmentsValid } from 'src/utils/validation/validation';
-import { buildValidationObject } from 'src/utils/validation/validationHelpers';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { IFormData } from 'src/features/formData';
-import type { ComponentValidation, DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
+import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
+import type { DisplayDataProps, PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { IValidationContext, IValidationObject } from 'src/utils/validation/types';
 
-export class FileUpload extends FileUploadDef implements ComponentValidation {
+export class FileUpload extends FileUploadDef implements ValidateComponent {
   render(props: PropsFromGenericComponent<'FileUpload'>): JSX.Element | null {
     return <FileUploadComponent {...props} />;
   }
@@ -32,23 +31,30 @@ export class FileUpload extends FileUploadDef implements ComponentValidation {
   }
 
   // This component does not have empty field validation, so has to override its inherited method
-  runEmptyFieldValidation(): IValidationObject[] {
+  runEmptyFieldValidation(): ComponentValidation[] {
     return [];
   }
 
   runComponentValidation(
     node: LayoutNode<'FileUpload'>,
-    { attachments, langTools }: IValidationContext,
-    _overrideFormData?: IFormData,
-  ): IValidationObject[] {
+    { attachments }: ValidationDataSources,
+  ): ComponentValidation[] {
+    const validations: ComponentValidation[] = [];
+
     if (!attachmentsValid(attachments, node.item)) {
-      const lang = langTools.langAsNonProcessedString;
-      const message = `${lang('form_filler.file_uploader_validation_error_file_number_1')} ${
-        node.item.minNumberOfAttachments
-      } ${lang('form_filler.file_uploader_validation_error_file_number_2')}`;
-      return [buildValidationObject(node, 'errors', message)];
+      validations.push({
+        message: {
+          key: 'form_filler.file_uploader_validation_error_file_number',
+          params: [node.item.minNumberOfAttachments],
+        },
+        severity: 'error',
+        group: FrontendValidationSource.Component,
+        componentId: node.item.id,
+        category: ValidationMask.Component,
+      });
     }
-    return [];
+
+    return validations;
   }
 
   isDataModelBindingsRequired(node: LayoutNode<'FileUpload'>): boolean {

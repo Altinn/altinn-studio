@@ -1,26 +1,24 @@
 import { useMemo } from 'react';
 
-import { createSelector } from 'reselect';
-
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useAttachments } from 'src/features/attachments/AttachmentsContext';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { evalExprInObj, ExprConfigForComponent, ExprConfigForGroup } from 'src/features/expressions';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { usePageNavigationConfig } from 'src/features/form/layout/PageNavigationContext';
+import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { staticUseLanguageFromState, useLanguage } from 'src/features/language/useLanguage';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { useAllOptions } from 'src/features/options/useAllOptions';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { useNavigationParams } from 'src/hooks/useNavigatePage';
+import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
-import { convertDataBindingToModel } from 'src/utils/databindings';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { CompInternal, HierarchyDataSources, ILayouts } from 'src/layout/layout';
-import type { IRuntimeState } from 'src/types';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 /**
@@ -93,108 +91,61 @@ function resolvedNodesInLayouts(
   return unresolved as unknown as LayoutPages;
 }
 
-export function dataSourcesFromState(state: IRuntimeState): HierarchyDataSources {
-  return {
-    formData: convertDataBindingToModel(state.deprecated.formData),
-    attachments: state.deprecated.lastKnownAttachments || {},
-    uiConfig: state.formLayout.uiConfig,
-    options: state.deprecated.allOptions || {},
-    applicationSettings: state.applicationSettings.applicationSettings,
-    instanceDataSources: buildInstanceDataSources(state.deprecated.lastKnownInstance),
-    hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
-    authContext: buildAuthContext(state.deprecated.lastKnownProcess?.currentTask),
-    validations: state.formValidations.validations,
-    devTools: state.devTools,
-    langTools: staticUseLanguageFromState(state),
-    currentLanguage: state.deprecated.currentLanguage,
-  };
-}
-
-export const selectDataSourcesFromState = createSelector(dataSourcesFromState, (data) => data);
-
-function innerResolvedLayoutsFromState(
-  layouts: ILayouts | null,
-  currentView: string | undefined,
-  dataSources: HierarchyDataSources,
-): LayoutPages | undefined {
-  if (!layouts) {
-    return undefined;
-  }
-
-  return resolvedNodesInLayouts(layouts, currentView, dataSources);
-}
-
-export function resolvedLayoutsFromState(state: IRuntimeState) {
-  return innerResolvedLayoutsFromState(
-    state.formLayout.layouts,
-    state.formLayout.uiConfig.currentView,
-    dataSourcesFromState(state),
-  );
-}
-
-/**
- * This is a more efficient, memoized version of what happens above. This will only be used from ExprContext,
- * and trades verbosity and code duplication for performance and caching.
- */
-function useResolvedExpressions() {
+export function useExpressionDataSources(hiddenComponents: Set<string>): HierarchyDataSources {
   const instance = useLaxInstanceData();
   const formData = FD.useDebounced();
-  const uiConfig = useAppSelector((state) => state.formLayout.uiConfig);
+  const layoutSettings = useLayoutSettings();
   const attachments = useAttachments();
   const options = useAllOptions();
   const process = useLaxProcessData();
   const applicationSettings = useApplicationSettings();
-  const hiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
-  const validations = useAppSelector((state) => state.formValidations.validations);
-  const layouts = useLayouts();
-  const { pageKey } = useNavigationParams();
-  const currentView = pageKey;
-  const devTools = useAppSelector((state) => state.devTools);
+  const devToolsIsOpen = useDevToolsStore((state) => state.isOpen);
+  const devToolsHiddenComponents = useDevToolsStore((state) => state.hiddenComponents);
   const langTools = useLanguage();
   const currentLanguage = useCurrentLanguage();
+  const pageNavigationConfig = usePageNavigationConfig();
 
-  const dataSources: HierarchyDataSources = useMemo(
+  return useMemo(
     () => ({
       formData,
       attachments: attachments || {},
-      uiConfig,
+      layoutSettings,
+      pageNavigationConfig,
       options: options || {},
       applicationSettings,
       instanceDataSources: buildInstanceDataSources(instance),
       authContext: buildAuthContext(process?.currentTask),
-      hiddenFields: new Set(hiddenFields),
-      validations,
-      devTools,
+      hiddenFields: hiddenComponents,
+      devToolsIsOpen,
+      devToolsHiddenComponents,
       langTools,
       currentLanguage,
     }),
     [
       formData,
       attachments,
-      uiConfig,
+      layoutSettings,
+      pageNavigationConfig,
       options,
       applicationSettings,
       instance,
       process?.currentTask,
-      hiddenFields,
-      validations,
-      devTools,
+      hiddenComponents,
+      devToolsIsOpen,
+      devToolsHiddenComponents,
       langTools,
       currentLanguage,
     ],
   );
-
-  return useMemo(
-    () => innerResolvedLayoutsFromState(layouts, currentView, dataSources),
-    [layouts, currentView, dataSources],
-  );
 }
 
-/**
- * Selector for use in redux sagas. Will return a fully resolved layouts tree.
- * Specify manually that the returned value from this is `LayoutPages`
- */
-export const ResolvedNodesSelector = (state: IRuntimeState) => resolvedLayoutsFromState(state);
+function useResolvedExpressions(hidden: Set<string>) {
+  const layouts = useLayouts();
+  const currentView = useCurrentView();
+  const dataSources = useExpressionDataSources(hidden);
+
+  return useMemo(() => resolvedNodesInLayouts(layouts, currentView, dataSources), [layouts, currentView, dataSources]);
+}
 
 /**
  * Exported only for testing. Please do not use!

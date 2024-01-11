@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import { Button } from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
@@ -8,30 +8,19 @@ import reusedClasses from 'src/features/devtools/components/LayoutInspector/Layo
 import { NodeHierarchy } from 'src/features/devtools/components/NodeInspector/NodeHierarchy';
 import { NodeInspectorContextProvider } from 'src/features/devtools/components/NodeInspector/NodeInspectorContext';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 import { useNodes } from 'src/utils/layout/NodesContext';
 
 export const NodeInspector = () => {
   const pages = useNodes();
   const currentPage = pages?.current();
   const currentPageKey = currentPage?.top.myKey;
-  const selectedId = useAppSelector((state) => state.devTools.nodeInspector.selectedNodeId);
+  const selectedId = useDevToolsStore((state) => state.nodeInspector.selectedNodeId);
   const selectedNode = selectedId ? currentPage?.findById(selectedId) : undefined;
-
-  const dispatch = useAppDispatch();
-  const setSelected = useCallback(
-    (selectedNodeId: string | undefined) => {
-      dispatch(
-        DevToolsActions.nodeInspectorSet({
-          selectedNodeId,
-        }),
-      );
-    },
-    [dispatch],
-  );
+  const setSelected = useDevToolsStore((state) => state.actions.nodeInspectorSet);
+  const setSelectedInLayoutInspector = useDevToolsStore((state) => state.actions.layoutInspectorSet);
+  const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
 
   useEffect(() => {
     setSelected(undefined);
@@ -55,16 +44,8 @@ export const NodeInspector = () => {
                 href='#'
                 onClick={(e) => {
                   e.preventDefault();
-                  dispatch(
-                    DevToolsActions.layoutInspectorSet({
-                      selectedComponentId: selectedNode?.item.baseComponentId || selectedNode?.item.id,
-                    }),
-                  );
-                  dispatch(
-                    DevToolsActions.setActiveTab({
-                      tabName: DevToolsTab.Layout,
-                    }),
-                  );
+                  setSelectedInLayoutInspector(selectedNode?.item.baseComponentId || selectedNode?.item.id);
+                  setActiveTab(DevToolsTab.Layout);
                 }}
               >
                 Rediger konfigurasjonen i Layout-fanen

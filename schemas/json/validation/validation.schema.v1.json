@@ -64,6 +64,12 @@
             "success"
           ]
         },
+        "showImmediately": {
+          "title": "Show immediately",
+          "description": "If true, the validation message will be shown immediately when the condition is true. If false, it will be shown when expression validations are normally shown.",
+          "type": "boolean",
+          "default": false
+        },
         "ref": {
           "title": "Reference to another validation",
           "description": "A reference to another validation to extend from. The referenced validation must be defined in the same validation configuration file.",

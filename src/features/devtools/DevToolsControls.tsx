@@ -15,18 +15,13 @@ import { NodeInspector } from 'src/features/devtools/components/NodeInspector/No
 import { PDFPreviewButton } from 'src/features/devtools/components/PDFPreviewButton/PDFPreviewButton';
 import { PermissionsEditor } from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor';
 import { VersionSwitcher } from 'src/features/devtools/components/VersionSwitcher/VersionSwitcher';
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import classes from 'src/features/devtools/DevTools.module.css';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
 
 export const DevToolsControls = () => {
-  const activeTab = useAppSelector((state) => state.devTools.activeTab);
-  const dispatch = useAppDispatch();
-  const setActiveTab = (tabName: DevToolsTab) => {
-    dispatch(DevToolsActions.setActiveTab({ tabName }));
-  };
+  const activeTab = useDevToolsStore((state) => state.activeTab);
+  const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
 
   return (
     <Tabs

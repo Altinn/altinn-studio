@@ -1,4 +1,5 @@
 import JsonPointer from 'jsonpointer';
+import type { JSONSchema7 } from 'json-schema';
 
 import type { IDataType } from 'src/types/shared';
 
@@ -29,7 +30,7 @@ export const getRootElementPath = (schema: any, dataType: IDataType | undefined)
  * @param jsonSchema the json schema to get part from
  * @returns the part, or null if not found
  */
-export function getSchemaPart(schemaPath: string, jsonSchema: object): any {
+export function getSchemaPart(schemaPath: string, jsonSchema: JSONSchema7): any {
   try {
     // want to transform path example format to to /properties/model/properties/person/properties/name
     const pointer = schemaPath.substr(1).split('/').slice(0, -1).join('/');

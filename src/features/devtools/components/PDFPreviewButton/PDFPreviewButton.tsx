@@ -1,20 +1,15 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
 
 import { Button, Fieldset } from '@digdir/design-system-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { ProcessTaskType } from 'src/types';
 
 export const PDFPreviewButton = () => {
-  const dispatch = useDispatch();
   const taskType = useTaskTypeFromBackend();
-
-  function handler() {
-    dispatch(DevToolsActions.previewPdf());
-  }
+  const setPdfPreview = useDevToolsStore((state) => state.actions.setPdfPreview);
 
   return (
     <Fieldset
@@ -26,7 +21,7 @@ export const PDFPreviewButton = () => {
       }
     >
       <Button
-        onClick={handler}
+        onClick={() => setPdfPreview(true)}
         size='small'
         disabled={taskType !== ProcessTaskType.Data}
         color='second'

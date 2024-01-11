@@ -7,7 +7,7 @@ import { applyChanges } from 'src/features/formData/applyChanges';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/index';
 import { runLegacyRules } from 'src/features/formData/LegacyRules';
 import type { IRuleConnections } from 'src/features/form/dynamics';
-import type { FormDataWriteGatekeepers } from 'src/features/formData/FormDataWriteGatekeepers';
+import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { IFormData } from 'src/features/formData/index';
 
 export interface FormDataState {
@@ -314,22 +314,19 @@ export const createFormDataWriteStore = (
   url: string,
   initialData: object,
   autoSaving: boolean,
-  gatekeepers: FormDataWriteGatekeepers,
+  proxies: FormDataWriteProxies,
   ruleConnections: IRuleConnections | null,
 ) =>
   createStore<FormDataContext>()(
     immer((set) => {
       const actions = makeActions(set, ruleConnections);
-      for (const _fnName of Object.keys(actions)) {
-        const fnName = _fnName as keyof FormDataMethods;
-        const fn = actions[fnName] as (...args: any[]) => void;
-        const gatekeeper = gatekeepers[fnName] as (...args: any[]) => boolean;
+      for (const name of Object.keys(actions)) {
+        const fnName = name as keyof FormDataMethods;
+        const original = actions[fnName];
+        const proxyFn = proxies[fnName] as Proxy<keyof FormDataMethods>;
+        const { proxy, method } = proxyFn(original);
         actions[fnName] = (...args: any[]) => {
-          if (!gatekeeper(...args)) {
-            return;
-          }
-
-          fn(...args);
+          proxy({ args: args as any, toCall: method });
         };
       }
 

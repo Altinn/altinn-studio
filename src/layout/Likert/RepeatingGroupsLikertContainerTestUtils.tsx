@@ -3,19 +3,21 @@ import React from 'react';
 import { screen, within } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import {
+  type BackendValidationIssue,
+  BackendValidationSeverity,
+  ValidationIssueSources,
+} from 'src/features/validation';
 import { RepeatingGroupsLikertContainer } from 'src/layout/Likert/RepeatingGroupsLikertContainer';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useResolvedNode } from 'src/utils/layout/NodesContext';
 import type { FDNewValue } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IRawTextResource, ITextResourceResult } from 'src/features/language/textResources';
-import type { IValidationState } from 'src/features/validation/validationSlice';
 import type { IOption } from 'src/layout/common.generated';
 import type { CompGroupRepeatingLikertExternal } from 'src/layout/Group/config.generated';
 import type { CompOrGroupExternal } from 'src/layout/layout';
 import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
-import type { ILayoutValidations } from 'src/utils/validation/types';
 
 export const defaultMockQuestions = [
   { Question: 'Hvordan trives du på skolen?', Answer: '' },
@@ -33,6 +35,18 @@ export const generateMockFormData = (likertQuestions: IQuestion[]) => ({
     [questionBinding]: likertQuestions[index].Question,
   })),
 });
+
+export const generateValidations = (validations: { index: number; message: string }[]): BackendValidationIssue[] =>
+  validations.map(
+    ({ index, message }) =>
+      ({
+        customTextKey: message,
+        field: `${groupBinding}[${index}].${answerBinding}`,
+        severity: BackendValidationSeverity.Error,
+        source: ValidationIssueSources.Custom,
+        showImmediately: true,
+      }) as unknown as BackendValidationIssue,
+  );
 
 export const defaultMockOptions: IOption[] = [
   {
@@ -95,20 +109,6 @@ export const createFormDataUpdateProp = (index: number, optionValue: string): FD
   newValue: optionValue,
 });
 
-export const createFormError = (index: number): ILayoutValidations => ({
-  [`field1-${index}`]: {
-    simpleBinding: {
-      errors: ['Feltet er påkrevd'],
-      warnings: [],
-    },
-  },
-});
-
-const createFormValidationsForCurrentView = (validations: ILayoutValidations = {}): IValidationState => ({
-  invalidDataTypes: [],
-  validations: { FormLayout: validations },
-});
-
 const createTextResource = (questions: IQuestion[], extraResources: IRawTextResource[]): ITextResourceResult => ({
   resources: [
     {
@@ -144,7 +144,7 @@ interface IRenderProps {
   radioButtonProps: Partial<CompLikertExternal>;
   likertContainerProps: Partial<CompGroupRepeatingLikertExternal>;
   extraTextResources: IRawTextResource[];
-  validations: ILayoutValidations;
+  validationIssues: BackendValidationIssue[];
 }
 
 export const render = async ({
@@ -154,7 +154,7 @@ export const render = async ({
   radioButtonProps,
   likertContainerProps,
   extraTextResources = [],
-  validations,
+  validationIssues = [],
 }: Partial<IRenderProps> = {}) => {
   const mockRadioButton = createRadioButton(radioButtonProps);
   const mockLikertContainer = createLikertContainer(likertContainerProps);
@@ -163,9 +163,6 @@ export const render = async ({
   setScreenWidth(mobileView ? 600 : 1200);
   return await renderWithInstanceAndLayout({
     renderer: () => <ContainerTester id={mockLikertContainer.id} />,
-    reduxState: getInitialStateMock({
-      formValidations: createFormValidationsForCurrentView(validations),
-    }),
     queries: {
       fetchOptions: async () => ({ data: mockOptions, headers: {} }) as AxiosResponse<IOption[], any>,
       fetchTextResources: async () => createTextResource(mockQuestions, extraTextResources),
@@ -182,6 +179,7 @@ export const render = async ({
           order: ['FormLayout'],
         },
       }),
+      fetchBackendValidations: async () => validationIssues,
     },
   });
 };

@@ -1,5 +1,6 @@
 import { isAxiosError } from 'axios';
 
+import { DevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import type { IDevToolsLog } from 'src/features/devtools/data/types';
 
 let logIndex = 0;
@@ -8,10 +9,8 @@ const tempLogs: IDevToolsLog[] = [];
 let timer: ReturnType<typeof setTimeout>;
 
 function pushLogs() {
-  if (window.reduxStore) {
-    window.reduxStore.dispatch({ type: 'devTools/postLogs', payload: { logs: tempLogs } });
-    tempLogs.splice(0, tempLogs.length);
-  }
+  DevToolsStore.getState().actions.postLogs(tempLogs);
+  tempLogs.splice(0, tempLogs.length);
 }
 
 function postLog(level: 'info' | 'warn' | 'error', args: any[], once = false) {

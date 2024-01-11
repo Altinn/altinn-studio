@@ -7,7 +7,6 @@ import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
   useDataTypeByLayoutSetId,
-  useIsStatelessApp,
 } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useCurrentDataModelSchema } from 'src/features/datamodel/DataModelSchemaProvider';
 import { dotNotationToPointer } from 'src/features/datamodel/notations';
@@ -23,6 +22,7 @@ import {
   getDataElementUrl,
   getStatelessDataModelUrl,
 } from 'src/utils/urls/appUrlHelper';
+import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 type AsSchema<T> = {

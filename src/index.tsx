@@ -4,7 +4,6 @@ import 'core-js';
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { Provider } from 'react-redux';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
 
@@ -32,8 +31,6 @@ import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { ProfileProvider } from 'src/features/profile/ProfileProvider';
 import * as queries from 'src/queries/queries';
-import { initSagas } from 'src/redux/sagas';
-import { setupStore } from 'src/redux/store';
 
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
@@ -47,26 +44,21 @@ const router = createHashRouter([
 ]);
 
 document.addEventListener('DOMContentLoaded', () => {
-  const { store, sagaMiddleware } = setupStore();
-  initSagas(sagaMiddleware);
-
   const container = document.getElementById('root');
   const root = container && createRoot(container);
   root?.render(
     <AppQueriesProvider {...queries}>
-      <Provider store={store}>
-        <ErrorBoundary>
-          <AppWrapper>
-            <LanguageProvider>
-              <ThemeWrapper>
-                <UiConfigProvider>
-                  <RouterProvider router={router} />
-                </UiConfigProvider>
-              </ThemeWrapper>
-            </LanguageProvider>
-          </AppWrapper>
-        </ErrorBoundary>
-      </Provider>
+      <ErrorBoundary>
+        <AppWrapper>
+          <LanguageProvider>
+            <ThemeWrapper>
+              <UiConfigProvider>
+                <RouterProvider router={router} />
+              </UiConfigProvider>
+            </ThemeWrapper>
+          </LanguageProvider>
+        </AppWrapper>
+      </ErrorBoundary>
     </AppQueriesProvider>,
   );
 });

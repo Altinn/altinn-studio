@@ -8,6 +8,8 @@ import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
+import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Summary/SummaryComponent.module.css';
@@ -26,9 +28,10 @@ export interface ISummaryComponent {
     largeGroup?: boolean;
     display?: SummaryDisplayProperties;
   };
+  ref?: React.Ref<HTMLDivElement>;
 }
 
-export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) {
+export function SummaryComponent({ summaryNode, overrides, ref }: ISummaryComponent) {
   const { id, grid } = summaryNode.item;
   const display = overrides?.display || summaryNode.item.display;
   const { langAsString } = useLanguage();
@@ -38,6 +41,9 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
   const targetNode = useResolvedNode(overrides?.targetNode || summaryNode.item.componentRef || summaryNode.item.id);
   const targetItem = targetNode?.item;
   const targetView = targetNode?.top.top.myKey;
+
+  const validations = useUnifiedValidationsForNode(targetNode);
+  const errors = validationsOfSeverity(validations, 'error');
 
   const navigateTo = useNavigateToNode();
   const { setReturnToView } = usePageNavigationContext();
@@ -65,6 +71,7 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
 
   return (
     <Grid
+      ref={ref}
       item={true}
       xs={displayGrid?.xs || 12}
       sm={displayGrid?.sm || false}
@@ -93,36 +100,39 @@ export function SummaryComponent({ summaryNode, overrides }: ISummaryComponent) 
         ) : (
           <GenericComponent node={targetNode} />
         )}
-        {targetNode?.hasValidationMessages('errors') &&
-          targetItem.type !== 'Group' &&
-          !display?.hideValidationMessages && (
+        {errors.length && targetItem.type !== 'Group' && !display?.hideValidationMessages ? (
+          <Grid
+            container={true}
+            style={{ paddingTop: '12px' }}
+            spacing={2}
+          >
+            {errors.map(({ message }) => (
+              <ErrorPaper
+                key={`key-${message.key}`}
+                message={
+                  <Lang
+                    id={message.key}
+                    params={message.params}
+                  />
+                }
+              />
+            ))}
             <Grid
-              container={true}
-              style={{ paddingTop: '12px' }}
-              spacing={2}
+              item={true}
+              xs={12}
             >
-              {targetNode?.getUnifiedValidations().errors?.map((error: string) => (
-                <ErrorPaper
-                  key={`key-${error}`}
-                  message={error}
-                />
-              ))}
-              <Grid
-                item={true}
-                xs={12}
-              >
-                {!display?.hideChangeButton && (
-                  <button
-                    className={classes.link}
-                    onClick={onChangeClick}
-                    type='button'
-                  >
-                    <Lang id={'form_filler.summary_go_to_correct_page'} />
-                  </button>
-                )}
-              </Grid>
+              {!display?.hideChangeButton && (
+                <button
+                  className={classes.link}
+                  onClick={onChangeClick}
+                  type='button'
+                >
+                  {<Lang id={'form_filler.summary_go_to_correct_page'} />}
+                </button>
+              )}
             </Grid>
-          )}
+          </Grid>
+        ) : null}
       </Grid>
     </Grid>
   );

@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
 import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 
@@ -68,15 +69,33 @@ export function RepeatingGroupEditRowProvider({ node, editIndex, children }: Pro
       // Nothing to do here. Other navigation handlers will make sure this row is opened for editing.
       return false;
     }
-    const isChildOfOurs = node.item.rows[editIndex].items.find((item) => item.item.id === targetNode.item.id);
-    if (!isChildOfOurs) {
+    const ourChildRecursively = node.flat(true).find((item) => item.item.id === targetNode.item.id);
+    if (!ourChildRecursively) {
       return false;
     }
-    const targetMultiPageIndex = targetNode.item.multiPageIndex ?? 0;
-    if (targetMultiPageIndex !== state.multiPageIndex) {
-      setMultiPageIndex(targetMultiPageIndex);
+    const ourDirectChildren = node.children();
+    const ourChildDirectly = ourDirectChildren.find((n) => n.item.id === targetNode.item.id);
+    if (ourChildDirectly) {
+      const targetMultiPageIndex = targetNode.item.multiPageIndex ?? 0;
+      if (targetMultiPageIndex !== state.multiPageIndex) {
+        setMultiPageIndex(targetMultiPageIndex);
+      }
+      return true;
     }
-    return true;
+
+    // It's our child, but not directly. We need to figure out which of our children contains the target node,
+    // and navigate there. Then it's a problem that can be forwarded there.
+    const ourChildrenIds = new Set(ourDirectChildren.map((n) => n.item.id));
+    const childWeAreLookingFor = targetNode.parents((n) => (n?.item.id ? ourChildrenIds.has(n.item.id) : false))[0];
+    if (childWeAreLookingFor && !(childWeAreLookingFor instanceof LayoutPage)) {
+      const targetMultiPageIndex = childWeAreLookingFor.item.multiPageIndex ?? 0;
+      if (targetMultiPageIndex !== state.multiPageIndex) {
+        setMultiPageIndex(targetMultiPageIndex);
+      }
+      return true;
+    }
+
+    return false;
   });
 
   return <Provider value={state}>{children}</Provider>;

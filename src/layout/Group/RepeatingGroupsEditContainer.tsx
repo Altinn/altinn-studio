@@ -222,7 +222,7 @@ function RepeatingGroupsEditContainerInternal({
             {saveButtonVisible && (
               <Grid item={true}>
                 <Button
-                  id={`add-button-grp-${id}`}
+                  id={`save-button-${id}`}
                   onClick={() => closeForEditing(editIndex)}
                   variant={saveAndNextButtonVisible ? 'secondary' : 'primary'}
                   color='first'

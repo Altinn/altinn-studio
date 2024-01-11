@@ -8,12 +8,7 @@ const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Grid component', () => {
-  /**
-   * TODO(1508):
-   * This test is skipped because validation is not triggered by the new navigation refactor.
-   * This will be fixed in combination with #1506.
-   */
-  it.skip('should work with basic table functionality', () => {
+  it('should work with basic table functionality', () => {
     cy.goto('changename');
     cy.navPage('grid').click();
 
@@ -92,9 +87,10 @@ describe('Grid component', () => {
 
     // Testing that mobile view breaks down into regular components without a table
     cy.navPage('grid').click();
+    cy.get(`${appFrontend.grid.grid} tr`).should('exist');
     cy.viewport('samsung-s10');
     cy.get(appFrontend.grid.grid).should('be.visible');
-    cy.get(appFrontend.grid.grid).find('tr').should('not.exist');
+    cy.get(`${appFrontend.grid.grid} tr`).should('not.exist');
     cy.get(appFrontend.grid.bolig.percent).should('have.value', '70 %');
     cy.get(appFrontend.grid.bolig.percentComponent).should('contain.text', 'Prosentandel av gjeld i boliglån');
     cy.get(appFrontend.grid.bolig.verifiedComponent).should(

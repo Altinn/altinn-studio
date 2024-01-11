@@ -5,6 +5,8 @@ export function getProcessDataMock(mutate?: (process: IProcess) => void): IProce
     started: '2020-01-01',
     startEvent: null,
     currentTask: {
+      write: true,
+      read: true,
       flow: 1,
       started: '2020-01-01',
       elementId: 'Task_1',

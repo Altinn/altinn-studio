@@ -4,26 +4,20 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
 import type { GlobalPageSettings, ILayoutSets, ILayoutSettings, IPagesBaseSettings } from 'src/layout/common.generated';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 function useLayoutSettingsQuery() {
   const { fetchLayoutSettings } = useAppQueries();
   const layoutSetId = useLayoutSetId();
-  const dispatch = useAppDispatch();
 
   const queryId = layoutSetId;
 
   return useQuery({
     queryKey: ['layoutSettings', queryId],
     queryFn: () => fetchLayoutSettings(queryId),
-    onSuccess: (settings) => {
-      dispatch(FormLayoutActions.fetchSettingsFulfilled({ settings }));
-    },
     onError: (error: HttpClientError) => {
       window.logError('Fetching layout settings failed:\n', error);
     },

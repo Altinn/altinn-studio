@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { useAppSelector } from 'src/hooks/useAppSelector';
-import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import type { IProfile } from 'src/types/shared';
 
 interface LanguageCtx {
@@ -28,9 +25,8 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
 });
 
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
-  const current = useAppSelector((state) => state.deprecated.currentLanguage);
+  const [current, setCurrent] = useState('nb');
   const [userId, setUserId] = useState<number | undefined>(undefined);
-  const dispatch = useAppDispatch();
 
   const updateProfile = (profile: IProfile) => {
     setUserId(profile.userId);
@@ -39,12 +35,12 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     const urlValue = getLanguageQueryParam();
 
     const newLanguage = urlValue ?? localStorageValue ?? profile.profileSettingPreference.language;
-    dispatch(DeprecatedActions.setCurrentLanguage(newLanguage));
+    setCurrent(newLanguage);
     localStorage.setItem(localStorageKey, newLanguage);
   };
 
   const setWithLanguageSelector = (language: string) => {
-    dispatch(DeprecatedActions.setCurrentLanguage(language));
+    setCurrent(language);
     localStorage.setItem(`selectedAppLanguage${window.app}${userId}`, language);
   };
 

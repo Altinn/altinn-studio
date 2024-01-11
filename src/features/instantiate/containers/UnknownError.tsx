@@ -1,9 +1,8 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
 
 import { Button } from '@digdir/design-system-react';
 
-import { DevToolsActions } from 'src/features/devtools/data/devToolsSlice';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
@@ -11,11 +10,12 @@ import { useIsDev } from 'src/hooks/useIsDev';
 
 export function UnknownError() {
   const isDev = useIsDev();
-  const dispatch = useDispatch();
+  const open = useDevToolsStore((s) => s.actions.open);
+  const setActiveTab = useDevToolsStore((s) => s.actions.setActiveTab);
 
   function openLog() {
-    dispatch(DevToolsActions.open());
-    dispatch(DevToolsActions.setActiveTab({ tabName: DevToolsTab.Logs }));
+    open();
+    setActiveTab(DevToolsTab.Logs);
   }
 
   return (

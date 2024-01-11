@@ -1,8 +1,14 @@
 import React from 'react';
 
 import { screen, within } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 
 import { Form } from 'src/components/form/Form';
+import {
+  type BackendValidationIssue,
+  BackendValidationSeverity,
+  ValidationIssueSources,
+} from 'src/features/validation';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayout } from 'src/layout/layout';
 import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
@@ -146,35 +152,49 @@ describe('Form', () => {
     expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
   });
 
-  it.skip('should render ErrorReport when there are validation errors', async () => {
-    await render(
-      mockComponents,
-      // mockValidations({
-      //   component1: {
-      //     simpleBinding: {
-      //       errors: ['some error message'],
-      //     },
-      //   },
-      // }),
-    );
+  it('should render ErrorReport when there are validation errors', async () => {
+    await render(mockComponents, [
+      {
+        customTextKey: 'some error message',
+        field: 'Group[0].prop1',
+        source: ValidationIssueSources.Custom,
+        severity: BackendValidationSeverity.Error,
+        showImmediately: true,
+      } as BackendValidationIssue,
+    ]);
+
     expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
   });
 
-  it.skip('should render ErrorReport when there are unmapped validation errors', async () => {
+  it('should render ErrorReport when there are unmapped validation errors', async () => {
     await render(
-      mockComponents,
-      // mockValidations({
-      //   unmapped: {
-      //     simpleBinding: {
-      //       errors: ['some error message'],
-      //     },
-      //   },
-      // }),
+      [
+        ...mockComponents,
+        {
+          id: 'submitButton',
+          type: 'Button',
+          textResourceBindings: {
+            title: 'Submit',
+          },
+        },
+      ],
+      [
+        {
+          code: 'some unmapped error message',
+          field: 'Group[0].prop1',
+          severity: BackendValidationSeverity.Error,
+          source: ValidationIssueSources.Custom,
+        } as BackendValidationIssue,
+      ],
     );
+
+    // Unmapped errors are not shown until submit is clicked
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
     expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
   });
 
-  it.skip('should separate NavigationButtons and display them inside ErrorReport', async () => {
+  it('should separate NavigationButtons and display them inside ErrorReport', async () => {
     await render(
       [
         ...mockComponents,
@@ -183,19 +203,21 @@ describe('Form', () => {
           type: 'NavigationButtons',
         },
       ],
-      // mockValidations({
-      //   component1: {
-      //     simpleBinding: {
-      //       errors: ['some error message'],
-      //     },
-      //   },
-      // }),
+      [
+        {
+          customTextKey: 'some error message',
+          field: 'Group[0].prop1',
+          source: ValidationIssueSources.Custom,
+          severity: BackendValidationSeverity.Error,
+          showImmediately: true,
+        } as BackendValidationIssue,
+      ],
     );
+
     const errorReport = screen.getByTestId('ErrorReport');
     expect(errorReport).toBeInTheDocument();
 
     expect(screen.getByTestId('NavigationButtons')).toBeInTheDocument();
-
     expect(within(errorReport).getByTestId('NavigationButtons')).toBeInTheDocument();
   });
 
@@ -211,9 +233,10 @@ describe('Form', () => {
     expect(screen.getByTestId('summary-the-summary')).toBeInTheDocument();
   });
 
-  async function render(layout = mockComponents) {
+  async function render(layout = mockComponents, validationIssues: BackendValidationIssue[] = []) {
     await renderWithInstanceAndLayout({
       renderer: () => <Form />,
+      initialPage: 'FormLayout',
       queries: {
         fetchFormData: async () => ({
           Group: [
@@ -233,18 +256,8 @@ describe('Form', () => {
             },
           }),
         fetchLayoutSettings: () => Promise.resolve({ pages: { order: ['FormLayout', '2', '3'] } }),
+        fetchBackendValidations: () => Promise.resolve(validationIssues),
       },
     });
   }
-
-  // function mockValidations(validations: RootState['formValidations']['validations'][string]): Partial<RootState> {
-  //   return {
-  //     formValidations: {
-  //       invalidDataTypes: [],
-  //       validations: {
-  //         page1: validations,
-  //       },
-  //     },
-  //   };
-  // }
 });

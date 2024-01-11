@@ -17,9 +17,10 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type RepeatingGroupsLikertContainerProps = {
   node: LayoutNodeForGroup<CompGroupRepeatingLikertInternal>;
+  ref?: React.Ref<HTMLDivElement>;
 };
 
-export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertContainerProps) => {
+export const RepeatingGroupsLikertContainer = ({ node, ref }: RepeatingGroupsLikertContainerProps) => {
   const firstLikertChild = node?.children((item) => item.type === 'Likert') as LayoutNode<'Likert'> | undefined;
   const mobileView = useIsMobileOrTablet();
   const { options: calculatedOptions, isFetching } = useGetOptions({
@@ -99,7 +100,10 @@ export const RepeatingGroupsLikertContainer = ({ node }: RepeatingGroupsLikertCo
       {isFetching ? (
         <AltinnSpinner />
       ) : (
-        <div className={classes.likertTableContainer}>
+        <div
+          className={classes.likertTableContainer}
+          ref={ref}
+        >
           <Table
             id={id}
             aria-labelledby={(hasTitle && titleId) || undefined}

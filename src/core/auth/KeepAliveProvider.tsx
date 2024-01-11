@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -7,8 +7,6 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
-import { useAppDispatch } from 'src/hooks/useAppDispatch';
-import { DeprecatedActions } from 'src/redux/deprecatedSlice';
 import { getEnvironmentLoginUrl } from 'src/utils/urls/appUrlHelper';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -46,11 +44,6 @@ const { Provider } = createContext<undefined>({
 export function KeepAliveProvider({ children }: PropsWithChildren) {
   const applicationSettings = useApplicationSettings();
   const allowAnonymous = useAllowAnonymous();
-  const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    dispatch(DeprecatedActions.setAnonymous(allowAnonymous));
-  }, [allowAnonymous, dispatch]);
 
   useRefreshJwtTokenQuery(applicationSettings?.appOidcProvider, allowAnonymous);
 

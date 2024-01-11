@@ -9,8 +9,6 @@ import dotenv from 'dotenv';
 import { jestPreviewConfigure } from 'jest-preview';
 import { TextDecoder, TextEncoder } from 'util';
 
-import type { AppQueries } from 'src/queries/types';
-
 // Importing CSS for jest-preview to look nicer
 import 'src/index.css';
 import 'src/styles/tjenester3.css';
@@ -72,65 +70,4 @@ jestPreviewConfigure({ autoPreview });
 
 testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
-});
-
-type QueriesAsMocks = {
-  [K in keyof AppQueries]: jest.Mock;
-};
-interface ExpectLoadingSpec {
-  loadingReason: string;
-  queries: QueriesAsMocks;
-  dispatchedActions: any[];
-  ignoredActions: any[];
-}
-
-expect.extend({
-  toNotBeLoading: ({ loadingReason, queries, dispatchedActions, ignoredActions }: ExpectLoadingSpec) => {
-    if (loadingReason) {
-      return {
-        message: () => {
-          const queryCalls: string[] = [];
-          for (const [name, { mock }] of Object.entries(queries)) {
-            if (mock.calls.length > 0) {
-              for (const args of mock.calls) {
-                const argsAsStr = args.map((arg: any) => JSON.stringify(arg)).join(', ');
-                queryCalls.push(`- ${name}(${argsAsStr})`);
-              }
-            }
-          }
-
-          const dispatched: string[] = [];
-          for (const action of dispatchedActions) {
-            dispatched.push(`- ${JSON.stringify(action)}`);
-          }
-
-          const ignored: string[] = [];
-          for (const action of ignoredActions) {
-            ignored.push(`- ${JSON.stringify(action)}`);
-          }
-
-          return [
-            `Expected to not be loading, but was loading because of '${loadingReason}'.`,
-            '',
-            `Queries called:`,
-            ...queryCalls,
-            '',
-            'Dispatched actions:',
-            ...dispatched,
-            '',
-            'Ignored actions:',
-            ...ignored,
-            '',
-            'Consider if you need to increase WAITFOR_TIMEOUT if your machine is slow.',
-          ].join('\n');
-        },
-        pass: false,
-      };
-    }
-
-    return {
-      message: () => `Expected to not be loading, and no current loading reason was found`,
-      pass: true,
-    };
-  },
 });

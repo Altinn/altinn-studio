@@ -2,13 +2,11 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { getVariant, Panel, PanelVariant } from 'src/components/form/Panel';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IPanelProps } from 'src/components/form/Panel';
 import type { IFormComponentContext } from 'src/layout/FormComponentContext';
-import type { IRuntimeState } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 describe('Panel', () => {
@@ -40,30 +38,26 @@ describe('Panel', () => {
 
   describe('FullWidthWrapper', () => {
     it('should render FullWidthWrapper if no grid or baseComponentId is supplied', async () => {
-      await render({ variant: 'info' }, {}, { grid: undefined });
+      await render({ variant: 'info' }, { grid: undefined });
       const fullWidthWrapper = screen.queryByTestId('fullWidthWrapper');
       expect(fullWidthWrapper).toBeInTheDocument();
     });
 
     it('should not render FullWidthWrapper if grid is supplied in context', async () => {
-      await render({ variant: 'info' }, {}, { grid: { md: 5 } });
+      await render({ variant: 'info' }, { grid: { md: 5 } });
       const fullWidthWrapper = screen.queryByTestId('fullWidthWrapper');
       expect(fullWidthWrapper).not.toBeInTheDocument();
     });
 
     it('should not render FullWidthWrapper if baseComponentId is supplied in context', async () => {
-      await render({ variant: 'info' }, {}, { baseComponentId: 'some-id' });
+      await render({ variant: 'info' }, { baseComponentId: 'some-id' });
       const fullWidthWrapper = screen.queryByTestId('fullWidthWrapper');
       expect(fullWidthWrapper).not.toBeInTheDocument();
     });
   });
 });
 
-const render = async (
-  props: Partial<IPanelProps> = {},
-  suppliedState: Partial<IRuntimeState> = {},
-  suppliedContext: Partial<IFormComponentContext> = {},
-) => {
+const render = async (props: Partial<IPanelProps> = {}, suppliedContext: Partial<IFormComponentContext> = {}) => {
   const allProps = {
     title: 'Panel Title',
     children: 'Panel Content',
@@ -86,9 +80,5 @@ const render = async (
         <Panel {...allProps} />
       </FormComponentContextProvider>
     ),
-    reduxState: {
-      ...getInitialStateMock(),
-      ...suppliedState,
-    },
   });
 };

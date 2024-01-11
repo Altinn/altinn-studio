@@ -1,21 +1,20 @@
 import type { MutableRefObject } from 'react';
 
-import { type IUseLanguage } from 'src/features/language/useLanguage';
 import { ComponentConfigs } from 'src/layout/components.generated';
 import type { IAttachments } from 'src/features/attachments';
-import type { IFormData } from 'src/features/formData';
+import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { AllOptionsMap } from 'src/features/options/useAllOptions';
+import type {
+  ComponentValidation,
+  FieldValidation,
+  FormValidations,
+  ISchemaValidationError,
+  ValidationDataSources,
+} from 'src/features/validation';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompInternal, CompRendersLabel, CompTypes } from 'src/layout/layout';
 import type { AnyComponent, LayoutComponent } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { ISchemaValidationError } from 'src/utils/validation/schemaValidation';
-import type {
-  IComponentValidations,
-  IValidationContext,
-  IValidationObject,
-  ValidationContextGenerator,
-} from 'src/utils/validation/types';
 
 export type CompClassMap = {
   [K in keyof typeof ComponentConfigs]: (typeof ComponentConfigs)[K]['def'];
@@ -41,7 +40,6 @@ const _componentsTypeCheck: {
 export interface IComponentProps {
   containerDivRef: MutableRefObject<HTMLDivElement | null>;
   isValid?: boolean;
-  componentValidations?: IComponentValidations;
 }
 
 export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps {
@@ -63,64 +61,48 @@ export function shouldComponentRenderLabel<T extends CompTypes>(type: T): CompRe
 
 export type DefGetter = typeof getLayoutComponentObject;
 
-export function implementsAnyValidation<Type extends CompTypes>(component: AnyComponent<Type>): boolean {
-  return (
-    'runEmptyFieldValidation' in component ||
-    'runComponentValidation' in component ||
-    'runSchemaValidation' in component
-  );
-}
-
-export interface EmptyFieldValidation {
-  runEmptyFieldValidation: (
+export interface ValidateAny {
+  runValidations: (
     node: LayoutNode,
-    validationContext: IValidationContext,
-    overrideFormData?: IFormData,
-  ) => IValidationObject[];
+    ctx: ValidationDataSources,
+    schemaErrors: ISchemaValidationError[],
+  ) => FormValidations;
 }
 
-export function implementsEmptyFieldValidation<Type extends CompTypes>(
+export function implementsAnyValidation<Type extends CompTypes>(
   component: AnyComponent<Type>,
-): component is typeof component & EmptyFieldValidation {
+): component is typeof component & ValidateAny {
+  return 'runValidations' in component;
+}
+
+export interface ValidateEmptyField {
+  runEmptyFieldValidation: (node: LayoutNode, validationContext: ValidationDataSources) => ComponentValidation[];
+}
+
+export function implementsValidateEmptyField<Type extends CompTypes>(
+  component: AnyComponent<Type>,
+): component is typeof component & ValidateEmptyField {
   return 'runEmptyFieldValidation' in component;
 }
 
-export interface ComponentValidation {
-  runComponentValidation: (
-    node: LayoutNode,
-    validationContext: IValidationContext,
-    overrideFormData?: IFormData,
-  ) => IValidationObject[];
+export interface ValidateComponent {
+  runComponentValidation: (node: LayoutNode, validationContext: ValidationDataSources) => ComponentValidation[];
 }
 
-export function implementsComponentValidation<Type extends CompTypes>(
+export function implementsValidateComponent<Type extends CompTypes>(
   component: AnyComponent<Type>,
-): component is typeof component & ComponentValidation {
+): component is typeof component & ValidateComponent {
   return 'runComponentValidation' in component;
 }
 
-export interface SchemaValidation {
-  runSchemaValidation: (node: LayoutNode, schemaValidations: ISchemaValidationError[]) => IValidationObject[];
+export interface ValidateSchema {
+  runSchemaValidation: (node: LayoutNode, schemaValidations: ISchemaValidationError[]) => FieldValidation[];
 }
 
-export function implementsSchemaValidation<Type extends CompTypes>(
+export function implementsValidateSchema<Type extends CompTypes>(
   component: AnyComponent<Type>,
-): component is typeof component & SchemaValidation {
+): component is typeof component & ValidateSchema {
   return 'runSchemaValidation' in component;
-}
-
-export interface GroupValidation {
-  runGroupValidations: (
-    node: LayoutNode,
-    validationCtxGenerator: ValidationContextGenerator,
-    onlyInRowIndex?: number,
-  ) => IValidationObject[];
-}
-
-export function implementsGroupValidation<Type extends CompTypes>(
-  component: AnyComponent<Type>,
-): component is typeof component & GroupValidation {
-  return 'runGroupValidations' in component;
 }
 
 export interface DisplayDataProps {

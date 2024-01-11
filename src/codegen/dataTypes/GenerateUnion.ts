@@ -60,4 +60,8 @@ export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCo
       super.isOptional() || this.types.some((type) => type instanceof MaybeOptionalCodeGenerator && type.isOptional())
     );
   }
+
+  shouldUseParens(): boolean {
+    return true;
+  }
 }

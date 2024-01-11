@@ -1,10 +1,8 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
 
 import { Checkbox } from '@digdir/design-system-react';
 
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { useLaxProcessData, useSetProcessData } from 'src/features/instance/ProcessContext';
 import type { IProcess, ITask } from 'src/types/shared';
 
@@ -12,7 +10,6 @@ export const PermissionsEditor = () => {
   // TODO: Fix this editor, as the process data is in a context _inside_ the DevTools context, so we cannot reach it
 
   const { write, actions } = useLaxProcessData()?.currentTask || {};
-  const dispatch = useDispatch();
   const setProcessData = useSetProcessData();
   const processData = useLaxProcessData();
 
@@ -28,7 +25,10 @@ export const PermissionsEditor = () => {
       };
     }
     setProcessData?.(newProcessData);
-    dispatch(FormLayoutActions.updateLayouts({}));
+
+    // TODO: Fix this
+    alert('TODO: Fix this editor. We should update the layout data in the layout query at this point');
+    // dispatch(FormLayoutActions.updateLayouts({}));
   }
 
   return (
