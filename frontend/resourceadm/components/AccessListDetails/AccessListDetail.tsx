@@ -57,7 +57,10 @@ export const AccessListDetail = ({
   const handleAddMember = (memberToAdd: AccessListMember): void => {
     addListMember(memberToAdd.orgNr);
     setListItems((old) => {
-      return [...old.filter((item) => item.orgNr !== memberToAdd.orgNr), memberToAdd];
+      return [
+        ...old.filter((item) => item.orgNr !== memberToAdd.orgNr),
+        { ...memberToAdd, isDeleted: false },
+      ];
     });
   };
 

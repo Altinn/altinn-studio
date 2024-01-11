@@ -34,6 +34,11 @@ const defaultProps = {
         orgName: '',
         isSubParty: false,
       },
+      {
+        orgNr: '987654321',
+        orgName: 'sub',
+        isSubParty: true,
+      },
     ],
   },
   backUrl: '/listadmin',
@@ -55,8 +60,8 @@ describe('AccessListDetail', () => {
     const removeAccessListMemberMock = jest.fn();
     render({}, { removeAccessListMember: removeAccessListMemberMock });
 
-    const removeButton = screen.getByText(textMock('resourceadm.listadmin_remove_from_list'));
-    await act(() => user.click(removeButton));
+    const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
+    await act(() => user.click(removeButtons[0]));
 
     expect(removeAccessListMemberMock).toHaveBeenCalledWith(
       testOrg,
@@ -71,8 +76,8 @@ describe('AccessListDetail', () => {
     const addAccessListMemberMock = jest.fn();
     render({}, { addAccessListMember: addAccessListMemberMock });
 
-    const removeButton = screen.getByText(textMock('resourceadm.listadmin_remove_from_list'));
-    await act(() => user.click(removeButton));
+    const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
+    await act(() => user.click(removeButtons[0]));
 
     const reAddButton = screen.getByText(textMock('resourceadm.listadmin_undo_remove_from_list'));
     await act(() => user.click(reAddButton));

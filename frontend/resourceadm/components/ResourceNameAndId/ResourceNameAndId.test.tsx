@@ -107,6 +107,25 @@ describe('ResourceNameAndId', () => {
     expect(screen.getByText(mockResourceIdInitial)).toBeInTheDocument();
   });
 
+  it('should disable edit of id field after checkmark button is pressed', async () => {
+    const user = userEvent.setup();
+    render(<ResourceNameAndId {...defaultProps} />);
+
+    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
+    await act(() => user.click(editButton));
+
+    const idInput = screen.getByLabelText(mockIdLabel);
+
+    await act(() => user.type(idInput, 'newId'));
+
+    const iconButtonSave = screen.queryByRole('button', {
+      name: textMock('resourceadm.dashboard_resource_name_and_id_checkmark_icon'),
+    });
+
+    await act(() => user.click(iconButtonSave));
+    expect(idInput).not.toBeInTheDocument();
+  });
+
   it('displays error message when conflictErrorMessage is set', () => {
     render(<ResourceNameAndId {...defaultProps} conflictErrorMessage={'conflict!'} />);
     const errorMessageEl = screen.getByText('conflict!');
