@@ -10,7 +10,7 @@
   --modal-border-radius: var(--fds-border_radius-medium);
   --modal-content-max-height: calc(var(--modal-max-height) - var(--heading-height)) -
     var(--modal-border-size);
-  --modal-padding: var(--fds-spacing-4);
+  --modal-padding: var(--fds-spacing-3);
 
   background-color: var(--fds-semantic-background-default);
   border-radius: var(--modal-border-radius);
