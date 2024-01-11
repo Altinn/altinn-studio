@@ -4,7 +4,7 @@ import './App.css';
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
 import {
   SchemaEditorAppContext,
-  SchemaEditorAppContextProps,
+  SchemaEditorAppContextProps
 } from './contexts/SchemaEditorAppContext';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
@@ -15,7 +15,10 @@ export type SchemaEditorAppProps = {
   save: (model: JsonSchema) => void;
 };
 
-export function SchemaEditorApp({ jsonSchema, save }: SchemaEditorAppProps) {
+export function SchemaEditorApp({
+  jsonSchema,
+  save,
+}: SchemaEditorAppProps) {
   const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
   const [selectedNodePointer, setSelectedNodePointer] = useState<string>(null);
 
@@ -28,12 +31,12 @@ export function SchemaEditorApp({ jsonSchema, save }: SchemaEditorAppProps) {
       selectedNodePointer,
       setSelectedNodePointer,
     }),
-    [jsonSchema, save, selectedTypePointer, selectedNodePointer],
+    [jsonSchema, save, selectedTypePointer, selectedNodePointer]
   );
 
   return (
     <SchemaEditorAppContext.Provider value={value}>
-      <SchemaEditor />
+      <SchemaEditor/>
     </SchemaEditorAppContext.Provider>
   );
 }

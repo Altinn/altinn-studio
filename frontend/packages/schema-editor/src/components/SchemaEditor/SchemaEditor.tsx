@@ -14,13 +14,7 @@ import { useMoveProperty } from './hooks/useMoveProperty';
 import { useAddReference } from './hooks/useAddReference';
 
 export const SchemaEditor = () => {
-  const {
-    schemaModel,
-    selectedTypePointer,
-    setSelectedTypePointer,
-    selectedNodePointer,
-    setSelectedNodePointer,
-  } = useSchemaEditorAppContext();
+  const { schemaModel, selectedTypePointer, setSelectedTypePointer, selectedNodePointer, setSelectedNodePointer } = useSchemaEditorAppContext();
   const moveProperty = useMoveProperty();
   const addReference = useAddReference();
 
@@ -77,7 +71,7 @@ export const SchemaEditor = () => {
                 size='small'
               />
             </div>
-            <TypesPanel uiSchemaNode={selectedType} />
+            <TypesPanel uiSchemaNode={selectedType}/>
           </div>
         ) : (
           <div id='schema-editor' className={classes.editor}>

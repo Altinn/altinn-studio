@@ -42,3 +42,4 @@ export const jsonSchemaMock: JsonSchema = {
   },
   required: ['name', 'age'],
 };
+

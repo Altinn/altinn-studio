@@ -5,7 +5,7 @@ import {
   ROOT_POINTER,
   SchemaModel,
   UiSchemaNode,
-  UiSchemaNodes,
+  UiSchemaNodes
 } from '@altinn/schema-model';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { act, screen } from '@testing-library/react';
@@ -152,6 +152,6 @@ const render = (path: string = defaultPath) =>
     appContextProps: {
       schemaModel,
       save: saveDatamodel,
-      selectedNodePointer: path,
+      selectedNodePointer: path
     },
   })(<CustomProperties path={path} />);

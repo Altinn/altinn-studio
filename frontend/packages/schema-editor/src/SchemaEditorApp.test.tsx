@@ -15,7 +15,7 @@ const initialProps = {
   save: saveMock,
 };
 
-export const render = () => rtlRender(<SchemaEditorApp {...initialProps} />);
+export const render = () => rtlRender(<SchemaEditorApp {...initialProps}/>);
 
 describe('SchemaEditorApp', () => {
   afterEach(jest.clearAllMocks);
@@ -29,9 +29,7 @@ describe('SchemaEditorApp', () => {
     const user = userEvent.setup();
     render();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    const firstDeleteButton = screen.getAllByRole('button', {
-      name: textMock('general.delete'),
-    })[0];
+    const firstDeleteButton = screen.getAllByRole('button', { name: textMock('general.delete') })[0];
     await act(() => user.click(firstDeleteButton));
     expect(saveMock).toHaveBeenCalledTimes(1);
   });
