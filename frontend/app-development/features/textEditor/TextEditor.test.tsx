@@ -24,7 +24,7 @@ const queriesMock: Partial<ServicesContextProps> = {
           value: testTextResourceValue,
         },
       ],
-    })
+    }),
   ),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(languages)),
 };
@@ -38,6 +38,8 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('TextEditor', () => {
+  afterEach(jest.clearAllMocks);
+
   it('renders the component', async () => {
     await render();
 
@@ -67,7 +69,7 @@ describe('TextEditor', () => {
     const addButton = screen.getByRole('button', { name: textMock('text_editor.new_text') });
     await act(() => user.click(addButton));
 
-    expect(upsertTextResources).toBeCalledTimes(2);
+    expect(upsertTextResources).toHaveBeenCalledTimes(2);
   });
 
   it('updates text resource when editing text', async () => {
@@ -82,7 +84,9 @@ describe('TextEditor', () => {
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());
 
-    expect(upsertTextResources).toBeCalledWith(org, app, 'nb', { [testTextResourceKey]: 'test' });
+    expect(upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
+      [testTextResourceKey]: 'test',
+    });
   });
 
   it('updates text id when editing text id', async () => {
@@ -100,7 +104,9 @@ describe('TextEditor', () => {
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());
 
-    expect(updateTextId).toBeCalledWith(org, app, [{ newId: 'test', oldId: testTextResourceKey }]);
+    expect(updateTextId).toHaveBeenCalledWith(org, app, [
+      { newId: 'test', oldId: testTextResourceKey },
+    ]);
   });
 
   it('deletes text id when clicking delete button', async () => {
@@ -111,14 +117,14 @@ describe('TextEditor', () => {
     await render({ updateTextId });
 
     const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-    await act(() => deleteButton.click());
+    act(() => deleteButton.click());
 
     const confirmButton = await screen.findByRole('button', {
       name: textMock('schema_editor.textRow-deletion-confirm'),
     });
     await act(() => user.click(confirmButton));
 
-    expect(updateTextId).toBeCalledWith(org, app, [{ oldId: testTextResourceKey }]);
+    expect(updateTextId).toHaveBeenCalledWith(org, app, [{ oldId: testTextResourceKey }]);
   });
 
   it('adds new language when clicking add button', async () => {
@@ -140,7 +146,7 @@ describe('TextEditor', () => {
     expect(addBtn).not.toBeDisabled();
     await act(() => user.click(addBtn));
 
-    expect(addLanguageCode).toBeCalledWith(org, app, 'se', {
+    expect(addLanguageCode).toHaveBeenCalledWith(org, app, 'se', {
       language: 'se',
       resources: [{ id: testTextResourceKey, value: '' }],
     });
@@ -161,7 +167,7 @@ describe('TextEditor', () => {
     });
     await act(() => user.click(confirmButton));
 
-    expect(deleteLanguageCode).toBeCalledWith(org, app, 'en');
+    expect(deleteLanguageCode).toHaveBeenCalledWith(org, app, 'en');
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
