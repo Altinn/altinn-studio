@@ -16,7 +16,7 @@ const { Provider, useCtx } = createContext<UiConfigContext>({
   default: {
     expandedWidth: false,
     toggleExpandedWidth: () => {
-      throw Error('UiConfigContext not initialized. toggleExpandedWidth cannot be called');
+      throw new Error('UiConfigContext not initialized. toggleExpandedWidth cannot be called');
     },
   },
 });

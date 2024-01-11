@@ -26,6 +26,7 @@ import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
@@ -265,21 +266,23 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
           <PageNavigationProvider>
             <Router>
               <ApplicationMetadataProvider>
-                <OrgsProvider>
-                  <ApplicationSettingsProvider>
-                    <LayoutSetsProvider>
-                      <ProfileProvider>
-                        <PartyProvider>
-                          <TextResourcesProvider>
-                            <FooterLayoutProvider>
-                              <InstantiationProvider>{children}</InstantiationProvider>
-                            </FooterLayoutProvider>
-                          </TextResourcesProvider>
-                        </PartyProvider>
-                      </ProfileProvider>
-                    </LayoutSetsProvider>
-                  </ApplicationSettingsProvider>
-                </OrgsProvider>
+                <GlobalFormDataReadersProvider>
+                  <OrgsProvider>
+                    <ApplicationSettingsProvider>
+                      <LayoutSetsProvider>
+                        <ProfileProvider>
+                          <PartyProvider>
+                            <TextResourcesProvider>
+                              <FooterLayoutProvider>
+                                <InstantiationProvider>{children}</InstantiationProvider>
+                              </FooterLayoutProvider>
+                            </TextResourcesProvider>
+                          </PartyProvider>
+                        </ProfileProvider>
+                      </LayoutSetsProvider>
+                    </ApplicationSettingsProvider>
+                  </OrgsProvider>
+                </GlobalFormDataReadersProvider>
               </ApplicationMetadataProvider>
             </Router>
           </PageNavigationProvider>

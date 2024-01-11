@@ -15,6 +15,7 @@ import { DevTools } from 'src/features/devtools/DevTools';
 import { Footer } from 'src/features/footer/Footer';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
@@ -45,6 +46,7 @@ export const PresentationComponent = ({ header, type, children, renderNavBar = t
 
   return (
     <DevTools>
+      <DataModelFetcher />
       <div
         data-testid='presentation'
         data-expanded={JSON.stringify(expandedWidth)}

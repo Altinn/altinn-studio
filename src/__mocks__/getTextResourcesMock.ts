@@ -7,7 +7,7 @@ export function getTextResourcesMock(): IRawTextResource[] {
       value: 'The value from the group is: {0}',
       variables: [
         {
-          dataSource: 'dataModel.skjema',
+          dataSource: 'dataModel.default',
           key: 'someGroup[{0}].labelField',
         },
       ],
@@ -17,7 +17,7 @@ export function getTextResourcesMock(): IRawTextResource[] {
       value: 'Description: The value from the group is: {0}',
       variables: [
         {
-          dataSource: 'dataModel.skjema',
+          dataSource: 'dataModel.default',
           key: 'someGroup[{0}].labelField',
         },
       ],
@@ -27,7 +27,7 @@ export function getTextResourcesMock(): IRawTextResource[] {
       value: 'Help Text: The value from the group is: {0}',
       variables: [
         {
-          dataSource: 'dataModel.skjema',
+          dataSource: 'dataModel.default',
           key: 'someGroup[{0}].labelField',
         },
       ],
@@ -37,7 +37,7 @@ export function getTextResourcesMock(): IRawTextResource[] {
       value: 'The value from the group is: {0}',
       variables: [
         {
-          dataSource: 'dataModel.skjema',
+          dataSource: 'dataModel.default',
           key: 'referencedGroup[{0}].inputField',
         },
       ],
@@ -47,7 +47,7 @@ export function getTextResourcesMock(): IRawTextResource[] {
       value: 'The value from the group is: Value from input field [2]',
       variables: [
         {
-          dataSource: 'dataModel.skjema',
+          dataSource: 'dataModel.default',
           key: 'referencedGroup[2].inputField',
         },
       ],

@@ -10,7 +10,6 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { LayoutValidationProvider } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { FormProvider } from 'src/features/form/FormContext';
-import { FormDataForInfoTaskProvider } from 'src/features/formData/FormDataReadOnly';
 import { useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
 import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
@@ -104,23 +103,19 @@ export const ProcessWrapper = () => {
 
   if (taskType === ProcessTaskType.Confirm) {
     return (
-      <FormDataForInfoTaskProvider taskId={taskId}>
-        <ProcessNavigationProvider>
-          <PresentationComponent type={taskType}>
-            <Confirm />
-          </PresentationComponent>
-        </ProcessNavigationProvider>
-      </FormDataForInfoTaskProvider>
+      <ProcessNavigationProvider>
+        <PresentationComponent type={taskType}>
+          <Confirm />
+        </PresentationComponent>
+      </ProcessNavigationProvider>
     );
   }
 
   if (taskType === ProcessTaskType.Feedback) {
     return (
-      <FormDataForInfoTaskProvider taskId={taskId}>
-        <PresentationComponent type={taskType}>
-          <Feedback />
-        </PresentationComponent>
-      </FormDataForInfoTaskProvider>
+      <PresentationComponent type={taskType}>
+        <Feedback />
+      </PresentationComponent>
     );
   }
 

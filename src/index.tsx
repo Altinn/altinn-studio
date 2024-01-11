@@ -24,6 +24,7 @@ import { ApplicationSettingsProvider } from 'src/features/applicationSettings/Ap
 import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
@@ -67,31 +68,33 @@ function Root() {
   return (
     <InstantiationProvider>
       <ApplicationMetadataProvider>
-        <OrgsProvider>
-          <ApplicationSettingsProvider>
-            <LayoutSetsProvider>
-              <FooterLayoutProvider>
-                <ProfileProvider>
-                  <PartyProvider>
-                    <TextResourcesProvider>
-                      <KeepAliveProvider>
-                        <WindowTitleProvider>
-                          <App />
-                          <ToastContainer
-                            position='top-center'
-                            theme='colored'
-                            transition={Slide}
-                            draggable={false}
-                          />
-                        </WindowTitleProvider>
-                      </KeepAliveProvider>
-                    </TextResourcesProvider>
-                  </PartyProvider>
-                </ProfileProvider>
-              </FooterLayoutProvider>
-            </LayoutSetsProvider>
-          </ApplicationSettingsProvider>
-        </OrgsProvider>
+        <GlobalFormDataReadersProvider>
+          <OrgsProvider>
+            <ApplicationSettingsProvider>
+              <LayoutSetsProvider>
+                <FooterLayoutProvider>
+                  <ProfileProvider>
+                    <PartyProvider>
+                      <TextResourcesProvider>
+                        <KeepAliveProvider>
+                          <WindowTitleProvider>
+                            <App />
+                            <ToastContainer
+                              position='top-center'
+                              theme='colored'
+                              transition={Slide}
+                              draggable={false}
+                            />
+                          </WindowTitleProvider>
+                        </KeepAliveProvider>
+                      </TextResourcesProvider>
+                    </PartyProvider>
+                  </ProfileProvider>
+                </FooterLayoutProvider>
+              </LayoutSetsProvider>
+            </ApplicationSettingsProvider>
+          </OrgsProvider>
+        </GlobalFormDataReadersProvider>
       </ApplicationMetadataProvider>
     </InstantiationProvider>
   );

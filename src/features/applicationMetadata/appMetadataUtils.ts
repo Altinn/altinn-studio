@@ -145,6 +145,11 @@ export const getCurrentTaskDataElementId = (props: TheCommonFourProps) => {
   return currentTaskDataElement?.id;
 };
 
+export function getFirstDataElementId(instance: IInstance, dataType: string) {
+  const currentTaskDataElement = (instance.data || []).find((element) => element.dataType === dataType);
+  return currentTaskDataElement?.id;
+}
+
 export const getCurrentTaskData = (props: TheCommonFourProps) => {
   const currentDataTypeId = getCurrentDataTypeForApplication(props);
   return props.instance?.data.find((element) => element.dataType === currentDataTypeId);

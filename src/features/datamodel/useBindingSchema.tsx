@@ -6,6 +6,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
+  getFirstDataElementId,
   useDataTypeByLayoutSetId,
 } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useCurrentDataModelSchema } from 'src/features/datamodel/DataModelSchemaProvider';
@@ -56,6 +57,29 @@ export function useCurrentDataModelUrl() {
 
   if (instance?.id && dataElementUuid) {
     return getDataElementUrl(instance.id, dataElementUuid);
+  }
+
+  return undefined;
+}
+
+export function useDataModelUrl(dataType: string | undefined) {
+  const isAnonymous = useAllowAnonymous();
+  const isStateless = useIsStatelessApp();
+  const instance = useLaxInstanceData();
+
+  if (isStateless && isAnonymous && dataType) {
+    return getAnonymousStatelessDataModelUrl(dataType);
+  }
+
+  if (isStateless && !isAnonymous && dataType) {
+    return getStatelessDataModelUrl(dataType);
+  }
+
+  if (instance?.id && dataType) {
+    const uuid = getFirstDataElementId(instance, dataType);
+    if (uuid) {
+      return getDataElementUrl(instance.id, uuid);
+    }
   }
 
   return undefined;
