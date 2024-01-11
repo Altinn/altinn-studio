@@ -8,6 +8,7 @@ import { ITextResource, ITextResources } from 'app-shared/types/global';
 import * as testids from '../../../testing/testids';
 
 const user = userEvent.setup();
+let mockScrollIntoView = jest.fn();
 
 describe('TextEditor', () => {
   const nb: ITextResource[] = [
@@ -37,6 +38,11 @@ describe('TextEditor', () => {
     };
     return rtlRender(<TextEditor {...defaultProps} {...props} />);
   };
+  beforeEach(() => {
+    // Need to mock the scrollIntoView function
+    mockScrollIntoView = jest.fn();
+    window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
+  });
 
   it('fires upsertTextResource when Add new is clicked', async () => {
     jest.spyOn(global.Math, 'random').mockReturnValue(0);
@@ -122,10 +128,7 @@ describe('TextEditor', () => {
     expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb', 'en']);
   });
 
-  it('centers the new selected language', async () => {
-    // Need to mock the scrollIntoView function
-    const mockScrollIntoView = jest.fn();
-    window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
+  it('Calls ScrollIntoView when a new languages is selected', async () => {
     renderTextEditor({
       availableLanguages: ['nb', 'en', 'tw', 'ku'],
       selectedLangCodes: ['nb', 'en', 'tw'],

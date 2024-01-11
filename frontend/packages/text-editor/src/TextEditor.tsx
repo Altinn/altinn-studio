@@ -63,7 +63,7 @@ export const TextEditor = ({
       }
     }
     previousSelectedLanguages.current = selectedLangCodes;
-  }, [selectedLangCodes.length]);
+  }, [selectedLangCodes.length, selectedLangCodes]);
 
   const handleAddNewEntryClick = () => {
     const textId = `id_${getRandNumber()}`;
