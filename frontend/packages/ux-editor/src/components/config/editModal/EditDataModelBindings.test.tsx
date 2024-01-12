@@ -9,8 +9,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { DatamodelMetadataResponse } from 'app-shared/types/api';
 
-const user = userEvent.setup();
-
 const datamodelMetadata: DatamodelMetadataResponse = {
   elements: {
     testModel: {
@@ -84,7 +82,10 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
 };
 
 describe('EditDataModelBindings', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should show select with no selected option by default', async () => {
+    const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await act(() => user.click(linkIcon));
@@ -95,6 +96,7 @@ describe('EditDataModelBindings', () => {
   });
 
   it('should show select with provided data model binding', async () => {
+    const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await act(() => user.click(linkIcon));
@@ -111,6 +113,7 @@ describe('EditDataModelBindings', () => {
   });
 
   it('should show select when link icon is clicked', async () => {
+    const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await act(() => user.click(linkIcon));
@@ -119,6 +122,7 @@ describe('EditDataModelBindings', () => {
   });
 
   it('should toggle select on link icon click', async () => {
+    const user = userEvent.setup();
     await render();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
@@ -127,6 +131,7 @@ describe('EditDataModelBindings', () => {
   });
 
   it('check that handleComponentChange is called', async () => {
+    const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     await render({ handleComponentChange });
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
@@ -145,6 +150,7 @@ describe('EditDataModelBindings', () => {
   });
 
   it('should render save icon', async () => {
+    const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await act(() => user.click(linkIcon));
@@ -153,6 +159,7 @@ describe('EditDataModelBindings', () => {
   });
 
   it('should render delete icon', async () => {
+    const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await act(() => user.click(linkIcon));
@@ -161,6 +168,7 @@ describe('EditDataModelBindings', () => {
   });
 
   it('show link data model again when click on save button and no data model binding is selected', async () => {
+    const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await act(() => user.click(linkIcon));
@@ -178,6 +186,7 @@ describe('EditDataModelBindings', () => {
   });
 
   it('deletes existing data model link', async () => {
+    const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     const dataModelBindingKey = 'testModel.field1';
 
@@ -209,6 +218,7 @@ describe('EditDataModelBindings', () => {
   });
 
   it('shows edit form', async () => {
+    const user = userEvent.setup();
     const dataModelBindingKey = 'testModel.field1';
     await render({
       dataModelBindings: { simpleBinding: dataModelBindingKey },
@@ -244,6 +254,7 @@ describe('EditDataModelBindings', () => {
         }}
       />,
     );
+
     expect(await screen.findByText('testModel.field2')).toBeInTheDocument();
   });
 });
