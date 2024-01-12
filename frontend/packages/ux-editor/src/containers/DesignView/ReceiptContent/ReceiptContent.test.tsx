@@ -11,7 +11,11 @@ import {
   layout2NameMock,
 } from '../../../testing/layoutMock';
 import { IInternalLayout } from '../../../types/global';
-import { renderHookWithMockStore, renderWithMockStore } from '../../../testing/mocks';
+import {
+  formLayoutSettingsMock,
+  renderHookWithMockStore,
+  renderWithMockStore,
+} from '../../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
@@ -107,13 +111,17 @@ describe('ReceiptContent', () => {
 });
 
 const waitForData = async () => {
+  const getFormLayoutSettings = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore()(() =>
     useFormLayoutsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
   ).renderHookResult.result;
-
-  const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
-  ).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore(
+    {},
+    { getFormLayoutSettings },
+  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
+    .result;
 
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));

@@ -13,7 +13,7 @@ export interface Repository {
   mirror: boolean;
   name: string;
   open_issues_count: number;
-  owner: Owner;
+  owner: User;
   permissions: Permissions;
   private: boolean;
   repositoryCreatedStatus: number;
@@ -25,13 +25,13 @@ export interface Repository {
   website: string;
 }
 
-interface Owner {
+export interface User {
   avatar_url: string;
   email: string;
   full_name: string;
   id: number;
   login: string;
-  UserType: number;
+  userType: number;
 }
 
 interface Permissions {

@@ -36,8 +36,7 @@ jest.useFakeTimers({ advanceTimers: true });
 
 describe('SelectedSchemaEditor', () => {
   it('Displays loading spinner while loading', () => {
-    const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve({}));
-    render({ getDatamodel });
+    render();
     expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
   });
 
@@ -50,8 +49,7 @@ describe('SelectedSchemaEditor', () => {
   });
 
   it('Renders SchemaEditorApp when finished loading', async () => {
-    const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve({}));
-    render({ getDatamodel });
+    render();
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(screen.getByTestId(schemaEditorTestId)).toBeInTheDocument();
   });
@@ -69,18 +67,15 @@ describe('SelectedSchemaEditor', () => {
 
     act(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
     await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
-    expect(saveDatamodel).toHaveBeenCalledWith(
-      org,
-      app,
-      modelPath,
-      dataMock,
-    );
+    expect(saveDatamodel).toHaveBeenCalledWith(org, app, modelPath, dataMock);
   });
 
   it('Autosaves when changing between models that are not present in the cache', async () => {
     const saveDatamodel = jest.fn();
     const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
-    const { renderResult: { rerender } } = render({ getDatamodel, saveDatamodel });
+    const {
+      renderResult: { rerender },
+    } = render({ getDatamodel, saveDatamodel });
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(saveDatamodel).not.toHaveBeenCalled();
 
@@ -91,12 +86,7 @@ describe('SelectedSchemaEditor', () => {
     rerender(<SelectedSchemaEditor {...updatedProps} />);
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
-    expect(saveDatamodel).toHaveBeenCalledWith(
-      org,
-      app,
-      datamodelNameMock,
-      dataMock,
-    );
+    expect(saveDatamodel).toHaveBeenCalledWith(org, app, datamodelNameMock, dataMock);
   });
 
   it('Autosaves when changing between models that are already present in the cache', async () => {
@@ -105,7 +95,9 @@ describe('SelectedSchemaEditor', () => {
     const newModelPath = 'newModel';
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, datamodelNameMock], dataMock);
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, newModelPath], dataMock);
-    const { renderResult: { rerender } } = render({ saveDatamodel }, queryClient);
+    const {
+      renderResult: { rerender },
+    } = render({ saveDatamodel }, queryClient);
     expect(saveDatamodel).not.toHaveBeenCalled();
 
     const updatedProps = {
@@ -115,12 +107,7 @@ describe('SelectedSchemaEditor', () => {
     rerender(<SelectedSchemaEditor {...updatedProps} />);
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
-    expect(saveDatamodel).toHaveBeenCalledWith(
-      org,
-      app,
-      datamodelNameMock,
-      dataMock,
-    );
+    expect(saveDatamodel).toHaveBeenCalledWith(org, app, datamodelNameMock, dataMock);
   });
 });
 

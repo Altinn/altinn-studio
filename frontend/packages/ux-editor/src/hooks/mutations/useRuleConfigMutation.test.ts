@@ -1,4 +1,5 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
 import { RuleConfig } from 'app-shared/types/RuleConfig';
 
@@ -12,11 +13,11 @@ const newRuleConfig: RuleConfig = {
       ruleConnection1: {
         selectedFunction: 'selectedFunction1',
         inputParams: {},
-        outParams: {}
-      }
+        outParams: {},
+      },
     },
-    conditionalRendering: {}
-  }
+    conditionalRendering: {},
+  },
 };
 
 describe('useRuleConfigMutation', () => {
@@ -26,8 +27,15 @@ describe('useRuleConfigMutation', () => {
     const { result } = await render();
     await result.current.mutateAsync(newRuleConfig);
     expect(queriesMock.saveRuleConfig).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveRuleConfig).toHaveBeenCalledWith(org, app, selectedLayoutSet, newRuleConfig);
+    expect(queriesMock.saveRuleConfig).toHaveBeenCalledWith(
+      org,
+      app,
+      selectedLayoutSet,
+      newRuleConfig,
+    );
   });
 });
 
-const render = async () => renderHookWithMockStore()(() => useRuleConfigMutation(org, app, selectedLayoutSet)).renderHookResult;
+const render = async () =>
+  renderHookWithMockStore()(() => useRuleConfigMutation(org, app, selectedLayoutSet))
+    .renderHookResult;
