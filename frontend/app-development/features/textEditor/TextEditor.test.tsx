@@ -36,6 +36,9 @@ jest.mock('react-router-dom', () => ({
   },
 }));
 
+// Need to mock the scrollIntoView function
+window.HTMLElement.prototype.scrollIntoView = jest.fn();
+
 describe('TextEditor', () => {
   it('renders the component', async () => {
     await render();
