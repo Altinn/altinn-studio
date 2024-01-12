@@ -131,4 +131,14 @@ describe('ResourceNameAndId', () => {
     const errorMessageEl = screen.getByText('conflict!');
     expect(errorMessageEl).toBeInTheDocument();
   });
+
+  it('should replace illegal characters in id with hyphens', async () => {
+    const user = userEvent.setup();
+    render(<ResourceNameAndId {...defaultProps} title='test/\\?: #=name' />);
+
+    const titleInput = screen.getByLabelText(mockTitleLabel);
+    await act(() => user.type(titleInput, '1'));
+
+    expect(mockHandleIdInput).toHaveBeenCalledWith('test-name1');
+  });
 });

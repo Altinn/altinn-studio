@@ -51,13 +51,13 @@ export const ResourceNameAndId = ({
   }, [conflictErrorMessage]);
 
   /**
-   * Replaces spaces and '.' with '-' so that the ID looks correct
+   * Replaces any character not in the list below with '-'
    *
    * @param s the string to format
    * @returns the string formatted
    */
   const formatString = (s: string): string => {
-    return s.replace(/[\s.]+/g, '-');
+    return s.replace(/[^A-Za-z0-9-_.!~*'()%\.s]+/g, '-');
   };
 
   /**
