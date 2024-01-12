@@ -14,17 +14,13 @@ export class CreateServicePage extends BasePage {
     await this.page.waitForURL(this.getRoute('dashboardCreateApp'));
   }
 
-  public createAppFormIsVisible(): void {
-    this.page.getByLabel('Navn');
-  }
-
   public async writeAppName(appName: string): Promise<void> {
-    await this.page.getByLabel('Navn').fill(appName);
+    await this.page.getByLabel(this.textMock('dashboard.name')).fill(appName);
     return this.updateAppNameEnv(appName);
   }
 
   public async clickOnCreateAppButton(): Promise<void> {
-    await this.page.getByRole('button', { name: 'Opprett applikasjon' }).click();
+    await this.page.getByRole('button', { name: this.textMock('dashboard.create_service_btn') }).click();
   }
 
   public async verifyIsNavigatedToOverviewPage(): Promise<void> {

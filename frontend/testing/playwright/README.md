@@ -38,8 +38,8 @@ GITEA_ACCESS_TOKEN=<<generated-gitea-token-by-the-setup-script>>
 ```
 
 ## Short Step By Step Guide
-This is a short step-by-step guide with less minimum needed explanation to get started.
+This is a short step-by-step guide with minimum needed explanation to get started.
 
-1. Install the dependencies within this package by running yarn install.
+1. Install the dependencies within this package by running y`yarn install`.
 2. Install browsers and set up Playwright with local `.env` by executing `yarn setup:playwright`.
 3. You are now ready to execute tests using the command `yarn test:all`.

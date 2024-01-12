@@ -15,6 +15,6 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnCreateAppLink(): Promise<void> {
-    await this.page.getByRole('link', { name: 'Opprett ny applikasjon' }).click();
+    await this.page.getByRole('link', { name: this.textMock('dashboard.new_service') }).click();
   }
 }

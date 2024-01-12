@@ -11,6 +11,8 @@ export default defineConfig<ExtendedTestOptions>({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
+    locale: 'nb-NO',
+    timezoneId: 'Europe/Oslo',
     trace: 'on-first-retry',
   },
 
