@@ -29,18 +29,27 @@ describe('TextEntry', () => {
   it("should return nothing when textEntryValue is '' ", async () => {
     const user = userEvent.setup();
     render();
-    const inpurText2 = screen.getByRole('textbox', { name: 'nb translation' });
-    await act(() => user.clear(inpurText2));
+    const inputText2 = screen.getByRole('textbox', { name: 'nb translation' });
+    await act(() => user.clear(inputText2));
     expect(textEntryValue).toEqual('');
   });
 
-  it('should display validation error message when textId is APP_NAME and textEntryValue is empty', async () => {
+  it('should display validation error message when textId equal to APP_NAME and textEntryValue is empty', async () => {
     const user = userEvent.setup();
     render();
     const inputText3 = screen.getByRole('textbox', { name: 'nb translation' });
     await act(() => user.clear(inputText3));
     expect(textId).toEqual(APP_NAME);
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
+  });
+
+  it('shouls not display validation error message when textId equal to APP_NAME but textEntryValue is not empty', async () => {
+    const user = userEvent.setup();
+    render();
+    const inputText4 = screen.getByRole('textbox', { name: 'nb translation' });
+    await act(() => user.type(inputText4, 'Hello'));
+    expect(textId).toEqual(APP_NAME);
+    expect(screen.queryByText(textMock('validation_errors.required'))).not.toBeInTheDocument();
   });
 });
 

@@ -39,11 +39,11 @@ export const TextEntry = ({
       <FormField
         value={textId}
         customValidationRules={() => {
-          if (textId === APP_NAME && textEntryValue === '') return 'TekstSouldNotBeEmpty';
+          if (textId === APP_NAME && textEntryValue === '') return 'TextSouldNotBeEmpty';
           return '';
         }}
         customValidationMessages={(errorCode: string) => {
-          if (errorCode === 'TekstSouldNotBeEmpty') return t('validation_errors.required');
+          if (errorCode === 'TextSouldNotBeEmpty') return t('validation_errors.required');
         }}
         renderField={({ fieldProps }) => (
           <Textarea
