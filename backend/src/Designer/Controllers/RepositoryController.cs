@@ -563,7 +563,7 @@ namespace Altinn.Studio.Designer.Controllers
             var zipFileName = $"{org}-{repository}-{zipType}.zip";
             var zipFilePath = Path.Combine(Path.GetTempPath(), zipFileName);
 
-            using (var archive = new ZipArchive(new FileStream(zipFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read), ZipArchiveMode.Create, leaveOpen: false))
+            using (var archive = new ZipArchive(new FileStream(zipFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read, 512, FileOptions.DeleteOnClose), ZipArchiveMode.Create, leaveOpen: false))
             {
                 IEnumerable<string> changedFiles;
                 if (full)
