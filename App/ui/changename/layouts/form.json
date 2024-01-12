@@ -109,7 +109,7 @@
         }
       },
       {
-        "id": "changeNameTo_æøå",
+        "id": "changeNameTo",
         "type": "Input",
         "textResourceBindings": {
           "title": "EndreNavnTil"
@@ -694,7 +694,8 @@
         "type": "CustomButton",
         "textResourceBindings": {
           "title": "Fyll ut skjema"
-        }
+        },
+        "buttonStyle": "secondary"
       },
       {
         "id": "Input-P4VNaX",
@@ -719,7 +720,7 @@
         }
       },
       {
-        "id": "testing-custom-button-2",
+        "id": "testing-custom-button2",
         "actions": [
           {
             "id": "fill",
@@ -736,7 +737,8 @@
         "type": "CustomButton",
         "textResourceBindings": {
           "title": "Trigger frontend actions"
-        }
+        },
+        "buttonStyle": "secondary"
       },
       {
         "id": "button-group1",

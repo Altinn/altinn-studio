@@ -55,8 +55,7 @@
         "type": "Button",
         "textResourceBindings": {
           "title": "Send inn"
-        },
-        "dataModelBindings": {}
+        }
       }
     ]
   }

@@ -67,8 +67,7 @@
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"
-        },
-        "dataModelBindings": {}
+        }
       }
     ]
   }

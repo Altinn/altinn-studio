@@ -19,35 +19,35 @@
         "textResourceBindings": {
           "title": "Endringer til navn"
         },
-        "children": ["summary-1", "summary-2"]
+        "children": ["summary1", "summary2"]
       },
       {
-        "id": "summary-1",
+        "id": "summary1",
         "type": "Summary",
         "componentRef": "changeNameFrom"
       },
       {
-        "id": "summary-2",
+        "id": "summary2",
         "type": "Summary",
-        "componentRef": "changeNameTo_æøå"
+        "componentRef": "changeNameTo"
       },
       {
-        "id": "summary-3",
+        "id": "summary3",
         "type": "Summary",
         "componentRef": "reason"
       },
       {
-        "id": "summary-4",
+        "id": "summary4",
         "type": "Summary",
         "componentRef": "dateOfEffect"
       },
       {
-        "id": "summary-5",
+        "id": "summary5",
         "type": "Summary",
         "componentRef": "fileUpload-changename"
       },
       {
-        "id": "summary-6",
+        "id": "summary6",
         "type": "Summary",
         "componentRef": "fileUploadWithTags-changename"
       },

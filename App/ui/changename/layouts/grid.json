@@ -108,20 +108,7 @@
               },
               { "component": "fordeling-total" },
               {},
-              {
-                "futureText": [
-                  "if",
-                  [
-                    "and",
-                    ["equals", ["component", "innhentet-bolig"], "ja"],
-                    ["equals", ["component", "innhentet-studie"], "ja"],
-                    ["equals", ["component", "innhentet-kredittkort"], "ja"]
-                  ],
-                  "Alle OK",
-                  "else",
-                  "Mangler verifisering"
-                ]
-              }
+              {}
             ]
           }
         ]
