@@ -26,6 +26,7 @@ export const TextList = ({
 }: TextListProps) => {
   const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
   const idExists = (textId: string): boolean => textIds.includes(textId);
+  const getTableHeaderCellId = (language: string): string => `header-lang${language}`;
 
   return (
     <Table>
@@ -33,7 +34,9 @@ export const TextList = ({
         <TableRow>
           <TableCell></TableCell>
           {selectedLanguages.map((language) => (
-            <TableCell key={'header-lang' + language}>{getLangName({ code: language })}</TableCell>
+            <TableCell id={getTableHeaderCellId(language)} key={getTableHeaderCellId(language)}>
+              {getLangName({ code: language })}
+            </TableCell>
           ))}
           <TableCell>Tekstnøkkel</TableCell>
           <TableCell>Variabler</TableCell>
