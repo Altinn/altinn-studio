@@ -443,6 +443,9 @@
             },
             "Kommune": {
               "type": "string"
+            },
+            "KommunerMetadata": {
+              "type": "string"
             }
           },
           "required": [
@@ -462,6 +465,12 @@
             "ShowAll": { "type": "string" },
             "Examples": { "$ref":  "#/definitions/GridExamples" }
           }
+        },
+        "TestCustomButtonInput": {
+          "type": "string"
+        },
+        "TestCustomButtonReadOnlyInput": {
+          "type": "string"
         }
       },
       "required": [
