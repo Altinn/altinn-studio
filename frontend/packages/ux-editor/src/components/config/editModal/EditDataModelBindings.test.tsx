@@ -254,6 +254,7 @@ describe('EditDataModelBindings', () => {
         }}
       />,
     );
+
     expect(await screen.findByText('testModel.field2')).toBeInTheDocument();
   });
 });
