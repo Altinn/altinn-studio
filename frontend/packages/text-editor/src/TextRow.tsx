@@ -1,15 +1,8 @@
 import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { UpsertTextResourceMutation } from './types';
-import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
-import {
-  Button,
-  ErrorMessage,
-  TableCell,
-  TableRow,
-  LegacyTextField,
-  Textfield,
-} from '@digdir/design-system-react';
+import { TrashIcon, PencilIcon } from '@studio/icons';
+import { Button, TableCell, TableRow, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
 import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
@@ -48,8 +41,7 @@ export const TextRow = ({
   const { t } = useTranslation();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
-  const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const newTextId = event.currentTarget.value;
+  const handleTextIdChange = (newTextId: string): void => {
     if (newTextId !== textId) {
       if (idExists(newTextId)) {
         setKeyError('Denne IDen finnes allerede');
@@ -118,30 +110,20 @@ export const TextRow = ({
       <TableCell>
         <ButtonContainer className={classes.buttonGroup}>
           {textIdEditOpen ? (
-            <>
-              <FormField
-                label={t('schema_editor.textRow-textkey-label')}
-                value={textIdValue}
-                renderField={({ fieldProps }) => (
-                  <Textfield
-                    {...fieldProps}
-                    error={keyError}
-                    onBlur={handleTextIdBlur}
-                    onChange={handleTextIdChange}
-                    size='small'
-                  />
-                )}
-              />
-              {/* <LegacyTextField
-                aria-label={'tekst key edit'}
-                isValid={!keyError}
-                value={textIdValue}
-                type='text'
-                onBlur={handleTextIdBlur}
-                onChange={handleTextIdChange}
-              />
-              {keyError ? <ErrorMessage role='alertdialog'>{keyError}</ErrorMessage> : null} */}
-            </>
+            <FormField
+              label={t('schema_editor.textRow-textkey-label')}
+              value={textIdValue}
+              onChange={handleTextIdChange}
+              renderField={({ fieldProps }) => (
+                <Textfield
+                  {...fieldProps}
+                  error={keyError}
+                  onBlur={handleTextIdBlur}
+                  onChange={(e) => fieldProps.onChange(e.target.value, e)}
+                  size='small'
+                />
+              )}
+            />
           ) : (
             <div role='text' aria-readonly className={classes.textId}>
               <span>{textIdValue}</span>
