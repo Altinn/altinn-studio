@@ -8,6 +8,7 @@ import { ActionButton } from './ActionButton';
 import { AddPropertyMenu } from './AddPropertyMenu';
 import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
 import { SavableSchemaModel } from '../../../../classes/SavableSchemaModel';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface ActionButtonsProps {
   pointer: string;
@@ -43,10 +44,12 @@ export const ActionButtons = ({ pointer, className }: ActionButtonsProps) => {
 
 const useDeleteNode = (pointer: string, savableModel: SavableSchemaModel) => {
   const { t } = useTranslation();
+  const { setSelectedNodePointer } = useSchemaEditorAppContext();
 
   return useCallback(() => {
     if (confirm(t('schema_editor.datamodel_field_deletion_text'))) {
+      setSelectedNodePointer(null);
       savableModel.deleteNode(pointer);
     }
-  }, [savableModel, pointer, t]);
+  }, [savableModel, pointer, t, setSelectedNodePointer]);
 };

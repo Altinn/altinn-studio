@@ -11,7 +11,7 @@ import { AppLogs } from './AppLogs';
 import { Navigation } from './Navigation';
 import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
-import { StudioCenter, StudioSpinner } from '@studio/components';
+import { StudioPageSpinner } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
 
@@ -38,11 +38,7 @@ export const Overview = () => {
   }
 
   if (isPendingAppConfig || isPendingOrgs) {
-    return (
-      <StudioCenter>
-        <StudioSpinner spinnerText={t('general.loading')} className={classes.spinner} />
-      </StudioCenter>
-    );
+    return <StudioPageSpinner spinnerText={t('general.loading')} className={classes.spinner} />;
   }
 
   // If repo-owner is an organisation
@@ -53,7 +49,9 @@ export const Overview = () => {
       <main className={classes.container}>
         <header className={classes.header} role='generic'>
           {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
-          <Heading level={1} size='xlarge'>{appConfigData?.serviceName || app}</Heading>
+          <Heading level={1} size='xlarge'>
+            {appConfigData?.serviceName || app}
+          </Heading>
         </header>
         <div className={classes.panel}>
           <div className={classes.content}>
