@@ -34,13 +34,15 @@ describe('TextEntry', () => {
     expect(textEntryValue).toEqual('');
   });
 
-  it('should display validation error message when textId equal to APP_NAME and textEntryValue is empty', async () => {
+  it('should toggle validation error message when textEntryValue changes from empty to has value', async () => {
     const user = userEvent.setup();
     render();
     const inputText3 = screen.getByRole('textbox', { name: 'nb translation' });
     await act(() => user.clear(inputText3));
     expect(textId).toEqual(APP_NAME);
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
+    await act(() => user.type(inputText3, 'Hello'));
+    expect(screen.queryByText(textMock('validation_errors.required'))).not.toBeInTheDocument();
   });
 
   it('shouls not display validation error message when textId equal to APP_NAME but textEntryValue is not empty', async () => {
