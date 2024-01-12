@@ -4,16 +4,13 @@ using System.Net;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
-
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
-
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -50,7 +47,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<FileSystemObject> folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
             if (folder != null)
             {
-                folder.ForEach(async textResourceFromRepo =>
+                // TODO: Add Cancellation token to signature of the method and to the methods used in loop and convert loot to Parallel.ForEachAsync
+                foreach (FileSystemObject textResourceFromRepo in folder)
                 {
                     if (!Regex.Match(textResourceFromRepo.Name, "^(resource\\.)..(\\.json)").Success)
                     {
@@ -80,7 +78,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         await _storageTextResourceClient.Update(org, app, content, envName);
                     }
-                });
+                }
             }
         }
 
