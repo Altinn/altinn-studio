@@ -17,15 +17,15 @@ export class LoginPage extends BasePage {
   }
 
   public async writeUsername(username: string): Promise<void> {
-    return await this.page.getByLabel('Username or Email Address').fill(username);
+    return await this.page.getByLabel('Brukernavn eller epost').fill(username);
   }
 
   public async writePassword(password: string): Promise<void> {
-    return await this.page.getByLabel('Password').fill(password);
+    return await this.page.getByLabel('Passord').fill(password);
   }
 
   public async clickLoginButton(): Promise<void> {
-    return await this.page.getByRole('button', { name: 'Sign In' }).click();
+    return await this.page.getByRole('button', { name: 'Logg inn' }).click();
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {

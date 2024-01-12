@@ -21,7 +21,7 @@ export default defineConfig<ExtendedTestOptions>({
     {
       name: 'create-app-only',
       dependencies: ['setup'],
-      testDir: './integration/create-app-only/',
+      testDir: './tests/create-app-only/',
       testMatch: '*.spec.ts',
       teardown: 'teardown-create-app-only',
       use: {
@@ -29,12 +29,12 @@ export default defineConfig<ExtendedTestOptions>({
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: 'simple-app-test',
-        headless: false,
+        headless: true,
       },
     },
     {
       name: 'teardown-create-app-only',
-      testDir: './integration/create-app-only/',
+      testDir: './tests/create-app-only/',
       testMatch: '*create-app-only.teardown.ts',
       use: {
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
