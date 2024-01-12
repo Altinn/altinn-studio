@@ -48,11 +48,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (folder != null)
             {
                 // TODO: Add Cancellation token to signature of the method and to the methods used in loop and convert loot to Parallel.ForEachAsync
+                // https://github.com/Altinn/altinn-studio/issues/12031
                 foreach (FileSystemObject textResourceFromRepo in folder)
                 {
                     if (!Regex.Match(textResourceFromRepo.Name, "^(resource\\.)..(\\.json)").Success)
                     {
-                        return;
+                        continue;
                     }
 
                     FileSystemObject populatedFile = await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
@@ -66,7 +67,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     catch (SerializationException e)
                     {
                         _logger.LogError($" // TextResourceService // UpdatedTextResourcesAsync // Error when trying to deserialize text resource file {org}/{app}/{textResourceFromRepo.Path} // Exception {e}");
-                        return;
+                        continue;
                     }
 
                     PlatformStorageModels.TextResource textResourceStorage = await GetTextResourceFromStorage(org, app, content.Language, envName);
@@ -79,6 +80,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         await _storageTextResourceClient.Update(org, app, content, envName);
                     }
                 }
+
             }
         }
 
