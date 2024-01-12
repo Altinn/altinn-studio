@@ -15,7 +15,7 @@ namespace Altinn.App.logic.DataProcessing
             return Task.CompletedTask;
         }
 
-        public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, Dictionary<string, string> changedFields)
+        public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previous)
         {
             if (data.GetType() == typeof(NestedGroup))
             {
