@@ -8,6 +8,7 @@ import {
   TableCell,
   TableRow,
   LegacyTextField,
+  Textfield,
 } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
@@ -16,7 +17,7 @@ import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
-
+import { FormField } from 'app-shared/components/FormField';
 export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
   removeEntry: ({ textId }) => void;
@@ -118,7 +119,20 @@ export const TextRow = ({
         <ButtonContainer className={classes.buttonGroup}>
           {textIdEditOpen ? (
             <>
-              <LegacyTextField
+              <FormField
+                label={t('schema_editor.textRow-textkey-label')}
+                value={textIdValue}
+                renderField={({ fieldProps }) => (
+                  <Textfield
+                    {...fieldProps}
+                    error={keyError}
+                    onBlur={handleTextIdBlur}
+                    onChange={handleTextIdChange}
+                    size='small'
+                  />
+                )}
+              />
+              {/* <LegacyTextField
                 aria-label={'tekst key edit'}
                 isValid={!keyError}
                 value={textIdValue}
@@ -126,7 +140,7 @@ export const TextRow = ({
                 onBlur={handleTextIdBlur}
                 onChange={handleTextIdChange}
               />
-              {keyError ? <ErrorMessage role='alertdialog'>{keyError}</ErrorMessage> : null}
+              {keyError ? <ErrorMessage role='alertdialog'>{keyError}</ErrorMessage> : null} */}
             </>
           ) : (
             <div role='text' aria-readonly className={classes.textId}>
