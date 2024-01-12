@@ -16,10 +16,7 @@
           "simpleBinding": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value"
         },
         "required": true,
-        "readOnly": true,
-        "grid": {
-          "lg": 6
-        }
+        "readOnly": true
       },
       {
         "id": "newFirstName",
@@ -33,9 +30,7 @@
         },
         "required": true,
         "readOnly": false,
-        "showValidations": [
-          "AllExceptRequired"
-        ],
+        "showValidations": ["AllExceptRequired"],
         "maxLength": 4,
         "grid": {
           "labelGrid": {
@@ -43,8 +38,7 @@
           },
           "innerGrid": {
             "md": 6
-          },
-          "xs": 6
+          }
         }
       },
       {
@@ -59,9 +53,7 @@
         },
         "required": true,
         "readOnly": false,
-        "showValidations": [
-          "AllExceptRequired"
-        ],
+        "showValidations": ["AllExceptRequired"],
         "grid": {
           "labelGrid": {
             "md": 6
@@ -82,12 +74,8 @@
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value"
         },
         "readOnly": false,
-        "showValidations": [
-          "AllExceptRequired"
-        ],
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "showValidations": ["AllExceptRequired"],
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "labelGrid": {
             "md": 6
@@ -392,26 +380,78 @@
         },
         "required": false,
         "readOnly": false,
-        "formatting": {
-          "number": {
-            "format": "+47 ### ## ###"
-          }
-        },
+        "formatting": { "number": { "format": "+47 ### ## ###" } },
         "grid": {
           "md": 6
         }
       },
       {
         "id": "reference-group",
+        "type": "Group",
         "textResourceBindings": {
           "title": "Referanser"
         },
-        "children": [
-          "sources",
-          "reference",
-          "reference2"
-        ],
-        "type": "Group"
+        "children": ["sources", "reference", "reference2"]
+      },
+      {
+        "id": "sources",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "hvor fikk du vite om skjemaet?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"
+        },
+        "optionsId": "list",
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 4
+        },
+        "preselectedOptionIndex": 0
+      },
+      {
+        "id": "reference",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.TredjeSignerer-grp-9349.SignererTredjeReferanseAltinn-datadef-34891.value"
+        },
+        "optionsId": "references",
+        "required": false,
+        "readOnly": false,
+        "secure": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 4
+        },
+        "mapping": {
+          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
+        }
+      },
+      {
+        "id": "reference2",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse 2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderReferanseAltinn-datadef-34743.value"
+        },
+        "optionsId": "test",
+        "required": false,
+        "readOnly": false,
+        "secure": true,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 4
+        },
+        "mapping": {
+          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
+        }
       },
       {
         "id": "adresse",
@@ -456,14 +496,7 @@
           "simpleBinding": "Adresse.KommunerMetadata"
         },
         "readOnly": true,
-        "hidden": [
-          "notEquals",
-          [
-            "component",
-            "kommune"
-          ],
-          "0301"
-        ],
+        "hidden": ["notEquals", ["component", "kommune"], "0301"],
         "grid": {
           "xs": 12,
           "sm": 6
@@ -496,11 +529,7 @@
         "displayMode": "list",
         "required": false,
         "hasCustomFileEndings": true,
-        "validFileEndings": [
-          ".jpeg",
-          ".jpg",
-          ".pdf"
-        ],
+        "validFileEndings": [".jpeg", ".jpg", ".pdf"],
         "optionsId": "tags"
       },
       {
@@ -542,10 +571,7 @@
       {
         "id": "accordion-group",
         "type": "AccordionGroup",
-        "children": [
-          "accordion-test",
-          "second-accordion"
-        ]
+        "children": ["accordion-test", "second-accordion"]
       },
       {
         "id": "accordion-test",
@@ -562,9 +588,7 @@
       {
         "id": "second-accordion",
         "type": "Accordion",
-        "children": [
-          "test-accordion-paragraph-4"
-        ],
+        "children": ["test-accordion-paragraph-4"],
         "textResourceBindings": {
           "title": "Dette er enda en Accordion 2"
         }
@@ -572,9 +596,7 @@
       {
         "id": "third-accordion",
         "type": "Accordion",
-        "children": [
-          "test-accordion-paragraph-3"
-        ],
+        "children": ["test-accordion-paragraph-3"],
         "textResourceBindings": {
           "title": "Dette er enda en Accordion 3"
         }
@@ -719,10 +741,7 @@
       {
         "id": "button-group1",
         "type": "ButtonGroup",
-        "children": [
-          "printBtn",
-          "toSummary"
-        ]
+        "children": ["printBtn", "toSummary"]
       },
       {
         "id": "printBtn",
@@ -736,75 +755,7 @@
         },
         "validateOnNext": {
           "page": "current",
-          "show": [
-            "All"
-          ]
-        }
-      },
-      {
-        "id": "sources",
-        "type": "Dropdown",
-        "textResourceBindings": {
-          "title": "hvor fikk du vite om skjemaet?"
-        },
-        "dataModelBindings": {
-          "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"
-        },
-        "optionsId": "list",
-        "required": false,
-        "readOnly": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
-        "grid": {
-          "md": 4
-        },
-        "preselectedOptionIndex": 0
-      },
-      {
-        "id": "reference",
-        "type": "Dropdown",
-        "textResourceBindings": {
-          "title": "Referanse"
-        },
-        "dataModelBindings": {
-          "simpleBinding": "Innledning-grp-9309.TredjeSignerer-grp-9349.SignererTredjeReferanseAltinn-datadef-34891.value"
-        },
-        "optionsId": "references",
-        "required": false,
-        "readOnly": false,
-        "secure": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
-        "grid": {
-          "md": 4
-        },
-        "mapping": {
-          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
-        }
-      },
-      {
-        "id": "reference2",
-        "type": "Dropdown",
-        "textResourceBindings": {
-          "title": "Referanse 2"
-        },
-        "dataModelBindings": {
-          "simpleBinding": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderReferanseAltinn-datadef-34743.value"
-        },
-        "optionsId": "test",
-        "required": false,
-        "readOnly": false,
-        "secure": true,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
-        "grid": {
-          "md": 4
-        },
-        "mapping": {
-          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
+          "show": ["All"]
         }
       }
     ]
