@@ -192,7 +192,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
                 alignItems='center'
                 className={classes.subUnitTextWrapper}
               >
-                <Typography className={`${classes.partyName}`}>{childParty.name}</Typography>
+                <Typography className={classes.partyName}>{childParty.name}</Typography>
                 <Typography className={classes.partyInfo}>
                   &nbsp;
                   <Lang id={'party_selection.unit_org_number'} />

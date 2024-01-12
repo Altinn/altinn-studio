@@ -3,6 +3,7 @@ import DropZone from 'react-dropzone';
 import type { FileRejection } from 'react-dropzone';
 
 import { CloudUpIcon } from '@navikt/aksel-icons';
+import cn from 'classnames';
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -123,14 +124,14 @@ export function DropzoneComponent({
                 />
                 <span
                   id={dragLabelId}
-                  className={`${classes.fileUploadTextBold}`}
+                  className={classes.fileUploadTextBold}
                 >
                   {isMobile ? (
                     <Lang id='form_filler.file_uploader_upload' />
                   ) : (
                     <>
                       <Lang id={'form_filler.file_uploader_drag'} />
-                      <span className={`${classes.fileUploadTextBold} ${classes.blueUnderLine}`}>
+                      <span className={cn(classes.fileUploadTextBold, classes.blueUnderLine)}>
                         {' '}
                         <Lang id='form_filler.file_uploader_find' />
                       </span>

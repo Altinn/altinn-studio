@@ -1,6 +1,8 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
+import { ExclamationmarkTriangleFillIcon } from '@navikt/aksel-icons';
+
 import classes from 'src/components/message/ErrorPaper.module.css';
 
 export interface IErrorPaperProps {
@@ -12,7 +14,7 @@ export function ErrorPaper(props: IErrorPaperProps) {
     <div className={classes.paperWrapper}>
       <div className={classes.paper}>
         <div className={classes.paperIcon}>
-          <i className='ai ai-circle-exclamation' />
+          <ExclamationmarkTriangleFillIcon aria-hidden='true' />
         </div>
         <div className={classes.paperMessage}>{props.message}</div>
       </div>

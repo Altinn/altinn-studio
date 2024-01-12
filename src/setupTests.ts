@@ -11,7 +11,6 @@ import { TextDecoder, TextEncoder } from 'util';
 
 // Importing CSS for jest-preview to look nicer
 import 'src/index.css';
-import 'src/styles/tjenester3.css';
 import 'src/styles/shared.css';
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
 

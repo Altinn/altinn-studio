@@ -1,8 +1,9 @@
 import React from 'react';
 
 import { IconButton, makeStyles, Menu, MenuItem } from '@material-ui/core';
+import { Buldings3Icon, PersonIcon } from '@navikt/aksel-icons';
 
-import { AltinnIcon } from 'src/components/AltinnIcon';
+import { CircleIcon } from 'src/components/CircleIcon';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { logoutUrlAltinn } from 'src/utils/urls/urlHelper';
@@ -62,11 +63,22 @@ export function AltinnAppHeaderMenu({ party, logoColor }: IAltinnAppHeaderMenuPr
         className={classes.iconButton}
         id='profile-icon-button'
       >
-        <AltinnIcon
-          iconClass={`fa ${party.orgNumber ? 'fa-corp-circle-big' : 'fa-private-circle-big'}`}
-          iconColor={logoColor}
-          iconSize={31}
-        />
+        <CircleIcon
+          size='1.5rem'
+          color={logoColor}
+        >
+          {party.orgNumber ? (
+            <Buldings3Icon
+              color='white'
+              aria-hidden='true'
+            />
+          ) : (
+            <PersonIcon
+              color='white'
+              aria-hidden='true'
+            />
+          )}
+        </CircleIcon>
       </IconButton>
       <Menu
         id='profile-menu'

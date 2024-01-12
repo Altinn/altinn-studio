@@ -1,9 +1,10 @@
 import React from 'react';
 
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
-import cn from 'classnames';
+import { Buldings3Icon, PersonIcon } from '@navikt/aksel-icons';
 
 import classes from 'src/components/AltinnAppHeader.module.css';
+import { CircleIcon } from 'src/components/CircleIcon';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
 import { Lang } from 'src/features/language/Lang';
@@ -13,12 +14,10 @@ import type { IProfile } from 'src/types/shared';
 
 export interface IHeaderProps {
   profile: IProfile | undefined;
-  type?: 'partyChoice' | 'normal';
 }
 
-export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
+export const AltinnAppHeader = ({ profile }: IHeaderProps) => {
   const party = profile?.party;
-  const blueClass = type ? classes.blueDark : classes.blueDarker;
 
   return (
     <div
@@ -40,11 +39,11 @@ export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
         <Toolbar className={classes.toolbarContainer}>
           <Grid
             item={true}
-            className={cn(classes.logo, !type && classes.gridStyle)}
+            className={classes.logo}
           >
-            <AltinnLogo color={type === 'partyChoice' ? LogoColor.blueDark : LogoColor.blueDarker} />
+            <AltinnLogo color={LogoColor.blueDark} />
           </Grid>
-          {type && party && (
+          {party && (
             <ul className={classes.headerLinkList}>
               <li className={classes.headerLink}>
                 <a href={returnUrlToMessagebox(window.location.origin, party?.partyId) || '#'}>
@@ -64,34 +63,23 @@ export const AltinnAppHeader = ({ type, profile }: IHeaderProps) => {
             </ul>
           )}
           {party && (
-            <div title={renderParty(profile) || ''}>
-              <span className={cn('a-personSwitcher-name', classes.spanStyle)}>
-                {!type && (
-                  <>
-                    <span className={`d-block ${blueClass}`}>{renderParty(profile)}</span>
-                    <span className={blueClass}>
-                      {party && party.organization && (
-                        <>
-                          <Lang id='general.for' /> {party.organization.name.toUpperCase()}
-                        </>
-                      )}
-                    </span>
-                  </>
-                )}
-                <span className='d-block' />
-              </span>
-              {party && party.organization ? (
-                <i
-                  className={`fa fa-corp-circle-big ${classes.partyIcon} ${blueClass}`}
+            <CircleIcon
+              size='1.5rem'
+              className={classes.partyIcon}
+              title={renderParty(profile) || ''}
+            >
+              {party.orgNumber ? (
+                <Buldings3Icon
+                  color='white'
                   aria-hidden='true'
                 />
               ) : (
-                <i
-                  className={`fa fa-private-circle-big ${classes.partyIcon} ${blueClass}`}
+                <PersonIcon
+                  color='white'
                   aria-hidden='true'
                 />
               )}
-            </div>
+            </CircleIcon>
           )}
         </Toolbar>
       </AppBar>

@@ -220,7 +220,7 @@ export const PartySelection = () => {
   };
 
   return (
-    <InstantiationContainer type='partyChoice'>
+    <InstantiationContainer>
       <Grid
         container={true}
         direction='row'

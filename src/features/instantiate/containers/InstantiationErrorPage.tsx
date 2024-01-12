@@ -14,7 +14,7 @@ export type IInstantiationErrorPageProps = {
 
 export function InstantiationErrorPage({ content, statusCode, title }: IInstantiationErrorPageProps) {
   return (
-    <InstantiationContainer type='partyChoice'>
+    <InstantiationContainer>
       <Grid
         container={true}
         direction='row'

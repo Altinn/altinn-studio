@@ -1,15 +1,3 @@
-@media print {
-  .hide-form {
-    display: none;
-  }
-}
-
-@media only screen {
-  .hide-pdf {
-    display: none;
-  }
-}
-
 .navigationError {
   display: flex;
   margin-top: 35px;

@@ -13,3 +13,9 @@
 .component-container:empty {
   display: none;
 }
+
+@media print {
+  .hide-form {
+    display: none;
+  }
+}

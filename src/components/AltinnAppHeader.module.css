@@ -10,10 +10,6 @@
   color: var(--fds-semantic-surface-action-default);
 }
 
-.blueDarker {
-  color: var(--fds-semantic-surface-action-active);
-}
-
 .default {
   background-color: transparent;
 }
@@ -69,7 +65,6 @@
 }
 
 .partyIcon {
-  font-size: 1.9375rem !important;
   margin-left: 5px;
 }
 

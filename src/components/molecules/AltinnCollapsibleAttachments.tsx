@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { Collapse, List, ListItem, ListItemIcon, ListItemText, makeStyles, Typography } from '@material-ui/core';
+import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { AltinnIcon } from 'src/components/AltinnIcon';
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { IDisplayAttachment } from 'src/types/shared';
@@ -70,10 +70,9 @@ export function AltinnCollapsibleAttachments({
                 root: cn({ [classes.transformArrowRight]: !open }, classes.transition),
               }}
             >
-              <AltinnIcon
-                iconClass='ai ai-arrow-down'
-                iconColor='#1EADF7'
-                iconSize='1rem'
+              <CaretDownFillIcon
+                aria-hidden='true'
+                fontSize='1.5rem'
               />
             </ListItemIcon>
             <ListItemText

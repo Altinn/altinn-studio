@@ -164,7 +164,7 @@ export class AppFrontend {
     summaryNameChanges: '#nameChanges',
     mobilenummer: '#mobilnummer',
     sources: '#sources',
-    uploadingAnimation: '.loader',
+    uploadingAnimation: '[id*="loader"]',
     deleteAttachment: '[data-testid^="attachment-delete"]',
     popOverDeleteButton: '[data-testid="warning-popover-delete-button"]',
     popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',

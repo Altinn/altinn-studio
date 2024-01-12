@@ -10,19 +10,15 @@ import { changeBodyBackground } from 'src/utils/bodyStyling';
 
 export interface IInstantiateContainerProps {
   children?: React.ReactNode;
-  type: 'normal' | 'partyChoice';
 }
 
-export function InstantiationContainer({ children, type }: IInstantiateContainerProps) {
+export function InstantiationContainer({ children }: IInstantiateContainerProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const profile = useProfile();
 
   return (
     <div className={classes.container}>
-      <AltinnAppHeader
-        profile={profile}
-        type={type}
-      />
+      <AltinnAppHeader profile={profile} />
       <main id='main-content'>{children}</main>
       <Footer />
       <ReadyForPrint />

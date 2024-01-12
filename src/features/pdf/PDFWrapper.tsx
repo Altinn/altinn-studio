@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { PDFView } from 'src/features/pdf/PDFView';
+import classes from 'src/features/pdf/PDFView.module.css';
 
 export function PDFWrapper({ children }: PropsWithChildren) {
   const previewPDF = useDevToolsStore((state) => state.pdfPreview);
@@ -17,7 +18,7 @@ export function PDFWrapper({ children }: PropsWithChildren) {
   if (previewPDF) {
     return (
       <>
-        <div className='hide-form'>{children}</div>
+        <div className={classes['hide-form']}>{children}</div>
         <PDFView />
       </>
     );

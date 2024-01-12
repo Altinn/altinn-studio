@@ -1,5 +1,7 @@
 import React from 'react';
 
+import cn from 'classnames';
+
 import classes from 'src/components/altinnError.module.css';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from 'src/utils/urls/urlHelper';
 
@@ -31,12 +33,12 @@ export const AltinnError = ({
     <div className={classes.contentContainer}>
       <span
         data-testid='StatusCode'
-        className={` ${classes.statusCode} ${classes.contentMargin}`}
+        className={cn(classes.statusCode, classes.contentMargin)}
       >
         {statusCode}
       </span>
-      <h1 className={`${classes.title} ${classes.contentMargin}`}>{title}</h1>
-      <p className={`${classes.articleText} ${classes.contentMargin}`}>{content}</p>
+      <h1 className={cn(classes.title, classes.contentMargin)}>{title}</h1>
+      <p className={cn(classes.articleText, classes.contentMargin)}>{content}</p>
       <div>
         <a href={url}>{urlText}</a>
       </div>

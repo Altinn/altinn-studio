@@ -56,33 +56,6 @@ describe('organisms/AltinnAppHeader', () => {
       },
     });
 
-  it('should render private icon when party is person', async () => {
-    await render({ party: partyPerson });
-    const profileButton = screen.getByRole('button', {
-      name: /Profil ikon knapp/i,
-    });
-    // eslint-disable-next-line testing-library/no-node-access
-    expect(profileButton.firstChild?.firstChild).toHaveClass('fa-private-circle-big');
-  });
-
-  it('should render private icon for user without ssn or org number', async () => {
-    await render({ party: selfIdentifiedUser });
-    const profileButton = screen.getByRole('button', {
-      name: /Profil ikon knapp/i,
-    });
-    // eslint-disable-next-line testing-library/no-node-access
-    expect(profileButton.firstChild?.firstChild).toHaveClass('fa-private-circle-big');
-  });
-
-  it('should render org icon when party is org', async () => {
-    await render({ party: partyOrg });
-    const profileButton = screen.getByRole('button', {
-      name: /Profil ikon knapp/i,
-    });
-    // eslint-disable-next-line testing-library/no-node-access
-    expect(profileButton.firstChild?.firstChild).toHaveClass('fa-corp-circle-big');
-  });
-
   it('should render menu with logout option when clicking profile icon', async () => {
     await render({ party: partyOrg });
     expect(

@@ -17,5 +17,5 @@
 }
 
 .paperIcon {
-  align-self: flex-start;
+  display: flex;
 }

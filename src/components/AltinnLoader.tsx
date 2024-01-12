@@ -1,5 +1,7 @@
 import React from 'react';
 
+import classes from 'src/components/AltinnLoader.module.css';
+
 export interface IAltinnLoaderProps {
   /** The id, defaults to 'altinn-loader' */
   id?: string;
@@ -11,16 +13,16 @@ export interface IAltinnLoaderProps {
   className?: string;
 }
 
-export function AltinnLoader(props: IAltinnLoaderProps) {
+export function AltinnLoader({ id, style, className, srContent }: IAltinnLoaderProps) {
   return (
     <div
       aria-live='polite'
-      className={`a-loader ${props.className || ''}`}
-      id={props.id || 'altinn-loader'}
-      style={props.style}
+      className={className}
+      id={id || 'altinn-loader'}
+      style={style}
     >
-      <div className='loader loader-ellipsis' />
-      <p className='sr-only'>{props.srContent}</p>
+      <div className={classes.loader} />
+      <p className='sr-only'>{srContent}</p>
     </div>
   );
 }
