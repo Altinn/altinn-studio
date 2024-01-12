@@ -1,18 +1,24 @@
 import React from 'react';
 
 import { render as rtlRender, screen } from '@testing-library/react';
-import Router from "react-router-dom";
+import Router from 'react-router-dom';
 
-import { getOrgNameByUsername, Header, HeaderContext, SelectedContextType } from './Header';
+import {
+  getOrgNameByUsername,
+  Header,
+  HeaderContext,
+  IHeaderContext,
+  SelectedContextType,
+} from './Header';
 
 const orgUsername = 'username1';
 const orgFullName = 'Organization 1';
 
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
   useParams: jest.fn(),
   useNavigate: jest.fn(),
-  useLocation: jest.fn()
+  useLocation: jest.fn(),
 }));
 
 describe('Header', () => {
@@ -45,13 +51,13 @@ describe('Header', () => {
           ...orgProps,
           id: 1,
           full_name: 'full_name 1',
-          username: 'username1'
+          username: 'username1',
         },
         {
           ...orgProps,
           id: 2,
           full_name: 'full_name 2',
-          username: 'username2'
+          username: 'username2',
         },
       ];
 
@@ -85,8 +91,10 @@ describe('Header', () => {
 
 const render = ({
   selectedContext = SelectedContextType.Self,
-}: {selectedContext: string | SelectedContextType}) => {
-  jest.spyOn(Router, 'useParams').mockReturnValue({ selectedContext })
+}: {
+  selectedContext: string | SelectedContextType;
+}) => {
+  jest.spyOn(Router, 'useParams').mockReturnValue({ selectedContext });
 
   const orgProps = {
     avatar_url: 'avatar_url',
@@ -98,18 +106,21 @@ const render = ({
     full_name: orgFullName,
   };
 
-  const headerContextValue = {
+  const headerContextValue: IHeaderContext = {
     selectableOrgs: [{ ...orgProps }],
     user: {
       full_name: 'John Smith',
       avatar_url: 'avatar_url',
       login: 'login',
+      email: '',
+      id: 0,
+      userType: 0,
     },
   };
 
   return rtlRender(
     <HeaderContext.Provider value={headerContextValue}>
       <Header />
-    </HeaderContext.Provider>
+    </HeaderContext.Provider>,
   );
 };

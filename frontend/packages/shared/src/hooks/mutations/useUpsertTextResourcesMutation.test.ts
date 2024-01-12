@@ -1,7 +1,11 @@
-import { queriesMock, renderHookWithMockStore } from '../../../../ux-editor/src/testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../../../ux-editor/src/testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useTextResourcesQuery } from '../../../../../app-development/hooks/queries';
-import { UpsertTextResourcesMutationArgs, useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';
+import {
+  UpsertTextResourcesMutationArgs,
+  useUpsertTextResourcesMutation,
+} from './useUpsertTextResourcesMutation';
 import { ITextResource } from 'app-shared/types/global';
 
 // Test data:
@@ -18,12 +22,16 @@ describe('useUpsertTextResourcesMutation', () => {
     const { result: upsertTextResources } = await renderUpsertTextResourcesMutation();
     await upsertTextResources.current.mutateAsync(args);
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, language, { [textId]: textValue });
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, language, {
+      [textId]: textValue,
+    });
   });
 });
 
 const renderUpsertTextResourcesMutation = async () => {
-  const { result: texts } = renderHookWithMockStore()(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const { result: texts } = renderHookWithMockStore()(() =>
+    useTextResourcesQuery(org, app),
+  ).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
   return renderHookWithMockStore()(() => useUpsertTextResourcesMutation(org, app)).renderHookResult;
-}
+};

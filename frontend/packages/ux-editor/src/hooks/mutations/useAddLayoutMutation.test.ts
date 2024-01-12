@@ -1,9 +1,13 @@
-import { queriesMock, formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { AddLayoutMutationArgs, useAddLayoutMutation } from './useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { externalLayoutsMock } from '../../testing/layoutMock';
+import { FormLayoutsResponse } from 'app-shared/types/api';
+import { ILayoutSettings } from 'app-shared/types/global';
 
 // Test data:
 const org = 'org';
@@ -72,12 +76,20 @@ describe('useAddLayoutMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const getFormLayouts = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+  const getFormLayoutSettings = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));
+  const formLayoutsResult = renderHookWithMockStore(
+    {},
+    { getFormLayouts },
+  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore(
+    {},
+    { getFormLayoutSettings },
+  )(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

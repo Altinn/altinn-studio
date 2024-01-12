@@ -1,5 +1,6 @@
 import { CreateRepoCommitPayload } from 'app-shared/types/api';
-import { queriesMock, renderHookWithMockStore } from 'app-development/test/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from 'app-development/test/mocks';
 import { useRepoCommitAndPushMutation } from './useRepoCommitAndPushMutation';
 
 // Test data:

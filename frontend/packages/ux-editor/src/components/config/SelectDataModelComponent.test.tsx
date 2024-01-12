@@ -8,9 +8,10 @@ import { SelectDataModelComponent } from './SelectDataModelComponent';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import userEvent from '@testing-library/user-event';
+import { DatamodelMetadataResponse } from 'app-shared/types/api';
 
 const getDatamodelMetadata = () =>
-  Promise.resolve({
+  Promise.resolve<DatamodelMetadataResponse>({
     elements: {
       testModel: {
         id: 'testModel',

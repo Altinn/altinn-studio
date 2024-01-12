@@ -6,7 +6,7 @@ import classes from './CreateService.module.css';
 import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { Organization } from 'app-shared/types/Organization';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { useAddRepoMutation } from 'dashboard/hooks/mutations/useAddRepoMutation';
 import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
