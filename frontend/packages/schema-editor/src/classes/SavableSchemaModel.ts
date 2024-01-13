@@ -1,6 +1,7 @@
 import {
   CombinationNode,
   FieldNode,
+  FieldType,
   NodePosition,
   SchemaModel,
   UiSchemaNode,
@@ -27,8 +28,12 @@ export class SavableSchemaModel extends SchemaModel {
     return newNode;
   }
 
-  protected addType<T extends FieldNode | CombinationNode>(name: string, node: T): T {
-    const newNode: T = super.addType(name, node);
+  protected addType<T extends FieldNode | CombinationNode>(
+    name: string,
+    node: T,
+    fieldType: FieldType,
+  ): T {
+    const newNode: T = super.addType(name, node, fieldType);
     this.save();
     return newNode;
   }
