@@ -1,4 +1,5 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useUpdateFormComponentOrderMutation } from './useUpdateFormComponentOrderMutation';
@@ -7,9 +8,11 @@ import {
   component1IdMock,
   component2IdMock,
   container1IdMock,
+  externalLayoutsMock,
   layout1NameMock,
-  layoutMock
+  layoutMock,
 } from '../../testing/layoutMock';
+import { FormLayoutsResponse } from 'app-shared/types/api';
 
 // Test data:
 const org = 'org';
@@ -22,13 +25,13 @@ describe('useUpdateFormComponentOrderMutation', () => {
   it('Calls updateFormComponentOrder with correct arguments and payload', async () => {
     await renderAndWaitForData();
 
-    const componentOrderResult = renderHookWithMockStore()(() => useUpdateFormComponentOrderMutation(org, app, selectedLayoutSet))
-      .renderHookResult
-      .result;
+    const componentOrderResult = renderHookWithMockStore()(() =>
+      useUpdateFormComponentOrderMutation(org, app, selectedLayoutSet),
+    ).renderHookResult.result;
 
     const newOrder: IFormLayoutOrder = {
       ...layoutMock.order,
-      [container1IdMock]: [component2IdMock, component1IdMock]
+      [container1IdMock]: [component2IdMock, component1IdMock],
     };
     await componentOrderResult.current.mutateAsync(newOrder);
 
@@ -44,14 +47,20 @@ describe('useUpdateFormComponentOrderMutation', () => {
             expect.objectContaining({ id: container1IdMock }),
             expect.objectContaining({ id: component2IdMock }),
             expect.objectContaining({ id: component1IdMock }),
-          ]
-        })
-      })
+          ],
+        }),
+      }),
     );
   });
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const getFormLayouts = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+  const formLayoutsResult = renderHookWithMockStore(
+    {},
+    { getFormLayouts },
+  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-}
+};

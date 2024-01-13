@@ -616,6 +616,16 @@ describe('SchemaModel', () => {
       validateTestUiSchema(result.asArray());
     });
 
+    it('Updates the pointer in child nodes for a def node', () => {
+      const newPointer = '#/$defs/newName';
+      const newNode = { ...defNodeWithChildrenMock, pointer: newPointer };
+      const model = schemaModel.deepClone();
+      const result = model.updateNode(defNodeWithChildrenMock.pointer, newNode);
+      const children = result.getChildNodes(newPointer);
+      expect(children.map((child) => child.pointer)).toEqual(['#/$defs/newName/properties/child']);
+      validateTestUiSchema(result.asArray());
+    });
+
     it('Updates the pointer in grandchild nodes', () => {
       const newPointer = '#/properties/newName';
       const newNode = { ...parentNodeMock, pointer: newPointer };

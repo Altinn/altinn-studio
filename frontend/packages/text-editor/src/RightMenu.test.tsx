@@ -28,8 +28,10 @@ describe('RightMenu', () => {
 
   const render = async () => {
     rtlRender(<RightMenu {...defaultProps} />);
-    await waitFor(() => { expect(screen.getByRole('combobox')).toBeInTheDocument(); });
-  }
+    await waitFor(() => {
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+  };
 
   describe('Delete confirmation dialog', () => {
     it('should open the confirmation dialog when clicking the delete button', async () => {
@@ -41,10 +43,14 @@ describe('RightMenu', () => {
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      const text = await screen.findByText(textMock('schema_editor.language_display_confirm_delete'));
+      const text = await screen.findByText(
+        textMock('schema_editor.language_display_confirm_delete'),
+      );
       expect(text).toBeInTheDocument();
 
-      const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.language_confirm_deletion') });
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('schema_editor.language_confirm_deletion'),
+      });
       expect(confirmButton).toBeInTheDocument();
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
@@ -57,10 +63,12 @@ describe('RightMenu', () => {
       const deleteButton = screen.getByTestId(testids.deleteButton('en'));
       await act(() => user.click(deleteButton));
 
-      const confirmButton = screen.getByRole('button', { name: textMock('schema_editor.language_confirm_deletion') });
+      const confirmButton = screen.getByRole('button', {
+        name: textMock('schema_editor.language_confirm_deletion'),
+      });
       await act(() => user.click(confirmButton));
 
-      expect(defaultProps.deleteLanguage).toBeCalledWith('en');
+      expect(defaultProps.deleteLanguage).toHaveBeenCalledWith('en');
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
@@ -73,7 +81,7 @@ describe('RightMenu', () => {
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
       await act(() => user.click(cancelButton));
 
-      expect(defaultProps.deleteLanguage).toBeCalledTimes(0);
+      expect(defaultProps.deleteLanguage).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
@@ -85,7 +93,7 @@ describe('RightMenu', () => {
 
       await act(() => user.click(document.body));
 
-      expect(defaultProps.deleteLanguage).toBeCalledTimes(0);
+      expect(defaultProps.deleteLanguage).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
   });
