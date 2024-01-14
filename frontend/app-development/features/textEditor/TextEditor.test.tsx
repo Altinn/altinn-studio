@@ -40,6 +40,8 @@ jest.mock('react-router-dom', () => ({
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
 
 describe('TextEditor', () => {
+  afterEach(jest.clearAllMocks);
+
   it('renders the component', async () => {
     await render();
 
@@ -109,7 +111,7 @@ describe('TextEditor', () => {
     await render();
 
     const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-    await act(() => deleteButton.click());
+    act(() => deleteButton.click());
 
     const confirmButton = await screen.findByRole('button', {
       name: textMock('schema_editor.textRow-deletion-confirm'),
