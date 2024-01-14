@@ -78,23 +78,29 @@ describe('PageAccordion', () => {
   });
 
   it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed, and updates the url correctly', async () => {
+    const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     await render();
 
-    await screen
-      .getByRole('button', { name: textMock('general.delete_item', { item: mockPageName1 }) })
-      .click();
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', { item: mockPageName1 }),
+    });
+    await act(() => user.click(deleteButton));
+
     expect(mockDeleteFormLayout).toHaveBeenCalledTimes(1);
     expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1);
     expect(mockSetSearchParams).toHaveBeenCalledWith({ layout: mockPageName2 });
   });
 
   it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {
+    const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
     await render();
-    await screen
-      .getByRole('button', { name: textMock('general.delete_item', { item: mockPageName1 }) })
-      .click();
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', { item: mockPageName1 }),
+    });
+    await act(() => user.click(deleteButton));
     expect(mockDeleteFormLayout).not.toHaveBeenCalled();
   });
 });

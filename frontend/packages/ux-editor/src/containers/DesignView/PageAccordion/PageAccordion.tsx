@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback } from 'react';
+import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { Accordion, Button } from '@digdir/design-system-react';
@@ -52,16 +52,33 @@ export const PageAccordion = ({
 
   const deleteLayout = useDeleteLayout();
 
+  const [isDeletionInProgress, setIsDeletionInProgress] = useState(false);
   const handleConfirmDelete = useCallback(() => {
-    if (confirm(t('ux_editor.page_delete_text'))) {
-      deleteLayout(pageName);
-
-      if (selectedLayout === pageName) {
-        const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
-        setSearchParams({ layout: layoutToSelect });
-      }
+    if (!isDeletionInProgress) {
+      setIsDeletionInProgress(true);
     }
-  }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
+  }, [isDeletionInProgress]);
+  useEffect(() => {
+    const executeDeletion = async () => {
+      if (isDeletionInProgress && confirm(t('ux_editor.page_delete_text'))) {
+        deleteLayout(pageName);
+        if (selectedLayout === pageName) {
+          const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
+          setSearchParams({ layout: layoutToSelect });
+        }
+      }
+      setIsDeletionInProgress(false);
+    };
+    executeDeletion();
+  }, [
+    isDeletionInProgress,
+    deleteLayout,
+    layoutOrder,
+    pageName,
+    selectedLayout,
+    setSearchParams,
+    t,
+  ]);
 
   return (
     <Accordion.Item
