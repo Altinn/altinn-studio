@@ -9,17 +9,14 @@
       {
         "id": "send-in-text",
         "type": "Paragraph",
-        "componentType": 1,
         "textResourceBindings": {
           "title": "Oppsummering av gruppe"
-        },
-        "dataModelBindings": {}
+        }
       },
       {
         "id": "summary1",
         "type": "Summary",
         "componentRef": "mainGroup",
-        "pageRef": "repeating",
         "largeGroup": true,
         "grid": {
           "xs": 6
@@ -29,7 +26,6 @@
         "id": "summary2",
         "type": "Summary",
         "componentRef": "sendersName",
-        "pageRef": "hide",
         "grid": {
           "xs": 6
         }
@@ -46,8 +42,7 @@
         "type": "Button",
         "textResourceBindings": {
           "title": "Send inn"
-        },
-        "dataModelBindings": {}
+        }
       }
     ]
   }
