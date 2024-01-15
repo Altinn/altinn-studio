@@ -398,12 +398,6 @@
             "type": "string"
           }
         },
-        "isPrefill": {
-          "type": "boolean"
-        },
-        "hideComment": {
-          "type": "string"
-        },
         "nested-grp-1234": {
           "type": "array",
           "minItems": 0,
@@ -486,6 +480,12 @@
         },
         "reference": {
           "@xsdType": "string",
+          "type": "string"
+        },
+        "isPrefill": {
+          "type": "boolean"
+        },
+        "hideComment": {
           "type": "string"
         }
       },
