@@ -82,6 +82,10 @@ describe('AccessListMembers', () => {
         ),
       },
     );
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await act(() => user.click(addMoreButton));
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
     await act(() => user.type(textField, 'test'));
@@ -109,6 +113,11 @@ describe('AccessListMembers', () => {
       },
     );
 
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await act(() => user.click(addMoreButton));
+
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
     await act(() => user.type(textField, '123456789'));
 
@@ -124,6 +133,11 @@ describe('AccessListMembers', () => {
         getSubParties: jest.fn().mockImplementation(() => Promise.resolve({})),
       },
     );
+
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await act(() => user.click(addMoreButton));
 
     const subPartyRadioButton = screen.getByLabelText(
       textMock('resourceadm.listadmin_sub_parties'),
@@ -159,6 +173,11 @@ describe('AccessListMembers', () => {
         getSubParties: getSubPartiesMock,
       },
     );
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await act(() => user.click(addMoreButton));
+
     const subPartyRadioButton = screen.getByLabelText(
       textMock('resourceadm.listadmin_sub_parties'),
     );
@@ -199,6 +218,11 @@ describe('AccessListMembers', () => {
         getParties: getPartiesMock,
       },
     );
+
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await act(() => user.click(addMoreButton));
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
     await act(() => user.type(textField, 'test'));

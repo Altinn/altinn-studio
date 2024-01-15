@@ -37,6 +37,7 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
   const { t } = useTranslation();
 
   const [listItems, setListItems] = useState<AccessListMember[]>(list.members ?? []);
+  const [isAddMode, setIsAddMode] = useState<boolean>((list.members ?? []).length === 0);
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
@@ -121,103 +122,115 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
               />
             );
           })}
-          <TableRow>
-            <TableCell colSpan={COLUMN_SPAN}>
-              <div className={classes.searchWrapper}>
-                <FieldWrapper label={t('resourceadm.listadmin_search')} fieldId='party-search'>
-                  <Textfield
-                    id='party-search'
-                    value={searchText}
-                    onChange={(event) => setSearchText(event.target.value)}
+
+          {isAddMode && (
+            <>
+              <TableRow>
+                <TableCell colSpan={COLUMN_SPAN}>
+                  <div className={classes.searchWrapper}>
+                    <FieldWrapper label={t('resourceadm.listadmin_search')} fieldId='party-search'>
+                      <Textfield
+                        id='party-search'
+                        value={searchText}
+                        onChange={(event) => setSearchText(event.target.value)}
+                      />
+                      <div className={classes.noSearchResults} aria-live='polite'>
+                        {resultData?.parties?.length === 0 && (
+                          <div>
+                            {isSubPartySearch
+                              ? t('resourceadm.listadmin_search_no_sub_parties')
+                              : t('resourceadm.listadmin_search_no_parties')}
+                          </div>
+                        )}
+                      </div>
+                    </FieldWrapper>
+                    <Radio.Group
+                      hideLegend
+                      onChange={() => setIsSubPartySearch((old) => !old)}
+                      value={isSubPartySearch ? SUBPARTY_SEARCH_TYPE : PARTY_SEARCH_TYPE}
+                      inline
+                      legend={t('resourceadm.listadmin_search_party_type')}
+                    >
+                      <Radio value={PARTY_SEARCH_TYPE}>{t('resourceadm.listadmin_parties')}</Radio>
+                      <Radio value={SUBPARTY_SEARCH_TYPE}>
+                        {t('resourceadm.listadmin_sub_parties')}
+                      </Radio>
+                    </Radio.Group>
+                  </div>
+                  {(isLoadingParties || isLoadingSubParties) && (
+                    <div className={classes.spinnerContainer}>
+                      <StudioSpinner />
+                    </div>
+                  )}
+                </TableCell>
+              </TableRow>
+              {resultData?.parties.map((party) => {
+                return (
+                  <AccessListMemberRow
+                    key={party.orgNr}
+                    item={party}
+                    actionButton={
+                      <Button
+                        onClick={() => handleAddMember(party)}
+                        disabled={!!listItems.find((item) => item.orgNr === party.orgNr)}
+                        variant='tertiary'
+                        size='small'
+                      >
+                        {t('resourceadm.listadmin_add_to_list')}
+                      </Button>
+                    }
                   />
-                  <div className={classes.noSearchResults} aria-live='polite'>
-                    {resultData?.parties?.length === 0 && (
+                );
+              })}
+              <TableRow>
+                <TableCell colSpan={COLUMN_SPAN}>
+                  <div className={classes.paginationWrapper}>
+                    {renderPageButton(
+                      resultData?.links?.first?.href,
+                      'resourceadm.listadmin_search_first',
+                      !resultData?.links?.first || !resultData?.links?.prev,
+                    )}
+                    {renderPageButton(
+                      resultData?.links?.prev?.href,
+                      'resourceadm.listadmin_search_prev',
+                      !resultData?.links?.prev,
+                    )}
+                    {renderPageButton(
+                      resultData?.links?.next?.href,
+                      'resourceadm.listadmin_search_next',
+                      !resultData?.links?.next,
+                    )}
+                    {renderPageButton(
+                      resultData?.links?.last?.href,
+                      'resourceadm.listadmin_search_last',
+                      !resultData?.links?.last || !resultData?.links?.next,
+                    )}
+                    {!!resultData?.page?.totalElements && (
                       <div>
-                        {isSubPartySearch
-                          ? t('resourceadm.listadmin_search_no_sub_parties')
-                          : t('resourceadm.listadmin_search_no_parties')}
+                        {t('resourceadm.listadmin_search_paging', {
+                          fra: resultData.page.number * resultData.page.size + 1,
+                          til: Math.min(
+                            (resultData.page.number + 1) * resultData.page.size,
+                            resultData.page.totalElements,
+                          ),
+                          total: resultData.page.totalElements,
+                        })}
                       </div>
                     )}
                   </div>
-                </FieldWrapper>
-                <Radio.Group
-                  hideLegend
-                  onChange={() => setIsSubPartySearch((old) => !old)}
-                  value={isSubPartySearch ? SUBPARTY_SEARCH_TYPE : PARTY_SEARCH_TYPE}
-                  inline
-                  legend={t('resourceadm.listadmin_search_party_type')}
-                >
-                  <Radio value={PARTY_SEARCH_TYPE}>{t('resourceadm.listadmin_parties')}</Radio>
-                  <Radio value={SUBPARTY_SEARCH_TYPE}>
-                    {t('resourceadm.listadmin_sub_parties')}
-                  </Radio>
-                </Radio.Group>
-              </div>
-              {(isLoadingParties || isLoadingSubParties) && (
-                <div className={classes.spinnerContainer}>
-                  <StudioSpinner />
-                </div>
-              )}
-            </TableCell>
-          </TableRow>
-          {resultData?.parties.map((party) => {
-            return (
-              <AccessListMemberRow
-                key={party.orgNr}
-                item={party}
-                actionButton={
-                  <Button
-                    onClick={() => handleAddMember(party)}
-                    disabled={!!listItems.find((item) => item.orgNr === party.orgNr)}
-                    variant='tertiary'
-                    size='small'
-                  >
-                    {t('resourceadm.listadmin_add_to_list')}
-                  </Button>
-                }
-              />
-            );
-          })}
-          <TableRow>
-            <TableCell colSpan={COLUMN_SPAN}>
-              <div className={classes.paginationWrapper}>
-                {renderPageButton(
-                  resultData?.links?.first?.href,
-                  'resourceadm.listadmin_search_first',
-                  !resultData?.links?.first || !resultData?.links?.prev,
-                )}
-                {renderPageButton(
-                  resultData?.links?.prev?.href,
-                  'resourceadm.listadmin_search_prev',
-                  !resultData?.links?.prev,
-                )}
-                {renderPageButton(
-                  resultData?.links?.next?.href,
-                  'resourceadm.listadmin_search_next',
-                  !resultData?.links?.next,
-                )}
-                {renderPageButton(
-                  resultData?.links?.last?.href,
-                  'resourceadm.listadmin_search_last',
-                  !resultData?.links?.last || !resultData?.links?.next,
-                )}
-                {!!resultData?.page?.totalElements && (
-                  <div>
-                    {t('resourceadm.listadmin_search_paging', {
-                      fra: resultData.page.number * resultData.page.size + 1,
-                      til: Math.min(
-                        (resultData.page.number + 1) * resultData.page.size,
-                        resultData.page.totalElements,
-                      ),
-                      total: resultData.page.totalElements,
-                    })}
-                  </div>
-                )}
-              </div>
-            </TableCell>
-          </TableRow>
+                </TableCell>
+              </TableRow>
+            </>
+          )}
         </TableBody>
       </Table>
+      {!isAddMode && (
+        <div className={classes.addMoreWrapper}>
+          <Button variant='secondary' onClick={() => setIsAddMode(true)}>
+            {t('resourceadm.listadmin_search_add_more')}
+          </Button>
+        </div>
+      )}
     </FieldWrapper>
   );
 };

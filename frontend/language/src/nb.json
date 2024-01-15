@@ -881,6 +881,7 @@
   "resourceadm.listadmin_resource_header": "Ressurseierstyrt rettighetsregister for {{resourceTitle}} - {{env}}",
   "resourceadm.listadmin_resource_list_checkbox_header": "Alle enheter og underenheter i valgte liste(r) kan bruke ressursen",
   "resourceadm.listadmin_search": "Søk for å legge til ny enhet eller underenhet",
+  "resourceadm.listadmin_search_add_more": "Legg til flere enheter",
   "resourceadm.listadmin_search_first": "Første",
   "resourceadm.listadmin_search_last": "Siste",
   "resourceadm.listadmin_search_next": "Neste",

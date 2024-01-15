@@ -15,6 +15,12 @@
   height: 300px; /* height of 5 grid rows (must be equal to height of grid to avoid scroll jumping when changing pagination page) */
 }
 
+.addMoreWrapper {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .paginationWrapper {
   display: flex;
   flex-direction: row;
