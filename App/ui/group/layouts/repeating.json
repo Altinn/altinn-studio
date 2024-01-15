@@ -329,12 +329,6 @@
         ],
         "validateOnSaveRow": ["All"],
         "edit": {
-          "filter": [
-            {
-              "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.SkattemeldingEndringEtterFristKommentar-datadef-37133.value",
-              "value": "automation"
-            }
-          ],
           "openByDefault": true
         },
         "hidden": [
