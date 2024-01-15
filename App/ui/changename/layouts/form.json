@@ -579,7 +579,7 @@
         "children": [
           "test-accordion-button",
           "test-accordion-paragraph",
-          "test-accordion-paragraph-2"
+          "test-accordion-paragraph2"
         ],
         "textResourceBindings": {
           "title": "Mer informasjon vedrørende navneendring"
@@ -588,7 +588,7 @@
       {
         "id": "second-accordion",
         "type": "Accordion",
-        "children": ["test-accordion-paragraph-4"],
+        "children": ["test-accordion-paragraph4"],
         "textResourceBindings": {
           "title": "Dette er enda en Accordion 2"
         }
@@ -596,7 +596,7 @@
       {
         "id": "third-accordion",
         "type": "Accordion",
-        "children": ["test-accordion-paragraph-3"],
+        "children": ["test-accordion-paragraph3"],
         "textResourceBindings": {
           "title": "Dette er enda en Accordion 3"
         }
@@ -616,14 +616,14 @@
         }
       },
       {
-        "id": "test-accordion-paragraph-2",
+        "id": "test-accordion-paragraph2",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "Dette er en tittel med litt mere tekst"
         }
       },
       {
-        "id": "test-accordion-paragraph-3",
+        "id": "test-accordion-paragraph3",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "Dette er en Accordion utenfor en AccordionGroup"

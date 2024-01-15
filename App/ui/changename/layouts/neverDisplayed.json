@@ -9,7 +9,7 @@
           "title": "This input should never be shown, and never validated (changename layout)"
         },
         "dataModelBindings": {
-          "simpleBinding": "neverValidatedInput"
+          "simpleBinding": "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn1-grp-9350.PersonEtternavnForste-datadef-34896.value"
         },
         "required": true
       },

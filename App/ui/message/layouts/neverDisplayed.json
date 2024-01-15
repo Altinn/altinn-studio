@@ -9,7 +9,7 @@
           "title": "This input should never be shown, and never validated (message layout)"
         },
         "dataModelBindings": {
-          "simpleBinding": "neverValidatedInput"
+          "simpleBinding": "Reference"
         },
         "required": true
       }

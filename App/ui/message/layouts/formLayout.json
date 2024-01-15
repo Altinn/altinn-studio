@@ -51,6 +51,26 @@
         }
       },
       {
+        "id": "input1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Test input 1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Reference"
+        }
+      },
+      {
+        "id": "input2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Test input 2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Body"
+        }
+      },
+      {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {
