@@ -14,10 +14,10 @@ describe('Calculations', () => {
     });
   });
   expect(
-    textMock('ux_editor.edit_component.unknown_component', {
+    screen.getByText(textMock('ux_editor.edit_component.unknown_component', {
       componentName: 'randomUnknownComponent',
     }),
-  );
+  ));
 });
 const getComponent = (formContextProps: Partial<FormContext> = {}) => (
   <FormContext.Provider
