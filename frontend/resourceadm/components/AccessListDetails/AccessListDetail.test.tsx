@@ -18,7 +18,6 @@ jest.mock('react-router-dom', () => ({
 const testOrg = 'ttd';
 const testEnv = 'tt02';
 const testListIdentifier = 'listid';
-const testMemberPartyId = '123456789';
 
 const defaultProps = {
   org: testOrg,
@@ -28,68 +27,12 @@ const defaultProps = {
     identifier: testListIdentifier,
     name: 'Test-list',
     description: 'This is a description',
-    members: [
-      {
-        orgNr: testMemberPartyId,
-        orgName: '',
-        isSubParty: false,
-      },
-      {
-        orgNr: '987654321',
-        orgName: 'sub',
-        isSubParty: true,
-      },
-    ],
+    members: [],
   },
   backUrl: '/listadmin',
 };
 
 describe('AccessListDetail', () => {
-  it('should show special name if name is not found', () => {
-    render();
-    expect(screen.getByText(textMock('resourceadm.listadmin_empty_name'))).toBeInTheDocument();
-  });
-
-  it('should show message when list is empty', () => {
-    render({ list: { ...defaultProps.list, members: [] } });
-    expect(screen.getByText(textMock('resourceadm.listadmin_empty_list'))).toBeInTheDocument();
-  });
-
-  it('should call service to remove member', async () => {
-    const user = userEvent.setup();
-    const removeAccessListMemberMock = jest.fn();
-    render({}, { removeAccessListMember: removeAccessListMemberMock });
-
-    const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
-    await act(() => user.click(removeButtons[0]));
-
-    expect(removeAccessListMemberMock).toHaveBeenCalledWith(
-      testOrg,
-      testListIdentifier,
-      testMemberPartyId,
-      testEnv,
-    );
-  });
-
-  it('should call service to add member if member is added back', async () => {
-    const user = userEvent.setup();
-    const addAccessListMemberMock = jest.fn();
-    render({}, { addAccessListMember: addAccessListMemberMock });
-
-    const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
-    await act(() => user.click(removeButtons[0]));
-
-    const reAddButton = screen.getByText(textMock('resourceadm.listadmin_undo_remove_from_list'));
-    await act(() => user.click(reAddButton));
-
-    expect(addAccessListMemberMock).toHaveBeenCalledWith(
-      testOrg,
-      testListIdentifier,
-      testMemberPartyId,
-      testEnv,
-    );
-  });
-
   it('should call service to update name', async () => {
     const user = userEvent.setup();
     const updateAccessListMock = jest.fn();

@@ -87,17 +87,43 @@ export interface ResourceReference {
   referenceType?: ResourceReferenceType;
 }
 
+export interface BrregPagination {
+  first?: { href: string };
+  last?: { href: string };
+  next?: { href: string };
+  prev?: { href: string };
+  self?: { href: string };
+}
+
+export interface BrregPageInfo {
+  number: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
 export interface BrregPartySearchResult {
   _embedded?: {
     enheter: BrregParty[];
   };
+  _links: BrregPagination;
+  page: BrregPageInfo;
 }
 
 export interface BrregSubPartySearchResult {
   _embedded?: {
     underenheter: BrregParty[];
   };
+  _links: BrregPagination;
+  page: BrregPageInfo;
 }
+
+export interface BrregSearchResult {
+  parties: AccessListMember[];
+  links: BrregPagination;
+  page: BrregPageInfo;
+}
+
 export interface BrregParty {
   organisasjonsnummer: string;
   navn: string;

@@ -1,0 +1,23 @@
+.searchWrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: flex-end;
+  margin: 2.5rem 0;
+}
+
+.noSearchResults {
+  position: absolute;
+  margin-top: 0.5rem;
+}
+
+.spinnerContainer {
+  height: 300px; /* height of 5 grid rows (must be equal to height of grid to avoid scroll jumping when changing pagination page) */
+}
+
+.paginationWrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+}
