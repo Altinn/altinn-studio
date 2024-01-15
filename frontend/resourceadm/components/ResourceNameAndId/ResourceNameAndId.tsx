@@ -57,7 +57,7 @@ export const ResourceNameAndId = ({
    * @returns the string formatted
    */
   const formatString = (s: string): string => {
-    return s.replace(/[^A-Za-z0-9-_.!~*'()%\.s]+/g, '-');
+    return s.replace(/[^A-Za-z0-9-_.!~*'()%\s]+/g, '-');
   };
 
   /**
