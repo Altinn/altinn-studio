@@ -7,6 +7,7 @@ import { formContextProviderMock } from '../../testing/formContextMocks';
 import { Dynamics } from './Dynamics';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
+import {FormComponent} from "../../types/FormComponent";
 
 const user = userEvent.setup();
 
@@ -64,7 +65,7 @@ describe('Dynamics', () => {
     await render({ form: { type: 'randomUnknownComponent' } });
     expect(
       screen.getByText(textMock('ux_editor.edit_component.unknown_component', {
-        componentName: 'randomUnknownComponent',
+        componentName: 'randomUnknownComponent' as FormComponent,
       }),
     ));
   });
