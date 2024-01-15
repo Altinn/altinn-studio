@@ -16,9 +16,9 @@ export const Calculations = () => {
   const [modalOpen, setModalOpen] = React.useState<boolean>(false);
   const t = useText();
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[form?.type];
+  const isUnknownInternalComponent: boolean = form && !formItemConfigs[form.type];
   if (isUnknownInternalComponent) {
-    return <UnknownComponentAlert componentName={form?.type} />;
+    return <UnknownComponentAlert componentName={form.type} />;
   }
 
   return (
