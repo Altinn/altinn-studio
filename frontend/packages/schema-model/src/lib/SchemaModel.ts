@@ -232,21 +232,13 @@ export class SchemaModel {
 
   public addFieldType = (name: string): FieldNode => {
     const fieldType = FieldType.Object;
-    return this.addType<FieldNode>(
-      name,
-      { ...defaultFieldNode, fieldType, implicitType: false },
-      fieldType,
-    );
+    return this.addType<FieldNode>(name, { ...defaultFieldNode, fieldType, implicitType: false });
   };
 
-  protected addType<T extends FieldNode | CombinationNode>(
-    name: string,
-    node: T,
-    fieldType: FieldType,
-  ): T {
+  protected addType<T extends FieldNode | CombinationNode>(name: string, node: T): T {
     const pointer = createDefinitionPointer(name);
     if (this.nodeMap.has(pointer)) throw new Error(`Node with pointer ${pointer} already exists.`);
-    const newNode = { ...node, pointer, fieldType };
+    const newNode = { ...node, pointer };
     const target = { parentPointer: ROOT_POINTER, index: -1 };
     this.addChildPointer(target, pointer);
     this.nodeMap.set(pointer, newNode);
