@@ -46,8 +46,7 @@
             "dataModelBindings": {
               "group": "Bedrifter.Ansatte"
             },
-            "children": ["navn", "alder", "myndig"],
-            "triggers": ["validation"]
+            "children": ["navn", "alder", "myndig"]
           },
           {
             "id": "navn",
@@ -127,8 +126,7 @@
             "dataModelBindings": {
               "group": "Bedrifter.Ansatte"
             },
-            "children": ["navn", "alder", "myndig"],
-            "triggers": ["validation"]
+            "children": ["navn", "alder", "myndig"]
           },
           {
             "id": "navn",

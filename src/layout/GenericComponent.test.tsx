@@ -27,7 +27,6 @@ const render = async (component: Partial<CompExternal> = {}, waitUntilLoaded = t
                 required: false,
                 disabled: false,
                 textResourceBindings: {},
-                triggers: [],
                 grid: {
                   xs: 12,
                   sm: 10,
