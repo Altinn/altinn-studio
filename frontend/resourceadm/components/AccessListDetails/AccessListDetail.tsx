@@ -9,6 +9,7 @@ import { useEditAccessListMutation } from 'resourceadm/hooks/mutations/useEditAc
 import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
 import { useDeleteAccessListMutation } from 'resourceadm/hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
+import { TrashIcon } from '@studio/icons';
 
 export interface AccessListDetailProps {
   org: string;
@@ -108,11 +109,12 @@ export const AccessListDetail = ({
       <AccessListMembers org={org} env={env} list={list} />
       <div>
         <Button
-          variant='secondary'
+          variant='tertiary'
           color='danger'
           onClick={() => deleteWarningModalRef.current?.showModal()}
         >
           {t('resourceadm.listadmin_delete_list')}
+          <TrashIcon fontSize='1.5rem' />
         </Button>
       </div>
     </div>

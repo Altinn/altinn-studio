@@ -22,6 +22,7 @@ import { usePartiesRegistryQuery } from 'resourceadm/hooks/queries/usePartiesReg
 import { useSubPartiesRegistryQuery } from 'resourceadm/hooks/queries/useSubPartiesRegistryQuery';
 import { getPartiesQueryUrl } from 'resourceadm/utils/urlUtils';
 import { StudioSpinner } from '@studio/components';
+import { PlusIcon, PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
 
 const COLUMN_SPAN = 100;
 const PARTY_SEARCH_TYPE = 'PARTY';
@@ -93,8 +94,8 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
           <TableRow>
             <TableCell width='15%'>{t('resourceadm.listadmin_orgnr')}</TableCell>
             <TableCell width='45%'>{t('resourceadm.listadmin_navn')}</TableCell>
-            <TableCell width='20%'>{t('resourceadm.listadmin_type')}</TableCell>
-            <TableCell width='20%' />
+            <TableCell width='15%'>{t('resourceadm.listadmin_type')}</TableCell>
+            <TableCell width='25%' />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -117,6 +118,7 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
                     size='small'
                   >
                     {t('resourceadm.listadmin_remove_from_list')}
+                    <MinusCircleIcon fontSize='1.5rem' />
                   </Button>
                 }
               />
@@ -177,6 +179,7 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
                         size='small'
                       >
                         {t('resourceadm.listadmin_add_to_list')}
+                        <PlusCircleIcon fontSize='1.5rem' />
                       </Button>
                     }
                   />
@@ -227,6 +230,7 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
       {!isAddMode && (
         <div className={classes.addMoreWrapper}>
           <Button variant='secondary' onClick={() => setIsAddMode(true)}>
+            <PlusIcon />
             {t('resourceadm.listadmin_search_add_more')}
           </Button>
         </div>
