@@ -1,39 +1,27 @@
 import React from 'react';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../../mockData';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { FieldNode, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import { buildUiSchema, FieldType, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import type { CombinationNode, FieldNode, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import {
+  buildUiSchema,
+  CombinationKind,
+  FieldType,
+  ObjectKind,
+  SchemaModel,
+  validateTestUiSchema,
+} from '@altinn/schema-model';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
 import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';
 
 const user = userEvent.setup();
 
-// workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
 const mockUiSchema = buildUiSchema(dataMock);
 const model = SchemaModel.fromArray(mockUiSchema);
 const getMockSchemaByPath = (selectedId: string): UiSchemaNode => model.getNode(selectedId);
-
-const texts = {
-  'schema_editor.maxLength': 'Maksimal lengde',
-  'schema_editor.minLength': 'Minimal lengde',
-};
 
 const saveDatamodel = jest.fn();
 const setSelectedTypePointer = jest.fn();
@@ -49,9 +37,6 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
     },
   })(<SchemaInspector />);
 };
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('SchemaInspector', () => {
   afterEach(jest.clearAllMocks);
@@ -87,7 +72,7 @@ describe('SchemaInspector', () => {
     const minLength = '100';
     const maxLength = '666';
 
-    const minLengthTextField = await screen.findByLabelText(texts['schema_editor.minLength']);
+    const minLengthTextField = await screen.findByLabelText(textMock('schema_editor.minLength'));
     await act(() => user.clear(minLengthTextField));
     await act(() => user.type(minLengthTextField, minLength));
     await act(() => user.tab());
@@ -97,7 +82,7 @@ describe('SchemaInspector', () => {
     let updatedNode = updatedModel.getNode(pointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
-    const maxLengthTextField = await screen.findByLabelText(texts['schema_editor.maxLength']);
+    const maxLengthTextField = await screen.findByLabelText(textMock('schema_editor.maxLength'));
     await act(() => user.clear(maxLengthTextField));
     await act(() => user.type(maxLengthTextField, maxLength));
     await act(() => user.tab());
@@ -128,7 +113,7 @@ describe('SchemaInspector', () => {
     const testUiSchema: UiSchemaNodes = [rootNode, parentNode, childNode];
     validateTestUiSchema(testUiSchema);
     renderSchemaInspector(testUiSchema, parentNode);
-    await act(() => user.click(screen.queryAllByRole('tab')[1]));
+    await act(() => user.click(getFieldsTab()));
     await act(() => user.click(screen.getByDisplayValue('abc')));
     await act(() => user.keyboard('{Enter}'));
     // eslint-disable-next-line testing-library/no-unnecessary-act
@@ -157,19 +142,37 @@ describe('SchemaInspector', () => {
     validateTestUiSchema(testUiSchema);
     renderSchemaInspector(testUiSchema, item);
 
-    const enumField = screen.getAllByRole('textbox', {
-      name: 'schema_editor.enum_value',
-    });
+    const enumFieldset = screen.getByRole('group', { name: textMock('schema_editor.enum_legend') });
+    const enumField = within(enumFieldset).getAllByRole('textbox');
     expect(enumField).toHaveLength(item.enum.length);
 
     await act(() => user.click(enumField[0]));
     await act(() => user.keyboard('{Enter}'));
 
-    const enumFieldAfter = screen.getAllByRole('textbox', {
-      name: 'schema_editor.enum_value',
-    });
+    const enumFieldAfter = within(enumFieldset).getAllByRole('textbox');
     expect(enumFieldAfter).toHaveLength(item.enum.length + 1);
 
     expect(saveDatamodel).not.toHaveBeenCalled();
   });
+
+  it('Does not display the fields tab when the selected item is a combination', async () => {
+    const itemPointer = '#/properties/testcombination';
+    const rootNode: FieldNode = {
+      ...rootNodeMock,
+      children: [itemPointer],
+    };
+    const item: CombinationNode = {
+      ...nodeMockBase,
+      pointer: itemPointer,
+      objectKind: ObjectKind.Combination,
+      combinationType: CombinationKind.AnyOf,
+    };
+    const testUiSchema: UiSchemaNodes = [rootNode, item];
+    validateTestUiSchema(testUiSchema);
+    renderSchemaInspector(testUiSchema, item);
+    await act(() => user.click(getFieldsTab()));
+    expect(screen.getByText(textMock('app_data_modelling.fields_information'))).toBeInTheDocument();
+  });
+
+  const getFieldsTab = () => screen.getByRole('tab', { name: textMock('schema_editor.fields') });
 });

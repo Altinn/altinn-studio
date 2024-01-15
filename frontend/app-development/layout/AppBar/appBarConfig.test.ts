@@ -32,7 +32,7 @@ describe('getTopBarMenu', () => {
   });
 
   it('should return menu items including items hidden behind feature flag, if the flag i activated', () => {
-    typedLocalStorage.setItem('featureFlags', ['processEditor']);
+    typedLocalStorage.setItem('featureFlags', []); // Add the flags in the array when you want to test it
     expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(topBarMenuItem.length);
   });
 });

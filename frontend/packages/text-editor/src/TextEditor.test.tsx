@@ -8,6 +8,7 @@ import { ITextResource, ITextResources } from 'app-shared/types/global';
 import * as testids from '../../../testing/testids';
 
 const user = userEvent.setup();
+let mockScrollIntoView = jest.fn();
 
 describe('TextEditor', () => {
   const nb: ITextResource[] = [
@@ -37,6 +38,11 @@ describe('TextEditor', () => {
     };
     return rtlRender(<TextEditor {...defaultProps} {...props} />);
   };
+  beforeEach(() => {
+    // Need to mock the scrollIntoView function
+    mockScrollIntoView = jest.fn();
+    window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
+  });
 
   it('fires upsertTextResource when Add new is clicked', async () => {
     jest.spyOn(global.Math, 'random').mockReturnValue(0);
@@ -72,8 +78,8 @@ describe('TextEditor', () => {
       user.click(
         screen.getByRole('button', {
           name: textMock('schema_editor.language_confirm_deletion'),
-        })
-      )
+        }),
+      ),
     );
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
@@ -95,8 +101,8 @@ describe('TextEditor', () => {
       user.click(
         screen.getByRole('button', {
           name: textMock('schema_editor.language_confirm_deletion'),
-        })
-      )
+        }),
+      ),
     );
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
@@ -120,6 +126,19 @@ describe('TextEditor', () => {
     await act(() => user.click(englishCheckbox));
 
     expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb', 'en']);
+  });
+
+  it('Calls ScrollIntoView when a new languages is selected', async () => {
+    renderTextEditor({
+      availableLanguages: ['nb', 'en', 'tw', 'ku'],
+      selectedLangCodes: ['nb', 'en', 'tw'],
+    });
+    const kurdishCheckbox = screen.getByRole('checkbox', {
+      name: /kurdisk/i,
+    });
+    await act(() => user.click(kurdishCheckbox));
+
+    expect(mockScrollIntoView).toHaveBeenCalledTimes(1);
   });
 
   it('signals correctly when a translation is changed', async () => {
@@ -158,8 +177,8 @@ describe('TextEditor', () => {
         user.click(
           screen.getByRole('button', {
             name: textMock('schema_editor.textRow-deletion-confirm'),
-          })
-        )
+          }),
+        ),
       );
 
       await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });

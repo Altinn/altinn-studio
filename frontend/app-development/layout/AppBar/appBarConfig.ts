@@ -34,7 +34,6 @@ export const topBarMenuItem: TopBarMenuItem[] = [
     link: RoutePaths.ProcessEditor,
     icon: TenancyIcon,
     repositoryTypes: [RepositoryType.App],
-    featureFlagName: 'processEditor',
     isBeta: true,
   },
 ];
