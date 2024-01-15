@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './AltinnHeaderButton.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from '../altinnHeader/types';
 
 export interface AltinnHeaderButtonProps {
@@ -13,9 +14,8 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
 
   if (!action) return null;
 
-  // Need to keep the link as an 'a' element because the <Link /> component from the designsystem only shows purple color text
   return (
-    <a
+    <Link
       href={action.to}
       className={cn(
         classes.linkButton,
@@ -26,6 +26,6 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
       aria-label={t(action.title)}
     >
       {t(action.title)}
-    </a>
+    </Link>
   );
 };

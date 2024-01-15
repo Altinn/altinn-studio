@@ -20,7 +20,9 @@
   box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-semantic-border-focus-boxshadow);
 }
 
-.invertedButton {
+.invertedButton,
+.invertedButton:focus,
+.invertedButton:visited {
   border: 1px solid var(--fds-semantic-border-on_inverted-default);
   background: transparent;
   color: var(--fds-semantic-text-neutral-on_inverted);
@@ -34,7 +36,9 @@
   background: var(--fds-semantic-surface-on_inverted-no_fill-active);
 }
 
-.normalButton {
+.normalButton,
+.normalButton:focus,
+.normalButton:visited {
   border-color: var(--fds-semantic-border-action-first-default);
   background: var(--fds-semantic-surface-action-first-no_fill);
   color: var(--fds-semantic-text-neutral-default);
