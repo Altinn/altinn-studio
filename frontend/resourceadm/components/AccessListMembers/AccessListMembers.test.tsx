@@ -110,7 +110,7 @@ describe('AccessListMembers', () => {
     );
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
-    await act(() => user.type(textField, 'test'));
+    await act(() => user.type(textField, '123456789'));
 
     await screen.findByText(textMock('resourceadm.listadmin_search_no_parties'));
   });
@@ -140,10 +140,10 @@ describe('AccessListMembers', () => {
     const user = userEvent.setup();
     const nextPageUrl = 'brreg/next';
     const searchResultText = 'Digdir';
-    const getPartiesMock = jest.fn().mockImplementation(() =>
+    const getSubPartiesMock = jest.fn().mockImplementation(() =>
       Promise.resolve({
         _embedded: {
-          enheter: [{ organisasjonsnummer: '987654321', navn: searchResultText }],
+          underenheter: [{ organisasjonsnummer: '112233445', navn: searchResultText }],
         },
         _links: {
           first: { href: 'first' },
@@ -156,9 +156,13 @@ describe('AccessListMembers', () => {
     render(
       {},
       {
-        getParties: getPartiesMock,
+        getSubParties: getSubPartiesMock,
       },
     );
+    const subPartyRadioButton = screen.getByLabelText(
+      textMock('resourceadm.listadmin_sub_parties'),
+    );
+    await act(() => user.click(subPartyRadioButton));
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
     await act(() => user.type(textField, 'test'));
@@ -170,7 +174,7 @@ describe('AccessListMembers', () => {
     });
     await act(() => user.click(nextButton));
 
-    expect(getPartiesMock).toHaveBeenCalledWith(nextPageUrl);
+    expect(getSubPartiesMock).toHaveBeenCalledWith(nextPageUrl);
   });
 
   it('should show correct paging information', async () => {
