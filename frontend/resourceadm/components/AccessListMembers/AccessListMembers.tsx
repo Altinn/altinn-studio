@@ -69,6 +69,19 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
 
   const resultData = partiesSearchData ?? subPartiesSearchData ?? undefined;
 
+  const renderPageButton = (href: string, label: string, isDisabled: boolean): React.ReactNode => {
+    return (
+      <Button
+        size='small'
+        variant='tertiary'
+        disabled={isDisabled}
+        onClick={() => setSearchUrl(href)}
+      >
+        {t(label)}
+      </Button>
+    );
+  };
+
   return (
     <FieldWrapper
       label={t('resourceadm.listadmin_list_organizations')}
@@ -168,38 +181,26 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
           <TableRow>
             <TableCell colSpan={COLUMN_SPAN}>
               <div className={classes.paginationWrapper}>
-                <Button
-                  size='small'
-                  variant='tertiary'
-                  disabled={!resultData?.links?.first || !resultData?.links?.prev}
-                  onClick={() => setSearchUrl(resultData.links.first.href)}
-                >
-                  {t('resourceadm.listadmin_search_first')}
-                </Button>
-                <Button
-                  size='small'
-                  variant='tertiary'
-                  disabled={!resultData?.links?.prev}
-                  onClick={() => setSearchUrl(resultData.links.prev.href)}
-                >
-                  {t('resourceadm.listadmin_search_prev')}
-                </Button>
-                <Button
-                  size='small'
-                  variant='tertiary'
-                  disabled={!resultData?.links?.next}
-                  onClick={() => setSearchUrl(resultData.links.next.href)}
-                >
-                  {t('resourceadm.listadmin_search_next')}
-                </Button>
-                <Button
-                  size='small'
-                  variant='tertiary'
-                  disabled={!resultData?.links?.last || !resultData?.links?.next}
-                  onClick={() => setSearchUrl(resultData.links.last.href)}
-                >
-                  {t('resourceadm.listadmin_search_last')}
-                </Button>
+                {renderPageButton(
+                  resultData?.links?.first?.href,
+                  'resourceadm.listadmin_search_first',
+                  !resultData?.links?.first || !resultData?.links?.prev,
+                )}
+                {renderPageButton(
+                  resultData?.links?.prev?.href,
+                  'resourceadm.listadmin_search_prev',
+                  !resultData?.links?.prev,
+                )}
+                {renderPageButton(
+                  resultData?.links?.next?.href,
+                  'resourceadm.listadmin_search_next',
+                  !resultData?.links?.next,
+                )}
+                {renderPageButton(
+                  resultData?.links?.last?.href,
+                  'resourceadm.listadmin_search_last',
+                  !resultData?.links?.last || !resultData?.links?.next,
+                )}
                 {!!resultData?.page?.totalElements && (
                   <div>
                     {t('resourceadm.listadmin_search_paging', {

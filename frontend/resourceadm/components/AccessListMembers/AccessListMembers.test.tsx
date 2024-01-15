@@ -94,19 +94,29 @@ describe('AccessListMembers', () => {
     );
   });
 
-  it('should search for sub parties when radio button is changed', async () => {
+  it('should show message when no parties are found', async () => {
     const user = userEvent.setup();
 
     render(
       {},
       {
-        getSubParties: jest.fn().mockImplementation(() =>
-          Promise.resolve({
-            _embedded: {
-              underenheter: [{ organisasjonsnummer: '987654321', navn: 'subParty' }],
-            },
-          }),
-        ),
+        getParties: jest.fn().mockImplementation(() => Promise.resolve({})),
+      },
+    );
+
+    const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
+    await act(() => user.type(textField, 'test'));
+
+    await screen.findByText(textMock('resourceadm.listadmin_search_no_parties'));
+  });
+
+  it('should show message when no sub parties are found', async () => {
+    const user = userEvent.setup();
+
+    render(
+      {},
+      {
+        getSubParties: jest.fn().mockImplementation(() => Promise.resolve({})),
       },
     );
 
@@ -118,7 +128,7 @@ describe('AccessListMembers', () => {
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
     await act(() => user.type(textField, 'test'));
 
-    await screen.findByText(textMock('resourceadm.listadmin_sub_party'));
+    await screen.findByText(textMock('resourceadm.listadmin_search_no_sub_parties'));
   });
 });
 
