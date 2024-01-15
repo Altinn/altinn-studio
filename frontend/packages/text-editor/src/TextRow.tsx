@@ -131,7 +131,7 @@ export const TextRow = ({
           {showButton && (
             <Button
               aria-label={'toggle-textkey-edit'}
-              icon={<PencilIcon className={classes.smallIcon} />}
+              icon={<PencilIcon />}
               variant='tertiary'
               size='small'
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}
