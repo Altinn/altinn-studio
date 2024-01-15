@@ -33,7 +33,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string shortCommitId,
             string envName)
         {
-            Task updateMetadataTask = _applicationMetadataService
+            await _applicationMetadataService
                 .UpdateApplicationMetadataInStorageAsync(org, app, shortCommitId, envName);
 
             Task updateAuthPolicyTask = _authorizationPolicyService
@@ -44,7 +44,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await Task.WhenAll(new List<Task>
             {
-                updateMetadataTask,
                 updateAuthPolicyTask,
                 updateTextResources
             });
