@@ -7,28 +7,31 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 describe('Calculations', () => {
   it('should render unknown component when components is unknown for Studio', () => {
-    studioRender({
-      form: {
-        type: 'randomUnknownComponent',
-      },
-    });
+    studioRender();
+    expect(
+      screen.getByText(
+        textMock('ux_editor.edit_component.unknown_component', {
+          componentName: 'randomUnknownComponent',
+        }),
+      ),
+    );
   });
-  expect(
-    screen.getByText(textMock('ux_editor.edit_component.unknown_component', {
-      componentName: 'randomUnknownComponent',
-    }),
-  ));
 });
-const getComponent = (formContextProps: Partial<FormContext> = {}) => (
-  <FormContext.Provider
-    value={{
-      ...formContextProviderMock,
-      ...formContextProps,
-    }}
-  >
-    <Calculations />
-  </FormContext.Provider>
-);
 
-const studioRender = (formContextProps: Partial<FormContext> = {}) =>
-  render(getComponent(formContextProps));
+const getCalculationsWithMockedFormContext = () => {
+  return (
+    <FormContext.Provider
+      value={{
+        ...formContextProviderMock,
+        form: {
+          type: 'randomUnknownComponent',
+        },
+      }}
+    >
+      <Calculations />
+    </FormContext.Provider>
+  );
+};
+const studioRender = () => {
+  return render(getCalculationsWithMockedFormContext());
+};
