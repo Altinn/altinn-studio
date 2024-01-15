@@ -14,22 +14,13 @@ const mockApp: string = 'testApp';
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
-// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
-const realConsole = console;
 const defaultProps: SetupTabProps = {
   org: mockOrg,
   app: mockApp,
 };
 
 describe('SetupTab Component', () => {
-  beforeEach(() => {
-    global.console = {
-      ...console,
-      error: jest.fn(),
-    };
-  });
   afterEach(() => {
-    global.console = realConsole;
     jest.clearAllMocks();
   });
 

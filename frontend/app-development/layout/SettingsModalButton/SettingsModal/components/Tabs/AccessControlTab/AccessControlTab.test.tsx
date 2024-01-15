@@ -8,7 +8,6 @@ import {
 import { AccessControlTab, AccessControlTabProps } from './AccessControlTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
@@ -138,7 +137,6 @@ const render = (
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
-    ...queriesMock,
     getAppMetadata,
     ...queries,
   };

@@ -1,7 +1,7 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useRuleModelQuery, WindowWithRuleModel } from './useRuleModelQuery';
-import {
+import ruleHandlerMock, {
   condition1Input1Label,
   condition1Input1Name,
   condition1Name,
@@ -30,18 +30,20 @@ const org = 'org';
 const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
+const getRuleModel = jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
+
 describe('useRuleModelQuery', () => {
   afterAll(() => {
     delete global.window;
   });
   it('Calls getRuleModel with correct parameters', async () => {
-    await renderAndWaitForSuccess();
-    expect(queriesMock.getRuleModel).toHaveBeenCalledTimes(1);
-    expect(queriesMock.getRuleModel).toHaveBeenCalledWith(org, app, selectedLayoutSet);
+    await renderAndWaitForSuccess({ getRuleModel });
+    expect(getRuleModel).toHaveBeenCalledTimes(1);
+    expect(getRuleModel).toHaveBeenCalledWith(org, app, selectedLayoutSet);
   });
 
   it('Parses file correctly and returns an array of rules and conditions', async () => {
-    const { result } = await renderAndWaitForSuccess();
+    const { result } = await renderAndWaitForSuccess({ getRuleModel });
     expect(result.current.data).toEqual([
       {
         name: rule1Name,
@@ -80,7 +82,7 @@ describe('useRuleModelQuery', () => {
   it('sets all ruleModel related objects to "undefined" in window object if ruleHandler does not exist in repo', async () => {
     const globalWindowWithRuleModel = global.window as WindowWithRuleModel;
 
-    await renderAndWaitForSuccess();
+    await renderAndWaitForSuccess({ getRuleModel });
     expect(globalWindowWithRuleModel.ruleHandlerObject).toBeDefined();
     expect(globalWindowWithRuleModel.ruleHandlerHelper).toBeDefined();
     expect(globalWindowWithRuleModel.conditionalRuleHandlerObject).toBeDefined();

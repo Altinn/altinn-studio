@@ -3,7 +3,6 @@ import { dataMock } from '../../mockData';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
-import type { SchemaState } from '../../types';
 import {
   FieldType,
   Keyword,
@@ -25,17 +24,7 @@ const user = userEvent.setup();
 const save = jest.fn();
 
 const renderEditor = (data: Partial<RenderWithProvidersData> = {}) => {
-  const mockInitialState: SchemaState = {
-    name: 'test',
-    selectedDefinitionNodeId: '',
-    selectedPropertyNodeId: '',
-    selectedEditorTab: 'properties',
-  };
   return renderWithProviders({
-    state: {
-      ...mockInitialState,
-      ...data.state,
-    },
     appContextProps: {
       schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
       save,

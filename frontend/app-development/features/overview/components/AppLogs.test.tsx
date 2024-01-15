@@ -3,8 +3,8 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AppLogs } from './AppLogs';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { queriesMock } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
+import { appDeployment, deployEnvironment } from 'app-shared/mocks/mocks';
 
 // Test data
 const org = 'ttd';
@@ -13,18 +13,13 @@ const app = 'test-ttd';
 const render = (queries = {}) => {
   return renderWithProviders(<AppLogs />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
-    queries: {
-      ...queriesMock,
-      ...queries,
-    },
+    queries,
   });
 };
 
 describe('AppLogs', () => {
   it('shows loading spinner when loading required data', () => {
-    render({
-      getEnvironments: jest.fn().mockImplementation(() => Promise.resolve([])),
-    });
+    render();
 
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
@@ -45,36 +40,14 @@ describe('AppLogs', () => {
         Promise.resolve({
           results: [
             {
+              ...appDeployment,
               tagName: '2',
               envName: 'production',
-              deployedInEnv: true,
-              build: {
-                id: '14381045',
-                status: 'completed',
-                result: 'succeeded',
-                started: '2023-10-03T09:57:31.238Z',
-                finished: '2023-10-03T09:57:41.29Z',
-              },
-              created: '2023-10-03T11:57:31.072013+02:00',
-              createdBy: 'test',
-              app,
-              org,
             },
             {
+              ...appDeployment,
               tagName: '1',
               envName: 'tt02',
-              deployedInEnv: true,
-              build: {
-                id: '14381045',
-                status: 'completed',
-                result: 'succeeded',
-                started: '2023-10-03T09:57:31.238Z',
-                finished: '2023-10-03T09:57:41.29Z',
-              },
-              created: '2023-10-03T11:57:31.072013+02:00',
-              createdBy: 'test',
-              app,
-              org,
             },
           ],
         }),
@@ -82,39 +55,13 @@ describe('AppLogs', () => {
       getEnvironments: jest.fn().mockImplementation(() =>
         Promise.resolve([
           {
-            appsUrl: 'http://host.docker.internal:6161',
-            platformUrl: 'http://host.docker.internal:6161',
-            hostname: 'host.docker.internal:6161',
-            appPrefix: 'apps',
-            platformPrefix: 'platform',
+            ...deployEnvironment,
             name: 'production',
             type: 'production',
           },
           {
-            appsUrl: 'http://host.docker.internal:6161',
-            platformUrl: 'http://host.docker.internal:6161',
-            hostname: 'host.docker.internal:6161',
-            appPrefix: 'apps',
-            platformPrefix: 'platform',
+            ...deployEnvironment,
             name: 'tt02',
-            type: 'test',
-          },
-          {
-            appsUrl: 'http://host.docker.internal:6161',
-            platformUrl: 'http://host.docker.internal:6161',
-            hostname: 'host.docker.internal:6161',
-            appPrefix: 'apps',
-            platformPrefix: 'platform',
-            name: 'at21',
-            type: 'test',
-          },
-          {
-            appsUrl: 'http://host.docker.internal:6161',
-            platformUrl: 'http://host.docker.internal:6161',
-            hostname: 'host.docker.internal:6161',
-            appPrefix: 'apps',
-            platformPrefix: 'platform',
-            name: 'at22',
             type: 'test',
           },
         ]),
@@ -146,61 +93,13 @@ describe('AppLogs', () => {
         Promise.resolve({
           results: [
             {
-              tagName: '2',
-              envName: 'production',
-              deployedInEnv: true,
+              ...appDeployment,
               build: {
-                id: '14381045',
-                status: 'completed',
                 result: '',
-                started: '2023-10-03T09:57:31.238Z',
-                finished: '2023-10-03T09:57:41.29Z',
               },
-              created: '2023-10-03T11:57:31.072013+02:00',
-              createdBy: 'test',
-              app,
-              org,
-            },
-            {
-              tagName: '1',
-              envName: 'tt02',
-              deployedInEnv: true,
-              build: {
-                id: '14381045',
-                status: 'completed',
-                result: 'succeeded',
-                started: '2023-10-03T09:57:31.238Z',
-                finished: null,
-              },
-              created: '2023-10-03T11:57:31.072013+02:00',
-              createdBy: 'test',
-              app,
-              org,
             },
           ],
         }),
-      ),
-      getEnvironments: jest.fn().mockImplementation(() =>
-        Promise.resolve([
-          {
-            appsUrl: 'http://host.docker.internal:6161',
-            platformUrl: 'http://host.docker.internal:6161',
-            hostname: 'host.docker.internal:6161',
-            appPrefix: 'apps',
-            platformPrefix: 'platform',
-            name: 'production',
-            type: 'production',
-          },
-          {
-            appsUrl: 'http://host.docker.internal:6161',
-            platformUrl: 'http://host.docker.internal:6161',
-            hostname: 'host.docker.internal:6161',
-            appPrefix: 'apps',
-            platformPrefix: 'platform',
-            name: 'tt02',
-            type: 'test',
-          },
-        ]),
       ),
     });
 

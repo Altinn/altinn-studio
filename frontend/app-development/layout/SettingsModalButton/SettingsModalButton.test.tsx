@@ -12,12 +12,6 @@ import { MemoryRouter } from 'react-router-dom';
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
 
-const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getRepoInitialCommit = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
-
 const defaultProps: SettingsModalButtonProps = {
   org: mockOrg,
   app: mockApp,
@@ -85,11 +79,6 @@ const render = (
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getAppPolicy,
-    getAppConfig,
-    getRepoMetadata,
-    getRepoInitialCommit,
-    getAppMetadata,
     ...queries,
   };
   return rtlRender(

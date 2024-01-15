@@ -6,7 +6,6 @@ import { TypesPanel, TypesPanelProps } from './TypesPanel';
 import { buildUiSchema, FieldType, ObjectKind, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { SchemaState } from '@altinn/schema-editor/types';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 const typesText = 'Typer';
@@ -25,13 +24,6 @@ const texts = {
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const render = (props?: Partial<TypesPanelProps>) => {
-  const mockInitialState: SchemaState = {
-    name: 'test',
-    selectedDefinitionNodeId: '',
-    selectedPropertyNodeId: '',
-    selectedEditorTab: 'properties',
-  };
-
   const defaultProps: TypesPanelProps = {
     uiSchemaNode: {
       children: [],
@@ -49,7 +41,6 @@ const render = (props?: Partial<TypesPanelProps>) => {
   const schemaNodes = buildUiSchema(dataMock);
   const schemaModel = SchemaModel.fromArray(schemaNodes);
   return renderWithProviders({
-    state: mockInitialState,
     appContextProps: { schemaModel },
   })(
     <DragAndDropTree.Provider onAdd={jest.fn()} onMove={jest.fn()} rootId={ROOT_POINTER}>

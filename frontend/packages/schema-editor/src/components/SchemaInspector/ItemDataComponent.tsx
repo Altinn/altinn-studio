@@ -1,11 +1,5 @@
 import type { ChangeEvent } from 'react';
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import {
-  navigateToType,
-  removeSelection,
-  setSelectedNode,
-} from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
 import { Fieldset, LegacyTextArea, Textfield, Switch, LegacySelect } from '@digdir/design-system-react';
@@ -51,8 +45,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     isArray,
     custom,
   } = schemaNode;
-  const dispatch = useDispatch();
-  const { schemaModel, save, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { schemaModel, save, setSelectedTypePointer, setSelectedNodePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
   const typeOptions = useTypeOptions();
 
@@ -75,7 +68,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       save(
         addCombinationItem(schemaModel, {
           pointer,
-          callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
+          callback: setSelectedNodePointer,
         }),
       );
       return;
@@ -84,7 +77,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (isField(childNode) && childNode.fieldType === FieldType.Null) {
         save(deleteNode(schemaModel, childNode.pointer));
-        removeSelection(childNode.pointer);
+        setSelectedNodePointer(null);
       }
     });
   };
@@ -97,7 +90,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
   const onGoToDefButtonClick = () => {
     if (isReference(schemaNode)) {
-      dispatch(navigateToType({ pointer: schemaNode.reference }));
+      setSelectedTypePointer(schemaNode.reference);
     }
   };
 
@@ -116,7 +109,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           if (newPointer && pointerIsDefinition(newPointer)) {
             setSelectedTypePointer(newPointer);
           }
-          dispatch(setSelectedNode(newPointer));
+          setSelectedNodePointer(newPointer);
         },
       }),
     );

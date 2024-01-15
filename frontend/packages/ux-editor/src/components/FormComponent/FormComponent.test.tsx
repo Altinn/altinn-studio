@@ -5,7 +5,11 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
-import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import {
+  renderHookWithMockStore,
+  renderWithMockStore,
+  textLanguagesMock,
+} from '../../testing/mocks';
 import { component1IdMock, component1Mock } from '../../testing/layoutMock';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
@@ -52,8 +56,8 @@ describe('FormComponent', () => {
     const component = screen.getByRole('listitem');
     await act(() => user.click(component));
 
-    expect(handleSaveMock).toBeCalledTimes(1);
-    expect(handleEditMock).toBeCalledTimes(1);
+    expect(handleSaveMock).toHaveBeenCalledTimes(1);
+    expect(handleEditMock).toHaveBeenCalledTimes(1);
   });
 
   describe('Delete confirmation dialog', () => {
@@ -91,7 +95,7 @@ describe('FormComponent', () => {
       });
       await act(() => user.click(confirmButton));
 
-      expect(mockDeleteFormComponent).toBeCalledWith(component1IdMock);
+      expect(mockDeleteFormComponent).toHaveBeenCalledWith(component1IdMock);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
@@ -104,7 +108,7 @@ describe('FormComponent', () => {
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
       await act(() => user.click(cancelButton));
 
-      expect(mockDeleteFormComponent).toBeCalledTimes(0);
+      expect(mockDeleteFormComponent).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
@@ -119,7 +123,7 @@ describe('FormComponent', () => {
       });
       await act(() => user.click(confirmButton));
 
-      expect(mockDeleteFormComponent).toBeCalledTimes(1);
+      expect(mockDeleteFormComponent).toHaveBeenCalledTimes(1);
       expect(handleDiscardMock).toHaveBeenCalledTimes(1);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
@@ -132,7 +136,7 @@ describe('FormComponent', () => {
 
       await act(() => user.click(document.body));
 
-      expect(mockDeleteFormComponent).toBeCalledTimes(0);
+      expect(mockDeleteFormComponent).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
   });
@@ -200,7 +204,10 @@ const waitForData = async () => {
   const { result: texts } = renderHookWithMockStore(
     {},
     {
-      getTextResources: () => Promise.resolve({ language: 'nb', resources: nbTextResources }),
+      getTextResources: jest
+        .fn()
+        .mockImplementation(() => Promise.resolve({ language: 'nb', resources: nbTextResources })),
+      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
     },
   )(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
