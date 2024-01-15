@@ -53,7 +53,7 @@ export const TextRow = ({
   };
 
   const handleTextIdBlur = () => {
-    if (!keyError && textId !== textIdValue) {
+    if (!keyError) {
       updateEntryId({ oldId: textId, newId: textIdValue });
     }
   };
