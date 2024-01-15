@@ -122,22 +122,40 @@ describe('SchemaNode', () => {
     const updatedNode = savedModel.getNode(pointer);
     expect(updatedNode.objectKind).toEqual(ObjectKind.Reference);
   });
+
+  it('Removes node selection when the node is selected and deleted', async () => {
+    const { pointer } = objectNodeMock;
+    const schemaModel = setupSchemaModel();
+    const setSelectedNodePointer = jest.fn();
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    render({ schemaModel, pointer, selectedNodePointer: pointer, setSelectedNodePointer });
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    await act(() => user.click(deleteButton));
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
+  });
 });
 
 interface RenderProps {
   pointer?: string;
   schemaModel?: SchemaModel;
   save?: (model: SchemaModel) => void;
+  selectedNodePointer?: string;
+  setSelectedNodePointer?: (pointer?: string) => void;
 }
 
 const render = ({
   pointer = objectNodeMock.pointer,
   schemaModel = SchemaModel.fromArray(uiSchemaNodesMock),
   save = jest.fn(),
+  selectedNodePointer = null,
+  setSelectedNodePointer = jest.fn(),
 }: RenderProps) => {
   const onAdd = jest.fn();
   const onMove = jest.fn();
-  return renderWithProviders({ appContextProps: { save, schemaModel } })(
+  return renderWithProviders({
+    appContextProps: { save, schemaModel, selectedNodePointer, setSelectedNodePointer },
+  })(
     <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={ROOT_POINTER}>
       <DragAndDropTree.Root>
         <SchemaNode pointer={pointer} />

@@ -1,10 +1,22 @@
 import { waitFor } from '@testing-library/react';
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
-import { UpdateFormContainerMutationArgs, useUpdateFormContainerMutation } from './useUpdateFormContainerMutation';
+import {
+  UpdateFormContainerMutationArgs,
+  useUpdateFormContainerMutation,
+} from './useUpdateFormContainerMutation';
 import { FormContainer } from '../../types/FormContainer';
-import { container1IdMock, layout1Mock, layout1NameMock } from '../../testing/layoutMock';
+import {
+  container1IdMock,
+  externalLayoutsMock,
+  layout1Mock,
+  layout1NameMock,
+} from '../../testing/layoutMock';
+import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
+import { FormLayoutsResponse } from 'app-shared/types/api';
+import { RuleConfig } from 'app-shared/types/RuleConfig';
 
 // Test data:
 const org = 'org';
@@ -24,9 +36,9 @@ describe('useUpdateFormContainerMutation', () => {
   it('Saves layouts with new container and updates rule config', async () => {
     await renderAndWaitForData();
 
-    const updateFormContainerResult = renderHookWithMockStore()(() => useUpdateFormContainerMutation(org, app, selectedLayoutName, selectedLayoutSet))
-      .renderHookResult
-      .result;
+    const updateFormContainerResult = renderHookWithMockStore()(() =>
+      useUpdateFormContainerMutation(org, app, selectedLayoutName, selectedLayoutSet),
+    ).renderHookResult.result;
 
     await updateFormContainerResult.current.mutateAsync(mutationArgs);
 
@@ -43,17 +55,29 @@ describe('useUpdateFormContainerMutation', () => {
               ...layout1Mock.data.layout[0],
               id: updatedContainer.id,
               maxCount,
-            }
-          ])
-        })
-      })
+            },
+          ]),
+        }),
+      }),
     );
   });
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const ruleConfigResult = renderHookWithMockStore()(() => useRuleConfigQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const getFormLayouts = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+  const getRuleConfig = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfigMock));
+  const formLayoutsResult = renderHookWithMockStore(
+    {},
+    { getFormLayouts },
+  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const ruleConfigResult = renderHookWithMockStore(
+    {},
+    { getRuleConfig },
+  )(() => useRuleConfigQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(ruleConfigResult.current.isSuccess).toBe(true));
-}
+};

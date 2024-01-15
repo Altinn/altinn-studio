@@ -59,21 +59,21 @@ describe('InputActionWrapper', () => {
     render(<InputActionWrapper {...mockProps} />);
     const saveButton = screen.getByLabelText('general.save');
     await act(() => user.click(saveButton));
-    expect(mockProps.onSaveClick).toBeCalledTimes(1);
+    expect(mockProps.onSaveClick).toHaveBeenCalledTimes(1);
   });
 
   it('triggers delete click on delete button click', async () => {
     render(<InputActionWrapper {...mockProps} />);
     const deleteButton = screen.getByLabelText('general.delete');
     await act(() => user.click(deleteButton));
-    expect(mockProps.onDeleteClick).toBeCalledTimes(1);
+    expect(mockProps.onDeleteClick).toHaveBeenCalledTimes(1);
   });
 
   it('check that handleActionClick is called when edit button is clicked', async () => {
     render(<InputActionWrapper {...mockProps} mode='hoverMode' />);
     const editButton = screen.getByLabelText('general.edit');
     await act(() => user.click(editButton));
-    expect(mockProps.onEditClick).toBeCalledTimes(1);
+    expect(mockProps.onEditClick).toHaveBeenCalledTimes(1);
   });
 
   it('check that handleHover is called when onMouseOver is called ', async () => {

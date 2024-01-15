@@ -12,7 +12,7 @@ import {
 } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { UseMutationResult } from '@tanstack/react-query';
 import { renderWithMockStore } from '../testing/mocks';
-import { AUTOSAVE_DEBOUNCE_INTERVAL } from 'app-shared/constants';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
@@ -228,7 +228,7 @@ describe('FormContext', () => {
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL);
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
@@ -283,7 +283,7 @@ describe('FormContext', () => {
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL);
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });
