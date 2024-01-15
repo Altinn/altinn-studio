@@ -59,6 +59,15 @@ describe('Dynamics', () => {
     expect(screen.queryByTestId(expressionsTestId)).not.toBeInTheDocument();
     expect(screen.getByTestId(conditionalRenderingTestId)).toBeInTheDocument();
   });
+
+  it('should render unknown component alert when component is unknown for Studio', async () => {
+    await render({ form: { type: 'randomUnknownComponent' } });
+    expect(
+      textMock('ux_editor.edit_component.unknown_component', {
+        componentName: 'randomUnknownComponent',
+      }),
+    );
+  });
 });
 
 const render = async (props: Partial<FormContext> = {}) => {
