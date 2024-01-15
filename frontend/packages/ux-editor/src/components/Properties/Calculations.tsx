@@ -6,10 +6,21 @@ import { RuleModal } from '../toolbar/RuleModal';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
+import { useFormContext } from '../../containers/FormContext';
+import { formItemConfigs } from '../../data/formItemConfig';
+import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
 export const Calculations = () => {
+  const { form } = useFormContext();
+
   const [modalOpen, setModalOpen] = React.useState<boolean>(false);
   const t = useText();
+
+  const isUnknownInternalComponent: boolean = !formItemConfigs[form?.type];
+  if (isUnknownInternalComponent) {
+    return <UnknownComponentAlert componentName={form?.type} />;
+  }
+
   return (
     <div className={classes.calculations}>
       <div>

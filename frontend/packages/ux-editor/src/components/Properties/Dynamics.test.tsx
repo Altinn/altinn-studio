@@ -69,7 +69,7 @@ const render = async (props: Partial<FormContext> = {}) => {
         ...props,
       }}
     >
-      <Dynamics formId={'test'} />
+      <Dynamics />
     </FormContext.Provider>,
   );
 };
