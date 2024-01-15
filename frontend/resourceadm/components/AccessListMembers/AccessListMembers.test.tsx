@@ -28,6 +28,11 @@ const defaultProps = {
         orgName: '',
         isSubParty: false,
       },
+      {
+        orgNr: '112233445',
+        orgName: 'test',
+        isSubParty: true,
+      },
     ],
   },
 };
@@ -39,7 +44,7 @@ describe('AccessListMembers', () => {
   });
 
   it('should show message when list is empty', () => {
-    render({ list: { ...defaultProps.list, members: [] } });
+    render({ list: { ...defaultProps.list, members: undefined } });
     expect(screen.getByText(textMock('resourceadm.listadmin_empty_list'))).toBeInTheDocument();
   });
 
@@ -129,6 +134,82 @@ describe('AccessListMembers', () => {
     await act(() => user.type(textField, 'test'));
 
     await screen.findByText(textMock('resourceadm.listadmin_search_no_sub_parties'));
+  });
+
+  it('should go to next page when paging button is clicked', async () => {
+    const user = userEvent.setup();
+    const nextPageUrl = 'brreg/next';
+    const searchResultText = 'Digdir';
+    const getPartiesMock = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        _embedded: {
+          enheter: [{ organisasjonsnummer: '987654321', navn: searchResultText }],
+        },
+        _links: {
+          first: { href: 'first' },
+          prev: { href: 'first' },
+          next: { href: nextPageUrl },
+          last: { href: nextPageUrl },
+        },
+      }),
+    );
+    render(
+      {},
+      {
+        getParties: getPartiesMock,
+      },
+    );
+
+    const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
+    await act(() => user.type(textField, 'test'));
+
+    await waitFor(() => screen.findByText(searchResultText));
+
+    const nextButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_next'),
+    });
+    await act(() => user.click(nextButton));
+
+    expect(getPartiesMock).toHaveBeenCalledWith(nextPageUrl);
+  });
+
+  it('should show correct paging information', async () => {
+    const user = userEvent.setup();
+
+    const searchResultText = 'Digdir';
+    const getPartiesMock = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        _embedded: {
+          enheter: [{ organisasjonsnummer: '987654321', navn: searchResultText }],
+        },
+        page: {
+          number: 1,
+          size: 5,
+          totalElements: 8,
+        },
+      }),
+    );
+    render(
+      {},
+      {
+        getParties: getPartiesMock,
+      },
+    );
+
+    const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
+    await act(() => user.type(textField, 'test'));
+
+    await waitFor(() => screen.findByText(searchResultText));
+
+    expect(
+      screen.getByText(
+        textMock('resourceadm.listadmin_search_paging', {
+          fra: 6,
+          til: 8,
+          total: 8,
+        }),
+      ),
+    ).toBeInTheDocument();
   });
 });
 
