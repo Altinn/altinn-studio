@@ -151,7 +151,7 @@
           "type": "string"
         },
         "PrefillValuesEnabled": {
-          "type": "string"
+          "type": "boolean"
         }
       },
       "required": [

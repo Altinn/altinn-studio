@@ -53,11 +53,11 @@
         "options": [
           {
               "label": "Ja",
-              "value": "true"
+              "value": true
           },
           {
               "label": "Nei",
-              "value": "false"
+              "value": false
           }
         ]
       },
