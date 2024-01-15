@@ -50,7 +50,7 @@ namespace Altinn.App.Options
             items.Add(new ListItem { Name = "Mette", Age = 33, Profession = "Artist" });
 
             
-            if (String.IsNullOrEmpty(search) || search != "undefined")
+            if (!String.IsNullOrEmpty(search) && search != "undefined")
             {
                 items = items.Where(o => (o.Name == search)).ToList();
             }

@@ -7,22 +7,19 @@
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "summaryTitle"
-        },
-        "dataModelBindings": {}
+        }
       },
       {
         "id": "summary-list",
         "type": "Summary",
-        "componentRef": "listComponent",
-        "pageRef": "formLayout"
+        "componentRef": "listComponent"
       },
       {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {
           "title": "Send inn"
-        },
-        "dataModelBindings": {}
+        }
       }
     ]
   }

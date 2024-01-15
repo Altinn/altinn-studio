@@ -85,18 +85,16 @@
         "readOnly": false
       },
       {
-        "id": "summary-1",
+        "id": "summary1",
         "type": "Summary",
-        "componentRef": "likert-group",
-        "pageRef": "formLayout"
+        "componentRef": "likert-group"
       },
       {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {
           "title": "Send inn"
-        },
-        "dataModelBindings": {}
+        }
       }
     ]
   }
