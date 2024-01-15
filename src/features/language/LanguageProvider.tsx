@@ -34,7 +34,7 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     const localStorageValue = localStorage.getItem(localStorageKey);
     const urlValue = getLanguageQueryParam();
 
-    const newLanguage = urlValue ?? localStorageValue ?? profile.profileSettingPreference.language;
+    const newLanguage = urlValue ?? localStorageValue ?? profile.profileSettingPreference.language ?? 'nb';
     setCurrent(newLanguage);
     localStorage.setItem(localStorageKey, newLanguage);
   };
