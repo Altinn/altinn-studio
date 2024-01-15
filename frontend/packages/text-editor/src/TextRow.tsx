@@ -42,14 +42,14 @@ export const TextRow = ({
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const handleTextIdChange = (newTextId: string): void => {
+    let error: string;
     if (newTextId !== textId) {
-      if (idExists(newTextId)) {
-        setKeyError('Denne IDen finnes allerede');
-      } else {
-        setKeyError(validateTextId(newTextId));
-      }
-      setTextIdValue(newTextId);
+      error = idExists(newTextId) ? 'Denne IDen finnes allerede' : validateTextId(newTextId);
+    } else {
+      error = '';
     }
+    setKeyError(error);
+    setTextIdValue(newTextId);
   };
 
   const handleTextIdBlur = () => {
@@ -111,7 +111,6 @@ export const TextRow = ({
         <ButtonContainer className={classes.buttonGroup}>
           {textIdEditOpen ? (
             <FormField
-              label={t('schema_editor.textRow-textkey-label')}
               value={textIdValue}
               onChange={handleTextIdChange}
               renderField={({ fieldProps }) => (
