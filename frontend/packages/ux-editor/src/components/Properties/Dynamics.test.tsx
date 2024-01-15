@@ -63,7 +63,7 @@ describe('Dynamics', () => {
 
   it('should render unknown component alert when component is unknown for Studio', async () => {
     const formType = 'randomUnknownComponent' as unknown as FormComponent;
-    await render({ form: { ...formContextProviderMock.form., type: formType } });
+    await render({ form: { ...formContextProviderMock.form, type: formType } });
     expect(
       screen.getByText(textMock('ux_editor.edit_component.unknown_component', {
         componentName: formType,
