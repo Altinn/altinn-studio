@@ -13,7 +13,7 @@ export interface TypeItemProps {
 }
 
 export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: TypeItemProps) => {
-
+  
   const handleClick = () => {
     setSelectedTypePointer(uiSchemaNode.pointer);
   };
@@ -31,9 +31,7 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
         <div>
           <FileJsonIcon className={classes.typeIcon} />
         </div>
-        <span className={classes.typeName}>
-        {name}
-      </span>
+        <span className={classes.typeName}>{name}</span>
         <CogIcon />
       </div>
     </DragAndDropTree.NewItem>
