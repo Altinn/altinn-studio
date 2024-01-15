@@ -14,6 +14,8 @@ export const renderWithProviders = ({
   appContextProps: {},
 }) => (element: ReactNode) => {
 
+  const name = 'Test';
+
   const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
     schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
     save: jest.fn(),
@@ -21,6 +23,7 @@ export const renderWithProviders = ({
     setSelectedNodePointer: jest.fn(),
     selectedTypePointer: null,
     setSelectedTypePointer: jest.fn(),
+    name,
     ...appContextProps,
   };
 
@@ -42,6 +45,7 @@ export const renderWithProviders = ({
       setSelectedNodePointer: jest.fn(),
       selectedTypePointer: null,
       setSelectedTypePointer: jest.fn(),
+      name,
       ...rerenderAppContextProps,
     };
 

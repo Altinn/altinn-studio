@@ -12,11 +12,13 @@ import { SchemaEditor } from './components/SchemaEditor';
 
 export type SchemaEditorAppProps = {
   jsonSchema: JsonSchema;
+  name: string;
   save: (model: JsonSchema) => void;
 };
 
 export function SchemaEditorApp({
   jsonSchema,
+  name,
   save,
 }: SchemaEditorAppProps) {
   const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
@@ -30,8 +32,9 @@ export function SchemaEditorApp({
       setSelectedTypePointer,
       selectedNodePointer,
       setSelectedNodePointer,
+      name,
     }),
-    [jsonSchema, save, selectedTypePointer, selectedNodePointer]
+    [jsonSchema, save, selectedTypePointer, selectedNodePointer, name]
   );
 
   return (

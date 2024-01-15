@@ -8,6 +8,7 @@ export interface SchemaEditorAppContextProps {
   setSelectedTypePointer: (pointer: string) => void;
   selectedNodePointer?: string;
   setSelectedNodePointer: (pointer?: string) => void;
+  name: string;
 }
 
 /**
