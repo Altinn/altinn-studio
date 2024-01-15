@@ -69,9 +69,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
         private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)
         {
-            return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>()
-                .AddHttpMessageHandler<EnsureSuccessHandler>()
-                .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
+            return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>();
+            // Commented due to the issue with deployments endpoint described in issue: https://github.com/Altinn/altinn-studio/issues/12037
+            // .AddHttpMessageHandler<EnsureSuccessHandler>()
+            // .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
         }
 
         private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services,
