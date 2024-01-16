@@ -1,4 +1,4 @@
-import { request } from '@playwright/test';
+import { APIRequestContext, APIResponse } from '@playwright/test';
 import { Environment, StudioEnvironment } from './StudioEnvironment';
 
 export class DesignerApi extends StudioEnvironment {
@@ -7,12 +7,12 @@ export class DesignerApi extends StudioEnvironment {
     console.log('env.app inside DesignerApi constructor', this.app);
   }
 
-  public async createApp(): Promise<void> {
+  public async createApp(request: APIRequestContext): Promise<APIResponse> {
     console.log('this.app inside createApp', this.app);
-    const context = await request.newContext();
-    await context.post(
+    const response = await request.post(
       `studio.localhost/designer/api/repos/create-app?org=${this.org}&repository=${this.app}&datamodellingPreference=1`,
     );
+    return response;
   }
 }
 

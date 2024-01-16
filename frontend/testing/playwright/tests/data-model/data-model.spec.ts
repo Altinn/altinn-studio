@@ -4,7 +4,7 @@ import { DataModelPage } from '../../pages/DataModelPage';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import { CreateServicePage } from 'testing/playwright/pages/CreateServicePage';
 
-test('should load datamodel page and ', async ({ page, testAppName }): Promise<void> => {
+test('should load datamodel page and ', async ({ page, testAppName, request }): Promise<void> => {
   /*
   const createServicePage = new CreateServicePage(page);
   await createServicePage.loadCreateAppFormPage();
@@ -20,7 +20,9 @@ test('should load datamodel page and ', async ({ page, testAppName }): Promise<v
 
   const designerApi = new DesignerApi({ app: testAppName });
   console.log('APP NAME', testAppName);
-  await designerApi.createApp();
+  const response = await designerApi.createApp(request);
+  console.log('response from test', response);
+  expect(response.ok()).toBeTruthy();
 
   // TODO add test for create app ok
 
