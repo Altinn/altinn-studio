@@ -21,6 +21,25 @@ describe('AltinnHeader', () => {
     expect(screen.getByTitle('Altinn logo')).toBeInTheDocument();
   });
 
+  it('should render AltinnHeaderMenu with only datamodels menu item when repositoryType is datamodels', () => {
+    render({
+      menuItems: [
+        {
+          key: TopBarMenu.About,
+          link: 'Link1',
+          repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+        },
+        {
+          key: TopBarMenu.Datamodel,
+          link: 'Link2',
+          repositoryTypes: [RepositoryType.Datamodels],
+        },
+      ],
+    });
+    expect(screen.getByRole('link', { name: textMock('top_menu.datamodel') })).toBeInTheDocument();
+    expect(screen.queryByText(textMock('about'))).not.toBeInTheDocument();
+  });
+
   it('should render AltinnHeaderButtons when buttonActions are provided', () => {
     render({
       buttonActions: [

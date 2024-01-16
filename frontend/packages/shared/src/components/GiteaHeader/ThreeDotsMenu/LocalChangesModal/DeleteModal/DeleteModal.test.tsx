@@ -32,14 +32,14 @@ describe('DeleteModal', () => {
     render(<DeleteModal {...defaultProps} />);
 
     const textfield = screen.getByLabelText(
-      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label'),
     );
     expect(textfield).toHaveValue('');
 
     await act(() => user.type(textfield, 'a'));
 
     const textfieldAfter = screen.getByLabelText(
-      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label'),
     );
     expect(textfieldAfter).toHaveValue('a');
   });
@@ -48,17 +48,17 @@ describe('DeleteModal', () => {
     render(<DeleteModal {...defaultProps} />);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_delete_button'),
+      name: textMock('local_changes.modal_confirm_delete_button'),
     });
     expect(deleteButton).toBeDisabled();
 
     const textfield = screen.getByLabelText(
-      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label'),
     );
     await act(() => user.type(textfield, mockAppName));
 
     const deleteButtonAfterTypedInName = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_delete_button'),
+      name: textMock('local_changes.modal_confirm_delete_button'),
     });
     expect(deleteButtonAfterTypedInName).not.toBeDisabled();
 

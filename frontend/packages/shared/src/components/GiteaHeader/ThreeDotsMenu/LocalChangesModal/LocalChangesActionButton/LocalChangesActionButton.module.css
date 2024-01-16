@@ -1,9 +1,5 @@
-.wrapper {
-  margin-block: 30px;
-}
-
 .paragraph {
-  margin-bottom: 10px;
+  margin-bottom: var(--fds-spacing-2);
 }
 
 .linkAndIconWrapper {
