@@ -1,14 +1,14 @@
 import type { ChangeEvent } from 'react';
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import {
-  navigateToType,
-  removeSelection,
-  setSelectedNode,
-} from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import { Fieldset, LegacyTextArea, Textfield, Switch, LegacySelect } from '@digdir/design-system-react';
+import {
+  Fieldset,
+  LegacyTextArea,
+  Textfield,
+  Switch,
+  LegacySelect,
+} from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import {
@@ -44,15 +44,9 @@ export type IItemDataComponentProps = {
 };
 
 export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
-  const {
-    pointer,
-    title = '',
-    description = '',
-    isArray,
-    custom,
-  } = schemaNode;
-  const dispatch = useDispatch();
-  const { schemaModel, save, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { pointer, title = '', description = '', isArray, custom } = schemaNode;
+  const { schemaModel, save, setSelectedTypePointer, setSelectedNodePointer } =
+    useSchemaEditorAppContext();
   const { t } = useTranslation();
   const typeOptions = useTypeOptions();
 
@@ -63,8 +57,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? schemaModel.getChildNodes(pointer) : [];
 
-  const onChangeRef = (path: string, ref: string) =>
-    save(setRef(schemaModel, { path, ref }));
+  const onChangeRef = (path: string, ref: string) => save(setRef(schemaModel, { path, ref }));
 
   const onChangeFieldType = (type: FieldType) =>
     save(setType(schemaModel, { path: pointer, type }));
@@ -75,7 +68,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       save(
         addCombinationItem(schemaModel, {
           pointer,
-          callback: (newPointer: string) => dispatch(setSelectedNode(newPointer)),
+          callback: setSelectedNodePointer,
         }),
       );
       return;
@@ -84,28 +77,26 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (isField(childNode) && childNode.fieldType === FieldType.Null) {
         save(deleteNode(schemaModel, childNode.pointer));
-        removeSelection(childNode.pointer);
+        setSelectedNodePointer(null);
       }
     });
   };
 
-  const onChangeTitle = () =>
-    save(setTitle(schemaModel, { path: pointer, title: itemTitle }));
+  const onChangeTitle = () => save(setTitle(schemaModel, { path: pointer, title: itemTitle }));
 
   const onChangeDescription = () =>
     save(setDescription(schemaModel, { path: pointer, description: itemDescription }));
 
   const onGoToDefButtonClick = () => {
     if (isReference(schemaNode)) {
-      dispatch(navigateToType({ pointer: schemaNode.reference }));
+      setSelectedTypePointer(schemaNode.reference);
     }
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
     save(setCombinationType(schemaModel, { path: pointer, type: value }));
 
-  const handleArrayPropertyToggle = () =>
-    save(toggleArrayField(schemaModel, pointer));
+  const handleArrayPropertyToggle = () => save(toggleArrayField(schemaModel, pointer));
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
@@ -116,7 +107,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           if (newPointer && pointerIsDefinition(newPointer)) {
             setSelectedTypePointer(newPointer);
           }
-          dispatch(setSelectedNode(newPointer));
+          setSelectedNodePointer(newPointer);
         },
       }),
     );
@@ -185,14 +176,14 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           {t('schema_editor.nullable')}
         </Switch>
       )}
-      <ItemRestrictions schemaNode={schemaNode}/>
+      <ItemRestrictions schemaNode={schemaNode} />
       {hasCustomProps && (
         <>
-          <Divider marginless/>
-          <CustomProperties path={pointer}/>
+          <Divider marginless />
+          <CustomProperties path={pointer} />
         </>
       )}
-      <Divider marginless/>
+      <Divider marginless />
       <Fieldset legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
           <Textfield

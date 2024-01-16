@@ -231,8 +231,8 @@ export class SchemaModel {
   };
 
   public addFieldType = (name: string): FieldNode => {
-    const fieldType = FieldType.String;
-    return this.addType<FieldNode>(name, { ...defaultFieldNode, fieldType });
+    const fieldType = FieldType.Object;
+    return this.addType<FieldNode>(name, { ...defaultFieldNode, fieldType, implicitType: false });
   };
 
   protected addType<T extends FieldNode | CombinationNode>(name: string, node: T): T {

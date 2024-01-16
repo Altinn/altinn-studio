@@ -52,19 +52,20 @@ context('datamodel', () => {
     // Add text1
     addFieldToTestObject();
     datamodel.getProperty('name0').should('exist').click();
-    const nameField = datamodel.getNameField();
-    nameField.clear().type('text1');
-    nameField.blur();
-    datamodel.getNameField().invoke('val').should('eq', 'text1');
+    datamodel.getNameField().as('nameField');
+    cy.get('@nameField').clear();
+    cy.get('@nameField').type('text1');
+    cy.get('@nameField').blur();
+    cy.get('@nameField').invoke('val').should('eq', 'text1');
     datamodel.getProperty('text1').should('exist');
 
     // Add text2
     addFieldToTestObject();
     datamodel.getProperty('name0').should('exist');
-    const nameField2 = datamodel.getNameField();
-    nameField2.clear().type('text2');
-    nameField2.blur();
-    datamodel.getNameField().invoke('val').should('eq', 'text2');
+    cy.get('@nameField').clear();
+    cy.get('@nameField').type('text2');
+    cy.get('@nameField').blur();
+    cy.get('@nameField').invoke('val').should('eq', 'text2');
     datamodel.getProperty('text2').should('exist');
 
     //Add number1
@@ -73,9 +74,10 @@ context('datamodel', () => {
     datamodel.getTypeField().click();
     cy.findByRole('option', { name: texts['schema_editor.integer'] }).should('exist').click();
     datamodel.getTypeField().invoke('val').should('eq', texts['schema_editor.integer']);
-    const nameField3 = datamodel.getNameField();
-    nameField3.clear().type('number1');
-    nameField3.blur();
+    cy.get('@nameField').clear();
+    cy.get('@nameField').type('number1');
+    cy.get('@nameField').blur();
+    cy.get('@nameField').invoke('val').should('eq', 'number1');
     datamodel.getProperty('number1').should('exist');
 
     // Ensure changes are saved

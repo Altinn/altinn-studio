@@ -79,7 +79,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Sets
         /// </summary>
-        [DataMember(Name = "UserType", EmitDefaultValue = false)]
+        [DataMember(Name = "userType", EmitDefaultValue = false)]
         public UserType UserType { get; set; }
 
         /// <summary>

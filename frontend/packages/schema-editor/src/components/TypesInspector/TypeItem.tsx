@@ -4,8 +4,6 @@ import { CogIcon, FileJsonIcon } from '@navikt/aksel-icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
 import * as testids from '../../../../../testing/testids';
-import { useDispatch } from 'react-redux';
-import { setSelectedId } from '../../features/editor/schemaEditorSlice';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface TypeItemProps {
@@ -15,11 +13,8 @@ export interface TypeItemProps {
 }
 
 export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: TypeItemProps) => {
-  const dispatch = useDispatch();
-
   const handleClick = () => {
     setSelectedTypePointer(uiSchemaNode.pointer);
-    dispatch(setSelectedId({ pointer: uiSchemaNode.pointer }));
   };
   const name = extractNameFromPointer(uiSchemaNode.pointer);
 
@@ -35,9 +30,7 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
         <div>
           <FileJsonIcon className={classes.typeIcon} />
         </div>
-        <span className={classes.typeName}>
-        {name}
-      </span>
+        <span className={classes.typeName}>{name}</span>
         <CogIcon />
       </div>
     </DragAndDropTree.NewItem>

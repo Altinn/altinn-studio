@@ -16,6 +16,7 @@ describe('useSchemaEditorAppContext', () => {
       schemaModel,
       save,
       setSelectedTypePointer: jest.fn(),
+      setSelectedNodePointer: jest.fn(),
     };
     const { result } = renderHook(() => useSchemaEditorAppContext(), {
       wrapper: ({ children }) => (
@@ -31,7 +32,7 @@ describe('useSchemaEditorAppContext', () => {
     const renderHookFn = () => renderHook(() => useSchemaEditorAppContext());
     jest.spyOn(console, 'error').mockImplementation();
     expect(renderHookFn).toThrowError(
-      'useSchemaEditorAppContext must be used within a SchemaEditorAppContextProvider.'
+      'useSchemaEditorAppContext must be used within a SchemaEditorAppContextProvider.',
     );
   });
 });

@@ -24,5 +24,8 @@ namespace Altinn.Studio.Designer.Enums
 
         [EnumMember(Value = "ServiceEditionCode")]
         ServiceEditionCode = 5,
+
+        [EnumMember(Value = "ApplicationId")]
+        ApplicationId = 6,
     }
 }

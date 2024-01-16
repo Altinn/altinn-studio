@@ -35,22 +35,12 @@ const org = 'org';
 const app = 'app';
 const user = userEvent.setup();
 
-// Mocks:
-const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getDatamodelsJson = jest.fn().mockImplementation(() => Promise.resolve([]));
-const getDatamodelsXsd = jest.fn().mockImplementation(() => Promise.resolve([]));
-const generateModels = jest.fn().mockImplementation(() => Promise.resolve());
-
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getDatamodel,
-    getDatamodelsJson,
-    getDatamodelsXsd,
-    generateModels,
     ...queries,
   };
 
@@ -66,8 +56,8 @@ describe('DataModelling', () => {
 
   it('fetches models on mount', () => {
     render();
-    expect(getDatamodelsJson).toHaveBeenCalledTimes(1);
-    expect(getDatamodelsXsd).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getDatamodelsJson).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getDatamodelsXsd).toHaveBeenCalledTimes(1);
   });
 
   it('shows start dialog when no models are present and intro page is closed', () => {
@@ -90,8 +80,10 @@ describe('DataModelling', () => {
   });
 
   it('does not show start dialog when there are models present', async () => {
-    getDatamodelsJson.mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
-    render();
+    const getDatamodelsJson = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([jsonMetadata1Mock]));
+    render({ getDatamodelsJson });
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(
       screen.queryByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') }),
@@ -100,14 +92,19 @@ describe('DataModelling', () => {
 
   it('shows schema errors panel first when "generate model" button is clicked and returns errors', async () => {
     const queryClient = createQueryClientMock();
-    generateModels.mockImplementation(() =>
-      Promise.reject(
-        createApiErrorMock(400, 'DM_01', ['custom error message', 'another custom error message']),
-      ),
-    );
+    const generateModels = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.reject(
+          createApiErrorMock(400, 'DM_01', [
+            'custom error message',
+            'another custom error message',
+          ]),
+        ),
+      );
     queryClient.setQueryData([QueryKey.DatamodelsJson, org, app], [jsonMetadata1Mock]);
     queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], []);
-    render({}, queryClient);
+    render({ generateModels }, queryClient);
     const errorsPanel = screen.queryByText(textMock('api_errors.DM_01'));
     expect(errorsPanel).not.toBeInTheDocument();
 
@@ -121,14 +118,19 @@ describe('DataModelling', () => {
 
   it('closes schemaErrorsPanel when "close" button is clicked', async () => {
     const queryClient = createQueryClientMock();
-    generateModels.mockImplementation(() =>
-      Promise.reject(
-        createApiErrorMock(400, 'DM_01', ['custom error message', 'another custom error message']),
-      ),
-    );
+    const generateModels = jest
+      .fn()
+      .mockImplementation(() =>
+        Promise.reject(
+          createApiErrorMock(400, 'DM_01', [
+            'custom error message',
+            'another custom error message',
+          ]),
+        ),
+      );
     queryClient.setQueryData([QueryKey.DatamodelsJson, org, app], [jsonMetadata1Mock]);
     queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], []);
-    render({}, queryClient);
+    render({ generateModels }, queryClient);
 
     const generateModelButton = screen.getByRole('button', {
       name: textMock('schema_editor.generate_model_files'),

@@ -1,80 +1,61 @@
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
-import { Provider } from 'react-redux';
-import { SchemaEditorAppContext, SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
-import { SchemaState } from '@altinn/schema-editor/types';
-import configureStore from 'redux-mock-store';
+import {
+  SchemaEditorAppContext,
+  SchemaEditorAppContextProps,
+} from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
 import { SchemaModel } from '../../schema-model';
 
 export interface RenderWithProvidersData {
-  state?: Partial<SchemaState>,
-  appContextProps?: Partial<SchemaEditorAppContextProps>,
+  appContextProps?: Partial<SchemaEditorAppContextProps>;
 }
 
-export const renderWithProviders = ({
-  state = {},
-  appContextProps = {},
-}: RenderWithProvidersData = {
-  state: {},
-  appContextProps: {},
-}) => (element: ReactNode) => {
-
-  const allStateProps: SchemaState = {
-    selectedEditorTab: null,
-    selectedPropertyNodeId: null,
-    name: null,
-    selectedDefinitionNodeId: null,
-    ...state,
-  };
-
-  const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
-    schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
-    save: jest.fn(),
-    setSelectedTypePointer: jest.fn(),
-    ...appContextProps,
-  };
-
-  const store = configureStore()(allStateProps);
-
-  const result = render(
-    <Provider store={store}>
-      <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
-        {element}
-      </SchemaEditorAppContext.Provider>
-    </Provider>
-  );
-
-  const rerender = ({
-    state: rerenderState = {},
-    appContextProps: rerenderAppContextProps = {},
-  }: RenderWithProvidersData = {
-    state: {},
-    appContextProps: {},
-  }) => {
-    const newStateProps: SchemaState = {
-      selectedEditorTab: null,
-      selectedPropertyNodeId: null,
-      name: null,
-      selectedDefinitionNodeId: null,
-      ...rerenderState,
-    };
-
-    const newAppContextProps: SchemaEditorAppContextProps = {
+export const renderWithProviders =
+  (
+    { appContextProps = {} }: RenderWithProvidersData = {
+      appContextProps: {},
+    },
+  ) =>
+  (element: ReactNode) => {
+    const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
       schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
       save: jest.fn(),
+      selectedNodePointer: null,
+      setSelectedNodePointer: jest.fn(),
+      selectedTypePointer: null,
       setSelectedTypePointer: jest.fn(),
-      ...rerenderAppContextProps,
+      ...appContextProps,
     };
 
-    return (rerenderElement: ReactNode) => result.rerender(
-      <Provider store={configureStore()(newStateProps)}>
-        <SchemaEditorAppContext.Provider value={newAppContextProps}>
-          {rerenderElement}
-        </SchemaEditorAppContext.Provider>
-      </Provider>
+    const result = render(
+      <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
+        {element}
+      </SchemaEditorAppContext.Provider>,
     );
-  };
 
-  return { ...result, store, rerender };
-};
+    const rerender = (
+      { appContextProps: rerenderAppContextProps = {} }: RenderWithProvidersData = {
+        appContextProps: {},
+      },
+    ) => {
+      const newAppContextProps: SchemaEditorAppContextProps = {
+        schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
+        save: jest.fn(),
+        selectedNodePointer: null,
+        setSelectedNodePointer: jest.fn(),
+        selectedTypePointer: null,
+        setSelectedTypePointer: jest.fn(),
+        ...rerenderAppContextProps,
+      };
+
+      return (rerenderElement: ReactNode) =>
+        result.rerender(
+          <SchemaEditorAppContext.Provider value={newAppContextProps}>
+            {rerenderElement}
+          </SchemaEditorAppContext.Provider>,
+        );
+    };
+
+    return { ...result, rerender };
+  };

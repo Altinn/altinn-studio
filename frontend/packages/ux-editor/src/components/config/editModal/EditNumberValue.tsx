@@ -18,9 +18,7 @@ export const EditNumberValue = ({
   helpText,
 }: EditNumberValueProps) => {
   const { t } = useTranslation();
-
   const handleValueChange = (newValue: number) => {
-    if (newValue === undefined || newValue === null) return;
     handleComponentChange(setComponentProperty(component, propertyKey, newValue));
   };
 
