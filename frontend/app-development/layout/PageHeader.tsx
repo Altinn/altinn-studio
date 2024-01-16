@@ -37,17 +37,13 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
     {
       title: 'top_menu.preview',
       menuKey: TopBarMenu.Preview,
-      buttonVariant: 'secondary',
-      buttonColor: 'inverted',
-      headerButtonsClasses: undefined,
-      handleClick: () => packagesRouter.navigateToPackage('preview'),
+      to: packagesRouter.getPackageNavigationUrl('preview'),
+      isInverted: true,
     },
     {
       title: 'top_menu.deploy',
       menuKey: TopBarMenu.Deploy,
-      buttonVariant: 'secondary',
-      headerButtonsClasses: undefined,
-      handleClick: () => packagesRouter.navigateToPackage('editorPublish'),
+      to: packagesRouter.getPackageNavigationUrl('editorPublish'),
     },
   ];
   return actions;
