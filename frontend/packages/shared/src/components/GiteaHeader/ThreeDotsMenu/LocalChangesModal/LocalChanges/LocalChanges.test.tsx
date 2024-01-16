@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
-import { LocalChangesTab, LocalChangesTabProps } from './LocalChangesTab';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { LocalChanges, LocalChangesProps } from './LocalChanges';
+import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ import { repoDownloadPath } from 'app-shared/api/paths';
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
 
-jest.mock('../../../../../../hooks/mutations/useResetRepositoryMutation');
+jest.mock('app-development/hooks/mutations/useResetRepositoryMutation');
 const deleteLocalChangesMutation = jest.fn();
 const mockDeleteLocalChangesyMutation = useResetRepositoryMutation as jest.MockedFunction<
   typeof useResetRepositoryMutation
@@ -21,11 +21,11 @@ mockDeleteLocalChangesyMutation.mockReturnValue({
   mutate: deleteLocalChangesMutation,
 } as unknown as UseMutationResult<any, Error, void, unknown>);
 
-describe('LocalChangesTab', () => {
+describe('LocalChanges', () => {
   const user = userEvent.setup();
   afterEach(jest.clearAllMocks);
 
-  const defaultProps: LocalChangesTabProps = {
+  const defaultProps: LocalChangesProps = {
     org: mockOrg,
     app: mockApp,
   };
@@ -36,7 +36,7 @@ describe('LocalChangesTab', () => {
     const hrefToOnlyFilesYouHaveChanged = repoDownloadPath(mockOrg, mockApp);
 
     const downloadOnlyChangedFilesLink = screen.getByRole('link', {
-      name: textMock('settings_modal.local_changes_tab_download_only_changed_button'),
+      name: textMock('local_changes.modal_download_only_changed_button'),
     });
     expect(downloadOnlyChangedFilesLink).toHaveAttribute('href', hrefToOnlyFilesYouHaveChanged);
   });
@@ -47,7 +47,7 @@ describe('LocalChangesTab', () => {
     const hrefToAllFilesInRepo = repoDownloadPath(mockOrg, mockApp, true);
 
     const downloadOnlyChangedFilesLink = screen.getByRole('link', {
-      name: textMock('settings_modal.local_changes_tab_download_all_button'),
+      name: textMock('local_changes_modal.download_all_button'),
     });
     expect(downloadOnlyChangedFilesLink).toHaveAttribute('href', hrefToAllFilesInRepo);
   });
@@ -56,7 +56,7 @@ describe('LocalChangesTab', () => {
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteModalHeading = screen.queryByRole('heading', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_title'),
+      name: textMock('local_changes.modal_delete_modal_title'),
       level: 1,
     });
     expect(deleteModalHeading).not.toBeInTheDocument();
@@ -66,12 +66,12 @@ describe('LocalChangesTab', () => {
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_button'),
+      name: textMock('local_changes.modal_delete_button'),
     });
     await act(() => user.click(deleteButton));
 
     const deleteModalHeading = screen.getByRole('heading', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_title'),
+      name: textMock('local_changes.modal_delete_modal_title'),
       level: 1,
     });
     expect(deleteModalHeading).toBeInTheDocument();
@@ -81,22 +81,22 @@ describe('LocalChangesTab', () => {
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_button'),
+      name: textMock('local_changes.modal_delete_button'),
     });
     await act(() => user.click(deleteButton));
 
     const deleteModalDeleteButton = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_delete_button'),
+      name: textMock('local_changes.modal_confirm_delete_button'),
     });
     expect(deleteModalDeleteButton).toBeDisabled();
 
     const textfield = screen.getByLabelText(
-      textMock('settings_modal.local_changes_tab_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label'),
     );
     await act(() => user.type(textfield, mockApp));
 
     const deleteModalDeleteButtonAfterTyping = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_delete_button'),
+      name: textMock('local_changes.modal_confirm_delete_button'),
     });
     expect(deleteModalDeleteButton).not.toBeDisabled();
     await act(() => user.click(deleteModalDeleteButtonAfterTyping));
@@ -108,12 +108,12 @@ describe('LocalChangesTab', () => {
     render({}, createQueryClientMock(), defaultProps);
 
     const deleteButton = screen.getByRole('button', {
-      name: textMock('settings_modal.local_changes_tab_delete_button'),
+      name: textMock('local_changes.modal_delete_button'),
     });
     await act(() => user.click(deleteButton));
 
     const deleteModalHeading = screen.getByRole('heading', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_title'),
+      name: textMock('local_changes.modal_delete_modal_title'),
       level: 1,
     });
     expect(deleteModalHeading).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe('LocalChangesTab', () => {
     await act(() => user.click(deleteModalCancelButton));
 
     const deleteModalHeadingAfterClose = screen.queryByRole('heading', {
-      name: textMock('settings_modal.local_changes_tab_delete_modal_title'),
+      name: textMock('local_changes.modal_delete_modal_title'),
       level: 1,
     });
     expect(deleteModalHeadingAfterClose).not.toBeInTheDocument();
@@ -132,13 +132,13 @@ describe('LocalChangesTab', () => {
 });
 
 const render = (
-  queries: Partial<ServicesContextProps> = {},
+  allQueries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: LocalChangesTabProps,
+  props: LocalChangesProps,
 ) => {
   return rtlRender(
-    <ServicesContextProvider {...queries} client={queryClient}>
-      <LocalChangesTab {...props} />
+    <ServicesContextProvider {...allQueries} client={queryClient}>
+      <LocalChanges {...props} />
     </ServicesContextProvider>,
   );
 };

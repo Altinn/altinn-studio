@@ -9,6 +9,7 @@ import { SettingsModalButton } from './SettingsModalButton';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import { RepositoryType } from 'app-shared/types/global';
 
 type SubMenuContentProps = {
   org: string;
@@ -16,12 +17,15 @@ type SubMenuContentProps = {
 };
 
 export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
+  const repositoryType = getRepositoryType(org, app);
   return (
     <GiteaHeader
       org={org}
       app={app}
       hasCloneModal
-      leftComponent={<SettingsModalButton org={org} app={app} />}
+      leftComponent={
+        repositoryType !== RepositoryType.Datamodels && <SettingsModalButton org={org} app={app} />
+      }
     />
   );
 };
@@ -33,17 +37,13 @@ export const buttonActions = (org: string, app: string): AltinnButtonActionItem[
     {
       title: 'top_menu.preview',
       menuKey: TopBarMenu.Preview,
-      buttonVariant: 'secondary',
-      buttonColor: 'inverted',
-      headerButtonsClasses: undefined,
-      handleClick: () => packagesRouter.navigateToPackage('preview'),
+      to: packagesRouter.getPackageNavigationUrl('preview'),
+      isInverted: true,
     },
     {
       title: 'top_menu.deploy',
       menuKey: TopBarMenu.Deploy,
-      buttonVariant: 'secondary',
-      headerButtonsClasses: undefined,
-      handleClick: () => packagesRouter.navigateToPackage('editorPublish'),
+      to: packagesRouter.getPackageNavigationUrl('editorPublish'),
     },
   ];
   return actions;

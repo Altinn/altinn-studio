@@ -108,9 +108,7 @@ export const appPreviewButtonActions = (
     {
       title: 'top_menu.preview_back_to_editing',
       menuKey: TopBarMenu.Preview,
-      buttonVariant: 'secondary',
-      headerButtonsClasses: classes.backToEditorBtn,
-      handleClick: () => packagesRouter.navigateToPackage('editorUiEditor', queryParams),
+      to: `${packagesRouter.getPackageNavigationUrl('editorUiEditor')}${queryParams}`,
     },
   ];
   return action;
