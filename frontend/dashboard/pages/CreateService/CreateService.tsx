@@ -113,8 +113,13 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   };
 
   const validateTextValue = (event: ChangeEvent<HTMLInputElement>) => {
-    const { isValid: isRepoNameValid } = validateRepoName(event.target.value);
-    if (isRepoNameValid) setFormError(initialFormError);
+    const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
+      event.target.value,
+    );
+    setFormError((previous) => ({
+      ...previous,
+      repoName: isRepoNameValid ? '' : repoNameErrorMessage,
+    }));
   };
 
   return (
