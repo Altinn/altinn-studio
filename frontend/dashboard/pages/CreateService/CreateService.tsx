@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
@@ -18,6 +18,11 @@ import { navigateToAppDevelopment } from './utils/navigationUtils';
 
 const DASHBOARD_ROOT_ROUTE: string = '/';
 
+const initialFormError: CreateAppForm = {
+  org: '',
+  repoName: '',
+};
+
 type CreateAppForm = {
   org?: string;
   repoName?: string;
@@ -34,10 +39,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   const selectedContext = useSelectedContext();
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
 
-  const [formError, setFormError] = useState<CreateAppForm>({
-    org: '',
-    repoName: '',
-  });
+  const [formError, setFormError] = useState<CreateAppForm>(initialFormError);
 
   const {
     mutate: addRepoMutation,
@@ -109,6 +111,16 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     return isOrgValid && isRepoNameValid;
   };
 
+  const validateTextValue = (event: ChangeEvent<HTMLInputElement>) => {
+    const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
+      event.target.value,
+    );
+    setFormError((previous) => ({
+      ...previous,
+      repoName: isRepoNameValid ? '' : repoNameErrorMessage,
+    }));
+  };
+
   return (
     <form onSubmit={handleCreateAppFormSubmit} className={classes.createAppForm}>
       <ServiceOwnerSelector
@@ -118,7 +130,11 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         errorMessage={formError.org}
         selectedOrgOrUser={defaultSelectedOrgOrUser}
       />
-      <RepoNameInput name='repoName' errorMessage={formError.repoName} />
+      <RepoNameInput
+        name='repoName'
+        errorMessage={formError.repoName}
+        onChange={validateTextValue}
+      />
       <div className={classes.actionContainer}>
         {isCreatingRepo || isCreatingRepoSuccess ? (
           <StudioSpinner spinnerText={t('dashboard.creating_your_service')} />

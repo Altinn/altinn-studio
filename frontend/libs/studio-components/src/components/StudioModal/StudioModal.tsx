@@ -54,15 +54,13 @@ export const StudioModal = forwardRef<HTMLDialogElement, StudioModalProps>(
         {...rest}
       >
         <div className={classes.headingWrapper}>
-          {title}
-          <div className={classes.closeButtonWrapper}>
-            <StudioButton
-              variant='tertiary'
-              icon={<MultiplyIcon />}
-              onClick={onClose}
-              aria-label={t('modal.close_icon')}
-            />
-          </div>
+          <div className={classes.title}>{title}</div>
+          <StudioButton
+            variant='tertiary'
+            icon={<MultiplyIcon />}
+            onClick={onClose}
+            aria-label={t('modal.close_icon')}
+          />
         </div>
         <div className={classes.contentWrapper}>{children}</div>
       </ReactModal>

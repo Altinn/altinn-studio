@@ -119,7 +119,7 @@ export const LocalChangesActionButton = ({
   };
 
   return (
-    <div className={classes.wrapper}>
+    <div>
       <Label as='p' size='small' spacing>
         {label}
       </Label>

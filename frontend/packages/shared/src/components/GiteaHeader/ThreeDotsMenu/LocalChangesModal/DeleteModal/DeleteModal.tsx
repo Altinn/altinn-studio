@@ -52,17 +52,17 @@ export const DeleteModal = ({
         <div className={classes.titleWrapper}>
           <TrashIcon className={classes.modalIcon} />
           <Heading level={1} size='xsmall'>
-            {t('settings_modal.local_changes_tab_delete_modal_title')}
+            {t('local_changes.modal_delete_modal_title')}
           </Heading>
         </div>
       }
     >
       <div className={classes.contentWrapper}>
         <Paragraph size='small' spacing>
-          {t('settings_modal.local_changes_tab_delete_modal_text')}
+          {t('local_changes.modal_delete_modal_text')}
         </Paragraph>
         <Textfield
-          label={t('settings_modal.local_changes_tab_delete_modal_textfield_label')}
+          label={t('local_changes.modal_delete_modal_textfield_label')}
           size='small'
           value={nameToDelete}
           onChange={(e) => setNameToDelete(e.target.value)}
@@ -75,7 +75,7 @@ export const DeleteModal = ({
             disabled={appName !== nameToDelete}
             size='small'
           >
-            {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
+            {t('local_changes.modal_confirm_delete_button')}
           </StudioButton>
           <StudioButton variant='secondary' onClick={handleClose} size='small'>
             {t('general.cancel')}

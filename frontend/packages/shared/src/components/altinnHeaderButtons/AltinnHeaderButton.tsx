@@ -1,6 +1,8 @@
 import React from 'react';
-import { StudioButton } from '@studio/components';
+import classes from './AltinnHeaderButton.module.css';
+import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from '../altinnHeader/types';
 
 export interface AltinnHeaderButtonProps {
@@ -13,17 +15,17 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
   if (!action) return null;
 
   return (
-    <StudioButton
-      className={action.headerButtonsClasses}
+    <Link
+      href={action.to}
+      className={cn(
+        classes.linkButton,
+        action.isInverted ? classes.invertedButton : classes.normalButton,
+      )}
       key={action.menuKey}
-      onClick={action.handleClick}
-      variant={action.buttonVariant}
-      color={action.buttonColor || 'first'}
       data-testid={action.menuKey}
       aria-label={t(action.title)}
-      size='small'
     >
       {t(action.title)}
-    </StudioButton>
+    </Link>
   );
 };
