@@ -2,3 +2,7 @@
   display: inline-flex;
   gap: var(--fds-spacing-1);
 }
+
+.iconWrapper {
+  display: contents;
+}

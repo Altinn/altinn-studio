@@ -16,11 +16,15 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
   HTMLButtonElement,
   StudioButtonProps
 >(({ icon, iconPlacement = 'left', children, className, ...rest }, ref) => {
-  const iconComponent = <span aria-hidden={true}>{icon}</span>;
+  const iconComponent = (
+    <span aria-hidden className={classes.iconWrapper}>
+      {icon}
+    </span>
+  );
   return (
     <Button {...rest} className={cn(className, classes.studioButton)} ref={ref}>
       {icon && iconPlacement === 'left' && iconComponent}
-      <span>{children}</span>
+      {children}
       {icon && iconPlacement === 'right' && iconComponent}
     </Button>
   );
