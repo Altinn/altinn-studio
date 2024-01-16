@@ -340,12 +340,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static JsonNode UpdateKey(JsonNode textResourceBindings, TextIdMutation keyMutation)
         {
             JsonNode updatedTextResourceBindings = JsonNode.Parse(textResourceBindings.ToJsonString());
-            foreach ((string key, var value) in (textResourceBindings as JsonObject)!)
+            foreach ((string key, JsonNode value) in (textResourceBindings as JsonObject)!)
             {
-                if (value is null)
+                if (value is null or JsonArray)
                 {
                     continue;
                 }
+                Console.WriteLine("value" + value);
                 var valueElement = value.AsValue().GetValue<JsonElement>();
                 // Only update if the value is a string and the value is the same as the old key
                 if (valueElement.ValueKind != JsonValueKind.String || valueElement.GetString() != keyMutation.OldId)
