@@ -116,6 +116,7 @@ export const TextRow = ({
               renderField={({ fieldProps }) => (
                 <Textfield
                   {...fieldProps}
+                  aria-label={'text key edit'}
                   error={keyError}
                   onBlur={handleTextIdBlur}
                   onChange={(e) => fieldProps.onChange(e.target.value, e)}

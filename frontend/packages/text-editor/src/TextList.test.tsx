@@ -59,44 +59,54 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
 };
 
 describe('TextList', () => {
-  test('updateEntryId should be called when id has been changed', async () => {
+  it('should call updateEntryId when the ID is changed in the edit mode', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
     const { rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
+
     const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
     await act(() => user.click(toggleEditButton[0]));
-    const idInputs = screen.getAllByRole('textbox', {
-      name: 'tekst key edit',
-    });
-    await act(() => user.dblClick(idInputs[0]));
+    const idInput = screen.getByRole('textbox', { name: 'text key edit' });
+
+    await act(() => user.dblClick(idInput));
     await act(() => user.keyboard('a-updated{TAB}'));
     expect(updateEntryId).toHaveBeenCalledWith({ newId: 'a-updated', oldId: 'a' });
   });
 
-  test('that the user is warned when an id already exists', async () => {
+  it('should display warnings for existing, empty, or space-containing IDs', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
     const { rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
+
     const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
     await act(() => user.click(toggleEditButton[0]));
-    const idInputs = screen.getAllByRole('textbox', {
-      name: 'tekst key edit',
-    });
-    const errorMsg = 'Denne IDen finnes allerede';
-    await act(() => user.dblClick(idInputs[0]));
+
+    const idInput = screen.getByRole('textbox', { name: 'text key edit' });
+    const errorMsg = [
+      'Denne IDen finnes allerede',
+      'Det er ikke tillat med mellomrom i en textId',
+      'TextId kan ikke være tom',
+    ];
+    await act(() => user.dblClick(idInput));
+
     await act(() => user.keyboard('b'));
-    const error = screen.getByRole('alertdialog');
-    expect(error).toBeInTheDocument();
-    expect(screen.getByText(errorMsg)).not.toBeNull();
+    expect(screen.getByText(errorMsg[0])).not.toBeNull();
+
     await act(() => user.keyboard('2'));
-    expect(screen.queryByText(errorMsg)).toBeNull();
-    await act(() => user.keyboard('{BACKSPACE}'));
-    expect(screen.getByText(errorMsg)).toBeInTheDocument();
+    expect(screen.queryByText(errorMsg[0])).toBeNull();
+
+    await act(() => user.keyboard(' '));
+    expect(screen.getByText(errorMsg[1])).not.toBeNull();
+
+    await act(() => user.clear(idInput));
+    expect(screen.getByText(errorMsg[2])).not.toBeNull();
+
     await act(() => user.keyboard('{TAB}'));
     expect(updateEntryId).not.toHaveBeenCalled();
+
     await act(() => user.keyboard('{SHIFT>}{TAB}{/SHIFT}{END}2{TAB}'));
-    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'b2' });
+    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: '2' });
   });
 });
