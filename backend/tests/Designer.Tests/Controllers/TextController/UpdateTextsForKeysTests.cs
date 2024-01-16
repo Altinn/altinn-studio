@@ -84,7 +84,7 @@ namespace Designer.Tests.Controllers.TextController
                 var textResourceContainsKey = resource.Resources.Find(textResourceElement => textResourceElement.Id == key);
                 if (textResourceContainsKey is null)
                 {
-                    resource.Resources.Add(new TextResourceElement
+                    resource.Resources.Insert(0, new TextResourceElement
                     { Id = key, Value = value });
                     continue;
                 }
