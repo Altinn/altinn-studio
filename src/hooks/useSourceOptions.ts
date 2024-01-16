@@ -69,6 +69,8 @@ export function getSourceOptions({ source, node, dataSources }: IGetSourceOption
           langTools: {
             ...langTools,
             langAsString: (key: string) => langTools.langAsStringUsingPathInDataModel(key, path),
+            langAsNonProcessedString: (key: string) =>
+              langTools.langAsNonProcessedStringUsingPathInDataModel(key, path),
           },
         };
 

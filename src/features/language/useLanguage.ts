@@ -41,6 +41,11 @@ export interface IUseLanguage {
     params?: ValidLangParam[],
   ): string;
   langAsNonProcessedString(key: ValidLanguageKey | string | undefined, params?: ValidLangParam[]): string;
+  langAsNonProcessedStringUsingPathInDataModel(
+    key: ValidLanguageKey | string | undefined,
+    dataModelPath: string,
+    params?: ValidLangParam[],
+  ): string;
   elementAsString(element: ReactNode): string;
 }
 
@@ -196,12 +201,19 @@ function staticUseLanguage(
   const langAsNonProcessedString: IUseLanguage['langAsNonProcessedString'] = (key, params) =>
     base(key, params, undefined, false);
 
+  const langAsNonProcessedStringUsingPathInDataModel: IUseLanguage['langAsNonProcessedStringUsingPathInDataModel'] = (
+    key,
+    dataModelPath,
+    params,
+  ) => base(key, params, { dataModelPath }, false);
+
   return {
     language,
     lang,
     langAsString,
     langAsStringUsingPathInDataModel,
     langAsNonProcessedString,
+    langAsNonProcessedStringUsingPathInDataModel,
     elementAsString(element: ReactNode): string {
       return getPlainTextFromNode(element, langAsString);
     },

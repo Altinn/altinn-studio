@@ -619,7 +619,7 @@ export const ExprFunctions = {
         return null;
       }
 
-      return this.dataSources.langTools.langAsString(key);
+      return this.dataSources.langTools.langAsNonProcessedString(key);
     },
     args: [ExprVal.String] as const,
     returns: ExprVal.String,
