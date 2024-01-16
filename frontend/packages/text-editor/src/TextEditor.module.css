@@ -53,7 +53,7 @@
   justify-content: space-between;
 }
 
-.TextEditor__topRow__filter {
+.filterAndSearch {
   display: flex;
   flex-direction: row;
   align-items: flex-end;

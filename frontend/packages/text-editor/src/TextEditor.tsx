@@ -98,7 +98,7 @@ export const TextEditor = ({
           <Button variant='primary' color='first' onClick={handleAddNewEntryClick} size='small'>
             {t('text_editor.new_text')}
           </Button>
-          <div className={classes.TextEditor__topRow__filter}>
+          <div className={classes.filterAndSearch}>
             <Chip.Toggle
               onClick={() => setSortTextsAlphabetically(!sortTextsAlphabetically)}
               selected={sortTextsAlphabetically}
