@@ -98,7 +98,8 @@ export const upsertTextResources = (org: string, app: string, language: string, 
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
-export const importResourceFromAltinn2 = (org: string, environment: string, serviceCode: string, serviceEdition: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, serviceCode, serviceEdition));
+export const importResourceFromAltinn2 = (org: string, environment: string, serviceCode: string, serviceEdition: string, payload: string) =>
+  post<Resource>(importResourceFromAltinn2Path(org, environment, serviceCode, serviceEdition), JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
 export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(accessListsPath(org, environment), payload);
 export const updateAccessList = (org: string, listId: string, environment: string, payload: JsonPatch[]) => patch<AccessList>(accessListPath(org, listId, environment), payload);
 export const deleteAccessList = (org: string, listId: string, environment: string) => del(accessListPath(org, listId, environment));

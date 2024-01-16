@@ -1,1 +1,1 @@
-export { replaceWhiteSpaceWithHyphens } from './stringUtils';
+export { formatIdString } from './stringUtils';

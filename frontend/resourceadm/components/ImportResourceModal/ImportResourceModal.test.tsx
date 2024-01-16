@@ -31,7 +31,7 @@ const defaultProps: ImportResourceModalProps = {
 describe('ImportResourceModal', () => {
   afterEach(jest.clearAllMocks);
 
-  it('selects environment and service, then checks if import button exists', async () => {
+  it('selects environment and service, then checks if import button is enabled', async () => {
     const user = userEvent.setup();
     renderImportResourceModal();
 
@@ -113,6 +113,38 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(importButton));
 
     expect(importResourceFromAltinn2).toHaveBeenCalledTimes(1);
+  });
+
+  it('formats id when id field is changed', async () => {
+    const user = userEvent.setup();
+    render();
+
+    const environmentSelect = screen.getByLabelText(
+      textMock('resourceadm.dashboard_import_modal_select_env'),
+    );
+    await act(() => user.click(environmentSelect));
+    await act(() => user.click(screen.getByRole('option', { name: 'AT21' })));
+
+    // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
+    // (sometimes the spinner disappears) too quick and the test will fail
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(textMock('resourceadm.dashboard_import_modal_select_service')),
+      ).toBeInTheDocument();
+    });
+
+    const serviceSelect = screen.getByLabelText(
+      textMock('resourceadm.dashboard_import_modal_select_service'),
+    );
+    await act(() => user.click(serviceSelect));
+    await act(() => user.click(screen.getByRole('option', { name: mockOption })));
+
+    const idField = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
+    );
+    await act(() => user.type(idField, '?/test'));
+
+    expect(idField).toHaveValue(`${mockAltinn2LinkService.serviceName}--test`);
   });
 });
 
