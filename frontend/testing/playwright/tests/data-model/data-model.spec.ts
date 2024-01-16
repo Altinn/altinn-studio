@@ -14,9 +14,11 @@ test('should load datamodel page and ', async ({ page, testAppName, request }): 
   */
 
   const designerApi = new DesignerApi({ app: testAppName });
-  console.log('APP NAME', testAppName);
+  console.log('In the test - testAppName: ', testAppName);
   const response = await designerApi.createApp(request);
-  console.log('response from test', response);
+
+  console.log('In the test - request: ', request);
+  console.log('In the test - response: ', response);
   expect(response.ok()).toBeTruthy();
 
   const dataModelPage = new DataModelPage(page, { app: testAppName });

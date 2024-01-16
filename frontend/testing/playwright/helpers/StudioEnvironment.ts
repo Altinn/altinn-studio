@@ -13,7 +13,10 @@ export class StudioEnvironment {
     this.app = this.environment?.app ?? process.env.PLAYWRIGHT_DESIGNER_APP_NAME;
 
     // TODO - WHY IS THIS UNDEFINED
-    console.log('inside studio env', this?.environment?.app ?? 'undefined');
+    console.log(
+      'In StudioEnvironment.ts - this?.environment?.app: ',
+      this?.environment?.app ?? 'undefined',
+    );
   }
 
   public updateAppNameEnv(appName: string): void {

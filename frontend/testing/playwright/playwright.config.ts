@@ -2,7 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 import { config } from 'dotenv';
 import { ExtendedTestOptions } from './extenders/testExtend';
 
-const DATAMODEL_APP_TEST_NAME = 'datamodel-test-app';
+// TODO - make enum
+const DATAMODEL_APP_TEST_NAME = 'data-model-test-app';
 
 config();
 

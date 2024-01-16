@@ -4,14 +4,15 @@ import { Environment, StudioEnvironment } from './StudioEnvironment';
 export class DesignerApi extends StudioEnvironment {
   constructor(environment?: Environment) {
     super(environment);
-    console.log('env.app inside DesignerApi constructor', this.app);
   }
 
   public async createApp(request: APIRequestContext): Promise<APIResponse> {
-    console.log('this.app inside createApp', this.app);
     const response = await request.post(
-      `studio.localhost/designer/api/repos/create-app?org=${this.org}&repository=${this.app}&datamodellingPreference=1`,
+      `/designer/api/repos/create-app?org=${this.org}&repository=${this.app}&datamodellingPreference=1`,
     );
+    console.log('DesignerAPI - createApp - response: ', response);
+    console.log('DesignerAPI - createApp - response.status: ', response.status());
+    console.log('DesignerAPI - createApp - response.text: ', await response.text());
     return response;
   }
 }
