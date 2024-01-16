@@ -95,7 +95,7 @@ describe('TextEditor', () => {
     const editButton = screen.getByRole('button', { name: 'toggle-textkey-edit' });
     await act(() => editButton.click());
 
-    const textarea = screen.getByRole('textbox', { name: 'tekst key edit' });
+    const textarea = screen.getByRole('textbox', { name: 'text key edit' });
     await act(() => user.clear(textarea));
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());

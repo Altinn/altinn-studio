@@ -77,7 +77,7 @@ describe('TextRow', () => {
     await act(() => user.click(toggleKeyEditButton));
 
     const idInput = screen.getByRole('textbox', {
-      name: 'tekst key edit',
+      name: 'text key edit',
     });
     const emptyMsg = 'TextId kan ikke være tom';
     const illegalCharMsg = 'Det er ikke tillat med mellomrom i en textId';
