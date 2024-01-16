@@ -6,8 +6,19 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { MemoryRouter } from 'react-router-dom';
+import { AltinnButtonActionItem } from './types';
+
+const mockTo: string = '/test';
+const mockButtonTitle: string = 'title';
+const mockAction: AltinnButtonActionItem = {
+  menuKey: 'menu-1',
+  title: mockButtonTitle,
+  to: mockTo,
+};
 
 describe('AltinnHeader', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should render AltinnHeaderMenu', () => {
     render({
       menuItems: [
@@ -42,18 +53,10 @@ describe('AltinnHeader', () => {
 
   it('should render AltinnHeaderButtons when buttonActions are provided', () => {
     render({
-      buttonActions: [
-        {
-          buttonVariant: 'tertiary',
-          headerButtonsClasses: undefined,
-          menuKey: 'test-button',
-          title: 'TestButton',
-          handleClick: jest.fn(),
-        },
-      ],
+      buttonActions: [mockAction],
     });
-    expect(screen.getByRole('button', { name: textMock('TestButton') })).toBeInTheDocument();
-    expect(screen.getAllByRole('button').length).toEqual(2); // TestButton + Profile Menu
+    expect(screen.getByRole('link', { name: textMock(mockButtonTitle) })).toBeInTheDocument();
+    expect(screen.getAllByRole('button').length).toEqual(1); // Profile Menu
   });
 
   it('should not render AltinnHeaderButtons when buttonActions are not provided', () => {
@@ -80,36 +83,17 @@ describe('AltinnHeader', () => {
   });
 
   it('should render Deploy header button when repo is owned by an org', () => {
-    const mockTextDeployButton = 'TestDeployButton';
     render({
       repoOwnerIsOrg: true,
-      buttonActions: [
-        {
-          buttonVariant: 'tertiary',
-          headerButtonsClasses: undefined,
-          menuKey: TopBarMenu.Deploy,
-          title: mockTextDeployButton,
-          handleClick: jest.fn(),
-        },
-      ],
+      buttonActions: [mockAction],
     });
-    expect(
-      screen.getByRole('button', { name: textMock(mockTextDeployButton) }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock(mockButtonTitle) })).toBeInTheDocument();
   });
 
   it('should not render Deploy header button when repo is owned by a private person', () => {
     render({
       repoOwnerIsOrg: false,
-      buttonActions: [
-        {
-          buttonVariant: 'tertiary',
-          headerButtonsClasses: undefined,
-          menuKey: TopBarMenu.Deploy,
-          title: 'TestButton',
-          handleClick: jest.fn(),
-        },
-      ],
+      buttonActions: [mockAction],
     });
     expect(
       screen.queryByRole('button', { name: textMock(TopBarMenu.Deploy) }),
