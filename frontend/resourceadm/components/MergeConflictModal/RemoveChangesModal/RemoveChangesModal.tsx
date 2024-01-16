@@ -64,14 +64,10 @@ export const RemoveChangesModal = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={t('settings_modal.local_changes_tab_delete_modal_title')}
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={t('local_changes.modal_delete_modal_title')}>
       <Paragraph size='small'>
         <Trans
-          i18nKey={'settings_modal.local_changes_tab_delete_modal_text'}
+          i18nKey={'local_changes.modal_delete_modal_text'}
           values={{ repositoryName: repo }}
           components={{ bold: <strong /> }}
         />
@@ -96,7 +92,7 @@ export const RemoveChangesModal = ({
           variant='secondary'
           size='small'
         >
-          {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
+          {t('local_changes.modal_confirm_delete_button')}
         </Button>
         <Button color='second' onClick={handleClose} variant='secondary' size='small'>
           {t('general.cancel')}

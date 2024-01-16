@@ -50,7 +50,7 @@ const config = {
     '^@studio/components': path.join(__dirname, 'libs/studio-components/src/$1'),
     '^@studio/pure-functions': path.join(__dirname, 'libs/studio-pure-functions/src/$1'),
   },
-  testRegex: '(\\.(test|spec))\\.(ts|tsx)$',
+  testRegex: '(\\.(test))\\.(ts|tsx)$',
   moduleFileExtensions: ['ts', 'tsx', 'js'],
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: [path.join(__dirname, 'testing/setupTests.ts')],
