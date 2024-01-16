@@ -13,18 +13,11 @@ test('should load datamodel page and ', async ({ page, testAppName, request }): 
   await createServicePage.verifyIsNavigatedToOverviewPage();
   */
 
-  /*
-  const designerApi = new DesignerApi();
-  await designerApi.createApp({ app: testAppName });
-  */
-
   const designerApi = new DesignerApi({ app: testAppName });
   console.log('APP NAME', testAppName);
   const response = await designerApi.createApp(request);
   console.log('response from test', response);
   expect(response.ok()).toBeTruthy();
-
-  // TODO add test for create app ok
 
   const dataModelPage = new DataModelPage(page, { app: testAppName });
 
