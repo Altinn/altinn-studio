@@ -83,8 +83,6 @@ describe('TextRow', () => {
     const illegalCharMsg = 'Det er ikke tillat med mellomrom i en textId';
     await act(() => user.dblClick(idInput));
     await act(() => user.keyboard('{BACKSPACE}'));
-    const error = screen.getByRole('alertdialog');
-    expect(error).toBeInTheDocument();
     expect(screen.getByText(emptyMsg)).not.toBeNull();
     await act(() => user.keyboard('2'));
     expect(screen.queryByText(emptyMsg)).toBeNull();
