@@ -67,7 +67,7 @@ describe('PageLayout', () => {
   it('renders header with no publish button when repoOwner is a private person', async () => {
     await resolveAndWaitForSpinnerToDisappear();
 
-    expect(screen.getByRole('button', { name: textMock('top_menu.preview') })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();
 
     expect(
       screen.queryByRole('button', { name: textMock('top_menu.deploy') }),

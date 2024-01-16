@@ -7,7 +7,7 @@ type RepoNameInputProps = {
   errorMessage?: string;
 } & TextfieldProps;
 
-export const RepoNameInput = ({ repoName, errorMessage, name }: RepoNameInputProps) => {
+export const RepoNameInput = ({ repoName, errorMessage, name, onChange }: RepoNameInputProps) => {
   const { t } = useTranslation();
 
   return (
@@ -18,6 +18,7 @@ export const RepoNameInput = ({ repoName, errorMessage, name }: RepoNameInputPro
         label={t('general.service_name')}
         defaultValue={repoName}
         error={errorMessage}
+        onChange={onChange}
       />
       <p>
         {t('dashboard.service_saved_name_description')}{' '}
