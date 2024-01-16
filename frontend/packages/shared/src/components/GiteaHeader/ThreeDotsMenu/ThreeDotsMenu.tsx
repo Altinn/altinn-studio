@@ -4,9 +4,10 @@ import { TabsIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
-import { LegacyPopover, Button } from '@digdir/design-system-react';
+import { LegacyPopover } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
+import { StudioButton } from '@studio/components';
 
 type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
@@ -31,7 +32,7 @@ export const ThreeDotsMenu = ({
       <LegacyPopover
         className={classes.popover}
         trigger={
-          <Button
+          <StudioButton
             icon={<MenuElipsisVerticalIcon title='Gitea menu' />}
             variant='tertiary'
             color='inverted'

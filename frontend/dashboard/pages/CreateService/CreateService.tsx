@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { StudioSpinner } from '@studio/components';
+import { StudioButton, StudioSpinner } from '@studio/components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import classes from './CreateService.module.css';
-import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { Organization } from 'app-shared/types/Organization';
 import { User } from 'app-shared/types/Repository';
@@ -125,9 +124,9 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
           <StudioSpinner spinnerText={t('dashboard.creating_your_service')} />
         ) : (
           <>
-            <Button type='submit' color='first' size='small'>
+            <StudioButton type='submit' color='first' size='small'>
               {t('dashboard.create_service_btn')}
-            </Button>
+            </StudioButton>
             <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
           </>
         )}

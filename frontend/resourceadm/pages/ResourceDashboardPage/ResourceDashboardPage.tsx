@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
-import { Button, Spinner, Heading } from '@digdir/design-system-react';
+import { Spinner, Heading } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { StudioButton } from '@studio/components';
 
 /**
  * @component
@@ -98,7 +99,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           })}
         </Heading>
         <div className={classes.topRightWrapper}>
-          <Button
+          <StudioButton
             variant='tertiary'
             color='second'
             icon={<MigrationIcon />}
@@ -107,9 +108,9 @@ export const ResourceDashboardPage = (): React.ReactNode => {
             size='medium'
           >
             <strong>{t('resourceadm.dashboard_import_resource')}</strong>
-          </Button>
+          </StudioButton>
           <div className={classes.verticalDivider} />
-          <Button
+          <StudioButton
             variant='tertiary'
             color='second'
             icon={<PlusCircleIcon />}
@@ -118,7 +119,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
             size='medium'
           >
             <strong>{t('resourceadm.dashboard_create_resource')}</strong>
-          </Button>
+          </StudioButton>
         </div>
       </div>
       <div className={classes.horizontalDivider} />

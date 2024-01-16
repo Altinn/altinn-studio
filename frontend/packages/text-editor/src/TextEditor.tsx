@@ -7,7 +7,7 @@ import type {
   UpsertTextResourceMutation,
 } from './types';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
@@ -94,9 +94,9 @@ export const TextEditor = ({
     <div className={classes.TextEditor}>
       <div className={classes.TextEditor__main}>
         <div className={classes.TextEditor__topRow}>
-          <Button variant='primary' color='first' onClick={handleAddNewEntryClick} size='small'>
+          <StudioButton variant='primary' color='first' onClick={handleAddNewEntryClick} size='small'>
             {t('text_editor.new_text')}
-          </Button>
+          </StudioButton>
           <div>
             <SearchField
               id='text-editor-search'

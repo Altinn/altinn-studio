@@ -1,0 +1,4 @@
+.studioButton {
+  display: inline-flex;
+  gap: var(--fds-spacing-1);
+}

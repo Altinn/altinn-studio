@@ -7,11 +7,13 @@ exports[`ProfileMenu should match snapshot 1`] = `
   data-testid="profileButton"
   type="button"
 >
-  <span />
-  <img
-    alt="[mockedText(general.profile_icon)]"
-    title="[mockedText(shared.header_profile_icon_text)]"
-  />
+  <span>
+    <span />
+    <img
+      alt="[mockedText(general.profile_icon)]"
+      title="[mockedText(shared.header_profile_icon_text)]"
+    />
+  </span>
 </button>
 `;
 
@@ -22,10 +24,12 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
   data-testid="profileButton"
   type="button"
 >
-  <span />
-  <img
-    alt="[mockedText(general.profile_icon)]"
-    title="[mockedText(shared.header_profile_icon_text)]"
-  />
+  <span>
+    <span />
+    <img
+      alt="[mockedText(general.profile_icon)]"
+      title="[mockedText(shared.header_profile_icon_text)]"
+    />
+  </span>
 </button>
 `;

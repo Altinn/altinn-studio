@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { Button, Textfield, Paragraph } from '@digdir/design-system-react';
+import { Textfield, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from 'resourceadm/components/Modal';
 import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+import { StudioButton } from '@studio/components';
 
 type RemoveChangesModalProps = {
   /**
@@ -89,7 +90,7 @@ export const RemoveChangesModal = ({
         />
       </div>
       <div className={classes.buttonWrapper}>
-        <Button
+        <StudioButton
           color='danger'
           aria-disabled={repo !== deleteRepoName}
           onClick={repo === deleteRepoName && handleDelete}
@@ -97,10 +98,10 @@ export const RemoveChangesModal = ({
           size='small'
         >
           {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
-        </Button>
-        <Button color='second' onClick={handleClose} variant='secondary' size='small'>
+        </StudioButton>
+        <StudioButton color='second' onClick={handleClose} variant='secondary' size='small'>
           {t('general.cancel')}
-        </Button>
+        </StudioButton>
       </div>
     </Modal>
   );

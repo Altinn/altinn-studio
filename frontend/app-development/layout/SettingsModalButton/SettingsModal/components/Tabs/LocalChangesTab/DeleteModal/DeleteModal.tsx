@@ -1,9 +1,9 @@
 import React, { ReactNode, useState } from 'react';
 import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioModal } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 import { TrashIcon } from '@navikt/aksel-icons';
-import { Button, Heading, Paragraph, Textfield } from '@digdir/design-system-react';
+import { Heading, Paragraph, Textfield } from '@digdir/design-system-react';
 
 export type DeleteModalProps = {
   isOpen: boolean;
@@ -68,7 +68,7 @@ export const DeleteModal = ({
           onChange={(e) => setNameToDelete(e.target.value)}
         />
         <div className={classes.buttonWrapper}>
-          <Button
+          <StudioButton
             variant='secondary'
             color='danger'
             onClick={handleDelete}
@@ -76,10 +76,10 @@ export const DeleteModal = ({
             size='small'
           >
             {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
-          </Button>
-          <Button variant='secondary' onClick={handleClose} size='small'>
+          </StudioButton>
+          <StudioButton variant='secondary' onClick={handleClose} size='small'>
             {t('general.cancel')}
-          </Button>
+          </StudioButton>
         </div>
       </div>
     </StudioModal>

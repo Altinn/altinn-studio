@@ -4,7 +4,7 @@ import { FieldNode } from '@altinn/schema-model';
 import { FieldType, isField, isReference, ObjectKind } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { ItemFieldsTable } from './ItemFieldsTable';
@@ -44,7 +44,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
         <ItemFieldsTable readonly={readonly} selectedItem={selectedItem} />
       )}
       {!readonly && (
-        <Button
+        <StudioButton
           color='second'
           icon={<PlusIcon />}
           onClick={onAddPropertyClicked}
@@ -52,7 +52,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
           size='small'
         >
           {t('schema_editor.add_property')}
-        </Button>
+        </StudioButton>
       )}
     </div>
   );

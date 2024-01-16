@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { AltinnButtonActionItem } from '../altinnHeader/types';
 
@@ -13,7 +13,7 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
   if (!action) return null;
 
   return (
-    <Button
+    <StudioButton
       className={action.headerButtonsClasses}
       key={action.menuKey}
       onClick={action.handleClick}
@@ -24,6 +24,6 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
       size='small'
     >
       {t(action.title)}
-    </Button>
+    </StudioButton>
   );
 };
