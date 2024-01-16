@@ -8,7 +8,7 @@ import type {
 } from './types';
 import { SearchField } from '@altinn/altinn-design-system';
 import { Button, Chip } from '@digdir/design-system-react';
-import { ArrowsUpDownIcon } from '@navikt/aksel-icons';
+import { ArrowsUpDownIcon } from '@studio/icons';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
@@ -46,7 +46,7 @@ export const TextEditor = ({
   const [sortTextsAlphabetically, setSortTextsAlphabetically] = useState<boolean>(false);
   const resourceRows = mapResourceFilesToTableRows(textResourceFiles, sortTextsAlphabetically);
   const previousSelectedLanguages = useRef<string[]>([]);
-  
+
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
     [availableLanguages],

@@ -1,6 +1,6 @@
 import ISO6391 from 'iso-639-1';
 import type { Option, TextTableRow, TextTableRowEntry } from './types';
-import { ITextResources } from 'app-shared/types/global';
+import { ITextResource, ITextResources } from 'app-shared/types/global';
 import { alphabeticalCompareFunction } from 'app-shared/utils/compareFunctions';
 
 const intlNb = new Intl.DisplayNames(['nb'], { type: 'language' });
@@ -61,30 +61,36 @@ export const mapResourceFilesToTableRows = (
 ): TextTableRow[] => {
   const rows = new Map();
   Object.entries(files).forEach(([lang, resources]) => {
-    const orderedResources = sortAlphabetically
-      ? [...resources].sort((a, b) =>
-          alphabeticalCompareFunction(a.id.toLowerCase(), b.id.toLowerCase()),
-        )
-      : resources;
+    const orderedResources = getOrderedTexts(resources, sortAlphabetically);
     orderedResources.forEach((resource) => {
-      if (!rows.has(resource.id)) {
-        rows.set(resource.id, {
-          textKey: resource.id,
-          variables: resource.variables,
-          translations: [],
-        });
-      }
-      if (rows.has(resource.id) && !rows.has(resource.variables) && resource.variables) {
-        rows.get(resource.id).variables = resource.variables;
-      }
-      rows.get(resource.id).translations.push({
-        lang,
-        translation: resource.value,
-      });
+      createTextRows(rows, resource, lang);
     });
   });
   return Array.from(rows.values());
 };
+
+const getOrderedTexts = (resources: ITextResource[], sortAlphabetically: boolean): ITextResource[] => sortAlphabetically
+  ? [...resources].sort((a, b) =>
+    alphabeticalCompareFunction(a.id.toLowerCase(), b.id.toLowerCase()),
+  )
+  : resources;
+
+const createTextRows = (rows: Map<any, any>, resource: ITextResource, lang: string) => {
+  if (!rows.has(resource.id)) {
+    rows.set(resource.id, {
+      textKey: resource.id,
+      variables: resource.variables,
+      translations: [],
+    });
+  }
+  if (rows.has(resource.id) && !rows.has(resource.variables) && resource.variables) {
+    rows.get(resource.id).variables = resource.variables;
+  }
+  rows.get(resource.id).translations.push({
+    lang,
+    translation: resource.value,
+  });
+}
 
 export const validateTextId = (textIdToValidate: string): string => {
   const isIllegalId = (textIdToCheck: string) => Boolean(textIdToCheck.toLowerCase().match(' ')); // TODO: create matcher
