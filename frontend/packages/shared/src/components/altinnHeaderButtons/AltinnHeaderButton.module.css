@@ -1,27 +1,55 @@
-.properties {
-  align-items: center;
-  padding-right: 8rem;
-  gap: 1rem;
-}
-
-.rightContentButtons {
-  align-items: center;
+.linkButton {
   display: flex;
-  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  border: var(--fds-border_width-default) solid transparent;
+  padding: 0 var(--fds-spacing-3);
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  position: relative;
+  border-radius: var(--fds-border_radius-interactive);
+  min-height: var(--fds-sizing-8);
 }
 
-.rightContentButtons > * {
-  flex: 1;
+.linkButton:focus-visible {
+  --fds-focus-border-width: 3px;
+
+  outline: var(--fds-focus-border-width) solid var(--fds-semantic-border-focus-outline);
+  outline-offset: var(--fds-focus-border-width);
+  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-semantic-border-focus-boxshadow);
 }
 
-.infoPreviewIsBetaMessage {
-  padding: 20px;
-  display: inline-block;
+.invertedButton,
+.invertedButton:focus,
+.invertedButton:visited {
+  border: 1px solid var(--fds-semantic-border-on_inverted-default);
+  background: transparent;
+  color: var(--fds-semantic-text-neutral-on_inverted);
 }
 
-.infoIcon {
-  border: white 1px solid;
-  border-radius: 50%;
-  font-size: larger;
-  margin-top: 6px;
+.invertedButton:not([aria-disabled='true'], :disabled):hover {
+  background: var(--fds-semantic-surface-on_inverted-no_fill-hover);
+}
+
+.invertedButton:not([aria-disabled='true'], :disabled):active {
+  background: var(--fds-semantic-surface-on_inverted-no_fill-active);
+}
+
+.normalButton,
+.normalButton:focus,
+.normalButton:visited {
+  border-color: var(--fds-semantic-border-action-first-default);
+  background: var(--fds-semantic-surface-action-first-no_fill);
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.normalButton:not([aria-disabled='true'], :disabled):hover {
+  border-color: var(--fds-semantic-border-action-first-hover);
+  background: var(--fds-semantic-surface-action-first-no_fill-hover);
+}
+
+.normalButton:not([aria-disabled='true'], :disabled):active {
+  border-color: var(--fds-semantic-border-action-first-active);
+  background: var(--fds-semantic-surface-action-first-no_fill-active);
 }
