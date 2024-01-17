@@ -2,16 +2,24 @@ import { expect } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { DesignerApi } from '../../helpers/DesignerApi';
+import type { Cookie, CookiesObject } from '../../types/Cookies';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
 test.describe.configure({ mode: 'serial' });
 
 // Before the tests starts, we need to create the data model app
-test.beforeAll(async ({ testAppName, request }) => {
+test.beforeAll(async ({ testAppName, request, storageState }) => {
+  const fs = require('fs');
+  const jsonData = fs.readFileSync(storageState, 'utf-8');
+  const cookiesObject: CookiesObject = JSON.parse(jsonData);
+  const xsrfToken: string = cookiesObject.cookies.find(
+    (cookie: Cookie) => cookie.name === 'XSRF-TOKEN',
+  ).value;
+
   // Create a new app
   const designerApi = new DesignerApi({ app: testAppName });
-  const response = await designerApi.createApp(request);
+  const response = await designerApi.createApp(request, xsrfToken);
   expect(response.ok()).toBeTruthy();
 });
 
