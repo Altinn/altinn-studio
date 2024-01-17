@@ -36,7 +36,7 @@ export const ThreeDotsMenu = ({
         trigger={
           <StudioButton
             color='inverted'
-            icon={<MenuElipsisVerticalIcon/>}
+            icon={<MenuElipsisVerticalIcon />}
             size='small'
             title={t('sync_header.gitea_menu')}
             variant='tertiary'
