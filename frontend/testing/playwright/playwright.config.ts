@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 import { config } from 'dotenv';
 import { ExtendedTestOptions } from './extenders/testExtend';
 
+// TODO - make enum
+const DATAMODEL_APP_TEST_NAME = 'data-model-app-test';
+
 config();
 
 export default defineConfig<ExtendedTestOptions>({
@@ -41,6 +44,28 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: 'simple-app-test',
       },
     },
+    {
+      name: 'data-model',
+      dependencies: ['setup'],
+      testDir: './tests/data-model/',
+      testMatch: '*.spec.ts',
+      teardown: 'teardown-data-model',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        testAppName: DATAMODEL_APP_TEST_NAME,
+        headless: true,
+      },
+    },
+    {
+      name: 'teardown-data-model',
+      testDir: './tests/data-model/',
+      testMatch: '*data-model.teardown.ts',
+      use: {
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        testAppName: DATAMODEL_APP_TEST_NAME,
+      },
+    },
   ],
 });
-
