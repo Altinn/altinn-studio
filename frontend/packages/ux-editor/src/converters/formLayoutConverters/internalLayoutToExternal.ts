@@ -55,7 +55,7 @@ const getGroupChildrenWithPageIndex = (
   return childrenIds.map((childId) => getComponentIdWithPageIndex(internalLayout, childId));
 };
 
-const getComponentIdWithPageIndex = (
+export const getComponentIdWithPageIndex = (
   internalLayout: IInternalLayout,
   componentId: string,
 ): string => {
