@@ -36,10 +36,11 @@ export const AccessListMembers = ({
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
-  useDebounce(() => setSearchUrl(getPartiesQueryUrl(searchText, isSubPartySearch)), 500, [
-    searchText,
-    isSubPartySearch,
-  ]);
+  useDebounce(
+    () => setSearchUrl(searchText ? getPartiesQueryUrl(searchText, isSubPartySearch) : ''),
+    500,
+    [searchText, isSubPartySearch],
+  );
 
   const { mutate: removeListMember } = useRemoveAccessListMemberMutation(org, list.identifier, env);
   const { mutate: addListMember } = useAddAccessListMemberMutation(org, list.identifier, env);
