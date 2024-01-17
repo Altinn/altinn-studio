@@ -3,8 +3,7 @@ import { config } from 'dotenv';
 import { ExtendedTestOptions } from './extenders/testExtend';
 
 // TODO - make enum
-// const DATAMODEL_APP_TEST_NAME = 'data-model-test-app';
-const DATAMODEL_APP_TEST_NAME = 'data-model-test';
+const DATAMODEL_APP_TEST_NAME = 'data-model-app';
 
 config();
 

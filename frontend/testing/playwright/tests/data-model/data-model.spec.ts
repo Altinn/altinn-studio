@@ -2,31 +2,21 @@ import { expect } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { DesignerApi } from '../../helpers/DesignerApi';
-import { CreateServicePage } from 'testing/playwright/pages/CreateServicePage';
+
+// Before the tests starts, we need to create the data model app
+test.beforeAll(async ({ testAppName, request }) => {
+  // Create a new app
+  const designerApi = new DesignerApi({ app: testAppName });
+  const response = await designerApi.createApp(request);
+  expect(response.ok()).toBeTruthy();
+});
 
 test('Allows to adda datamodel, include an object with custom name and fields in it, generate a C# model from it, and then delete it', async ({
   page,
   testAppName,
-  request,
 }): Promise<void> => {
-  const createServicePage = new CreateServicePage(page);
-  await createServicePage.loadCreateAppFormPage();
-  await createServicePage.writeAppName(testAppName);
-  await createServicePage.clickOnCreateAppButton();
-  await createServicePage.verifyIsNavigatedToOverviewPage();
-
-  /*
-  const designerApi = new DesignerApi({ app: testAppName });
-  console.log('In the test - testAppName: ', testAppName);
-  const response = await designerApi.createApp(request);
-
-  console.log('In the test - request: ', request);
-  console.log('In the test - response: ', response);
-  expect(response.ok()).toBeTruthy();
-  */
-
+  // Load the data model page
   const dataModelPage = new DataModelPage(page, { app: testAppName });
-
   await dataModelPage.loadDataModelPage();
   await dataModelPage.verifyDataModelPage();
 
@@ -105,4 +95,11 @@ test('Allows to adda datamodel, include an object with custom name and fields in
   await dataModelPage.clickOnDeleteDataModelButton();
   await dataModelPage.clickOnConfirmDeleteDataModelButton();
   await dataModelPage.checkThatDataModelOptionDoNotExists();
+});
+
+test('Allows to upload and then delete an XSD file', async ({ page, testAppName, request }) => {
+  // Load the data model page
+  const dataModelPage = new DataModelPage(page, { app: testAppName });
+  await dataModelPage.loadDataModelPage();
+  await dataModelPage.verifyDataModelPage();
 });
