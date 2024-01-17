@@ -157,5 +157,5 @@ const findPageIndexOfComponent = (
   return findPageIndexInChildList(id, parentContainer.children);
 };
 
-const getChildIds = ({edit, children = []}: ExternalGroupComponent) =>
+const getChildIds = ({ edit, children = [] }: ExternalGroupComponent) =>
   edit?.multiPage ? children.map(removePageIndexPrefix) : children;

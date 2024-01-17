@@ -35,8 +35,9 @@ export const UnknownReferencedItem = ({ id, layout }: UnknownReferencedItemProps
           variant='tertiary'
         />
         <HelpText size='small' title='Ukjent komponent' className={classes.helpText}>
-          Referansen med ID {id} er ugyldig, da det ikke eksisterer noen komponent med denne ID-en.
-          Vennligst slett denne referansen for å rette feilen.
+          {t('ux_editor.unknown_group_reference', {
+            id,
+          })}
         </HelpText>
       </div>
     </div>
