@@ -3,7 +3,7 @@ import classes from './Dashboard.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DatamodelsReposList } from '../../components/DataModelsRepoList';
@@ -60,7 +60,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                 />
               </div>
               {searchText && (
-                <Button
+                <StudioButton
                   className={classes.clearSearchButton}
                   aria-label={t('dashboard.clear_search')}
                   onClick={handleClearSearch}

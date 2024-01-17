@@ -3,7 +3,7 @@ import classes from './SchemaEditor.module.css';
 import { useTranslation } from 'react-i18next';
 import { TypesInspector } from '../TypesInspector';
 import classNames from 'classnames';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { ModelsPanel, TypesPanel } from '../layout';
 import { SchemaInspector } from '../SchemaInspector';
@@ -62,7 +62,7 @@ export const SchemaEditor = () => {
                   type: extractNameFromPointer(selectedTypePointer),
                 })}
               </span>
-              <Button
+              <StudioButton
                 onClick={handleResetSelectedType}
                 icon={<XMarkIcon />}
                 variant='tertiary'

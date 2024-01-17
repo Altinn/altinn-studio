@@ -4,10 +4,11 @@ import { MonitorIcon, TabsIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
-import { LegacyPopover, Button } from '@digdir/design-system-react';
+import { LegacyPopover } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
-import { LocalChangesModal } from 'app-shared/components/GiteaHeader/ThreeDotsMenu/LocalChangesModal/LocalChangesModal';
+import { StudioButton } from '@studio/components';
+import { LocalChangesModal } from './LocalChangesModal';
 
 export type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
@@ -33,11 +34,12 @@ export const ThreeDotsMenu = ({
       <LegacyPopover
         className={classes.popover}
         trigger={
-          <Button
-            icon={<MenuElipsisVerticalIcon title={t('sync_header.gitea_menu')} />}
-            variant='tertiary'
+          <StudioButton
             color='inverted'
+            icon={<MenuElipsisVerticalIcon />}
             size='small'
+            title={t('sync_header.gitea_menu')}
+            variant='tertiary'
           />
         }
       >

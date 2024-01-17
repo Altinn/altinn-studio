@@ -4,7 +4,7 @@ import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Accordion, Button } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/design-system-react';
 import { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
@@ -18,6 +18,7 @@ import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
 import { useAppContext } from '../../hooks/useAppContext';
 import { FormLayout } from './FormLayout';
+import { StudioButton } from '@studio/components';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -163,14 +164,14 @@ export const DesignView = (): ReactNode => {
         />
       </div>
       <div className={classes.buttonContainer}>
-        <Button
+        <StudioButton
           icon={<PlusIcon />}
           onClick={() => handleAddPage(false)}
           size='small'
           className={classes.button}
         >
           {t('ux_editor.pages_add')}
-        </Button>
+        </StudioButton>
       </div>
     </div>
   );

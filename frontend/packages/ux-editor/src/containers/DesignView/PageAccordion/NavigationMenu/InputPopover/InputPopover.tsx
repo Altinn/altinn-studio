@@ -1,7 +1,6 @@
 import React, { ReactNode, ChangeEvent, useState, useRef, KeyboardEvent } from 'react';
 import classes from './InputPopover.module.css';
 import {
-  Button,
   DropdownMenu,
   ErrorMessage,
   Popover,
@@ -10,6 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 import { PencilIcon } from '@studio/icons';
+import { StudioButton } from '@studio/components';
 
 export type InputPopoverProps = {
   disabled: boolean;
@@ -96,7 +96,7 @@ export const InputPopover = ({
             {errorMessage}
           </ErrorMessage>
           <div className={classes.buttonContainer}>
-            <Button
+            <StudioButton
               color='first'
               variant='primary'
               onClick={() => saveNewName(newName)}
@@ -104,8 +104,8 @@ export const InputPopover = ({
               size='small'
             >
               {t('ux_editor.input_popover_save_button')}
-            </Button>
-            <Button
+            </StudioButton>
+            <StudioButton
               color='second'
               variant='tertiary'
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
@@ -115,7 +115,7 @@ export const InputPopover = ({
               size='small'
             >
               {t('general.cancel')}
-            </Button>
+            </StudioButton>
           </div>
         </Popover.Content>
       </Popover>
