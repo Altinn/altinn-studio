@@ -529,10 +529,9 @@
       {
         "id": "group-reference",
         "type": "Group",
-        "dataModelBindings": {},
         "textResourceBindings": {
           "title": "Legg til nytt element",
-          "body": "Elementet du registrer vil bli lagret og tilgjengelig i resten av tjenesten.",
+          "description": "Elementet du registrer vil bli lagret og tilgjengelig i resten av tjenesten.",
           "add_label": "Legg til nytt element"
         },
         "children": ["group2-endre-fra", "group2-endre-til"],
