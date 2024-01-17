@@ -294,7 +294,7 @@ export const DeployResourcePage = ({
               <Label size='medium' spacing>
                 {t('resourceadm.deploy_select_env_label')}
               </Label>
-              <div>
+              <div className={classes.environmentWrapper}>
                 {getAvailableEnvironments(selectedContext).map((env) => {
                   const versionString = getVersionString(env.id);
                   return (

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { render, screen } from '@testing-library/react';
-import userEvent, { UserEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { NewResourceModal, NewResourceModalProps } from './NewResourceModal';
 import { act } from 'react-dom/test-utils'; // Import act if needed
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -39,7 +39,7 @@ describe('NewResourceModal', () => {
 
   it('calls onClose function when close button is clicked', async () => {
     const user = userEvent.setup();
-    await renderAndOpenModal(user);
+    await renderAndOpenModal();
 
     const closeButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await act(() => user.click(closeButton));
@@ -48,8 +48,7 @@ describe('NewResourceModal', () => {
   });
 
   test('that create button should be disabled until the form is valid', async () => {
-    const user = userEvent.setup();
-    await renderAndOpenModal(user);
+    await renderAndOpenModal();
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
@@ -60,7 +59,7 @@ describe('NewResourceModal', () => {
   test('that create button should not create new resource when input fields are empty', async () => {
     const user = userEvent.setup();
     const createResourceMock = jest.fn();
-    await renderAndOpenModal(user, { createResource: createResourceMock });
+    await renderAndOpenModal({ createResource: createResourceMock });
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
@@ -71,7 +70,7 @@ describe('NewResourceModal', () => {
 
   test('that create button should be enabled when the form is valid', async () => {
     const user = userEvent.setup();
-    await renderAndOpenModal(user);
+    await renderAndOpenModal();
 
     const titleInput = screen.getByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
@@ -86,7 +85,7 @@ describe('NewResourceModal', () => {
 
   test('should navigate after creating new resource', async () => {
     const user = userEvent.setup();
-    await renderAndOpenModal(user);
+    await renderAndOpenModal();
 
     const titleInput = screen.getByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
@@ -103,7 +102,7 @@ describe('NewResourceModal', () => {
 
   test('should show error message if resource id is already in use', async () => {
     const user = userEvent.setup();
-    await renderAndOpenModal(user, {
+    await renderAndOpenModal({
       createResource: jest
         .fn()
         .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
@@ -139,7 +138,8 @@ const renderNewResourceModal = (queries: Partial<ServicesContextProps> = {}) => 
   );
 };
 
-const renderAndOpenModal = async (user: UserEvent, queries: Partial<ServicesContextProps> = {}) => {
+const renderAndOpenModal = async (queries: Partial<ServicesContextProps> = {}) => {
+  const user = userEvent.setup();
   renderNewResourceModal(queries);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });

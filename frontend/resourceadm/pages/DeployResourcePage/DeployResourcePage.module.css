@@ -12,6 +12,12 @@
   margin-top: var(--fds-spacing-7);
 }
 
+.environmentWrapper {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-gap: var(--fds-spacing-5);
+}
+
 .newVersionWrapper {
   margin-top: var(--fds-spacing-7);
   width: 100%;

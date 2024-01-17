@@ -2,9 +2,6 @@
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 38%;
-  margin-right: var(--fds-spacing-5);
-  margin-bottom: var(--fds-spacing-5);
   padding: var(--fds-spacing-5);
   background-color: var(--fds-semantic-surface-neutral-default);
   border-radius: 12px;
