@@ -124,17 +124,19 @@ export const ResourceNameAndId = ({
                 onClick={() => handleClickEditButton(false)}
                 variant='tertiary'
                 color='danger'
-                icon={<MultiplyIcon />}
                 title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
                 size='small'
-              />
+              >
+                <MultiplyIcon />
+              </StudioButton>
               <StudioButton
                 onClick={() => handleClickEditButton(true)}
                 variant='tertiary'
-                icon={<CheckmarkIcon />}
                 title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
                 size='small'
-              />
+              >
+                <CheckmarkIcon />
+              </StudioButton>
             </div>
           </div>
         ) : (
@@ -148,13 +150,12 @@ export const ResourceNameAndId = ({
             <div className={classes.editButtonWrapper}>
               <StudioButton
                 onClick={() => handleClickEditButton(false)}
-                iconPlacement='right'
-                icon={<PencilWritingIcon />}
                 variant='tertiary'
                 color='first'
                 size='small'
               >
                 {t('general.edit')}
+                <PencilWritingIcon />
               </StudioButton>
             </div>
           </div>
