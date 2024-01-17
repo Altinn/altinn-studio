@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { DeleteModal, DeleteModalProps } from './DeleteModal';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -25,7 +25,7 @@ describe('DeleteModal', () => {
 
   it('calls the onClose function when the Cancel button is clicked', async () => {
     const user = userEvent.setup();
-    render();
+    renderDeleteModal();
 
     const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await act(() => user.click(cancelButton));
@@ -34,17 +34,17 @@ describe('DeleteModal', () => {
 
   it('updates the value of the text field when typing', async () => {
     const user = userEvent.setup();
-    render();
+    renderDeleteModal();
 
     const textfield = screen.getByLabelText(
-      textMock('local_changes.modal_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label', { appName: mockApp }),
     );
     expect(textfield).toHaveValue('');
 
     await act(() => user.type(textfield, 'a'));
 
     const textfieldAfter = screen.getByLabelText(
-      textMock('local_changes.modal_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label', { appName: mockApp }),
     );
     expect(textfieldAfter).toHaveValue('a');
   });
@@ -54,7 +54,7 @@ describe('DeleteModal', () => {
 
     const mockDelete = jest.fn().mockImplementation(() => Promise.resolve());
 
-    render(null, { resetRepoChanges: mockDelete });
+    renderDeleteModal({}, { resetRepoChanges: mockDelete });
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_confirm_delete_button'),
@@ -62,7 +62,7 @@ describe('DeleteModal', () => {
     expect(deleteButton).toBeDisabled();
 
     const textfield = screen.getByLabelText(
-      textMock('local_changes.modal_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label', { appName: mockApp }),
     );
     await act(() => user.type(textfield, mockApp));
     expect(deleteButton).not.toBeDisabled();
@@ -83,7 +83,7 @@ describe('DeleteModal', () => {
 
     const mockDelete = jest.fn().mockImplementation(() => Promise.reject());
 
-    render(null, { resetRepoChanges: mockDelete });
+    renderDeleteModal({}, { resetRepoChanges: mockDelete });
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_confirm_delete_button'),
@@ -91,7 +91,7 @@ describe('DeleteModal', () => {
     expect(deleteButton).toBeDisabled();
 
     const textfield = screen.getByLabelText(
-      textMock('local_changes.modal_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label', { appName: mockApp }),
     );
     await act(() => user.type(textfield, mockApp));
     expect(deleteButton).not.toBeDisabled();
@@ -104,7 +104,7 @@ describe('DeleteModal', () => {
   });
 });
 
-const render = (
+const renderDeleteModal = (
   props: Partial<DeleteModalProps> = {},
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
@@ -114,7 +114,7 @@ const render = (
     ...queries,
   };
 
-  return rtlRender(
+  return render(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <DeleteModal {...defaultProps} {...props} />
     </ServicesContextProvider>,

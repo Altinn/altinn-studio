@@ -92,7 +92,7 @@ describe('LocalChanges', () => {
     expect(deleteModalDeleteButton).toBeDisabled();
 
     const textfield = screen.getByLabelText(
-      textMock('local_changes.modal_delete_modal_textfield_label'),
+      textMock('local_changes.modal_delete_modal_textfield_label', { appName: mockApp }),
     );
     await act(() => user.type(textfield, mockApp));
 

@@ -50,35 +50,33 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
       }
     >
       <div className={classes.contentWrapper}>
-        {isPendingDeleteLocalChanges ? (
-          <StudioSpinner />
-        ) : (
-          <>
-            <Paragraph size='small' spacing>
-              {t('local_changes.modal_delete_modal_text')}
-            </Paragraph>
-            <Textfield
-              label={t('local_changes.modal_delete_modal_textfield_label', { appName: app })}
-              size='small'
-              value={nameToDelete}
-              onChange={(e) => setNameToDelete(e.target.value)}
-            />
-            <div className={classes.buttonWrapper}>
-              <Button
-                variant='secondary'
-                color='danger'
-                onClick={handleDelete}
-                disabled={app !== nameToDelete}
-                size='small'
-              >
-                {t('local_changes.modal_confirm_delete_button')}
-              </Button>
-              <Button variant='secondary' onClick={handleClose} size='small'>
-                {t('general.cancel')}
-              </Button>
-            </div>
-          </>
-        )}
+        <Paragraph size='small' spacing>
+          {t('local_changes.modal_delete_modal_text')}
+        </Paragraph>
+        <Textfield
+          label={t('local_changes.modal_delete_modal_textfield_label', { appName: app })}
+          size='small'
+          value={nameToDelete}
+          onChange={(e) => setNameToDelete(e.target.value)}
+        />
+        <div className={classes.buttonWrapper}>
+          <Button
+            variant='secondary'
+            color='danger'
+            onClick={handleDelete}
+            disabled={app !== nameToDelete}
+            size='small'
+          >
+            {isPendingDeleteLocalChanges ? (
+              <StudioSpinner />
+            ) : (
+              t('local_changes.modal_confirm_delete_button')
+            )}
+          </Button>
+          <Button variant='secondary' onClick={handleClose} size='small'>
+            {t('general.cancel')}
+          </Button>
+        </div>
       </div>
     </StudioModal>
   );
