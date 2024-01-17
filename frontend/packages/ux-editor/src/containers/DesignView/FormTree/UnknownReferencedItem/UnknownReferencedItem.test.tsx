@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { UnknownReferencedItem, UnknownReferencedItemProps } from './UnknownItem';
+import { UnknownReferencedItem, UnknownReferencedItemProps } from './UnknownReferencedItem';
 import { layoutMock } from '../../../../testing/layoutMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentReference';
