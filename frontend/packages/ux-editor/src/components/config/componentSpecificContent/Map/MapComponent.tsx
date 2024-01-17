@@ -1,12 +1,13 @@
 import React from 'react';
 import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
-import { LegacyFieldSet, Button, LegacyTextField } from '@digdir/design-system-react';
+import { LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
+import { StudioButton } from '@studio/components';
 
 export const MapComponent = ({
   component,
@@ -157,12 +158,12 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
       {component.layers?.map(
         (layer, index): JSX.Element => (
           // Find a way to avoid using index as key
-          <LegacyFieldSet key={index} className={classes.fieldSet}>
+          <LegacyFieldSet key={index}>
             <div className={classes.layerHeaderContainer}>
               <p className={classes.numericLayerText}>
                 {t('ux_editor.map_layer')} {index + 1}
               </p>
-              <Button
+              <StudioButton
                 color='danger'
                 icon={<XMarkIcon title={t('general.delete')} />}
                 onClick={(): void => handleOnDeleteLayer(index)}
@@ -225,7 +226,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
           </LegacyFieldSet>
         ),
       )}
-      <Button
+      <StudioButton
         icon={<PlusIcon title={t('general.add')} />}
         variant='secondary'
         onClick={handleAddLayer}
@@ -234,7 +235,7 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
         size='small'
       >
         {t('ux_editor.add_map_layer')}
-      </Button>
+      </StudioButton>
     </>
   );
 };

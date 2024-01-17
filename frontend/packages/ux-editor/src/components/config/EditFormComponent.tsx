@@ -82,7 +82,7 @@ export const EditFormComponent = ({
   }
 
   return (
-    <Fieldset className={classes.root}>
+    <Fieldset className={classes.root} legend=''>
       <FormField
         id={component.id}
         value={showComponentConfigBeta || false}

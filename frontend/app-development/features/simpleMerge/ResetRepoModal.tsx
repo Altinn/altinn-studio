@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './RepoModal.module.css';
-import { StudioSpinner } from '@studio/components';
-import { Button, Textfield } from '@digdir/design-system-react';
+import { StudioButton, StudioSpinner } from '@studio/components';
+import { Textfield } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
@@ -93,7 +93,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           {repoResetMutation.isPending && <StudioSpinner />}
           {!repoResetMutation.isPending && (
             <div className={classes.buttonContainer}>
-              <Button
+              <StudioButton
                 color='danger'
                 disabled={!canDelete}
                 id='confirm-reset-repo-button'
@@ -102,10 +102,15 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                 size='small'
               >
                 {t('overview.reset_repo_button')}
-              </Button>
-              <Button color='second' onClick={onCloseWrapper} variant='secondary' size='small'>
+              </StudioButton>
+              <StudioButton
+                color='second'
+                onClick={onCloseWrapper}
+                variant='secondary'
+                size='small'
+              >
                 {t('general.cancel')}
-              </Button>
+              </StudioButton>
             </div>
           )}
         </div>

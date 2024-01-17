@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './NewResourceModal.module.css';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { Modal } from '../Modal';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
@@ -143,10 +143,10 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
         className={classes.resourceNameAndId}
       />
       <div className={classes.buttonWrapper}>
-        <Button onClick={onClose} color='first' variant='tertiary' size='small'>
+        <StudioButton onClick={onClose} color='first' variant='tertiary' size='small'>
           {t('general.cancel')}
-        </Button>
-        <Button
+        </StudioButton>
+        <StudioButton
           onClick={() =>
             !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
           }
@@ -155,7 +155,7 @@ export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): Re
           size='small'
         >
           {t('resourceadm.dashboard_create_modal_create_button')}
-        </Button>
+        </StudioButton>
       </div>
     </Modal>
   );

@@ -4,12 +4,12 @@ import cn from 'classnames';
 import { FieldType, UiSchemaNode, deleteNode, setType, isField } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { Button, NativeSelect, Switch } from '@digdir/design-system-react';
+import { NativeSelect, Switch } from '@digdir/design-system-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { setRequired, setPropertyName } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
-import { StudioCenter } from '@studio/components';
+import { StudioButton, StudioCenter } from '@studio/components';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 
@@ -43,7 +43,8 @@ export const ItemFieldsTableRow = ({
     );
   };
 
-  const onTypeChange = (path: string, type: FieldType) => save(setType(schemaModel, { path, type }));
+  const onTypeChange = (path: string, type: FieldType) =>
+    save(setType(schemaModel, { path, type }));
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
@@ -103,7 +104,7 @@ export const ItemFieldsTableRow = ({
             onConfirm={deleteHandler}
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
             trigger={
-              <Button
+              <StudioButton
                 title={t('schema_editor.delete_field')}
                 icon={<TrashIcon />}
                 onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}

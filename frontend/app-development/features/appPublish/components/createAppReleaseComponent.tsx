@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import classes from './createAppReleaseComponent.module.css';
 import type { ChangeEvent } from 'react';
-import { Button, Textfield, Textarea } from '@digdir/design-system-react';
+import { Textfield, Textarea } from '@digdir/design-system-react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { FormField } from '../../../../packages/shared/src/components/FormField/FormField';
+import { FormField } from 'app-shared/components/FormField';
+import { StudioButton } from '@studio/components';
 
 export function CreateReleaseComponent() {
   const { org, app } = useStudioUrlParams();
@@ -73,13 +74,13 @@ export function CreateReleaseComponent() {
         )}
       />
       <div>
-        <Button
+        <StudioButton
           onClick={handleBuildVersionClick}
           disabled={!versionNameValid(releases, tagName) || !tagName}
           size='small'
         >
           {t('app_create_release.build_version')}
-        </Button>
+        </StudioButton>
       </div>
     </div>
   );

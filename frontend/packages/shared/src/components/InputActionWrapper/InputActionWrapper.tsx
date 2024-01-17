@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
-import { useText } from '../../../../ux-editor/src/hooks/index';
-import { Button, ButtonProps } from '@digdir/design-system-react';
+import { useText } from '../../../../ux-editor/src/hooks';
+import { ButtonProps } from '@digdir/design-system-react';
 import classes from './InputActionWrapper.module.css';
 import cn from 'classnames';
+import { StudioButton } from '@studio/components';
 
 type AvailableAction = 'edit' | 'save' | 'delete';
 export type ActionGroup = 'editMode' | 'hoverMode' | 'standBy';
@@ -108,7 +109,7 @@ export const InputActionWrapper = ({
         className={cn(classes.buttonWrapper, mode === 'standBy' && classes.standByButtonWrapper)}
       >
         {actions.map((action) => (
-          <Button
+          <StudioButton
             variant='tertiary'
             size='medium'
             color={actionToColorMap[action]}
@@ -117,7 +118,7 @@ export const InputActionWrapper = ({
             aria-label={actionToAriaLabelMap[action]}
           >
             {actionToIconMap[action]}
-          </Button>
+          </StudioButton>
         ))}
       </div>
     </div>
