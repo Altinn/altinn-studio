@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Button } from '@digdir/design-system-react';
+import { Alert } from '@digdir/design-system-react';
 import classes from './ConditionalRendering.module.css';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
@@ -8,6 +8,7 @@ import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
 import { Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { StudioButton } from '@studio/components';
 
 export const ConditionalRendering = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -31,7 +32,7 @@ export const ConditionalRendering = () => {
         </div>
         <div className={classes.header}>
           <span>{t('right_menu.rules_conditional_rendering')}</span>
-          <Button
+          <StudioButton
             aria-label={t('right_menu.rules_conditional_rendering_add_alt')}
             className={classes.addIcon}
             icon={<PlusIcon />}

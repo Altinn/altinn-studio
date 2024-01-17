@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
-import { Button, DropdownMenu } from '@digdir/design-system-react';
+import { DropdownMenu } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
 import { ExpressionProperty, expressionPropertyTexts } from '../../../types/Expressions';
+import { StudioButton } from '@studio/components';
 
 import classes from './NewExpressionButton.module.css';
 
@@ -18,7 +19,7 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
 
   return (
     <>
-      <Button
+      <StudioButton
         aria-expanded={showDropdown}
         aria-haspopup='menu'
         color='first'
@@ -31,7 +32,7 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
         variant='secondary'
       >
         {t('right_menu.expressions_add')}
-      </Button>
+      </StudioButton>
       <DropdownMenu
         anchorEl={anchorEl.current}
         className={classes.dropdownMenu}

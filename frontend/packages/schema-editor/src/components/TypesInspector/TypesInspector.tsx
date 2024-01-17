@@ -1,5 +1,5 @@
 import React, { MouseEvent } from 'react';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { UiSchemaNode } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
@@ -45,7 +45,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
       <div className={classes.types}>
         <div className={classes.addRow}>
           <span className={classes.addRowText}>{t('schema_editor.types')}</span>
-          <Button
+          <StudioButton
             className={classes.addRowButton}
             variant='tertiary'
             icon={<PlusIcon height={40} />}

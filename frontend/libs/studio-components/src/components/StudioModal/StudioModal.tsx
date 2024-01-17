@@ -1,9 +1,9 @@
 import React, { ReactNode, forwardRef } from 'react';
 import classes from './StudioModal.module.css';
 import ReactModal from 'react-modal'; // TODO - Replace with component from Designsystemet. Issue:
-import { Button } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { MultiplyIcon } from '@studio/icons';
+import { StudioButton } from '../StudioButton';
 
 export type StudioModalProps = {
   isOpen: boolean;
@@ -55,7 +55,7 @@ export const StudioModal = forwardRef<HTMLDialogElement, StudioModalProps>(
       >
         <div className={classes.headingWrapper}>
           <div className={classes.title}>{title}</div>
-          <Button
+          <StudioButton
             variant='tertiary'
             icon={<MultiplyIcon />}
             onClick={onClose}

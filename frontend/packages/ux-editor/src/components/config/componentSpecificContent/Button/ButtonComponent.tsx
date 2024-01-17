@@ -5,10 +5,12 @@ import { EditSettings, IGenericEditComponent } from '../../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { EditTextResourceBindings } from '../../editModal/EditTextResourceBindings';
+import { useTranslation } from 'react-i18next';
 
 export const ButtonComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
+  const { t } = useTranslation();
   return (
-    <Fieldset className={classes.root}>
+    <Fieldset className={classes.root} legend={t('ux_editor.button_component.settings')} hideLegend>
       {component.type === ComponentType.Button && (
         <EditTextResourceBinding
           component={component}
