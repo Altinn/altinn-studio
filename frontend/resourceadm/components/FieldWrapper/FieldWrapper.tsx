@@ -4,7 +4,7 @@ import React from 'react';
 interface FieldWrapperProps {
   label: string;
   description?: string;
-  children: React.ReactNode;
+  children: React.JSX.Element | React.JSX.Element[];
   fieldId?: string;
   ariaDescriptionId?: string;
 }
@@ -15,7 +15,7 @@ export const FieldWrapper = ({
   fieldId,
   ariaDescriptionId,
   children,
-}: FieldWrapperProps): React.ReactNode => {
+}: FieldWrapperProps): React.JSX.Element => {
   return (
     <div>
       <Label size='small' spacing htmlFor={fieldId}>

@@ -61,6 +61,8 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('ResourceAccessLists', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should show show spinner on loading', () => {
     renderResourceAccessLists();
 

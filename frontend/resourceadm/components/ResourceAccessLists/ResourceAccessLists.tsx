@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioButton } from '@studio/components';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
 import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';
 import { useRemoveResourceAccessListMutation } from '../../hooks/mutations/useRemoveResourceAccessListMutation';
@@ -12,7 +12,6 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { NewAccessListModal } from '../NewAccessListModal';
 import { Resource } from 'app-shared/types/ResourceAdm';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import { StudioButton } from '@studio/components';
 
 export interface ResourceAccessListsProps {
   env: string;
@@ -22,7 +21,7 @@ export interface ResourceAccessListsProps {
 export const ResourceAccessLists = ({
   env,
   resourceData,
-}: ResourceAccessListsProps): React.ReactNode => {
+}: ResourceAccessListsProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { selectedContext, repo } = useUrlParams();

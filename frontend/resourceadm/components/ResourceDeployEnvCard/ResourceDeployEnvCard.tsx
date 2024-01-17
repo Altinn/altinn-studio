@@ -26,7 +26,7 @@ export type ResourceDeployEnvCardProps = {
  * @property {function}[onClick] - Function to be executed on click
  * @property {boolean}[loading] - if a spinner should be shown
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceDeployEnvCard = ({
   isDeployPossible,
@@ -35,7 +35,7 @@ export const ResourceDeployEnvCard = ({
   newEnvVersion,
   onClick,
   loading,
-}: ResourceDeployEnvCardProps): React.ReactNode => {
+}: ResourceDeployEnvCardProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   return (

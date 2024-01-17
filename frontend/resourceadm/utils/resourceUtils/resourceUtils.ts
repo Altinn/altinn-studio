@@ -9,7 +9,7 @@ import type {
   SupportedLanguage,
 } from 'app-shared/types/ResourceAdm';
 import { ReactNode } from 'react';
-import { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
+import { NavigationBarPage } from '../../types/NavigationBarPage';
 
 /**
  * The map of resource type

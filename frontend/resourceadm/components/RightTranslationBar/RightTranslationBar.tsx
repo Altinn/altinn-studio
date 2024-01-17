@@ -3,7 +3,7 @@ import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@studio/icons';
 import { Textfield, Alert, Paragraph, Heading, Textarea } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { mapLanguageKeyToLanguageText } from 'resourceadm/utils/resourceUtils';
+import { mapLanguageKeyToLanguageText } from '../../utils/resourceUtils';
 import { SupportedLanguage, ValidLanguage } from 'app-shared/types/ResourceAdm';
 
 export type RightTranslationBarProps = {
@@ -33,7 +33,7 @@ export type RightTranslationBarProps = {
  * @property {boolean}[showErrors] - Flag to handle when to show the errors
  * @property {function}[onBlur] - Function to be executed on blur
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const RightTranslationBar = ({
   title,
@@ -42,7 +42,7 @@ export const RightTranslationBar = ({
   onLanguageChange,
   showErrors,
   onBlur,
-}: RightTranslationBarProps): React.ReactNode => {
+}: RightTranslationBarProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const handleChange = (lang: ValidLanguage, val: string) => {

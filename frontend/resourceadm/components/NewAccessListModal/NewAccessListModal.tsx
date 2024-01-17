@@ -15,7 +15,7 @@ export interface NewAccessListModalProps {
 }
 
 export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListModalProps>(
-  ({ org, env, navigateUrl, onClose }, ref): JSX.Element => {
+  ({ org, env, navigateUrl, onClose }, ref): React.JSX.Element => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 

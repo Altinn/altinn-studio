@@ -2,12 +2,12 @@ import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Paragraph, Modal } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
-import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
+import { useCreateResourceMutation } from '../../hooks/mutations';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 
 export type NewResourceModalProps = {
@@ -20,10 +20,10 @@ export type NewResourceModalProps = {
  *
  * @property {function}[onClose] - Function to handle close
  *
- * @returns {JSX.Element} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalProps>(
-  ({ onClose }, ref): JSX.Element => {
+  ({ onClose }, ref): React.JSX.Element => {
     const { t } = useTranslation();
 
     const navigate = useNavigate();

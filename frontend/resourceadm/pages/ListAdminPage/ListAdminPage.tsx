@@ -2,16 +2,15 @@ import React, { useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Heading, Link as DigdirLink, Paragraph, ToggleGroup } from '@digdir/design-system-react';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioButton } from '@studio/components';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
-import { StudioButton } from '@studio/components';
 
-export const ListAdminPage = (): React.ReactNode => {
+export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
   const { selectedContext, repo, env: selectedEnv } = useUrlParams();
 

@@ -7,7 +7,7 @@ import classes from './AccessListMembers.module.css';
 
 interface AccessListMembersTableProps {
   listItems: AccessListMember[];
-  buttonNode: React.ReactNode;
+  buttonNode: React.JSX.Element;
   isHeaderHidden?: boolean;
   disableButtonFn?: (member: AccessListMember) => boolean;
   onButtonClick: (member: AccessListMember) => void;
@@ -19,7 +19,7 @@ export const AccessListMembersTable = ({
   isHeaderHidden,
   disableButtonFn,
   onButtonClick,
-}: AccessListMembersTableProps): React.ReactNode => {
+}: AccessListMembersTableProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   return (

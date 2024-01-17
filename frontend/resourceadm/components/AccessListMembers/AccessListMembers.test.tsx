@@ -38,6 +38,8 @@ const defaultProps: AccessListMembersProps = {
 };
 
 describe('AccessListMembers', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should show special party name if name is not found', () => {
     renderAccessListMembers();
     expect(screen.getByText(textMock('resourceadm.listadmin_empty_name'))).toBeInTheDocument();

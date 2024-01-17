@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import classes from './ResourceNameAndId.module.css';
-import { Textfield, Paragraph } from '@digdir/design-system-react';
-import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@studio/icons';
+import { Paragraph, Textfield } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';
+import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from '@studio/icons';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import classes from './ResourceNameAndId.module.css';
 import { FieldWrapper } from '../../components/FieldWrapper';
 
 export type ResourceNameAndIdProps = {
@@ -29,7 +30,7 @@ export type ResourceNameAndIdProps = {
  * @property {function}[onIdChange] - Function to handle the editing of the id
  * @property {string}[conflictErrorMessage] - Error message to display in the id field
  *
- * @returns {React.ReactNode} - If there should be space on top of the component
+ * @returns {React.JSX.Element} - If there should be space on top of the component
  */
 export const ResourceNameAndId = ({
   idLabel,
@@ -39,7 +40,7 @@ export const ResourceNameAndId = ({
   onTitleChange,
   onIdChange,
   conflictErrorMessage,
-}: ResourceNameAndIdProps): React.ReactNode => {
+}: ResourceNameAndIdProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);

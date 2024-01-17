@@ -43,14 +43,14 @@ export type ResourceContactPointFieldsProps = {
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - If the error should be shown
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceContactPointFields = ({
   contactPointList,
   onContactPointsChanged,
   onFocus,
   showErrors,
-}: ResourceContactPointFieldsProps): React.ReactNode => {
+}: ResourceContactPointFieldsProps): React.JSX.Element => {
   return (
     <FieldsetWrapper<ResourceContactPoint>
       list={contactPointList}

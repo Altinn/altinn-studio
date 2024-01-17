@@ -6,7 +6,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import { usePublishResourceMutation } from 'resourceadm/hooks/mutations';
+import { usePublishResourceMutation } from '../../hooks/mutations';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
 import { Validation } from 'app-shared/types/ResourceAdm';
 import userEvent from '@testing-library/user-event';

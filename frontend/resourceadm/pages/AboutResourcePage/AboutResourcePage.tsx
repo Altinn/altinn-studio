@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
 import { Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import { Link } from 'react-router-dom';
-import type { Translation } from 'resourceadm/types/Translation';
+import type { Translation } from '../../types/Translation';
 import type {
   Resource,
   ResourceTypeOption,
@@ -19,7 +19,7 @@ import {
   mapKeywordsArrayToString,
   resourceTypeMap,
   getAvailableEnvironments,
-} from 'resourceadm/utils/resourceUtils/resourceUtils';
+} from '../../utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
   ResourceCheckboxGroup,
@@ -27,12 +27,12 @@ import {
   ResourceSwitchInput,
   ResourceTextField,
   ResourceRadioGroup,
-} from 'resourceadm/components/ResourcePageInputs';
-import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+} from '../../components/ResourcePageInputs';
+import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
+import { getResourcePageURL } from '../../utils/urlUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
-import { ResourceReferenceFields } from 'resourceadm/components/ResourceReferenceFields';
+import { useUrlParams } from '../../hooks/useSelectedContext';
+import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 
 export type AboutResourcePageProps = {
   showAllErrors: boolean;
@@ -50,14 +50,14 @@ export type AboutResourcePageProps = {
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
  * @property {string}[id] - The id of the page
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const AboutResourcePage = ({
   showAllErrors,
   resourceData,
   onSaveResource,
   id,
-}: AboutResourcePageProps): React.ReactNode => {
+}: AboutResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { resourceId, selectedContext, repo } = useUrlParams();

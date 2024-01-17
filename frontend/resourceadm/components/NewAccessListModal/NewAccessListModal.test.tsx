@@ -27,6 +27,8 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('NewAccessListModal', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should disable create button when name or id is empty', async () => {
     const user = userEvent.setup();
     await renderAndOpenModal(user);

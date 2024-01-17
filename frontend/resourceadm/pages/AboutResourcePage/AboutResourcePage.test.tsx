@@ -14,7 +14,7 @@ import {
 import {
   getMissingInputLanguageString,
   mapKeywordsArrayToString,
-} from 'resourceadm/utils/resourceUtils/resourceUtils';
+} from '../../utils/resourceUtils/resourceUtils';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 
 const mockContactPoint: ResourceContactPoint = {

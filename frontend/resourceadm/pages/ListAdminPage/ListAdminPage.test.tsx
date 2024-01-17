@@ -26,6 +26,8 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('ListAdminPage', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should show lists after environment is selected', async () => {
     renderListAdminPage();
 

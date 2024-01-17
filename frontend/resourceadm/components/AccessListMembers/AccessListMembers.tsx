@@ -10,10 +10,9 @@ import { useDebounce } from 'react-use';
 import { usePartiesRegistryQuery } from '../../hooks/queries/usePartiesRegistryQuery';
 import { useSubPartiesRegistryQuery } from '../../hooks/queries/useSubPartiesRegistryQuery';
 import { getPartiesQueryUrl } from '../../utils/urlUtils';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioButton } from '@studio/components';
 import { PlusIcon, PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
-import { StudioButton } from '@studio/components';
 import { AccessListMembersTable } from './AccessListMembersTable';
 
 const PARTY_SEARCH_TYPE = 'PARTY';
@@ -25,7 +24,11 @@ export interface AccessListMembersProps {
   list: AccessList;
 }
 
-export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): React.ReactNode => {
+export const AccessListMembers = ({
+  org,
+  env,
+  list,
+}: AccessListMembersProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [listItems, setListItems] = useState<AccessListMember[]>(list.members ?? []);

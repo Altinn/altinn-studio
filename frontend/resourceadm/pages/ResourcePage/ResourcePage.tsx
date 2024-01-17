@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
-import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { DeployResourcePage } from '../DeployResourcePage';
 import {
   useSinlgeResourceQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
-} from 'resourceadm/hooks/queries';
-import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
+} from '../../hooks/queries';
+import { MergeConflictModal } from '../../components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
-import { NavigationModal } from 'resourceadm/components/NavigationModal';
+import { NavigationModal } from '../../components/NavigationModal';
 import { Spinner } from '@digdir/design-system-react';
-import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
+import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Resource } from 'app-shared/types/ResourceAdm';
@@ -27,19 +27,19 @@ import {
   UploadIcon,
 } from '@studio/icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
-import { ResourceAccessLists } from 'resourceadm/components/ResourceAccessLists';
-import { AccessListDetail } from 'resourceadm/components/AccessListDetails';
-import { useGetAccessListQuery } from 'resourceadm/hooks/queries/useGetAccessListQuery';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { createNavigationTab } from '../../utils/resourceUtils';
+import { ResourceAccessLists } from '../../components/ResourceAccessLists';
+import { AccessListDetail } from '../../components/AccessListDetails';
+import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
 /**
  * @component
  *    Displays the 4 pages to manage resources and a left navigation bar.
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const ResourcePage = (): React.ReactNode => {
+export const ResourcePage = (): React.JSX.Element => {
   const { t } = useTranslation();
 
   const navigate = useNavigate();

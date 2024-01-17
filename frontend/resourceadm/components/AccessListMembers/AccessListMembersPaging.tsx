@@ -12,9 +12,13 @@ export interface AccessListMembersPagingProps {
 export const AccessListMembersPaging = ({
   resultData,
   setSearchUrl,
-}: AccessListMembersPagingProps): React.ReactNode => {
+}: AccessListMembersPagingProps): React.JSX.Element => {
   const { t } = useTranslation();
-  const renderPageButton = (href: string, label: string, isDisabled: boolean): React.ReactNode => {
+  const renderPageButton = (
+    href: string,
+    label: string,
+    isDisabled: boolean,
+  ): React.JSX.Element => {
     return (
       <StudioButton
         size='small'

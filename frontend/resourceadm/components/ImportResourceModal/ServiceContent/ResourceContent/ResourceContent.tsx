@@ -2,7 +2,7 @@ import React, { ReactNode, useState } from 'react';
 import classes from './ResourceContent.module.css';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { useTranslation } from 'react-i18next';
-import { ResourceNameAndId } from 'resourceadm/components/ResourceNameAndId';
+import { ResourceNameAndId } from '../../../../components/ResourceNameAndId';
 import { Paragraph } from '@digdir/design-system-react';
 
 export type ResourceContentProps = {

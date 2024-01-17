@@ -6,10 +6,14 @@ import { useTranslation } from 'react-i18next';
 type ErrorMessageProps = {
   title: string;
   message: string;
-  children?: React.ReactNode;
+  children?: React.JSX.Element;
 };
 
-export const ErrorMessage = ({ title, message, children }: ErrorMessageProps): JSX.Element => {
+export const ErrorMessage = ({
+  title,
+  message,
+  children,
+}: ErrorMessageProps): React.JSX.Element => {
   const { t } = useTranslation();
   return (
     <div className={classes.errorMessage}>

@@ -17,6 +17,8 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('AccessListPage', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should show spinner on load', () => {
     renderAccessListPage();
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();

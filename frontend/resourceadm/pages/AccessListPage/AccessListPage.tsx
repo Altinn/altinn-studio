@@ -6,7 +6,7 @@ import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery
 import { getAccessListPageUrl } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 
-export const AccessListPage = (): React.ReactNode => {
+export const AccessListPage = (): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { selectedContext, repo, env, accessListId } = useUrlParams();

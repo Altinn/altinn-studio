@@ -18,9 +18,9 @@ export type SearchBoxProps = {
  *
  * @property {function}[onChange] - Function to handle the change of value
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const SearchBox = ({ onChange }: SearchBoxProps): React.ReactNode => {
+export const SearchBox = ({ onChange }: SearchBoxProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

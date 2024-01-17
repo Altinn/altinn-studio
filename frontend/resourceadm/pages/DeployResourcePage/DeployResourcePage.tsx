@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
-import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
-import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
+import { ResourceDeployStatus } from '../../components/ResourceDeployStatus';
+import { ResourceDeployEnvCard } from '../../components/ResourceDeployEnvCard';
 import {
   Textfield,
   Spinner,
@@ -12,24 +12,20 @@ import {
   Alert,
   ErrorMessage,
 } from '@digdir/design-system-react';
-import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
-import type { DeployError } from 'resourceadm/types/DeployError';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
+import type { DeployError } from '../../types/DeployError';
 import {
   useResourcePolicyPublishStatusQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
-} from 'resourceadm/hooks/queries';
+} from '../../hooks/queries';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
-import { usePublishResourceMutation } from 'resourceadm/hooks/mutations';
+import { usePublishResourceMutation } from '../../hooks/mutations';
 import { toast } from 'react-toastify';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
-import {
-  EnvId,
-  EnvType,
-  getAvailableEnvironments,
-} from 'resourceadm/utils/resourceUtils/resourceUtils';
+import { useUrlParams } from '../../hooks/useSelectedContext';
+import { EnvId, EnvType, getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -47,14 +43,14 @@ export type DeployResourcePageProps = {
  * @property {function}[onSaveVersion] - Saves the version to backend
  * @property {string}[id] - The id of the page
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const DeployResourcePage = ({
   navigateToPageWithError,
   resourceVersionText,
   onSaveVersion,
   id,
-}: DeployResourcePageProps): React.ReactNode => {
+}: DeployResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { selectedContext, repo, resourceId } = useUrlParams();

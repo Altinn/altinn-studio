@@ -11,7 +11,7 @@ export type LinkButtonProps = {
   /**
    * Children of the component
    */
-  children: React.ReactNode;
+  children: React.JSX.Element | string;
 };
 
 /**
@@ -24,11 +24,11 @@ export type LinkButtonProps = {
  *    </LinkButton>
  *
  * @property {function}[text] - Function to handle the click of the link
- * @property {React.ReactNode}[children] - Children of the component
+ * @property {React.JSX.Element | string}[children] - Children of the component
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const LinkButton = ({ onClick, children }: LinkButtonProps): React.ReactNode => {
+export const LinkButton = ({ onClick, children }: LinkButtonProps): React.JSX.Element => {
   return (
     <Link as='button' onClick={onClick} className={classes.linkButton}>
       {children}

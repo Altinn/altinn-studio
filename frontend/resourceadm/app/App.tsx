@@ -17,7 +17,7 @@ import { RedirectPage } from '../pages/RedirectPage';
 import { ListAdminPage } from '../pages/ListAdminPage';
 import { AccessListPage } from '../pages/AccessListPage';
 
-export const App = (): JSX.Element => {
+export const App = (): React.JSX.Element => {
   const { data: user, isError: isUserError } = useUserQuery();
   const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 

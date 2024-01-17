@@ -34,12 +34,12 @@ export type ResourceTableProps = {
  * @property {ResourceListItem[]}[list] - The list to display in the table
  * @property {function}[onClickEditResource] - Function to be executed when clicking the edit resoruce
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceTable = ({
   list,
   onClickEditResource,
-}: ResourceTableProps): React.ReactNode => {
+}: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
   const listData = useMemo(() => {

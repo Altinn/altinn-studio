@@ -3,28 +3,28 @@ import { useNavigate, Link } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
 import { Spinner, Heading } from '@digdir/design-system-react';
-import { ResourceTable } from 'resourceadm/components/ResourceTable';
-import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { useGetResourceListQuery, useOrganizationsQuery } from 'resourceadm/hooks/queries';
-import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
-import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
-import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
+import { ResourceTable } from '../../components/ResourceTable';
+import { SearchBox } from '../../components/ResourceSeachBox';
+import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
+import { MergeConflictModal } from '../../components/MergeConflictModal';
+import { NewResourceModal } from '../../components/NewResourceModal';
+import { ImportResourceModal } from '../../components/ImportResourceModal';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import { filterTableData } from 'resourceadm/utils/resourceListUtils';
+import { filterTableData } from '../../utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
-import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 
 /**
  * @component
  *    Displays the page for the resource dashboard
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const ResourceDashboardPage = (): React.ReactNode => {
+export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
   const { selectedContext, repo } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
@@ -115,7 +115,6 @@ export const ResourceDashboardPage = (): React.ReactNode => {
               <div className={classes.verticalDivider} />
             </>
           )}
-
           <StudioButton
             variant='tertiary'
             color='second'

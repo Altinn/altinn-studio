@@ -24,7 +24,7 @@ export const AccessListDetail = ({
   env,
   list,
   backUrl,
-}: AccessListDetailProps): React.ReactNode => {
+}: AccessListDetailProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const deleteWarningModalRef = useRef<HTMLDialogElement>(null);
