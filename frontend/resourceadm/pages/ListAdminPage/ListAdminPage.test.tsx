@@ -1,6 +1,6 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -27,14 +27,14 @@ jest.mock('react-router-dom', () => ({
 
 describe('ListAdminPage', () => {
   it('should show lists after environment is selected', async () => {
-    render();
+    renderListAdminPage();
 
     expect(await screen.findByText('Test-list')).toBeInTheDocument();
   });
 
   it('should change environment on toggle button click', async () => {
     const user = userEvent.setup();
-    render();
+    renderListAdminPage();
 
     const prodEnvButton = screen.getByText(textMock('resourceadm.deploy_prod_env'));
     await act(() => user.click(prodEnvButton));
@@ -44,7 +44,7 @@ describe('ListAdminPage', () => {
 
   it('should show create dialog when create new button is clicked', async () => {
     const user = userEvent.setup();
-    render();
+    renderListAdminPage();
 
     const createNewButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));
     await act(() => user.click(createNewButton));
@@ -55,13 +55,13 @@ describe('ListAdminPage', () => {
   });
 });
 
-const render = () => {
+const renderListAdminPage = () => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getAccessLists: jest.fn().mockImplementation(() => Promise.resolve(accessListResults)),
   };
 
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
         <ListAdminPage />

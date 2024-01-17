@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import { NewResourceModal, NewResourceModalProps } from './NewResourceModal';
 import { act } from 'react-dom/test-utils'; // Import act if needed
@@ -32,7 +32,7 @@ describe('NewResourceModal', () => {
   afterEach(jest.clearAllMocks);
 
   it('should be closed by default', () => {
-    render();
+    renderNewResourceModal();
     const closeButton = screen.queryByRole('button', { name: textMock('general.cancel') });
     expect(closeButton).not.toBeInTheDocument();
   });
@@ -125,12 +125,12 @@ describe('NewResourceModal', () => {
   });
 });
 
-const render = (queries: Partial<ServicesContextProps> = {}) => {
+const renderNewResourceModal = (queries: Partial<ServicesContextProps> = {}) => {
   const allQueries = {
     ...queriesMock,
     ...queries,
   };
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
         <TestComponentWithButton {...defaultProps} />
@@ -140,7 +140,7 @@ const render = (queries: Partial<ServicesContextProps> = {}) => {
 };
 
 const renderAndOpenModal = async (user: UserEvent, queries: Partial<ServicesContextProps> = {}) => {
-  render(queries);
+  renderNewResourceModal(queries);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });
   await act(() => user.click(openModalButton));

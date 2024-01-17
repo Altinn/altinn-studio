@@ -3,17 +3,17 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
-import { useGetAccessListsQuery } from 'resourceadm/hooks/queries/useGetAccessListsQuery';
+import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { StudioSpinner } from '@studio/components';
-import { useGetResourceAccessListsQuery } from 'resourceadm/hooks/queries/useGetResourceAccessListsQuery';
-import { useAddResourceAccessListMutation } from 'resourceadm/hooks/mutations/useAddResourceAccessListMutation';
-import { useRemoveResourceAccessListMutation } from 'resourceadm/hooks/mutations/useRemoveResourceAccessListMutation';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
+import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';
+import { useRemoveResourceAccessListMutation } from '../../hooks/mutations/useRemoveResourceAccessListMutation';
+import { getResourcePageURL } from '../../utils/urlUtils';
 import { NewAccessListModal } from '../NewAccessListModal';
 import { Resource } from 'app-shared/types/ResourceAdm';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
-interface ResourceAccessListsProps {
+export interface ResourceAccessListsProps {
   env: string;
   resourceData: Resource;
 }

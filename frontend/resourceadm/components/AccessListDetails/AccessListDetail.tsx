@@ -5,9 +5,9 @@ import { Button, Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/d
 import classes from './AccessListDetail.module.css';
 import { AccessList } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
-import { useEditAccessListMutation } from 'resourceadm/hooks/mutations/useEditAccessListMutation';
+import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
 import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
-import { useDeleteAccessListMutation } from 'resourceadm/hooks/mutations/useDeleteAccessListMutation';
+import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
 
@@ -114,7 +114,7 @@ export const AccessListDetail = ({
           onClick={() => deleteWarningModalRef.current?.showModal()}
         >
           {t('resourceadm.listadmin_delete_list')}
-          <TrashIcon fontSize='1.5rem' />
+          <TrashIcon className={classes.deleteIcon} />
         </Button>
       </div>
     </div>

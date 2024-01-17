@@ -61,7 +61,7 @@ export const FieldsetWrapper = <T,>({
   const deleteModalRef = useRef<HTMLDialogElement>(null);
 
   const [deleteId, setDeleteId] = useState<number>(DELETE_ID_NOT_SET);
-  const [listItems, setListItems] = useState<T[]>(list ?? [emptyItem]);
+  const [listItems, setListItems] = useState<T[]>(list?.length ? list : [emptyItem]);
 
   /**
    * Adds a new empty list item to the list

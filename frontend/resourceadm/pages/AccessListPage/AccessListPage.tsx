@@ -1,10 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
-import { AccessListDetail } from 'resourceadm/components/AccessListDetails';
-import { useGetAccessListQuery } from 'resourceadm/hooks/queries/useGetAccessListQuery';
-import { getAccessListPageUrl } from 'resourceadm/utils/urlUtils';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { AccessListDetail } from '../../components/AccessListDetails';
+import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
+import { getAccessListPageUrl } from '../../utils/urlUtils';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
 export const AccessListPage = (): React.ReactNode => {
   const { t } = useTranslation();

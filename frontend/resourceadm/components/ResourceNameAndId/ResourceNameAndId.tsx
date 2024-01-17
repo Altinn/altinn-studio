@@ -3,7 +3,7 @@ import classes from './ResourceNameAndId.module.css';
 import { Button, Textfield, Paragraph } from '@digdir/design-system-react';
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { FieldWrapper } from 'resourceadm/components/FieldWrapper';
+import { FieldWrapper } from '../../components/FieldWrapper';
 
 export type ResourceNameAndIdProps = {
   idLabel: string;

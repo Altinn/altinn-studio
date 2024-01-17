@@ -196,12 +196,12 @@ export const MigrationPage = ({
                 {numDelegationsA2 && numDelegationsA3 && (
                   <div className={classes.delegations}>
                     <Paragraph size='small'>
-                      {t('resourceadm.resourceadm.migration_altinn_2')}:{' '}
-                      <strong>{numDelegationsA2}</strong> {t('resourceadm.migration_delegations')}
+                      {t('resourceadm.migration_altinn_2')}: <strong>{numDelegationsA2}</strong>{' '}
+                      {t('resourceadm.migration_delegations')}
                     </Paragraph>
                     <Paragraph size='small'>
-                      {t('resourceadm.resourceadm.migration_altinn_3')}:{' '}
-                      <strong>{numDelegationsA3}</strong> {t('resourceadm.migration_delegations')}
+                      {t('resourceadm.migration_altinn_3')}: <strong>{numDelegationsA3}</strong>{' '}
+                      {t('resourceadm.migration_delegations')}
                     </Paragraph>
                   </div>
                 )}
@@ -209,7 +209,7 @@ export const MigrationPage = ({
               <Label as='p' size='medium' spacing>
                 {t('resourceadm.migration_finish_migration')}
               </Label>
-              <Paragraph size='small'>{t('"resourceadm.migration_delegation_info"')}</Paragraph>
+              <Paragraph size='small'>{t('resourceadm.migration_delegation_info')}</Paragraph>
               <div className={classes.buttonWrapper}>
                 <Button
                   aria-disabled={

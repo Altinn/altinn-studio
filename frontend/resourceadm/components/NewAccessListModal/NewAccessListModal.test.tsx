@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { NewAccessListModal } from './NewAccessListModal';
+import { NewAccessListModal, NewAccessListModalProps } from './NewAccessListModal';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
@@ -13,7 +13,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 const mockButtonText: string = 'Mock Button';
 const closeModalMock = jest.fn();
 
-const defaultProps = {
+const defaultProps: NewAccessListModalProps = {
   org: 'orgname',
   env: 'tt02',
   navigateUrl: '/accesslists/tt02/',
@@ -80,13 +80,13 @@ describe('NewAccessListModal', () => {
   });
 });
 
-const render = (queryMocks: Partial<ServicesContextProps>) => {
+const renderNewAccessListModal = (queryMocks: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     ...queryMocks,
   };
 
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
         <TestComponentWithButton />
@@ -99,7 +99,7 @@ const renderAndOpenModal = async (
   user: UserEvent,
   queryMocks: Partial<ServicesContextProps> = {},
 ) => {
-  render(queryMocks);
+  renderNewAccessListModal(queryMocks);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });
   await act(() => user.click(openModalButton));

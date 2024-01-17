@@ -14,15 +14,16 @@ import {
 import classes from './AccessListMembers.module.css';
 import { AccessList, AccessListMember } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
-import { useRemoveAccessListMemberMutation } from 'resourceadm/hooks/mutations/useRemoveAccessListMemberMutation';
-import { useAddAccessListMemberMutation } from 'resourceadm/hooks/mutations/useAddAccessListMemberMutation';
+import { useRemoveAccessListMemberMutation } from '../../hooks/mutations/useRemoveAccessListMemberMutation';
+import { useAddAccessListMemberMutation } from '../../hooks/mutations/useAddAccessListMemberMutation';
 import { AccessListMemberRow } from './AccessListMemberRow';
 import { useDebounce } from 'react-use';
-import { usePartiesRegistryQuery } from 'resourceadm/hooks/queries/usePartiesRegistryQuery';
-import { useSubPartiesRegistryQuery } from 'resourceadm/hooks/queries/useSubPartiesRegistryQuery';
-import { getPartiesQueryUrl } from 'resourceadm/utils/urlUtils';
+import { usePartiesRegistryQuery } from '../../hooks/queries/usePartiesRegistryQuery';
+import { useSubPartiesRegistryQuery } from '../../hooks/queries/useSubPartiesRegistryQuery';
+import { getPartiesQueryUrl } from '../../utils/urlUtils';
 import { StudioSpinner } from '@studio/components';
 import { PlusIcon, PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
+import { AccessListMembersPaging } from './AccessListMembersPaging';
 
 const COLUMN_SPAN = 100;
 const PARTY_SEARCH_TYPE = 'PARTY';
@@ -57,32 +58,17 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
     isSubPartySearch ? searchUrl : '',
   );
 
-  // add member
   const handleAddMember = (memberToAdd: AccessListMember): void => {
     addListMember(memberToAdd.orgNr);
     setListItems((old) => [...old, memberToAdd]);
   };
 
-  // remove member
   const handleRemoveMember = (memberIdToRemove: string): void => {
     removeListMember(memberIdToRemove);
     setListItems((old) => old.filter((x) => x.orgNr !== memberIdToRemove));
   };
 
   const resultData = partiesSearchData ?? subPartiesSearchData ?? undefined;
-
-  const renderPageButton = (href: string, label: string, isDisabled: boolean): React.ReactNode => {
-    return (
-      <Button
-        size='small'
-        variant='tertiary'
-        disabled={isDisabled}
-        onClick={() => setSearchUrl(href)}
-      >
-        {t(label)}
-      </Button>
-    );
-  };
 
   return (
     <FieldWrapper
@@ -118,13 +104,12 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
                     size='small'
                   >
                     {t('resourceadm.listadmin_remove_from_list')}
-                    <MinusCircleIcon fontSize='1.5rem' />
+                    <MinusCircleIcon className={classes.buttonIcon} />
                   </Button>
                 }
               />
             );
           })}
-
           {isAddMode && (
             <>
               <TableRow>
@@ -179,7 +164,7 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
                         size='small'
                       >
                         {t('resourceadm.listadmin_add_to_list')}
-                        <PlusCircleIcon fontSize='1.5rem' />
+                        <PlusCircleIcon className={classes.buttonIcon} />
                       </Button>
                     }
                   />
@@ -187,40 +172,7 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
               })}
               <TableRow>
                 <TableCell colSpan={COLUMN_SPAN}>
-                  <div className={classes.paginationWrapper}>
-                    {renderPageButton(
-                      resultData?.links?.first?.href,
-                      'resourceadm.listadmin_search_first',
-                      !resultData?.links?.first || !resultData?.links?.prev,
-                    )}
-                    {renderPageButton(
-                      resultData?.links?.prev?.href,
-                      'resourceadm.listadmin_search_prev',
-                      !resultData?.links?.prev,
-                    )}
-                    {renderPageButton(
-                      resultData?.links?.next?.href,
-                      'resourceadm.listadmin_search_next',
-                      !resultData?.links?.next,
-                    )}
-                    {renderPageButton(
-                      resultData?.links?.last?.href,
-                      'resourceadm.listadmin_search_last',
-                      !resultData?.links?.last || !resultData?.links?.next,
-                    )}
-                    {!!resultData?.page?.totalElements && (
-                      <div>
-                        {t('resourceadm.listadmin_search_paging', {
-                          fra: resultData.page.number * resultData.page.size + 1,
-                          til: Math.min(
-                            (resultData.page.number + 1) * resultData.page.size,
-                            resultData.page.totalElements,
-                          ),
-                          total: resultData.page.totalElements,
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <AccessListMembersPaging resultData={resultData} setSearchUrl={setSearchUrl} />
                 </TableCell>
               </TableRow>
             </>

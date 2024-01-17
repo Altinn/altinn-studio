@@ -1,12 +1,12 @@
 import React, { useState, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useCreateAccessListMutation } from 'resourceadm/hooks/mutations/useCreateAccessListMutation';
+import { useCreateAccessListMutation } from '../../hooks/mutations/useCreateAccessListMutation';
 import { Button, Modal, Paragraph } from '@digdir/design-system-react';
-import { ResourceNameAndId } from 'resourceadm/components/ResourceNameAndId';
+import { ResourceNameAndId } from '../../components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
-interface NewAccessListModalProps {
+export interface NewAccessListModalProps {
   org: string;
   env: string;
   navigateUrl: string;

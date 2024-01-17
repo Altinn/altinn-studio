@@ -902,7 +902,7 @@
   "resourceadm.listadmin_search_next": "Neste",
   "resourceadm.listadmin_search_no_parties": "Fant ingen enheter",
   "resourceadm.listadmin_search_no_sub_parties": "Fant ingen underenheter",
-  "resourceadm.listadmin_search_paging": "Viser {{fra}}-{{til}} av {{total}}",
+  "resourceadm.listadmin_search_paging": "Viser {{from}}-{{to}} av {{total}}",
   "resourceadm.listadmin_search_party_type": "Søk i enheter eller underenheter",
   "resourceadm.listadmin_search_prev": "Forrige",
   "resourceadm.listadmin_select_environment": "Velg miljø:",

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AccessListPage } from './AccessListPage';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -18,12 +18,12 @@ jest.mock('react-router-dom', () => ({
 
 describe('AccessListPage', () => {
   it('should show spinner on load', () => {
-    render();
+    renderAccessListPage();
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('should show details page when list is loaded', async () => {
-    render();
+    renderAccessListPage();
 
     await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
 
@@ -33,12 +33,12 @@ describe('AccessListPage', () => {
   });
 });
 
-const render = () => {
+const renderAccessListPage = () => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getAccessList: jest.fn().mockImplementation(() => Promise.resolve({})),
   };
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
         <AccessListPage />

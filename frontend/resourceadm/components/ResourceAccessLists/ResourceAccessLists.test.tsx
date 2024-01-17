@@ -1,11 +1,11 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ResourceAccessLists } from './ResourceAccessLists';
+import { ResourceAccessLists, ResourceAccessListsProps } from './ResourceAccessLists';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
@@ -38,7 +38,7 @@ const connectedListsResponse = [
   },
 ];
 
-const defaultProps = {
+const defaultProps: ResourceAccessListsProps = {
   env: env,
   resourceData: {
     identifier: resourceId,
@@ -62,13 +62,13 @@ jest.mock('react-router-dom', () => ({
 
 describe('ResourceAccessLists', () => {
   it('should show show spinner on loading', () => {
-    render();
+    renderResourceAccessLists();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
     expect(spinnerTitle).toBeInTheDocument();
   });
   it('should show selected lists checked', async () => {
-    render();
+    renderResourceAccessLists();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitForElementToBeRemoved(spinnerTitle);
@@ -82,7 +82,7 @@ describe('ResourceAccessLists', () => {
 
   it('should show create access list modal when create button is pressed', async () => {
     const user = userEvent.setup();
-    render();
+    renderResourceAccessLists();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitForElementToBeRemoved(spinnerTitle);
@@ -99,7 +99,7 @@ describe('ResourceAccessLists', () => {
 
   it('should call add when checkbox is checked', async () => {
     const user = userEvent.setup();
-    render();
+    renderResourceAccessLists();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitForElementToBeRemoved(spinnerTitle);
@@ -112,7 +112,7 @@ describe('ResourceAccessLists', () => {
 
   it('should call remove when checkbox is unchecked', async () => {
     const user = userEvent.setup();
-    render();
+    renderResourceAccessLists();
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitForElementToBeRemoved(spinnerTitle);
@@ -124,7 +124,7 @@ describe('ResourceAccessLists', () => {
   });
 
   it('should show error when loading fails', async () => {
-    render(true);
+    renderResourceAccessLists(true);
 
     const spinnerTitle = screen.queryByText(textMock('general.loading'));
     await waitForElementToBeRemoved(spinnerTitle);
@@ -133,7 +133,7 @@ describe('ResourceAccessLists', () => {
   });
 });
 
-const render = (hasLoadError?: boolean) => {
+const renderResourceAccessLists = (hasLoadError?: boolean) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     removeResourceAccessList: uncheckListMock,
@@ -148,7 +148,7 @@ const render = (hasLoadError?: boolean) => {
       .mockImplementation(() => Promise.resolve(connectedListsResponse)),
   };
 
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
         <ResourceAccessLists {...defaultProps} />

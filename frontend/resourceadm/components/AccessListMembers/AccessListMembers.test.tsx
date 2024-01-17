@@ -1,6 +1,6 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -14,7 +14,7 @@ const testEnv = 'tt02';
 const testListIdentifier = 'listid';
 const testMemberPartyId = '123456789';
 
-const defaultProps = {
+const defaultProps: AccessListMembersProps = {
   org: testOrg,
   env: testEnv,
   list: {
@@ -39,19 +39,19 @@ const defaultProps = {
 
 describe('AccessListMembers', () => {
   it('should show special party name if name is not found', () => {
-    render();
+    renderAccessListMembers();
     expect(screen.getByText(textMock('resourceadm.listadmin_empty_name'))).toBeInTheDocument();
   });
 
   it('should show message when list is empty', () => {
-    render({ list: { ...defaultProps.list, members: undefined } });
+    renderAccessListMembers({ list: { ...defaultProps.list, members: undefined } });
     expect(screen.getByText(textMock('resourceadm.listadmin_empty_list'))).toBeInTheDocument();
   });
 
   it('should call service to remove member', async () => {
     const user = userEvent.setup();
     const removeAccessListMemberMock = jest.fn();
-    render({}, { removeAccessListMember: removeAccessListMemberMock });
+    renderAccessListMembers({}, { removeAccessListMember: removeAccessListMemberMock });
 
     const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
     await act(() => user.click(removeButtons[0]));
@@ -69,7 +69,7 @@ describe('AccessListMembers', () => {
     const addAccessListMemberMock = jest.fn();
     const searchResultText = 'Digdir';
     const searchResultOrgNr = '987654321';
-    render(
+    renderAccessListMembers(
       {},
       {
         addAccessListMember: addAccessListMemberMock,
@@ -106,7 +106,7 @@ describe('AccessListMembers', () => {
   it('should show message when no parties are found', async () => {
     const user = userEvent.setup();
 
-    render(
+    renderAccessListMembers(
       {},
       {
         getParties: jest.fn().mockImplementation(() => Promise.resolve({})),
@@ -127,7 +127,7 @@ describe('AccessListMembers', () => {
   it('should show message when no sub parties are found', async () => {
     const user = userEvent.setup();
 
-    render(
+    renderAccessListMembers(
       {},
       {
         getSubParties: jest.fn().mockImplementation(() => Promise.resolve({})),
@@ -167,7 +167,7 @@ describe('AccessListMembers', () => {
         },
       }),
     );
-    render(
+    renderAccessListMembers(
       {},
       {
         getSubParties: getSubPartiesMock,
@@ -212,7 +212,7 @@ describe('AccessListMembers', () => {
         },
       }),
     );
-    render(
+    renderAccessListMembers(
       {},
       {
         getParties: getPartiesMock,
@@ -232,8 +232,8 @@ describe('AccessListMembers', () => {
     expect(
       screen.getByText(
         textMock('resourceadm.listadmin_search_paging', {
-          fra: 6,
-          til: 8,
+          from: 6,
+          to: 8,
           total: 8,
         }),
       ),
@@ -241,7 +241,7 @@ describe('AccessListMembers', () => {
   });
 });
 
-const render = (
+const renderAccessListMembers = (
   props: Partial<AccessListMembersProps> = {},
   queries: Partial<ServicesContextProps> = {},
 ) => {
@@ -250,7 +250,7 @@ const render = (
     ...queries,
   };
 
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
         <AccessListMembers {...defaultProps} {...props} />

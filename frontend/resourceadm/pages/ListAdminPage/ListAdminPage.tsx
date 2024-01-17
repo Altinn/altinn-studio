@@ -10,11 +10,11 @@ import {
 } from '@digdir/design-system-react';
 import { StudioSpinner } from '@studio/components';
 import classes from './ListAdminPage.module.css';
-import { useGetAccessListsQuery } from 'resourceadm/hooks/queries/useGetAccessListsQuery';
+import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { NewAccessListModal } from '../../components/NewAccessListModal';
-import { getAccessListPageUrl, getResourceDashboardURL } from 'resourceadm/utils/urlUtils';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
-import { getAvailableEnvironments } from 'resourceadm/utils/resourceUtils/resourceUtils';
+import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
+import { useUrlParams } from '../../hooks/useSelectedContext';
+import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
 export const ListAdminPage = (): React.ReactNode => {
   const { t } = useTranslation();

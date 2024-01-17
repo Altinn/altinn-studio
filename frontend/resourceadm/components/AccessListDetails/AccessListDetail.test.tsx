@@ -1,6 +1,6 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -19,7 +19,7 @@ const testOrg = 'ttd';
 const testEnv = 'tt02';
 const testListIdentifier = 'listid';
 
-const defaultProps = {
+const defaultProps: AccessListDetailProps = {
   org: testOrg,
   env: testEnv,
   list: {
@@ -32,11 +32,15 @@ const defaultProps = {
   backUrl: '/listadmin',
 };
 
+const updateAccessListMock = jest.fn();
+const addAccessListMemberMock = jest.fn();
+
 describe('AccessListDetail', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should call service to update name', async () => {
     const user = userEvent.setup();
-    const updateAccessListMock = jest.fn();
-    render({}, { updateAccessList: updateAccessListMock });
+    renderAccessListDetail({}, { updateAccessList: updateAccessListMock });
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
     await act(() => user.type(nameField, ' change'));
@@ -49,8 +53,7 @@ describe('AccessListDetail', () => {
 
   it('should call service to update description', async () => {
     const user = userEvent.setup();
-    const updateAccessListMock = jest.fn();
-    render({}, { updateAccessList: updateAccessListMock });
+    renderAccessListDetail({}, { updateAccessList: updateAccessListMock });
 
     const descriptionField = screen.getByLabelText(
       textMock('resourceadm.listadmin_list_description'),
@@ -65,8 +68,7 @@ describe('AccessListDetail', () => {
 
   it('should call service to remove description', async () => {
     const user = userEvent.setup();
-    const updateAccessListMock = jest.fn();
-    render({}, { updateAccessList: updateAccessListMock });
+    renderAccessListDetail({}, { updateAccessList: updateAccessListMock });
 
     const descriptionField = screen.getByLabelText(
       textMock('resourceadm.listadmin_list_description'),
@@ -81,8 +83,7 @@ describe('AccessListDetail', () => {
 
   it('should navigate back after list is deleted', async () => {
     const user = userEvent.setup();
-    const addAccessListMemberMock = jest.fn();
-    render({}, { addAccessListMember: addAccessListMemberMock });
+    renderAccessListDetail({}, { addAccessListMember: addAccessListMemberMock });
 
     const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
     await act(() => user.click(deleteListButton));
@@ -95,8 +96,7 @@ describe('AccessListDetail', () => {
 
   it('should close modal on cancel delete', async () => {
     const user = userEvent.setup();
-    const addAccessListMemberMock = jest.fn();
-    render({}, { addAccessListMember: addAccessListMemberMock });
+    renderAccessListDetail({}, { addAccessListMember: addAccessListMemberMock });
 
     const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
     await act(() => user.click(deleteListButton));
@@ -110,7 +110,7 @@ describe('AccessListDetail', () => {
   });
 });
 
-const render = (
+const renderAccessListDetail = (
   props: Partial<AccessListDetailProps> = {},
   queries: Partial<ServicesContextProps> = {},
 ) => {
@@ -119,7 +119,7 @@ const render = (
     ...queries,
   };
 
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
         <AccessListDetail {...defaultProps} {...props} />
