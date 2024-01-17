@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
-import { Button, Spinner, Heading } from '@digdir/design-system-react';
 import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
+import { Spinner, Heading } from '@digdir/design-system-react';
 import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from 'resourceadm/hooks/queries';
@@ -16,6 +16,7 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { StudioButton } from '@studio/components';
 
 /**
  * @component
@@ -101,7 +102,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
         <div className={classes.topRightWrapper}>
           {shouldDisplayFeature('resourceAccessLists') && (
             <>
-              <Button
+              <StudioButton
                 as={Link}
                 variant='tertiary'
                 color='second'
@@ -111,12 +112,12 @@ export const ResourceDashboardPage = (): React.ReactNode => {
                 size='medium'
               >
                 <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
-              </Button>
+              </StudioButton>
               <div className={classes.verticalDivider} />
             </>
           )}
 
-          <Button
+          <StudioButton
             variant='tertiary'
             color='second'
             icon={<MigrationIcon />}
@@ -125,9 +126,9 @@ export const ResourceDashboardPage = (): React.ReactNode => {
             size='medium'
           >
             <strong>{t('resourceadm.dashboard_import_resource')}</strong>
-          </Button>
+          </StudioButton>
           <div className={classes.verticalDivider} />
-          <Button
+          <StudioButton
             variant='tertiary'
             color='second'
             icon={<PlusCircleIcon />}
@@ -136,7 +137,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
             size='medium'
           >
             <strong>{t('resourceadm.dashboard_create_resource')}</strong>
-          </Button>
+          </StudioButton>
         </div>
       </div>
       <div className={classes.horizontalDivider} />

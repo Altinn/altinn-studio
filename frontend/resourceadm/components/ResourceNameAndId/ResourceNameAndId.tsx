@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import classes from './ResourceNameAndId.module.css';
-import { Button, Textfield, Paragraph } from '@digdir/design-system-react';
-import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
+import classes from './ResourceNameAndId.module.css';
+import { Textfield, Paragraph } from '@digdir/design-system-react';
+import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@studio/icons';
+import { StudioButton } from '@studio/components';
 import { FieldWrapper } from '../../components/FieldWrapper';
 
 export type ResourceNameAndIdProps = {
@@ -119,25 +120,19 @@ export const ResourceNameAndId = ({
               />
             </div>
             <div className={classes.buttonWrapper}>
-              <Button
+              <StudioButton
                 onClick={() => handleClickEditButton(false)}
                 variant='tertiary'
                 color='danger'
-                icon={
-                  <MultiplyIcon
-                    title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
-                  />
-                }
+                icon={<MultiplyIcon />}
+                title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
                 size='small'
               />
-              <Button
+              <StudioButton
                 onClick={() => handleClickEditButton(true)}
                 variant='tertiary'
-                icon={
-                  <CheckmarkIcon
-                    title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
-                  />
-                }
+                icon={<CheckmarkIcon />}
+                title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
                 size='small'
               />
             </div>
@@ -151,7 +146,7 @@ export const ResourceNameAndId = ({
               <strong>{formatString(id)}</strong>
             </Paragraph>
             <div className={classes.editButtonWrapper}>
-              <Button
+              <StudioButton
                 onClick={() => handleClickEditButton(false)}
                 iconPlacement='right'
                 icon={<PencilWritingIcon />}
@@ -160,7 +155,7 @@ export const ResourceNameAndId = ({
                 size='small'
               >
                 {t('general.edit')}
-              </Button>
+              </StudioButton>
             </div>
           </div>
         )}

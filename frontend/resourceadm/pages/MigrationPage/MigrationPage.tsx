@@ -3,7 +3,6 @@ import classes from './MigrationPage.module.css';
 import { useValidatePolicyQuery, useValidateResourceQuery } from 'resourceadm/hooks/queries';
 import { MigrationStep } from 'resourceadm/components/MigrationStep';
 import {
-  Button,
   Textfield,
   Heading,
   Paragraph,
@@ -15,6 +14,7 @@ import {
 import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { StudioButton } from '@studio/components';
 
 const envOptions = [
   { value: 'Testmiljø TT-02', label: 'Testmiljø TT-02' },
@@ -182,7 +182,7 @@ export const MigrationPage = ({
                 <Label as='p' size='medium' spacing>
                   {t('resourceadm.migration_number_of_delegations')}
                 </Label>
-                <Button
+                <StudioButton
                   onClick={() => {
                     // TODO - replace with API call
                     setNumDelegationsA2(1000);
@@ -192,7 +192,7 @@ export const MigrationPage = ({
                   size='small'
                 >
                   {t('resourceadm.migration_get_number_of_delegations')}
-                </Button>
+                </StudioButton>
                 {numDelegationsA2 && numDelegationsA3 && (
                   <div className={classes.delegations}>
                     <Paragraph size='small'>
@@ -211,7 +211,7 @@ export const MigrationPage = ({
               </Label>
               <Paragraph size='small'>{t('resourceadm.migration_delegation_info')}</Paragraph>
               <div className={classes.buttonWrapper}>
-                <Button
+                <StudioButton
                   aria-disabled={
                     !(
                       validateResourceData.status === 200 &&
@@ -230,15 +230,15 @@ export const MigrationPage = ({
                   size='small'
                 >
                   {t('resourceadm.migration_migrate_delegations')}
-                </Button>
-                <Button
+                </StudioButton>
+                <StudioButton
                   aria-disabled // Remember to do same check for aria-disabled as fot button below
                   onClick={() => {}}
                   className={classes.button}
                   size='small'
                 >
                   {t('resourceadm.migration_turn_off_altinn_2_service')}
-                </Button>
+                </StudioButton>
               </div>
             </>
           )}

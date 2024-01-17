@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Alert, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { StudioSpinner } from '@studio/components';
@@ -12,6 +12,7 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { NewAccessListModal } from '../NewAccessListModal';
 import { Resource } from 'app-shared/types/ResourceAdm';
 import { useUrlParams } from '../../hooks/useSelectedContext';
+import { StudioButton } from '@studio/components';
 
 export interface ResourceAccessListsProps {
   env: string;
@@ -133,9 +134,12 @@ export const ResourceAccessLists = ({
           );
         })}
       </Checkbox.Group>
-      <Button variant='secondary' onClick={() => createAccessListModalRef.current?.showModal()}>
+      <StudioButton
+        variant='secondary'
+        onClick={() => createAccessListModalRef.current?.showModal()}
+      >
         {t('resourceadm.listadmin_create_list')}
-      </Button>
+      </StudioButton>
     </div>
   );
 };

@@ -1,13 +1,7 @@
 import React, { useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  Heading,
-  Link as DigdirLink,
-  Paragraph,
-  ToggleGroup,
-} from '@digdir/design-system-react';
+import { Heading, Link as DigdirLink, Paragraph, ToggleGroup } from '@digdir/design-system-react';
 import { StudioSpinner } from '@studio/components';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
@@ -15,6 +9,7 @@ import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import { StudioButton } from '@studio/components';
 
 export const ListAdminPage = (): React.ReactNode => {
   const { t } = useTranslation();
@@ -74,9 +69,12 @@ export const ListAdminPage = (): React.ReactNode => {
                 </div>
               );
             })}
-          <Button variant='secondary' onClick={() => createAccessListModalRef.current?.showModal()}>
+          <StudioButton
+            variant='secondary'
+            onClick={() => createAccessListModalRef.current?.showModal()}
+          >
             {t('resourceadm.listadmin_create_list')}
-          </Button>
+          </StudioButton>
         </div>
       )}
     </div>

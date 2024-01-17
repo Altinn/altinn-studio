@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import classes from './AccessListMembers.module.css';
 import { BrregSearchResult } from 'app-shared/types/ResourceAdm';
 
@@ -16,14 +16,14 @@ export const AccessListMembersPaging = ({
   const { t } = useTranslation();
   const renderPageButton = (href: string, label: string, isDisabled: boolean): React.ReactNode => {
     return (
-      <Button
+      <StudioButton
         size='small'
         variant='tertiary'
         disabled={isDisabled}
         onClick={() => setSearchUrl(href)}
       >
         {t(label)}
-      </Button>
+      </StudioButton>
     );
   };
 

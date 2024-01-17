@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
-  Button,
-  Table,
-  TableRow,
-  TableCell,
-  TableHeader,
-  TableBody,
+  LegacyTable,
+  LegacyTableRow,
+  LegacyTableCell,
+  LegacyTableHeader,
+  LegacyTableBody,
   Textfield,
   Radio,
 } from '@digdir/design-system-react';
@@ -24,6 +23,7 @@ import { getPartiesQueryUrl } from '../../utils/urlUtils';
 import { StudioSpinner } from '@studio/components';
 import { PlusIcon, PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
+import { StudioButton } from '@studio/components';
 
 const COLUMN_SPAN = 100;
 const PARTY_SEARCH_TYPE = 'PARTY';
@@ -75,22 +75,22 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
       label={t('resourceadm.listadmin_list_organizations')}
       description={t('resourceadm.listadmin_list_organizations_description')}
     >
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableCell width='15%'>{t('resourceadm.listadmin_orgnr')}</TableCell>
-            <TableCell width='45%'>{t('resourceadm.listadmin_navn')}</TableCell>
-            <TableCell width='15%'>{t('resourceadm.listadmin_type')}</TableCell>
-            <TableCell width='25%' />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+      <LegacyTable>
+        <LegacyTableHeader>
+          <LegacyTableRow>
+            <LegacyTableCell width='15%'>{t('resourceadm.listadmin_orgnr')}</LegacyTableCell>
+            <LegacyTableCell width='45%'>{t('resourceadm.listadmin_navn')}</LegacyTableCell>
+            <LegacyTableCell width='15%'>{t('resourceadm.listadmin_type')}</LegacyTableCell>
+            <LegacyTableCell width='25%' />
+          </LegacyTableRow>
+        </LegacyTableHeader>
+        <LegacyTableBody>
           {listItems.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={COLUMN_SPAN}>
+            <LegacyTableRow>
+              <LegacyTableCell colSpan={COLUMN_SPAN}>
                 <Alert severity='info'>{t('resourceadm.listadmin_empty_list')}</Alert>
-              </TableCell>
-            </TableRow>
+              </LegacyTableCell>
+            </LegacyTableRow>
           )}
           {listItems.map((item) => {
             return (
@@ -98,22 +98,22 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
                 key={item.orgNr}
                 item={item}
                 actionButton={
-                  <Button
+                  <StudioButton
                     onClick={() => handleRemoveMember(item.orgNr)}
                     variant='tertiary'
                     size='small'
                   >
                     {t('resourceadm.listadmin_remove_from_list')}
                     <MinusCircleIcon className={classes.buttonIcon} />
-                  </Button>
+                  </StudioButton>
                 }
               />
             );
           })}
           {isAddMode && (
             <>
-              <TableRow>
-                <TableCell colSpan={COLUMN_SPAN}>
+              <LegacyTableRow>
+                <LegacyTableCell colSpan={COLUMN_SPAN}>
                   <div className={classes.searchWrapper}>
                     <FieldWrapper label={t('resourceadm.listadmin_search')} fieldId='party-search'>
                       <Textfield
@@ -149,15 +149,15 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
                       <StudioSpinner />
                     </div>
                   )}
-                </TableCell>
-              </TableRow>
+                </LegacyTableCell>
+              </LegacyTableRow>
               {resultData?.parties.map((party) => {
                 return (
                   <AccessListMemberRow
                     key={party.orgNr}
                     item={party}
                     actionButton={
-                      <Button
+                      <StudioButton
                         onClick={() => handleAddMember(party)}
                         disabled={!!listItems.find((item) => item.orgNr === party.orgNr)}
                         variant='tertiary'
@@ -165,26 +165,26 @@ export const AccessListMembers = ({ org, env, list }: AccessListMembersProps): R
                       >
                         {t('resourceadm.listadmin_add_to_list')}
                         <PlusCircleIcon className={classes.buttonIcon} />
-                      </Button>
+                      </StudioButton>
                     }
                   />
                 );
               })}
-              <TableRow>
-                <TableCell colSpan={COLUMN_SPAN}>
+              <LegacyTableRow>
+                <LegacyTableCell colSpan={COLUMN_SPAN}>
                   <AccessListMembersPaging resultData={resultData} setSearchUrl={setSearchUrl} />
-                </TableCell>
-              </TableRow>
+                </LegacyTableCell>
+              </LegacyTableRow>
             </>
           )}
-        </TableBody>
-      </Table>
+        </LegacyTableBody>
+      </LegacyTable>
       {!isAddMode && (
         <div className={classes.addMoreWrapper}>
-          <Button variant='secondary' onClick={() => setIsAddMode(true)}>
+          <StudioButton variant='secondary' onClick={() => setIsAddMode(true)}>
             <PlusIcon />
             {t('resourceadm.listadmin_search_add_more')}
-          </Button>
+          </StudioButton>
         </div>
       )}
     </FieldWrapper>

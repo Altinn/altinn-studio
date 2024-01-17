@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './AccessListDetail.module.css';
 import { AccessList } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
@@ -10,6 +10,7 @@ import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
+import { StudioButton } from '@studio/components';
 
 export interface AccessListDetailProps {
   org: string;
@@ -56,12 +57,12 @@ export const AccessListDetail = ({
         <Modal.Header>{t('resourceadm.listadmin_delete_list_header')}</Modal.Header>
         <Modal.Content>{t('resourceadm.listadmin_delete_list_description')}</Modal.Content>
         <Modal.Footer>
-          <Button color='danger' onClick={() => handleDelete()}>
+          <StudioButton color='danger' onClick={() => handleDelete()}>
             {t('resourceadm.listadmin_delete_list')}
-          </Button>
-          <Button variant='tertiary' onClick={closeModal}>
+          </StudioButton>
+          <StudioButton variant='tertiary' onClick={closeModal}>
             {t('general.cancel')}
-          </Button>
+          </StudioButton>
         </Modal.Footer>
       </Modal>
       <div>
@@ -108,14 +109,14 @@ export const AccessListDetail = ({
       </FieldWrapper>
       <AccessListMembers org={org} env={env} list={list} />
       <div>
-        <Button
+        <StudioButton
           variant='tertiary'
           color='danger'
           onClick={() => deleteWarningModalRef.current?.showModal()}
         >
           {t('resourceadm.listadmin_delete_list')}
           <TrashIcon className={classes.deleteIcon} />
-        </Button>
+        </StudioButton>
       </div>
     </div>
   );

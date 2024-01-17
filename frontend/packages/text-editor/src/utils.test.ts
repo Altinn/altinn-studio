@@ -55,19 +55,41 @@ describe('filterFunction', () => {
 });
 
 describe('mapResourceFilesToTableRows', () => {
-  test('Converts from ITextResources format to table format', () => {
+  test('Converts from ITextResources format to table format without sorting', () => {
     const id = 'some-key';
+    const id2 = 'a-key';
     const textResources: ITextResources = {
       nb: [
-        { id, value: 'Min nøkkel' }
+        { id, value: 'Min verdi 1' },
+        { id: id2, value: 'Min verdi 2' },
       ],
       en: [
-        { id, value: 'My key' }
-      ]
+        { id, value: 'My value 1' },
+        { id: id2, value: 'My value 2' },
+      ],
     };
-    const rows = mapResourceFilesToTableRows(textResources);
-    expect(rows).toHaveLength(1);
+    const rows = mapResourceFilesToTableRows(textResources, false);
+    expect(rows).toHaveLength(2);
     expect(rows[0].textKey).toBe(id);
+    expect(rows[0].translations).toHaveLength(2);
+  });
+
+  test('Converts from ITextResources format to table format and sorts them alphabetically', () => {
+    const id = 'some-key';
+    const id2 = 'a-key';
+    const textResources: ITextResources = {
+      nb: [
+        { id, value: 'Min verdi 1' },
+        { id: id2, value: 'Min verdi 2' },
+      ],
+      en: [
+        { id, value: 'My value 1' },
+        { id: id2, value: 'My value 2' },
+      ],
+    };
+    const rows = mapResourceFilesToTableRows(textResources, true);
+    expect(rows).toHaveLength(2);
+    expect(rows[0].textKey).toBe(id2);
     expect(rows[0].translations).toHaveLength(2);
   });
 
@@ -76,14 +98,18 @@ describe('mapResourceFilesToTableRows', () => {
     const textResources: ITextResources = {
       nb: [
         { id, value: 'Min nøkkel' },
-        { id: 'some-other-key', value: 'en tekst med variabel {0}', variables: [ { key: 'some-key-in-data-model', dataSource: 'dataModel' } ] }
+        {
+          id: 'some-other-key',
+          value: 'en tekst med variabel {0}',
+          variables: [{ key: 'some-key-in-data-model', dataSource: 'dataModel' }],
+        },
       ],
       en: [
         { id, value: 'My key' },
-        { id: 'some-other-key', value: '' }
-      ]
+        { id: 'some-other-key', value: '' },
+      ],
     };
-    const rows = mapResourceFilesToTableRows(textResources);
+    const rows = mapResourceFilesToTableRows(textResources, true);
     expect(rows).toHaveLength(2);
     expect(rows[1].variables).toHaveLength(1);
   });
@@ -93,15 +119,19 @@ describe('mapResourceFilesToTableRows', () => {
     const textResources: ITextResources = {
       nb: [
         { id, value: 'Min nøkkel' },
-        { id: 'some-other-key', value: '' }
+        { id: 'some-other-key', value: '' },
       ],
       en: [
         { id, value: 'My key' },
-        { id: 'some-other-key', value: 'en tekst med variabel {0}', variables: [ { key: 'some-key-in-data-model', dataSource: 'dataModel' } ] }
-      ]
+        {
+          id: 'some-other-key',
+          value: 'en tekst med variabel {0}',
+          variables: [{ key: 'some-key-in-data-model', dataSource: 'dataModel' }],
+        },
+      ],
     };
-    const rows = mapResourceFilesToTableRows(textResources);
+    const rows = mapResourceFilesToTableRows(textResources, true);
     expect(rows).toHaveLength(2);
     expect(rows[1].variables).toHaveLength(1);
   });
-})
+});

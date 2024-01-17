@@ -1,13 +1,14 @@
 import React, { forwardRef, useState } from 'react';
-import { Button, Paragraph, Modal } from '@digdir/design-system-react';
+import { useNavigate } from 'react-router-dom';
+import { Paragraph, Modal } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
-import { useNavigate } from 'react-router-dom';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { StudioButton } from '@studio/components';
 
 export type NewResourceModalProps = {
   onClose: () => void;
@@ -93,7 +94,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
           />
         </Modal.Content>
         <Modal.Footer>
-          <Button
+          <StudioButton
             onClick={() =>
               !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
             }
@@ -102,10 +103,10 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
             size='small'
           >
             {t('resourceadm.dashboard_create_modal_create_button')}
-          </Button>
-          <Button onClick={handleClose} color='first' variant='tertiary' size='small'>
+          </StudioButton>
+          <StudioButton onClick={handleClose} color='first' variant='tertiary' size='small'>
             {t('general.cancel')}
-          </Button>
+          </StudioButton>
         </Modal.Footer>
       </Modal>
     );

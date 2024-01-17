@@ -92,7 +92,7 @@ export const ResourceTable = ({
       flex: 1,
       renderCell: (params: GridRenderCellParams) => {
         return (
-          <Tag color={params.row.hasPolicy ? 'info' : 'danger'} variant='secondary' size='small'>
+          <Tag color={params.row.hasPolicy ? 'info' : 'danger'} size='small'>
             {params.row.hasPolicy
               ? t('resourceadm.dashboard_table_row_has_policy')
               : t('resourceadm.dashboard_table_row_missing_policy')}
