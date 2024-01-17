@@ -7,7 +7,7 @@ import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentR
 
 import classes from './UnknownReferencedItem.module.css';
 
-type UnknownReferencedItemProps = {
+export type UnknownReferencedItemProps = {
   id: string;
   layout: IInternalLayout;
 };
@@ -34,7 +34,11 @@ export const UnknownReferencedItem = ({ id, layout }: UnknownReferencedItemProps
           title={t('general.delete')}
           variant='tertiary'
         />
-        <HelpText size='small' title='Ukjent komponent' className={classes.helpText}>
+        <HelpText
+          size='small'
+          title={t('ux_editor.unknown_group_reference_help_text_title')}
+          className={classes.helpText}
+        >
           {t('ux_editor.unknown_group_reference', {
             id,
           })}

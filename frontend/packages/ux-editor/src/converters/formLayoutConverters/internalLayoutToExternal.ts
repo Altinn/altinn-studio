@@ -59,8 +59,14 @@ const getComponentIdWithPageIndex = (
   internalLayout: IInternalLayout,
   componentId: string,
 ): string => {
-  const { pageIndex } = getComponentById(internalLayout, componentId);
-  return pageIndex === null ? componentId : addPageIndexPrefix(componentId, pageIndex);
+  const component = getComponentById(internalLayout, componentId);
+
+  const isUnknownComponentReference = !component;
+  if (!isUnknownComponentReference) {
+    // Returns the ID which is unknown component reference.
+    return componentId;
+  }
+  return component.pageIndex === null ? componentId : addPageIndexPrefix(componentId, component.pageIndex);
 };
 
 const getComponentById = (
