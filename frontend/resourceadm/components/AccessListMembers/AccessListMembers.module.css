@@ -3,7 +3,7 @@
   flex-direction: row;
   gap: 1rem;
   align-items: flex-end;
-  margin: 2.5rem 0;
+  margin-top: 2.5rem;
 }
 
 .noSearchResults {
@@ -12,7 +12,7 @@
 }
 
 .spinnerContainer {
-  height: 300px; /* height of 5 grid rows (must be equal to height of grid to avoid scroll jumping when changing pagination page) */
+  height: 250px; /* height of 5 grid rows (must be equal to height of grid to avoid scroll jumping when changing pagination page) */
 }
 
 .addMoreWrapper {
@@ -30,4 +30,24 @@
 
 .buttonIcon {
   font-size: 1.5rem;
+}
+
+.hiddenHeader {
+  visibility: hidden;
+}
+
+.membersTable {
+  width: 100%;
+}
+
+.smallColumn {
+  width: 15%;
+}
+
+.mediumColumn {
+  width: 25%;
+}
+
+.largeColumn {
+  width: 45%;
 }
