@@ -1,10 +1,10 @@
 import { BasePage, TextKey } from '../helpers/BasePage';
 import { Locator, Page } from '@playwright/test';
 import { Environment } from '../helpers/StudioEnvironment';
+import * as testids from '../../testids';
+import path from 'path';
 
 export class DataModelPage extends BasePage {
-  private dataModelName: string = 'datamodel';
-
   constructor(page: Page, environment?: Environment) {
     super(page, environment);
   }
@@ -21,10 +21,8 @@ export class DataModelPage extends BasePage {
     await this.getButtonByTextKey('app_data_modelling.landing_dialog_create').click();
   }
 
-  public async typeDataModelName(): Promise<void> {
-    await this.getTextboxByTextKey('schema_editor.create_model_description').fill(
-      this.dataModelName,
-    );
+  public async typeDataModelName(name: string): Promise<void> {
+    await this.getTextboxByTextKey('schema_editor.create_model_description').fill(name);
   }
 
   public async clickOnCreateModelButton(): Promise<void> {
@@ -104,8 +102,8 @@ export class DataModelPage extends BasePage {
     await this.getAlertByTextKey('schema_editor.datamodel_generation_success_message').isVisible();
   }
 
-  public async checkThatDataModelOptionExists(): Promise<void> {
-    await this.getDataModelOption().isVisible();
+  public async checkThatDataModelOptionExists(option: string): Promise<void> {
+    await this.getDataModelOptionByName(option).isVisible();
   }
 
   public async clickOnDeleteDataModelButton(): Promise<void> {
@@ -116,8 +114,19 @@ export class DataModelPage extends BasePage {
     await this.getButtonByTextKey('schema_editor.confirm_deletion').click();
   }
 
-  public async checkThatDataModelOptionDoNotExists(): Promise<void> {
-    await this.getDataModelOption().isHidden();
+  public async checkThatDataModelOptionDoesNotExists(option: string): Promise<void> {
+    await this.getDataModelOptionByName(option).isHidden();
+  }
+
+  public async selectFileToUpload(fileName: string): Promise<void> {
+    await this.page
+      .getByTestId(testids.fileSelectorInput)
+      .first()
+      .setInputFiles(path.join(__dirname, fileName));
+  }
+
+  public async getDataModelOptionValue(option: string): Promise<string> {
+    return await this.getDataModelOptionByName(option).getAttribute('value');
   }
 
   // Helper function to get a button by the text key
@@ -166,7 +175,7 @@ export class DataModelPage extends BasePage {
   }
 
   // Helper function to get an option by the text key
-  private getDataModelOption(): Locator {
-    return this.page.getByRole('option', { name: this.dataModelName });
+  private getDataModelOptionByName(name: string): Locator {
+    return this.page.getByRole('option', { name });
   }
 }

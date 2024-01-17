@@ -3,6 +3,10 @@ import { test } from '../../extenders/testExtend';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { DesignerApi } from '../../helpers/DesignerApi';
 
+// This line must be there to ensure that the tests do not run in parallell, and
+// that the before all call is being executed before we start the tests
+test.describe.configure({ mode: 'serial' });
+
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request }) => {
   // Create a new app
@@ -22,7 +26,8 @@ test('Allows to adda datamodel, include an object with custom name and fields in
 
   // Add datamodel
   await dataModelPage.clickOnCreateNewDataModelButton();
-  await dataModelPage.typeDataModelName();
+  const dataModelName: string = 'datamodel';
+  await dataModelPage.typeDataModelName(dataModelName);
   await dataModelPage.clickOnCreateModelButton();
 
   // Add object
@@ -91,15 +96,27 @@ test('Allows to adda datamodel, include an object with custom name and fields in
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
 
   // Delete the data model
-  await dataModelPage.checkThatDataModelOptionExists();
+  await dataModelPage.checkThatDataModelOptionExists(dataModelName);
   await dataModelPage.clickOnDeleteDataModelButton();
   await dataModelPage.clickOnConfirmDeleteDataModelButton();
-  await dataModelPage.checkThatDataModelOptionDoNotExists();
+  await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
 
-test('Allows to upload and then delete an XSD file', async ({ page, testAppName, request }) => {
+test('Allows to upload and then delete an XSD file', async ({ page, testAppName }) => {
   // Load the data model page
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   await dataModelPage.loadDataModelPage();
   await dataModelPage.verifyDataModelPage();
+
+  // Select the file to upload
+  const dataModelName: string = 'testdatamodel';
+  const dataModelFileName: string = `${dataModelName}.xsd`;
+  await dataModelPage.selectFileToUpload(dataModelFileName);
+  const dataModelComboboxValue = await dataModelPage.getDataModelOptionValue(dataModelName);
+  expect(dataModelComboboxValue).toMatch(/\/testdatamodel.schema.json$/);
+
+  await dataModelPage.checkThatDataModelOptionExists(dataModelName);
+  await dataModelPage.clickOnDeleteDataModelButton();
+  await dataModelPage.clickOnConfirmDeleteDataModelButton();
+  await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
