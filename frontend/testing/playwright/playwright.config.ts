@@ -1,9 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { config } from 'dotenv';
 import { ExtendedTestOptions } from './extenders/testExtend';
-
-// TODO - make enum
-const DATAMODEL_APP_TEST_NAME = 'data-model-app-test';
+import { AppNames } from './enum/AppNames';
 
 config();
 
@@ -31,7 +29,7 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
-        testAppName: 'simple-app-test',
+        testAppName: AppNames.CREATE_APP_ONLY,
         headless: true,
       },
     },
@@ -41,7 +39,7 @@ export default defineConfig<ExtendedTestOptions>({
       testMatch: '*create-app-only.teardown.ts',
       use: {
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        testAppName: 'simple-app-test',
+        testAppName: AppNames.CREATE_APP_ONLY,
       },
     },
     {
@@ -54,7 +52,7 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
-        testAppName: DATAMODEL_APP_TEST_NAME,
+        testAppName: AppNames.DATA_MODEL_APP,
         headless: true,
       },
     },
@@ -64,7 +62,7 @@ export default defineConfig<ExtendedTestOptions>({
       testMatch: '*data-model.teardown.ts',
       use: {
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        testAppName: DATAMODEL_APP_TEST_NAME,
+        testAppName: AppNames.DATA_MODEL_APP,
       },
     },
   ],
