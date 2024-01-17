@@ -7,6 +7,7 @@ import { IRepoListProps, RepoList } from './RepoList';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { DATAGRID_PAGE_SIZE_OPTIONS } from 'dashboard/constants';
+import { nbNO } from '@mui/x-data-grid/locales';
 
 const user = userEvent.setup();
 
@@ -31,6 +32,8 @@ const renderWithMockServices = (
   );
 };
 
+const { localeText } = nbNO.components.MuiDataGrid.defaultProps;
+
 describe('RepoList', () => {
   test('should not call onSortModelChange when clicking sort button and isServerSort is false', async () => {
     const handleSortMock = jest.fn();
@@ -39,7 +42,9 @@ describe('RepoList', () => {
       onSortModelChange: handleSortMock,
     });
     // eslint-disable-next-line testing-library/no-node-access
-    const sortBtn = document.querySelector('button[aria-label="Sort"]');
+    const sortBtn = document.querySelector(
+      'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
+    );
     await act(() => user.click(sortBtn));
 
     expect(handleSortMock).not.toHaveBeenCalled();
@@ -53,7 +58,9 @@ describe('RepoList', () => {
     });
 
     // eslint-disable-next-line testing-library/no-node-access
-    const sortBtn = document.querySelector('button[aria-label="Sort"]');
+    const sortBtn = document.querySelector(
+      'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
+    );
     await act(() => user.click(sortBtn));
 
     expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
@@ -79,7 +86,7 @@ describe('RepoList', () => {
     });
 
     const nextPageButton = screen.getByRole('button', {
-      name: 'Go to next page',
+      name: localeText.MuiTablePagination.getItemAriaLabel('next'),
     });
     expect(nextPageButton).toBeInTheDocument();
     await act(() => user.click(nextPageButton));
@@ -87,7 +94,7 @@ describe('RepoList', () => {
     expect(onPageChange).toHaveBeenCalledWith(1);
 
     const previousPageButton = screen.getByRole('button', {
-      name: 'Go to previous page',
+      name: localeText.MuiTablePagination.getItemAriaLabel('previous'),
     });
     expect(previousPageButton).toBeInTheDocument();
     await act(() => user.click(previousPageButton));
@@ -105,7 +112,7 @@ describe('RepoList', () => {
     });
 
     const pageSizeSelect = screen.getByRole('combobox', {
-      name: textMock('dashboard.rows_per_page'),
+      name: localeText.MuiTablePagination.labelRowsPerPage,
     });
     await act(() => user.click(pageSizeSelect));
 

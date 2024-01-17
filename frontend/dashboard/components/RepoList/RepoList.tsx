@@ -2,13 +2,14 @@ import React, { useMemo, useRef, useState } from 'react';
 import type {
   GridActionsColDef,
   GridColDef,
+  GridPaginationModel,
   GridRenderCellParams,
   GridRowParams,
   GridSortModel,
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridOverlay, nbNO } from '@mui/x-data-grid';
 import cn from 'classnames';
 import type { IRepository } from 'app-shared/types/global';
 import { MakeCopyModal } from '../MakeCopyModal';
@@ -85,17 +86,17 @@ export const RepoList = ({
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
-  const [paginationModel, setPaginationModel] = React.useState({
+  const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>({
     pageSize,
     page: 0,
   });
 
-  const handlePaginationModelChange = (newPaginationModel) => {
+  const handlePaginationModelChange = (newPaginationModel: GridPaginationModel) => {
     if (newPaginationModel.page !== paginationModel.page) {
       onPageChange?.(newPaginationModel.page);
     }
     if (newPaginationModel.pageSize !== paginationModel.pageSize) {
-      onPageSizeChange?.(newPaginationModel.pageSize);
+      onPageSizeChange?.(newPaginationModel.pageSize as DATAGRID_PAGE_SIZE_TYPE);
     }
     setPaginationModel(newPaginationModel);
   };
@@ -249,25 +250,18 @@ export const RepoList = ({
 
   const handleCloseCopyModal = () => setCopyCurrentRepoName(null);
 
-  const componentPropsLabelOverrides = useMemo(
-    () => ({
-      pagination: {
-        labelRowsPerPage: t('dashboard.rows_per_page'),
-      },
-    }),
-    [t],
-  );
+  const localText = {
+    ...nbNO.components.MuiDataGrid.defaultProps.localeText,
+    noRowsLabel: t('dashboard.no_repos_result'),
+  };
 
   return (
     <div ref={copyModalAnchorRef}>
       {isServerSort ? (
         <DataGrid
+          localeText={localText}
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
-          components={{
-            NoRowsOverlay: NoResults,
-          }}
-          componentsProps={componentPropsLabelOverrides}
           autoHeight={true}
           loading={isLoading}
           rows={repos}
@@ -285,12 +279,9 @@ export const RepoList = ({
         />
       ) : (
         <DataGrid
+          localeText={localText}
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
-          componentsProps={componentPropsLabelOverrides}
-          components={{
-            NoRowsOverlay: NoResults,
-          }}
           autoHeight={true}
           loading={isLoading}
           rows={repos}

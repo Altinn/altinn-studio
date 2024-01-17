@@ -159,7 +159,6 @@
   "dashboard.resource_status_description": "Vi oppdaterer deg på nye releaser og driftsmessige hendelser som kan være relevante for deg i tjenesteutviklingen.",
   "dashboard.resource_status_label": "Driftsmeldinger",
   "dashboard.resources": "Ressurser",
-  "dashboard.rows_per_page": "Rader per side",
   "dashboard.search": "Søk etter applikasjon",
   "dashboard.search_result": "Søkeresultat",
   "dashboard.select_datamodelling_format": "Velg datamodelleringsformat",
