@@ -544,10 +544,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/contents.zip")]
         public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
         {
+            AltinnRepoContext appContext = AltinnRepoContext.FromOrgRepo(org, repository);
             string appRoot;
             try
             {
-                appRoot = _repository.GetAppPath(org, repository);
+                appRoot = _repository.GetAppPath(appContext.Org, appContext.Repo);
 
                 if (!Directory.Exists(appRoot))
                 {
@@ -560,10 +561,11 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             var zipType = full ? "full" : "changes";
-            var zipFileName = $"{org}-{repository}-{zipType}.zip";
-            var zipFilePath = Path.Combine(Path.GetTempPath(), "altinn", zipFileName);
+            var zipFileName = $"{appContext.Org}-{appContext.Repo}-{zipType}.zip";
+            var tempAltinnFolderPath = Path.Combine(Path.GetTempPath(), "altinn");
+            var zipFilePath = Path.Combine(tempAltinnFolderPath, zipFileName);
 
-            using (var archive = new ZipArchive(new FileStream(zipFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read, 512, FileOptions.DeleteOnClose), ZipArchiveMode.Create, leaveOpen: false))
+            using (var archive = new ZipArchive(new FileStream(zipFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read), ZipArchiveMode.Create, leaveOpen: false))
             {
                 IEnumerable<string> changedFiles;
                 if (full)
@@ -573,7 +575,7 @@ namespace Altinn.Studio.Designer.Controllers
                 else
                 {
                     changedFiles = _sourceControl
-                        .Status(org, repository)
+                        .Status(appContext.Org, appContext.Repo)
                         .Where(f => f.FileStatus != FileStatus.DeletedFromWorkdir)
                         .Select(f => f.FilePath);
                 };
