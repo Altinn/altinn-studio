@@ -214,7 +214,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
                 if (textResourceContainsKey is null)
                 {
-                    textResourceObject.Resources.Add(new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
+                    textResourceObject.Resources.Insert(0, new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
                 }
                 else
                 {
