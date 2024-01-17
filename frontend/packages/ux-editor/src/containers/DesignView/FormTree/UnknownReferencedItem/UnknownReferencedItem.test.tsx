@@ -9,7 +9,7 @@ import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentR
 jest.mock('./useDeleteUnknownComponentReference');
 
 const mockUseUpdateFormContainerMutation =
-  useDeleteUnknownComponentReference as jest.MockedFunction;
+  useDeleteUnknownComponentReference as jest.MockedFunction<typeof useDeleteUnknownComponentReference>;
 
 describe('UnknownReferencedItem', () => {
   it('should display unknown reference component with help text', async () => {
