@@ -15,7 +15,11 @@ import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils'
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
-import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
+import {
+  DATAGRID_DEFAULT_PAGE_SIZE,
+  DATAGRID_PAGE_SIZE_OPTIONS,
+  DATAGRID_PAGE_SIZE_TYPE,
+} from '../../constants';
 import classes from './RepoList.module.css';
 import { User } from 'app-shared/types/Repository';
 import { useSetStarredRepoMutation } from '../../hooks/mutations';
@@ -82,7 +86,7 @@ export const RepoList = ({
   onPageChange,
   onSortModelChange,
   onPageSizeChange,
-  pageSizeOptions = [DATAGRID_DEFAULT_PAGE_SIZE],
+  pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {

@@ -8,7 +8,7 @@ import { Organization } from 'app-shared/types/Organization';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
-import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from 'dashboard/constants';
+import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 import { useAugmentReposWithStarred } from 'dashboard/hooks/useAugmentReposWithStarred';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
 
@@ -52,7 +52,6 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         onSortModelChange={setSortModel}
         sortModel={sortModel}
         pageSize={pageSize}
-        pageSizeOptions={DATAGRID_PAGE_SIZE_OPTIONS}
       />
     </div>
   );

@@ -7,7 +7,6 @@ import { IRepoListProps, RepoList } from './RepoList';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { repository } from 'app-shared/mocks/mocks';
-import { DATAGRID_PAGE_SIZE_OPTIONS } from 'dashboard/constants';
 import { nbNO } from '@mui/x-data-grid/locales';
 
 const user = userEvent.setup();
@@ -23,7 +22,6 @@ const renderWithMockServices = (
     isLoading: false,
     isServerSort: false,
     onSortModelChange: jest.fn(),
-    pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
     ...componentProps,
   };
   render(
