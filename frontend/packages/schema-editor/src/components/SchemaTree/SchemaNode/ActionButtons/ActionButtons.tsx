@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import classes from './ActionButtons.module.css';
 import cn from 'classnames';
 import { isNodeValidParent, isReference } from '@altinn/schema-model';
-import { isDefinition } from '../../../../../../schema-model/src/lib/utils';
 import { ActionButton } from './ActionButton';
 import { AddPropertyMenu } from './AddPropertyMenu';
 import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
@@ -22,7 +21,7 @@ export const ActionButtons = ({ pointer, className }: ActionButtonsProps) => {
   const node = savableModel.getNode(pointer);
 
   const convertToReference = () => savableModel.convertToDefinition(pointer);
-  const actionButtonTitleKey = isDefinition(node)
+  const actionButtonTitleKey = savableModel.hasReferringNodes(pointer)
     ? 'schema_editor.disable_deletion_info_for_used_definition'
     : 'general.delete';
 
@@ -41,7 +40,7 @@ export const ActionButtons = ({ pointer, className }: ActionButtonsProps) => {
         icon={<TrashIcon />}
         titleKey={actionButtonTitleKey}
         onClick={deleteNode}
-        disabled={isDefinition(node)}
+        disabled={savableModel.hasReferringNodes(pointer)}
       />
     </div>
   );
