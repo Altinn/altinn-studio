@@ -22,6 +22,9 @@ export const ActionButtons = ({ pointer, className }: ActionButtonsProps) => {
   const node = savableModel.getNode(pointer);
 
   const convertToReference = () => savableModel.convertToDefinition(pointer);
+  const actionButtonTitleKey = isDefinition(node)
+    ? 'schema_editor.disable_deletion_info_for_used_definition'
+    : 'general.delete';
 
   return (
     <div className={cn(classes.root, className)}>
@@ -33,22 +36,13 @@ export const ActionButtons = ({ pointer, className }: ActionButtonsProps) => {
           onClick={convertToReference}
         />
       )}
-      {isDefinition(node) ? (
-        <ActionButton
-          color='danger'
-          icon={<TrashIcon />}
-          titleKey='schema_editor.disable_deletion_info_for_used_definition'
-          onClick={deleteNode}
-          disabled={true}
-        />
-      ) : (
-        <ActionButton
-          color='danger'
-          icon={<TrashIcon />}
-          titleKey='general.delete'
-          onClick={deleteNode}
-        />
-      )}
+      <ActionButton
+        color='danger'
+        icon={<TrashIcon />}
+        titleKey={actionButtonTitleKey}
+        onClick={deleteNode}
+        disabled={isDefinition(node)}
+      />
     </div>
   );
 };
