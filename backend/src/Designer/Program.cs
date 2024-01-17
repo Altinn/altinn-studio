@@ -340,7 +340,7 @@ void CreateDirectory(IConfiguration configuration)
                                                        configuration["ServiceRepositorySettings:RepositoryLocation"];
     if (string.IsNullOrWhiteSpace(repoLocation))
     {
-        repoLocation = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "altinn", "repos");
+        repoLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "repos");
         configuration.GetSection("ServiceRepositorySettings")["RepositoryLocation"] = repoLocation;
     }
 
