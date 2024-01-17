@@ -8,7 +8,7 @@ import { LegacyPopover } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { CloneModal } from './CloneModal';
 import { StudioButton } from '@studio/components';
-import { LocalChangesModal } from './LocalChangesModal/LocalChangesModal';
+import { LocalChangesModal } from './LocalChangesModal';
 
 export type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
