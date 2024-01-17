@@ -214,7 +214,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
                 if (textResourceContainsKey is null)
                 {
-                    textResourceObject.Resources.Add(new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
+                    textResourceObject.Resources.Insert(0, new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
                 }
                 else
                 {
@@ -340,9 +340,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static JsonNode UpdateKey(JsonNode textResourceBindings, TextIdMutation keyMutation)
         {
             JsonNode updatedTextResourceBindings = JsonNode.Parse(textResourceBindings.ToJsonString());
-            foreach ((string key, var value) in (textResourceBindings as JsonObject)!)
+            foreach ((string key, JsonNode value) in (textResourceBindings as JsonObject)!)
             {
-                if (value is null)
+                if (value is null or JsonArray)
                 {
                     continue;
                 }

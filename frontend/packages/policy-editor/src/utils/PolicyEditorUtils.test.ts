@@ -7,10 +7,16 @@ import {
   mapPolicyRuleToPolicyRuleBackendObject,
   createNewPolicyResource,
   mapPolicyActionsToActionTitle,
+  mergeActionsFromPolicyWithActionOptions,
+  mergeSubjectsFromPolicyWithSubjectOptions,
+  convertSubjectStringToSubjectId,
+  createNewSubjectFromSubjectString,
+  convertSubjectStringToSubjectSource,
 } from './index';
 import {
   mockAction1,
   mockAction2,
+  mockAction3,
   mockActionTitle1,
   mockActionTitle2,
   mockActions,
@@ -24,6 +30,9 @@ import {
   mockResourceType1,
   mockResourecId1,
   mockRuleId1,
+  mockSubject1,
+  mockSubject2,
+  mockSubject3,
   mockSubjectBackendString1,
   mockSubjectBackendString3,
   mockSubjectTitle1,
@@ -66,7 +75,7 @@ describe('PolicyEditorUtils', () => {
       const result = mapPolicyRulesBackendObjectToPolicyRuleCard(
         mockSubjects,
         mockActions,
-        mockPolicyRules
+        mockPolicyRules,
       );
       expect(result).toEqual(mockPolicyRuleCards);
     });
@@ -94,7 +103,7 @@ describe('PolicyEditorUtils', () => {
         mockSubjects,
         mockActions,
         mockPolicyRuleCard1,
-        mockRuleId1
+        mockRuleId1,
       );
 
       expect(result).toEqual(mockPolicyRule1);
@@ -112,6 +121,65 @@ describe('PolicyEditorUtils', () => {
       const result = createNewPolicyResource('app', mockResourceType1, '');
 
       expect(result).toEqual(mockResource3);
+    });
+  });
+
+  describe('mergeActionsFromPolicyWithActionOptions', () => {
+    it('merges actions from policy rules with existing action options', () => {
+      const mergedActions = mergeActionsFromPolicyWithActionOptions(
+        [mockPolicyRule1],
+        [mockAction3],
+      );
+
+      expect(mergedActions).toHaveLength(3);
+      expect(mergedActions.map((action) => action.actionId)).toEqual([
+        mockAction3.actionId,
+        mockAction1.actionId,
+        mockAction2.actionId,
+      ]);
+    });
+  });
+
+  describe('mergeSubjectsFromPolicyWithSubjectOptions', () => {
+    it('merges subjects from policy rules with existing subject options', () => {
+      const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(
+        [mockPolicyRule1],
+        [mockSubject2],
+      );
+
+      expect(mergedSubjects).toHaveLength(3);
+      expect(mergedSubjects.map((subject) => subject.subjectId)).toEqual([
+        mockSubject2.subjectId,
+        mockSubject1.subjectId,
+        mockSubject3.subjectId,
+      ]);
+    });
+  });
+
+  describe('convertSubjectStringToSubjectId', () => {
+    it('converts subject string to subject ID correctly', () => {
+      const subjectId = convertSubjectStringToSubjectId(mockSubjectBackendString1);
+
+      expect(subjectId).toBe(mockSubject1.subjectId);
+    });
+  });
+
+  describe('createNewSubjectFromSubjectString', () => {
+    it('creates a new subject from subject string correctly', () => {
+      const newSubject = createNewSubjectFromSubjectString(mockSubjectBackendString1);
+
+      expect(newSubject).toEqual({
+        ...mockSubject1,
+        subjectSource: mockSubject1.subjectSource,
+        subjectTitle: mockSubject1.subjectId,
+      });
+    });
+  });
+
+  describe('convertSubjectStringToSubjectSource', () => {
+    it('converts subject string to subject source correctly', () => {
+      const subjectSource = convertSubjectStringToSubjectSource(mockSubjectBackendString1);
+      expect(subjectSource).toBe(mockSubject1.subjectSource);
     });
   });
 });

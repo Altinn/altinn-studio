@@ -1,12 +1,9 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { TextResource, TextResourceProps } from './TextResource';
-import {
-  queryClientMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
-} from '../testing/mocks';
+import { renderHookWithMockStore, renderWithMockStore, textLanguagesMock } from '../testing/mocks';
 import { useLayoutSchemaQuery } from '../hooks/queries/useLayoutSchemaQuery';
 import { act, screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -156,7 +153,11 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange when selection in search section is changed', async () => {
     await renderAndOpenSearchSection();
-    await act(() => user.click(screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') })));
+    await act(() =>
+      user.click(
+        screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
+      ),
+    );
     await act(() => user.click(screen.getByRole('option', { name: textResources[1].id })));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(textResources[1].id);
@@ -164,15 +165,25 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange with undefined when "none" is selected', async () => {
     await renderAndOpenSearchSection();
-    await act(() => user.click(screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') })));
-    await act(() => user.click(screen.getByRole('option', { name: textMock('ux_editor.search_text_resources_none') })));
+    await act(() =>
+      user.click(
+        screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
+      ),
+    );
+    await act(() =>
+      user.click(
+        screen.getByRole('option', { name: textMock('ux_editor.search_text_resources_none') }),
+      ),
+    );
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(undefined);
   });
 
   it('Closes search section when close button is clicked', async () => {
     await renderAndOpenSearchSection();
-    await act(() => user.click(screen.getByLabelText(textMock('ux_editor.search_text_resources_close'))));
+    await act(() =>
+      user.click(screen.getByLabelText(textMock('ux_editor.search_text_resources_close'))),
+    );
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
@@ -180,15 +191,23 @@ describe('TextResource', () => {
     await render({ textResourceId: 'test', handleRemoveTextResource: jest.fn() });
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText(textMock('ux_editor.text_resource_bindings.delete_confirm'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.text_resource_bindings.delete_confirm')),
+    ).toBeInTheDocument();
   });
 
   it('Calls handleRemoveTextResourceBinding is called when confirm delete button is clicked', async () => {
     const handleRemoveTextResource = jest.fn();
     await render({ handleRemoveTextResource, textResourceId: 'test' });
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
-    await act(() => user.click(screen.getByRole('button', { name: textMock('ux_editor.text_resource_bindings.delete_confirm') })));
-    expect(handleRemoveTextResource).toBeCalledTimes(1);
+    await act(() =>
+      user.click(
+        screen.getByRole('button', {
+          name: textMock('ux_editor.text_resource_bindings.delete_confirm'),
+        }),
+      ),
+    );
+    expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
   });
 
   it('Does not call handleRemoveTextResourceBinding is called when cancel delete button is clicked', async () => {
@@ -196,7 +215,7 @@ describe('TextResource', () => {
     await render({ handleRemoveTextResource, textResourceId: 'test' });
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.cancel') })));
-    expect(handleRemoveTextResource).not.toBeCalled();
+    expect(handleRemoveTextResource).not.toHaveBeenCalled();
   });
 
   it('Renders delete button as disabled when no handleRemoveTextResource is given', async () => {
@@ -227,13 +246,20 @@ const renderAndOpenSearchSection = async () => {
 };
 
 const waitForData = async (resources: ITextResource[]) => {
-  const { result } = renderHookWithMockStore({}, {
-    getTextResources: jest.fn().mockImplementation(() => Promise.resolve<ITextResourcesWithLanguage>({
-      language: DEFAULT_LANGUAGE,
-      resources,
-    })),
-  })(() => useTextResourcesQuery(org, app)).renderHookResult;
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const { result } = renderHookWithMockStore(
+    {},
+    {
+      getTextResources: jest.fn().mockImplementation(() =>
+        Promise.resolve<ITextResourcesWithLanguage>({
+          language: DEFAULT_LANGUAGE,
+          resources,
+        }),
+      ),
+      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+    },
+  )(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };

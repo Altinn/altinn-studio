@@ -4,7 +4,7 @@ import { Expression, expressionInPreviewPropertyTextKeys } from '../../../../../
 import { complexExpressionIsSet } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../../../hooks';
 import cn from 'classnames';
@@ -42,7 +42,7 @@ export const ExpressionPreview = ({
         )}
       </div>
       <div>
-        <Button
+        <StudioButton
           title={t('right_menu.expression_delete')}
           color='danger'
           icon={<TrashIcon />}
@@ -50,7 +50,7 @@ export const ExpressionPreview = ({
           variant='tertiary'
           size='small'
         />
-        <Button
+        <StudioButton
           title={t('right_menu.expression_edit')}
           icon={<PencilIcon />}
           onClick={() => onSetEditMode(true)}

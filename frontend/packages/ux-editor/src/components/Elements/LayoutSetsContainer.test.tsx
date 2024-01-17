@@ -2,7 +2,8 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
-import { queryClientMock, renderWithMockStore } from '../../testing/mocks';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithMockStore } from '../../testing/mocks';
 import { layoutSetsMock } from '../../testing/layoutMock';
 import { AppContextProps } from '../../AppContext';
 import { appStateMock } from '../../testing/stateMocks';
@@ -24,12 +25,8 @@ describe('LayoutSetsContainer', () => {
   it('renders component', async () => {
     render();
 
-    expect(
-      await screen.findByRole('option', { name: layoutSetName1 }),
-    ).toBeInTheDocument();
-    expect(
-      await screen.findByRole('option', { name: layoutSetName2 }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('option', { name: layoutSetName1 })).toBeInTheDocument();
+    expect(await screen.findByRole('option', { name: layoutSetName2 })).toBeInTheDocument();
   });
 
   it('NativeSelect should be rendered', async () => {
@@ -43,7 +40,6 @@ describe('LayoutSetsContainer', () => {
     await act(() => user.selectOptions(screen.getByRole('combobox'), layoutSetName2));
     expect(setSelectedLayoutSetMock).toHaveBeenCalledTimes(1);
   });
-
 });
 
 const render = () => {

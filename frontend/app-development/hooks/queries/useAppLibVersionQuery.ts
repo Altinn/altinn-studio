@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getAppLibVersion } from 'app-shared/api/queries';
+import { AppLibVersion } from 'app-shared/types/AppLibVersion';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**
@@ -11,7 +12,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
  * @returns UseQueryResult with the version
  */
 export const useAppLibVersionQuery = (org: string, repo: string) => {
-  return useQuery<{ version: string }>({
+  return useQuery<AppLibVersion>({
     queryKey: [QueryKey.AppLibVersion, org, repo],
     queryFn: () => getAppLibVersion(org, repo),
   });

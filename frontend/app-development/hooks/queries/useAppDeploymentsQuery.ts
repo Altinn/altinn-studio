@@ -13,7 +13,7 @@ export const useAppDeploymentsQuery = (
   const { getDeployments } = useServicesContext();
   return useQuery<AppDeployment[]>({
     queryKey: [QueryKey.AppDeployments, owner, app],
-    queryFn: () => getDeployments(owner, app).then((res) => res.results),
+    queryFn: () => getDeployments(owner, app).then((res) => res?.results || []),
     refetchInterval: DEPLOYMENTS_REFETCH_INTERVAL,
     meta,
   });

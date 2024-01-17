@@ -86,15 +86,12 @@ context('Overview', () => {
   });
 
   it('should be possible to navigate to the process editor from overview page', () => {
-    // Ensure feature flag is toggled for process editor
-    // TODO: remove this once feature flag is removed (https://github.com/Altinn/altinn-studio/issues/11506)
-    cy.visitWithFeatureFlag('/editor/' + designerAppId, `${FeatureFlagEnum.ProcessEditor}`);
-
+    cy.visit('/editor/' + designerAppId);
     const navigationContainer = cy.findByText(texts['overview.navigation_title']).parent();
     navigationContainer
-      .findByRole('link', { name: `${texts['top_menu.process-editor']} ${texts['general.beta']}` })
+      .findByRole('link', { name: `${texts['top_menu.process-editor']} ${texts['general.beta']}` }) // Name is saved as "Prosess Beta" because of the "beta"-flag
       .should('be.visible')
       .click();
-    cy.findByText(texts['process_editor.too_old_version_title']).should('be.visible');
+    cy.findByText(texts['process_editor.configuration_panel_no_task']).should('be.visible');
   });
 });

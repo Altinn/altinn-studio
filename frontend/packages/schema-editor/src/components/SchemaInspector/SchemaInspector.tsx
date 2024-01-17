@@ -1,20 +1,20 @@
 import React from 'react';
 import { Alert, Tabs } from '@digdir/design-system-react';
-import { isObject } from '@altinn/schema-model';
+import { isField, isObject, UiSchemaNode } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
-import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
-import { useSchemaAndReduxSelector } from '../../hooks/useSchemaAndReduxSelector';
+import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
+import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
 
 export const SchemaInspector = () => {
   const { t } = useTranslation();
+  const { selectedNodePointer } = useSchemaEditorAppContext();
+  const savableModel = useSavableSchemaModel();
 
-  const selectedItem = useSchemaAndReduxSelector(selectedItemSelector);
-
-  if (!selectedItem) {
+  if (!selectedNodePointer) {
     return (
       <div>
         <p className={classes.noItem}>{t('schema_editor.no_item_selected')}</p>
@@ -23,7 +23,8 @@ export const SchemaInspector = () => {
     );
   }
 
-  const shouldDisplayFieldsTab = 'fieldType' in selectedItem && isObject(selectedItem);
+  const selectedItem: UiSchemaNode = savableModel.getNode(selectedNodePointer);
+  const shouldDisplayFieldsTab = isField(selectedItem) && isObject(selectedItem);
 
   return (
     <Tabs defaultValue={t('schema_editor.properties')} className={classes.root}>
@@ -36,7 +37,7 @@ export const SchemaInspector = () => {
       </Tabs.Content>
       {shouldDisplayFieldsTab ? (
         <Tabs.Content value={t('schema_editor.fields')}>
-          <ItemFieldsTab selectedItem={'fieldType' in selectedItem && selectedItem} />
+          <ItemFieldsTab selectedItem={selectedItem} />
         </Tabs.Content>
       ) : (
         <Alert severity='info'>{t('app_data_modelling.fields_information')}</Alert>

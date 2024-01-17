@@ -105,6 +105,10 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
 
   const shareChanges = async (currentTarget: any) => {
     setSyncModalAnchorEl(currentTarget);
+    setModalState({
+      ...initialModalState,
+      isLoading: true,
+    });
     const { data: repoStatusResult } = await refetchRepoStatus();
     if (!hasLocalChanges(repoStatusResult)) {
       setModalState({

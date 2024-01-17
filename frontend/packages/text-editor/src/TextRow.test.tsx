@@ -33,7 +33,7 @@ describe('TextRow', () => {
         <TableBody>
           <TextRow {...allProps} />
         </TableBody>
-      </Table>
+      </Table>,
     );
   };
 
@@ -105,7 +105,7 @@ describe('TextRow', () => {
         },
       ],
     });
-    const textFields = await screen.findAllByTestId('InputWrapper');
+    const textFields = await screen.findAllByRole('textbox');
     expect(textFields.length).toBe(3);
   });
 
@@ -147,7 +147,7 @@ describe('TextRow', () => {
       });
       await act(() => user.click(confirmButton));
 
-      expect(removeEntry).toBeCalledWith({ textId: 'key1' });
+      expect(removeEntry).toHaveBeenCalledWith({ textId: 'key1' });
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
@@ -162,7 +162,7 @@ describe('TextRow', () => {
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
       await act(() => user.click(cancelButton));
 
-      expect(removeEntry).toBeCalledTimes(0);
+      expect(removeEntry).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
@@ -176,7 +176,7 @@ describe('TextRow', () => {
 
       await act(() => user.click(document.body));
 
-      expect(removeEntry).toBeCalledTimes(0);
+      expect(removeEntry).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
   });

@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback } from 'react';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import classes from './FormItemTitle.module.css';
@@ -25,7 +25,7 @@ export const FormItemTitle = ({ children, formItem }: FormItemTitleProps) => {
   return (
     <div className={classes.root}>
       <div className={classes.label}>{children}</div>
-      <Button
+      <StudioButton
         className={classes.deleteButton}
         color='danger'
         icon={<TrashIcon />}

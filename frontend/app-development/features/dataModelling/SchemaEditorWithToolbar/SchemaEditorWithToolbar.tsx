@@ -21,7 +21,6 @@ export const SchemaEditorWithToolbar = ({
   const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
 
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
-  const modelName = selectedOption?.label;
 
   return (
     <div className={classes.root}>
@@ -44,13 +43,7 @@ export const SchemaEditorWithToolbar = ({
       )}
       <main className={classes.main}>
         {!datamodels.length && <LandingPagePanel openCreateNew={() => setCreateNewOpen(true)} />}
-        {modelPath && (
-          <SelectedSchemaEditor
-            datamodels={datamodels}
-            modelName={modelName}
-            modelPath={modelPath}
-          />
-        )}
+        {modelPath && <SelectedSchemaEditor modelPath={modelPath} />}
       </main>
     </div>
   );

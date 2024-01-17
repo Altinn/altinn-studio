@@ -6,8 +6,19 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { MemoryRouter } from 'react-router-dom';
+import { AltinnButtonActionItem } from './types';
+
+const mockTo: string = '/test';
+const mockButtonTitle: string = 'title';
+const mockAction: AltinnButtonActionItem = {
+  menuKey: 'menu-1',
+  title: mockButtonTitle,
+  to: mockTo,
+};
 
 describe('AltinnHeader', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should render AltinnHeaderMenu', () => {
     render({
       menuItems: [
@@ -21,20 +32,31 @@ describe('AltinnHeader', () => {
     expect(screen.getByTitle('Altinn logo')).toBeInTheDocument();
   });
 
-  it('should render AltinnHeaderButtons when buttonActions are provided', () => {
+  it('should render AltinnHeaderMenu with only datamodels menu item when repositoryType is datamodels', () => {
     render({
-      buttonActions: [
+      menuItems: [
         {
-          buttonVariant: 'tertiary',
-          headerButtonsClasses: undefined,
-          menuKey: 'test-button',
-          title: 'TestButton',
-          handleClick: jest.fn(),
+          key: TopBarMenu.About,
+          link: 'Link1',
+          repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+        },
+        {
+          key: TopBarMenu.Datamodel,
+          link: 'Link2',
+          repositoryTypes: [RepositoryType.Datamodels],
         },
       ],
     });
-    expect(screen.getByRole('button', { name: textMock('TestButton') })).toBeInTheDocument();
-    expect(screen.getAllByRole('button').length).toEqual(2); // TestButton + Profile Menu
+    expect(screen.getByRole('link', { name: textMock('top_menu.datamodel') })).toBeInTheDocument();
+    expect(screen.queryByText(textMock('about'))).not.toBeInTheDocument();
+  });
+
+  it('should render AltinnHeaderButtons when buttonActions are provided', () => {
+    render({
+      buttonActions: [mockAction],
+    });
+    expect(screen.getByRole('link', { name: textMock(mockButtonTitle) })).toBeInTheDocument();
+    expect(screen.getAllByRole('button').length).toEqual(1); // Profile Menu
   });
 
   it('should not render AltinnHeaderButtons when buttonActions are not provided', () => {
@@ -61,36 +83,17 @@ describe('AltinnHeader', () => {
   });
 
   it('should render Deploy header button when repo is owned by an org', () => {
-    const mockTextDeployButton = 'TestDeployButton';
     render({
       repoOwnerIsOrg: true,
-      buttonActions: [
-        {
-          buttonVariant: 'tertiary',
-          headerButtonsClasses: undefined,
-          menuKey: TopBarMenu.Deploy,
-          title: mockTextDeployButton,
-          handleClick: jest.fn(),
-        },
-      ],
+      buttonActions: [mockAction],
     });
-    expect(
-      screen.getByRole('button', { name: textMock(mockTextDeployButton) }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock(mockButtonTitle) })).toBeInTheDocument();
   });
 
   it('should not render Deploy header button when repo is owned by a private person', () => {
     render({
       repoOwnerIsOrg: false,
-      buttonActions: [
-        {
-          buttonVariant: 'tertiary',
-          headerButtonsClasses: undefined,
-          menuKey: TopBarMenu.Deploy,
-          title: 'TestButton',
-          handleClick: jest.fn(),
-        },
-      ],
+      buttonActions: [mockAction],
     });
     expect(
       screen.queryByRole('button', { name: textMock(TopBarMenu.Deploy) }),
@@ -111,6 +114,7 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
       full_name: 'Test Testesen',
       id: 1,
       login: 'username',
+      userType: 0,
     },
     repository: {
       clone_url: 'clone_url',
@@ -126,7 +130,7 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
         login: 'test-org',
         email: 'test-email',
         id: 1,
-        UserType: 1,
+        userType: 1,
       },
       updated_at: 'never',
       created_at: 'now',

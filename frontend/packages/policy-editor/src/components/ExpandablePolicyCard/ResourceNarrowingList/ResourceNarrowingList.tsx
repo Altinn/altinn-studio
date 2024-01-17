@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './ResourceNarrowingList.module.css';
 import { PolicyResourceFields } from './PolicyResourceFields';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';
 import type { PolicyEditorUsage, PolicyRuleResource } from '../../../types';
 import { useTranslation } from 'react-i18next';
@@ -115,7 +115,7 @@ export const ResourceNarrowingList = ({
       >
         {displayResources}
         <div className={classes.buttonWrapper}>
-          <Button
+          <StudioButton
             type='button'
             onClick={handleClickAddResource}
             color='second'
@@ -124,7 +124,7 @@ export const ResourceNarrowingList = ({
             icon={<PlusIcon fontSize='1.5rem' />}
           >
             {t('policy_editor.narrowing_list_add_button')}
-          </Button>
+          </StudioButton>
         </div>
       </ExpandablePolicyElement>
     </div>
