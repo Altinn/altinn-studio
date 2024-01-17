@@ -61,8 +61,8 @@ const getComponentIdWithPageIndex = (
 ): string => {
   const component = getComponentById(internalLayout, componentId);
 
-  const isUnknownComponentReference = !component;
-  if (!isUnknownComponentReference) {
+  const isUnknownComponentReference = component === undefined;
+  if (isUnknownComponentReference) {
     // Returns the ID which is unknown component reference.
     return componentId;
   }
