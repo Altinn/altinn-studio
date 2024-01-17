@@ -1,8 +1,9 @@
 import classes from './SchemaGenerationErrorsPanel.module.css';
 import React from 'react';
-import { Alert, Button, ErrorMessage, Paragraph } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@navikt/aksel-icons';
+import { StudioButton } from '@studio/components';
 
 export interface SchemaGenerationErrorsPanelProps {
   onCloseErrorsPanel: () => void;
@@ -49,14 +50,14 @@ export const SchemaGenerationErrorsPanel = ({
             })}
           </ul>
         </div>
-        <Button
+        <StudioButton
           color='danger'
           onClick={onCloseErrorsPanel}
           variant='tertiary'
           icon={<XMarkIcon aria-hidden />}
         >
           {t('general.close')}
-        </Button>
+        </StudioButton>
       </div>
     </Alert>
   );

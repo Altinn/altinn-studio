@@ -3,41 +3,17 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { CreateService } from './CreateService';
-import { User } from 'app-shared/types/User';
-import { IGiteaOrganisation, IRepository } from 'app-shared/types/global';
+import { User } from 'app-shared/types/Repository';
+import { Organization } from 'app-shared/types/Organization';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { repository, user as userMock } from 'app-shared/mocks/mocks';
 
-const orgMock: IGiteaOrganisation = {
+const orgMock: Organization = {
   avatar_url: '',
   id: 1,
   username: 'unit-test',
   full_name: 'unit-test',
-};
-
-const repositoryMock: IRepository = {
-  clone_url: '',
-  description: '',
-  full_name: 'test',
-  html_url: '',
-  id: 0,
-  is_cloned_to_local: false,
-  user_has_starred: false,
-  name: 'test',
-  owner: {
-    avatar_url: '',
-    full_name: '',
-    login: '',
-  },
-  updated_at: '',
-};
-
-const userMock: User = {
-  id: 1,
-  avatar_url: '',
-  email: 'tester@tester.test',
-  full_name: 'Tester Testersen',
-  login: 'tester',
 };
 
 jest.mock('react-router-dom', () => ({
@@ -47,7 +23,7 @@ jest.mock('react-router-dom', () => ({
 
 const renderWithMockServices = (
   services?: Partial<ServicesContextProps>,
-  organizations?: IGiteaOrganisation[],
+  organizations?: Organization[],
   user?: User,
 ) => {
   render(
@@ -61,6 +37,7 @@ const renderWithMockServices = (
             email: '',
             full_name: '',
             login: '',
+            userType: 0,
           }
         }
       />
@@ -146,6 +123,32 @@ describe('CreateService', () => {
     expect(emptyFieldErrors.length).toBe(1);
   });
 
+  it('should show error message that app name is invalid when name is to short, then remove the error when name is valid again', async () => {
+    const user = userEvent.setup();
+    renderWithMockServices();
+
+    const repoNameInput = screen.getByLabelText(textMock('general.service_name'));
+
+    await act(() => user.type(repoNameInput, 'aa'));
+
+    const createBtn: HTMLElement = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+    await act(() => user.click(createBtn));
+
+    const errorMessage = screen.getByText(
+      textMock('dashboard.service_name_has_illegal_characters'),
+    );
+    expect(errorMessage).toBeInTheDocument();
+
+    await act(() => user.type(repoNameInput, 'a'));
+
+    const errorMessageAfter = screen.queryByText(
+      textMock('dashboard.service_name_has_illegal_characters'),
+    );
+    expect(errorMessageAfter).not.toBeInTheDocument();
+  });
+
   it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
     const addRepoMock = jest
@@ -200,12 +203,19 @@ describe('CreateService', () => {
         addRepo: () =>
           new Promise((resolve) =>
             setTimeout(() => {
-              resolve(repositoryMock);
+              resolve({
+                ...repository,
+                full_name: 'test',
+                name: 'test',
+              });
             }, 2),
           ),
       },
       [orgMock],
-      userMock,
+      {
+        ...userMock,
+        login: 'tester',
+      },
     );
 
     const createBtn: HTMLElement = screen.getByRole('button', {
@@ -252,10 +262,13 @@ describe('CreateService', () => {
 
     renderWithMockServices(
       {
-        addRepo: () => Promise.resolve(repositoryMock),
+        addRepo: () => Promise.resolve(repository),
       },
       [orgMock],
-      userMock,
+      {
+        ...userMock,
+        login: 'tester',
+      },
     );
 
     const createBtn: HTMLElement = screen.getByRole('button', {

@@ -11,13 +11,13 @@ import type {
 } from '@mui/x-data-grid';
 import { DataGrid, GridActionsCellItem, GridOverlay, nbNO } from '@mui/x-data-grid';
 import cn from 'classnames';
-import type { IRepository } from 'app-shared/types/global';
+import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import classes from './RepoList.module.css';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { useSetStarredRepoMutation } from '../../hooks/mutations';
 import { useUnsetStarredRepoMutation } from '../../hooks/mutations';
 import {
@@ -30,7 +30,7 @@ import {
 
 export interface IRepoListProps {
   isLoading: boolean;
-  repos?: IRepository[];
+  repos?: RepositoryWithStarred[];
   isServerSort?: boolean;
   pageSize?: DATAGRID_PAGE_SIZE_TYPE;
   rowCount: number;
@@ -44,7 +44,7 @@ export interface IRepoListProps {
 
 const isRowSelectable = () => false;
 
-const defaultArray: IRepository[] = [];
+const defaultArray: RepositoryWithStarred[] = [];
 
 const gridStyleOverride = {
   border: 'none',
@@ -117,9 +117,10 @@ export const RepoList = ({
       headerClassName: classes.columnHeader,
       width: 50,
       getActions: (params: GridRowParams) => {
-        const repo = params.row as IRepository;
+        const repo = params.row as RepositoryWithStarred;
+
         const handleToggleFav = () => {
-          if (repo.user_has_starred) {
+          if (repo.hasStarred) {
             unsetStarredRepo(repo);
           } else {
             setStarredRepo(repo);
@@ -131,9 +132,9 @@ export const RepoList = ({
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
+            label={repo.hasStarred ? t('dashboard.unstar') : t('dashboard.star')}
             icon={
-              repo.user_has_starred ? (
+              repo.hasStarred ? (
                 <StarFillIcon name='star-fill-icon' className={classes.favoriteIcon} />
               ) : (
                 <StarIcon name='star-icon' className={classes.dropdownIcon} />

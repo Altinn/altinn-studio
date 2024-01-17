@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import classes from './PolicyEditorDropdownMenu.module.css';
-import { Button, DropdownMenu } from '@digdir/design-system-react';
+import { DropdownMenu } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
+import { StudioButton } from '@studio/components';
 
 export type PolicyEditorDropdownMenuProps = {
   isOpen: boolean;
@@ -40,16 +41,17 @@ export const PolicyEditorDropdownMenu = ({
 
   return (
     <>
-      <Button
-        icon={<MenuElipsisVerticalIcon title={t('policy_editor.more')} fontSize='1.8rem' />}
-        onClick={handleClickMoreIcon}
-        variant='tertiary'
-        color={isError ? 'danger' : 'second'}
-        className={isError && classes.errorButton}
-        size='small'
-        ref={anchorEl}
-        aria-haspopup='menu'
+      <StudioButton
         aria-expanded={isOpen}
+        aria-haspopup='menu'
+        className={isError && classes.errorButton}
+        color={isError ? 'danger' : 'second'}
+        icon={<MenuElipsisVerticalIcon fontSize='1.8rem' />}
+        onClick={handleClickMoreIcon}
+        ref={anchorEl}
+        size='small'
+        title={t('policy_editor.more')}
+        variant='tertiary'
       />
       <DropdownMenu
         anchorEl={anchorEl.current}

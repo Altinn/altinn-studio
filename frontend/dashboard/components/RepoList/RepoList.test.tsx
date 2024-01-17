@@ -6,6 +6,7 @@ import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryR
 import { IRepoListProps, RepoList } from './RepoList';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../testing/mocks/i18nMock';
+import { repository } from 'app-shared/mocks/mocks';
 import { DATAGRID_PAGE_SIZE_OPTIONS } from 'dashboard/constants';
 import { nbNO } from '@mui/x-data-grid/locales';
 
@@ -35,6 +36,23 @@ const renderWithMockServices = (
 const { localeText } = nbNO.components.MuiDataGrid.defaultProps;
 
 describe('RepoList', () => {
+  test('should display spinner while loading starred repositories', () => {
+    renderWithMockServices({
+      isLoading: true,
+      rowCount: 5,
+    });
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  test('should display no repos when repos are empty', async () => {
+    renderWithMockServices({
+      isLoading: false,
+      rowCount: 5,
+      repos: [],
+    });
+    expect(await screen.findByText(textMock('dashboard.no_repos_result'))).toBeInTheDocument();
+  });
+
   test('should not call onSortModelChange when clicking sort button and isServerSort is false', async () => {
     const handleSortMock = jest.fn();
     renderWithMockServices({
@@ -68,13 +86,18 @@ describe('RepoList', () => {
     });
   });
 
-  test('Should render GridActionsCellItem', () => {
+  test('Should render GridActionsCellItem', async () => {
     renderWithMockServices({
+      repos: [
+        {
+          ...repository,
+          hasStarred: true,
+        },
+      ],
       isServerSort: true,
     });
-    const gridActionsCellItem = within(
-      screen.getByRole('menuitem', { name: textMock('dashboard.unstar') }),
-    ).getByRole('img');
+    const unstar = await screen.findByRole('menuitem', { name: textMock('dashboard.unstar') });
+    const gridActionsCellItem = within(unstar).getByRole('img');
     expect(gridActionsCellItem).toBeInTheDocument();
   });
 
@@ -112,7 +135,7 @@ describe('RepoList', () => {
     });
 
     const pageSizeSelect = screen.getByRole('combobox', {
-      name: localeText.MuiTablePagination.labelRowsPerPage,
+      name: localeText.MuiTablePagination.labelRowsPerPage.toString(),
     });
     await act(() => user.click(pageSizeSelect));
 

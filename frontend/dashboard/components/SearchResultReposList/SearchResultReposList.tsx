@@ -3,14 +3,14 @@ import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarr
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
-import { IRepository } from 'app-shared/types/global';
 import { DATAGRID_PAGE_SIZE_OPTIONS } from 'dashboard/constants';
+import { useStarredReposQuery } from 'dashboard/hooks/queries';
 
 type SearchResultReposList = {
-  starredRepos: IRepository[];
   searchValue: string;
 };
-export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResultReposList) => {
+export const SearchResultReposList = ({ searchValue }: SearchResultReposList) => {
+  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
   const { t } = useTranslation();
   const {
     searchResults,
@@ -32,7 +32,7 @@ export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResul
       <h2>{t('dashboard.search_result')}</h2>
       <RepoList
         repos={reposWithStarred}
-        isLoading={isLoadingSearchResults}
+        isLoading={isLoadingSearchResults || areStarredReposPending}
         onPageSizeChange={setPageSize}
         isServerSort={true}
         rowCount={searchResults?.totalCount}

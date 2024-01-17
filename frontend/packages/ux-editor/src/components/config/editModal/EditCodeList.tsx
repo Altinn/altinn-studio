@@ -3,8 +3,8 @@ import { LegacySelect, Textfield } from '@digdir/design-system-react';
 import { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
-import { StudioSpinner } from '@studio/components';
-import { ErrorMessage, Button } from '@digdir/design-system-react';
+import { StudioButton, StudioSpinner } from '@studio/components';
+import { ErrorMessage } from '@digdir/design-system-react';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -35,14 +35,14 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
       ) : (
         <>
           <p>
-            <Button
+            <StudioButton
               variant='tertiary'
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
               size='small'
             >
               {optionListIds?.length > 0 && useCustomCodeList && <>Bytt til statisk kodeliste</>}
               {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}
-            </Button>
+            </StudioButton>
           </p>
 
           {!useCustomCodeList && (

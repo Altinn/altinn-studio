@@ -5,10 +5,16 @@ import type { IEditFormContainerProps } from './EditFormContainer';
 import { EditFormContainer } from './EditFormContainer';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import {
+  formLayoutSettingsMock,
+  renderHookWithMockStore,
+  renderWithMockStore,
+} from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
-import { container1IdMock, layoutMock } from '../../testing/layoutMock';
+import { container1IdMock, externalLayoutsMock, layoutMock } from '../../testing/layoutMock';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { FormLayoutsResponse } from 'app-shared/types/api';
+import { ILayoutSettings } from 'app-shared/types/global';
 
 const user = userEvent.setup();
 
@@ -80,12 +86,20 @@ describe('EditFormContainer', () => {
 });
 
 const waitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const getFormLayouts = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+  const getFormLayoutSettings = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));
+  const formLayoutsResult = renderHookWithMockStore(
+    {},
+    { getFormLayouts },
+  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore(
+    {},
+    { getFormLayoutSettings },
+  )(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
     .renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));

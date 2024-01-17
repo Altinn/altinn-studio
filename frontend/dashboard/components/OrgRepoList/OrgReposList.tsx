@@ -2,22 +2,22 @@ import React from 'react';
 import { RepoList } from '../RepoList';
 import { getReposLabel } from '../../utils/repoUtils';
 import { getUidFilter } from '../../utils/filterUtils';
-import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarred';
 import { useTranslation } from 'react-i18next';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { Organization } from 'app-shared/types/Organization';
-import { IRepository } from 'app-shared/types/global';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from 'dashboard/constants';
+import { useAugmentReposWithStarred } from 'dashboard/hooks/useAugmentReposWithStarred';
+import { useStarredReposQuery } from 'dashboard/hooks/queries';
 
 type OrgReposListProps = {
   user: User;
   organizations: Organization[];
-  starredRepos: IRepository[];
 };
-export const OrgReposList = ({ user, organizations, starredRepos }: OrgReposListProps) => {
+export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
+  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
   const selectedContext = useSelectedContext();
   const { t } = useTranslation();
   const uid = getUidFilter({ selectedContext, userId: user.id, organizations });
@@ -44,7 +44,7 @@ export const OrgReposList = ({ user, organizations, starredRepos }: OrgReposList
       </Heading>
       <RepoList
         repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
-        isLoading={isLoadingSearchResults}
+        isLoading={isLoadingSearchResults || areStarredReposPending}
         onPageSizeChange={setPageSize}
         isServerSort={true}
         rowCount={searchResults?.totalCount ?? 0}

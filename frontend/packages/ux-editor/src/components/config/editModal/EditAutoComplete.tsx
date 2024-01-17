@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { LegacyTextField, LegacyPopover, Button } from '@digdir/design-system-react';
+import { LegacyTextField, LegacyPopover } from '@digdir/design-system-react';
 import { stringToArray, arrayToString } from '../../../utils/stringUtils';
 import { replaceLastItem } from 'app-shared/utils/arrayUtils';
 import { FormField } from '../../FormField';
+import { StudioButton } from '@studio/components';
 
 const getLastWord = (value: string) => value.split(' ').pop();
 const stdAutocompleteOpts = [
@@ -129,7 +130,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
       >
         {autoCompleteOptions.map(
           (option): JSX.Element => (
-            <Button
+            <StudioButton
               role='option'
               key={option}
               size='small'
@@ -138,7 +139,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
               onMouseDown={() => handleWordClick(option)}
             >
               {option}
-            </Button>
+            </StudioButton>
           ),
         )}
       </LegacyPopover>

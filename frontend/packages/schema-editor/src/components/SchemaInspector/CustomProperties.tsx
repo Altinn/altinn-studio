@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Fieldset, HelpText, LegacyTextField, Switch } from '@digdir/design-system-react';
+import { Fieldset, HelpText, LegacyTextField, Switch } from '@digdir/design-system-react';
 import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
@@ -12,6 +12,7 @@ import { TrashIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { StudioButton } from '@studio/components';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -90,7 +91,7 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
             <span>{renderKey(key)}</span>
             <span>{renderInput(key)}</span>
           </span>
-          <Button
+          <StudioButton
             className={classes.deleteButton}
             icon={<TrashIcon />}
             onClick={() => deleteCustomProperty(key)}

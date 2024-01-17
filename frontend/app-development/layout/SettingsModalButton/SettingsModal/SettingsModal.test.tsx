@@ -11,7 +11,6 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
@@ -27,9 +26,6 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
-// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
-const realConsole = console;
-
 jest.mock('../../../hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
 const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
@@ -41,14 +37,7 @@ mockUpdateAppConfigMutation.mockReturnValue({
 
 describe('SettingsModal', () => {
   const user = userEvent.setup();
-  beforeEach(() => {
-    global.console = {
-      ...console,
-      error: jest.fn(),
-    };
-  });
   afterEach(() => {
-    global.console = realConsole;
     jest.clearAllMocks();
   });
 
@@ -81,9 +70,6 @@ describe('SettingsModal', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_policy') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_localChanges') }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_accessControl') }),
@@ -155,32 +141,6 @@ describe('SettingsModal', () => {
       }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
-  });
-
-  it.only('changes the tab from "about" to "localChanges" when local changes tab is clicked', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('settings_modal.local_changes_tab_heading'),
-        level: 2,
-      }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
-
-    const localChangesTab = screen.getByRole('tab', {
-      name: textMock('settings_modal.left_nav_tab_localChanges'),
-    });
-    await act(() => user.click(localChangesTab));
-
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('settings_modal.local_changes_tab_heading'),
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading')),
-    ).not.toBeInTheDocument();
   });
 
   it('changes the tab from "about" to "accessControl" when access control tab is clicked', async () => {
@@ -255,13 +215,9 @@ const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
   return rtlRender(
     <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
+      <ServicesContextProvider {...queries} client={queryClient}>
         <SettingsModal {...props} />
       </ServicesContextProvider>
     </MemoryRouter>,

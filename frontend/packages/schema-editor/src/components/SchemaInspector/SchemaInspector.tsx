@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert, Tabs } from '@digdir/design-system-react';
-import { isObject, UiSchemaNode } from '@altinn/schema-model';
+import { isField, isObject, UiSchemaNode } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
@@ -24,7 +24,7 @@ export const SchemaInspector = () => {
   }
 
   const selectedItem: UiSchemaNode = savableModel.getNode(selectedNodePointer);
-  const shouldDisplayFieldsTab = 'fieldType' in selectedItem && isObject(selectedItem);
+  const shouldDisplayFieldsTab = isField(selectedItem) && isObject(selectedItem);
 
   return (
     <Tabs defaultValue={t('schema_editor.properties')} className={classes.root}>
@@ -37,7 +37,7 @@ export const SchemaInspector = () => {
       </Tabs.Content>
       {shouldDisplayFieldsTab ? (
         <Tabs.Content value={t('schema_editor.fields')}>
-          <ItemFieldsTab selectedItem={'fieldType' in selectedItem && selectedItem} />
+          <ItemFieldsTab selectedItem={selectedItem} />
         </Tabs.Content>
       ) : (
         <Alert severity='info'>{t('app_data_modelling.fields_information')}</Alert>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { CogIcon } from '@navikt/aksel-icons';
 
 export interface IRuleButtonProps {
@@ -9,8 +9,8 @@ export interface IRuleButtonProps {
 
 export default function RuleButton(props: IRuleButtonProps) {
   return (
-    <Button icon={<CogIcon />} onClick={props.onClick} variant='secondary' size='small'>
+    <StudioButton icon={<CogIcon />} onClick={props.onClick} variant='secondary' size='small'>
       {props.text}
-    </Button>
+    </StudioButton>
   );
 }
