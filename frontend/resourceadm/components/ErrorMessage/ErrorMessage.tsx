@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import classes from './errorMessage.module.css';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
@@ -6,10 +6,14 @@ import { useTranslation } from 'react-i18next';
 type ErrorMessageProps = {
   title: string;
   message: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
 
-export const ErrorMessage = ({ title, message, children }: ErrorMessageProps): JSX.Element => {
+export const ErrorMessage = ({
+  title,
+  message,
+  children,
+}: ErrorMessageProps): React.JSX.Element => {
   const { t } = useTranslation();
   return (
     <div className={classes.errorMessage}>

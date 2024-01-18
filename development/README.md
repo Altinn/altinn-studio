@@ -44,7 +44,7 @@ Need to do this to get a new config loaded, for instance when changing which app
 
 ```bash
 docker rm --force studio-loadbalancer
-docker compose -f ../docker-compose.yml up -d
+docker compose -f ../compose.yaml up -d
 ```
 
 ### Beautify the nginx config in the load balancer

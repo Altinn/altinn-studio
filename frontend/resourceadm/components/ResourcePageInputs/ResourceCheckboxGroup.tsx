@@ -22,6 +22,11 @@ type ResourceCheckboxGroupProps = {
    */
   showErrors: boolean;
   /**
+   * Function to be executed when the field is focused
+   * @returns void
+   */
+  onFocus: () => void;
+  /**
    * Fucntion to execute on change
    * @param val the values selected
    * @returns void
@@ -42,18 +47,20 @@ type ResourceCheckboxGroupProps = {
  * @property {string}[description] - The description of the group
  * @property {boolean}[showErrors] - If the errors should be shown
  * @property {function}[onChange] - Fucntion to execute on change
+ * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {string[]}[value] - The selected options
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceCheckboxGroup = ({
   options,
   legend,
   description,
   showErrors,
+  onFocus,
   onChange,
   value,
-}: ResourceCheckboxGroupProps): React.ReactNode => {
+}: ResourceCheckboxGroupProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const displayAvailableForCheckboxes = () => {
@@ -80,6 +87,7 @@ export const ResourceCheckboxGroup = ({
             ) : undefined
           }
           onChange={onChange}
+          onFocus={onFocus}
           value={value}
         >
           {displayAvailableForCheckboxes()}

@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
-import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { DeployResourcePage } from '../DeployResourcePage';
 import {
   useSinlgeResourceQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
-} from 'resourceadm/hooks/queries';
-import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
+} from '../../hooks/queries';
+import { MergeConflictModal } from '../../components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
-import { NavigationModal } from 'resourceadm/components/NavigationModal';
+import { NavigationModal } from '../../components/NavigationModal';
 import { Spinner } from '@digdir/design-system-react';
-import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
+import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Resource } from 'app-shared/types/ResourceAdm';
@@ -25,23 +25,26 @@ import {
   InformationSquareIcon,
   MigrationIcon,
   UploadIcon,
-} from '@navikt/aksel-icons';
+} from '@studio/icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import { createNavigationTab } from 'resourceadm/utils/resourceUtils';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { createNavigationTab } from '../../utils/resourceUtils';
+import { ResourceAccessLists } from '../../components/ResourceAccessLists';
+import { AccessListDetail } from '../../components/AccessListDetails';
+import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
 /**
  * @component
  *    Displays the 4 pages to manage resources and a left navigation bar.
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const ResourcePage = (): React.ReactNode => {
+export const ResourcePage = (): React.JSX.Element => {
   const { t } = useTranslation();
 
   const navigate = useNavigate();
 
-  const { pageType, resourceId, selectedContext, repo } = useUrlParams();
+  const { pageType, resourceId, selectedContext, repo, env, accessListId } = useUrlParams();
 
   const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
 
@@ -72,11 +75,14 @@ export const ResourcePage = (): React.ReactNode => {
     repo,
     resourceId,
   );
+
   const {
     data: resourceData,
     refetch: refetchResource,
     isPending: resourcePending,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
+
+  const { data: accessList } = useGetAccessListQuery(selectedContext, accessListId, env);
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
@@ -170,12 +176,11 @@ export const ResourcePage = (): React.ReactNode => {
   /**
    * Decide if the migration page should be accessible or not
    */
-  const getShowMigrate = () => {
-    if (resourceData) {
-      if (resourceData.resourceReferences) return true;
-      return false;
-    }
-    return false;
+  const isMigrateEnabled = (): boolean => {
+    const hasAltinn2ReferenceSource = resourceData?.resourceReferences?.some(
+      (ref) => ref.referenceSource === 'Altinn2',
+    );
+    return hasAltinn2ReferenceSource;
   };
 
   const aboutPageId = 'about';
@@ -222,7 +227,7 @@ export const ResourcePage = (): React.ReactNode => {
    * @returns the tabs to display in the LeftNavigationBar
    */
   const getTabs = (): LeftNavigationTab[] => {
-    if (getShowMigrate() && !leftNavigationTabs.includes(migrationTab)) {
+    if (isMigrateEnabled() && !leftNavigationTabs.includes(migrationTab)) {
       return [...leftNavigationTabs, migrationTab];
     } else {
       return leftNavigationTabs;
@@ -283,10 +288,26 @@ export const ResourcePage = (): React.ReactNode => {
               id='page-content-deploy'
             />
           )}
-          {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
+          {currentPage === 'migration' && isMigrateEnabled() && (
             <MigrationPage
               navigateToPageWithError={navigateToPageWithError}
               id='page-content-migration'
+            />
+          )}
+          {currentPage === 'accesslists' && env && !accessListId && (
+            <ResourceAccessLists env={env} resourceData={resourceData} />
+          )}
+          {currentPage === 'accesslists' && env && accessList && (
+            <AccessListDetail
+              org={selectedContext}
+              env={env}
+              list={accessList}
+              backUrl={`${getResourcePageURL(
+                selectedContext,
+                repo,
+                resourceId,
+                'accesslists',
+              )}/${env}`}
             />
           )}
         </div>

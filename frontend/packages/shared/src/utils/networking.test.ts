@@ -1,6 +1,6 @@
 import type { AxiosError } from 'axios';
 import axios from 'axios';
-import { del, get, post, put } from './networking';
+import { del, get, patch, post, put } from './networking';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -198,6 +198,58 @@ describe('put', () => {
       }
 
       expect(mockedAxios.put).toHaveBeenCalledWith(testUrl, null, undefined);
+      expect(error.message).toEqual('Bad request');
+      expect(error.code).toEqual('400');
+    });
+  });
+});
+
+describe('patch', () => {
+  describe('when API call is successful', () => {
+    it('should return response data when it exists', async () => {
+      // given
+      const config = {};
+      const data = [{ value: '1' }, { value: '2' }];
+      mockedAxios.patch.mockResolvedValueOnce({ data });
+
+      // when
+      const result = await patch(testUrl, data, config);
+
+      // then
+      expect(mockedAxios.patch).toHaveBeenCalledWith(testUrl, data, config);
+      expect(result).toEqual(data);
+    });
+
+    it('should return undefined when no response data exists', async () => {
+      // given
+      const config = {};
+      const data = [{ value: '1' }, { value: '2' }];
+      mockedAxios.patch.mockResolvedValueOnce({});
+
+      // when
+      const result = await patch(testUrl, data, config);
+
+      // then
+      expect(mockedAxios.patch).toHaveBeenCalledWith(testUrl, data, config);
+      expect(result).toBeUndefined();
+    });
+  });
+  describe('when API call fails', () => {
+    it('should return error code', async () => {
+      // given
+      const networkError = {
+        message: 'Bad request',
+        code: '400',
+      } as AxiosError;
+      mockedAxios.patch.mockRejectedValueOnce({ ...networkError });
+      let error;
+      try {
+        await patch(testUrl, null);
+      } catch (err) {
+        error = err;
+      }
+
+      expect(mockedAxios.patch).toHaveBeenCalledWith(testUrl, null, undefined);
       expect(error.message).toEqual('Bad request');
       expect(error.code).toEqual('400');
     });

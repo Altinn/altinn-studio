@@ -1,4 +1,5 @@
-import { queriesMock, renderHookWithMockStore } from '../../test/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../test/mocks';
 import { useResetRepositoryMutation } from './useResetRepositoryMutation';
 
 // Test data:

@@ -42,12 +42,21 @@ export const useReposSearch = ({
   );
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
 
-  const { data: searchResults, isPending: isLoadingSearchResults } = useSearchReposQuery({
-    ...buildQuery({ keyword, uid, limit: pageSize }),
+  const filter = {
+    uid,
+    keyword,
+    limit: pageSize,
     page: pageNumber,
     sortby: sortModel?.[0]?.field,
     order: sortModel?.[0]?.sort as string,
-  });
+  };
+
+  const cleanFilter = Object.entries(filter)
+    .filter(([_, value]) => value !== null && value !== undefined)
+    .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+
+  const { data: searchResults, isPending: isLoadingSearchResults } =
+    useSearchReposQuery(cleanFilter);
 
   return {
     searchResults,
@@ -58,23 +67,4 @@ export const useReposSearch = ({
     setSortModel,
     setPageSize,
   };
-};
-
-type BuildQueryProps = { limit?: number } & Omit<UseReposSearchProps, 'defaultPageSize'>;
-const buildQuery = (params: BuildQueryProps): UseReposSearchProps => {
-  let query: BuildQueryProps;
-
-  if (params['uid']) {
-    query = { ...query, uid: params.uid };
-  }
-
-  if (params['keyword']) {
-    query = { ...query, keyword: params.keyword };
-  }
-
-  if (params['limit']) {
-    query = { ...query, limit: params.limit };
-  }
-
-  return query;
 };

@@ -2,8 +2,8 @@ import React from 'react';
 import { useErrorBoundary } from 'react-error-boundary';
 import { Trans, useTranslation } from 'react-i18next';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-import { Alert, Button, ErrorMessage, Link, Paragraph } from '@digdir/design-system-react';
-import { StudioCenter } from '@studio/components';
+import { Alert, ErrorMessage, Link, Paragraph } from '@digdir/design-system-react';
+import { StudioButton, StudioCenter } from '@studio/components';
 import classes from './ErrorBoundaryFallback.module.css';
 
 export type ErrorBoundaryFallbackProps = {
@@ -25,9 +25,9 @@ export const ErrorBoundaryFallback = ({ error }: ErrorBoundaryFallbackProps) => 
         </Paragraph>
         {!_useIsProdHack && <ErrorMessage>{error.message}</ErrorMessage>}
         <StudioCenter>
-          <Button onClick={resetBoundary} size='small'>
+          <StudioButton onClick={resetBoundary} size='small'>
             {t('general.try_again')}
-          </Button>
+          </StudioButton>
         </StudioCenter>
       </Alert>
     </StudioCenter>

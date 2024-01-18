@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { StudioSpinner } from '@studio/components';
-import { Button, LegacySelect } from '@digdir/design-system-react';
+import { StudioSpinner, StudioButton } from '@studio/components';
+import { LegacySelect } from '@digdir/design-system-react';
 import { DeploymentStatus, ImageOption } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
@@ -62,14 +62,14 @@ export const DeployDropdown = ({
           onClose={() => setIsConfirmDeployDialogOpen(false)}
           placement='right'
           trigger={
-            <Button
+            <StudioButton
               disabled={disabled}
               onClick={() => setIsConfirmDeployDialogOpen((prevState) => !prevState)}
               id={`deploy-button-${envName.toLowerCase()}`}
               size='small'
             >
               {t('app_deploy_messages.btn_deploy_new_version')}
-            </Button>
+            </StudioButton>
           }
         >
           <p>

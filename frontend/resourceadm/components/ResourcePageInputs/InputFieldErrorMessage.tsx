@@ -15,11 +15,11 @@ type InputFieldErrorMessageProps = {
  *
  * @property {string}[message] - The error message
  *
- * @returns {React.ReactNode}
+ * @returns {React.JSX.Element}
  */
 export const InputFieldErrorMessage = ({
   message,
-}: InputFieldErrorMessageProps): React.ReactNode => {
+}: InputFieldErrorMessageProps): React.JSX.Element => {
   return (
     <div className={classes.warningCardWrapper}>
       <ErrorMessage size='small'>{message}</ErrorMessage>

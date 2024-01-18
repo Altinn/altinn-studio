@@ -18,6 +18,7 @@ describe('AltinnHeaderProfile', () => {
         full_name: 'Test User',
         id: 1,
         login: 'test-user',
+        userType: 0,
       },
     });
     expect(screen.queryByText('test-user')).not.toBeInTheDocument();
@@ -26,7 +27,11 @@ describe('AltinnHeaderProfile', () => {
 
   it('should render users name and name of org the user represents', () => {
     render({ org: 'test-org' });
-    expect(screen.getByText(textMock('shared.header_user_for_org', { user: 'test-user', org: 'Test Org' }))).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        textMock('shared.header_user_for_org', { user: 'test-user', org: 'Test Org' }),
+      ),
+    ).toBeInTheDocument();
   });
 });
 
@@ -47,7 +52,7 @@ export const render = (props?: Partial<AltinnHeaderProfileProps>) => {
         login: 'test-org',
         email: 'test-email',
         id: 1,
-        UserType: 1,
+        userType: 1,
       },
       updated_at: 'never',
       created_at: 'now',
@@ -76,6 +81,7 @@ export const render = (props?: Partial<AltinnHeaderProfileProps>) => {
       full_name: undefined,
       id: 1,
       login: 'test-user',
+      userType: 0,
     },
   };
 

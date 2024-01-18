@@ -10,12 +10,8 @@
 
 .buttonWrapper {
   display: flex;
-  justify-content: flex-end;
+  gap: var(--fds-spacing-2);
   margin-top: var(--fds-spacing-10);
-}
-
-.importButton {
-  margin-left: var(--fds-spacing-2);
 }
 
 .contentWidth {

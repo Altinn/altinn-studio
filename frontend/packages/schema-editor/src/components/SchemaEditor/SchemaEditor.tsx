@@ -1,48 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
 import classes from './SchemaEditor.module.css';
-import { setSchemaName, setSelectedId, setUiSchema } from '../../features/editor/schemaEditorSlice';
 import { useTranslation } from 'react-i18next';
 import { TypesInspector } from '../TypesInspector';
 import classNames from 'classnames';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { ModelsPanel, TypesPanel } from '../layout';
 import { SchemaInspector } from '../SchemaInspector';
 import { extractNameFromPointer, ROOT_POINTER, UiSchemaNodes } from '@altinn/schema-model';
-import { useSchemaAndReduxSelector } from '../../hooks/useSchemaAndReduxSelector';
-import {
-  selectedDefinitionParentSelector,
-  selectedPropertyParentSelector,
-} from '../../selectors/schemaAndReduxSelectors';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { useMoveProperty } from './hooks/useMoveProperty';
 import { useAddReference } from './hooks/useAddReference';
 
-export interface SchemaEditorProps {
-  modelName?: string;
-}
-
-export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
-  const dispatch = useDispatch();
-  const { schemaModel, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+export const SchemaEditor = () => {
+  const {
+    schemaModel,
+    selectedTypePointer,
+    setSelectedTypePointer,
+    selectedNodePointer,
+    setSelectedNodePointer,
+  } = useSchemaEditorAppContext();
   const moveProperty = useMoveProperty();
   const addReference = useAddReference();
-
-  useEffect(() => {
-    if (modelName) {
-      dispatch(setUiSchema({ name: modelName }));
-      dispatch(setSchemaName({ name: modelName }));
-    }
-  }, [dispatch, modelName]);
 
   const { t } = useTranslation();
 
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
 
-  const selectedPropertyParent = useSchemaAndReduxSelector(selectedPropertyParentSelector);
+  const selectedPropertyParent = schemaModel.getParentNode(selectedNodePointer);
 
   useEffect(() => {
     if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
@@ -50,7 +37,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionParent = useSchemaAndReduxSelector(selectedDefinitionParentSelector);
+  const selectedDefinitionParent = schemaModel.getParentNode(selectedTypePointer);
   useEffect(() => {
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
       setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);
@@ -61,11 +48,11 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
 
   const handleResetSelectedType = () => {
     setSelectedTypePointer(null);
-    dispatch(setSelectedId({ pointer: '' }));
+    setSelectedNodePointer(undefined);
   };
 
   const definitions: UiSchemaNodes = schemaModel.getDefinitions();
-  const selectedType = definitions.find((item) => item.pointer === selectedTypePointer);
+  const selectedType = selectedTypePointer && schemaModel.getNode(selectedTypePointer);
 
   return (
     <>
@@ -81,7 +68,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
                   type: extractNameFromPointer(selectedTypePointer),
                 })}
               </span>
-              <Button
+              <StudioButton
                 onClick={handleResetSelectedType}
                 icon={<XMarkIcon />}
                 variant='tertiary'
@@ -90,7 +77,7 @@ export const SchemaEditor = ({ modelName }: SchemaEditorProps) => {
                 size='small'
               />
             </div>
-            <TypesPanel uiSchemaNode={selectedType}/>
+            <TypesPanel uiSchemaNode={selectedType} />
           </div>
         ) : (
           <div id='schema-editor' className={classes.editor}>

@@ -23,6 +23,7 @@ export interface Resource {
   enterpriseUserEnabled?: boolean;
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
+  limitedByRRR?: boolean;
 }
 
 export interface ResourceContactPoint {
@@ -72,14 +73,85 @@ export interface Validation {
   errors: any;
 }
 
+export type ResourceReferenceSource = 'Default' | 'Altinn2' | 'Altinn3' | 'ExternalPlatform';
+export type ResourceReferenceType =
+  | 'Default'
+  | 'Uri'
+  | 'DelegationSchemeId'
+  | 'MaskinportenScope'
+  | 'ServiceCode'
+  | 'ServiceEditionCode';
 export interface ResourceReference {
-  referenceSource?: 'Default' | 'Altinn1' | 'Altinn2' | 'Altinn3' | 'ExternalPlatform';
+  referenceSource?: ResourceReferenceSource;
   reference?: string;
-  referenceType?:
-    | 'Default'
-    | 'Uri'
-    | 'DelegationSchemeId'
-    | 'MaskinportenScope'
-    | 'ServiceCode'
-    | 'ServiceEditionCode';
+  referenceType?: ResourceReferenceType;
+}
+
+export interface BrregPagination {
+  first?: { href: string };
+  last?: { href: string };
+  next?: { href: string };
+  prev?: { href: string };
+  self?: { href: string };
+}
+
+export interface BrregPageInfo {
+  number: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface BrregPartySearchResult {
+  _embedded?: {
+    enheter: BrregParty[];
+  };
+  _links: BrregPagination;
+  page: BrregPageInfo;
+}
+
+export interface BrregSubPartySearchResult {
+  _embedded?: {
+    underenheter: BrregParty[];
+  };
+  _links: BrregPagination;
+  page: BrregPageInfo;
+}
+
+export interface BrregSearchResult {
+  parties: AccessListMember[];
+  links: BrregPagination;
+  page: BrregPageInfo;
+}
+
+export interface BrregParty {
+  organisasjonsnummer: string;
+  navn: string;
+}
+
+export interface AccessListMember {
+  orgNr: string;
+  orgName: string;
+  isSubParty: boolean;
+}
+
+export interface AccessList {
+  env: string;
+  identifier: string;
+  name: string;
+  description?: string;
+  members?: AccessListMember[];
+}
+
+export interface AccessListResourceLink {
+  resourceIdentifier: string;
+  accessListName: string;
+  accessListIdentifier: string;
+  actions: string[];
+}
+
+export interface JsonPatch {
+  op: 'replace' | 'add' | 'remove';
+  path: string;
+  value?: string | number;
 }

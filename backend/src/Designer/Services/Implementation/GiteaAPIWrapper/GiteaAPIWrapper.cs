@@ -672,7 +672,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HtmlAgilityPack.HtmlDocument htmlDocument = new();
             htmlDocument.LoadHtml(htmlContent);
 
-            HtmlAgilityPack.HtmlNode node = htmlDocument.DocumentNode.SelectSingleNode("//div[contains(@class, 'ui key list')]");
+            HtmlAgilityPack.HtmlNode node = htmlDocument.DocumentNode.SelectSingleNode("//div[contains(@class, 'ui key list') or contains(@class, 'flex-list')]");
 
             HtmlAgilityPack.HtmlNodeCollection nodes = node.ChildNodes;
 

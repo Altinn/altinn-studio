@@ -22,7 +22,7 @@ import {
 import { AnimateHeight } from 'app-shared/components/AnimateHeight';
 import { TreeViewItemContext } from './TreeViewItemContext';
 import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import classes from './TreeViewItem.module.css';
 import cn from 'classnames';
 
@@ -103,7 +103,7 @@ export const TreeViewItem = ({
   const hasChildren = !!children;
 
   const renderLabel = () => (
-    <Button
+    <StudioButton
       aria-expanded={children ? open : undefined}
       aria-level={level}
       aria-owns={listId}
@@ -124,7 +124,7 @@ export const TreeViewItem = ({
       variant='tertiary'
     >
       <div className={classes.label}>{label}</div>
-    </Button>
+    </StudioButton>
   );
 
   const Component = as;

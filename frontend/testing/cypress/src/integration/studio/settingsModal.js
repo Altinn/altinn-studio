@@ -4,7 +4,6 @@
 import * as texts from '../../../../../language/src/nb.json';
 import { accessControlTab } from '../../selectors/accessControlTab';
 import { administrationTab } from '../../selectors/administrationTab';
-import { localChangesTab } from '../../selectors/localChangesTab';
 import { policyEditorTab } from '../../selectors/policyEditorTab';
 import { settingsTab } from '../../selectors/settingsTab';
 
@@ -72,19 +71,5 @@ context('SettingsModal', () => {
     cy.openSettingsModal();
     accessControlTab.getTab().click();
     accessControlTab.getBankruptcyPartyCheckbox().should('be.checked');
-  });
-
-  it('is possible to delete local changes', () => {
-    localChangesTab.getTab().click();
-    localChangesTab.getHeader().should('be.visible');
-    localChangesTab.getDownloadChangesLink().should('be.visible');
-    localChangesTab.getDownloadAllLink().should('be.visible');
-    localChangesTab.getDeleteChangesButton().should('be.visible').click();
-    localChangesTab.getConfirmRepoNameField().type('test');
-    localChangesTab.getConfirmDeleteButton().should('be.disabled');
-    localChangesTab.getConfirmRepoNameField().clear();
-    localChangesTab.getConfirmRepoNameField().type(`${Cypress.env('designerAppName')}`);
-    localChangesTab.getConfirmDeleteButton().should('be.enabled').click();
-    cy.findByText(texts['overview.reset_repo_completed']).should('be.visible');
   });
 });

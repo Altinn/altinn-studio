@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import cn from 'classnames';
 import classes from './ResourceTable.module.css';
-import { PencilIcon } from '@navikt/aksel-icons';
+import { PencilIcon } from '@studio/icons';
 import { Tag } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
@@ -34,12 +34,12 @@ export type ResourceTableProps = {
  * @property {ResourceListItem[]}[list] - The list to display in the table
  * @property {function}[onClickEditResource] - Function to be executed when clicking the edit resoruce
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceTable = ({
   list,
   onClickEditResource,
-}: ResourceTableProps): React.ReactNode => {
+}: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
   const listData = useMemo(() => {
@@ -92,7 +92,7 @@ export const ResourceTable = ({
       flex: 1,
       renderCell: (params: GridRenderCellParams) => {
         return (
-          <Tag color={params.row.hasPolicy ? 'info' : 'danger'} variant='secondary' size='small'>
+          <Tag color={params.row.hasPolicy ? 'info' : 'danger'} size='small'>
             {params.row.hasPolicy
               ? t('resourceadm.dashboard_table_row_has_policy')
               : t('resourceadm.dashboard_table_row_missing_policy')}

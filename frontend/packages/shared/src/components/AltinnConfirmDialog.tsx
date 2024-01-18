@@ -1,13 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './AltinnConfirmDialog.module.css';
-import type { ButtonProps, LegacyPopoverProps } from '@digdir/design-system-react';
-import { Button, LegacyPopover } from '@digdir/design-system-react';
+import type { LegacyPopoverProps } from '@digdir/design-system-react';
+import { LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
+import { StudioButton } from '@studio/components';
+import type { StudioButtonProps } from '@studio/components';
 
 export type AltinnConfirmDialogProps = {
   confirmText?: string;
-  confirmColor?: ButtonProps['color'];
+  confirmColor?: StudioButtonProps['color'];
   cancelText?: string;
   onConfirm: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onClose: (event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
@@ -54,7 +56,7 @@ export function AltinnConfirmDialog({
       >
         {children}
         <div className={classes.buttonContainer}>
-          <Button
+          <StudioButton
             color={confirmColor}
             variant='primary'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
@@ -66,8 +68,8 @@ export function AltinnConfirmDialog({
             size='small'
           >
             {confirmText || t('general.yes')}
-          </Button>
-          <Button
+          </StudioButton>
+          <StudioButton
             color='second'
             variant='tertiary'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
@@ -77,7 +79,7 @@ export function AltinnConfirmDialog({
             size='small'
           >
             {cancelText || t('general.cancel')}
-          </Button>
+          </StudioButton>
         </div>
       </LegacyPopover>
     </div>

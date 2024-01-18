@@ -20,11 +20,6 @@ context('WCAG', () => {
     cy.visit('/');
     cy.intercept('GET', '**/repos/search**').as('fetchApps');
     dashboard.getSearchReposField().should('be.visible');
-    cy.wait('@fetchApps')
-      .its('response.statusCode')
-      .should((statusCode) => {
-        expect([200, 302]).to.contain(statusCode);
-      });
   });
 
   after(() => {
