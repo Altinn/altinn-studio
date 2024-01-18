@@ -2930,16 +2930,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/signalr@npm:7.0.14":
-  version: 7.0.14
-  resolution: "@microsoft/signalr@npm:7.0.14"
+"@microsoft/signalr@npm:8.0.0":
+  version: 8.0.0
+  resolution: "@microsoft/signalr@npm:8.0.0"
   dependencies:
     abort-controller: "npm:^3.0.0"
     eventsource: "npm:^2.0.2"
     fetch-cookie: "npm:^2.0.3"
     node-fetch: "npm:^2.6.7"
     ws: "npm:^7.4.5"
-  checksum: 0692b78d072bfdc5d64309d3541e604ab155d799d57175882b87e8b3804685b28d3c9d3c8fb922466ae0b9bc19889951a8d23ea9f3126f032d0f8c44ae21efab
+  checksum: c160afed5b791aa10e36f5d17df56d8226ce7df350ab812bb43ee40930118dfcc1aadb72df9f6c4cf2ccccc69d773c8bf3cdc7a3b72209da2c84f375755ea6f5
   languageName: node
   linkType: hard
 
@@ -5576,7 +5576,7 @@ __metadata:
     "@emotion/styled": "npm:11.11.0"
     "@microsoft/applicationinsights-react-js": "npm:17.0.1"
     "@microsoft/applicationinsights-web": "npm:3.0.3"
-    "@microsoft/signalr": "npm:7.0.14"
+    "@microsoft/signalr": "npm:8.0.0"
     "@navikt/aksel-icons": "npm:5.13.0"
     "@redux-saga/is": "npm:1.1.3"
     "@redux-saga/symbols": "npm:1.1.3"
