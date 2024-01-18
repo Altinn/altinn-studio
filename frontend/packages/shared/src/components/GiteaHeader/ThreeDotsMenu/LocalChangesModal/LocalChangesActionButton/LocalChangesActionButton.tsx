@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import classes from './LocalChangesActionButton.module.css';
-import { Button, Label, Link, Paragraph } from '@digdir/design-system-react';
+import { Label, Link, Paragraph } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 
 interface LinkAction {
   /**
@@ -102,7 +103,7 @@ export const LocalChangesActionButton = ({
       }
       case 'button': {
         return (
-          <Button
+          <StudioButton
             variant='secondary'
             color={color}
             onClick={action.onClick}
@@ -111,14 +112,14 @@ export const LocalChangesActionButton = ({
             size='small'
           >
             {text}
-          </Button>
+          </StudioButton>
         );
       }
     }
   };
 
   return (
-    <div className={classes.wrapper}>
+    <div>
       <Label as='p' size='small' spacing>
         {label}
       </Label>

@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './Calculations.module.css';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { RuleModal } from '../toolbar/RuleModal';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
@@ -15,7 +15,7 @@ export const Calculations = () => {
       <div>
         <div className={classes.header}>
           <span>{t('right_menu.rules_calculations')}</span>
-          <Button
+          <StudioButton
             aria-label={t('right_menu.rules_calculations_add_alt')}
             icon={<PlusIcon />}
             onClick={() => setModalOpen(true)}

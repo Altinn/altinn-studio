@@ -1,7 +1,7 @@
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
-import { Accordion, Button } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/design-system-react';
 import { NavigationMenu } from './NavigationMenu';
 import * as testids from '../../../../../../testing/testids';
 import { TrashIcon } from '@studio/icons';
@@ -12,6 +12,7 @@ import { useAppContext } from '../../../hooks/useAppContext';
 import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useDeleteLayout } from './useDeleteLayout';
+import { StudioButton } from '@studio/components';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -91,7 +92,7 @@ export const PageAccordion = ({
         </Accordion.Header>
         <div className={classes.navigationMenu}>
           <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
-          <Button
+          <StudioButton
             color='danger'
             icon={<TrashIcon aria-hidden />}
             onClick={handleConfirmDelete}

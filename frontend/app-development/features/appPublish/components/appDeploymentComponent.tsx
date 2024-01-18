@@ -4,11 +4,11 @@ import { StudioSpinner } from '@studio/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import {
   Alert,
-  Table,
-  TableRow,
-  TableHeader,
-  TableCell,
-  TableBody,
+  LegacyTable,
+  LegacyTableBody,
+  LegacyTableCell,
+  LegacyTableHeader,
+  LegacyTableRow,
   Link,
 } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
@@ -211,36 +211,36 @@ export const AppDeploymentComponent = ({
                     })}
                   </Alert>
                 )}
-                <Table
+                <LegacyTable
                   className={classes.table}
                   aria-label={t('app_deploy_table.deploy_table_aria', { envName })}
                 >
-                  <TableHeader>
-                    <TableRow className={classes.tableRow}>
-                      <TableCell className={classes.colorBlack}>
+                  <LegacyTableHeader>
+                    <LegacyTableRow className={classes.tableRow}>
+                      <LegacyTableCell className={classes.colorBlack}>
                         {t('app_deploy_table.version_col')}
-                      </TableCell>
-                      <TableCell className={classes.colorBlack}>
+                      </LegacyTableCell>
+                      <LegacyTableCell className={classes.colorBlack}>
                         {t('app_deploy_table.available_version_col')}
-                      </TableCell>
-                      <TableCell className={classes.colorBlack}>
+                      </LegacyTableCell>
+                      <LegacyTableCell className={classes.colorBlack}>
                         {t('app_deploy_table.deployed_by_col')}
-                      </TableCell>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                      </LegacyTableCell>
+                    </LegacyTableRow>
+                  </LegacyTableHeader>
+                  <LegacyTableBody>
                     {succeededDeployHistory.map((deploy: IDeployment) => (
-                      <TableRow
+                      <LegacyTableRow
                         key={`${deploy.tagName}-${deploy.created}`}
                         className={classes.tableRow}
                       >
-                        <TableCell>{deploy.tagName}</TableCell>
-                        <TableCell>{formatDateTime(deploy.build.finished)}</TableCell>
-                        <TableCell>{deploy.createdBy}</TableCell>
-                      </TableRow>
+                        <LegacyTableCell>{deploy.tagName}</LegacyTableCell>
+                        <LegacyTableCell>{formatDateTime(deploy.build.finished)}</LegacyTableCell>
+                        <LegacyTableCell>{deploy.createdBy}</LegacyTableCell>
+                      </LegacyTableRow>
                     ))}
-                  </TableBody>
-                </Table>
+                  </LegacyTableBody>
+                </LegacyTable>
               </div>
             </>
           )}

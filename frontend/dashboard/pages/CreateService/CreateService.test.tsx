@@ -123,6 +123,32 @@ describe('CreateService', () => {
     expect(emptyFieldErrors.length).toBe(1);
   });
 
+  it('should show error message that app name is invalid when name is to short, then remove the error when name is valid again', async () => {
+    const user = userEvent.setup();
+    renderWithMockServices();
+
+    const repoNameInput = screen.getByLabelText(textMock('general.service_name'));
+
+    await act(() => user.type(repoNameInput, 'aa'));
+
+    const createBtn: HTMLElement = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+    await act(() => user.click(createBtn));
+
+    const errorMessage = screen.getByText(
+      textMock('dashboard.service_name_has_illegal_characters'),
+    );
+    expect(errorMessage).toBeInTheDocument();
+
+    await act(() => user.type(repoNameInput, 'a'));
+
+    const errorMessageAfter = screen.queryByText(
+      textMock('dashboard.service_name_has_illegal_characters'),
+    );
+    expect(errorMessageAfter).not.toBeInTheDocument();
+  });
+
   it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
     const addRepoMock = jest
