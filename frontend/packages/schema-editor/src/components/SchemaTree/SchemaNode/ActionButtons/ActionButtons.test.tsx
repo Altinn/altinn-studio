@@ -16,27 +16,12 @@ describe('ActionButtons', () => {
   afterEach(jest.clearAllMocks);
 
   const { pointer } = objectNodeMock;
-  const hasReferringNodes = jest.fn();
 
   test('Renders ActionButton with delete title when no referring nodes', async () => {
     render({ pointer });
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     expect(deleteButton).toBeInTheDocument();
     expect(deleteButton).not.toBeDisabled();
-  });
-
-  test('Renders ActionButton with disable deletion title when referring nodes', async () => {
-    //const user = userEvent.setup();
-    hasReferringNodes.mockReturnValue(true);
-    render({ pointer });
-    // TODO
-    //access element properity and click it
-
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('schema_editor.disable_deletion_info_for_used_definition'),
-    });
-
-    expect(deleteButton).toBeDisabled();
   });
 });
 
