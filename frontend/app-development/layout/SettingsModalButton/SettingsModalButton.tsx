@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { StudioButton } from '@studio/components';;
+import { StudioButton } from '@studio/components';
 import { CogIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';

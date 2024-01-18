@@ -38,9 +38,12 @@ export const TextList = ({
     <LegacyTable>
       <LegacyTableHeader>
         <LegacyTableRow>
-          <LegacyTableCell/>
+          <LegacyTableCell />
           {selectedLanguages.map((language) => (
-            <LegacyTableCell id={getTableHeaderCellId(language)} key={getTableHeaderCellId(language)}>
+            <LegacyTableCell
+              id={getTableHeaderCellId(language)}
+              key={getTableHeaderCellId(language)}
+            >
               {getLangName({ code: language })}
             </LegacyTableCell>
           ))}
