@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace Altinn.Studio.DataModeling.Converter.Xml
@@ -9,6 +10,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
     [Serializable]
     public class XmlSchemaConvertException : Exception
     {
+
+        public List<string> CustomErrorMessages { get; }
+
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
@@ -21,6 +25,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// </summary>
         public XmlSchemaConvertException(string message) : base(message)
         {
+        }
+
+        public XmlSchemaConvertException(string message, List<string> customErrorMessages) : base(message)
+        {
+            CustomErrorMessages = customErrorMessages;
         }
 
         /// <summary>

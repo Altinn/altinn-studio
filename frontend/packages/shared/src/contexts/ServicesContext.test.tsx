@@ -82,7 +82,7 @@ describe('ServicesContext', () => {
       () =>
         useQuery({
           queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(500, 'DM_01')),
+          queryFn: () => Promise.reject(createApiErrorMock(422, 'DM_01')),
           retry: false,
         }),
       { wrapper },

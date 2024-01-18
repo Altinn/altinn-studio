@@ -13,6 +13,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
+using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Configuration;
@@ -276,11 +277,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private Json.Schema.JsonSchema GenerateJsonSchemaFromXsd(Stream xsdStream)
         {
-            XmlSchema originalXsd = XmlSchema.Read(xsdStream, (_, _) => { });
+            XmlSchema originalXsd;
+            try
+            {
+                originalXsd = XmlSchema.Read(xsdStream, (_, _) => { });
 
+            }
+            catch (Exception ex)
+            {
+                List<string> customErrorMessages = new() { ex.Message };
+                throw new XmlSchemaConvertException("Xml could not be generated successfully", customErrorMessages);
+            }
             Json.Schema.JsonSchema convertedJsonSchema = _xmlSchemaToJsonSchemaConverter.Convert(originalXsd);
 
             return convertedJsonSchema;
+
         }
 
         private async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)

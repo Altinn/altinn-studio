@@ -27,22 +27,22 @@ namespace Altinn.Studio.Designer.Filters.DataModeling
 
             if (context.Exception is CsharpGenerationException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.CsharpGenerationError, HttpStatusCode.InternalServerError)) { StatusCode = (int)HttpStatusCode.InternalServerError };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.CsharpGenerationError, HttpStatusCode.UnprocessableEntity)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
             }
 
-            if (context.Exception is XmlSchemaConvertException)
+            if (context.Exception is XmlSchemaConvertException xmlSchemaConvertException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.XmlSchemaConvertError, HttpStatusCode.InternalServerError)) { StatusCode = (int)HttpStatusCode.InternalServerError };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.XmlSchemaConvertError, HttpStatusCode.UnprocessableEntity, xmlSchemaConvertException.CustomErrorMessages)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
             }
 
             if (context.Exception is JsonSchemaConvertException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.JsonSchemaConvertError, HttpStatusCode.InternalServerError)) { StatusCode = (int)HttpStatusCode.InternalServerError };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.JsonSchemaConvertError, HttpStatusCode.UnprocessableEntity)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
             }
 
             if (context.Exception is MetamodelConvertException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.ModelMetadataConvertError, HttpStatusCode.InternalServerError)) { StatusCode = (int)HttpStatusCode.InternalServerError };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.ModelMetadataConvertError, HttpStatusCode.UnprocessableEntity)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
             }
         }
     }
