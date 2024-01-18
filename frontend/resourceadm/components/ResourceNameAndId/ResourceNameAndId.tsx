@@ -102,7 +102,7 @@ export const ResourceNameAndId = ({
               <div className={classes.stopEditingButton}>
                 <StudioButton
                   color='danger'
-                  icon={<MultiplyIcon/>}
+                  icon={<MultiplyIcon />}
                   onClick={() => handleClickEditButton(false)}
                   size='small'
                   title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
@@ -110,7 +110,7 @@ export const ResourceNameAndId = ({
                 />
               </div>
               <StudioButton
-                icon={<CheckmarkIcon/>}
+                icon={<CheckmarkIcon />}
                 onClick={() => handleClickEditButton(true)}
                 size='small'
                 title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}

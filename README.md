@@ -55,7 +55,7 @@ More about that script and development in general, [can be found here](developme
 
 #### Docker Compose
 
-The development environment consist of several services defined in [docker-compose.yml](docker-compose.yml).
+The development environment consist of several services defined in [compose.yaml](compose.yaml).
 
 - `studio-loadbalancer` which is a simple nginx-container using `nginx:alpine` directly, just used for development.
 - `studio-designer` which is the actual build artifact with the .NET backend and the react-apps.
@@ -84,7 +84,7 @@ docker-compose up -d --build studio_designer
 If using the script, the `.env`-file is generated and put at root, otherwise you will need to place it there yourself.
 When starting `docker-compose` the solution should be running as it would in production. But you probably want to change
 parts of the solution. The load balancer is configured to route the traffic to the right place according to your
-particular use case. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The load balancer
+particular use case. This is done by placing a `.env`-file in the same folder as compose.yaml. The load balancer
 is configured with the following variables.
 
 ```text

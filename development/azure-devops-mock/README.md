@@ -26,7 +26,7 @@ https://learn.microsoft.com/en-us/rest/api/azure/devops/build/builds/get?view=az
 ```bash
 docker rm --force studio-azure-mock
 docker image prune -a --force
-docker compose -f ../../docker-compose.yml up -d
+docker compose -f ../../compose.yaml up -d
 ```
 
 ```bash

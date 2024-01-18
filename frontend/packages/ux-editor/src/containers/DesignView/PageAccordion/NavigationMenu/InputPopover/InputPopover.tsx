@@ -1,11 +1,6 @@
 import React, { ReactNode, ChangeEvent, useState, useRef, KeyboardEvent } from 'react';
 import classes from './InputPopover.module.css';
-import {
-  DropdownMenu,
-  ErrorMessage,
-  Popover,
-  Textfield,
-} from '@digdir/design-system-react';
+import { DropdownMenu, ErrorMessage, Popover, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 import { PencilIcon } from '@studio/icons';

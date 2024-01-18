@@ -111,7 +111,6 @@
   "dashboard.resource_status_description": "We keep you updated on new releases and service announcements that might be relevant for you when developing apps.",
   "dashboard.resource_status_label": "Service announcements",
   "dashboard.resources": "Resources",
-  "dashboard.rows_per_page": "Rows per page",
   "dashboard.search": "Search for application",
   "dashboard.search_result": "Search result",
   "dashboard.select_datamodelling_format": "Select data modelling format",
