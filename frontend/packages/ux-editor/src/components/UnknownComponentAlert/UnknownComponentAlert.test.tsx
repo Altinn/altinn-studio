@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { UnknownComponentAlert } from './UnknwonComponentAlert';
+import { UnknownComponentAlert } from './UnknownComponentAlert';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 describe('UnknownComponentAlert', () => {

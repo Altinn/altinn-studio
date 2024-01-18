@@ -1,1 +1,1 @@
-﻿export { UnknownComponentAlert, type UnknownComponentAlertProps } from './UnknwonComponentAlert';
+﻿export { UnknownComponentAlert, type UnknownComponentAlertProps } from './UnknownComponentAlert';
