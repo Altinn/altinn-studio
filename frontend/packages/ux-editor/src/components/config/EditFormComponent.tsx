@@ -2,7 +2,7 @@ import React from 'react';
 import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Switch, Fieldset, Heading, Alert } from '@digdir/design-system-react';
+import { Switch, Fieldset, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -21,6 +21,7 @@ import {
 } from 'app-shared/utils/featureToggleUtils';
 import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
+import { UnknownComponentAlert } from "../UnknownComponentAlert";
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -72,13 +73,7 @@ export const EditFormComponent = ({
 
   const isUnknownInternalComponent: boolean = !formItemConfigs[component.type];
   if (isUnknownInternalComponent) {
-    return (
-      <Alert severity='warning'>
-        {t('ux_editor.edit_component.unknown_component', {
-          componentName: component.type,
-        })}
-      </Alert>
-    );
+    return <UnknownComponentAlert componentName={component.type} />;
   }
 
   return (
