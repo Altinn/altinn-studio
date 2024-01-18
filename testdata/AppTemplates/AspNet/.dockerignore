@@ -5,6 +5,6 @@
 .vs
 .vscode
 compose.yaml
-compose.*.yml
+compose.*.yaml
 */bin
 */obj
