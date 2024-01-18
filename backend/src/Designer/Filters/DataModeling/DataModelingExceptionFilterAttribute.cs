@@ -30,9 +30,9 @@ namespace Altinn.Studio.Designer.Filters.DataModeling
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.CsharpGenerationError, HttpStatusCode.UnprocessableEntity)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
             }
 
-            if (context.Exception is XmlSchemaConvertException xmlSchemaConvertException)
+            if (context.Exception is XmlSchemaConvertException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.XmlSchemaConvertError, HttpStatusCode.UnprocessableEntity, xmlSchemaConvertException.CustomErrorMessages)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.XmlSchemaConvertError, HttpStatusCode.UnprocessableEntity)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
             }
 
             if (context.Exception is JsonSchemaConvertException)
@@ -43,6 +43,11 @@ namespace Altinn.Studio.Designer.Filters.DataModeling
             if (context.Exception is MetamodelConvertException)
             {
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.ModelMetadataConvertError, HttpStatusCode.UnprocessableEntity)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
+            }
+
+            if (context.Exception is InvalidXmlException invalidXmlError)
+            {
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.InvalidXmlError, HttpStatusCode.BadRequest, invalidXmlError.CustomErrorMessages)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
             }
         }
     }

@@ -286,7 +286,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             catch (Exception ex)
             {
                 List<string> customErrorMessages = new() { ex.Message };
-                throw new XmlSchemaConvertException("Xml could not be generated successfully", customErrorMessages);
+                throw new InvalidXmlException("Could not read invalid xml", customErrorMessages);
             }
             Json.Schema.JsonSchema convertedJsonSchema = _xmlSchemaToJsonSchemaConverter.Convert(originalXsd);
 
