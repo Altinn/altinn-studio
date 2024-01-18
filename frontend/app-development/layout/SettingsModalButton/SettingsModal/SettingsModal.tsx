@@ -35,9 +35,14 @@ export type SettingsModalProps = {
  * @property {string}[org] - The org
  * @property {string}[app] - The app
  *
- * @returns {ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps): ReactNode => {
+export const SettingsModal = ({
+  isOpen,
+  onClose,
+  org,
+  app,
+}: SettingsModalProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');

@@ -57,22 +57,12 @@ jobs:
           node ./development/setup.js
 
       - name: Playwright run
-        with:
-          install: true
-          working-directory: frontend/testing/playwright
           env: environment=local
+          working-directory: frontend/testing/playwright
           spec: src/integration/**/*.js
           record: false
           parallel: false
-          steps:
-          - uses: actions/checkout@v3
-          - uses: actions/setup-node@v3
-            with:
-              node-version: 18
-          - name: Install Playwright Browsers
-            run: npx playwright install --with-deps
-          - name: Run Playwright tests
-            run: yarn playwright:test:all"
+          run: yarn playwright:test:all
 
       - name: Stop compose file
         if: always()
