@@ -13,7 +13,6 @@ import { FormField } from '../../../FormField';
 export const FileUploadComponent = ({
   component,
   handleComponentChange,
-  layoutName,
 }: IGenericEditComponent) => {
   const t = useText();
 
@@ -62,13 +61,19 @@ export const FileUploadComponent = ({
   };
 
   return (
-    <Fieldset className={classes.fieldset}>
+    <Fieldset
+      className={classes.fieldset}
+      legend={t('ux_editor.file_upload_component.settings')}
+      hideLegend
+    >
       <FormField
         id={component.id}
         value={fileUploaderComponent.hasCustomFileEndings}
         propertyPath={`${component.propertyPath}/properties/hasCustomFileEndings`}
         renderField={({ fieldProps }) => (
           <Radio.Group
+            legend={t('ux_editor.file_upload_component.valid_file_endings')}
+            hideLegend
             {...fieldProps}
             onChange={(val) => handleHasCustomFileEndingsChange(val)}
             name={`${component.id}-valid-file-endings`}
@@ -106,6 +111,8 @@ export const FileUploadComponent = ({
           propertyPath={`${component.propertyPath}/properties/displayMode`}
           renderField={({ fieldProps }) => (
             <Radio.Group
+              legend={t('ux_editor.file_upload_component.display_mode')}
+              hideLegend
               name={`${component.id}-display-mode`}
               inline={true}
               onChange={fieldProps.onChange}

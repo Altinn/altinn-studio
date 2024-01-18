@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import classes from './MergeConflictModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { Button, Link, Paragraph, Label } from '@digdir/design-system-react';
+import { Link, Paragraph, Label } from '@digdir/design-system-react';
 import { repoDownloadPath, repoResetPath } from 'app-shared/api/paths';
 import { RemoveChangesModal } from './RemoveChangesModal';
 import { get } from 'app-shared/utils/networking';
 import { Modal } from '../Modal';
+import { StudioButton } from '@studio/components';
 
 type MergeConflictModalProps = {
   /**
@@ -74,9 +75,9 @@ export const MergeConflictModal = ({
             </Link>
           </div>
         </div>
-        <Button onClick={() => setResetModalOpen(true)} size='small'>
+        <StudioButton onClick={() => setResetModalOpen(true)} size='small'>
           {t('merge_conflict.remove_my_changes')}
-        </Button>
+        </StudioButton>
         <RemoveChangesModal
           isOpen={resetModalOpen}
           onClose={() => setResetModalOpen(false)}

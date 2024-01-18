@@ -9,6 +9,18 @@
           "title": "some-old-id",
           "body": "another-key"
         }
+      },
+      {
+        "id": "component-id",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": ["concat", "Endringer med fra-verdi over ", ["dataModel", "hideRowValue"], " NOK"],
+          "label": [
+            "concat",
+            ["text", "optionsFromRepeatingGroup"],
+            ["concat", " ", ["text", "question-2"]]
+          ]
+        }
       }
     ]
   }

@@ -1,6 +1,5 @@
 import React, { useState, useId } from 'react';
 import {
-  Button,
   Label,
   ErrorMessage,
   Paragraph,
@@ -27,6 +26,7 @@ import {
   getUpdatedRules,
 } from '../../utils/ExpandablePolicyCardUtils';
 import { useTranslation } from 'react-i18next';
+import { StudioButton } from '@studio/components';
 
 export type ExpandablePolicyCardProps = {
   policyRule: PolicyRuleCard;
@@ -423,7 +423,7 @@ export const ExpandablePolicyCard = ({
         </Label>
         {displayResources}
         <div className={classes.addResourceButton}>
-          <Button
+          <StudioButton
             type='button'
             onClick={handleClickAddResource}
             color='second'
@@ -432,7 +432,7 @@ export const ExpandablePolicyCard = ({
             icon={<PlusIcon fontSize='1.5rem' />}
           >
             {t('policy_editor.rule_card_sub_resource_button')}
-          </Button>
+          </StudioButton>
         </div>
         {showErrors &&
           hasResourceError &&

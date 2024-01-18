@@ -2,9 +2,10 @@ import React, { ReactNode } from 'react';
 import classes from './ReceiptContent.module.css';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import { PageAccordion } from '../PageAccordion';
-import { Accordion, Button } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { FormTree } from '../FormTree';
+import { StudioButton } from '@studio/components';
 
 export type ReceiptContentProps = {
   /**
@@ -77,9 +78,9 @@ export const ReceiptContent = ({
   }
   return (
     <div className={classes.button}>
-      <Button variant='tertiary' onClick={onClickAddPage} size='small'>
+      <StudioButton variant='tertiary' onClick={onClickAddPage} size='small'>
         {t('receipt.create')}
-      </Button>
+      </StudioButton>
     </div>
   );
 };

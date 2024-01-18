@@ -1,9 +1,10 @@
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
-import { Button, Textfield } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
+import { StudioButton } from '@studio/components';
 
 export type EnumFieldProps = {
   value: string;
@@ -53,7 +54,7 @@ export const EnumField = ({
         onKeyDown={onKeyDown}
         error={!isValid}
       />
-      <Button
+      <StudioButton
         title={t('schema_editor.delete_field')}
         aria-label={t('schema_editor.delete_field')}
         className={classes.delete}

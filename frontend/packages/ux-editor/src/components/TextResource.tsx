@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Button,
   LegacySelect,
   LegacySingleSelectOption,
   Paragraph,
@@ -32,6 +31,7 @@ import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { StudioButton } from '@studio/components';
 
 export interface TextResourceProps {
   description?: string;
@@ -130,7 +130,7 @@ export const TextResource = ({
               value={textResource?.id ?? ''}
             />
           </span>
-          <Button
+          <StudioButton
             aria-label={t('ux_editor.search_text_resources_close')}
             className={classes.button}
             color='second'
@@ -151,7 +151,7 @@ export const TextResource = ({
         <span className={classes.buttonsWrapper}>
           <span className={classes.buttons}>
             {textResource?.value ? (
-              <Button
+              <StudioButton
                 aria-label={t('general.edit')}
                 className={classes.button}
                 color='second'
@@ -163,7 +163,7 @@ export const TextResource = ({
                 size='small'
               />
             ) : (
-              <Button
+              <StudioButton
                 aria-label={t('general.add')}
                 className={classes.button}
                 color='second'
@@ -175,7 +175,7 @@ export const TextResource = ({
                 size='small'
               />
             )}
-            <Button
+            <StudioButton
               aria-label={t('general.search')}
               className={classes.button}
               color='second'
@@ -192,7 +192,7 @@ export const TextResource = ({
               onConfirm={handleDeleteButtonClick}
               onClose={() => setIsConfirmDeleteDialogOpen(false)}
               trigger={
-                <Button
+                <StudioButton
                   aria-label={t('general.delete')}
                   className={classes.button}
                   color='second'
