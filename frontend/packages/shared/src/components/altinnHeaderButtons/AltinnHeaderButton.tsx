@@ -15,6 +15,7 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
   return (
     <StudioButton
       as='a'
+      href={action.to}
       key={action.menuKey}
       data-testid={action.menuKey}
       aria-label={t(action.title)}
