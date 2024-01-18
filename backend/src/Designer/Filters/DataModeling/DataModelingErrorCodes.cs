@@ -6,5 +6,6 @@
         public const string XmlSchemaConvertError = "DM_02";
         public const string JsonSchemaConvertError = "DM_03";
         public const string ModelMetadataConvertError = "DM_04";
+        public const string InvalidXmlError = "DM_05";
     }
 }
