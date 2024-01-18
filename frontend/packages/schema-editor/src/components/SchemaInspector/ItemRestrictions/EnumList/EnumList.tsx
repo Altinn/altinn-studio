@@ -3,12 +3,13 @@ import classes from './EnumList.module.css';
 import { FieldNode } from '@altinn/schema-model';
 import { deepCopy } from 'app-shared/pure';
 import { EnumField } from './EnumField';
-import { Button, ErrorMessage, Fieldset } from '@digdir/design-system-react';
+import { ErrorMessage, Fieldset } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { removeEmptyStrings, removeItemByIndex, replaceByIndex } from 'app-shared/utils/arrayUtils';
+import { StudioButton } from '@studio/components';
 
 export type EnumListProps = {
   schemaNode: FieldNode;
@@ -71,7 +72,7 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
         />
       ))}
       <div className={classes.addEnumButton}>
-        <Button
+        <StudioButton
           aria-label={t('schema_editor.add_enum')}
           color='second'
           fullWidth
@@ -82,7 +83,7 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
           variant='secondary'
         >
           {t('schema_editor.add_enum')}
-        </Button>
+        </StudioButton>
       </div>
     </Fieldset>
   );

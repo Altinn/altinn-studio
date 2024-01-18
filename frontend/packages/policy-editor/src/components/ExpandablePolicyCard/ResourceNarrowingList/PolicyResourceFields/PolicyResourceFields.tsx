@@ -1,8 +1,9 @@
 import React from 'react';
 import classes from './PolicyResourceFields.module.css';
-import { Button, Label, Textfield } from '@digdir/design-system-react';
+import { Label, Textfield } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
+import { StudioButton } from '@studio/components';
 
 export type PolicyResourceFieldsProps = {
   /**
@@ -104,14 +105,15 @@ export const PolicyResourceFields = ({
       </div>
       <div className={classes.buttonWrapper}>
         {canEditTypeAndId && (
-          <Button
-            variant='tertiary'
-            icon={<MultiplyIcon title={t('policy_editor.narrowing_list_field_delete')} />}
+          <StudioButton
             aria-disabled={!canEditTypeAndId}
-            onClick={onRemove}
             color='danger'
             hidden={!canEditTypeAndId}
+            icon={<MultiplyIcon />}
+            onClick={onRemove}
             size='small'
+            title={t('policy_editor.narrowing_list_field_delete')}
+            variant='tertiary'
           />
         )}
       </div>

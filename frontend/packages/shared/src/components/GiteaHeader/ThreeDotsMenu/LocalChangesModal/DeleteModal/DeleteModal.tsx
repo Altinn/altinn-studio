@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioModal, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioModal, StudioSpinner } from '@studio/components';
 import { TrashIcon } from '@navikt/aksel-icons';
-import { Button, Heading, Paragraph, Textfield } from '@digdir/design-system-react';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
+import { Heading, Paragraph, Textfield } from '@digdir/design-system-react';
 
 export type DeleteModalProps = {
   isOpen: boolean;
@@ -60,7 +60,7 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
           onChange={(e) => setNameToDelete(e.target.value)}
         />
         <div className={classes.buttonWrapper}>
-          <Button
+          <StudioButton
             variant='secondary'
             color='danger'
             onClick={handleDelete}
@@ -72,10 +72,10 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
             ) : (
               t('local_changes.modal_confirm_delete_button')
             )}
-          </Button>
-          <Button variant='secondary' onClick={handleClose} size='small'>
+          </StudioButton>
+          <StudioButton variant='secondary' onClick={handleClose} size='small'>
             {t('general.cancel')}
-          </Button>
+          </StudioButton>
         </div>
       </div>
     </StudioModal>
