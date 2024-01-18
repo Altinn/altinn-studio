@@ -4,7 +4,7 @@ import { userEvent } from '@testing-library/user-event';
 import { UnknownReferencedItem, UnknownReferencedItemProps } from './UnknownReferencedItem';
 import { layoutMock } from '../../../../testing/layoutMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../testing/mocks';
 
 describe('UnknownReferencedItem', () => {
