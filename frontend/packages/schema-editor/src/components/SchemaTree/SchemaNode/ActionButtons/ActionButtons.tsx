@@ -44,12 +44,13 @@ export const ActionButtons = ({ pointer, className }: ActionButtonsProps) => {
 
 const useDeleteNode = (pointer: string, savableModel: SavableSchemaModel) => {
   const { t } = useTranslation();
-  const { setSelectedNodePointer } = useSchemaEditorAppContext();
+  const { setSelectedNodePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   return useCallback(() => {
     if (confirm(t('schema_editor.datamodel_field_deletion_text'))) {
       setSelectedNodePointer(null);
+      setSelectedTypePointer(null);
       savableModel.deleteNode(pointer);
     }
-  }, [savableModel, pointer, t, setSelectedNodePointer]);
+  }, [savableModel, pointer, t, setSelectedNodePointer, setSelectedTypePointer]);
 };
