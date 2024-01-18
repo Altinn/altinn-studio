@@ -565,7 +565,9 @@ namespace Altinn.Studio.Designer.Controllers
             var tempAltinnFolderPath = Path.Combine(Path.GetTempPath(), "altinn");
             var zipFilePath = Path.Combine(tempAltinnFolderPath, zipFileName);
 
-            using (var archive = new ZipArchive(new FileStream(zipFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read), ZipArchiveMode.Create, leaveOpen: false))
+            var fileStream = new FileStream(zipFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read, 512,
+                FileOptions.DeleteOnClose);
+            using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true))
             {
                 IEnumerable<string> changedFiles;
                 if (full)
@@ -586,7 +588,9 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
-            return File(System.IO.File.ReadAllBytes(zipFilePath), "application/zip", zipFileName);
+            fileStream.Seek(0, SeekOrigin.Begin);
+
+            return File(fileStream, "application/zip", zipFileName);
         }
 
         private List<string> GetFilesInDirectory(string appRoot, DirectoryInfo currentDir)
