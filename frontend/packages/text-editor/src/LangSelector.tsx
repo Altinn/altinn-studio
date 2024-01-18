@@ -4,6 +4,7 @@ import classes from './LangSelector.module.css';
 import type { LangCode, Option } from './types';
 import { StudioButton } from '@studio/components';
 import type { StudioButtonProps } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 export interface ILangSelectorProps {
   onAddLang: (langCode: LangCode) => void;
@@ -17,6 +18,7 @@ const emptyOption: Option = {
 
 export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
   const [selectedOption, setSelectedOption] = useState<Option>(emptyOption);
+  const { t } = useTranslation();
   const handleAddNewLang = () => {
     onAddLang(selectedOption.value);
     setSelectedOption(emptyOption);
@@ -40,7 +42,7 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
         value={selectedOption.value}
       />
       <StudioButton {...addButtonProps} size='small'>
-        Legg til
+        {t('general.add')}
       </StudioButton>
     </div>
   );
