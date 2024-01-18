@@ -201,7 +201,7 @@
       },
       {
         "id": "arbeidserfaring",
-        "type": "Group",
+        "type": "RepeatingGroup",
         "children": [
           "arbeidsgiver",
           "dato-fra",
@@ -231,7 +231,6 @@
             0
           ]
         ],
-        "maxCount": 99,
         "dataModelBindings": {
           "group": "root.arbeidserfaring"
         },
@@ -335,7 +334,7 @@
       },
       {
         "id": "prosjekter",
-        "type": "Group",
+        "type": "RepeatingGroup",
         "children": ["prosjekt-tittel", "prosjekt-beskrivelse"],
         "tableHeaders": ["prosjekt-tittel"],
         "validateOnSaveRow": ["All"],
@@ -352,7 +351,6 @@
             0
           ]
         ],
-        "maxCount": 99,
         "dataModelBindings": {
           "group": "root.arbeidserfaring.prosjekter"
         },
