@@ -9,14 +9,14 @@ describe('UnknownComponentAlert', () => {
     expect(
       screen.getByText(
         textMock('ux_editor.edit_component.unknown_component', {
-          componentName: 'UnkwnonComponentName',
+          componentName: 'UnknownComponentName',
         }),
       ),
     );
   });
 
   it('should be possible to pass native HTML attributes', () => {
-    render(<UnknownComponentAlert componentName='UnkwnonComponentName' className="myCustomClass" role="alert"/>);
+    render(<UnknownComponentAlert componentName='UnknownComponentName' className="myCustomClass" role="alert"/>);
     expect(screen.getByRole("alert")).toHaveClass('myCustomClass')
   })
 });
