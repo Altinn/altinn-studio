@@ -117,7 +117,7 @@ describe('ImportResourceModal', () => {
 
   it('formats id when id field is changed', async () => {
     const user = userEvent.setup();
-    render();
+    renderImportResourceModal();
 
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
