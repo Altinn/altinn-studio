@@ -54,7 +54,7 @@ describe('DeleteModal', () => {
 
     const mockDelete = jest.fn().mockImplementation(() => Promise.resolve());
 
-    renderDeleteModal({}, { resetRepoChanges: mockDelete });
+    renderDeleteModal({ resetRepoChanges: mockDelete });
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_confirm_delete_button'),
@@ -83,7 +83,7 @@ describe('DeleteModal', () => {
 
     const mockDelete = jest.fn().mockImplementation(() => Promise.reject());
 
-    renderDeleteModal({}, { resetRepoChanges: mockDelete });
+    renderDeleteModal({ resetRepoChanges: mockDelete });
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_confirm_delete_button'),
@@ -105,7 +105,6 @@ describe('DeleteModal', () => {
 });
 
 const renderDeleteModal = (
-  props: Partial<DeleteModalProps> = {},
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
@@ -116,7 +115,7 @@ const renderDeleteModal = (
 
   return render(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <DeleteModal {...defaultProps} {...props} />
+      <DeleteModal {...defaultProps} />
     </ServicesContextProvider>,
   );
 };
