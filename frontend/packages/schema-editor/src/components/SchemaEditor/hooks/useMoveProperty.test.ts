@@ -20,10 +20,10 @@ import {
 import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
 
 describe('useMoveProperty', () => {
-  const setup = () => {
+  const setup = (schemaEditorAppContextProps?: Partial<SchemaEditorAppContextProps>) => {
     const save = jest.fn();
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
-    const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, save };
+    const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, save, ...schemaEditorAppContextProps };
     const { result } = renderHookWithProviders({ appContextProps })(useMoveProperty);
     const move: HandleMove = result.current;
     return { move, save };
@@ -130,5 +130,19 @@ describe('useMoveProperty', () => {
     jest.spyOn(window, 'alert').mockImplementation(jest.fn());
     move(pointerOfNodeToMove, target);
     expect(save).toHaveBeenCalledTimes(0);
+  });
+
+  it('Updates the selected node pointer if moving a node that is selected', () => {
+    const setSelectedNodePointerMock = jest.fn();
+    const { move, save } = setup({ selectedNodePointer: fieldNode1Mock.pointer, setSelectedNodePointer: setSelectedNodePointerMock });
+    const pointerOfNodeToMove = fieldNode1Mock.pointer;
+    const index = rootNodeMock.children.length;
+    const target: ItemPosition = { parentId: ROOT_POINTER, index };
+    move(pointerOfNodeToMove, target);
+    expect(setSelectedNodePointerMock).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const rootChildren = savedModel.getRootChildren();
+    const addedRootChild = rootChildren[index];
+    expect(setSelectedNodePointerMock).toHaveBeenCalledWith(addedRootChild.pointer);
   });
 });
