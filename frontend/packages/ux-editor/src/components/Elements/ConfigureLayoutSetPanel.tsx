@@ -11,12 +11,13 @@ import React, {
 import { useTranslation, Trans } from 'react-i18next';
 import classes from './ConfigureLayoutSetPanel.module.css';
 import { useConfigureLayoutSetMutation } from '../../hooks/mutations/useConfigureLayoutSetMutation';
-import { Button, Paragraph, Textfield } from '@digdir/design-system-react';
+import { Paragraph, Textfield } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { StudioButton } from '@studio/components';
 
 export const ConfigureLayoutSetPanel = () => {
   const inputLayoutSetNameId = useId();
@@ -135,14 +136,14 @@ export const ConfigureLayoutSetPanel = () => {
           )}
         </div>
       ) : (
-        <Button
+        <StudioButton
           className={classes.configureLayoutSetButton}
           variant='tertiary'
           onClick={toggleConfigureLayoutSetName}
           size='small'
         >
           {t('left_menu.configure_layout_sets')}
-        </Button>
+        </StudioButton>
       )}
       <div aria-haspopup='true' onMouseEnter={handleTogglePopOver}>
         <InformationIcon className={classes.informationButton} />

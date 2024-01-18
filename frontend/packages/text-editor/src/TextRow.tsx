@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@studio/icons';
-import { Button, TableCell, TableRow, Textfield } from '@digdir/design-system-react';
+import { TableCell, TableRow, Textfield } from '@digdir/design-system-react';
+
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
 import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
@@ -11,6 +12,8 @@ import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { FormField } from 'app-shared/components/FormField';
+import { StudioButton } from '@studio/components';
+
 export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
   removeEntry: ({ textId }) => void;
@@ -78,7 +81,7 @@ export const TextRow = ({
             onConfirm={handleDeleteClick}
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
             trigger={
-              <Button
+              <StudioButton
                 className={classes.deleteButton}
                 icon={<TrashIcon title={`Slett ${textId}`} />}
                 variant='tertiary'
@@ -87,7 +90,7 @@ export const TextRow = ({
                 size='small'
               >
                 {t('schema_editor.delete')}
-              </Button>
+              </StudioButton>
             }
           >
             <p>{t('schema_editor.textRow-deletion-text')}</p>
@@ -136,7 +139,7 @@ export const TextRow = ({
             </div>
           )}
           {showButton && (
-            <Button
+            <StudioButton
               aria-label={t('text_editor.toggle_edit_mode')}
               icon={<PencilIcon />}
               variant='tertiary'

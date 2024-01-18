@@ -1,8 +1,9 @@
 import React from 'react';
 import classes from './ResourceNameAndId.module.css';
-import { Button, Textfield, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
+import { Textfield, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
 import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
+import { StudioButton } from '@studio/components';
 
 export type ResourceNameAndIdProps = {
   isEditOpen: boolean;
@@ -99,27 +100,21 @@ export const ResourceNameAndId = ({
             </div>
             <div className={classes.buttonWrapper}>
               <div className={classes.stopEditingButton}>
-                <Button
-                  onClick={() => handleClickEditButton(false)}
-                  variant='tertiary'
+                <StudioButton
                   color='danger'
-                  icon={
-                    <MultiplyIcon
-                      title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
-                    />
-                  }
+                  icon={<MultiplyIcon />}
+                  onClick={() => handleClickEditButton(false)}
                   size='small'
+                  title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
+                  variant='tertiary'
                 />
               </div>
-              <Button
+              <StudioButton
+                icon={<CheckmarkIcon />}
                 onClick={() => handleClickEditButton(true)}
-                variant='tertiary'
-                icon={
-                  <CheckmarkIcon
-                    title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
-                  />
-                }
                 size='small'
+                title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
+                variant='tertiary'
               />
             </div>
           </div>
@@ -140,7 +135,7 @@ export const ResourceNameAndId = ({
             <strong>{getIdToDisplay()}</strong>
           </Paragraph>
           <div className={classes.editButtonWrapper}>
-            <Button
+            <StudioButton
               onClick={() => handleClickEditButton(false)}
               iconPlacement='right'
               icon={<PencilWritingIcon />}
@@ -149,7 +144,7 @@ export const ResourceNameAndId = ({
               size='small'
             >
               {t('general.edit')}
-            </Button>
+            </StudioButton>
           </div>
         </div>
       </>

@@ -13,7 +13,6 @@ export interface TypeItemProps {
 }
 
 export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: TypeItemProps) => {
-  
   const handleClick = () => {
     setSelectedTypePointer(uiSchemaNode.pointer);
   };

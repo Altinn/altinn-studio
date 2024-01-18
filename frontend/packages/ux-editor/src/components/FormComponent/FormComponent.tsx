@@ -3,7 +3,7 @@ import '../../styles/index.css';
 import classes from './FormComponent.module.css';
 import cn from 'classnames';
 import type { FormComponent as IFormComponent } from '../../types/FormComponent';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './DragHandle';
@@ -101,7 +101,7 @@ export const FormComponent = memo(function FormComponent({
           onConfirm={handleDelete}
           onClose={() => setIsConfirmDeleteDialogOpen(false)}
           trigger={
-            <Button
+            <StudioButton
               color='second'
               icon={<TrashIcon />}
               onClick={(event: React.MouseEvent<HTMLButtonElement>) => {

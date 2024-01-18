@@ -1,27 +1,14 @@
 import React from 'react';
 import classes from './NavigationModal.module.css';
-import { Button, Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/design-system-react';
 import { Modal } from '../Modal';
 import { useTranslation } from 'react-i18next';
+import { StudioButton } from '@studio/components';
 
 export type NavigationModalProps = {
-  /**
-   * Boolean for if the modal is open
-   */
   isOpen: boolean;
-  /**
-   * Function to handle close
-   * @returns void
-   */
   onClose: () => void;
-  /**
-   * Function to be executed when navigating
-   * @returns void
-   */
   onNavigate: () => void;
-  /**
-   * The title in the modal
-   */
   title: string;
 };
 
@@ -50,12 +37,12 @@ export const NavigationModal = ({
         {t('resourceadm.resource_navigation_modal_text')}
       </Paragraph>
       <div className={classes.buttonWrapper}>
-        <Button onClick={onClose} color='first' variant='tertiary' size='small'>
+        <StudioButton onClick={onClose} color='first' variant='tertiary' size='small'>
           {t('resourceadm.resource_navigation_modal_button_stay')}
-        </Button>
-        <Button onClick={onNavigate} color='first' size='small'>
+        </StudioButton>
+        <StudioButton onClick={onNavigate} color='first' size='small'>
           {t('resourceadm.resource_navigation_modal_button_move_on')}
-        </Button>
+        </StudioButton>
       </div>
     </Modal>
   );

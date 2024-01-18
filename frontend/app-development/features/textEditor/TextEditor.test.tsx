@@ -131,7 +131,7 @@ describe('TextEditor', () => {
     await render();
 
     const addBtn = screen.getByRole('button', {
-      name: /legg til/i,
+      name: textMock('general.add'),
     });
     expect(addBtn).toBeDisabled();
     const select = screen.getByRole('combobox');

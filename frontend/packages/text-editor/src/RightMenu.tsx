@@ -3,12 +3,13 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import { Button, Checkbox, Fieldset, Heading } from '@digdir/design-system-react';
+import { Checkbox, Fieldset, Heading } from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
 import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import * as testids from '../../../testing/testids';
+import { StudioButton } from '@studio/components';
 
 export interface RightMenuProps {
   addLanguage: (langCode: LangCode) => void;
@@ -44,7 +45,9 @@ export const RightMenu = ({
   return (
     <aside className={classes.RightMenu__sidebar}>
       <div className={classes.RightMenu__verticalContent}>
-        <Heading level={2} size='small'>{t('schema_editor.language')}</Heading>
+        <Heading level={2} size='small'>
+          {t('schema_editor.language')}
+        </Heading>
         <div> {t('schema_editor.language_info_melding')}</div>
       </div>
       <div className={classes.RightMenu__verticalContent}>
@@ -68,7 +71,7 @@ export const RightMenu = ({
                       onConfirm={() => handleDeleteLanguage(langCode)}
                       onClose={() => setLangCodeToDelete(undefined)}
                       trigger={
-                        <Button
+                        <StudioButton
                           variant={canDeleteLang(langCode) ? 'primary' : 'secondary'}
                           data-testid={testids.deleteButton(langCode)}
                           color='danger'
@@ -82,7 +85,7 @@ export const RightMenu = ({
                           size='small'
                         >
                           {t('schema_editor.language_delete_button')}
-                        </Button>
+                        </StudioButton>
                       }
                     >
                       <p>{t('schema_editor.language_display_confirm_delete')}</p>

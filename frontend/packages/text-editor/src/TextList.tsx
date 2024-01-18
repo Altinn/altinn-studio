@@ -7,7 +7,13 @@ import type {
 } from './types';
 import { filterFunction, getLangName } from './utils';
 import { TextTableRow } from './types';
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
+import {
+  LegacyTable,
+  LegacyTableBody,
+  LegacyTableCell,
+  LegacyTableHeader,
+  LegacyTableRow,
+} from '@digdir/design-system-react';
 import { APP_NAME } from 'app-shared/constants';
 
 export type TextListProps = {
@@ -29,20 +35,23 @@ export const TextList = ({
   const getTableHeaderCellId = (language: string): string => `header-lang${language}`;
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableCell></TableCell>
+    <LegacyTable>
+      <LegacyTableHeader>
+        <LegacyTableRow>
+          <LegacyTableCell />
           {selectedLanguages.map((language) => (
-            <TableCell id={getTableHeaderCellId(language)} key={getTableHeaderCellId(language)}>
+            <LegacyTableCell
+              id={getTableHeaderCellId(language)}
+              key={getTableHeaderCellId(language)}
+            >
               {getLangName({ code: language })}
-            </TableCell>
+            </LegacyTableCell>
           ))}
-          <TableCell>Tekstnøkkel</TableCell>
-          <TableCell>Variabler</TableCell>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+          <LegacyTableCell>Tekstnøkkel</LegacyTableCell>
+          <LegacyTableCell>Variabler</LegacyTableCell>
+        </LegacyTableRow>
+      </LegacyTableHeader>
+      <LegacyTableBody>
         {resourceRows
           .filter((row) => filterFunction(row.textKey, row.translations, searchQuery))
           .map((row) => (
@@ -57,7 +66,7 @@ export const TextList = ({
               {...rest}
             />
           ))}
-      </TableBody>
-    </Table>
+      </LegacyTableBody>
+    </LegacyTable>
   );
 };
