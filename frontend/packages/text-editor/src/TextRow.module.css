@@ -8,6 +8,7 @@
 }
 
 .textId {
+  max-width: 200px;
   overflow: scroll;
   overflow-wrap: break-word;
 }
@@ -24,4 +25,8 @@
 
 .buttonGroup {
   justify-content: space-between;
+}
+
+.cellContent {
+  padding: 0px 15px;
 }

@@ -106,7 +106,10 @@ export const TextRow = ({
           };
         }
         return (
-          <TableCell key={translation.lang + '-' + textId} className={classes.textAreaCell}>
+          <TableCell
+            key={translation.lang + '-' + textId}
+            className={`${classes.textAreaCell} ${classes.cellContent}`}
+          >
             <TextEntry
               {...translation}
               upsertTextResource={upsertTextResource}
@@ -116,7 +119,7 @@ export const TextRow = ({
           </TableCell>
         );
       })}
-      <TableCell>
+      <TableCell className={classes.cellContent}>
         <ButtonContainer className={classes.buttonGroup}>
           {textIdEditOpen ? (
             <FormField
