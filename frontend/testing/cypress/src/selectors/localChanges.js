@@ -14,10 +14,7 @@ export const localChanges = {
     cy.findByRole('button', { name: texts['local_changes.modal_delete_button'] }),
   getConfirmRepoNameField: () =>
     cy.findByRole('textbox', {
-      name: texts[
-        ('local_changes.modal_delete_modal_textfield_label',
-        { appName: Cypress.env('designerAppName') })
-      ],
+      name: texts['local_changes.modal_delete_modal_textfield_label'],
     }),
   getConfirmDeleteButton: () =>
     cy.findByRole('button', {
