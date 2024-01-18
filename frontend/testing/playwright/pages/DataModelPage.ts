@@ -1,4 +1,4 @@
-import { BasePage, TextKey } from '../helpers/BasePage';
+import { BasePage } from '../helpers/BasePage';
 import { Locator, Page } from '@playwright/test';
 import { Environment } from '../helpers/StudioEnvironment';
 import * as testids from '../../testids';
@@ -129,41 +129,6 @@ export class DataModelPage extends BasePage {
     return await this.getDataModelOptionByName(option).getAttribute('value');
   }
 
-  // Helper function to get a button by the text key
-  private getButtonByTextKey(key: TextKey): Locator {
-    return this.page.getByRole('button', { name: this.textMock(key) });
-  }
-
-  // Helper function to get a menu item by the text key
-  private getMenuItemByTextKey(key: TextKey): Locator {
-    return this.page.getByRole('menuitem', { name: this.textMock(key) });
-  }
-
-  // Helper function to get a tree item property by the name
-  private getTreeItemPropertyByName(name: string): Locator {
-    return this.page.getByRole('treeitem', { name });
-  }
-
-  // Helper function to get a combox by the text key
-  private getComboboxByTextKey(key: TextKey): Locator {
-    return this.page.getByRole('combobox', { name: this.textMock(key) });
-  }
-
-  // Helper function to get a textbox by the text key
-  private getTextboxByTextKey(key: TextKey): Locator {
-    return this.page.getByRole('textbox', { name: this.textMock(key) });
-  }
-
-  // Helper function to get an option by the text key
-  private getOptionByTextKey(key: TextKey): Locator {
-    return this.page.getByRole('option', { name: this.textMock(key) });
-  }
-
-  // Helper function to get an alert by the text key
-  private getAlertByTextKey(key: TextKey): Locator {
-    return this.page.getByRole('alert', { name: this.textMock(key) });
-  }
-
   // Helper function to get the name field
   private getNameField(): Locator {
     return this.getTextboxByTextKey('schema_editor.name');
@@ -172,10 +137,5 @@ export class DataModelPage extends BasePage {
   // Helper function to get the type combobox
   private getTypeCombobox(): Locator {
     return this.getComboboxByTextKey('schema_editor.type');
-  }
-
-  // Helper function to get an option by the text key
-  private getDataModelOptionByName(name: string): Locator {
-    return this.page.getByRole('option', { name });
   }
 }
