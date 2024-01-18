@@ -69,11 +69,15 @@ export const mapResourceFilesToTableRows = (
   return Array.from(rows.values());
 };
 
-const getOrderedTexts = (resources: ITextResource[], sortAlphabetically: boolean): ITextResource[] => sortAlphabetically
-  ? [...resources].sort((a, b) =>
-    alphabeticalCompareFunction(a.id.toLowerCase(), b.id.toLowerCase()),
-  )
-  : resources;
+const getOrderedTexts = (
+  resources: ITextResource[],
+  sortAlphabetically: boolean,
+): ITextResource[] =>
+  sortAlphabetically
+    ? [...resources].sort((a, b) =>
+        alphabeticalCompareFunction(a.id.toLowerCase(), b.id.toLowerCase()),
+      )
+    : resources;
 
 const createTextRows = (rows: Map<any, any>, resource: ITextResource, lang: string) => {
   if (!rows.has(resource.id)) {
@@ -90,7 +94,7 @@ const createTextRows = (rows: Map<any, any>, resource: ITextResource, lang: stri
     lang,
     translation: resource.value,
   });
-}
+};
 
 export const validateTextId = (textIdToValidate: string): string => {
   const isIllegalId = (textIdToCheck: string) => Boolean(textIdToCheck.toLowerCase().match(' ')); // TODO: create matcher
