@@ -35,7 +35,7 @@ export type SettingsModalProps = {
  * @property {string}[org] - The org
  * @property {string}[app] - The app
  *
- * @returns {React.JSX.Element} - The rendered component
+ * @returns {ReactNode} - The rendered component
  */
 export const SettingsModal = ({
   isOpen,

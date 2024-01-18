@@ -57,8 +57,10 @@ jobs:
           node ./development/setup.js
 
       - name: Playwright run
-          env: environment=local
+        with:
+          install: true
           working-directory: frontend/testing/playwright
+          env: environment=local
           spec: src/integration/**/*.js
           record: false
           parallel: false
