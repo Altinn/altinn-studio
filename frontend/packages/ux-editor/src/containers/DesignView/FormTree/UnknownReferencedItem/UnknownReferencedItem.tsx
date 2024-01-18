@@ -1,10 +1,10 @@
 ﻿import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, HelpText } from '@digdir/design-system-react';
+import { HelpText } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { QuestionmarkDiamondIcon, TrashIcon } from '@studio/icons';
 import { IInternalLayout } from '../../../../types/global';
 import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentReference';
-
 import classes from './UnknownReferencedItem.module.css';
 
 export type UnknownReferencedItemProps = {
@@ -26,7 +26,7 @@ export const UnknownReferencedItem = ({ id, layout }: UnknownReferencedItemProps
         {id}
       </div>
       <div className={classes.title}>
-        <Button
+        <StudioButton
           color='danger'
           icon={<TrashIcon />}
           onClick={handleDelete}

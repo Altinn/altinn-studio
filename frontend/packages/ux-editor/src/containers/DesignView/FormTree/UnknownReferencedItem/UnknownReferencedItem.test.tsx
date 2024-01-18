@@ -1,23 +1,21 @@
 ﻿import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { UnknownReferencedItem, UnknownReferencedItemProps } from './UnknownReferencedItem';
 import { layoutMock } from '../../../../testing/layoutMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { useDeleteUnknownComponentReference } from './useDeleteUnknownComponentReference';
-
-jest.mock('./useDeleteUnknownComponentReference');
-
-const mockUseUpdateFormContainerMutation =
-  useDeleteUnknownComponentReference as jest.MockedFunction<typeof useDeleteUnknownComponentReference>;
+import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { renderWithMockStore } from '../../../../testing/mocks';
 
 describe('UnknownReferencedItem', () => {
   it('should display unknown reference component with help text', async () => {
     const user = userEvent.setup();
 
     renderUnknownReferencedItem({
-      id: 'unknown-component-reference',
-      layout: layoutMock,
+      props: {
+        id: 'unknown-component-reference',
+        layout: layoutMock,
+      },
     });
 
     const helpTextButton = screen.getByRole('button', {
@@ -38,18 +36,29 @@ describe('UnknownReferencedItem', () => {
 
   it('should delete reference when delete button is clicked', async () => {
     const user = userEvent.setup();
-    const mockedDelete = jest.fn();
-    mockUseUpdateFormContainerMutation.mockReturnValue(mockedDelete);
+    const mockedSaveFormLayout = jest.fn().mockImplementation(() => Promise.resolve());
     renderUnknownReferencedItem({
-      id: 'unknown',
-      layout: layoutMock,
+      props: {
+        id: 'unknown',
+        layout: layoutMock,
+      },
+      queries: {
+        saveFormLayout: mockedSaveFormLayout,
+      },
     });
 
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
-    expect(mockedDelete).toHaveBeenCalled();
+    expect(mockedSaveFormLayout).toHaveBeenCalled();
   });
 });
 
-const renderUnknownReferencedItem = (props: UnknownReferencedItemProps) => {
-  return render(<UnknownReferencedItem id={props.id} layout={props.layout} />);
+type RenderUnknownReferencedItem = {
+  props: UnknownReferencedItemProps;
+  queries?: Partial<ServicesContextProps>;
+};
+const renderUnknownReferencedItem = ({ props, queries = {} }: RenderUnknownReferencedItem) => {
+  return renderWithMockStore(
+    {},
+    { ...queries },
+  )(<UnknownReferencedItem id={props.id} layout={props.layout} />);
 };
