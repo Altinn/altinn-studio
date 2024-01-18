@@ -1,0 +1,1 @@
+export { ResourceAccessLists } from './ResourceAccessLists';

@@ -3,10 +3,10 @@ import classes from './ServiceContent.module.css';
 import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/design-system-react';
 import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useGetAltinn2LinkServicesQuery } from 'resourceadm/hooks/queries';
+import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ResourceContent } from './ResourceContent';
-import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
+import { mapAltinn2LinkServiceToSelectOption } from '../../../utils/mapperUtils';
 
 export type ServiceContentProps = {
   selectedContext: string;
