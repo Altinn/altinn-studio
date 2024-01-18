@@ -9,7 +9,7 @@ import { UiSchemaNodes } from '../../../../../schema-model';
 
 export const useMoveProperty = (): HandleMove => {
   const savableModel = useSavableSchemaModel();
-    const { selectedNodePointer, setSelectedNodePointer } = useSchemaEditorAppContext();
+  const { selectedNodePointer, setSelectedNodePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
   const areThereCollidingNames = useCallback(
