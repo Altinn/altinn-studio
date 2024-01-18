@@ -1,6 +1,6 @@
 import React from 'react';
 import { Popover } from '@mui/material';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import classes from './RepoModal.module.css';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { Trans, useTranslation } from 'react-i18next';
@@ -46,9 +46,9 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
             </a>
           </p>
           <div className={classes.buttonContainer}>
-            <Button color='second' onClick={props.onClose} variant='secondary' size='small'>
+            <StudioButton color='second' onClick={props.onClose} variant='secondary' size='small'>
               {t('general.cancel')}
-            </Button>
+            </StudioButton>
           </div>
         </div>
       </Popover>

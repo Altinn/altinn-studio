@@ -7,7 +7,7 @@ import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../../ap
 import { useTranslation } from 'react-i18next';
 import { User } from 'app-shared/types/Repository';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import * as testids from '../../../../../../testing/testids';
 
 export interface IProfileMenuComponentProps {
@@ -79,7 +79,7 @@ export const ProfileMenu = ({
   });
 
   return (
-    <Button
+    <StudioButton
       variant='tertiary'
       color='inverted'
       onClick={handleClick}
@@ -125,6 +125,6 @@ export const ProfileMenu = ({
           </MenuItem>
         )}
       </Menu>
-    </Button>
+    </StudioButton>
   );
 };

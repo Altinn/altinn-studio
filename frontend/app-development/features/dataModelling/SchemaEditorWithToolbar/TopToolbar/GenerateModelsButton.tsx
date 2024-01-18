@@ -1,10 +1,11 @@
-import { Button, Spinner } from '@digdir/design-system-react';
+import { Spinner } from '@digdir/design-system-react';
 import { CogIcon } from '@navikt/aksel-icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSchemaQuery } from '../../../../hooks/queries';
 import { useGenerateModelsMutation } from '../../../../hooks/mutations';
 import { toast } from 'react-toastify';
+import { StudioButton } from '@studio/components';
 
 export interface GenerateModelsButtonProps {
   modelPath: string;
@@ -41,7 +42,7 @@ export const GenerateModelsButton = ({
       {isPending ? (
         <Spinner title={t('general.saving')} />
       ) : (
-        <Button
+        <StudioButton
           id='save-model-button'
           onClick={handleGenerateButtonClick}
           icon={<CogIcon />}
@@ -49,7 +50,7 @@ export const GenerateModelsButton = ({
           size='small'
         >
           {t('schema_editor.generate_model_files')}
-        </Button>
+        </StudioButton>
       )}
     </>
   );
