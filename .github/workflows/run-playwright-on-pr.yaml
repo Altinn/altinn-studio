@@ -48,12 +48,10 @@ jobs:
         working-directory: frontend/testing/playwright
         env:
           environment: local
-      - name: Install dependencies
-        run: yarn
-      - name: Install Playwright Browsers
-        run: yarn playwright install --with-deps
-      - name: Run Playwright tests
-        run: yarn playwright:test:all
+        run: |
+          yarn
+          yarn playwright install --with-deps
+          yarn playwright:test:all
 
       - name: Stop compose file
         if: always()
