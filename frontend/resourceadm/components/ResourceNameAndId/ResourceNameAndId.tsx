@@ -127,17 +127,15 @@ export const ResourceNameAndId = ({
                 color='danger'
                 title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
                 size='small'
-              >
-                <MultiplyIcon />
-              </StudioButton>
+                icon={<MultiplyIcon />}
+              />
               <StudioButton
                 onClick={() => handleClickEditButton(true)}
                 variant='tertiary'
                 title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
                 size='small'
-              >
-                <CheckmarkIcon />
-              </StudioButton>
+                icon={<CheckmarkIcon />}
+              />
             </div>
           </div>
         ) : (
@@ -154,9 +152,10 @@ export const ResourceNameAndId = ({
                 variant='tertiary'
                 color='first'
                 size='small'
+                icon={<PencilWritingIcon />}
+                iconPlacement='right'
               >
                 {t('general.edit')}
-                <PencilWritingIcon />
               </StudioButton>
             </div>
           </div>

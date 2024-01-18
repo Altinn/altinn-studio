@@ -1,10 +1,10 @@
+import React, { ReactNode } from 'react';
 import { Label, Paragraph } from '@digdir/design-system-react';
-import React from 'react';
 
 interface FieldWrapperProps {
   label: string;
   description?: string;
-  children: React.JSX.Element | React.JSX.Element[];
+  children: ReactNode;
   fieldId?: string;
   ariaDescriptionId?: string;
 }

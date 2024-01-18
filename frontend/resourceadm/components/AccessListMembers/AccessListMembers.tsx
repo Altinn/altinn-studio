@@ -136,8 +136,12 @@ export const AccessListMembers = ({
       )}
       {!isAddMode && (
         <div className={classes.addMoreWrapper}>
-          <StudioButton variant='secondary' onClick={() => setIsAddMode(true)}>
-            <PlusIcon />
+          <StudioButton
+            variant='secondary'
+            icon={<PlusIcon />}
+            iconPlacement='left'
+            onClick={() => setIsAddMode(true)}
+          >
             {t('resourceadm.listadmin_search_add_more')}
           </StudioButton>
         </div>

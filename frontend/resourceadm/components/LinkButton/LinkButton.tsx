@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import classes from './LinkButton.module.css';
 import { Link } from '@digdir/design-system-react';
 
@@ -11,7 +11,7 @@ export type LinkButtonProps = {
   /**
    * Children of the component
    */
-  children: React.JSX.Element | string;
+  children: ReactNode;
 };
 
 /**

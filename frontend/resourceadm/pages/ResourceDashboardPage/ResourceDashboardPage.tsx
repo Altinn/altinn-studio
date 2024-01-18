@@ -108,9 +108,10 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
                 color='second'
                 to={`${getResourceDashboardURL(selectedContext, repo)}/accesslists`}
                 size='medium'
+                icon={<TasklistIcon />}
+                iconPlacement='right'
               >
                 <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
-                <TasklistIcon />
               </StudioButton>
               <div className={classes.verticalDivider} />
             </>
@@ -120,9 +121,10 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             color='second'
             onClick={() => setImportModalOpen(true)}
             size='medium'
+            icon={<MigrationIcon />}
+            iconPlacement='right'
           >
             <strong>{t('resourceadm.dashboard_import_resource')}</strong>
-            <MigrationIcon />
           </StudioButton>
           <div className={classes.verticalDivider} />
           <StudioButton
@@ -130,9 +132,10 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             color='second'
             onClick={() => createResourceModalRef.current?.showModal()}
             size='medium'
+            icon={<PlusCircleIcon />}
+            iconPlacement='right'
           >
             <strong>{t('resourceadm.dashboard_create_resource')}</strong>
-            <PlusCircleIcon />
           </StudioButton>
         </div>
       </div>

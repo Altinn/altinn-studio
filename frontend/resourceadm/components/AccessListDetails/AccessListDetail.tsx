@@ -112,10 +112,11 @@ export const AccessListDetail = ({
         <StudioButton
           variant='tertiary'
           color='danger'
+          icon={<TrashIcon className={classes.deleteIcon} />}
+          iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
         >
           {t('resourceadm.listadmin_delete_list')}
-          <TrashIcon className={classes.deleteIcon} />
         </StudioButton>
       </div>
     </div>
