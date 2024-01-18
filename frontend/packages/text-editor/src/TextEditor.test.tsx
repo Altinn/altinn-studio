@@ -204,19 +204,17 @@ describe('TextEditor', () => {
       await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });
     };
 
-    const getInput = (name: RegExp) => screen.getByRole('textbox', { name });
-
     const makeChangesToTextIds = async (onTextIdChange = jest.fn()) => {
       renderTextEditor({
         updateTextId: onTextIdChange,
       });
 
       const editKeyButton = await screen.getAllByRole('button', {
-        name: 'toggle-textkey-edit',
+        name: textMock('text_editor.toggle_edit_mode'),
       })[0];
       await act(() => user.click(editKeyButton));
 
-      const textIdInput = getInput(/text key edit/i);
+      const textIdInput = screen.getByRole('textbox', { name: /text key edit/i });
 
       await user.tripleClick(textIdInput);
       await act(() => user.keyboard('new-key{TAB}')); // type new text and blur
@@ -251,8 +249,9 @@ describe('TextEditor', () => {
       expect(textIdRefsAfter1).toHaveLength(1);
 
       const textIdRefsAfter2 = screen.queryAllByText(/new-key/i);
+      const textIdInput = screen.getByRole('textbox', { name: /text key edit/i });
       expect(textIdRefsAfter2).toHaveLength(0);
-      expect(getInput(/text key edit/i)).toEqual(original);
+      expect(textIdInput).toEqual(original);
     });
 
     it('reverts to the previous IDs if an entry could not be deleted', async () => {

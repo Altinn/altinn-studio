@@ -42,20 +42,26 @@ export const TextRow = ({
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const handleTextIdChange = (newTextId: string): void => {
-    let error: string;
-    if (newTextId !== textId) {
-      error = idExists(newTextId) ? 'Denne IDen finnes allerede' : validateTextId(newTextId);
-    } else {
-      error = '';
-    }
-    setKeyError(error);
+    const error = validateNewTextId(newTextId);
+
+    setKeyError(error || '');
     setTextIdValue(newTextId);
   };
 
-  const handleTextIdBlur = () => {
-    if (!keyError) {
-      updateEntryId({ oldId: textId, newId: textIdValue });
+  const validateNewTextId = (newTextId: string): string | null => {
+    if (newTextId === textId) {
+      return null;
     }
+
+    if (idExists(newTextId)) {
+      return t('text_editor.key.error_duplicate');
+    }
+    const textIdValidationResult = validateTextId(newTextId);
+    return textIdValidationResult ? t(textIdValidationResult) : null;
+  };
+
+  const handleTextIdBlur = () => {
+    updateEntryId({ oldId: textId, newId: textIdValue });
   };
 
   const handleDeleteClick = () => {
@@ -118,7 +124,7 @@ export const TextRow = ({
                   {...fieldProps}
                   aria-label={'text key edit'}
                   error={keyError}
-                  onBlur={handleTextIdBlur}
+                  onBlur={keyError ? undefined : handleTextIdBlur}
                   onChange={(e) => fieldProps.onChange(e.target.value, e)}
                   size='small'
                 />
@@ -131,7 +137,7 @@ export const TextRow = ({
           )}
           {showButton && (
             <Button
-              aria-label={'toggle-textkey-edit'}
+              aria-label={t('text_editor.toggle_edit_mode')}
               icon={<PencilIcon />}
               variant='tertiary'
               size='small'

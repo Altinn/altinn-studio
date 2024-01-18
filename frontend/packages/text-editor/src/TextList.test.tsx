@@ -4,6 +4,7 @@ import type { TextListProps } from './TextList';
 import { TextList } from './TextList';
 import { screen, render as rtlRender, act } from '@testing-library/react';
 import { TextTableRow } from './types';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 const renderTextList = (props: Partial<TextListProps> = {}) => {
   const resourceRows: TextTableRow[] = [
@@ -65,7 +66,9 @@ describe('TextList', () => {
     const { rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
 
-    const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
+    const toggleEditButton = screen.getAllByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode'),
+    });
     await act(() => user.click(toggleEditButton[0]));
     const idInput = screen.getByRole('textbox', { name: 'text key edit' });
 
@@ -77,31 +80,35 @@ describe('TextList', () => {
   it('should display warnings for existing, empty, or space-containing IDs', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
+    const [firstErrorMessage, secondErrorMessage, thirdErrorMessage]: string[] = [
+      textMock('text_editor.key.error_duplicate'),
+      textMock('text_editor.key.error_invalid'),
+      textMock('text_editor.key.error_empty'),
+    ];
     const { rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
 
-    const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
+    const toggleEditButton = screen.getAllByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode'),
+    });
     await act(() => user.click(toggleEditButton[0]));
 
     const idInput = screen.getByRole('textbox', { name: 'text key edit' });
-    const errorMsg = [
-      'Denne IDen finnes allerede',
-      'Det er ikke tillat med mellomrom i en textId',
-      'TextId kan ikke være tom',
-    ];
     await act(() => user.dblClick(idInput));
 
     await act(() => user.keyboard('b'));
-    expect(screen.getByText(errorMsg[0])).not.toBeNull();
+
+    screen.logTestingPlaygroundURL();
+    expect(screen.getByText(firstErrorMessage)).not.toBeNull();
 
     await act(() => user.keyboard('2'));
-    expect(screen.queryByText(errorMsg[0])).toBeNull();
+    expect(screen.queryByText(secondErrorMessage)).toBeNull();
 
     await act(() => user.keyboard(' '));
-    expect(screen.getByText(errorMsg[1])).not.toBeNull();
+    expect(screen.getByText(secondErrorMessage)).not.toBeNull();
 
     await act(() => user.clear(idInput));
-    expect(screen.getByText(errorMsg[2])).not.toBeNull();
+    expect(screen.getByText(thirdErrorMessage)).not.toBeNull();
 
     await act(() => user.keyboard('{TAB}'));
     expect(updateEntryId).not.toHaveBeenCalled();
