@@ -1,5 +1,5 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import type { IRepository } from 'app-shared/types/global';
+import { Repository } from 'app-shared/types/Repository';
 import { Organization } from 'app-shared/types/Organization';
 import i18next from 'i18next';
 
@@ -12,9 +12,11 @@ type GetReposLabel = {
 };
 
 export type MergeReposProps = {
-  repos?: IRepository[];
-  starredRepos: IRepository[];
+  repos?: Repository[];
+  starredRepos: Repository[];
 };
+
+export type RepositoryWithStarred = Repository & { hasStarred?: boolean };
 
 type TranslationMapKey = SelectedContextType | 'named_org' | 'org';
 type TranslationMap = Record<TranslationMapKey, string>;
@@ -64,7 +66,7 @@ export const getReposLabel = ({
     : t(concatenatedTranslationMap.org);
 };
 
-export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
+export const mergeRepos = ({ repos, starredRepos }: MergeReposProps): RepositoryWithStarred[] => {
   if (!repos) {
     return [];
   }
@@ -76,7 +78,7 @@ export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
   return repos.map((repo) => {
     return {
       ...repo,
-      user_has_starred: !!starredRepos.find((starredRepo) => starredRepo.id === repo.id),
+      hasStarred: !!starredRepos.find((starredRepo) => starredRepo.id === repo.id),
     };
   });
 };

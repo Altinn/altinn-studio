@@ -108,7 +108,11 @@ export const FormComponentConfig = ({
           <Heading level={3} size='xxsmall'>
             {t('ux_editor.component_properties.grid')}
           </Heading>
-          <EditGrid component={component} handleComponentChange={handleComponentUpdate} />
+          <EditGrid
+            key={component.id}
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+          />
         </div>
       )}
       {!hideUnsupported && (

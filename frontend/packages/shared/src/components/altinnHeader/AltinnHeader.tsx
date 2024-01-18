@@ -5,11 +5,13 @@ import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButton } from '../altinnHeaderButtons/AltinnHeaderButton';
 import { AltinnHeaderProfile } from '../AltinnHeaderProfile';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import classnames from 'classnames';
 import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
 import { Repository } from 'app-shared/types/Repository';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 export interface AltinnHeaderProps {
@@ -37,6 +39,8 @@ export const AltinnHeader = ({
   variant = 'regular',
   repoOwnerIsOrg,
 }: AltinnHeaderProps) => {
+  const repositoryType = getRepositoryType(org, app);
+
   return (
     <div role='banner'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
@@ -56,9 +60,11 @@ export const AltinnHeader = ({
           {buttonActions && (
             <div className={classes.rightContentButtons}>
               {buttonActions.map((action) =>
-                !repoOwnerIsOrg && action.menuKey === TopBarMenu.Deploy ? null : (
-                  <AltinnHeaderButton key={action.menuKey} action={action} />
-                ),
+                !repoOwnerIsOrg && action.menuKey === TopBarMenu.Deploy
+                  ? null
+                  : repositoryType !== RepositoryType.Datamodels && (
+                      <AltinnHeaderButton key={action.menuKey} action={action} />
+                    ),
               )}
             </div>
           )}

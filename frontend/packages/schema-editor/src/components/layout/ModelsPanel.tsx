@@ -2,23 +2,22 @@ import React from 'react';
 import { ActionMenu } from '../common/ActionMenu';
 import classes from './ModelsPanel.module.css';
 import { IconImage } from '../common/Icon';
-import { setSelectedAndFocusedNode } from '../../features/editor/schemaEditorSlice';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
-import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { SchemaTree } from '../SchemaTree';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export const ModelsPanel = () => {
   const translation = useTranslation();
   const t = (key: string) => translation.t('schema_editor.' + key);
-  const dispatch = useDispatch();
+  const { setSelectedNodePointer } = useSchemaEditorAppContext();
   const addProperty = useAddProperty();
 
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newPointer = addProperty(objectKind, fieldType);
     if (newPointer) {
-      dispatch(setSelectedAndFocusedNode(newPointer));
+      setSelectedNodePointer(newPointer);
     }
   };
 

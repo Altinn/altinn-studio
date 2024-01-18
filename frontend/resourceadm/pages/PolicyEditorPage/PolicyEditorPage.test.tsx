@@ -3,7 +3,6 @@ import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing
 import { PolicyEditorPage, PolicyEditorPageProps } from './PolicyEditorPage';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient } from '@tanstack/react-query';
@@ -47,8 +46,8 @@ const mockSubjects: PolicySubject[] = [
 ];
 
 const getPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve([]));
+const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve([]));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -89,21 +88,21 @@ describe('PolicyEditorPage', () => {
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
-    getPolicy.mockImplementation(() => Promise.resolve(mockPolicy));
+    getPolicy.mockImplementation(() => Promise.resolve<Policy>(mockPolicy));
 
     expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
-    getPolicyActions.mockImplementation(() => Promise.resolve(mockActions));
+    getPolicyActions.mockImplementation(() => Promise.resolve<PolicyAction[]>(mockActions));
 
     expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: textMock('policy_editor.rules'), level: 2 }),
     ).not.toBeInTheDocument();
 
-    getPolicySubjects.mockImplementation(() => Promise.resolve(mockSubjects));
+    getPolicySubjects.mockImplementation(() => Promise.resolve<PolicySubject[]>(mockSubjects));
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.policy_editor_spinner')),
@@ -119,7 +118,6 @@ const render = (
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
-    ...queriesMock,
     getPolicy,
     getPolicyActions,
     getPolicySubjects,

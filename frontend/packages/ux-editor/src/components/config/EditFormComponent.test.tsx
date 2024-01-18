@@ -8,6 +8,7 @@ import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
+import { DatamodelMetadataResponse } from 'app-shared/types/api';
 
 const user = userEvent.setup();
 
@@ -37,7 +38,7 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
 }));
 
 const getDatamodelMetadata = () =>
-  Promise.resolve({
+  Promise.resolve<DatamodelMetadataResponse>({
     elements: {
       testModel: {
         id: 'testModel',
@@ -203,6 +204,16 @@ describe('EditFormComponent', () => {
       },
     });
     expect(screen.queryByLabelText(srcValueLabel)).not.toBeInTheDocument();
+  });
+
+  it('should notify users when the component is unrecognized and cannot be configured in Studio', async () => {
+    await render({
+      componentProps: {
+        // Cast the type to avoid TypeScript error due to components that does not exists within ComponentType.
+        type: 'UnknownComponent' as unknown as any,
+      },
+    });
+    expect(screen.getByText(/ux_editor.edit_component.unknown_component/));
   });
 });
 

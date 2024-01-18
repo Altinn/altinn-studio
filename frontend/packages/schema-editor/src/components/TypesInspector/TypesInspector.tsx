@@ -1,13 +1,11 @@
 import React, { MouseEvent } from 'react';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { UiSchemaNode } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { TypeItem } from './TypeItem';
-import { useDispatch } from 'react-redux';
-import { setSelectedAndFocusedNode } from '../../features/editor/schemaEditorSlice';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 
 export interface TypesInspectorProps {
@@ -16,14 +14,18 @@ export interface TypesInspectorProps {
 
 export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
-  const { schemaModel, save, selectedTypePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { schemaModel, save, selectedTypePointer, setSelectedTypePointer, setSelectedNodePointer } = useSchemaEditorAppContext();
+
+  const setSelectedType = (pointer: string) => {
+    setSelectedTypePointer(pointer);
+    setSelectedNodePointer(pointer);
+  }
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
     const name = schemaModel.generateUniqueDefinitionName('name');
     const newNode = schemaModel.addFieldType(name);
-    dispatch(setSelectedAndFocusedNode(newNode.pointer));
+    setSelectedType(newNode.pointer);
     save(schemaModel);
   };
 
@@ -43,7 +45,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
       <div className={classes.types}>
         <div className={classes.addRow}>
           <span className={classes.addRowText}>{t('schema_editor.types')}</span>
-          <Button
+          <StudioButton
             className={classes.addRowButton}
             variant='tertiary'
             icon={<PlusIcon height={40} />}
@@ -57,7 +59,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
             uiSchemaNode={item}
             key={item.pointer}
             selected={item.pointer === selectedTypePointer}
-            setSelectedTypePointer={setSelectedTypePointer}
+            setSelectedTypePointer={setSelectedType}
           />
         ))}
       </div>

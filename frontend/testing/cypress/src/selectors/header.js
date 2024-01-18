@@ -7,8 +7,9 @@ export const header = {
   getAvatar: () => cy.findByAltText(texts['shared.header_button_alt']),
   getCreateLink: () =>
     cy.findByRole('banner').findByRole('link', { name: texts['top_menu.create'] }),
-  getDatamodelLink: () => cy.findByRole('banner').findByRole('link', { name: texts['top_menu.datamodel'] }),
-  getDeployButton: () => cy.findByRole('button', { name: texts['top_menu.deploy'] }),
+  getDatamodelLink: () =>
+    cy.findByRole('banner').findByRole('link', { name: texts['top_menu.datamodel'] }),
+  getDeployButton: () => cy.findByRole('link', { name: texts['top_menu.deploy'] }),
   getDescribeChangesField: () =>
     cy.findByRole('textbox', { name: texts['sync_header.describe_and_validate'] }),
   getMenuItem,
@@ -17,7 +18,7 @@ export const header = {
   getMenuItemOrg: (org) => cy.findByTestId(testids.orgMenuItem(org)),
   getMenuItemUser: () => cy.findByTestId(testids.userMenuItem),
   getOpenRepoLink: () => cy.findByRole('link', { name: texts['dashboard.open_repository'] }),
-  getPreviewButton: () => cy.findByRole('button', { name: texts['top_menu.preview'] }),
+  getPreviewButton: () => cy.findByRole('link', { name: texts['top_menu.preview'] }),
   getProfileIcon: () => cy.findByTestId(testids.profileButton),
   getShareChangesButton: () =>
     cy.findByRole('button', { name: texts['sync_header.changes_to_share'] }),

@@ -11,6 +11,11 @@ type ResourceContactPointTextFieldProps = {
    */
   value: string;
   /**
+   * Function to be executed when the field is focused
+   * @returns void
+   */
+  onFocus: () => void;
+  /**
    * Function to execute on change
    * @param value the value typed
    * @returns void
@@ -34,6 +39,7 @@ type ResourceContactPointTextFieldProps = {
  *
  * @property {string}[label] - The label of the field
  * @property {string}[value] - The value in the field
+ * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {function}[onChange] - Function to execute on change
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[isValid] - If the field is valid
@@ -43,6 +49,7 @@ type ResourceContactPointTextFieldProps = {
 export const ResourceContactPointTextField = ({
   label,
   value,
+  onFocus,
   onChange,
   onBlur,
   isValid,
@@ -53,6 +60,7 @@ export const ResourceContactPointTextField = ({
         label={label}
         size='small'
         value={value}
+        onFocus={onFocus}
         onChange={(e) => onChange(e.target.value)}
         onBlur={() => onBlur()}
         error={!isValid}

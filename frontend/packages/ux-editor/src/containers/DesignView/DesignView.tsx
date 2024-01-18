@@ -4,7 +4,7 @@ import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Accordion, Button } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/design-system-react';
 import { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
@@ -18,6 +18,7 @@ import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
 import { useAppContext } from '../../hooks/useAppContext';
 import { FormLayout } from './FormLayout';
+import { StudioButton } from '@studio/components';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -39,7 +40,11 @@ export const DesignView = (): ReactNode => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
-  const addLayoutMutation = useAddLayoutMutation(org, app, selectedLayoutSet);
+  const { mutate: addLayoutMutation, isPending } = useAddLayoutMutation(
+    org,
+    app,
+    selectedLayoutSet,
+  );
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
@@ -99,23 +104,25 @@ export const DesignView = (): ReactNode => {
    */
   const handleAddPage = (isReceipt: boolean) => {
     if (isReceipt) {
-      addLayoutMutation.mutate({ layoutName: 'Kvittering', isReceiptPage: true });
+      addLayoutMutation({ layoutName: 'Kvittering', isReceiptPage: true });
       setSearchParams((prevParams) => ({ ...prevParams, layout: 'Kvittering' }));
       setOpenAccordion('Kvittering');
     } else {
-      let newNum = 1;
-      let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
+      if (!isPending) {
+        let newNum = 1;
+        let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
 
-      while (layoutOrder.indexOf(newLayoutName) > -1) {
-        newNum += 1;
-        newLayoutName = `${t('ux_editor.page')}${newNum}`;
+        while (layoutOrder.indexOf(newLayoutName) > -1) {
+          newNum += 1;
+          newLayoutName = `${t('ux_editor.page')}${newNum}`;
+        }
+
+        addLayoutMutation({ layoutName: newLayoutName, isReceiptPage: false });
+        setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
+        setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
+        dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
+        setOpenAccordion(newLayoutName);
       }
-
-      addLayoutMutation.mutate({ layoutName: newLayoutName, isReceiptPage: false });
-      setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
-      setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
-      dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
-      setOpenAccordion(newLayoutName);
     }
   };
 
@@ -157,14 +164,14 @@ export const DesignView = (): ReactNode => {
         />
       </div>
       <div className={classes.buttonContainer}>
-        <Button
+        <StudioButton
           icon={<PlusIcon />}
           onClick={() => handleAddPage(false)}
           size='small'
           className={classes.button}
         >
           {t('ux_editor.pages_add')}
-        </Button>
+        </StudioButton>
       </div>
     </div>
   );

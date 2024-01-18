@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 import { Alert, Heading, Link } from '@digdir/design-system-react';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { getUidFilter } from 'dashboard/utils/filterUtils';
 
 type ResourcesRepoListProps = {

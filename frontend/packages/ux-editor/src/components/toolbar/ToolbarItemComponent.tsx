@@ -1,6 +1,6 @@
 import React, { MouseEvent } from 'react';
 import classes from './ToolbarItemComponent.module.css';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +24,7 @@ export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
           : props.thirdPartyLabel}
       </div>
       <div className={classes.componentHelpIcon}>
-        <Button
+        <StudioButton
           onClick={(e) => props.onClick(props.componentType, e)}
           icon={<InformationIcon />}
           variant='tertiary'

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
-import { Button, Fieldset, LegacyTextArea } from '@digdir/design-system-react';
+import { Fieldset, LegacyTextArea } from '@digdir/design-system-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
@@ -11,7 +11,8 @@ import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../ux-editor/src/hooks/useAppContext';
+import { useAppContext } from '../hooks/useAppContext';
+import { StudioButton } from  '@studio/components';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();
@@ -41,7 +42,7 @@ export const TextResourceEdit = () => {
             textResourceId={editId}
           />
         ))}
-        <Button
+        <StudioButton
           color='second'
           icon={<XMarkIcon />}
           onClick={() => setEditId(undefined)}
@@ -49,7 +50,7 @@ export const TextResourceEdit = () => {
           size='small'
         >
           {t('general.close')}
-        </Button>
+        </StudioButton>
       </div>
     </Fieldset>
   );

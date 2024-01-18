@@ -7,7 +7,7 @@ import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { LinkIcon } from '@studio/icons';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
 
@@ -61,12 +61,17 @@ export const EditDataModelBindings = ({
   return (
     <div key={uniqueKey || ''}>
       {!selectedOption && !dataModelSelectVisible ? (
-        <Button onClick={() => setDataModelSelectVisible(true)} variant='tertiary' size='medium'>
+        <StudioButton
+          onClick={() => setDataModelSelectVisible(true)}
+          variant='tertiary'
+          size='medium'
+          fullWidth
+        >
           <div className={classes.datamodelLink}>
             <LinkIcon className={classes.linkIcon} />
             {t('ux_editor.modal_properties_data_model_link')}
           </div>
-        </Button>
+        </StudioButton>
       ) : (
         <InputActionWrapper
           mode={dataModelSelectVisible ? 'editMode' : 'standBy'}
