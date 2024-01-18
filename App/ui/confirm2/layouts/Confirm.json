@@ -102,10 +102,7 @@
         "id": "PanelGroupConfirm",
         "type": "Group",
         "children": ["Paragraph-confirm", "ButtonGroup"],
-        "panel": {
-          "variant": "success",
-          "showIcon": false
-        }
+        "groupingIndicator": "panel"
       },
       {
         "id": "Paragraph-confirm",
