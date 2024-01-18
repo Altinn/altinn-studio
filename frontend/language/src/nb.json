@@ -1625,6 +1625,8 @@
   "ux_editor.toolbar_component_search": "Finn komponent...",
   "ux_editor.toolbar_file_upload": "Filopplaster",
   "ux_editor.toolbar_header": "Overskrift",
+  "ux_editor.unknown_group_reference": "Referansen med ID {{id}} er ugyldig, da det ikke eksisterer noen komponent med denne ID-en. Vennligst slett denne referansen for å rette feilen.",
+  "ux_editor.unknown_group_reference_help_text_title": "Ukjent referanse",
   "ux_editor.url_label": "Lenke",
   "ux_editor.warning": "Advarsel",
   "ux_editor.widget_message": "Melding",

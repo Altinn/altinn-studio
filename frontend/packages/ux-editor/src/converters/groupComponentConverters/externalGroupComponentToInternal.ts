@@ -10,6 +10,7 @@ export const externalGroupComponentToInternal = (
   const propertiesToKeep = { ...externalComponent };
   delete propertiesToKeep.children;
   delete propertiesToKeep.type;
+
   return {
     ...propertiesToKeep,
     itemType: 'CONTAINER',
