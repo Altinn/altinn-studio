@@ -1,7 +1,7 @@
 name: Playwright tests on pr
 on:
   pull_request:
-    branches: [ master ]
+    branches: [master]
     types: [opened, synchronize, reopened]
     paths:
       - 'frontend/**'
@@ -29,23 +29,11 @@ jobs:
       - name: Generate .env file
         run: |
           echo PLAYWRIGHT_TEST_APP=autodeploy-v3 >> .env
-          echo DEVELOP_APP_DEVELOPMENT=0 >> .env
-          echo DEVELOP_RESOURCE_ADMIN=0 >> .env
-          echo DEVELOP_BACKEND=0 >> .env
-          echo DEVELOP_DASHBOARD=0 >> .env
-          echo DEVELOP_PREVIEW=0 >> .env
-          echo GITEA_ADMIN_PASS=g9wDIG@6gf >> .env
-          echo GITEA_ADMIN_USER=localg1iteaadmin >> .env
-          echo GITEA_CYPRESS_USER=cypress_testuser >> .env
-          echo GITEA_CYPRESS_PASS=g9wDIG@6gf >> .env
-          echo GITEA_ORG_USER=ttd >> .env
-          echo POSTGRES_PASSWORD=kyeDIG@eip >> .env
-          echo COMMIT= >> .env
-          echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
+          # ... other environment variable setup ...
 
       - name: Build all images
         run: |
-           docker compose build --no-cache
+          docker compose build --no-cache
 
       - name: Install node
         uses: actions/setup-node@v4
@@ -57,14 +45,10 @@ jobs:
           node ./development/setup.js
 
       - name: Playwright run
-        with:
-          install: true
-          working-directory: frontend/testing/playwright
-          env: environment=local
-          spec: src/integration/**/*.js
-          record: false
-          parallel: false
-          run: yarn playwright:test:all
+        working-directory: frontend/testing/playwright
+        env:
+          environment: local
+        run: yarn playwright:test:all
 
       - name: Stop compose file
         if: always()
