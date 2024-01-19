@@ -50,17 +50,15 @@ jobs:
       #  shell: bash
 
       - name: Playwright run
-        working-directory: frontend/testing/playwright
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
+          PLAYWRIGHT_PASS: ${{ secrets.AUTO_TEST_USER_PWD }}
+          GITEA_ACCESS_TOKEN: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           yarn install --immutable --inline-builds
           yarn playwright install --with-deps
-          yarn setup:playwright
           yarn playwright:test:all
-        env:
-          PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
-          autoTestUserPwd: ${{ secrets.AUTO_TEST_USER_PWD }}
-          accessToken: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Store artifacts
         uses: actions/upload-artifact@v4
