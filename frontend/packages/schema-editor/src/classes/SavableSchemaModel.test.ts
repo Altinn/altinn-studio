@@ -93,11 +93,11 @@ describe('SavableSchemaModel', () => {
         parentPointer: ROOT_POINTER,
         index: -1,
       };
-      const result = savableSchema.moveNode(pointer, target);
+      const movedNode = savableSchema.moveNode(pointer, target);
       expect(savableSchema.doesNodeHaveChildWithName(ROOT_POINTER, name)).toBe(true);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
-      expect(result).toBe(savableSchema);
+      expect(movedNode).toBe(savableSchema.getNode(movedNode.pointer));
     });
   });
 

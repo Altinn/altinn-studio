@@ -455,7 +455,6 @@ describe('SchemaModel', () => {
         const { parentPointer, index } = target;
         const currentParent = model.getParentNode(simpleChildNodeMock.pointer);
         const movedNode = model.moveNode(simpleChildNodeMock.pointer, target);
-        const setup = () => model.moveNode(stringNodeMock.pointer, target);
 
         it('Moves the node to the new parent', () => {
           expect(movedNode).toBeDefined();
@@ -478,7 +477,6 @@ describe('SchemaModel', () => {
         });
 
         it('Keeps the model valid', () => {
-          setup();
           validateTestUiSchema(model.asArray())
         });
       });
@@ -528,10 +526,9 @@ describe('SchemaModel', () => {
       const index = 1;
       const target: NodePosition = { parentPointer, index };
       const currentParent = model.getParentNode(stringNodeMock.pointer);
-      const setup = () => model.moveNode(stringNodeMock.pointer, target);
+      const movedNode = model.moveNode(stringNodeMock.pointer, target);
 
       it('Moves the node to the referred object', () => {
-        const movedNode = setup();
         const expectedNewPointer = '#/$defs/parentDef/properties/stringNode';
         expect(movedNode).toBeDefined();
         expect(movedNode).toEqual({ ...stringNodeMock, pointer: expectedNewPointer });
@@ -553,7 +550,6 @@ describe('SchemaModel', () => {
       });
 
       it('Keeps the model valid', () => {
-        setup();
         validateTestUiSchema(model.asArray())
       });
     });
