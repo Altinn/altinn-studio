@@ -32,7 +32,6 @@ export type SettingsModalProps = {
  *
  * @property {boolean}[isOpen] - Flag for if the modal is open
  * @property {function}[onClose] - Function to be executed on close
- * @property {string}[org] - The org
  *
  * @returns {ReactNode} - The rendered component
  */

@@ -29,7 +29,19 @@ jobs:
       - name: Generate .env file
         run: |
           echo PLAYWRIGHT_TEST_APP=autodeploy-v3 >> .env
-          # ... other environment variable setup ...
+          echo DEVELOP_APP_DEVELOPMENT=0 >> .env
+          echo DEVELOP_RESOURCE_ADMIN=0 >> .env
+          echo DEVELOP_BACKEND=0 >> .env
+          echo DEVELOP_DASHBOARD=0 >> .env
+          echo DEVELOP_PREVIEW=0 >> .env
+          echo GITEA_ADMIN_PASS=g9wDIG@6gf >> .env
+          echo GITEA_ADMIN_USER=localg1iteaadmin >> .env
+          echo GITEA_CYPRESS_USER=cypress_testuser >> .env
+          echo GITEA_CYPRESS_PASS=g9wDIG@6gf >> .env
+          echo GITEA_ORG_USER=ttd >> .env
+          echo POSTGRES_PASSWORD=kyeDIG@eip >> .env
+          echo COMMIT= >> .env
+          echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
       - name: Build all images
         run: |
