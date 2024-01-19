@@ -47,7 +47,6 @@
             "showInExpandedEdit": true
           }
         },
-        "triggers": ["validateRow"],
         "hiddenRow": [
           "lessThan",
           [
@@ -195,7 +194,6 @@
           "next": "Neste",
           "back": "Forrige"
         },
-        "dataModelBindings": {},
         "showBackButton": true
       }
     ]

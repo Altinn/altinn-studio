@@ -9,7 +9,7 @@
           "title": "This input should never be shown, and never validated (group layout)"
         },
         "dataModelBindings": {
-          "simpleBinding": "neverValidatedInput"
+          "simpleBinding": "PrefillValues"
         },
         "required": true
       },
