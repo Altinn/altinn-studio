@@ -28,7 +28,7 @@ export type SettingsModalProps = {
 
 /**
  * @component
- *    Displays the settings modal - b
+ *    Displays the settings modal - c
  *
  * @property {boolean}[isOpen] - Flag for if the modal is open
  * @property {function}[onClose] - Function to be executed on close
