@@ -19,7 +19,7 @@ const objectChildPointer = '#/properties/parent2/properties/someNode';
 const definitionNodePointer = '#/$defs/def1';
 const childOfDefinitionNodePointer = '#/$defs/def1/properties/childOfDef1';
 const nodeWithSameNameAsObjectChildPointer = '#/properties/someNode';
-const referenceNodePointer = '#/properties/reference';
+const referenceNodePointer = '#/properties/referenceNode';
 const referredNodePointer = '#/$defs/referredNode';
 
 export const nodeMockBase: FieldNode = {
