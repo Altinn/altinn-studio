@@ -36,6 +36,13 @@ jest.mock('./useDeleteLayout', () => ({
   useDeleteLayout: () => mockDeleteFormLayout,
 }));
 
+jest.mock(
+  '../../../../../ux-editor/src/containers/DesignView/PageAccordion/useDeleteLayout',
+  () => ({
+    useDeleteLayout: jest.fn(() => ({ deleteLayout: mockDeleteFormLayout, isPending: false })),
+  }),
+);
+
 const mockChildren: ReactNode = (
   <div>
     <button>Test</button>
