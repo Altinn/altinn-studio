@@ -10,5 +10,10 @@ setup('authenticate user', async ({ page }): Promise<void> => {
   await loginPage.writePassword(process.env.PLAYWRIGHT_PASS);
   await loginPage.clickLoginButton();
   await loginPage.confirmSuccessfulLogin();
+  await new Promise((resolve) =>
+    setTimeout(() => {
+      return resolve('');
+    }, 5000),
+  );
   await loginPage.addSessionToSharableStorage();
 });
