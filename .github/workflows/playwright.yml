@@ -1,4 +1,4 @@
-name: Playwright Tests
+name: Playwright Tests in Dev
 
 on:
   push:
@@ -56,7 +56,7 @@ jobs:
           yarn setup:playwright
           yarn playwright:test:all
         env:
-          environment: dev
+          PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
           autoTestUserPwd: ${{ secrets.AUTO_TEST_USER_PWD }}
           accessToken: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
