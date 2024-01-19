@@ -66,7 +66,9 @@ export const getComponentIdWithPageIndex = (
     // Returns the ID which is unknown component reference.
     return componentId;
   }
-  return component.pageIndex === null ? componentId : addPageIndexPrefix(componentId, component.pageIndex);
+  return component.pageIndex === null
+    ? componentId
+    : addPageIndexPrefix(componentId, component.pageIndex);
 };
 
 const getComponentById = (
