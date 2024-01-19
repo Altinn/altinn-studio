@@ -10,7 +10,7 @@ on:
 
 jobs:
   playwright-run:
-    name: 'Playwright Tests - 2'
+    name: 'Playwright Tests'
     runs-on: ubuntu-latest
 
     steps:
