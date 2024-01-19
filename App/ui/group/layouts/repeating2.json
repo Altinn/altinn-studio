@@ -17,13 +17,12 @@
       },
       {
         "id": "mainGroup2",
-        "type": "Group",
+        "type": "RepeatingGroup",
         "children": [
           "currentValue2",
           "newValue2",
           "source2"
         ],
-        "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
         },

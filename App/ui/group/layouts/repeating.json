@@ -45,7 +45,7 @@
       },
       {
         "id": "mainGroup",
-        "type": "Group",
+        "type": "RepeatingGroup",
         "children": [
           "0:currentValue",
           "0:newValue",
@@ -55,7 +55,6 @@
           "2:source",
           "2:reference"
         ],
-        "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
         },
@@ -304,7 +303,7 @@
       },
       {
         "id": "subGroup",
-        "type": "Group",
+        "type": "RepeatingGroup",
         "children": [
           "comments",
           "subUploader",
@@ -314,7 +313,6 @@
           "nested-reference",
           "hideComment"
         ],
-        "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
         },
@@ -481,7 +479,7 @@
       },
       {
         "id": "group2",
-        "type": "Group",
+        "type": "RepeatingGroup",
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.Gruppe2"
         },
@@ -491,8 +489,7 @@
           "title": "Referansegruppe"
         },
         "tableHeaders": ["group2-teller", "group2-input"],
-        "children": ["group2-teller", "group2-input", "group-reference"],
-        "maxCount": 999
+        "children": ["group2-teller", "group2-input"]
       },
       {
         "id": "group2-teller",
