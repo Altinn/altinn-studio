@@ -14,7 +14,7 @@ import {
   nodeWithSameNameAsObjectChildMock,
   objectChildMock,
   objectNodeMock,
-  rootNodeMock,
+  rootNodeMock, toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
 import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
@@ -144,5 +144,17 @@ describe('useMoveProperty', () => {
     const rootChildren = savedModel.getRootChildren();
     const addedRootChild = rootChildren[index];
     expect(setSelectedNodePointerMock).toHaveBeenCalledWith(addedRootChild.pointer);
+  });
+
+  it('Updates the selected node pointer if moving a node that is selected into a combination node', () => {
+    const setSelectedNodePointerMock = jest.fn();
+    const { move } = setup({ selectedNodePointer: toggableNodeMock.pointer, setSelectedNodePointer: setSelectedNodePointerMock });
+    const pointerOfNodeToMove = toggableNodeMock.pointer;
+    const pointerOfNewParent = combinationNodeMock.pointer;
+    const indexInNewParent = 0;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    move(pointerOfNodeToMove, target);
+    expect(setSelectedNodePointerMock).toHaveBeenCalledTimes(1);
+    expect(setSelectedNodePointerMock).toHaveBeenCalledWith(`${combinationNodeMock.pointer}/anyOf/${indexInNewParent}`);
   });
 });
