@@ -12,8 +12,7 @@ jobs:
   playwright-run:
     name: 'Playwright Tests'
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.41.0-jammy
+
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@v4
