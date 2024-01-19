@@ -40,6 +40,16 @@ export class LoginPage extends BasePage {
   }
 
   public async addSessionToSharableStorage() {
+    // Waiting for the page to load all cookies
+    await this.waitFor(1000);
     return await this.page.context().storageState({ path: this.authStorageFile });
+  }
+
+  private async waitFor(timeout: number): Promise<void> {
+    await new Promise((resolve) =>
+      setTimeout(() => {
+        return resolve('');
+      }, timeout),
+    );
   }
 }
