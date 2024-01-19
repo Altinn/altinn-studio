@@ -1,4 +1,4 @@
-name: Playwright Tests
+name: Playwright Tests in Dev
 
 on:
   push:
@@ -6,14 +6,13 @@ on:
       - master
     paths:
       - 'frontend/**'
-      - '.github/workflows/playwright.yml'
+      - '.githib/workflow/playwright.yml'
 
 jobs:
   playwright-run:
     name: 'Playwright Tests'
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.41.0-jammy
+
     steps:
       - name: 'Checking Out Code'
         uses: actions/checkout@v4
@@ -37,29 +36,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: 'Installing Dependencies'
-        working-directory: frontend/testing/playwright
-        run: yarn install --immutable --inline-builds
-        env:
-          YARN_ENABLE_GLOBAL_CACHE: 'false'
-          YARN_NM_MODE: 'hardlinks-local'
-          HUSKY: '0'
-
       - name: Attempt to wait for deploy to environment (10 minutes sleep)
         run: sleep 10m
         shell: bash
 
       - name: Playwright run
-        uses: microsoft/playwright-github-action@v2
-        with:
-          install: false
-          working-directory: frontend/testing/playwright
-          env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }},accessToken=${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
-          spec: src/integration/studio/*.js
-          record: true
-          parallel: false
+        working-directory: frontend/testing/playwright
         env:
+          PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
+          PLAYWRIGHT_USER: 'AutoTest'
+          PLAYWRIGHT_PASS: ${{ secrets.AUTO_TEST_USER_PWD }}
+          GITEA_ACCESS_TOKEN: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          yarn
+          yarn install --immutable --inline-builds
+          yarn playwright install --with-deps
+          yarn playwright:test:all
 
       - name: Store artifacts
         uses: actions/upload-artifact@v4

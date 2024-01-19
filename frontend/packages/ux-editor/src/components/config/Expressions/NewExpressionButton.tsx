@@ -38,7 +38,7 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
         className={classes.dropdownMenu}
         onClose={() => setShowDropdown(false)}
         open={showDropdown}
-        placement='bottom'
+        placement='top'
         portal
         size='small'
       >
