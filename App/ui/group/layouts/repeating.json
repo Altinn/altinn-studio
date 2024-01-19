@@ -524,47 +524,6 @@
         }
       },
       {
-        "id": "group-reference",
-        "type": "Group",
-        "textResourceBindings": {
-          "title": "Legg til nytt element",
-          "description": "Elementet du registrer vil bli lagret og tilgjengelig i resten av tjenesten.",
-          "add_label": "Legg til nytt element"
-        },
-        "children": ["group2-endre-fra", "group2-endre-til"],
-        "panel": {
-          "showIcon": true,
-          "variant": "success",
-          "groupReference": {
-            "group": "mainGroup"
-          }
-        }
-      },
-      {
-        "id": "group2-endre-fra",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Endre fra"
-        },
-        "dataModelBindings": {
-          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
-        },
-        "required": false,
-        "readOnly": false
-      },
-      {
-        "id": "group2-endre-til",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Endre til"
-        },
-        "dataModelBindings": {
-          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
-        },
-        "required": false,
-        "readOnly": false
-      },
-      {
         "id": "reduxOptions",
         "type": "Dropdown",
         "textResourceBindings": {
