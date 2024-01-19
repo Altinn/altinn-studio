@@ -46,7 +46,7 @@ jobs:
 
       - name: Run setup.js script
         run: |
-          node ./frontend/testing/playwright/scripts/setup.js
+          node frontend/testing/playwright/scripts/setup.js
 
       - name: Playwright run
         working-directory: frontend/testing/playwright
