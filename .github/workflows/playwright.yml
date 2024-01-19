@@ -45,6 +45,7 @@ jobs:
         working-directory: frontend/testing/playwright
         env:
           PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
+          PLAYWRIGHT_USER: 'AutoTest'
           PLAYWRIGHT_PASS: ${{ secrets.AUTO_TEST_USER_PWD }}
           GITEA_ACCESS_TOKEN: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
