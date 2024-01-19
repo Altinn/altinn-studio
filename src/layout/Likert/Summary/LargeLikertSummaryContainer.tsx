@@ -1,26 +1,19 @@
 import React from 'react';
 
 import { Heading } from '@digdir/design-system-react';
-import cn from 'classnames';
 
 import { Fieldset } from 'src/components/form/Fieldset';
 import { Lang } from 'src/features/language/Lang';
-import classes from 'src/layout/Group/DisplayGroupContainer.module.css';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import classes from 'src/layout/Likert/Summary/LikertSummary.module.css';
 import type { HeadingLevel } from 'src/layout/common.generated';
-import type {
-  CompGroupNonRepeatingInternal,
-  CompGroupNonRepeatingPanelInternal,
-} from 'src/layout/Group/config.generated';
-import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { CompLikertInternal } from 'src/layout/Likert/config.generated';
+import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export interface IDisplayGroupContainer {
+export interface IDisplayLikertContainer {
+  groupNode: BaseLayoutNode<CompLikertInternal>;
   ref?: React.Ref<HTMLDivElement>;
-  groupNode: LayoutNodeForGroup<CompGroupNonRepeatingInternal | CompGroupNonRepeatingPanelInternal>;
   id?: string;
   onlyRowIndex?: number | undefined;
-  isSummary?: boolean;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
 
@@ -32,25 +25,23 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['size']
   [6]: 'xsmall',
 };
 
-export function DisplayGroupContainer({
+export function LargeLikertSummaryContainer({
   ref,
   groupNode,
   id,
   onlyRowIndex,
-  isSummary,
   renderLayoutNode,
-}: IDisplayGroupContainer) {
+}: IDisplayLikertContainer) {
   const container = groupNode.item;
-  const { title, summaryTitle, description } = container.textResourceBindings ?? {};
+  const { title, summaryTitle } = container.textResourceBindings ?? {};
 
   if (groupNode.isHidden()) {
     return null;
   }
 
-  const isNested = groupNode.parent instanceof BaseLayoutNode;
   const headingLevel = Math.min(Math.max(groupNode.parents().length + 1, 2), 6) as HeadingLevel;
   const headingSize = headingSizes[headingLevel];
-  const legend = isSummary ? summaryTitle : title;
+  const legend = summaryTitle ?? title;
 
   return (
     <Fieldset
@@ -64,18 +55,14 @@ export function DisplayGroupContainer({
           </Heading>
         )
       }
-      className={isSummary ? classes.summary : classes.group}
-      description={description && !isSummary && <Lang id={description} />}
+      className={classes.summary}
     >
       <div
         ref={ref}
         id={id || container.id}
         data-componentid={container.id}
         data-testid='display-group-container'
-        className={cn(
-          { [classes.groupingIndicator]: !!container.showGroupingIndicator && !isNested },
-          classes.groupContainer,
-        )}
+        className={classes.groupContainer}
       >
         {groupNode.children(undefined, onlyRowIndex).map((n) => renderLayoutNode(n))}
       </div>

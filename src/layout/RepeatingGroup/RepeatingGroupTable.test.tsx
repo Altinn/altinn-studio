@@ -4,16 +4,19 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import ResizeObserverModule from 'resize-observer-polyfill';
 
-import { getFormLayoutGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
-import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
-import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
+import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
+import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/RepeatingGroupTable';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 import type { IOption } from 'src/layout/common.generated';
-import type { CompGroupRepeatingExternal, CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
-import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import type { CompOrGroupExternal, ILayoutCollection } from 'src/layout/layout';
+import type {
+  CompGroupRepeatingExternal,
+  CompGroupRepeatingInternal,
+} from 'src/layout/RepeatingGroup/config.generated';
+import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
 (global as any).ResizeObserver = ResizeObserverModule;
 
@@ -26,7 +29,7 @@ const getLayout = (group: CompGroupRepeatingExternal, components: CompOrGroupExt
 });
 
 describe('RepeatingGroupTable', () => {
-  const group = getFormLayoutGroupMock({
+  const group = getFormLayoutRepeatingGroupMock({
     id: 'mock-container-id',
   });
   const options: IOption[] = [{ value: 'option.value', label: 'option.label' }];
@@ -84,7 +87,7 @@ describe('RepeatingGroupTable', () => {
 
   describe('popOver warning', () => {
     it('should open and close delete-warning on delete click when alertOnDelete is active', async () => {
-      const group = getFormLayoutGroupMock({
+      const group = getFormLayoutRepeatingGroupMock({
         id: 'mock-container-id',
         edit: { alertOnDelete: true },
       });
@@ -162,7 +165,7 @@ describe('RepeatingGroupTable', () => {
   });
 
   const render = async (layout = getLayout(group, components)) =>
-    await renderWithNode<true, LayoutNodeForGroup<CompGroupRepeatingInternal>>({
+    await renderWithNode<true, BaseLayoutNode<CompGroupRepeatingInternal>>({
       nodeId: group.id,
       inInstance: true,
       renderer: ({ node }) => (

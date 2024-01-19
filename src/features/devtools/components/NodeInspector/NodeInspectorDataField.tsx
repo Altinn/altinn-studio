@@ -153,7 +153,7 @@ export function NodeInspectorDataField({ path, property, value: inputValue }: No
     canBeExpression(value, true);
 
   let exprText = 'Ble evaluert til:';
-  if (isExpression && node?.isType('Group') && node.isRepGroup()) {
+  if (isExpression && node?.isType('RepeatingGroup')) {
     const firstRow = node.item.rows[0];
     if (firstRow && firstRow.groupExpressions) {
       const realValue = dot.pick(path.join('.'), firstRow.groupExpressions);

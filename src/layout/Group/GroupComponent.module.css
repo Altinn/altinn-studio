@@ -19,6 +19,23 @@
   padding: 12px;
 }
 
+.panel {
+  width: auto;
+  padding-left: var(--panel-x-padding);
+  padding-right: var(--panel-x-padding);
+  background-color: var(--component-panel-color-background-default);
+}
+
+.panel > legend {
+  padding-top: 36px;
+}
+
+.panelPadding > .panel {
+  --panel-x-padding: var(--modal-padding-x);
+  margin-right: 12px;
+  margin-left: 12px;
+}
+
 .groupingIndicator {
   border-left: 2px solid #949494;
   margin-left: 0;

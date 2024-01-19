@@ -10,11 +10,10 @@
           },
           {
             "id": "group1",
-            "type": "Group",
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "gruppe1"
             },
-            "maxCount": 99,
             "children": ["comp3", "comp4"]
           },
           {

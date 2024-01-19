@@ -3,21 +3,24 @@ import React from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { getFormLayoutGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
+import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
 import {
   type BackendValidationIssue,
   BackendValidationSeverity,
   ValidationIssueSources,
 } from 'src/features/validation';
-import { RepeatingGroupContainer } from 'src/layout/Group/RepeatingGroupContainer';
-import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
+import { RepeatingGroupContainer } from 'src/layout/RepeatingGroup/RepeatingGroupContainer';
+import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithNode } from 'src/test/renderWithProviders';
-import type { CompGroupRepeatingExternal, CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
-import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import type { ILayout } from 'src/layout/layout';
+import type {
+  CompGroupRepeatingExternal,
+  CompGroupRepeatingInternal,
+} from 'src/layout/RepeatingGroup/config.generated';
+import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
-const mockContainer = getFormLayoutGroupMock({
+const mockContainer = getFormLayoutRepeatingGroupMock({
   id: 'myGroup',
   maxCount: 5,
 });
@@ -81,7 +84,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
     },
   ];
 
-  const group = getFormLayoutGroupMock({
+  const group = getFormLayoutRepeatingGroupMock({
     ...mockContainer,
     ...container,
     dataModelBindings: {
@@ -89,7 +92,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
     },
   });
 
-  return await renderWithNode<true, LayoutNodeForGroup<CompGroupRepeatingInternal>>({
+  return await renderWithNode<true, BaseLayoutNode<CompGroupRepeatingInternal>>({
     renderer: ({ node }) => (
       <RepeatingGroupProvider node={node}>
         <LeakEditIndex />

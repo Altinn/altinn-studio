@@ -3,7 +3,6 @@ import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
 import { breakpoints } from 'src/hooks/useIsMobile';
-import { groupIsRepeatingExt } from 'src/layout/Group/tools';
 
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
@@ -58,7 +57,7 @@ function testGroup(mode: Mode) {
   ensureTableHasNumColumns(appFrontend.group.mainGroup, 6, 2);
   let editWas: any = {};
   cy.changeLayout((c) => {
-    if (c.id === 'mainGroup' && c.type === 'Group' && groupIsRepeatingExt(c) && c.edit) {
+    if (c.id === 'mainGroup' && c.type === 'RepeatingGroup' && c.edit) {
       editWas = { ...c.edit };
       c.edit.editButton = false;
       c.edit.deleteButton = false;

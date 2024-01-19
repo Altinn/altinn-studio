@@ -127,7 +127,7 @@ export function SummaryComponent({ summaryNode, overrides, ref }: ISummaryCompon
                   onClick={onChangeClick}
                   type='button'
                 >
-                  {<Lang id={'form_filler.summary_go_to_correct_page'} />}
+                  <Lang id={'form_filler.summary_go_to_correct_page'} />
                 </button>
               )}
             </Grid>

@@ -10,18 +10,16 @@
           },
           {
             "id": "group0",
-            "type": "Group",
+            "type": "RepeatingGroup",
             "children": ["group1"],
-            "maxCount": 99,
             "dataModelBindings": {
               "group": "group"
             }
           },
           {
             "id": "group1",
-            "type": "Group",
+            "type": "RepeatingGroup",
             "children": ["comp3", "comp4"],
-            "maxCount": 99,
             "dataModelBindings": {
               "group": "group.subgroup"
             }

@@ -4,14 +4,14 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getMultiPageGroupMock } from 'src/__mocks__/getMultiPageGroupMock';
-import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
-import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
+import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 import type { IOption } from 'src/layout/common.generated';
-import type { CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
-import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import type { CompExternal } from 'src/layout/layout';
+import type { CompGroupRepeatingInternal } from 'src/layout/RepeatingGroup/config.generated';
+import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
 describe('RepeatingGroupsEditContainer', () => {
   const options: IOption[] = [{ value: 'option.value', label: 'option.label' }];
@@ -81,7 +81,7 @@ describe('RepeatingGroupsEditContainer', () => {
     const multiPageGroup = getMultiPageGroupMock({ id: 'group' });
     multiPageGroup.edit!.saveAndNextButton = true;
 
-    return await renderWithNode<true, LayoutNodeForGroup<CompGroupRepeatingInternal>>({
+    return await renderWithNode<true, BaseLayoutNode<CompGroupRepeatingInternal>>({
       nodeId: 'group',
       inInstance: true,
       renderer: ({ node }) => (

@@ -13,6 +13,8 @@ import type {
   FormComponent,
   PresentationComponent,
 } from 'src/layout/LayoutComponent';
+import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
+import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -29,7 +31,7 @@ export interface ILayouts {
 export type CompTypes = keyof typeof ComponentConfigs & keyof ComponentTypeConfigs;
 type AllComponents = ComponentTypeConfigs[CompTypes]['layout'];
 
-export type CompExceptGroup = Exclude<CompTypes, 'Group'>;
+export type CompExceptGroup = Exclude<CompTypes, 'Group', 'RepeatingGroup', 'Likert'>;
 
 /**
  * This type can be used to reference the layout declaration for a component. You can either use it to specify
@@ -51,7 +53,7 @@ export type CompExternal<Type extends CompExceptGroup = CompExceptGroup> = Extra
  */
 export type CompExternalExact<Type extends CompTypes> = ComponentTypeConfigs[Type]['layout'];
 
-export type CompOrGroupExternal = CompGroupExternal | CompExternal;
+export type CompOrGroupExternal = CompRepeatingGroupExternal | CompLikertExternal | CompGroupExternal | CompExternal;
 
 export type CompRendersLabel<T extends CompTypes> = (typeof ComponentConfigs)[T]['rendersWithLabel'];
 

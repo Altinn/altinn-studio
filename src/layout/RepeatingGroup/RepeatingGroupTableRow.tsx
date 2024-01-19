@@ -16,18 +16,18 @@ import { useDisplayDataProps } from 'src/hooks/useDisplayData';
 import { useIsMobile } from 'src/hooks/useIsMobile';
 import { implementsDisplayData } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import classes from 'src/layout/Group/RepeatingGroup.module.css';
-import { useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
-import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
+import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
+import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/RepeatingGroupFocusContext';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { AlertOnChange } from 'src/hooks/useAlertOnChange';
+import type { ITextResourceBindings } from 'src/layout/layout';
 import type {
   CompGroupRepeatingExternal,
   CompGroupRepeatingInternal,
   IGroupEditPropertiesInternal,
-} from 'src/layout/Group/config.generated';
-import type { ITextResourceBindings } from 'src/layout/layout';
+} from 'src/layout/RepeatingGroup/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IRepeatingGroupTableRowProps {

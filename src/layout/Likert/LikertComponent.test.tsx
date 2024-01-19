@@ -10,7 +10,7 @@ import {
   render,
   validateRadioLayout,
   validateTableLayout,
-} from 'src/layout/Likert/RepeatingGroupsLikertContainerTestUtils';
+} from 'src/layout/Likert/LikertTestUtils';
 
 describe('RepeatingGroupsLikertContainer', () => {
   describe('Desktop', () => {
@@ -26,7 +26,7 @@ describe('RepeatingGroupsLikertContainer', () => {
 
     it('should render title, description and left column header', async () => {
       await render({
-        likertContainerProps: {
+        likertProps: {
           textResourceBindings: {
             title: 'Test title',
             description: 'Test description',
@@ -88,11 +88,8 @@ describe('RepeatingGroupsLikertContainer', () => {
 
     it('should render table with start binding', async () => {
       await render({
-        likertContainerProps: {
-          edit: {
-            mode: 'likert',
-            filter: [{ key: 'start', value: '2' }],
-          },
+        likertProps: {
+          filter: [{ key: 'start', value: '2' }],
         },
       });
 
@@ -105,11 +102,8 @@ describe('RepeatingGroupsLikertContainer', () => {
 
     it('should render table with end binding', async () => {
       await render({
-        likertContainerProps: {
-          edit: {
-            mode: 'likert',
-            filter: [{ key: 'stop', value: '3' }],
-          },
+        likertProps: {
+          filter: [{ key: 'stop', value: '3' }],
         },
       });
 
@@ -122,14 +116,11 @@ describe('RepeatingGroupsLikertContainer', () => {
 
     it('should render table with start and end binding', async () => {
       await render({
-        likertContainerProps: {
-          edit: {
-            mode: 'likert',
-            filter: [
-              { key: 'start', value: '1' },
-              { key: 'stop', value: '3' },
-            ],
-          },
+        likertProps: {
+          filter: [
+            { key: 'start', value: '1' },
+            { key: 'stop', value: '3' },
+          ],
         },
       });
 
@@ -253,7 +244,7 @@ describe('RepeatingGroupsLikertContainer', () => {
 
     it('should display title and description', async () => {
       await render({
-        likertContainerProps: {
+        likertProps: {
           textResourceBindings: {
             title: 'Likert test title',
             description: 'This is a test description',
@@ -270,7 +261,7 @@ describe('RepeatingGroupsLikertContainer', () => {
   describe('Mobile', () => {
     it('should display title and description', async () => {
       await render({
-        likertContainerProps: {
+        likertProps: {
           textResourceBindings: {
             title: 'Likert test title',
             description: 'This is a test description',
@@ -286,9 +277,10 @@ describe('RepeatingGroupsLikertContainer', () => {
     it('should prefix leftColumnHeader to each radio group legend', async () => {
       const leftColumnHeader = 'Hvor fornøyd eller misfornøyd er du med:';
       await render({
-        likertContainerProps: {
+        likertProps: {
           textResourceBindings: {
             leftColumnHeader,
+            questions: 'likert-questions',
           },
         },
         mobileView: true,
@@ -370,14 +362,11 @@ describe('RepeatingGroupsLikertContainer', () => {
     it('should render mobile layout with start and end binding', async () => {
       await render({
         mobileView: true,
-        likertContainerProps: {
-          edit: {
-            mode: 'likert',
-            filter: [
-              { key: 'start', value: '1' },
-              { key: 'stop', value: '3' },
-            ],
-          },
+        likertProps: {
+          filter: [
+            { key: 'start', value: '1' },
+            { key: 'stop', value: '3' },
+          ],
         },
       });
 

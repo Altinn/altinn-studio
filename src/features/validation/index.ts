@@ -67,7 +67,7 @@ export type ValidationContext = {
   showAllErrors: boolean;
   setShowAllErrors: (showAllErrors: boolean) => void;
   setAttachmentVisibility: (attachmentId: string, node: LayoutNode, newVisibility: number) => void;
-  removeRowVisibilityOnDelete: (node: LayoutNode<'Group'>, rowIndex: number) => void;
+  removeRowVisibilityOnDelete: (node: LayoutNode<'RepeatingGroup'>, rowIndex: number) => void;
 };
 
 export type ValidationState = FormValidations & {

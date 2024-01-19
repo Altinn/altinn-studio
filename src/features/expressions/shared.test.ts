@@ -32,7 +32,7 @@ function findComponent(context: FunctionTest['context'], collection: LayoutPages
   if (component && rowIndices && rowIndices.length) {
     const componentId2 = `${component}-${rowIndices.slice(0, rowIndices.length - 1).join('-')}`.replace(/-+$/, '');
     const foundMaybeGroup = collection.findById(componentId2);
-    if (foundMaybeGroup && foundMaybeGroup.isType('Group') && foundMaybeGroup.isRepGroup()) {
+    if (foundMaybeGroup && foundMaybeGroup.isType('RepeatingGroup')) {
       // Special case for using a group component with a row index, looking up within the
       // group context, but actually pointing to a row inside the group. This is supported
       // in useExpressions() itself, but evalExpr() requires the context of an actual component

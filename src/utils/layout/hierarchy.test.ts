@@ -6,10 +6,11 @@ import { generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { LayoutPages } from 'src/utils/layout/LayoutPages';
-import type { CompGroupNonRepeatingExternal, CompGroupRepeatingExternal } from 'src/layout/Group/config.generated';
+import type { CompGroupNonRepeatingExternal } from 'src/layout/Group/config.generated';
 import type { CompHeaderExternal } from 'src/layout/Header/config.generated';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
 import type { CompInternal, HierarchyDataSources, ILayout, ILayouts } from 'src/layout/layout';
+import type { CompGroupRepeatingExternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const { resolvedNodesInLayouts } = _private;
@@ -27,7 +28,7 @@ describe('Hierarchical layout tools', () => {
   const mkGroup = (id: string, children: string[]): CompGroupNonRepeatingExternal => ({ id, type: 'Group', children });
   const mkRepGroup = (id: string, children: string[], binding: string): CompGroupRepeatingExternal => ({
     id,
-    type: 'Group',
+    type: 'RepeatingGroup',
     maxCount: 3,
     hidden: ['equals', ['dataModel', 'ExprBase.ShouldBeFalse'], 'false'],
     dataModelBindings: {
@@ -190,7 +191,7 @@ describe('Hierarchical layout tools', () => {
       const deepComponent = flatWithGroups.find((node) => node.item.id === `${components.group2nh.id}-2-2`);
       expect(deepComponent?.item.id).toEqual(`${components.group2nh.id}-2-2`);
       expect(deepComponent?.parent?.item?.id).toEqual(`${components.group2n.id}-2`);
-      expect(deepComponent?.parent?.item.type).toEqual(`Group`);
+      expect(deepComponent?.parent?.item.type).toEqual(`RepeatingGroup`);
       expect(deepComponent?.closest((c) => c.type === 'Input')?.item.id).toEqual(`${components.group2ni.id}-2-2`);
 
       expect(nodes.findAllById(components.group2ni.id).map((c) => c.item.id)).toEqual([
@@ -217,7 +218,9 @@ describe('Hierarchical layout tools', () => {
 
       const otherDeepComponent = nodes.findById(`${components.group2nh.id}-3-3`);
       expect(otherDeepComponent?.closest((c) => c.type === 'Input')?.item.id).toEqual(`${components.group2ni.id}-3-3`);
-      expect(otherDeepComponent?.closest((c) => c.type === 'Group')?.item.id).toEqual(`${components.group2n.id}-3`);
+      expect(otherDeepComponent?.closest((c) => c.type === 'RepeatingGroup')?.item.id).toEqual(
+        `${components.group2n.id}-3`,
+      );
       expect(otherDeepComponent?.closest((c) => c.baseComponentId === components.group2i.id)?.item.id).toEqual(
         `${components.group2i.id}-3`,
       );
@@ -253,50 +256,30 @@ describe('Hierarchical layout tools', () => {
       const layout: ILayout = [
         {
           id: 'g1',
-          type: 'Group',
-          maxCount: 99,
-          children: ['g1c'],
-          dataModelBindings: { group: 'Group' },
-          edit: {
-            mode: 'likert',
-            filter: [
-              { key: 'start', value: '0' },
-              { key: 'stop', value: '3' },
-            ],
-          },
-        },
-        {
-          id: 'g1c',
-          type: 'Input',
-          dataModelBindings: { simpleBinding: 'Group.Title' },
+          type: 'Likert',
+          dataModelBindings: { simpleBinding: 'Group.Title', questions: 'Group' },
+          filter: [
+            { key: 'start', value: '0' },
+            { key: 'stop', value: '3' },
+          ],
         },
         {
           id: 'g2',
-          type: 'Group',
-          maxCount: 99,
-          children: ['g2c'],
-          dataModelBindings: { group: 'Group' },
-          edit: {
-            mode: 'likert',
-            filter: [
-              { key: 'start', value: '3' },
-              { key: 'stop', value: '6' },
-            ],
-          },
-        },
-        {
-          id: 'g2c',
-          type: 'Input',
-          dataModelBindings: { simpleBinding: 'Group.Title' },
+          type: 'Likert',
+          dataModelBindings: { simpleBinding: 'Group.Title', questions: 'Group' },
+          filter: [
+            { key: 'start', value: '3' },
+            { key: 'stop', value: '6' },
+          ],
         },
       ];
       const nodes = generateHierarchy(layout, { ...dataSources, formData }, getLayoutComponentObject);
 
-      expect(nodes.findAllById('g1c').length).toEqual(3);
-      expect(nodes.findAllById('g2c').length).toEqual(3);
+      expect(nodes.findAllById('g1').length).toEqual(4);
+      expect(nodes.findAllById('g2').length).toEqual(4);
 
-      expect(nodes.findById('g1c-0')?.rowIndex).toEqual(0);
-      expect(nodes.findById('g2c-3')?.rowIndex).toEqual(3);
+      expect(nodes.findById('g1-0')?.rowIndex).toEqual(0);
+      expect(nodes.findById('g2-3')?.rowIndex).toEqual(3);
     });
   });
 
@@ -348,11 +331,11 @@ describe('Hierarchical layout tools', () => {
     expect(uniqueHidden(nodes.current()?.flat(true))).toEqual(plain);
     expect(uniqueHidden(nodes.current()?.children())).toEqual(plain);
 
-    if (group2?.isType('Group') && group2.isRepGroup()) {
+    if (group2?.isType('RepeatingGroup')) {
       expect(group2.item.rows[0]?.items[1].item.hidden).toEqual(true);
       expect(group2.item.rows[0]?.items[2].item.hidden).toEqual(true);
       const group2n = group2.item.rows[0]?.items[2];
-      if (group2n?.isType('Group') && group2n.isRepGroup()) {
+      if (group2n?.isType('RepeatingGroup')) {
         expect(group2n.item.rows[0]?.items[1].item.hidden).toEqual(true);
       } else {
         expect(false).toEqual(true);
@@ -476,94 +459,5 @@ describe('Hierarchical layout tools', () => {
       'group2i-2',
       'group2i-3',
     ]);
-  });
-
-  describe('panel with group reference', () => {
-    const pageWithMainGroup: ILayout = [
-      {
-        id: 'mainGroup',
-        type: 'Group',
-        children: ['child'],
-        maxCount: 3,
-        dataModelBindings: { group: 'MyModel.MainGroup' },
-      },
-      {
-        id: 'child',
-        type: 'Input',
-        dataModelBindings: { simpleBinding: 'MyModel.MainGroup.Child' },
-      },
-    ];
-
-    const pageWithPanelRef: ILayout = [
-      {
-        id: 'groupWithPanel',
-        type: 'Group',
-        children: ['panelChild'],
-        panel: {
-          groupReference: { group: 'mainGroup' },
-        },
-      },
-      {
-        id: 'panelChild',
-        type: 'Input',
-        dataModelBindings: { simpleBinding: 'MyModel.MainGroup.Child' },
-      },
-    ];
-
-    it.each([
-      {
-        name: 'group with panel reference defined on the page before the referenced group',
-        layouts: {
-          page1: pageWithPanelRef,
-          page2: pageWithMainGroup,
-        },
-      },
-      {
-        name: 'group with panel reference defined on the page after the referenced group',
-        layouts: {
-          page1: pageWithMainGroup,
-          page2: pageWithPanelRef,
-        },
-      },
-      {
-        name: 'group with panel reference defined after, on the same page as the referenced group',
-        layouts: {
-          page1: [...pageWithMainGroup, ...pageWithPanelRef],
-        },
-      },
-      {
-        name: 'group with panel reference defined before, on the same page as the referenced group',
-        layouts: {
-          page1: [...pageWithPanelRef, ...pageWithMainGroup],
-        },
-      },
-      {
-        name: 'group with panel reference defined after, on the page before the referenced group, in reverse order',
-        layouts: {
-          page1: [...pageWithMainGroup.reverse(), ...pageWithPanelRef.reverse()],
-        },
-      },
-    ])('$name', ({ layouts }) => {
-      const dataSources = {
-        ...getHierarchyDataSourcesMock(),
-        formData: {
-          MyModel: {
-            MainGroup: [{ Child: '1' }, { Child: '2' }, { Child: '3' }],
-          },
-        },
-      };
-      const resolved = resolvedNodesInLayouts(layouts, 'page1', dataSources);
-
-      const dataBindingFor = (id: string) => {
-        const item = resolved?.findById(id)?.item || undefined;
-        const dmBindings = item && 'dataModelBindings' in item ? item?.dataModelBindings : undefined;
-        return dmBindings && 'simpleBinding' in dmBindings ? dmBindings.simpleBinding : undefined;
-      };
-
-      expect(dataBindingFor('child-2')).toEqual('MyModel.MainGroup[2].Child');
-      expect(resolved?.findById('child-3')).toBeUndefined();
-      expect(resolved?.findById('panelChild-2')).toBeUndefined();
-      expect(dataBindingFor('panelChild-3')).toEqual('MyModel.MainGroup[3].Child');
-    });
   });
 });

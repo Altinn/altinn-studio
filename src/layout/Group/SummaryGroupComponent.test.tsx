@@ -45,7 +45,7 @@ describe('SummaryGroupComponent', () => {
             data: {
               layout: [
                 {
-                  type: 'Group',
+                  type: 'RepeatingGroup',
                   id: 'groupComponent',
                   dataModelBindings: {
                     group: 'mockGroup',

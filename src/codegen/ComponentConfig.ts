@@ -143,7 +143,8 @@ export class ComponentConfig extends GenerateComponentLike {
     this.exportedComp = comp;
     return this;
   }
-
+  // This will not be used at the moment after we split the group to several components.
+  // However, this is nice to keep for future components that might need it.
   public setLayoutNodeType(type: GenerateImportedSymbol<any>): this {
     this.layoutNodeType = type;
     return this;

@@ -54,10 +54,6 @@ describe('Form', () => {
     {
       id: 'testGroupId',
       type: 'Group',
-      dataModelBindings: {
-        group: 'Group',
-      },
-      maxCount: 3,
       children: ['field1', 'field2', 'field3'],
     },
   ];
@@ -69,15 +65,12 @@ describe('Form', () => {
     expect(screen.getByText('Third title')).toBeInTheDocument();
   });
 
-  it('should render DisplayGroupContainer and children if group is non repeating', async () => {
+  it('should render GroupComponent and children if group is non repeating', async () => {
     const layoutWithNonRepGroup: ILayout = [
       ...mockComponents,
       {
         id: 'non-rep-group-id',
         type: 'Group',
-        dataModelBindings: {
-          group: 'Group',
-        },
         children: ['non-rep-child'],
       },
       {
@@ -95,24 +88,19 @@ describe('Form', () => {
     ];
 
     await render(layoutWithNonRepGroup);
-    const container = screen.getByTestId('display-group-container');
+    const container = screen.getAllByTestId('display-group-container')[1];
     expect(container).toBeInTheDocument();
     expect(within(container).getByText('Title from non repeating child')).toBeInTheDocument();
   });
 
-  it('should render PanelGroupContainer and children if group has panel prop', async () => {
+  it('should render GroupComponent as panel and children if group has panel prop', async () => {
     const layoutWithPanelGroup: ILayout = [
       ...mockComponents,
       {
         id: 'panel-group-id',
         type: 'Group',
-        dataModelBindings: {
-          group: 'Group',
-        },
         children: ['panel-group-child'],
-        panel: {
-          variant: 'info',
-        },
+        groupingIndicator: 'panel',
       },
       {
         id: 'panel-group-child',
@@ -129,7 +117,7 @@ describe('Form', () => {
     ];
 
     await render(layoutWithPanelGroup);
-    const container = screen.getByTestId('panel-group-container');
+    const container = screen.getByTestId('fullWidthWrapper');
     expect(container).toBeInTheDocument();
     expect(within(container).getByText('Title from panel child')).toBeInTheDocument();
   });
@@ -156,7 +144,7 @@ describe('Form', () => {
     await render(mockComponents, [
       {
         customTextKey: 'some error message',
-        field: 'Group[0].prop1',
+        field: 'Group.prop1',
         source: ValidationIssueSources.Custom,
         severity: BackendValidationSeverity.Error,
         showImmediately: true,
@@ -206,7 +194,7 @@ describe('Form', () => {
       [
         {
           customTextKey: 'some error message',
-          field: 'Group[0].prop1',
+          field: 'Group.prop1',
           source: ValidationIssueSources.Custom,
           severity: BackendValidationSeverity.Error,
           showImmediately: true,

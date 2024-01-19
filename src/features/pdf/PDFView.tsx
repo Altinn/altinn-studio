@@ -8,11 +8,23 @@ import classes from 'src/features/pdf/PDFView.module.css';
 import { usePdfPage } from 'src/hooks/usePdfPage';
 import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { DisplayGroupContainer } from 'src/layout/Group/DisplayGroupContainer';
+import { GroupComponent } from 'src/layout/Group/GroupComponent';
+import { LargeLikertSummaryContainer } from 'src/layout/Likert/Summary/LargeLikertSummaryContainer';
+import { LargeGroupSummaryContainer } from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const PDFComponent = ({ node }: { node: LayoutNode }) => {
+  const commonProps = <T extends LayoutNode>(node: T) => ({
+    groupNode: node,
+    renderLayoutNode: (child: LayoutNode) => (
+      <PDFComponent
+        key={child.item.id}
+        node={child}
+      />
+    ),
+  });
+
   if (node.isType('Summary') || ('renderAsSummary' in node.item && node.item.renderAsSummary)) {
     return (
       <SummaryComponent
@@ -23,18 +35,12 @@ const PDFComponent = ({ node }: { node: LayoutNode }) => {
         }}
       />
     );
-  } else if (node.isType('Group') && node.isNonRepGroup()) {
-    return (
-      <DisplayGroupContainer
-        groupNode={node}
-        renderLayoutNode={(child) => (
-          <PDFComponent
-            key={child.item.id}
-            node={child}
-          />
-        )}
-      />
-    );
+  } else if (node.isType('Group')) {
+    return <GroupComponent {...commonProps(node)} />;
+  } else if (node.isType('RepeatingGroup')) {
+    return <LargeGroupSummaryContainer {...commonProps(node)} />;
+  } else if (node.isType('Likert')) {
+    return <LargeLikertSummaryContainer {...commonProps(node)} />;
   } else if (node.isCategory(CompCategory.Presentation)) {
     return (
       <GenericComponent

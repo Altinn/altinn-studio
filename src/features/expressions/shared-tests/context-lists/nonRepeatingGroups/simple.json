@@ -1,5 +1,5 @@
 {
-  "name": "Non-repeating group with no maxCount",
+  "name": "Non-repeating group",
   "layouts": {
     "Page1": {
       "data": {

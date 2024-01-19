@@ -4,7 +4,6 @@ import {
   useAttachmentsRemover,
 } from 'src/features/attachments/AttachmentsContext';
 import { isAttachmentUploaded } from 'src/features/attachments/index';
-import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type UploaderNode = LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
@@ -19,7 +18,7 @@ type UploaderNode = LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
  * The 'onBeforeRowDeletion' function you get as a result here gives you a Promise that resolves to true if all
  * attachments were successfully removed, or false if any of them failed to be removed.
  */
-export function useAttachmentDeletionInRepGroups(node: LayoutNodeForGroup) {
+export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGroup'>) {
   const attachments = useAttachments();
   const remove = useAttachmentsRemover();
   const awaiter = useAttachmentsAwaiter();

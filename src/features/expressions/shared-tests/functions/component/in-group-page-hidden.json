@@ -21,8 +21,7 @@
         "layout": [
           {
             "id": "myGroup",
-            "type": "Group",
-            "maxCount": 99,
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "Mennesker"
             },

@@ -3,26 +3,6 @@ import type { ILayout } from 'src/layout/layout';
 export function getFormLayoutMock(): ILayout {
   return [
     {
-      id: 'referencedGroup',
-      type: 'Group',
-      dataModelBindings: {
-        group: 'referencedGroup',
-      },
-      children: ['referenced-group-child'],
-    },
-    {
-      id: 'referenced-group-child',
-      type: 'Input',
-      dataModelBindings: {
-        simpleBinding: 'referencedGroup.field1',
-      },
-      textResourceBindings: {
-        title: 'Referenced Group Input',
-      },
-      readOnly: false,
-      required: false,
-    },
-    {
       id: 'field1',
       type: 'Input',
       dataModelBindings: {

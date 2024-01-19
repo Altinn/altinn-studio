@@ -3,7 +3,6 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 
 import { BackendValidationSeverity } from 'src/features/validation';
-import { groupIsRepeatingExt } from 'src/layout/Group/tools';
 import type { BackendValidationIssue } from 'src/features/validation';
 
 const appFrontend = new AppFrontend();
@@ -314,7 +313,7 @@ describe('Validation', () => {
       ) {
         component.required = true;
       }
-      if (component.type === 'Group' && groupIsRepeatingExt(component) && component.id === 'mainGroup') {
+      if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
         component.validateOnSaveRow = ['All'];
       }
       if (component.type === 'NavigationButtons') {
@@ -395,7 +394,7 @@ describe('Validation', () => {
 
     cy.changeLayout((component) => {
       if (
-        component.type === 'Group' &&
+        component.type === 'RepeatingGroup' &&
         component.id === 'mainGroup' &&
         'tableColumns' in component &&
         component.tableColumns
@@ -430,7 +429,12 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.changeLayout((component) => {
-      if (component.type === 'Group' && component.id === 'mainGroup' && 'edit' in component && component.edit) {
+      if (
+        component.type === 'RepeatingGroup' &&
+        component.id === 'mainGroup' &&
+        'edit' in component &&
+        component.edit
+      ) {
         // In the 'onlyTable' mode, there is no option to edit a row, so we should not open the row in edit mode
         // to focus a component either.
         component.edit.mode = 'onlyTable';
@@ -447,7 +451,7 @@ describe('Validation', () => {
 
     cy.changeLayout((component) => {
       if (
-        component.type === 'Group' &&
+        component.type === 'RepeatingGroup' &&
         component.id === 'mainGroup' &&
         'tableColumns' in component &&
         component.tableColumns
@@ -488,7 +492,7 @@ describe('Validation', () => {
 
     cy.changeLayout((component) => {
       if (
-        component.type === 'Group' &&
+        component.type === 'RepeatingGroup' &&
         component.id === 'mainGroup' &&
         'tableColumns' in component &&
         component.tableColumns
@@ -511,7 +515,7 @@ describe('Validation', () => {
 
     cy.changeLayout((component) => {
       if (
-        component.type === 'Group' &&
+        component.type === 'RepeatingGroup' &&
         component.id === 'mainGroup' &&
         'edit' in component &&
         component.edit &&

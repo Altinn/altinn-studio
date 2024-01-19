@@ -176,7 +176,7 @@ describe('Summary', () => {
 
     cy.fillOut('group');
 
-    cy.get(appFrontend.group.mainGroupSummary)
+    cy.get(appFrontend.group.mainGroupSummaryContent)
       .should('have.length', 1)
       .first()
       .children(mui.gridItem)
@@ -199,7 +199,13 @@ describe('Summary', () => {
       });
 
     // Go back to the repeating group in order to set nested options
-    cy.get(appFrontend.group.mainGroupSummary).first().children(mui.gridItem).eq(4).find('button').first().click();
+    cy.get(appFrontend.group.mainGroupSummaryContent)
+      .first()
+      .children(mui.gridItem)
+      .eq(4)
+      .find('button')
+      .first()
+      .click();
 
     // Check to show a couple of nested options, then go back to the summary
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
@@ -208,7 +214,7 @@ describe('Summary', () => {
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[2]).dsCheck();
     cy.get(appFrontend.backToSummaryButton).click();
 
-    cy.get(appFrontend.group.mainGroupSummary)
+    cy.get(appFrontend.group.mainGroupSummaryContent)
       .should('have.length', 1)
       .first()
       .children(mui.gridItem)

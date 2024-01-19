@@ -8,16 +8,15 @@ import {
   BackendValidationSeverity,
   ValidationIssueSources,
 } from 'src/features/validation';
-import { RepeatingGroupsLikertContainer } from 'src/layout/Likert/RepeatingGroupsLikertContainer';
+import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useResolvedNode } from 'src/utils/layout/NodesContext';
 import type { FDNewValue } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IRawTextResource, ITextResourceResult } from 'src/features/language/textResources';
 import type { IOption } from 'src/layout/common.generated';
-import type { CompGroupRepeatingLikertExternal } from 'src/layout/Group/config.generated';
-import type { CompOrGroupExternal } from 'src/layout/layout';
 import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
+import type { CompLikertItemExternal } from 'src/layout/LikertItem/config.generated';
 
 export const defaultMockQuestions = [
   { Question: 'Hvordan trives du på skolen?', Answer: '' },
@@ -73,30 +72,15 @@ export const questionsWithAnswers = ({ questions, selectedAnswers }) => {
   return questionsCopy;
 };
 
-const createLikertContainer = (
-  props: Partial<CompGroupRepeatingLikertExternal> | undefined,
-): CompGroupRepeatingLikertExternal => ({
+const createLikertLayout = (props: Partial<CompLikertExternal> | undefined): CompLikertExternal => ({
   id: 'likert-repeating-group-id',
-  type: 'Group',
-  children: ['field1'],
-  maxCount: 99,
-  dataModelBindings: {
-    group: groupBinding,
-  },
-  edit: {
-    mode: 'likert',
-  },
-  ...props,
-});
-
-const createRadioButton = (props: Partial<CompLikertExternal> | undefined): CompLikertExternal => ({
-  id: 'field1',
   type: 'Likert',
+  textResourceBindings: {
+    questions: 'likert-questions',
+  },
   dataModelBindings: {
     simpleBinding: `${groupBinding}.${answerBinding}`,
-  },
-  textResourceBindings: {
-    title: 'likert-questions',
+    questions: groupBinding,
   },
   optionsId: 'option-test',
   readOnly: false,
@@ -141,8 +125,8 @@ interface IRenderProps {
   mobileView: boolean;
   mockQuestions: IQuestion[];
   mockOptions: IOption[];
-  radioButtonProps: Partial<CompLikertExternal>;
-  likertContainerProps: Partial<CompGroupRepeatingLikertExternal>;
+  radioButtonProps: Partial<CompLikertItemExternal>;
+  likertProps: Partial<CompLikertExternal>;
   extraTextResources: IRawTextResource[];
   validationIssues: BackendValidationIssue[];
 }
@@ -151,18 +135,15 @@ export const render = async ({
   mobileView = false,
   mockQuestions = defaultMockQuestions,
   mockOptions = defaultMockOptions,
-  radioButtonProps,
-  likertContainerProps,
+  likertProps,
   extraTextResources = [],
   validationIssues = [],
 }: Partial<IRenderProps> = {}) => {
-  const mockRadioButton = createRadioButton(radioButtonProps);
-  const mockLikertContainer = createLikertContainer(likertContainerProps);
-  const components: CompOrGroupExternal[] = [mockRadioButton];
+  const mockLikertLayout = createLikertLayout(likertProps);
 
   setScreenWidth(mobileView ? 600 : 1200);
   return await renderWithInstanceAndLayout({
-    renderer: () => <ContainerTester id={mockLikertContainer.id} />,
+    renderer: () => <ContainerTester id={mockLikertLayout.id} />,
     queries: {
       fetchOptions: async () => ({ data: mockOptions, headers: {} }) as AxiosResponse<IOption[], any>,
       fetchTextResources: async () => createTextResource(mockQuestions, extraTextResources),
@@ -170,7 +151,7 @@ export const render = async ({
       fetchLayouts: async () => ({
         FormLayout: {
           data: {
-            layout: [mockLikertContainer, ...components],
+            layout: [mockLikertLayout],
           },
         },
       }),
@@ -186,11 +167,11 @@ export const render = async ({
 
 export function ContainerTester(props: { id: string }) {
   const node = useResolvedNode(props.id);
-  if (!node || !(node.isType('Group') && node.isRepGroupLikert())) {
+  if (!node || !node.isType('Likert')) {
     throw new Error(`Could not resolve node with id ${props.id}, or unexpected node type`);
   }
 
-  return <RepeatingGroupsLikertContainer node={node} />;
+  return <LikertComponent node={node} />;
 }
 
 export const validateTableLayout = async (questions: IQuestion[], options: IOption[]) => {

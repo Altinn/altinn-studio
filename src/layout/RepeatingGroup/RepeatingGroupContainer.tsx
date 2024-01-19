@@ -12,23 +12,23 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
-import classes from 'src/layout/Group/RepeatingGroupContainer.module.css';
-import { useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
-import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
-import { useRepeatingGroupsFocusContext } from 'src/layout/Group/RepeatingGroupsFocusContext';
-import { RepeatingGroupTable } from 'src/layout/Group/RepeatingGroupTable';
+import classes from 'src/layout/RepeatingGroup/RepeatingGroupContainer.module.css';
+import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/RepeatingGroupFocusContext';
+import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
+import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/RepeatingGroupTable';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
-export interface IGroupProps {
+interface RepeatingGroupContainerProps {
   containerDivRef?: MutableRefObject<HTMLDivElement | null>;
 }
 
-export function RepeatingGroupContainer({ containerDivRef }: IGroupProps): JSX.Element | null {
+export function RepeatingGroupContainer({ containerDivRef }: RepeatingGroupContainerProps): JSX.Element | null {
   const { triggerFocus } = useRepeatingGroupsFocusContext();
   const { node, isEditingAnyRow, editingIndex, addRow, openForEditing, isFirstRender, visibleRowIndexes } =
     useRepeatingGroup();
-
   const { textResourceBindings, id, edit, type } = node.item;
+  const { title, description, add_button, add_button_full } = textResourceBindings || {};
 
   const numRows = visibleRowIndexes.length;
   const firstIndex = visibleRowIndexes[0];
@@ -46,9 +46,7 @@ export function RepeatingGroupContainer({ containerDivRef }: IGroupProps): JSX.E
       iconPlacement='left'
       fullWidth
     >
-      {textResourceBindings?.add_button_full
-        ? lang(textResourceBindings.add_button_full)
-        : `${langAsString('general.add_new')} ${langAsString(textResourceBindings?.add_button)}`}
+      {add_button_full ? lang(add_button_full) : `${langAsString('general.add_new')} ${langAsString(add_button)}`}
     </Button>
   );
 
@@ -87,15 +85,16 @@ export function RepeatingGroupContainer({ containerDivRef }: IGroupProps): JSX.E
     }
   };
 
-  if (node.isHidden() || type !== 'Group') {
+  if (node.isHidden() || type !== 'RepeatingGroup') {
     return null;
   }
 
   const isNested = node.parent instanceof BaseLayoutNode;
 
+  const tooManyRows = 'maxCount' in node.item && typeof node.item.maxCount == 'number' && numRows >= node.item.maxCount;
   const displayBtn =
     edit?.addButton !== false &&
-    numRows < node.item.maxCount &&
+    !tooManyRows &&
     (edit?.mode === 'showAll' || !isEditingAnyRow || edit?.alwaysShowAddButton === true);
 
   return (
@@ -120,11 +119,11 @@ export function RepeatingGroupContainer({ containerDivRef }: IGroupProps): JSX.E
           )}
           {edit?.mode === 'showAll' && (
             <Fieldset
-              legend={textResourceBindings?.title && <Lang id={textResourceBindings?.title} />}
+              legend={title && <Lang id={title} />}
               description={
-                textResourceBindings?.description && (
+                description && (
                   <span className={classes.showAllDescription}>
-                    <Lang id={textResourceBindings?.description} />
+                    <Lang id={description} />
                   </span>
                 )
               }

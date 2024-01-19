@@ -158,7 +158,7 @@ describe('Expression validation', () => {
   it('should work with hiddenRow', () => {
     // Ability to save group row with errors
     cy.interceptLayout('skjema', (c) => {
-      if (c.type === 'Group') {
+      if (c.type === 'RepeatingGroup') {
         (c as any).validateOnSaveRow = undefined;
       }
     });

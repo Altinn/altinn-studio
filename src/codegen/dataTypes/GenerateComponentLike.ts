@@ -58,7 +58,12 @@ export class GenerateComponentLike {
    */
   public addDataModelBinding(
     type:
-      | GenerateCommonImport<'IDataModelBindingsSimple' | 'IDataModelBindingsList' | 'IDataModelBindingsOptionsSimple'>
+      | GenerateCommonImport<
+          | 'IDataModelBindingsSimple'
+          | 'IDataModelBindingsList'
+          | 'IDataModelBindingsOptionsSimple'
+          | 'IDataModelBindingsLikertSimple'
+        >
       | GenerateObject<any>,
   ): this {
     const name = 'dataModelBindings';

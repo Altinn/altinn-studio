@@ -1,10 +1,10 @@
-import type { CompGroupRepeatingExternal } from 'src/layout/Group/config.generated';
+import type { CompGroupRepeatingExternal } from 'src/layout/RepeatingGroup/config.generated';
 
-export const getFormLayoutGroupMock = (
+export const getFormLayoutRepeatingGroupMock = (
   customMock?: Partial<CompGroupRepeatingExternal>,
 ): CompGroupRepeatingExternal => ({
   id: 'container-closed-id',
-  type: 'Group',
+  type: 'RepeatingGroup',
   children: ['field1', 'field2', 'field3', 'field4'],
   maxCount: 8,
   dataModelBindings: {

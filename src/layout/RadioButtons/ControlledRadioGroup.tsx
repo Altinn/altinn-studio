@@ -8,7 +8,6 @@ import { RadioButton } from 'src/components/form/RadioButton';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { groupIsRepeatingLikert } from 'src/layout/Group/tools';
 import classes from 'src/layout/RadioButtons/ControlledRadioGroup.module.css';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { shouldUseRowLayout } from 'src/utils/layout';
@@ -31,18 +30,14 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   const confirmChangeText = langAsString('form_filler.alert_confirm');
 
   const getLabelPrefixForLikert = () => {
-    if (
-      node.parent.item.type === 'Group' &&
-      groupIsRepeatingLikert(node.parent.item) &&
-      node.parent.item.textResourceBindings?.leftColumnHeader
-    ) {
+    if (node.parent.item.type === 'Likert' && node.parent.item.textResourceBindings?.leftColumnHeader) {
       return `${langAsString(node.parent.item.textResourceBindings.leftColumnHeader)} `;
     }
     return null;
   };
 
   const labelText = (
-    <span style={{ fontSize: '1rem', wordBreak: 'break-word' }}>
+    <span className={classes.labelContent}>
       {getLabelPrefixForLikert()}
       <Lang id={textResourceBindings?.title} />
       <RequiredIndicator required={required} />

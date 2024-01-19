@@ -20,7 +20,6 @@ import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { generateEntireHierarchy } from 'src/utils/layout/HierarchyGenerator';
 import type { CompInternal, HierarchyDataSources, ILayouts } from 'src/layout/layout';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
-
 /**
  * This will generate an entire layout hierarchy, iterate each
  * component/group in the layout and resolve all expressions for them.
@@ -57,7 +56,7 @@ function resolvedNodesInLayouts(
         resolvingPerRow: false,
       }) as unknown as CompInternal;
 
-      if (node.isType('Group') && node.isRepGroup()) {
+      if (node.item.type === 'RepeatingGroup') {
         for (const row of node.item.rows) {
           if (!row) {
             continue;

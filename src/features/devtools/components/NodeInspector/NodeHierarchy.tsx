@@ -56,7 +56,7 @@ const GridRows = ({ rows, onClick, text, selected }: IGridRowsRenderer) => (
 export const NodeHierarchyItem = ({ node, onClick, selected }: INodeHierarchyItemProps) => {
   const { onMouseEnter, onMouseLeave } = useComponentHighlighter(node.item.id, false);
   const hasChildren = node.children().length > 0;
-  const isRepGroup = node.isType('Group') && node.isRepGroup();
+  const isRepGroup = node.isType('RepeatingGroup');
 
   return (
     <>

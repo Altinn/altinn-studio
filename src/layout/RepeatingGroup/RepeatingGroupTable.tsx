@@ -10,11 +10,11 @@ import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowRenderer } from 'src/layout/Grid/GridComponent';
 import { nodesFromGridRows } from 'src/layout/Grid/tools';
-import classes from 'src/layout/Group/RepeatingGroup.module.css';
-import { useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
-import { RepeatingGroupsEditContainer } from 'src/layout/Group/RepeatingGroupsEditContainer';
-import { RepeatingGroupTableRow } from 'src/layout/Group/RepeatingGroupTableRow';
-import { RepeatingGroupTableTitle } from 'src/layout/Group/RepeatingGroupTableTitle';
+import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
+import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
+import { RepeatingGroupTableRow } from 'src/layout/RepeatingGroup/RepeatingGroupTableRow';
+import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/RepeatingGroupTableTitle';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import type { GridRowsInternal, ITableColumnFormatting } from 'src/layout/common.generated';
 
@@ -196,6 +196,11 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         <TableBody id={`group-${id}-table-body`}>
           {visibleRowIndexes.map((index) => {
             const isEditingRow = isEditing(index) && edit?.mode !== 'onlyTable';
+            const isTableRowHidden = node.item.rows[index]?.groupExpressions?.hiddenRow;
+
+            if (isTableRowHidden) {
+              return null;
+            }
 
             return (
               <React.Fragment key={index}>

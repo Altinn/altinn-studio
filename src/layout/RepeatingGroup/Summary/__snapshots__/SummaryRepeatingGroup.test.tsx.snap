@@ -1,0 +1,85 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`] = `
+<DocumentFragment>
+  <div
+    data-testid="summary-group-component"
+    style="width: 100%;"
+  >
+    <div
+      class="container"
+    >
+      <span
+        class="label"
+      >
+        <span>
+          Mock group
+        </span>
+      </span>
+      <button
+        aria-label="Change: Mock group"
+        class="fds-button-button fds-utility-focusable fds-button-small fds-button-tertiary fds-button-second"
+        type="button"
+      >
+        Change
+        <svg
+          aria-hidden="true"
+          class="fds-button-icon"
+          fill="none"
+          focusable="false"
+          height="1em"
+          role="img"
+          viewBox="0 0 24 24"
+          width="1em"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            clip-rule="evenodd"
+            d="M22.835 1.165a3.976 3.976 0 0 1 0 5.623L8.073 21.549.682 24 0 23.318l2.45-7.392L17.21 1.165a3.977 3.977 0 0 1 5.624 0Zm-4.218 7.029-2.811-2.812L4.188 17l-1.393 4.205 4.207-1.395L18.618 8.194ZM21.43 2.57a1.989 1.989 0 0 0-2.703-.1l-.108.1-1.406 1.406 2.811 2.812 1.406-1.406a1.988 1.988 0 0 0 .101-2.703l-.1-.109Z"
+            fill="currentColor"
+            fill-rule="evenodd"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      style="width: 100%;"
+    >
+      <div
+        class="border"
+      >
+        <div
+          data-testid="summary-item-compact"
+        >
+          <span>
+            <span>
+              Mock field 1
+            </span>
+             : 
+          </span>
+          <span
+            class="data"
+          >
+            1
+          </span>
+        </div>
+        <div
+          data-testid="summary-item-compact"
+        >
+          <span>
+            <span>
+              Mock field 2
+            </span>
+             : 
+          </span>
+          <span
+            class="data"
+          >
+            2
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

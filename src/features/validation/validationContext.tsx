@@ -41,9 +41,8 @@ import {
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { Visibility } from 'src/features/validation/visibility';
-import type { CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
-import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { CompGroupRepeatingInternal } from 'src/layout/RepeatingGroup/config.generated';
+import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const { Provider, useCtx } = createContext<ValidationContext>({
   name: 'ValidationContext',
@@ -161,7 +160,7 @@ export function ValidationContext({ children }) {
 
   // Properly remove visibility for a row when it is deleted
   const removeRowVisibilityOnDelete = useEffectEvent(
-    (node: LayoutNodeForGroup<CompGroupRepeatingInternal>, rowIndex: number) => {
+    (node: BaseLayoutNode<CompGroupRepeatingInternal>, rowIndex: number) => {
       setVisibility((state) => {
         onBeforeRowDelete(node, rowIndex, state);
       });

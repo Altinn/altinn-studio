@@ -1,41 +1,95 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
-import { LayoutStyle } from 'src/layout/common.generated';
-import { LikertDef } from 'src/layout/Likert/config.def.generated';
-import { LikertComponent } from 'src/layout/Likert/LikertComponent';
-import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { PropsFromGenericComponent, ValidateAny } from '..';
 
-export class Likert extends LikertDef {
+import { runAllValidations } from 'src/layout/componentValidation';
+import { LikertDef } from 'src/layout/Likert/config.def.generated';
+import { LikertHierarchyGenerator } from 'src/layout/Likert/hierarchy';
+import { LikertComponent } from 'src/layout/Likert/LikertComponent';
+import { LikertSummary } from 'src/layout/Likert/Summary/LikertSummary';
+import { type LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
+import type {
+  ComponentValidation,
+  FormValidations,
+  ISchemaValidationError,
+  ValidationDataSources,
+} from 'src/features/validation';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+
+export class Likert extends LikertDef implements ValidateAny {
+  private _hierarchyGenerator = new LikertHierarchyGenerator();
+
+  directRender(): boolean {
+    return true;
+  }
+
   render(props: PropsFromGenericComponent<'Likert'>): JSX.Element | null {
     return <LikertComponent {...props} />;
   }
 
-  directRender(props: PropsFromGenericComponent<'Likert'>): boolean {
-    return props.node.item.layout === LayoutStyle.Table || props.overrideItemProps?.layout === LayoutStyle.Table;
+  renderSummary({
+    onChangeClick,
+    changeText,
+    summaryNode,
+    targetNode,
+    overrides,
+  }: SummaryRendererProps<'Likert'>): JSX.Element | null {
+    return (
+      <LikertSummary
+        onChangeClick={onChangeClick}
+        changeText={changeText}
+        summaryNode={summaryNode}
+        targetNode={targetNode}
+        overrides={overrides}
+      />
+    );
   }
 
-  getDisplayData(node: LayoutNode<'Likert'>, { langTools, options }: DisplayDataProps): string {
-    if (!node.item.dataModelBindings?.simpleBinding) {
-      return '';
-    }
-
-    const value = String(node.getFormData().simpleBinding ?? '');
-    const optionList = options[node.item.id] || [];
-    return getSelectedValueToText(value, langTools, optionList) || '';
+  renderSummaryBoilerplate(): boolean {
+    return false;
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'Likert'>): JSX.Element | null {
-    const displayData = this.useDisplayData(targetNode);
-    return <SummaryItemSimple formDataAsString={displayData} />;
+  getDisplayData(): string {
+    return '';
+  }
+
+  hierarchyGenerator(): ComponentHierarchyGenerator<'Likert'> {
+    return this._hierarchyGenerator;
+  }
+
+  runValidations(
+    node: LayoutNode,
+    ctx: ValidationDataSources,
+    schemaErrors: ISchemaValidationError[],
+  ): FormValidations {
+    return runAllValidations(node, ctx, schemaErrors);
+  }
+
+  // This component does not have empty field validation, so has to override its inherited method
+  runEmptyFieldValidation(): ComponentValidation[] {
+    return [];
+  }
+
+  isDataModelBindingsRequired(): boolean {
+    return true;
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Likert'>): string[] {
-    return this.validateDataModelBindingsSimple(ctx);
+    const [errors, result] = this.validateDataModelBindingsAny(ctx, 'Likert', ['array']);
+    if (errors) {
+      return errors;
+    }
+
+    if (result) {
+      const innerType = Array.isArray(result.items) ? result.items[0] : result.items;
+      if (!innerType || typeof innerType !== 'object' || !innerType.type || innerType.type !== 'object') {
+        return [`Likert-datamodellbindingen peker mot en ukjent type i datamodellen`];
+      }
+    }
+
+    return [];
   }
 }

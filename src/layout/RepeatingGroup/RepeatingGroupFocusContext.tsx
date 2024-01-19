@@ -3,7 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
-import { useRepeatingGroup } from 'src/layout/Group/RepeatingGroupContext';
+import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import type { ParentNode } from 'src/layout/layout';
 
 type FocusableHTMLElement = HTMLElement &

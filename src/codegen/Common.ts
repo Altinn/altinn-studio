@@ -144,6 +144,22 @@ const common = {
         'Describes the location in the data model where the component should store its value(s). A simple ' +
           'binding is used for components that only store a single value, usually a string.',
       ),
+  IDataModelBindingsLikertSimple: () =>
+    new CG.obj(
+      new CG.prop('simpleBinding', new CG.str()),
+      new CG.prop(
+        'questions',
+        new CG.str()
+          .setTitle('Qestions')
+          .setDescription('Dot notation location for a likert structure (array of objects), where the data is stored'),
+      ),
+    )
+      .setTitle('Data model binding')
+      .setDescription(
+        'Describes the location in the data model where the component should store its value(s). A list binding ' +
+          'should be pointed to an array structure in the data model, and is used for components that store multiple ' +
+          'simple values (e.g. a list of strings).',
+      ),
   IDataModelBindingsList: () =>
     new CG.obj(new CG.prop('list', new CG.str()))
       .setTitle('Data model binding')

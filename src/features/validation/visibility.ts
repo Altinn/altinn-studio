@@ -1,8 +1,7 @@
 import { getInitialMaskFromNode } from 'src/features/validation/utils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { CompGroupRepeatingInternal } from 'src/layout/Group/config.generated';
-import type { LayoutNodeForGroup } from 'src/layout/Group/LayoutNodeForGroup';
+import type { CompGroupRepeatingInternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export type Visibility = {
@@ -143,7 +142,7 @@ export function removeVisibilityForAttachment(attachmentId: string, node: Layout
 }
 
 export function onBeforeRowDelete(
-  groupNode: LayoutNodeForGroup<CompGroupRepeatingInternal>,
+  groupNode: BaseLayoutNode<CompGroupRepeatingInternal>,
   rowIndex: number,
   state: Visibility,
 ) {

@@ -1,7 +1,5 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import { groupIsRepeatingExt } from 'src/layout/Group/tools';
-
 const appFrontend = new AppFrontend();
 
 it('should be possible to hide rows when "Endre fra" is greater or equals to [...]', () => {
@@ -118,7 +116,7 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   cy.navPage('repeating (store endringer)').click();
   verifyNumCells();
   cy.interceptLayout('group', (c) => {
-    if (c.id === 'mainGroup2' && c.type === 'Group' && groupIsRepeatingExt(c)) {
+    if (c.id === 'mainGroup2' && c.type === 'RepeatingGroup') {
       c.tableColumns = undefined;
       c.tableHeaders = undefined;
     }
@@ -131,7 +129,7 @@ it('"save and next"-button should open row 3 when row 2 is hidden', () => {
   cy.goto('group');
   cy.get(appFrontend.nextButton).click();
   cy.changeLayout((c) => {
-    if (c.type === 'Group' && c.id === 'mainGroup' && groupIsRepeatingExt(c) && c.edit) {
+    if (c.type === 'RepeatingGroup' && c.id === 'mainGroup' && c.edit) {
       c.edit.saveAndNextButton = true;
     }
   });

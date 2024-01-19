@@ -172,8 +172,7 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
 
     if (
       this.parent instanceof BaseLayoutNode &&
-      this.parent.isType('Group') &&
-      this.parent.isRepGroup() &&
+      this.parent.isType('RepeatingGroup') &&
       typeof this.rowIndex === 'number'
     ) {
       const isHiddenRow = this.parent.item.rows[this.rowIndex]?.groupExpressions?.hiddenRow;
@@ -247,7 +246,7 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
       return dataModelPath;
     }
 
-    const currentLocationIsRepGroup = this.isType('Group') && this.isRepGroup();
+    const currentLocationIsRepGroup = this.isType('RepeatingGroup');
     return transposeDataBinding({
       subject: dataModelPath,
       currentLocation: firstBinding,
