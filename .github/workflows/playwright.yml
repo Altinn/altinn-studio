@@ -1,7 +1,7 @@
 name: Playwright Tests in Dev
 
 on:
-  push:
+  pull_request:
     branches:
       - master
     paths:
