@@ -436,7 +436,7 @@
               "type": "string"
             },
             "Postnr": {
-              "type": "string"
+              "type": "number"
             },
             "Poststed": {
               "type": "string"

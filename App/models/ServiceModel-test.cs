@@ -2085,7 +2085,7 @@ namespace Altinn.App.Models
         [XmlElement("Postnr", Order = 2)]
         [JsonProperty("Postnr")]
         [JsonPropertyName("Postnr")]
-        public string? Postnr { get; set; }
+        public decimal? Postnr { get; set; }
 
         [XmlElement("Poststed", Order = 3)]
         [JsonProperty("Poststed")]
