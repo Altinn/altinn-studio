@@ -21,7 +21,7 @@ export const Dynamics = () => {
   const conditionalRulesExist =
     (window as WindowWithRuleModel).conditionalRuleHandlerObject !== undefined;
 
-  const isUnknownInternalComponent: boolean =  form && !formItemConfigs[form.type];
+  const isUnknownInternalComponent: boolean = form && !formItemConfigs[form.type];
   if (isUnknownInternalComponent) {
     return <UnknownComponentAlert componentName={form.type} />;
   }
