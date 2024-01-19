@@ -454,19 +454,19 @@ describe('SchemaModel', () => {
         const { target, expectedNewPointer } = moveNodeTestData[parentNodeType];
         const { parentPointer, index } = target;
         const currentParent = model.getParentNode(simpleChildNodeMock.pointer);
-        const result = model.moveNode(simpleChildNodeMock.pointer, target);
+        const movedNode = model.moveNode(simpleChildNodeMock.pointer, target);
+        const setup = () => model.moveNode(stringNodeMock.pointer, target);
 
         it('Moves the node to the new parent', () => {
-          const movedNode = result.getNode(expectedNewPointer);
           expect(movedNode).toBeDefined();
           expect(movedNode).toEqual({ ...simpleChildNodeMock, pointer: expectedNewPointer });
-          expect(result.getParentNode(expectedNewPointer).pointer).toEqual(parentPointer);
+          expect(model.getParentNode(expectedNewPointer).pointer).toEqual(parentPointer);
         });
 
         it('Inserts the node at the correct index', () => {
-          const newParent = result.getNode(parentPointer) as FieldNode;
+          const newParent = model.getNode(parentPointer) as FieldNode;
           const childPointerAtExpectedIndex = newParent.children[index];
-          const childAtExpectedIndex = result.getNode(childPointerAtExpectedIndex);
+          const childAtExpectedIndex = model.getNode(childPointerAtExpectedIndex);
           expect(childAtExpectedIndex).toEqual({
             ...simpleChildNodeMock,
             pointer: childPointerAtExpectedIndex,
@@ -477,7 +477,10 @@ describe('SchemaModel', () => {
           expect(currentParent.children).not.toContain(simpleChildNodeMock.pointer);
         });
 
-        it('Keeps the model valid', () => validateTestUiSchema(result.asArray()));
+        it('Keeps the model valid', () => {
+          setup();
+          validateTestUiSchema(model.asArray())
+        });
       });
 
       describe.each(parentNodeTypes)(
@@ -493,9 +496,9 @@ describe('SchemaModel', () => {
           const setup = () => model.moveNode(currentPointerOfNodeToMove, target);
 
           it('Inserts the node at the correct index', () => {
-            const result = setup();
-            const updatedChildren = result.getChildNodes(parentPointer);
-            const updatedParent = result.getNode(parentPointer) as FieldNode | CombinationNode;
+            setup();
+            const updatedChildren = model.getChildNodes(parentPointer);
+            const updatedParent = model.getNode(parentPointer) as FieldNode | CombinationNode;
             const childAtExpectedIndex = updatedChildren[index];
             const childPointerAtExpectedIndex = updatedParent.children[index];
             expect(childAtExpectedIndex).toEqual({
@@ -505,12 +508,16 @@ describe('SchemaModel', () => {
           });
 
           it('Does not change the number of children', () => {
-            const result = setup();
-            const updatedChildren = result.getChildNodes(parentPointer);
+            setup();
+            const updatedChildren = model.getChildNodes(parentPointer);
             expect(updatedChildren.length).toBe(numberOfChildren);
           });
 
-          it('Keeps the model valid', () => validateTestUiSchema(setup().asArray()));
+          it('Keeps the model valid', () => {
+            setup();
+            validateTestUiSchema(
+            model.asArray())
+          });
         },
       );
     });
@@ -521,20 +528,20 @@ describe('SchemaModel', () => {
       const index = 1;
       const target: NodePosition = { parentPointer, index };
       const currentParent = model.getParentNode(stringNodeMock.pointer);
-      const result = model.moveNode(stringNodeMock.pointer, target);
+      const setup = () => model.moveNode(stringNodeMock.pointer, target);
 
-      it('Moves the node to the refererred object', () => {
+      it('Moves the node to the referred object', () => {
+        const movedNode = setup();
         const expectedNewPointer = '#/$defs/parentDef/properties/stringNode';
-        const movedNode = result.getNode(expectedNewPointer);
         expect(movedNode).toBeDefined();
         expect(movedNode).toEqual({ ...stringNodeMock, pointer: expectedNewPointer });
-        expect(result.getParentNode(expectedNewPointer).pointer).toEqual(parentPointer);
+        expect(model.getParentNode(expectedNewPointer).pointer).toEqual(parentPointer);
       });
 
       it('Inserts the node at the correct index', () => {
-        const newParent = result.getNode(parentPointer) as FieldNode;
+        const newParent = model.getNode(parentPointer) as FieldNode;
         const childPointerAtExpectedIndex = newParent.children[index];
-        const childAtExpectedIndex = result.getNode(childPointerAtExpectedIndex);
+        const childAtExpectedIndex = model.getNode(childPointerAtExpectedIndex);
         expect(childAtExpectedIndex).toEqual({
           ...stringNodeMock,
           pointer: childPointerAtExpectedIndex,
@@ -545,7 +552,10 @@ describe('SchemaModel', () => {
         expect(currentParent.children).not.toContain(stringNodeMock.pointer);
       });
 
-      it('Keeps the model valid', () => validateTestUiSchema(result.asArray()));
+      it('Keeps the model valid', () => {
+        setup();
+        validateTestUiSchema(model.asArray())
+      });
     });
 
     it('Throws an error and keeps the model unchanged when there is a node with same name in the target node', () => {
