@@ -103,7 +103,7 @@ export class DataModelPage extends BasePage {
   }
 
   public async checkThatDataModelOptionExists(option: string): Promise<void> {
-    await this.getDataModelOptionByName(option).isVisible();
+    await this.getOptionByName(option).isVisible();
   }
 
   public async clickOnDeleteDataModelButton(): Promise<void> {
@@ -115,7 +115,7 @@ export class DataModelPage extends BasePage {
   }
 
   public async checkThatDataModelOptionDoesNotExists(option: string): Promise<void> {
-    await this.getDataModelOptionByName(option).isHidden();
+    await this.getOptionByName(option).isHidden();
   }
 
   public async selectFileToUpload(fileName: string): Promise<void> {
@@ -126,7 +126,7 @@ export class DataModelPage extends BasePage {
   }
 
   public async getDataModelOptionValue(option: string): Promise<string> {
-    return await this.getDataModelOptionByName(option).getAttribute('value');
+    return await this.getOptionByName(option).getAttribute('value');
   }
 
   // Helper function to get the name field

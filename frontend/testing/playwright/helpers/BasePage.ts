@@ -60,7 +60,7 @@ export class BasePage extends RouterRoute {
   }
 
   // Helper function to get an option by the text key
-  public getDataModelOptionByName(name: string): Locator {
+  public getOptionByName(name: string): Locator {
     return this.page.getByRole('option', { name });
   }
 }
