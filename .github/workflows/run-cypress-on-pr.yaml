@@ -8,7 +8,7 @@ on:
       - '!frontend/stats/**'
       - 'backend/**'
       - '.github/workflows/run-cypress-on-pr.yaml'
-      - 'docker-compose.yml'
+      - 'compose.yaml'
       - 'Dockerfile'
       - 'gitea/**'
       - 'package.json'

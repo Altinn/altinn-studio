@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './MigrationStep.module.css';
 import { Alert, Paragraph, Label } from '@digdir/design-system-react';
-import { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
+import { NavigationBarPage } from '../../types/NavigationBarPage';
 import { LinkButton } from '../LinkButton';
 
 type MigrationStepProps = {
@@ -47,7 +47,7 @@ type MigrationStepProps = {
  * @property {function}[onNavigateToPageWithError] - Function that navigates to the page with error
  * @property {NavigationBarPage}[page] - Page to navigate to if there is an error
  *
- * @returns {React.ReactNode} - The rendered Migration Step with text and alert
+ * @returns {React.JSX.Element} - The rendered Migration Step with text and alert
  */
 export const MigrationStep = ({
   title,
@@ -55,7 +55,7 @@ export const MigrationStep = ({
   isSuccess,
   onNavigateToPageWithError,
   page,
-}: MigrationStepProps): React.ReactNode => {
+}: MigrationStepProps): React.JSX.Element => {
   const displayText = () => {
     if (!isSuccess) {
       const textArr = text.split('"');

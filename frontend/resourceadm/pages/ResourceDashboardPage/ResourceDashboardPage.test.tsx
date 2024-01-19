@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
@@ -9,6 +9,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient } from '@tanstack/react-query';
+import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
@@ -68,7 +69,7 @@ describe('ResourceDashBoardPage', () => {
     jest.clearAllMocks();
   });
   it('fetches resource list on mount', () => {
-    render();
+    renderResourceDashboardPage();
     expect(queriesMock.getResourceList).toHaveBeenCalledTimes(1);
   });
 
@@ -82,7 +83,7 @@ describe('ResourceDashBoardPage', () => {
         },
       ]),
     );
-    render({ getOrganizations });
+    renderResourceDashboardPage({ getOrganizations });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -92,7 +93,7 @@ describe('ResourceDashBoardPage', () => {
   });
 
   it('shows the loading state when page is loading', () => {
-    render();
+    renderResourceDashboardPage();
     expect(screen.getByTitle(textMock('resourceadm.dashboard_spinner'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
@@ -109,7 +110,7 @@ describe('ResourceDashBoardPage', () => {
     const getResourceList = jest
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
-    render({ getResourceList });
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -128,7 +129,7 @@ describe('ResourceDashBoardPage', () => {
     const getResourceList = jest
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
-    render({ getResourceList });
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -157,7 +158,7 @@ describe('ResourceDashBoardPage', () => {
     const getResourceList = jest
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
-    render({ getResourceList });
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -176,7 +177,7 @@ describe('ResourceDashBoardPage', () => {
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_create_modal_title'),
-        level: 1,
+        level: 2,
       }),
     ).toBeInTheDocument();
   });
@@ -186,7 +187,7 @@ describe('ResourceDashBoardPage', () => {
     const getResourceList = jest
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
-    render({ getResourceList });
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -205,7 +206,7 @@ describe('ResourceDashBoardPage', () => {
     const getResourceList = jest
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
-    render({ getResourceList });
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -220,7 +221,7 @@ describe('ResourceDashBoardPage', () => {
     const getResourceList = jest
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
-    render({ getResourceList });
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -238,13 +239,23 @@ describe('ResourceDashBoardPage', () => {
       screen.getByText(textMock('resourceadm.dashboard_no_resources_result')),
     ).toBeInTheDocument();
   });
+
+  it('should show access list button when feature is enabled', () => {
+    addFeatureFlagToLocalStorage('resourceAccessLists');
+
+    renderResourceDashboardPage();
+
+    expect(
+      screen.getByText(textMock('resourceadm.dashboard_change_organization_lists')),
+    ).toBeInTheDocument();
+  });
 });
 
-const render = (
+const renderResourceDashboardPage = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <ResourceDashboardPage />
