@@ -6,7 +6,7 @@ on:
       - master
     paths:
       - 'frontend/**'
-      - '.github/workflows/playwright.yml'
+      - '.githib/workflow/run-playwright-2-on-pr.yml' # - '.github/workflows/playwright.yml'
 
 jobs:
   playwright-run:
