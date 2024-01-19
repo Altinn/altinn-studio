@@ -13,13 +13,14 @@ jobs:
         with:
           node-version: 18
       - name: Install dependencies
+        working-directory: frontend/testing/playwright
         run: yarn
       - name: Install Playwright Browsers
         run: yarn playwright install --with-deps
       - name: Run Playwright tests
         run: yarn playwright-e2e
         env:
-          PLAYWRIGHT_TEST_BASE_URL: local
+          PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
       - uses: actions/upload-artifact@v3
         if: always()
         with:
