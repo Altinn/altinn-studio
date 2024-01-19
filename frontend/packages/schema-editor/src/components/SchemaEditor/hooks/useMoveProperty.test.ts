@@ -132,7 +132,7 @@ describe('useMoveProperty', () => {
     expect(save).toHaveBeenCalledTimes(0);
   });
 
-  it('Updates the selected node pointer if moving a node that is selected', () => {
+  it('Updates the selected node pointer if moving a node that is selected into an object', () => {
     const setSelectedNodePointerMock = jest.fn();
     const { move, save } = setup({ selectedNodePointer: fieldNode1Mock.pointer, setSelectedNodePointer: setSelectedNodePointerMock });
     const pointerOfNodeToMove = fieldNode1Mock.pointer;
