@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../hooks/useAppContext';
-import { StudioButton } from  '@studio/components';
+import { StudioButton } from '@studio/components';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();

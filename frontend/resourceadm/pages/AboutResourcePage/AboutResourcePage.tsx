@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { Heading } from '@digdir/design-system-react';
-import type { Translation } from 'resourceadm/types/Translation';
+import { Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Link } from 'react-router-dom';
+import type { Translation } from '../../types/Translation';
 import type {
   Resource,
   ResourceTypeOption,
@@ -17,7 +18,8 @@ import {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
-} from 'resourceadm/utils/resourceUtils/resourceUtils';
+  getAvailableEnvironments,
+} from '../../utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
   ResourceCheckboxGroup,
@@ -25,9 +27,12 @@ import {
   ResourceSwitchInput,
   ResourceTextField,
   ResourceRadioGroup,
-} from 'resourceadm/components/ResourcePageInputs';
-import { ResourceContactPointFields } from 'resourceadm/components/ResourceContactPointFields';
-import { ResourceReferenceFields } from 'resourceadm/components/ResourceReferenceFields';
+} from '../../components/ResourcePageInputs';
+import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
+import { getResourcePageURL } from '../../utils/urlUtils';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { useUrlParams } from '../../hooks/useSelectedContext';
+import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 
 export type AboutResourcePageProps = {
   showAllErrors: boolean;
@@ -45,15 +50,17 @@ export type AboutResourcePageProps = {
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
  * @property {string}[id] - The id of the page
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const AboutResourcePage = ({
   showAllErrors,
   resourceData,
   onSaveResource,
   id,
-}: AboutResourcePageProps): React.ReactNode => {
+}: AboutResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
+
+  const { resourceId, selectedContext, repo } = useUrlParams();
 
   /**
    * Resource type options
@@ -268,6 +275,43 @@ export const AboutResourcePage = ({
           descriptionId='isVisibleSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
+        {shouldDisplayFeature('resourceAccessLists') && (
+          <>
+            <ResourceSwitchInput
+              label={t('resourceadm.about_resource_limited_by_rrr_label')}
+              description={t('resourceadm.about_resource_limited_by_rrr_description')}
+              value={resourceData.limitedByRRR ?? false}
+              onFocus={() => setTranslationType('none')}
+              onBlur={(isChecked: boolean) =>
+                handleSave({ ...resourceData, limitedByRRR: isChecked })
+              }
+              id='limitedByRRRSwitch'
+              descriptionId='limitedByRRRSwitchSwitchDescription'
+              toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
+            />
+            {resourceData.limitedByRRR && (
+              <div>
+                {getAvailableEnvironments(selectedContext).map((env) => {
+                  return (
+                    <div key={env.id}>
+                      <DigdirLink
+                        as={Link}
+                        to={`${getResourcePageURL(
+                          selectedContext,
+                          repo,
+                          resourceId,
+                          'accesslists',
+                        )}/${env.id}/`}
+                      >
+                        {t('resourceadm.about_resource_edit_rrr', { env: t(env.label) })}
+                      </DigdirLink>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
       </>
     );
   };

@@ -1,9 +1,7 @@
 import React from 'react';
-import classes from './AltinnHeaderButton.module.css';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from '../altinnHeader/types';
+import { StudioButton } from '@studio/components';
 
 export interface AltinnHeaderButtonProps {
   action: AltinnButtonActionItem;
@@ -15,17 +13,17 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
   if (!action) return null;
 
   return (
-    <Link
+    <StudioButton
+      as='a'
       href={action.to}
-      className={cn(
-        classes.linkButton,
-        action.isInverted ? classes.invertedButton : classes.normalButton,
-      )}
       key={action.menuKey}
       data-testid={action.menuKey}
       aria-label={t(action.title)}
+      color={action.isInverted ? 'inverted' : 'first'}
+      variant='secondary'
+      size='small'
     >
       {t(action.title)}
-    </Link>
+    </StudioButton>
   );
 };

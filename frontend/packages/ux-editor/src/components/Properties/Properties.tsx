@@ -44,7 +44,7 @@ export const Properties = () => {
           <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>
             {t('right_menu.dynamics')}
           </Accordion.Header>
-          <Accordion.Content>{formId && <Dynamics formId={formId} />}</Accordion.Content>
+          <Accordion.Content>{formId && <Dynamics />}</Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>
           <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>

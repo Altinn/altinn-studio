@@ -96,7 +96,12 @@ export const TextEditor = ({
     <div className={classes.TextEditor}>
       <div className={classes.TextEditor__main}>
         <div className={classes.TextEditor__topRow}>
-          <StudioButton variant='primary' color='first' onClick={handleAddNewEntryClick} size='small'>
+          <StudioButton
+            variant='primary'
+            color='first'
+            onClick={handleAddNewEntryClick}
+            size='small'
+          >
             {t('text_editor.new_text')}
           </StudioButton>
           <div className={classes.filterAndSearch}>

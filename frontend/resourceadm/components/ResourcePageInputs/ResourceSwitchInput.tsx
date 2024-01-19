@@ -54,7 +54,7 @@ type ResourceSwitchInputProps = {
  * @property {string}[descriptionId] - The id of the description of the field
  * @property {string}[toggleTextTranslationKey] - The translation key to be put inside the translation function
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceSwitchInput = ({
   label,
@@ -65,7 +65,7 @@ export const ResourceSwitchInput = ({
   id,
   descriptionId,
   toggleTextTranslationKey,
-}: ResourceSwitchInputProps): React.ReactNode => {
+}: ResourceSwitchInputProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [isChecked, setIsChecked] = useState(value);
@@ -94,7 +94,7 @@ export const ResourceSwitchInput = ({
           className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}
         >
           {t(toggleTextTranslationKey, {
-            showText: isChecked
+            shouldText: isChecked
               ? t('resourceadm.switch_should')
               : t('resourceadm.switch_should_not'),
           })}

@@ -1,21 +1,23 @@
 import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { SearchField } from '@altinn/altinn-design-system';
 import classes from './App.module.css';
 import './App.css';
-import { Route, Routes } from 'react-router-dom';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
 import { StudioPageSpinner } from '@studio/components';
-import { ErrorMessage } from 'resourceadm/components/ErrorMessage';
-import { PageLayout } from 'resourceadm/pages/PageLayout';
-import { ResourcePage } from 'resourceadm/pages/ResourcePage';
-import { ResourceDashboardPage } from 'resourceadm/pages/ResourceDashboardPage';
+import { ErrorMessage } from '../components/ErrorMessage';
+import { ScreenReaderSpan } from '../components/ScreenReaderSpan';
+import { PageLayout } from '../pages/PageLayout';
+import { ResourcePage } from '../pages/ResourcePage';
+import { ResourceDashboardPage } from '../pages/ResourceDashboardPage';
 import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
-import { SearchField } from '@altinn/altinn-design-system';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
-import { useTranslation } from 'react-i18next';
+import { ListAdminPage } from '../pages/ListAdminPage';
+import { AccessListPage } from '../pages/AccessListPage';
 
-export const App = (): JSX.Element => {
+export const App = (): React.JSX.Element => {
   const { data: user, isError: isUserError } = useUserQuery();
   const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 
@@ -59,7 +61,15 @@ export const App = (): JSX.Element => {
         <Routes>
           <Route element={<PageLayout />}>
             <Route path={basePath} element={<ResourceDashboardPage />} />
-            <Route path={`${basePath}/resource/:resourceId/:pageType`} element={<ResourcePage />} />
+            <Route path={`${basePath}/accesslists/:env?`} element={<ListAdminPage />} />
+            <Route
+              path={`${basePath}/accesslists/:env/:accessListId`}
+              element={<AccessListPage />}
+            />
+            <Route
+              path={`${basePath}/resource/:resourceId/:pageType/:env?/:accessListId?`}
+              element={<ResourcePage />}
+            />
             <Route path='/' element={<ErrorPage />} />
             <Route path='/:selectedContext' element={<RedirectPage />} />
           </Route>

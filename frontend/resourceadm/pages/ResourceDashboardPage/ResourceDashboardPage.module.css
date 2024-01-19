@@ -29,7 +29,6 @@
 .componentWrapper {
   display: flex;
   flex-direction: column;
-  align-items: center;
   margin-block: var(--fds-spacing-5);
   padding-block: var(--fds-spacing-5);
 }
