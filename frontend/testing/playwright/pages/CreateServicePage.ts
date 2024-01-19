@@ -20,7 +20,9 @@ export class CreateServicePage extends BasePage {
   }
 
   public async clickOnCreateAppButton(): Promise<void> {
-    await this.page.getByRole('button', { name: this.textMock('dashboard.create_service_btn') }).click();
+    await this.page
+      .getByRole('button', { name: this.textMock('dashboard.create_service_btn') })
+      .click();
   }
 
   public async verifyIsNavigatedToOverviewPage(): Promise<void> {

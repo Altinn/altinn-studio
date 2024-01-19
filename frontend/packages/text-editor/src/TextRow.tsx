@@ -2,12 +2,7 @@ import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { UpsertTextResourceMutation } from './types';
 import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
-import {
-  ErrorMessage,
-  TableCell,
-  TableRow,
-  LegacyTextField,
-} from '@digdir/design-system-react';
+import { ErrorMessage, TableCell, TableRow, LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
 import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';

@@ -7,7 +7,8 @@ const persistFeatureKey = 'persistFeatureFlag';
 export type SupportedFeatureFlags =
   | 'componentConfigBeta'
   | 'configureLayoutSet'
-  | 'shouldOverrideAppLibCheck';
+  | 'shouldOverrideAppLibCheck'
+  | 'resourceAccessLists';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

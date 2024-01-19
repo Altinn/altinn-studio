@@ -1,4 +1,4 @@
-import { del, get, post, put } from 'app-shared/utils/networking';
+import { del, get, post, put, patch } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
   copyAppPath,
@@ -31,6 +31,10 @@ import {
   serviceConfigPath,
   importResourceFromAltinn2Path,
   processEditorPath,
+  accessListPath,
+  accessListsPath,
+  accessListMemberPath,
+  resourceAccessListPath,
 } from 'app-shared/api/paths';
 import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import { AddRepoParams } from 'app-shared/types/api';
@@ -47,7 +51,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
 import type { Policy } from '@altinn/policy-editor';
-import type { NewResource, Resource } from 'app-shared/types/ResourceAdm';
+import type { NewResource, AccessList, Resource, JsonPatch } from 'app-shared/types/ResourceAdm';
 import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { AppConfig } from 'app-shared/types/AppConfig';
 import { Repository } from 'app-shared/types/Repository';
@@ -95,6 +99,13 @@ export const upsertTextResources = (org: string, app: string, language: string, 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
 export const importResourceFromAltinn2 = (org: string, environment: string, serviceCode: string, serviceEdition: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, serviceCode, serviceEdition));
+export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(accessListsPath(org, environment), payload);
+export const updateAccessList = (org: string, listId: string, environment: string, payload: JsonPatch[]) => patch<AccessList>(accessListPath(org, listId, environment), payload);
+export const deleteAccessList = (org: string, listId: string, environment: string) => del(accessListPath(org, listId, environment));
+export const addAccessListMember = (org: string, listId: string, orgnr: string, environment: string) => post(accessListMemberPath(org, listId, orgnr, environment));
+export const removeAccessListMember = (org: string, listId: string, orgnr: string, environment: string) => del(accessListMemberPath(org, listId, orgnr, environment));
+export const addResourceAccessList = (org: string, resourceId: string, listId: string, environment: string) => post(resourceAccessListPath(org, resourceId, listId, environment));
+export const removeResourceAccessList = (org: string, resourceId: string, listId: string, environment: string) => del(resourceAccessListPath(org, resourceId, listId, environment));
 export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);

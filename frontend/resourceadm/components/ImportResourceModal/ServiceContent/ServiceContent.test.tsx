@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  render as rtlRender,
-  screen,
-  act,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { render, screen, act, waitForElementToBeRemoved } from '@testing-library/react';
 import { ServiceContent, ServiceContentProps } from './ServiceContent';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -39,19 +34,19 @@ describe('ServiceContent', () => {
   afterEach(jest.clearAllMocks);
 
   it('initially displays the spinner when loading data', () => {
-    render();
+    renderServiceContent();
 
     expect(screen.getByTitle(textMock('resourceadm.import_resource_spinner'))).toBeInTheDocument();
   });
 
   it('fetches getAltinn2LinkServices on mount', () => {
-    render();
+    renderServiceContent();
     expect(queriesMock.getAltinn2LinkServices).toHaveBeenCalledTimes(1);
   });
 
   it('shows an error message if an error occured on the "getAltinn2LinkServices" query', async () => {
     const errorMessage = 'error-message-test';
-    render(
+    renderServiceContent(
       {},
       {
         getAltinn2LinkServices: () => Promise.reject({ message: errorMessage }),
@@ -68,7 +63,7 @@ describe('ServiceContent', () => {
   });
 
   it('renders empty list state correctly', async () => {
-    render();
+    renderServiceContent();
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
@@ -113,13 +108,13 @@ const resolveAndWaitForSpinnerToDisappear = async (props: Partial<ServiceContent
     .fn()
     .mockImplementation(() => Promise.resolve(mockAltinn2LinkServices));
 
-  render(props, { getAltinn2LinkServices });
+  renderServiceContent(props, { getAltinn2LinkServices });
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
   );
 };
 
-const render = (
+const renderServiceContent = (
   props: Partial<ServiceContentProps> = {},
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
@@ -129,7 +124,7 @@ const render = (
     ...queries,
   };
 
-  return rtlRender(
+  return render(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <ServiceContent {...defaultProps} {...props} />
     </ServicesContextProvider>,

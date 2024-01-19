@@ -7,6 +7,7 @@ import { formContextProviderMock } from '../../testing/formContextMocks';
 import { Dynamics } from './Dynamics';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
+import { FormComponent } from '../../types/FormComponent';
 
 const user = userEvent.setup();
 
@@ -59,6 +60,18 @@ describe('Dynamics', () => {
     expect(screen.queryByTestId(expressionsTestId)).not.toBeInTheDocument();
     expect(screen.getByTestId(conditionalRenderingTestId)).toBeInTheDocument();
   });
+
+  it('should render unknown component alert when component is unknown for Studio', async () => {
+    const formType = 'randomUnknownComponent' as unknown as FormComponent;
+    await render({ form: { ...formContextProviderMock.form, type: formType } });
+    expect(
+      screen.getByText(
+        textMock('ux_editor.edit_component.unknown_component', {
+          componentName: formType,
+        }),
+      ),
+    );
+  });
 });
 
 const render = async (props: Partial<FormContext> = {}) => {
@@ -69,7 +82,7 @@ const render = async (props: Partial<FormContext> = {}) => {
         ...props,
       }}
     >
-      <Dynamics formId={'test'} />
+      <Dynamics />
     </FormContext.Provider>,
   );
 };

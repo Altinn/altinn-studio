@@ -66,4 +66,12 @@ describe('ResourceContent', () => {
     );
     expect(idInputAfter).toHaveValue(`${mockServiceName}-1`);
   });
+
+  it('should show conflict message if resource id exists', () => {
+    render(<ResourceContent {...defaultProps} resourceIdExists />);
+
+    expect(
+      screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
+    ).toBeInTheDocument();
+  });
 });
