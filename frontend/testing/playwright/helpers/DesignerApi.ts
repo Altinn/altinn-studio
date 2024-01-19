@@ -28,6 +28,11 @@ export class DesignerApi extends StudioEnvironment {
     const fs = require('fs');
     const jsonData = fs.readFileSync(storageState, 'utf-8');
     const formattedStorageState: StorageState = JSON.parse(jsonData);
+
+    console.log('------STORAGE STATE --------');
+    console.log('storagestate', formattedStorageState);
+    console.log('------STORAGE STATE --------');
+
     return formattedStorageState.cookies.find((cookie: Cookie) => cookie.name === 'XSRF-TOKEN')
       .value;
   }
