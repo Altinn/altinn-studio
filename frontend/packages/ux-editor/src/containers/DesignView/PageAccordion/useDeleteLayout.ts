@@ -6,6 +6,6 @@ import { useAppContext } from '../../../hooks/useAppContext';
 export const useDeleteLayout = () => {
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
-  const { mutate: deleteLayout } = useDeleteLayoutMutation(org, app, selectedLayoutSet);
-  return useMemo(() => deleteLayout, [deleteLayout]);
+  const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(org, app, selectedLayoutSet);
+  return useMemo(() => ({ deleteLayout, isPending }), [deleteLayout, isPending]);
 };

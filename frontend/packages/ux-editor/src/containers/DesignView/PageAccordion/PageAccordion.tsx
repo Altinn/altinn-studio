@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useEffect, useState } from 'react';
+import React, { ReactNode, useCallback } from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { Accordion } from '@digdir/design-system-react';
@@ -51,35 +51,17 @@ export const PageAccordion = ({
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const layoutOrder = formLayoutSettings?.pages.order;
 
-  const deleteLayout = useDeleteLayout();
+  const { deleteLayout, isPending } = useDeleteLayout();
 
-  const [isDeletionInProgress, setIsDeletionInProgress] = useState(false);
   const handleConfirmDelete = useCallback(() => {
-    if (!isDeletionInProgress) {
-      setIsDeletionInProgress(true);
-    }
-  }, [isDeletionInProgress]);
-  useEffect(() => {
-    const executeDeletion = async () => {
-      if (isDeletionInProgress && confirm(t('ux_editor.page_delete_text'))) {
-        deleteLayout(pageName);
-        if (selectedLayout === pageName) {
-          const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
-          setSearchParams({ layout: layoutToSelect });
-        }
+    if (confirm(t('ux_editor.page_delete_text'))) {
+      deleteLayout(pageName);
+      if (selectedLayout === pageName) {
+        const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
+        setSearchParams({ layout: layoutToSelect });
       }
-      setIsDeletionInProgress(false);
-    };
-    executeDeletion();
-  }, [
-    isDeletionInProgress,
-    deleteLayout,
-    layoutOrder,
-    pageName,
-    selectedLayout,
-    setSearchParams,
-    t,
-  ]);
+    }
+  }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
 
   return (
     <Accordion.Item
@@ -99,6 +81,7 @@ export const PageAccordion = ({
             title={t('general.delete_item', { item: pageName })}
             variant='tertiary'
             size='small'
+            disabled={isPending}
           />
         </div>
       </div>
