@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Popover } from '@mui/material';
 import classNames from 'classnames';
 import classes from './SyncModal.module.css';
-import { Button, LegacyTextArea } from '@digdir/design-system-react';
+import { LegacyTextArea } from '@digdir/design-system-react';
 import { SimpleContainer } from 'app-shared/primitives';
-import { StudioSpinner } from '@studio/components';
+import { StudioButton, StudioSpinner } from '@studio/components';
 
 export interface ISyncModalProps {
   anchorEl: Element;
@@ -91,7 +91,7 @@ export const SyncModal = ({
           />
         )}
         {btnText && (
-          <Button
+          <StudioButton
             variant='primary'
             color='first'
             className={classes.button}
@@ -100,7 +100,7 @@ export const SyncModal = ({
             size='small'
           >
             {btnText}
-          </Button>
+          </StudioButton>
         )}
       </SimpleContainer>
     </Popover>

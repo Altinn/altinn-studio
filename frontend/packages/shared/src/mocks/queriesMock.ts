@@ -13,6 +13,10 @@ import { OrgsState } from 'app-shared/types/OrgsState';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
 import { Repository } from 'app-shared/types/Repository';
 import {
+  AccessList,
+  AccessListResourceLink,
+  BrregPartySearchResult,
+  BrregSubPartySearchResult,
   Resource,
   ResourceListItem,
   ResourceVersionStatus,
@@ -140,6 +144,15 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<ResourceVersionStatus>(resourceVersionStatus)),
   getValidatePolicy: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
   getValidateResource: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
+  getAccessLists: jest.fn().mockImplementation(() => Promise.resolve<AccessList[]>([])),
+  getAccessList: jest.fn().mockImplementation(() => Promise.resolve<AccessList>(null)),
+  getResourceAccessLists: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AccessListResourceLink[]>([])),
+  getParties: jest.fn().mockImplementation(() => Promise.resolve<BrregPartySearchResult>(null)),
+  getSubParties: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<BrregSubPartySearchResult>(null)),
 
   // Queries - PrgetBpmnFile
   getAppLibVersion: jest
@@ -195,6 +208,13 @@ export const queriesMock: ServicesContextProps = {
   publishResource: jest.fn().mockImplementation(() => Promise.resolve()),
   updatePolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateResource: jest.fn().mockImplementation(() => Promise.resolve()),
+  createAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
+  addAccessListMember: jest.fn().mockImplementation(() => Promise.resolve()),
+  removeAccessListMember: jest.fn().mockImplementation(() => Promise.resolve()),
+  addResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
+  removeResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),

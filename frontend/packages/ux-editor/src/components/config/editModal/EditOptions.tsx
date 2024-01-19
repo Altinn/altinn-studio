@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Button, Fieldset, Radio, Textfield } from '@digdir/design-system-react';
+import { Fieldset, Radio, Textfield } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -14,6 +14,8 @@ import type {
 } from '../../../types/FormComponent';
 import { ErrorMessage } from '@digdir/design-system-react';
 import { FormField } from '../../FormField';
+import { StudioButton } from '@studio/components';
+
 export interface ISelectionEditComponentProvidedProps
   extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
   renderOptions?: {
@@ -162,7 +164,7 @@ export function EditOptions({
                       </Fieldset>
                     </div>
                     <div>
-                      <Button
+                      <StudioButton
                         color='danger'
                         icon={<XMarkIcon />}
                         onClick={removeItem}
@@ -180,7 +182,7 @@ export function EditOptions({
 
       {selectedOptionsType === SelectedOptionsType.Manual && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <Button
+          <StudioButton
             disabled={component.options?.some(({ label }) => !label)}
             fullWidth
             icon={<PlusIcon />}
@@ -189,7 +191,7 @@ export function EditOptions({
             size='small'
           >
             {t('ux_editor.modal_new_option')}
-          </Button>
+          </StudioButton>
         </div>
       )}
       {errorMessage && <ErrorMessage size='small'>{errorMessage}</ErrorMessage>}

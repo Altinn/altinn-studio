@@ -64,7 +64,7 @@ type ResourceTextFieldProps = {
  * @property {boolean}[showErrorMessage] - Flag for if the error message should be shown
  * @property {string}[errorText] - The text to be shown
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldProps>(
   (
@@ -81,7 +81,7 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
       errorText,
     },
     ref,
-  ): React.ReactNode => {
+  ): React.JSX.Element => {
     const [val, setVal] = useState(value);
 
     return (

@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
-import classes from './NewResourceModal.module.css';
-import { Button } from '@digdir/design-system-react';
-import { Modal } from '../Modal';
-import { ResourceNameAndId } from '../ResourceNameAndId';
-import { useCreateResourceMutation } from 'resourceadm/hooks/mutations';
+import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Paragraph, Modal } from '@digdir/design-system-react';
+import { ResourceNameAndId } from '../ResourceNameAndId';
+import { useCreateResourceMutation } from '../../hooks/mutations';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
-import { replaceWhiteSpaceWithHyphens } from 'resourceadm/utils/stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useSelectedContext';
+import { StudioButton } from '@studio/components';
 
 export type NewResourceModalProps = {
-  isOpen: boolean;
   onClose: () => void;
 };
 
@@ -21,142 +18,99 @@ export type NewResourceModalProps = {
  * @component
  *    Displays the modal telling the user that there is a merge conflict
  *
- * @property {boolean}[isOpen] - Boolean for if the modal is open
  * @property {function}[onClose] - Function to handle close
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const NewResourceModal = ({ isOpen, onClose }: NewResourceModalProps): React.ReactNode => {
-  const { t } = useTranslation();
+export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalProps>(
+  ({ onClose }, ref): React.JSX.Element => {
+    const { t } = useTranslation();
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  const { selectedContext, repo } = useUrlParams();
+    const { selectedContext, repo } = useUrlParams();
 
-  const [id, setId] = useState('');
-  const [title, setTitle] = useState('');
-  const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
-  const [resourceIdExists, setResourceIdExists] = useState(false);
-  const [bothFieldsHaveSameValue, setBothFieldsHaveSameValue] = useState(true);
+    const [id, setId] = useState('');
+    const [title, setTitle] = useState('');
+    const [resourceIdExists, setResourceIdExists] = useState(false);
 
-  // Mutation function to create new resource
-  const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
+    // Mutation function to create new resource
+    const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
 
-  /**
-   * Creates a new resource in backend, and navigates if success
-   */
-  const handleCreateNewResource = () => {
-    const idAndTitle: NewResource = {
-      identifier: id,
-      title: {
-        nb: title,
-        nn: '',
-        en: '',
-      },
+    /**
+     * Creates a new resource in backend, and navigates if success
+     */
+    const handleCreateNewResource = () => {
+      const idAndTitle: NewResource = {
+        identifier: id,
+        title: {
+          nb: title,
+          nn: '',
+          en: '',
+        },
+      };
+
+      createNewResource(idAndTitle, {
+        onSuccess: () =>
+          navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+        onError: (error: any) => {
+          if (error.response.status === ServerCodes.Conflict) {
+            setResourceIdExists(true);
+          }
+        },
+      });
     };
 
-    createNewResource(idAndTitle, {
-      onSuccess: () =>
-        navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
-      onError: (error: any) => {
-        if (error.response.status === ServerCodes.Conflict) {
-          setResourceIdExists(true);
-          setEditIdFieldOpen(true);
-        }
-      },
-    });
-  };
+    /**
+     * Closes the modal and resets the fields
+     */
+    const handleClose = () => {
+      onClose();
+      setId('');
+      setTitle('');
+      setResourceIdExists(false);
+    };
 
-  /**
-   * Replaces the spaces in the value typed with '-'.
-   */
-  const handleIDInput = (val: string) => {
-    setId(replaceWhiteSpaceWithHyphens(val));
-    setResourceIdExists(false);
-  };
+    return (
+      <Modal ref={ref} onClose={handleClose}>
+        <Modal.Header>{t('resourceadm.dashboard_create_modal_title')}</Modal.Header>
+        <Modal.Content>
+          <Paragraph size='small'>
+            {t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
+          </Paragraph>
+          <ResourceNameAndId
+            idLabel={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+            titleLabel={t('resourceadm.dashboard_resource_name_and_id_resource_name')}
+            id={id}
+            title={title}
+            onIdChange={(newId: string) => {
+              setResourceIdExists(false);
+              setId(newId);
+            }}
+            onTitleChange={(newTitle: string) => setTitle(newTitle)}
+            conflictErrorMessage={
+              resourceIdExists ? t('resourceadm.dashboard_resource_name_and_id_error') : ''
+            }
+          />
+        </Modal.Content>
+        <Modal.Footer>
+          <StudioButton
+            onClick={() =>
+              !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
+            }
+            color='first'
+            aria-disabled={id.length === 0 || title.length === 0}
+            size='small'
+          >
+            {t('resourceadm.dashboard_create_modal_create_button')}
+          </StudioButton>
+          <StudioButton onClick={handleClose} color='first' variant='tertiary' size='small'>
+            {t('general.cancel')}
+          </StudioButton>
+        </Modal.Footer>
+      </Modal>
+    );
+  },
+);
 
-  /**
-   * Updates the value of the title. If the edit field is not open,
-   * then it updates the ID to the same as the title.
-   *
-   * @param val the title value typed
-   */
-  const handleEditTitle = (val: string) => {
-    if (!editIdFieldOpen && bothFieldsHaveSameValue) {
-      setId(replaceWhiteSpaceWithHyphens(val));
-    }
-    setTitle(val);
-  };
-
-  /**
-   * Handles the click of the edit button. If we click the edit button
-   * so that it closes the edit field, the id is set to the title.
-   *
-   * @param isOpened the value of the button when it is pressed
-   * @param saveChanges if the save button is pressed, keep id and title separate
-   */
-  const handleClickEditButton = (isOpened: boolean, saveChanges: boolean) => {
-    setEditIdFieldOpen(isOpened);
-    if (saveChanges) {
-      setBothFieldsHaveSameValue(false);
-      return;
-    }
-    if (!isOpened) {
-      setBothFieldsHaveSameValue(true);
-      const shouldSetTitleToId = title !== id;
-      if (shouldSetTitleToId) {
-        setId(replaceWhiteSpaceWithHyphens(title));
-      }
-    }
-  };
-
-  /**
-   * Closes the modal and resets the fields
-   */
-  const handleClose = () => {
-    onClose();
-    setId('');
-    setTitle('');
-    setEditIdFieldOpen(false);
-    setResourceIdExists(false);
-  };
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title={t('resourceadm.dashboard_create_modal_title')}
-      contentClassName={classes.contentWidth}
-    >
-      <ResourceNameAndId
-        isEditOpen={editIdFieldOpen}
-        title={title}
-        text={t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
-        id={id}
-        handleEditTitle={handleEditTitle}
-        handleIdInput={handleIDInput}
-        handleClickEditButton={(saveChanges: boolean) =>
-          handleClickEditButton(!editIdFieldOpen, saveChanges)
-        }
-        resourceIdExists={resourceIdExists}
-        bothFieldsHaveSameValue={bothFieldsHaveSameValue}
-        className={classes.resourceNameAndId}
-      />
-      <div className={classes.buttonWrapper}>
-        <Button onClick={onClose} color='first' variant='tertiary' size='small'>
-          {t('general.cancel')}
-        </Button>
-        <Button
-          onClick={() =>
-            !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
-          }
-          color='first'
-          aria-disabled={id.length === 0 || title.length === 0}
-          size='small'
-        >
-          {t('resourceadm.dashboard_create_modal_create_button')}
-        </Button>
-      </div>
-    </Modal>
-  );
-};
+NewResourceModal.displayName = 'NewResourceModal';

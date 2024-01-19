@@ -4,11 +4,12 @@ import { datamodelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
-import { Button, LegacyTextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { InformationSquareFillIcon } from '@studio/icons';
+import { StudioButton } from '@studio/components';
 
 export interface ICloneModalProps {
   anchorEl: Element;
@@ -55,9 +56,9 @@ export const CloneModal = (props: ICloneModalProps) => {
           <LegacyTextField id='repository-url-form' value={gitUrl} readOnly />
         </>
         {canCopy && (
-          <Button onClick={copyGitUrl} id='copy-repository-url-button' size='small'>
+          <StudioButton onClick={copyGitUrl} id='copy-repository-url-button' size='small'>
             {t('sync_header.clone_https_button')}
-          </Button>
+          </StudioButton>
         )}
       </SimpleContainer>
     </Popover>

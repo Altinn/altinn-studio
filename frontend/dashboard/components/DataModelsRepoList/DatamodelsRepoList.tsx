@@ -10,6 +10,7 @@ import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
+import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 
 type DataModelsReposListProps = {
   user: User;
@@ -50,6 +51,7 @@ export const DatamodelsReposList = ({ user, organizations }: DataModelsReposList
         repos={reposWithStarred}
         isLoading={isPendingOrgRepos || areStarredReposPending}
         rowCount={2}
+        pageSizeOptions={[DATAGRID_DEFAULT_PAGE_SIZE]}
       />
     </div>
   );

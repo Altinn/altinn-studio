@@ -1,8 +1,8 @@
 import React from 'react';
 import classes from './VerificationModal.module.css';
-import { Button, Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { StudioModal } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 
 export type VerificationModalProps = {
   isOpen: boolean;
@@ -53,13 +53,13 @@ export const VerificationModal = ({
         <Paragraph size='small'>{text}</Paragraph>
         <div className={classes.buttonWrapper}>
           <div className={classes.closeButtonWrapper}>
-            <Button onClick={onClose} variant='tertiary' size='small'>
+            <StudioButton onClick={onClose} variant='tertiary' size='small'>
               {closeButtonText}
-            </Button>
+            </StudioButton>
           </div>
-          <Button onClick={onPerformAction} color='danger' size='small'>
+          <StudioButton onClick={onPerformAction} color='danger' size='small'>
             {actionButtonText}
-          </Button>
+          </StudioButton>
         </div>
       </div>
     </StudioModal>

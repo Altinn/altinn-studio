@@ -6,7 +6,7 @@ import {
   mapKeywordStringToKeywordTypeArray,
 } from './resourceUtils';
 import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
-import { TestFlaskIcon } from '@navikt/aksel-icons';
+import { TestFlaskIcon } from '@studio/icons';
 import React from 'react';
 import { SupportedLanguage } from 'app-shared/types/ResourceAdm';
 

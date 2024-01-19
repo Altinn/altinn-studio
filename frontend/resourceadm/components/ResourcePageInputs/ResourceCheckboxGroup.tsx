@@ -50,7 +50,7 @@ type ResourceCheckboxGroupProps = {
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {string[]}[value] - The selected options
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceCheckboxGroup = ({
   options,
@@ -60,7 +60,7 @@ export const ResourceCheckboxGroup = ({
   onFocus,
   onChange,
   value,
-}: ResourceCheckboxGroupProps): React.ReactNode => {
+}: ResourceCheckboxGroupProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const displayAvailableForCheckboxes = () => {

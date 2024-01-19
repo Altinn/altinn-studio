@@ -1,0 +1,20 @@
+﻿.unknownReferencedItem {
+  background-color: var(--fds-semantic-surface-danger-subtle);
+  border-left: 2px solid var(--fds-semantic-surface-danger-active);
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 var(--fds-sizing-3);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.helpText {
+  width: 20px;
+  height: 20px;
+}

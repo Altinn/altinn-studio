@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { UploadIcon, XMarkIcon } from '@navikt/aksel-icons';
 import classes from './ShareChangesButton.module.css';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +35,7 @@ export const ShareChangesButton = ({
   };
 
   return (
-    <Button
+    <StudioButton
       className={classes.button}
       color='inverted'
       disabled={!hasPushRight}
@@ -47,6 +47,6 @@ export const ShareChangesButton = ({
     >
       {renderCorrectText()}
       {displayNotification && <Notification numChanges={1} />}
-    </Button>
+    </StudioButton>
   );
 };

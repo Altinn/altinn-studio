@@ -3,6 +3,7 @@ import { LangSelector } from './LangSelector';
 import type { ILangSelectorProps } from './LangSelector';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { textMock } from '../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -26,7 +27,7 @@ it('fires onAddLang when add button is clicked', async () => {
   });
 
   const addBtn = screen.getByRole('button', {
-    name: /legg til/i,
+    name: textMock('general.add'),
   });
   expect(addBtn).toBeDisabled();
   const select = screen.getByRole('combobox');

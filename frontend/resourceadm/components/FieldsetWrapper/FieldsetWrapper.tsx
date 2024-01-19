@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Modal } from '@digdir/design-system-react';
+import { Modal } from '@digdir/design-system-react';
 import classes from './FieldsetWrapper.module.css';
+import { StudioButton } from '@studio/components';
 
 const DELETE_ID_NOT_SET = -1;
 
@@ -35,7 +36,7 @@ export type FieldsetWrapperProps<T> = {
    * @param listItem the list item to render
    * @param onChange function to call when item is changed. Call this function from child fieldset render on change
    */
-  renderItem: (listItem: T, onChange: (item: T) => void) => React.ReactNode;
+  renderItem: (listItem: T, onChange: (item: T) => void) => React.JSX.Element;
 };
 
 /**
@@ -48,7 +49,7 @@ export type FieldsetWrapperProps<T> = {
  * @property {T}[emptyItem] - List object where all values are default values
  * @property {function}[renderItem] - Render function for rendering a list item.
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const FieldsetWrapper = <T,>({
   list,
@@ -56,12 +57,12 @@ export const FieldsetWrapper = <T,>({
   emptyItem,
   translations,
   renderItem,
-}: FieldsetWrapperProps<T>): React.ReactNode => {
+}: FieldsetWrapperProps<T>): React.JSX.Element => {
   const { t } = useTranslation();
   const deleteModalRef = useRef<HTMLDialogElement>(null);
 
   const [deleteId, setDeleteId] = useState<number>(DELETE_ID_NOT_SET);
-  const [listItems, setListItems] = useState<T[]>(list ?? [emptyItem]);
+  const [listItems, setListItems] = useState<T[]>(list?.length ? list : [emptyItem]);
 
   /**
    * Adds a new empty list item to the list
@@ -111,7 +112,7 @@ export const FieldsetWrapper = <T,>({
         onChangeListItemField(item, pos);
       })}
       <div className={classes.buttonWrapper}>
-        <Button
+        <StudioButton
           size='small'
           color='danger'
           aria-disabled={listItems.length < 2}
@@ -123,7 +124,7 @@ export const FieldsetWrapper = <T,>({
           }}
         >
           {t(translations.deleteButton)}
-        </Button>
+        </StudioButton>
       </div>
     </div>
   ));
@@ -134,19 +135,19 @@ export const FieldsetWrapper = <T,>({
         <Modal.Header>{t(translations.deleteHeader)}</Modal.Header>
         <Modal.Content>{t(translations.deleteConfirmation)}</Modal.Content>
         <Modal.Footer>
-          <Button color='danger' size='small' onClick={handleClickRemoveButton}>
+          <StudioButton color='danger' size='small' onClick={handleClickRemoveButton}>
             {t(translations.deleteConfirmationButton)}
-          </Button>
-          <Button size='small' variant='tertiary' onClick={onCloseDeleteModal}>
+          </StudioButton>
+          <StudioButton size='small' variant='tertiary' onClick={onCloseDeleteModal}>
             {t('general.cancel')}
-          </Button>
+          </StudioButton>
         </Modal.Footer>
       </Modal>
       <div className={classes.divider} />
       {displayFields}
-      <Button size='small' onClick={handleClickAddButton}>
+      <StudioButton size='small' onClick={handleClickAddButton}>
         {t(translations.addButton)}
-      </Button>
+      </StudioButton>
     </>
   );
 };

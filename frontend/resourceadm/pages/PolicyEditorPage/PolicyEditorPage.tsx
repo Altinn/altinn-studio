@@ -7,14 +7,14 @@ import {
 } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
 import { Spinner, Heading } from '@digdir/design-system-react';
-import { useResourcePolicyQuery } from 'resourceadm/hooks/queries';
-import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
+import { useResourcePolicyQuery } from '../../hooks/queries';
+import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import {
   useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
 export type PolicyEditorPageProps = {
   showAllErrors: boolean;
@@ -28,9 +28,12 @@ export type PolicyEditorPageProps = {
  * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
  * @property {string}[id] - The id of the page
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const PolicyEditorPage = ({ showAllErrors, id }: PolicyEditorPageProps): React.ReactNode => {
+export const PolicyEditorPage = ({
+  showAllErrors,
+  id,
+}: PolicyEditorPageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { resourceId, selectedContext, repo } = useUrlParams();
