@@ -10,7 +10,7 @@ on:
 
 jobs:
   playwright-run:
-    name: 'Playwright Tests'
+    name: 'Playwright Tests - 2'
     runs-on: ubuntu-latest
 
     steps:
@@ -49,14 +49,15 @@ jobs:
         shell: bash
 
       - name: Playwright run
-        with:
-          install: false
-          working-directory: frontend/testing/playwright
-          env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }},accessToken=${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
-          spec: src/integration/studio/*.js
-          record: true
-          parallel: false
+        run: |
+          yarn install --immutable --inline-builds
+          yarn playwright install --with-deps
+          yarn setup:playwright
+          yarn playwright:test:all
         env:
+          environment: dev
+          autoTestUserPwd: ${{ secrets.AUTO_TEST_USER_PWD }}
+          accessToken: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Store artifacts
