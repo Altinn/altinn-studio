@@ -44,10 +44,6 @@ jobs:
         run: |
           node ./development/setup.js
 
-      - name: Run setup.js script
-        run: |
-          node frontend/testing/playwright/scripts/setup.js
-
       - name: Playwright run
         working-directory: frontend/testing/playwright
         env:
@@ -55,6 +51,7 @@ jobs:
         run: |
           yarn
           yarn playwright install --with-deps
+          yarn setup:playwright
           yarn playwright:test:all
 
       - name: Stop compose file
