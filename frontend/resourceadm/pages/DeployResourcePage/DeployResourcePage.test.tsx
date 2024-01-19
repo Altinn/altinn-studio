@@ -1,17 +1,12 @@
 import React from 'react';
-import {
-  act,
-  render as rtlRender,
-  screen,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { act, render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeployResourcePage, DeployResourcePageProps } from './DeployResourcePage';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import { usePublishResourceMutation } from 'resourceadm/hooks/mutations';
+import { usePublishResourceMutation } from '../../hooks/mutations';
 import { RepoStatus } from 'app-shared/types/RepoStatus';
 import { Validation } from 'app-shared/types/ResourceAdm';
 import userEvent from '@testing-library/user-event';
@@ -72,28 +67,28 @@ describe('DeployResourcePage', () => {
   afterEach(jest.clearAllMocks);
 
   it('initially displays the spinner when loading data', () => {
-    render();
+    renderDeployResourcePage();
 
     expect(screen.getByTitle(textMock('resourceadm.deploy_spinner'))).toBeInTheDocument();
   });
 
   it('fetches repo status data on mount', () => {
-    render();
+    renderDeployResourcePage();
     expect(queriesMock.getRepoStatus).toHaveBeenCalledTimes(1);
   });
 
   it('fetches resource publish status data on mount', () => {
-    render();
+    renderDeployResourcePage();
     expect(queriesMock.getResourcePublishStatus).toHaveBeenCalledTimes(1);
   });
 
   it('fetches validates policy on mount', () => {
-    render();
+    renderDeployResourcePage();
     expect(queriesMock.getValidatePolicy).toHaveBeenCalledTimes(1);
   });
 
   it('fetches validates resource on mount', () => {
-    render();
+    renderDeployResourcePage();
     expect(queriesMock.getValidateResource).toHaveBeenCalledTimes(1);
   });
 
@@ -101,7 +96,7 @@ describe('DeployResourcePage', () => {
     'shows a page error message if an error occured on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
-      render({
+      renderDeployResourcePage({
         [queryName]: () => Promise.reject({ message: errorMessage }),
       });
 
@@ -367,7 +362,7 @@ const resolveAndWaitForSpinnerToDisappear = async (
   queries: Partial<ServicesContextProps> = {},
   props: Partial<DeployResourcePageProps> = {},
 ) => {
-  render(
+  renderDeployResourcePage(
     {
       ...queries,
     },
@@ -378,7 +373,7 @@ const resolveAndWaitForSpinnerToDisappear = async (
   );
 };
 
-const render = (
+const renderDeployResourcePage = (
   queries: Partial<ServicesContextProps> = {},
   props: Partial<DeployResourcePageProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
@@ -386,7 +381,7 @@ const render = (
   const allQueries = {
     ...queries,
   };
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...queriesMock} {...allQueries} client={queryClient}>
         <DeployResourcePage {...defaultProps} {...props} />

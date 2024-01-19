@@ -59,7 +59,7 @@ type ResourceRadioGroupProps = {
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {string}[errorText] - The error text to be shown
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceRadioGroup = ({
   spacingTop = false,
@@ -71,7 +71,7 @@ export const ResourceRadioGroup = ({
   onFocus,
   onBlur,
   errorText,
-}: ResourceRadioGroupProps): React.ReactNode => {
+}: ResourceRadioGroupProps): React.JSX.Element => {
   const [selected, setSelected] = useState(value);
 
   const handleChangeInput = (val: string) => {

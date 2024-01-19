@@ -85,14 +85,14 @@ type ResourceReferenceFieldsetProps = {
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - If errors should be shown or not
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceReferenceFieldset = ({
   resourceReference,
   onChangeResourceReferenceField,
   onFocus,
   showErrors,
-}: ResourceReferenceFieldsetProps): React.ReactNode => {
+}: ResourceReferenceFieldsetProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [referenceSource, setReferenceSource] = useState<ResourceReferenceSource>(

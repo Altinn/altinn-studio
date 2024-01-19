@@ -4,12 +4,13 @@ import { ConditionalRendering } from './ConditionalRendering';
 import { Expressions } from '../config/Expressions';
 import { useText } from '../../hooks';
 import { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
+import { useFormContext } from '../../containers/FormContext';
+import { formItemConfigs } from '../../data/formItemConfig';
+import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
-interface DynamicsProps {
-  formId: string;
-}
+export const Dynamics = () => {
+  const { formId, form } = useFormContext();
 
-export const Dynamics = ({ formId }: DynamicsProps) => {
   const [showOldExpressions, setShowOldExpressions] = useState<boolean>(false);
   const t = useText();
 
@@ -19,6 +20,11 @@ export const Dynamics = ({ formId }: DynamicsProps) => {
 
   const conditionalRulesExist =
     (window as WindowWithRuleModel).conditionalRuleHandlerObject !== undefined;
+
+  const isUnknownInternalComponent: boolean =  form && !formItemConfigs[form.type];
+  if (isUnknownInternalComponent) {
+    return <UnknownComponentAlert componentName={form.type} />;
+  }
 
   return (
     <>

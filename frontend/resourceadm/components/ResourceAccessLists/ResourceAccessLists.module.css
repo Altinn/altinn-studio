@@ -1,0 +1,14 @@
+.resourceAccessListsWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  margin: 1rem;
+}
+
+.listCheckboxWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}

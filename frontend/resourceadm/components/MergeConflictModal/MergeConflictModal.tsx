@@ -37,14 +37,14 @@ type MergeConflictModalProps = {
  * @property {string}[org] - The name of the organisation
  * @property {string}[repo] - The name of the repo
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const MergeConflictModal = ({
   isOpen,
   handleSolveMerge,
   org,
   repo,
-}: MergeConflictModalProps): React.ReactNode => {
+}: MergeConflictModalProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [resetModalOpen, setResetModalOpen] = useState(false);

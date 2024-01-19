@@ -4,9 +4,10 @@ import {
   component2Id,
   component3Id,
 } from '../../testing/layoutWithMultiPageGroupMocks';
-import { internalLayoutToExternal } from './internalLayoutToExternal';
+import { getComponentIdWithPageIndex, internalLayoutToExternal } from './internalLayoutToExternal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ExternalComponent } from 'app-shared/types/api';
+import { layoutMock } from "../../testing/layoutMock";
 
 describe('internalLayoutToExternal', () => {
   const result = internalLayoutToExternal(internalLayoutWithMultiPageGroup);
@@ -63,6 +64,12 @@ describe('internalLayoutToExternal', () => {
       expect(container.children).toEqual(expectedChildrenIds);
     });
   });
+
+  it('should return component id when component reference is invalid', () => {
+     const result = getComponentIdWithPageIndex(layoutMock, 'unknownComponentId');
+     expect(result).toBe('unknownComponentId');
+  });
+
 
   it('Includes custom root properties', () => {
     expect(result).toEqual(

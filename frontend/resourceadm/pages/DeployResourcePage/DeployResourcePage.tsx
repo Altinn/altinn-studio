@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classes from './DeployResourcePage.module.css';
-import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
-import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
+import { ResourceDeployStatus } from '../../components/ResourceDeployStatus';
+import { ResourceDeployEnvCard } from '../../components/ResourceDeployEnvCard';
 import {
   Textfield,
   Spinner,
@@ -12,19 +12,20 @@ import {
   Alert,
   ErrorMessage,
 } from '@digdir/design-system-react';
-import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
-import type { DeployError } from 'resourceadm/types/DeployError';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
+import type { DeployError } from '../../types/DeployError';
 import {
   useResourcePolicyPublishStatusQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
-} from 'resourceadm/hooks/queries';
+} from '../../hooks/queries';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
-import { usePublishResourceMutation } from 'resourceadm/hooks/mutations';
+import { usePublishResourceMutation } from '../../hooks/mutations';
 import { toast } from 'react-toastify';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useSelectedContext';
+import { EnvId, EnvType, getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -42,14 +43,14 @@ export type DeployResourcePageProps = {
  * @property {function}[onSaveVersion] - Saves the version to backend
  * @property {string}[id] - The id of the page
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const DeployResourcePage = ({
   navigateToPageWithError,
   resourceVersionText,
   onSaveVersion,
   id,
-}: DeployResourcePageProps): React.ReactNode => {
+}: DeployResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { selectedContext, repo, resourceId } = useUrlParams();
@@ -82,7 +83,7 @@ export const DeployResourcePage = ({
   const { mutate: publishResource, isPending: publisingResourcePending } =
     usePublishResourceMutation(selectedContext, repo, resourceId);
 
-  const handlePublish = (env: 'tt02' | 'prod' | 'at22' | 'at23') => {
+  const handlePublish = (env: EnvId) => {
     setEnvPublishedTo(env);
     publishResource(env, {
       onSuccess: () => {
@@ -208,7 +209,7 @@ export const DeployResourcePage = ({
    *
    * @returns a boolean for if it is possible
    */
-  const isDeployPossible = (type: 'test' | 'prod', envVersion: string): boolean => {
+  const isDeployPossible = (type: EnvType, envVersion: string): boolean => {
     const policyError = validatePolicyData === undefined || validatePolicyData.status === 400;
 
     if (
@@ -258,18 +259,12 @@ export const DeployResourcePage = ({
         );
       }
       case 'success': {
-        const tt02Version: string =
-          publishStatusData.publishedVersions.find((v) => v.environment === 'tt02')?.version ??
-          t('resourceadm.deploy_not_deployed');
-        const prodVersion =
-          publishStatusData.publishedVersions.find((v) => v.environment === 'prod')?.version ??
-          t('resourceadm.deploy_not_deployed');
-        const at22Version =
-          publishStatusData.publishedVersions.find((v) => v.environment === 'at22')?.version ??
-          t('resourceadm.deploy_not_deployed');
-        const at23Version =
-          publishStatusData.publishedVersions.find((v) => v.environment === 'at23')?.version ??
-          t('resourceadm.deploy_not_deployed');
+        const getVersionString = (env: string): string => {
+          return (
+            publishStatusData.publishedVersions.find((v) => v.environment === env)?.version ??
+            t('resourceadm.deploy_not_deployed')
+          );
+        };
 
         return (
           <>
@@ -299,52 +294,24 @@ export const DeployResourcePage = ({
               <Label size='medium' spacing>
                 {t('resourceadm.deploy_select_env_label')}
               </Label>
-              <div className={classes.deployCardsWrapper}>
-                <ResourceDeployEnvCard
-                  isDeployPossible={isDeployPossible('test', tt02Version)}
-                  envName={t('resourceadm.deploy_test_env')}
-                  currentEnvVersion={tt02Version}
-                  newEnvVersion={
-                    resourceVersionText !== tt02Version ? resourceVersionText : undefined
-                  }
-                  onClick={() => handlePublish('tt02')}
-                  loading={publisingResourcePending && envPublishedTo === 'tt02'}
-                />
-                <ResourceDeployEnvCard
-                  isDeployPossible={isDeployPossible('prod', prodVersion)}
-                  envName={t('resourceadm.deploy_prod_env')}
-                  currentEnvVersion={prodVersion}
-                  newEnvVersion={
-                    resourceVersionText !== prodVersion ? resourceVersionText : undefined
-                  }
-                  onClick={() => handlePublish('prod')}
-                  loading={publisingResourcePending && envPublishedTo === 'prod'}
-                />
+              <div className={classes.environmentWrapper}>
+                {getAvailableEnvironments(selectedContext).map((env) => {
+                  const versionString = getVersionString(env.id);
+                  return (
+                    <ResourceDeployEnvCard
+                      key={env.id}
+                      isDeployPossible={isDeployPossible(env.envType, versionString)}
+                      envName={t(env.label)}
+                      currentEnvVersion={versionString}
+                      newEnvVersion={
+                        resourceVersionText !== versionString ? resourceVersionText : undefined
+                      }
+                      onClick={() => handlePublish(env.id)}
+                      loading={publisingResourcePending && envPublishedTo === env.id}
+                    />
+                  );
+                })}
               </div>
-              {selectedContext === 'ttd' && (
-                <div className={classes.deployCardsWrapper}>
-                  <ResourceDeployEnvCard
-                    isDeployPossible={isDeployPossible('test', at22Version)}
-                    envName={t('resourceadm.deploy_at22_env')}
-                    currentEnvVersion={at22Version}
-                    newEnvVersion={
-                      resourceVersionText !== at22Version ? resourceVersionText : undefined
-                    }
-                    onClick={() => handlePublish('at22')}
-                    loading={publisingResourcePending && envPublishedTo === 'at22'}
-                  />
-                  <ResourceDeployEnvCard
-                    isDeployPossible={isDeployPossible('prod', at23Version)}
-                    envName={t('resourceadm.deploy_at23_env')}
-                    currentEnvVersion={at23Version}
-                    newEnvVersion={
-                      resourceVersionText !== at23Version ? resourceVersionText : undefined
-                    }
-                    onClick={() => handlePublish('at23')}
-                    loading={publisingResourcePending && envPublishedTo === 'at23'}
-                  />
-                </div>
-              )}
             </div>
           </>
         );
