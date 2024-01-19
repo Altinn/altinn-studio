@@ -1,4 +1,4 @@
-name: Playwright Tests - 2
+name: Playwright Tests
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
     paths:
       - 'frontend/**'
-      - '.githib/workflow/run-playwright-2-on-pr.yml' # - '.github/workflows/playwright.yml'
+      - '.githib/workflow/playwright.yml' # - '.github/workflows/playwright.yml'
   workflow_dispatch:
 
 jobs:
