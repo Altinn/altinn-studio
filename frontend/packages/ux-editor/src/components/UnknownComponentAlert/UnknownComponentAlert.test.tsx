@@ -16,7 +16,13 @@ describe('UnknownComponentAlert', () => {
   });
 
   it('should be possible to pass native HTML attributes', () => {
-    render(<UnknownComponentAlert componentName='UnknownComponentName' className="myCustomClass" role="alert"/>);
-    expect(screen.getByRole("alert")).toHaveClass('myCustomClass')
-  })
+    render(
+      <UnknownComponentAlert
+        componentName='UnknownComponentName'
+        className='myCustomClass'
+        role='alert'
+      />,
+    );
+    expect(screen.getByRole('alert')).toHaveClass('myCustomClass');
+  });
 });

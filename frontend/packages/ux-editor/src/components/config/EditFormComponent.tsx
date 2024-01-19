@@ -21,7 +21,7 @@ import {
 } from 'app-shared/utils/featureToggleUtils';
 import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
-import { UnknownComponentAlert } from "../UnknownComponentAlert";
+import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
 export interface IEditFormComponentProps {
   editFormId: string;
