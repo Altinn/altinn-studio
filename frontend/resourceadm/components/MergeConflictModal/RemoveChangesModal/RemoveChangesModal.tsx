@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Textfield, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
-import { Modal } from 'resourceadm/components/Modal';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+import { Modal } from '../../../components/Modal';
+import { ScreenReaderSpan } from '../../../components/ScreenReaderSpan';
 import { StudioButton } from '@studio/components';
 
 type RemoveChangesModalProps = {
@@ -36,14 +36,14 @@ type RemoveChangesModalProps = {
  * @property {function}[handleClickResetRepo] - Function to be executed when the reset repo is clicked
  * @property {string}[repo] - The name of the repo
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const RemoveChangesModal = ({
   isOpen,
   onClose,
   handleClickResetRepo,
   repo,
-}: RemoveChangesModalProps): React.ReactNode => {
+}: RemoveChangesModalProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [deleteRepoName, setDeleteRepoName] = useState('');

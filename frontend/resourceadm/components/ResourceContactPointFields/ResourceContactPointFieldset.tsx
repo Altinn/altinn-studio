@@ -36,14 +36,14 @@ type ResourceContactPointFieldsetProps = {
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - Function to be executed when leaving a text field
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceContactPointFieldset = ({
   contactPoint,
   onLeaveTextFields,
   onFocus,
   showErrors,
-}: ResourceContactPointFieldsetProps): React.ReactNode => {
+}: ResourceContactPointFieldsetProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [category, setCategory] = useState(contactPoint.category);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { PolicyEditorPage, PolicyEditorPageProps } from './PolicyEditorPage';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -66,22 +66,22 @@ describe('PolicyEditorPage', () => {
   afterEach(jest.clearAllMocks);
 
   it('fetches policy on mount', () => {
-    render();
+    renderPolicyEditorPage();
     expect(getPolicy).toHaveBeenCalledTimes(1);
   });
 
   it('fetches actions on mount', () => {
-    render();
+    renderPolicyEditorPage();
     expect(getPolicyActions).toHaveBeenCalledTimes(1);
   });
 
   it('fetches subjects on mount', () => {
-    render();
+    renderPolicyEditorPage();
     expect(getPolicySubjects).toHaveBeenCalledTimes(1);
   });
 
   it('displays the page spinner when loading policy, actions, or subjects', async () => {
-    render();
+    renderPolicyEditorPage();
 
     expect(screen.getByTitle(textMock('resourceadm.policy_editor_spinner'))).toBeInTheDocument();
     expect(
@@ -112,7 +112,7 @@ describe('PolicyEditorPage', () => {
   });
 });
 
-const render = (
+const renderPolicyEditorPage = (
   props: Partial<PolicyEditorPageProps> = {},
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
@@ -123,7 +123,7 @@ const render = (
     getPolicySubjects,
     ...queries,
   };
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
         <PolicyEditorPage {...defaultProps} {...props} />

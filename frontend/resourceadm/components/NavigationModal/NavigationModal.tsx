@@ -21,14 +21,14 @@ export type NavigationModalProps = {
  * @property {function}[onNavigate] - Function to be executed when navigating
  * @property {string}[title] - The title in the modal
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const NavigationModal = ({
   isOpen,
   onClose,
   onNavigate,
   title,
-}: NavigationModalProps): React.ReactNode => {
+}: NavigationModalProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   return (

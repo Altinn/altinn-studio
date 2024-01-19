@@ -27,7 +27,7 @@ type ModalProps = {
  * @property {ReactNode}[children] - React components inside the Modal
  * @property {string}[contentClassName] - Classname for the content
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const Modal = ({
   isOpen,
@@ -35,7 +35,7 @@ export const Modal = ({
   onClose,
   children,
   contentClassName,
-}: ModalProps): React.ReactNode => {
+}: ModalProps): React.JSX.Element => {
   return (
     <StudioModal
       isOpen={isOpen}

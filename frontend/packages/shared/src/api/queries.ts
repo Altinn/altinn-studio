@@ -19,6 +19,8 @@ import {
   layoutSettingsPath,
   optionListIdsPath,
   orgsListPath,
+  accessListsPath,
+  accessListPath,
   processEditorPath,
   releasesPath,
   repoInitialCommitPath,
@@ -42,6 +44,7 @@ import {
   userCurrentPath,
   userStarredListPath,
   widgetSettingsPath,
+  resourceAccessListsPath,
 } from './paths';
 import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -61,7 +64,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
-import type { Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
+import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, AccessListResourceLink, Resource, ResourceListItem, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -81,7 +84,8 @@ export const getDeployPermissions = (owner: string, app: string) => get<string[]
 export const getDeployments = (owner: string, app: string) => get<AppDeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<DeployEnvironment[]>(envConfigPath());
 export const getExpressionSchema = () => get<string[]>(expressionSchemaUrl());
-export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
+export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) =>
+  get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
 export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
@@ -120,6 +124,11 @@ export const getResourceList = (org: string) => get<ResourceListItem[]>(resource
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
+export const getAccessLists = (org: string, environment: string) => get<AccessList[]>(accessListsPath(org, environment));
+export const getAccessList = (org: string, listId: string, environment: string) => get<AccessList>(accessListPath(org, listId, environment));
+export const getResourceAccessLists = (org: string, resourceId: string, environment: string) => get<AccessListResourceLink[]>(resourceAccessListsPath(org, resourceId, environment));
+export const getParties = (url: string) => get<BrregPartySearchResult>(url);
+export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
 
 // ProcessEditor
 export const getAppLibVersion = (org: string, app: string) => get<AppLibVersion>(appLibVersionPath(org, app));

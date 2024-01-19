@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { ResourceDeployStatus, ResourceDeployStatusProps } from './ResourceDeployStatus';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
-import { DeployError } from 'resourceadm/types/DeployError';
+import { DeployError } from '../../types/DeployError';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
 const mockDeployError1: DeployError = {

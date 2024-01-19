@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
@@ -45,22 +45,22 @@ describe('ResourcePage', () => {
   });
 
   it('fetches validate policy on mount', () => {
-    render();
+    renderResourcePage();
     expect(queriesMock.getValidatePolicy).toHaveBeenCalledTimes(1);
   });
 
   it('fetches validate resource on mount', () => {
-    render();
+    renderResourcePage();
     expect(queriesMock.getValidateResource).toHaveBeenCalledTimes(1);
   });
 
   it('fetches resource on mount', () => {
-    render();
+    renderResourcePage();
     expect(queriesMock.getResource).toHaveBeenCalledTimes(1);
   });
 
   it('displays left navigation bar on mount', () => {
-    render();
+    renderResourcePage();
     expect(
       screen.getByRole('tab', { name: textMock('resourceadm.left_nav_bar_about') }),
     ).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('ResourcePage', () => {
   });
 
   it('displays the about resource page spinner when loading page first time', () => {
-    render();
+    renderResourcePage();
 
     expect(screen.getByTitle(textMock('resourceadm.about_resource_spinner'))).toBeInTheDocument();
     expect(
@@ -89,7 +89,7 @@ describe('ResourcePage', () => {
       .fn()
       .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
 
-    render({ getResource });
+    renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );
@@ -104,7 +104,7 @@ describe('ResourcePage', () => {
       .fn()
       .mockImplementation(() => Promise.resolve<Resource>(mockResource2));
 
-    render({ getResource });
+    renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );
@@ -121,7 +121,7 @@ describe('ResourcePage', () => {
       .mockImplementation(() => Promise.resolve<Resource>(mockResource2));
     const getValidateResource = jest.fn().mockImplementation(() => Promise.reject(null));
 
-    render({ getResource, getValidateResource });
+    renderResourcePage({ getResource, getValidateResource });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );
@@ -147,11 +147,11 @@ describe('ResourcePage', () => {
   });
 });
 
-const render = (
+const renderResourcePage = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <ResourcePage />

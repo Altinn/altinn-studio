@@ -7,9 +7,9 @@ import { useTranslation } from 'react-i18next';
  * @component
  *    Displays an error page
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const ErrorPage = (): React.ReactNode => {
+export const ErrorPage = (): React.JSX.Element => {
   const { t } = useTranslation();
   return (
     <div className={classes.pageWrapper}>
