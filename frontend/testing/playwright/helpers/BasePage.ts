@@ -25,42 +25,42 @@ export class BasePage extends RouterRoute {
   }
 
   // Helper function to get a button by the text key
-  public getButtonByTextKey(key: TextKey): Locator {
+  protected getButtonByTextKey(key: TextKey): Locator {
     return this.page.getByRole('button', { name: this.textMock(key) });
   }
 
   // Helper function to get a menu item by the text key
-  public getMenuItemByTextKey(key: TextKey): Locator {
+  protected getMenuItemByTextKey(key: TextKey): Locator {
     return this.page.getByRole('menuitem', { name: this.textMock(key) });
   }
 
   // Helper function to get a tree item property by the name
-  public getTreeItemPropertyByName(name: string): Locator {
+  protected getTreeItemPropertyByName(name: string): Locator {
     return this.page.getByRole('treeitem', { name });
   }
 
   // Helper function to get a combobox by the text key
-  public getComboboxByTextKey(key: TextKey): Locator {
+  protected getComboboxByTextKey(key: TextKey): Locator {
     return this.page.getByRole('combobox', { name: this.textMock(key) });
   }
 
   // Helper function to get a textbox by the text key
-  public getTextboxByTextKey(key: TextKey): Locator {
+  protected getTextboxByTextKey(key: TextKey): Locator {
     return this.page.getByRole('textbox', { name: this.textMock(key) });
   }
 
   // Helper function to get an option by the text key
-  public getOptionByTextKey(key: TextKey): Locator {
+  protected getOptionByTextKey(key: TextKey): Locator {
     return this.page.getByRole('option', { name: this.textMock(key) });
   }
 
   // Helper function to get an alert by the text key
-  public getAlertByTextKey(key: TextKey): Locator {
+  protected getAlertByTextKey(key: TextKey): Locator {
     return this.page.getByRole('alert', { name: this.textMock(key) });
   }
 
   // Helper function to get an option by the text key
-  public getOptionByName(name: string): Locator {
+  protected getOptionByName(name: string): Locator {
     return this.page.getByRole('option', { name });
   }
 }
