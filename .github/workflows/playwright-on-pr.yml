@@ -1,67 +1,28 @@
 name: Playwright Tests
-
 on:
   push:
-    branches:
-      - master
     paths:
-      - 'frontend/**'
-      - '.github/workflows/playwright.yml'
-
+      - '**'
 jobs:
-  playwright-run:
-    name: 'Playwright Tests'
+  test:
+    timeout-minutes: 60
     runs-on: ubuntu-latest
-
     steps:
-      - name: 'Checking Out Code'
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
         with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v4
-        with:
-          cache: 'yarn'
-
-      - name: Get yarn cache directory path
-        working-directory: frontend
-        id: yarn-cache-dir-path
-        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v3
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: 'Installing Dependencies'
-        working-directory: frontend/testing/playwright
-        run: yarn install --immutable --inline-builds
+          node-version: 18
+      - name: Install dependencies
+        run: yarn
+      - name: Install Playwright Browsers
+        run: yarn playwright install --with-deps
+      - name: Run Playwright tests
+        run: yarn playwright-e2e
         env:
-          YARN_ENABLE_GLOBAL_CACHE: 'false'
-          YARN_NM_MODE: 'hardlinks-local'
-          HUSKY: '0'
-
-      - name: Attempt to wait for deploy to environment (10 minutes sleep)
-        run: sleep 10m
-        shell: bash
-
-      - name: Playwright run
+          PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
+      - uses: actions/upload-artifact@v3
+        if: always()
         with:
-          install: false
-          working-directory: frontend/testing/playwright
-          env: environment=dev,autoTestUserPwd=${{ secrets.AUTO_TEST_USER_PWD }},accessToken=${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
-          spec: src/integration/studio/*.js
-          record: true
-          parallel: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Store artifacts
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-screenshots
-          path: frontend/testing/playwright/screenshots
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
