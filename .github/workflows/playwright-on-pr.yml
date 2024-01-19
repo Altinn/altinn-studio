@@ -3,7 +3,7 @@ name: Playwright Tests - 2
 on:
   push:
     branches:
-      - master
+      - [master]
     paths:
       - 'frontend/**'
       - '.github/workflows/playwright.yml'

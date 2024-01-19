@@ -1,68 +1,71 @@
-name: Playwright Tests - 2
-
+name: Playwright tests on pr
 on:
-  push:
-    branches:
-      - master
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
     paths:
       - 'frontend/**'
-      - '.github/workflows/playwright.yml'
+      - '!frontend/stats/**'
+      - 'backend/**'
+      - '.github/workflows/run-playwright-on-pr.yaml'
+      - 'docker-compose.yml'
+      - 'Dockerfile'
+      - 'gitea/**'
+      - 'package.json'
+      - 'development/**'
+  workflow_dispatch:
 
 jobs:
-  playwright-run:
-    name: 'Playwright Tests'
+  playwright-tests:
+    name: Build environment and run e2e test
+    timeout-minutes: 25
     runs-on: ubuntu-latest
 
     steps:
-      - name: 'Checking Out Code'
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-      - uses: actions/setup-node@v4
+      - name: Generate .env file
+        run: |
+          echo PLAYWRIGHT_TEST_APP=autodeploy-v3 >> .env
+          echo DEVELOP_APP_DEVELOPMENT=0 >> .env
+          echo DEVELOP_RESOURCE_ADMIN=0 >> .env
+          echo DEVELOP_BACKEND=0 >> .env
+          echo DEVELOP_DASHBOARD=0 >> .env
+          echo DEVELOP_PREVIEW=0 >> .env
+          echo GITEA_ADMIN_PASS=g9wDIG@6gf >> .env
+          echo GITEA_ADMIN_USER=localg1iteaadmin >> .env
+          echo GITEA_CYPRESS_USER=cypress_testuser >> .env
+          echo GITEA_CYPRESS_PASS=g9wDIG@6gf >> .env
+          echo GITEA_ORG_USER=ttd >> .env
+          echo POSTGRES_PASSWORD=kyeDIG@eip >> .env
+          echo COMMIT= >> .env
+          echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
+
+      - name: Build all images
+        run: |
+          docker compose build --no-cache
+
+      - name: Install node
+        uses: actions/setup-node@v4
         with:
           cache: 'yarn'
 
-      - name: Get yarn cache directory path
-        working-directory: frontend
-        id: yarn-cache-dir-path
-        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v3
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: 'Installing Dependencies'
-        working-directory: frontend/testing/playwright
-        run: yarn install --immutable --inline-builds
-        env:
-          YARN_ENABLE_GLOBAL_CACHE: 'false'
-          YARN_NM_MODE: 'hardlinks-local'
-          HUSKY: '0'
-
-      - name: Attempt to wait for deploy to environment (10 minutes sleep)
-        run: sleep 10m
-        shell: bash
+      - name: Run setup.js script
+        run: |
+          node ./development/setup.js
 
       - name: Playwright run
+        working-directory: frontend/testing/playwright
+        env:
+          environment: local
         run: |
-          yarn install --immutable --inline-builds
+          yarn
           yarn playwright install --with-deps
           yarn setup:playwright
           yarn playwright:test:all
-        env:
-          environment: dev
-          autoTestUserPwd: ${{ secrets.AUTO_TEST_USER_PWD }}
-          accessToken: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Store artifacts
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-screenshots
-          path: frontend/testing/playwright/screenshots
+      - name: Stop compose file
+        if: always()
+        run: docker-compose down
