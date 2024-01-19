@@ -49,7 +49,6 @@ jobs:
         shell: bash
 
       - name: Playwright run
-        uses: microsoft/playwright-github-action@v2
         with:
           install: false
           working-directory: frontend/testing/playwright
