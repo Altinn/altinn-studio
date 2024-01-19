@@ -12,14 +12,23 @@ import {
 } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { SchemaModel } from '@altinn/schema-model';
 
+const deleteButtonMock = 'general.delete';
+const promotbutton = 'schema_editor.promote';
+
 describe('ActionButtons', () => {
   afterEach(jest.clearAllMocks);
 
   const { pointer } = objectNodeMock;
 
-  test('Renders ActionButton with delete title when no referring nodes', async () => {
+  it('Renders the actionButton (Convert to type)', async () => {
     render({ pointer });
-    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    const referenceButton = screen.getByRole('button', { name: textMock(promotbutton) });
+    expect(referenceButton).toBeInTheDocument();
+  });
+
+  test('Renders the actionButton (delete)', async () => {
+    render({ pointer });
+    const deleteButton = screen.getByRole('button', { name: textMock(deleteButtonMock) });
     expect(deleteButton).toBeInTheDocument();
     expect(deleteButton).not.toBeDisabled();
   });
