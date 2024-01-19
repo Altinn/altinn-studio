@@ -21,8 +21,8 @@
                 },
                 "selectedAction": "Hide",
                 "selectedFields": {
-                    "22c67530-5c97-11ea-a95f-056c5a78cd14": "summary-1",
-                    "22c67530-5c97-11ea-a95f-056c5a78cd15": "summary-2"
+                    "22c67530-5c97-11ea-a95f-056c5a78cd14": "summary1",
+                    "22c67530-5c97-11ea-a95f-056c5a78cd15": "summary2"
                 }
             },
             "hide-repeating-group": {
