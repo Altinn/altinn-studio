@@ -128,7 +128,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
             selectedTab={currentTab}
           />
         </div>
-        {displayTabs()}
+        <div className={classes.contentWrapper}>{displayTabs()}</div>
       </div>
     </StudioModal>
   );
