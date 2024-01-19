@@ -6,7 +6,7 @@ on:
       - master
     paths:
       - 'frontend/**'
-      - '.githib/workflow/playwright.yml' # - '.github/workflows/playwright.yml'
+      - '.githib/workflow/playwright.yml'
   workflow_dispatch:
 
 jobs:
@@ -50,6 +50,7 @@ jobs:
       #  shell: bash
 
       - name: Playwright run
+        working-directory: frontend/testing/playwright
         run: |
           yarn install --immutable --inline-builds
           yarn playwright install --with-deps
