@@ -1,8 +1,9 @@
 /**
- * Replaces white space with hyphens in a string
+ * Replaces any character not in the list below with '-'
  *
- * @param value the string to modify
- *
- * @returns the modified string where white space has been replaced with '-'
+ * @param s the string to format
+ * @returns the string formatted
  */
-export const replaceWhiteSpaceWithHyphens = (value: string): string => value.replace(/\s/g, '-');
+export const formatIdString = (s: string): string => {
+  return s.replace(/[^A-Za-z0-9-_.!~*'()%]+/g, '-');
+};

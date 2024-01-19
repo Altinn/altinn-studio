@@ -3,9 +3,9 @@ import { StudioButton } from '@studio/components';
 import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from '@studio/icons';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
 import classes from './ResourceNameAndId.module.css';
 import { FieldWrapper } from '../../components/FieldWrapper';
+import { formatIdString } from '../../utils/stringUtils';
 
 export type ResourceNameAndIdProps = {
   idLabel: string;
@@ -53,20 +53,10 @@ export const ResourceNameAndId = ({
   }, [conflictErrorMessage]);
 
   /**
-   * Replaces any character not in the list below with '-'
-   *
-   * @param s the string to format
-   * @returns the string formatted
-   */
-  const formatString = (s: string): string => {
-    return s.replace(/[^A-Za-z0-9-_.!~*'()%]+/g, '-');
-  };
-
-  /**
    * Replaces the spaces in the value typed with '-'.
    */
   const handleEditId = (val: string) => {
-    const newId = formatString(val);
+    const newId = formatIdString(val);
     onIdChange(newId);
   };
 
@@ -144,7 +134,7 @@ export const ResourceNameAndId = ({
               <p className={classes.idText}>id</p>
             </div>
             <Paragraph size='small'>
-              <strong>{formatString(id)}</strong>
+              <strong>{formatIdString(id)}</strong>
             </Paragraph>
             <div className={classes.editButtonWrapper}>
               <StudioButton
