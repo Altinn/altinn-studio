@@ -471,6 +471,9 @@
         },
         "TestCustomButtonReadOnlyInput": {
           "type": "string"
+        },
+        "neverValidatedInput": {
+          "type": "string"
         }
       },
       "required": [

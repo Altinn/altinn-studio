@@ -86,6 +86,10 @@ namespace Altinn.App.Models
         [JsonPropertyName("TestCustomButtonReadOnlyInput")]
         public string? TestCustomButtonReadOnlyInput { get; set; }
 
+        [XmlElement("neverValidatedInput")]
+        [JsonProperty("neverValidatedInput")]
+        [JsonPropertyName("neverValidatedInput")]
+        public string? neverValidatedInput { get; set; }
     }
 
     public class Innledninggrp9309
