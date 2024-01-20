@@ -13,7 +13,7 @@
         },
         "dataModelBindings": {
           "questions": "Questions",
-          "simpleBinding": "Questions.Answer"
+          "answer": "Questions.Answer"
         },
         "filter": [
           {
@@ -37,7 +37,7 @@
           "questions": "likert-row-title"
         },
         "dataModelBindings": {
-          "simpleBinding": "Questions.Answer",
+          "answer": "Questions.Answer",
           "questions": "Questions"
         },
         "optionsId": "likertOptions",
