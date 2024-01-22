@@ -62,9 +62,9 @@ namespace altinn_app_cli.v7Tov8.CodeRewriters
         private MethodDeclarationSyntax AddParameter_ChangedFields(MethodDeclarationSyntax method)
         {
             return method.ReplaceNode(method.ParameterList,
-                method.ParameterList.AddParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("changedFields"))
+                method.ParameterList.AddParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("previousData"))
                     .WithLeadingTrivia(SyntaxFactory.Space)
-                    .WithType(SyntaxFactory.ParseTypeName("System.Collections.Generic.Dictionary<string, string?>?"))
+                    .WithType(SyntaxFactory.ParseTypeName("object?"))
                     .WithLeadingTrivia(SyntaxFactory.Space)));
         }
 
