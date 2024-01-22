@@ -9,6 +9,9 @@ export const useAddLanguageMutation = (owner, app) => {
   return useMutation({
     mutationFn: (payload: AddLanguagePayload) =>
       addLanguageCode(owner, app, payload.language, payload),
-    onSuccess: () => q.invalidateQueries({ queryKey: [QueryKey.TextLanguages, owner, app] }),
+    onSuccess: async () => {
+      q.invalidateQueries({ queryKey: [QueryKey.TextLanguages, owner, app] });
+      q.invalidateQueries({ queryKey: [QueryKey.TextResources, owner, app] });
+    },
   });
 };
