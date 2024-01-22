@@ -199,8 +199,14 @@ export const ExpandablePolicyCard = ({
   /**
    * Displays the actions
    */
-  const displayActions = policyRule.actions.map((a, i) => {
-    return <ActionAndSubjectListItem key={i} title={a} onRemove={() => handleRemoveAction(i, a)} />;
+  const displayActions = policyRule.actions.map((actionId, i) => {
+    return (
+      <ActionAndSubjectListItem
+        key={i}
+        title={t(`policy_editor.action_${actionId}`)}
+        onRemove={() => handleRemoveAction(i, actionId)}
+      />
+    );
   });
 
   /**
@@ -447,7 +453,10 @@ export const ExpandablePolicyCard = ({
         </Paragraph>
         <div className={classes.dropdownWrapper}>
           <LegacySelect
-            options={actionOptions}
+            options={actionOptions.map((option) => ({
+              ...option,
+              label: t(`policy_editor.action_${option.label}`),
+            }))}
             onChange={(value: string) => value !== null && handleClickActionInList(value)}
             disabled={actionOptions.length === 0}
             error={showErrors && hasRightsError}

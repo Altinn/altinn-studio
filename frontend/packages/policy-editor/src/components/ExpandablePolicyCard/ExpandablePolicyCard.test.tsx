@@ -6,9 +6,9 @@ import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { PolicyEditorUsage } from '../../types';
 import {
-  mockActionTitle1,
-  mockActionTitle2,
-  mockActionTitle3,
+  mockActionId1,
+  mockActionId2,
+  mockActionId3,
   mockActions,
   mockPolicyRuleCard1,
   mockPolicyRuleCards,
@@ -21,6 +21,10 @@ import {
 } from '../../data-mocks';
 
 const mockUsageType: PolicyEditorUsage = 'app';
+
+const mockActionOption1: string = textMock(`policy_editor.action_${mockActionId1}`);
+const mockActionOption2: string = textMock(`policy_editor.action_${mockActionId2}`);
+const mockActionOption3: string = textMock(`policy_editor.action_${mockActionId3}`);
 
 describe('ExpandablePolicyCard', () => {
   afterEach(jest.clearAllMocks);
@@ -99,13 +103,13 @@ describe('ExpandablePolicyCard', () => {
 
     // Check that the selected actions are present
     const selectedAction1 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockActionTitle1}`,
+      `${textMock('general.delete')} ${mockActionOption1}`,
     );
     const selectedAction2 = screen.getByLabelText(
-      `${textMock('general.delete')} ${mockActionTitle2}`,
+      `${textMock('general.delete')} ${mockActionOption2}`,
     );
     const selectedAction3 = screen.queryByLabelText(
-      `${textMock('general.delete')} ${mockActionTitle3}`,
+      `${textMock('general.delete')} ${mockActionOption3}`,
     );
     expect(selectedAction1).toBeInTheDocument();
     expect(selectedAction2).toBeInTheDocument();
@@ -118,22 +122,22 @@ describe('ExpandablePolicyCard', () => {
     await act(() => user.click(actionSelect));
 
     // Check that the selected actions are not in the document
-    const optionAction1 = screen.queryByRole('option', { name: mockActionTitle1 });
-    const optionAction2 = screen.queryByRole('option', { name: mockActionTitle2 });
-    const optionAction3 = screen.getByRole('option', { name: mockActionTitle3 });
+    const optionAction1 = screen.queryByRole('option', { name: mockActionOption1 });
+    const optionAction2 = screen.queryByRole('option', { name: mockActionOption2 });
+    const optionAction3 = screen.getByRole('option', { name: mockActionOption3 });
 
     expect(optionAction1).not.toBeInTheDocument();
     expect(optionAction2).not.toBeInTheDocument();
     expect(optionAction3).toBeInTheDocument(); // 3 is in the resource
 
     // Click the final action
-    await act(() => user.click(screen.getByRole('option', { name: mockActionTitle3 })));
+    await act(() => user.click(screen.getByRole('option', { name: mockActionOption3 })));
 
     expect(mockSetPolicyRules).toHaveBeenCalledTimes(1);
 
     // Expect the option clicked to be removed from the screen
     expect(
-      screen.queryByLabelText(`${textMock('general.delete')} ${mockActionTitle3}`),
+      screen.queryByLabelText(`${textMock('general.delete')} ${mockActionOption3}`),
     ).not.toBeInTheDocument();
 
     // Expect the label with all selected to be present
@@ -225,7 +229,9 @@ describe('ExpandablePolicyCard', () => {
       textMock('policy_editor.rule_card_actions_title'),
     );
     await act(() => user.click(actionSelect));
-    await act(() => user.click(screen.getByRole('option', { name: mockActionTitle3 })));
+
+    const actionOption: string = textMock(`policy_editor.action_${mockActionId3}`);
+    await act(() => user.click(screen.getByRole('option', { name: actionOption })));
     await act(() => user.tab());
 
     const [subjectSelect] = screen.getAllByLabelText(
