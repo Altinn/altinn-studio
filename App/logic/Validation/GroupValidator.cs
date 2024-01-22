@@ -58,6 +58,17 @@ namespace Altinn.App.logic.Validation
                 });
             }
 
+            var oppgaveGiverNavn = model?.Endringsmeldinggrp9786?.Avgivergrp9787?.OppgavegiverNavndatadef68?.value;
+            if (!string.IsNullOrEmpty(oppgaveGiverNavn) && oppgaveGiverNavn.Contains("tull og tøys"))
+            {
+                validationIssues.Add(new ValidationIssue
+                {
+                    Field = "Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value",
+                    Description = "Tullevalidering",
+                    Severity = ValidationIssueSeverity.Error,
+                });
+            }
+
             return Task.FromResult(validationIssues);
         }
     }
