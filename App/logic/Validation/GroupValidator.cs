@@ -1,13 +1,11 @@
-﻿using Altinn.App.Core.Features;
-using Altinn.App.Models;
-using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Validation;
+using Altinn.App.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.logic.Validation
 {
@@ -15,7 +13,7 @@ namespace Altinn.App.logic.Validation
     {
         public string DataType { get; } = "nested-group";
 
-        public bool ShouldRun(List<string> changedFields)
+        public bool HasRelevantChanges(object current, object previous)
         {
             return true;
         }

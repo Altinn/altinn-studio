@@ -1,9 +1,9 @@
-﻿using Altinn.App.Core.Features;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Models.Validation;
 using Altinn.App.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Altinn.App.Core.Models.Validation;
 
 namespace Altinn.App.logic.Validation
 {
@@ -11,7 +11,7 @@ namespace Altinn.App.logic.Validation
     {
         public string DataType { get; } = "ServiceModel-test";
 
-        public bool ShouldRun(List<string> changedFields)
+        public bool HasRelevantChanges(object current, object previous)
         {
             return true;
         }
@@ -20,7 +20,7 @@ namespace Altinn.App.logic.Validation
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
-            Skjema model = (Skjema) data;
+            Skjema model = (Skjema)data;
             string middleName = model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonMellomnavnNyttdatadef34759?.value;
             string firstName = model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value;
             string modelMiddleName = "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value";
