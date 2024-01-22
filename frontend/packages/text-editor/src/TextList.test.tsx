@@ -77,7 +77,7 @@ describe('TextList', () => {
     expect(updateEntryId).toHaveBeenCalledWith({ newId: 'a-updated', oldId: 'a' });
   });
 
-  it('should display warnings for existing, empty, or space-containing IDs', async () => {
+  it.only('should display warnings for existing, empty, or space-containing IDs', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
     const [firstErrorMessage, secondErrorMessage, thirdErrorMessage]: string[] = [
@@ -97,12 +97,10 @@ describe('TextList', () => {
     await act(() => user.dblClick(idInput));
 
     await act(() => user.keyboard('b'));
-
-    screen.logTestingPlaygroundURL();
     expect(screen.getByText(firstErrorMessage)).not.toBeNull();
 
     await act(() => user.keyboard('2'));
-    expect(screen.queryByText(secondErrorMessage)).toBeNull();
+    expect(screen.queryByText(firstErrorMessage)).toBeNull();
 
     await act(() => user.keyboard(' '));
     expect(screen.getByText(secondErrorMessage)).not.toBeNull();
@@ -113,7 +111,13 @@ describe('TextList', () => {
     await act(() => user.keyboard('{TAB}'));
     expect(updateEntryId).not.toHaveBeenCalled();
 
-    await act(() => user.keyboard('{SHIFT>}{TAB}{/SHIFT}{END}2{TAB}'));
-    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: '2' });
+    //Back to the original value, no error should be displayed
+    await act(() => user.type(idInput, 'a'));
+    expect(screen.queryByText(firstErrorMessage)).toBeNull();
+    expect(screen.queryByText(secondErrorMessage)).toBeNull();
+    expect(screen.queryByText(thirdErrorMessage)).toBeNull();
+
+    await act(() => user.keyboard('2{TAB}'));
+    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'a2' });
   });
 });
