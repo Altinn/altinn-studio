@@ -103,7 +103,12 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
               >
                 {t('overview.reset_repo_button')}
               </StudioButton>
-              <StudioButton color='second' onClick={onCloseWrapper} variant='secondary' size='small'>
+              <StudioButton
+                color='second'
+                onClick={onCloseWrapper}
+                variant='secondary'
+                size='small'
+              >
                 {t('general.cancel')}
               </StudioButton>
             </div>

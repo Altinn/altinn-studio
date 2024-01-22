@@ -53,7 +53,7 @@ const subSubComponent: FormComponent = {
   itemType: 'COMPONENT',
   type: ComponentType.TextArea,
 };
-const layout: IInternalLayout = {
+const layoutMock: IInternalLayout = {
   components: {
     [rootComponent.id]: rootComponent,
     [subComponent.id]: subComponent,
@@ -144,9 +144,29 @@ describe('FormTree', () => {
     await act(() => user.keyboard('{arrowdown}'));
     expect(screen.getByRole('treeitem', { name: subComponentName })).toHaveFocus();
   });
+
+  it('should render unknown component reference item the component reference is unknown', () => {
+    const mockedLayout: IInternalLayout = {
+      components: {
+        componentID: rootComponent,
+      },
+      containers: {
+        containerID: rootContainerWithChildren,
+      },
+      order: {
+        [BASE_CONTAINER_ID]: [rootComponent.id],
+      },
+      customDataProperties: {},
+      customRootProperties: {},
+    };
+    render(mockedLayout);
+
+    expect(screen.getByText('rootComponent'));
+    expect(screen.getByText(textMock('ux_editor.unknown_group_reference_help_text_title')));
+  });
 });
 
-const render = () => {
+const render = (layout: IInternalLayout = layoutMock) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return renderWithMockStore(

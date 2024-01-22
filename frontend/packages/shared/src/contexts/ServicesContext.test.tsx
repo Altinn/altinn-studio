@@ -77,12 +77,12 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('api_errors.GT_01'))).toBeInTheDocument();
   });
 
-  it('displays a specific error message if API returns an error code and the error messages does exist', async () => {
+  it('displays a specific error message if API returns error code DM_01', async () => {
     const { result } = renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(500, 'DM_01')),
+          queryFn: () => Promise.reject(createApiErrorMock(422, 'DM_01')),
           retry: false,
         }),
       { wrapper },
@@ -91,6 +91,22 @@ describe('ServicesContext', () => {
     await waitFor(() => result.current.isError);
 
     expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
+  });
+
+  it('displays a specific error message if API returns error code DM_05', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(400, 'DM_05')),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => result.current.isError);
+
+    expect(await screen.findByText(textMock('api_errors.DM_05'))).toBeInTheDocument();
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
