@@ -971,14 +971,12 @@ namespace Altinn.App.Api.Controllers
                     }
 
                     ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
-                    ModelDeserializerResult deserializerResult = await deserializer.DeserializeAsync(part.Stream, part.ContentType);
+                    object? data = await deserializer.DeserializeAsync(part.Stream, part.ContentType);
 
-                    if (deserializerResult.HasError)
+                    if (!string.IsNullOrEmpty(deserializer.Error) || data is null)
                     {
-                        throw new InvalidOperationException(deserializerResult.Error);
+                        throw new InvalidOperationException(deserializer.Error);
                     }
-
-                    object data = deserializerResult.Model;
 
                     await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name!, data);
 

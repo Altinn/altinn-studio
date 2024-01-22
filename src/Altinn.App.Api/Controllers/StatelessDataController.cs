@@ -116,12 +116,12 @@ namespace Altinn.App.Api.Controllers
             await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
             Instance virtualInstance = new Instance() { InstanceOwner = owner };
-            await ProcessAllDataWrite(virtualInstance, appModel);
+            await ProcessAllDataRead(virtualInstance, appModel);
 
             return Ok(appModel);
         }
 
-        private async Task ProcessAllDataWrite(Instance virtualInstance, object appModel)
+        private async Task ProcessAllDataRead(Instance virtualInstance, object appModel)
         {
             foreach (var dataProcessor in _dataProcessors)
             {
@@ -161,7 +161,7 @@ namespace Altinn.App.Api.Controllers
 
             object appModel = _appModel.Create(classRef);
             var virtualInstance = new Instance();
-            await ProcessAllDataWrite(virtualInstance, appModel);
+            await ProcessAllDataRead(virtualInstance, appModel);
 
             return Ok(appModel);
         }
@@ -213,14 +213,12 @@ namespace Altinn.App.Api.Controllers
             }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-            ModelDeserializerResult deserializerResult = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+            object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
-            if (deserializerResult.HasError)
+            if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
             {
-                return BadRequest(deserializerResult.Error);
+                return BadRequest(deserializer.Error);
             }
-
-            object appModel = deserializerResult.Model;
 
             // runs prefill from repo configuration if config exists
             await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
@@ -262,22 +260,21 @@ namespace Altinn.App.Api.Controllers
             }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-            ModelDeserializerResult deserializerResult = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+            object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
-            if (deserializerResult.HasError)
+            if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
             {
-                return BadRequest(deserializerResult.Error);
+                return BadRequest(deserializer.Error);
             }
 
             Instance virtualInstance = new Instance();
-            var appModel = deserializerResult.Model;
             foreach (var dataProcessor in _dataProcessors)
             {
                 _logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", appModel.GetType().Name, dataProcessor.GetType().Name);
                 await dataProcessor.ProcessDataRead(virtualInstance, null, appModel);
             }
 
-            return Ok(deserializerResult.Model);
+            return Ok(appModel);
         }
 
         private async Task<InstanceOwner?> GetInstanceOwner(string? partyFromHeader)

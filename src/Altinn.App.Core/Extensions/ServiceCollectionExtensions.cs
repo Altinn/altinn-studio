@@ -9,6 +9,7 @@ using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.PageOrder;
 using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Infrastructure.Clients.Authentication;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
@@ -133,7 +134,7 @@ namespace Altinn.App.Core.Extensions
         {
             // Services for Altinn App
             services.TryAddTransient<IPDP, PDPAppSI>();
-            services.TryAddTransient<IValidation, ValidationAppSI>();
+            AddValidationServices(services, configuration);
             services.TryAddTransient<IPrefill, PrefillSI>();
             services.TryAddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
             services.TryAddSingleton<IAppResources, AppResourcesSI>();
@@ -146,7 +147,6 @@ namespace Altinn.App.Core.Extensions
 #pragma warning restore CS0618, CS0612 // Type or member is obsolete
             services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
             services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
-            services.TryAddTransient<IInstanceValidator, NullInstanceValidator>();
             services.TryAddTransient<IAppModel, DefaultAppModel>();
             services.TryAddTransient<DataListsFactory>();
             services.TryAddTransient<InstanceDataListsFactory>();
@@ -176,6 +176,25 @@ namespace Altinn.App.Core.Extensions
             {
                 services.TryAddSingleton<ISecretsClient, SecretsLocalClient>();
             }
+        }
+
+        private static void AddValidationServices(IServiceCollection services, IConfiguration configuration)
+        {
+            services.TryAddTransient<IValidationService, ValidationService>();
+            if (configuration.GetSection("AppSettings").Get<AppSettings>()?.RequiredValidation == true)
+            {
+                services.TryAddTransient<IFormDataValidator, RequiredLayoutValidator>();
+            }
+
+            if (configuration.GetSection("AppSettings").Get<AppSettings>()?.ExpressionValidation == true)
+            {
+                services.TryAddTransient<IFormDataValidator, ExpressionValidator>();
+            }
+            services.TryAddTransient<IFormDataValidator, DataAnnotationValidator>();
+            services.TryAddTransient<IFormDataValidator, LegacyIInstanceValidatorFormDataValidator>();
+            services.TryAddTransient<IDataElementValidator, DefaultDataElementValidator>();
+            services.TryAddTransient<ITaskValidator, LegacyIInstanceValidatorTaskValidator>();
+            services.TryAddTransient<ITaskValidator, DefaultTaskValidator>();
         }
 
         /// <summary>

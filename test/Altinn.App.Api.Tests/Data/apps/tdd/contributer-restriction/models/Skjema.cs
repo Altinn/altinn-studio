@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
@@ -44,6 +45,24 @@ public class Dummy
     [JsonProperty("toggle")]
     [JsonPropertyName("toggle")]
     public bool Toggle { get; set; } = default!;
+
+    [XmlElement("tag-with-attribute", IsNullable = true, Order = 7)]
+    [JsonProperty("tag-with-attribute")]
+    [JsonPropertyName("tag-with-attribute")]
+    public TagWithAttribute TagWithAttribute { get; set; } = default!;
+}
+
+public class TagWithAttribute
+{
+    [Range(1, Int32.MaxValue)]
+    [XmlAttribute("orid")]
+    [BindNever]
+    public decimal orid { get; set; } = 34730;
+
+    [MinLength(1)]
+    [MaxLength(60)]
+    [XmlText()]
+    public string? value { get; set; }
 }
 
 public class ValuesList

@@ -28,6 +28,7 @@ namespace Altinn.App.Core.Models.Validation
         /// <summary>
         /// The issue has been corrected.
         /// </summary>
+        [Obsolete("We run all validations from frontend version 4, so we don't need info about fixed issues")]
         Fixed = 4,
 
         /// <summary>

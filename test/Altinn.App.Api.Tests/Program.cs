@@ -1,4 +1,5 @@
 ﻿using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
@@ -27,7 +28,9 @@ using Microsoft.Extensions.Options;
 // external api's etc. should be mocked.
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions() { ApplicationName = "Altinn.App.Api.Tests" });
+builder.Configuration.AddJsonFile(Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json"));
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
+
 ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
 

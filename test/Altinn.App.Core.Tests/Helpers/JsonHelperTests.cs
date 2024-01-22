@@ -23,12 +23,12 @@ public class JsonHelperTests
         var logger = new Mock<ILogger>().Object;
         var guid = Guid.Empty;
         var dataProcessorMock = new Mock<IDataProcessor>();
-        Func<Instance, Guid, object, Dictionary<string, string?>?, Task<bool>> dataProcessWrite = (instance, guid, model, changes) => Task.FromResult(processDataWriteImpl((TModel)model));
+        Func<Instance, Guid, object, object?, Task<bool>> dataProcessWrite = (instance, guid, model, previousModel) => Task.FromResult(processDataWriteImpl((TModel)model));
         dataProcessorMock
-            .Setup((d) => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<Dictionary<string, string?>?>()))
+            .Setup((d) => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<object?>()))
             .Returns(dataProcessWrite);
 
-        return await JsonHelper.ProcessDataWriteWithDiff(instance, guid, model, new IDataProcessor[] { dataProcessorMock.Object }, new(), logger);
+        return await JsonHelper.ProcessDataWriteWithDiff(instance, guid, model, new IDataProcessor[] { dataProcessorMock.Object }, logger);
     }
 
     public class TestModel

@@ -233,7 +233,7 @@ public class InstancesController_ActiveInstancesTest
             LastChanged = i.LastChanged,
             LastChangedBy = i.LastChangedBy switch
             {
-                "12345" => "Ola Nordmann",
+                "12345" => "Ola Olsen",
                 _ => throw new Exception("Unknown user"),
             }
         });
@@ -243,7 +243,7 @@ public class InstancesController_ActiveInstancesTest
         {
             Party = new()
             {
-                Name = "Ola Nordmann"
+                Name = "Ola Olsen"
             }
         });
 

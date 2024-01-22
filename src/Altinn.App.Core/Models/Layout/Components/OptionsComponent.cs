@@ -52,46 +52,15 @@ public class OptionsSource
     /// <summary>
     /// Constructor for <see cref="OptionsSource" />
     /// </summary>
-    public OptionsSource(string group, string label, string value)
+    public OptionsSource(string group, string value)
     {
         Group = group;
-        Label = label;
         Value = value;
     }
     /// <summary>
     /// the group field in the data model to base the options on
     /// </summary>
     public string Group { get; }
-    /// <summary>
-    /// a reference to a text id to be used as the label for each iteration of the group
-    /// </summary>
-    /// <remarks>
-    /// As for the label property, we have to define a text resource that can be used as a label for each repetition of the group.
-    /// This follows similar syntax as the value, and will also be familiar if you have used variables in text.
-    /// </remarks>
-    /// <example>
-    /// The referenced text resource must use variables to read text from individual fields
-    /// {
-    ///     "language": "nb",
-    ///     "resources": [
-    ///         {
-    ///         "id": "dropdown.label",
-    ///         "value": "Person: {0}, Age: {1}",
-    ///         "variables": [
-    ///             {
-    ///             "key": "some.group[{0}].name",
-    ///             "dataSource": "dataModel.default"
-    ///             },
-    ///             {
-    ///             "key": "some.group[{0}].age",
-    ///             "dataSource": "dataModel.default"
-    ///             }
-    ///         ]
-    ///         }
-    ///     ]
-    /// }
-    /// </example>
-    public string Label { get; }
     /// <summary>
     /// a reference to a field in the group that should be used as the option value. Notice that we set up this [{0}] syntax. Here the {0} will be replaced by each index of the group.
     /// </summary>

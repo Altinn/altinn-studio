@@ -1,8 +1,8 @@
 #nullable enable
 
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Infrastructure.Clients;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models.Validation;
@@ -21,14 +21,14 @@ namespace Altinn.App.Api.Controllers
     {
         private readonly IInstanceClient _instanceClient;
         private readonly IAppMetadata _appMetadata;
-        private readonly IValidation _validationService;
+        private readonly IValidationService _validationService;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ValidateController"/> class
         /// </summary>
         public ValidateController(
             IInstanceClient instanceClient,
-            IValidation validationService,
+            IValidationService validationService,
             IAppMetadata appMetadata)
         {
             _instanceClient = instanceClient;
@@ -66,7 +66,7 @@ namespace Altinn.App.Api.Controllers
 
             try 
             {
-                List<ValidationIssue> messages = await _validationService.ValidateAndUpdateProcess(instance, taskId);
+                List<ValidationIssue> messages = await _validationService.ValidateInstanceAtTask(instance, taskId);
                 return Ok(messages);
             } 
             catch (PlatformHttpException exception) 
@@ -81,8 +81,7 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Validate an app instance. This will validate all individual data elements, both the binary elements and the elements bound
-        /// to a model, and then finally the state of the instance.
+        /// Validate an app instance. This will validate a single data element
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation</param>
@@ -103,9 +102,6 @@ namespace Altinn.App.Api.Controllers
             {
                 return NotFound();
             }
-
-            // Todo. Figure out where to get this from
-            Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
 
             if (instance.Process?.CurrentTask?.ElementId == null)
             {
@@ -130,19 +126,21 @@ namespace Altinn.App.Api.Controllers
                 throw new ValidationException("Unknown element type.");
             }
 
-            messages.AddRange(await _validationService.ValidateDataElement(instance, dataType, element));
+            messages.AddRange(await _validationService.ValidateDataElement(instance, element, dataType));
 
             string taskId = instance.Process.CurrentTask.ElementId;
+
+            // Should this be a BadRequest instead?
             if (!dataType.TaskId.Equals(taskId, StringComparison.OrdinalIgnoreCase))
             {
                 ValidationIssue message = new ValidationIssue
                 {
                     Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                    InstanceId = instance.Id,
                     Severity = ValidationIssueSeverity.Warning,
                     DataElementId = element.Id,
-                    Description = AppTextHelper.GetAppText(
-                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceText, null, "nb")
+                    Description = $"Data element for task {dataType.TaskId} validated while currentTask is {taskId}",
+                    CustomTextKey = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
+                    CustomTextParams = new List<string>() { dataType.TaskId, taskId },
                 };
                 messages.Add(message);
             }

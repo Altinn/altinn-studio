@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Layout;
@@ -23,12 +24,12 @@ public class ExpressionValidationTests
     [ExpressionTest]
     public void RunExpressionValidationTest(ExpressionValidationTestModel testCase)
     {
-        var logger = Mock.Of<ILogger<ValidationAppSI>>();
+        var logger = Mock.Of<ILogger<ValidationService>>();
         var dataModel = new JsonDataModel(testCase.FormData);
         var evaluatorState = new LayoutEvaluatorState(dataModel, testCase.Layouts, new(), new());
 
         LayoutEvaluator.RemoveHiddenData(evaluatorState, RowRemovalOption.SetToNull);
-        var validationIssues = ExpressionValidator.Validate(testCase.ValidationConfig, dataModel, evaluatorState, logger).ToArray();
+        var validationIssues = ExpressionValidator.Validate(testCase.ValidationConfig, evaluatorState, logger).ToArray();
 
         var result = validationIssues.Select(i => new
         {
@@ -52,20 +53,22 @@ public class ExpressionTestAttribute : DataAttribute
 {
     public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
     {
-        var files = Directory.GetFiles(Path.Join("Features", "Validators", "shared-expression-validation-tests"));
-
-        foreach (var file in files)
-        {
-            var data = File.ReadAllText(file);
-            ExpressionValidationTestModel testCase = JsonSerializer.Deserialize<ExpressionValidationTestModel>(
-                data,
-                new JsonSerializerOptions
+        return Directory
+            .GetFiles(Path.Join("Features", "Validators", "shared-expression-validation-tests"))
+            .Select(file =>
+            {
+                var data = File.ReadAllText(file);
+                return new object[]
                 {
-                    ReadCommentHandling = JsonCommentHandling.Skip,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                })!;
-            yield return new object[] { testCase };
-        }
+                    JsonSerializer.Deserialize<ExpressionValidationTestModel>(
+                        data,
+                        new JsonSerializerOptions
+                        {
+                            ReadCommentHandling = JsonCommentHandling.Skip,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        })!
+                };
+            });
     }
 }
 

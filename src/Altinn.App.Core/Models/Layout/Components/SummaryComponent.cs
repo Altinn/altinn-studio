@@ -17,18 +17,12 @@ public class SummaryComponent : BaseComponent
     public string ComponentRef { get; set; }
 
     /// <summary>
-    /// Name of the page this summary component references
-    /// </summary>
-    public string PageRef { get; set; }
-
-    /// <summary>
     /// Constructor
     /// </summary>
-    public SummaryComponent(string id, string type, Expression? hidden, string componentRef, string pageRef, IReadOnlyDictionary<string, string>? additionalProperties) :
+    public SummaryComponent(string id, string type, Expression? hidden, string componentRef, IReadOnlyDictionary<string, string>? additionalProperties) :
         base(id, type, null, hidden, null, null, additionalProperties)
     {
         ComponentRef = componentRef;
-        PageRef = pageRef;
     }
 }
 

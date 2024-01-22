@@ -1,5 +1,6 @@
 using System.Net;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -21,7 +22,7 @@ public class ValidateControllerTests
         // Arrange
         var instanceMock = new Mock<IInstanceClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
-        var validationMock = new Mock<IValidation>();
+        var validationMock = new Mock<IValidationService>();
 
         const string org = "ttd";
         const string app = "app";
@@ -45,7 +46,7 @@ public class ValidateControllerTests
         // Arrange
         var instanceMock = new Mock<IInstanceClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
-        var validationMock = new Mock<IValidation>();
+        var validationMock = new Mock<IValidationService>();
 
         const string org = "ttd";
         const string app = "app";
@@ -77,7 +78,7 @@ public class ValidateControllerTests
         // Arrange
         var instanceMock = new Mock<IInstanceClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
-        var validationMock = new Mock<IValidation>();
+        var validationMock = new Mock<IValidationService>();
 
         const string org = "ttd";
         const string app = "app";
@@ -112,7 +113,7 @@ public class ValidateControllerTests
         // Arrange
         var instanceMock = new Mock<IInstanceClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
-        var validationMock = new Mock<IValidation>();
+        var validationMock = new Mock<IValidationService>();
 
         const string org = "ttd";
         const string app = "app";
@@ -143,7 +144,7 @@ public class ValidateControllerTests
         instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
-        validationMock.Setup(v => v.ValidateAndUpdateProcess(instance, "dummy"))
+        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy"))
             .Returns(Task.FromResult(validationResult));
 
         // Act
@@ -161,7 +162,7 @@ public class ValidateControllerTests
         // Arrange
         var instanceMock = new Mock<IInstanceClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
-        var validationMock = new Mock<IValidation>();
+        var validationMock = new Mock<IValidationService>();
 
         const string org = "ttd";
         const string app = "app";
@@ -186,7 +187,7 @@ public class ValidateControllerTests
         instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
-        validationMock.Setup(v => v.ValidateAndUpdateProcess(instance, "dummy"))
+        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy"))
             .Throws(exception);
 
         // Act
@@ -204,7 +205,7 @@ public class ValidateControllerTests
         // Arrange
         var instanceMock = new Mock<IInstanceClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
-        var validationMock = new Mock<IValidation>();
+        var validationMock = new Mock<IValidationService>();
 
         const string org = "ttd";
         const string app = "app";
@@ -229,7 +230,7 @@ public class ValidateControllerTests
         instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
-        validationMock.Setup(v => v.ValidateAndUpdateProcess(instance, "dummy"))
+        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy"))
             .Throws(exception);
 
         // Act

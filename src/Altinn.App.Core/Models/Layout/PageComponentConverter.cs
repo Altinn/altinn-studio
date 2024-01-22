@@ -234,7 +234,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         int maxCount = 1; // > 1 is repeating, but might not be specified for non-repeating groups
         // Custom properties for Summary
         string? componentRef = null;
-        string? pageRef = null;
         // Custom properties for components with optionId or literal options
         string? optionId = null;
         List<AppOption>? literalOptions = null;
@@ -294,9 +293,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                 case "componentref":
                     componentRef = reader.GetString();
                     break;
-                case "pageref":
-                    pageRef = reader.GetString();
-                    break;
                 // option
                 case "optionsid":
                     optionId = reader.GetString();
@@ -321,6 +317,17 @@ public class PageComponentConverter : JsonConverter<PageComponent>
 
         switch (type.ToLowerInvariant())
         {
+            case "repeatinggroup":
+                ThrowJsonExceptionIfNull(children, "Component with \"type\": \"Group\" requires a \"children\" property");
+                if (!(dataModelBindings?.ContainsKey("group") ?? false))
+                {
+                    throw new JsonException($"A repeating group id:\"{id}\" does not have a \"group\" dataModelBinding");
+                }
+
+                var directRepComponent = new RepeatingGroupComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, maxCount, hidden, hiddenRow, required, readOnly, additionalProperties);
+                return directRepComponent;
+
+
             case "group":
                 ThrowJsonExceptionIfNull(children, "Component with \"type\": \"Group\" requires a \"children\" property");
 
@@ -343,8 +350,8 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                 var gridComponent = new GridComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, hidden, required, readOnly, additionalProperties);
                 return gridComponent;
             case "summary":
-                ValidateSummary(componentRef, pageRef);
-                return new SummaryComponent(id, type, hidden, componentRef, pageRef, additionalProperties);
+                ValidateSummary(componentRef);
+                return new SummaryComponent(id, type, hidden, componentRef, additionalProperties);
             case "checkboxes":
             case "radiobuttons":
             case "dropdown":
@@ -384,11 +391,11 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         }
     }
 
-    private static void ValidateSummary([NotNull] string? componentRef, [NotNull] string? pageRef)
+    private static void ValidateSummary([NotNull] string? componentRef)
     {
-        if (componentRef is null || pageRef is null)
+        if (componentRef is null)
         {
-            throw new JsonException("Component with \"type\": \"Summary\" requires \"componentRef\" and \"pageRef\" properties");
+            throw new JsonException("Component with \"type\": \"Summary\" requires the \"componentRef\" property");
         }
     }
 

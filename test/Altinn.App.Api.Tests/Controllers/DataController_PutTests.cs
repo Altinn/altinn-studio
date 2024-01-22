@@ -62,7 +62,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         
         // Update data element
         using var updateDataElementContent =
-            new StringContent("""{"melding":{"name": "Ivar Nesje"}}""", System.Text.Encoding.UTF8, "application/json");
+            new StringContent("""{"melding":{"name": "Ola Olsen"}}""", System.Text.Encoding.UTF8, "application/json");
         var response = await client.PutAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}", updateDataElementContent);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
@@ -72,67 +72,10 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed =
             JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
-        readDataElementResponseParsed.Melding.Name.Should().Be("Ivar Nesje");
+        readDataElementResponseParsed.Melding.Name.Should().Be("Ola Olsen");
 
         _dataProcessor.Verify(p => p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>()), Times.Exactly(1));
-        _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.IsAny<Dictionary<string, string?>>()), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
-        _dataProcessor.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task PutDataElement_TestMultiPartUpdate_ReturnsOk()
-    {
-        // Setup test data
-        string org = "tdd";
-        string app = "contributer-restriction";
-        int instanceOwnerPartyId = 501337;
-        HttpClient client = GetRootedClient(org, app);
-        string token = PrincipalUtil.GetToken(1337, null);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        // Create instance
-        var createResponse =
-            await client.PostAsync($"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}", null);
-        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, JsonSerializerOptions)!;
-        var instanceId = createResponseParsed.Id;
-
-        // Create data element (not sure why it isn't created when the instance is created, autoCreate is true)
-        using var createDataElementContent =
-            new StringContent("""{"melding":{"name": "Ivar"}}""", System.Text.Encoding.UTF8, "application/json");
-        var createDataElementResponse =
-            await client.PostAsync($"/{org}/{app}/instances/{instanceId}/data?dataType=default",
-                createDataElementContent);
-        var createDataElementResponseContent = await createDataElementResponse.Content.ReadAsStringAsync();
-        createDataElementResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var createDataElementResponseParsed =
-            JsonSerializer.Deserialize<DataElement>(createDataElementResponseContent, JsonSerializerOptions)!;
-        var dataGuid = createDataElementResponseParsed.Id;
-
-        // Update data element
-        using var updateDataElementContent = new MultipartFormDataContent();
-        updateDataElementContent.Add(new StringContent("""{"melding":{"name": "Ivar Nesje"}}""", System.Text.Encoding.UTF8,
-            "application/json"), "dataModel");
-        updateDataElementContent.Add(new StringContent("""{"melding.name":"Ivar"}""", System.Text.Encoding.UTF8,
-            "application/json"), "previousValues");
-
-        var response = await client.PutAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}", updateDataElementContent);
-        var responseContent = await response.Content.ReadAsStringAsync();
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
-
-        // Verify stored data
-        var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
-        var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
-        var readDataElementResponseParsed =
-            JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
-        readDataElementResponseParsed.Melding.Name.Should().Be("Ivar Nesje");
-
-        // Verify that update response equals the following read response
-        // responseContent.Should().Be(readDataElementResponseContent);
-
-        _dataProcessor.Verify(p=>p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>()), Times.Exactly(1));
-        _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.Is<Dictionary<string, string?>>(d => d.ContainsKey("melding.name"))), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
+        _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.IsAny<Skjema?>()), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
         _dataProcessor.VerifyNoOtherCalls();
     }
 
@@ -140,8 +83,8 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
     public async Task PutDataElement_TestMultiPartUpdateWithCustomDataProcessor_ReturnsOk()
     {
         // Run the previous test with a custom data processor
-        _dataProcessor.Setup(d => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<Dictionary<string, string?>?>()))
-            .Returns((Instance instance, Guid dataGuid, object data, Dictionary<string, string?>? previousValues) =>
+        _dataProcessor.Setup(d => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<object?>()))
+            .Returns((Instance instance, Guid dataGuid, object data, object previousData) =>
             {
                 if (data is Skjema skjema)
                 {
@@ -189,26 +132,22 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         firstReadDataElementResponseParsed.Melding.Toggle.Should().BeFalse();
 
         // Update data element
-        using var updateDataElementContent = new MultipartFormDataContent();
-        updateDataElementContent.Add(new StringContent("""{"melding":{"name": "Ivar Nesje"}}""", System.Text.Encoding.UTF8,
-            "application/json"), "\"dataModel\"");
-        updateDataElementContent.Add(new StringContent("""{"melding.name":"Ivar"}""", System.Text.Encoding.UTF8,
-            "application/json"), "\"previousValues\"");
-
+        using var updateDataElementContent =
+            new StringContent("""{"melding":{"name": "Ola Olsen"}}""", System.Text.Encoding.UTF8, "application/json");
         var response = await client.PutAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}", updateDataElementContent);
-        var responseContent = await response.Content.ReadAsStringAsync();
         response.StatusCode.Should().Be(HttpStatusCode.SeeOther);
+
 
         // Verify stored data
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed =
             JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
-        readDataElementResponseParsed.Melding.Name.Should().Be("Ivar Nesje");
+        readDataElementResponseParsed.Melding.Name.Should().Be("Ola Olsen");
         readDataElementResponseParsed.Melding.Toggle.Should().BeTrue();
 
         _dataProcessor.Verify(p=>p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>()), Times.Exactly(2));
-        _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.Is<Dictionary<string, string?>>(d => d.ContainsKey("melding.name"))), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
+        _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.IsAny<Skjema?>()), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
         _dataProcessor.VerifyNoOtherCalls();
         
     }

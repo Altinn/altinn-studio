@@ -102,7 +102,7 @@ public static class LayoutEvaluator
     /// <summary>
     /// Return a list of <see cref="ValidationIssue" /> for the given state and dataElementId
     /// </summary>
-    public static IEnumerable<ValidationIssue> RunLayoutValidationsForRequired(LayoutEvaluatorState state, string dataElementId)
+    public static List<ValidationIssue> RunLayoutValidationsForRequired(LayoutEvaluatorState state, string dataElementId)
     {
         var validationIssues = new List<ValidationIssue>();
 
@@ -134,7 +134,6 @@ public static class LayoutEvaluator
                         validationIssues.Add(new ValidationIssue()
                         {
                             Severity = ValidationIssueSeverity.Error,
-                            InstanceId = state.GetInstanceContext("instanceId").ToString(),
                             DataElementId = dataElementId,
                             Field = field,
                             Description = $"{field} is required in component with id {context.Component.Id}",

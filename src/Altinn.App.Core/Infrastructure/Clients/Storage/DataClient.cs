@@ -167,17 +167,17 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
             if (response.IsSuccessStatusCode)
             {
-                await using Stream stream = await response.Content.ReadAsStreamAsync();
+                using Stream stream = await response.Content.ReadAsStreamAsync();
                 ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
-                ModelDeserializerResult deserializerResult = await deserializer.DeserializeAsync(stream, "application/xml");
+                object? model = await deserializer.DeserializeAsync(stream, "application/xml");
 
-                if (deserializerResult.HasError)
+                if (deserializer.Error != null || model is null)
                 {
-                    _logger.LogError("Cannot deserialize XML form data read from storage: {deserializerError}", deserializerResult.Error);
-                    throw new ServiceException(HttpStatusCode.Conflict, $"Cannot deserialize XML form data from storage {deserializerResult.Error}");
+                    _logger.LogError($"Cannot deserialize XML form data read from storage: {deserializer.Error}");
+                    throw new ServiceException(HttpStatusCode.Conflict, $"Cannot deserialize XML form data from storage {deserializer.Error}");
                 }
 
-                return deserializerResult.Model;
+                return model;
             }
 
             throw await PlatformHttpException.CreateAsync(response);

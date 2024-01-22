@@ -180,6 +180,14 @@ public class LayoutEvaluatorState
     }
 
     /// <summary>
+    /// Get all of the resolved keys (including all possible indexes) from a data model key
+    /// </summary>
+    public string[] GetResolvedKeys(string key)
+    {
+        return _dataModel.GetResolvedKeys(key);
+    }
+
+    /// <summary>
     /// Set the value of a field to null.
     /// </summary>
     public void RemoveDataField(string key, RowRemovalOption rowRemovalOption)
