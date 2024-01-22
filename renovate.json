@@ -11,12 +11,6 @@
       "groupName": "gitea dependency",
       "groupSlug": "gitea",
       "matchPackageNames": ["gitea/gitea"]
-    }, 
-    {
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["node"],
-      "versionCompatibility": "^(?<version>^20.*)(?<compatibility>-.*)?$",
-      "versioning": "node"
     }
   ],
   "ignorePaths": ["testdata/**", "src/**"],
