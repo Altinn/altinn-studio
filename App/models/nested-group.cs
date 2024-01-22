@@ -213,11 +213,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("isPrefill")]
     public bool isPrefill { get; set; }
 
-    [XmlElement("hideComment")]
-    [JsonProperty("hideComment")]
-    [JsonPropertyName("hideComment")]
-    public string hideComment { get; set; }
-
     [XmlElement("nested-grp-1234")]
     [JsonProperty("nested-grp-1234")]
     [JsonPropertyName("nested-grp-1234")]
@@ -353,6 +348,11 @@ namespace Altinn.App.Models
     [JsonProperty("reference")]
     [JsonPropertyName("reference")]
     public string reference { get; set; }
+
+    [XmlElement("hideComment")]
+    [JsonProperty("hideComment")]
+    [JsonPropertyName("hideComment")]
+    public string hideComment { get; set; }
 
   }
 }
