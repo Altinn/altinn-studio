@@ -36,9 +36,10 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAltinn2MetadataClient _altinn2MetadataClient;
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
+        private readonly IResourceAccessListService _resourceAccessListService;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IResourceAccessListService resourceAccessListService)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -49,6 +50,7 @@ namespace Altinn.Studio.Designer.Controllers
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
+            _resourceAccessListService = resourceAccessListService;
         }
 
         [HttpGet]
@@ -379,6 +381,85 @@ namespace Altinn.Studio.Designer.Controllers
                 Console.WriteLine("Invalid repository for resource");
                 return new StatusCodeResult(400);
             }
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/accesslist/")]
+        public async Task<ActionResult<AccessList>> CreateAccessList(string org, string env, [FromBody] AccessList accessList)
+        {
+            return await _resourceAccessListService.CreateAccessList(org, env, accessList);
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/accesslist/")]
+        public async Task<ActionResult<IEnumerable<AccessList>>> GetAccessLists(string org, string env)
+        {
+            return await _resourceAccessListService.GetAccessLists(org, env);
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}")]
+        public async Task<ActionResult<AccessList>> GetAccessList(string org, string identifier, string env)
+        {
+            return await _resourceAccessListService.GetAccessList(org, identifier, env);
+        }
+
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}")]
+        public async Task<ActionResult> DeleteAccessList(string org, string identifier, string env)
+        {
+            return await _resourceAccessListService.DeleteAccessList(org, identifier, env);
+
+        }
+
+        [HttpPatch]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}")]
+        public async Task<ActionResult<AccessList>> UpdateAccessList(string org, string identifier, string env, [FromBody] AccessListPatch accessListPatch)
+        {
+            return await _resourceAccessListService.UpdateAccessList(org, identifier, env, accessListPatch);
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
+        public async Task<ActionResult> AddAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        {
+            return await _resourceAccessListService.AddAccessListMember(org, identifier, memberOrgNr, env);
+        }
+
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
+        public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        {
+            return await _resourceAccessListService.RemoveAccessListMember(org, identifier, memberOrgNr, env);
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/{id}/accesslists/")]
+        public async Task<ActionResult<IEnumerable<ResourceAccessList>>> GetResourceAccessLists(string org, string id, string env)
+        {
+            return await _resourceAccessListService.GetResourceAccessLists(org, id, env);
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
+        public async Task<ActionResult<ResourceAccessList>> AddResourceAccessList(string org, string id, string listId, string env)
+        {
+            return await _resourceAccessListService.AddResourceAccessList(org, id, listId, env);
+        }
+
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
+        public async Task<ActionResult> RemoveResourceAccessList(string org, string id, string listId, string env)
+        {
+            return await _resourceAccessListService.RemoveResourceAccessList(org, id, listId, env);
+        }
+
+        // TODO: is this service needed in the BFF?
+        [HttpPatch]
+        [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
+        public async Task<ActionResult<ResourceAccessList>> EditResourceAccessList(string org, string id, string listId, string env, [FromBody] ResourceAccessList payload)
+        {
+            return new StatusCodeResult(200);
         }
 
         private async Task<CompetentAuthority> GetCompetentAuthorityFromOrg(string org)
