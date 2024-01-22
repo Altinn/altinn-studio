@@ -10,8 +10,7 @@
           "title": "Form.Panel-confirm2.title",
           "body": "Form.Panel-confirm2.body"
         },
-        "variant": "warning",
-        "dataModelBindings": {}
+        "variant": "warning"
       },
       {
         "id": "Input-name",
@@ -109,8 +108,7 @@
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "Confirm.Paragraph-confirm.title"
-        },
-        "dataModelBindings": {}
+        }
       },
       {
         "id": "ButtonGroup",
