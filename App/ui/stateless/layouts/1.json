@@ -15,7 +15,7 @@
             "en": "https://raw.githubusercontent.com/Altinn/altinn-cdn/master/img/Altinn-logo-black.svg"
           },
           "width": "70%",
-          "align": "left"
+          "align": "flex-start"
         },
         "grid": {
           "xs": 3,
@@ -105,8 +105,7 @@
             "value": "annet"
           }
         ],
-        "required": false,
-        "optionsId": null
+        "required": false
       },
       {
         "id": "options",
@@ -128,8 +127,7 @@
       },
       {
         "id": "pageNext",
-        "type": "NavigationButtons",
-        "triggers": ["validatePage"]
+        "type": "NavigationButtons"
       }
     ]
   }
