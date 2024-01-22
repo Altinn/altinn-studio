@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
@@ -10,7 +9,7 @@ namespace Altinn.App.AppLogic.DataProcessing
 {
   public class DataProcessor: IDataProcessor
   {
-    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, Dictionary<string, string> changedFields)
+    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object previous)
     {
       return Task.CompletedTask;
     }
