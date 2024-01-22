@@ -77,7 +77,7 @@ describe('TextList', () => {
     expect(updateEntryId).toHaveBeenCalledWith({ newId: 'a-updated', oldId: 'a' });
   });
 
-  it.only('should display warnings for existing, empty, or space-containing IDs', async () => {
+  it('should display warnings for existing, empty, or space-containing IDs', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
     const [firstErrorMessage, secondErrorMessage, thirdErrorMessage]: string[] = [
