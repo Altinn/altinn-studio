@@ -5,6 +5,7 @@ import {
   FieldType,
   ObjectKind,
   ROOT_POINTER,
+  ReferenceNode,
   UiSchemaNodes,
 } from '@altinn/schema-model';
 
@@ -18,6 +19,8 @@ const objectChildPointer = '#/properties/parent2/properties/someNode';
 const definitionNodePointer = '#/$defs/def1';
 const childOfDefinitionNodePointer = '#/$defs/def1/properties/childOfDef1';
 const nodeWithSameNameAsObjectChildPointer = '#/properties/someNode';
+const referenceNodePointer = '#/properties/referenceNode';
+const referredNodePointer = '#/$defs/referredNode';
 
 export const nodeMockBase: FieldNode = {
   objectKind: ObjectKind.Field,
@@ -33,6 +36,18 @@ export const nodeMockBase: FieldNode = {
   enum: [],
 };
 
+export const referenceNodeMock: ReferenceNode = {
+  ...nodeMockBase,
+  objectKind: ObjectKind.Reference,
+  pointer: referenceNodePointer,
+  reference: referredNodePointer,
+};
+
+export const referredNodeMock: FieldNode = {
+  ...nodeMockBase,
+  pointer: referredNodePointer,
+};
+
 export const rootNodeMock: FieldNode = {
   ...nodeMockBase,
   fieldType: FieldType.Object,
@@ -44,6 +59,8 @@ export const rootNodeMock: FieldNode = {
     objectNodePointer,
     definitionNodePointer,
     nodeWithSameNameAsObjectChildPointer,
+    referenceNodePointer,
+    referredNodePointer,
   ],
 };
 
@@ -113,6 +130,8 @@ export const uiSchemaNodesMock: UiSchemaNodes = [
   combinationNodeMock,
   fieldNode1Mock,
   fieldNode2Mock,
+  referenceNodeMock,
+  referredNodeMock,
   nodeWithCustomPropsMock,
   toggableNodeMock,
   objectNodeMock,
