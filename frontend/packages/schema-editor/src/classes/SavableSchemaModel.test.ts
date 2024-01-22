@@ -85,7 +85,7 @@ describe('SavableSchemaModel', () => {
   });
 
   describe('moveNode', () => {
-    it('Moves a node, saves the model once and returns the object', () => {
+    it('Moves a node, saves the model once and returns the moved node', () => {
       const savableSchema = setupSchema();
       const { pointer } = fieldNode1Mock;
       const name = extractNameFromPointer(pointer);

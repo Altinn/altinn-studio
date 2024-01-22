@@ -14,7 +14,8 @@ import {
   nodeWithSameNameAsObjectChildMock,
   objectChildMock,
   objectNodeMock,
-  rootNodeMock, toggableNodeMock,
+  rootNodeMock, 
+  toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
 import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
