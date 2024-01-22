@@ -1,12 +1,12 @@
-import { replaceWhiteSpaceWithHyphens } from './stringUtils';
+import { formatIdString } from './stringUtils';
 
 describe('stringUtils', () => {
-  describe('replaceWhiteSpaceWithHyphens', () => {
-    const mockStringBefore: string = 'Test 123';
-    const mockStringAfter: string = 'Test-123';
+  describe('formatIdString', () => {
+    const mockStringBefore: string = 'Test 123?/id';
+    const mockStringAfter: string = 'Test-123-id';
 
-    it('replaces white space with "-"', () => {
-      const result = replaceWhiteSpaceWithHyphens(mockStringBefore);
+    it('replaces illegal characters with "-"', () => {
+      const result = formatIdString(mockStringBefore);
       expect(result).toEqual(mockStringAfter);
     });
   });

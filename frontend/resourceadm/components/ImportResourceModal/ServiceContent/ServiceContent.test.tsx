@@ -27,7 +27,6 @@ const defaultProps: ServiceContentProps = {
   env: mockEnv,
   selectedService: mockAltinn2LinkService,
   onSelectService: mockOnSelectService,
-  resourceIdExists: false,
 };
 
 describe('ServiceContent', () => {
