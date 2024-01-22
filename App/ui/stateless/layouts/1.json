@@ -127,7 +127,11 @@
       },
       {
         "id": "pageNext",
-        "type": "NavigationButtons"
+        "type": "NavigationButtons",
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        }
       }
     ]
   }
