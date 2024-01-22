@@ -52,7 +52,11 @@ describe('ListAdminPage', () => {
     await act(() => user.click(createNewButton));
 
     expect(
-      screen.getByText(textMock('resourceadm.listadmin_create_list_header', { env: 'TT02' })),
+      screen.getByText(
+        textMock('resourceadm.listadmin_create_list_header', {
+          env: textMock('resourceadm.deploy_test_env'),
+        }),
+      ),
     ).toBeInTheDocument();
   });
 });

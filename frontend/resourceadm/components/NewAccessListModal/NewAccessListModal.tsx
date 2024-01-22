@@ -6,6 +6,7 @@ import { Modal, Paragraph } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../../components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioButton } from '@studio/components';
+import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
 export interface NewAccessListModalProps {
   org: string;
@@ -50,7 +51,9 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
     return (
       <Modal ref={ref} onClose={onClose}>
         <Modal.Header>
-          {t('resourceadm.listadmin_create_list_header', { env: env.toUpperCase() })}
+          {t('resourceadm.listadmin_create_list_header', {
+            env: t(getAvailableEnvironments(org).find((listEnv) => listEnv.id === env).label),
+          })}
         </Modal.Header>
         <Modal.Content>
           <div>

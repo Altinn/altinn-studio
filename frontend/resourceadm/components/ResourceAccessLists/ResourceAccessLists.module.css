@@ -2,13 +2,14 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 2rem;
   margin: 1rem;
 }
 
 .listCheckboxWrapper {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   gap: 1rem;
 }
