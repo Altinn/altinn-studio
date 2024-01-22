@@ -43,9 +43,10 @@ export class SavableSchemaModel extends SchemaModel {
     return this.save();
   }
 
-  public moveNode(pointer: string, target: NodePosition): SavableSchemaModel {
-    super.moveNode(pointer, target);
-    return this.save();
+  public moveNode(pointer: string, target: NodePosition): UiSchemaNode {
+    const movedNode = super.moveNode(pointer, target);
+    this.save();
+    return movedNode;
   }
 
   public updateNode(pointer: string, newNode: UiSchemaNode): SavableSchemaModel {

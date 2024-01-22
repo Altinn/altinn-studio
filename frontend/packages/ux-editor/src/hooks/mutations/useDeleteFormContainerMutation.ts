@@ -4,12 +4,11 @@ import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { deepCopy } from 'app-shared/pure';
 
-export const useDeleteFormContainerMutation = (org: string, app: string, layoutSetName: string) =>  {
+export const useDeleteFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useSelectedFormLayoutWithName();
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   return useMutation({
     mutationFn: (id: string) => {
-
       const updatedLayout: IInternalLayout = deepCopy(layout);
 
       // Delete child components:
@@ -36,11 +35,11 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       if (parentContainerId) {
         updatedLayout.order[parentContainerId].splice(
           updatedLayout.order[parentContainerId].indexOf(id),
-          1
+          1,
         );
       }
 
       return formLayoutsMutation.mutateAsync(updatedLayout);
-    }
+    },
   });
 };

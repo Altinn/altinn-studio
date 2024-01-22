@@ -1,0 +1,62 @@
+name: Playwright Tests in Dev
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'frontend/**'
+      - '.githib/workflow/playwright.yml'
+
+jobs:
+  playwright-run:
+    name: 'Playwright Tests'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checking Out Code'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'yarn'
+
+      - name: Get yarn cache directory path
+        working-directory: frontend
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Attempt to wait for deploy to environment (10 minutes sleep)
+        run: sleep 10m
+        shell: bash
+
+      - name: Playwright run
+        working-directory: frontend/testing/playwright
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
+          PLAYWRIGHT_USER: 'AutoTest'
+          PLAYWRIGHT_PASS: ${{ secrets.AUTO_TEST_USER_PWD }}
+          GITEA_ACCESS_TOKEN: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          yarn
+          yarn install --immutable --inline-builds
+          yarn playwright install --with-deps
+          yarn playwright:test:all
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-screenshots
+          path: frontend/testing/playwright/screenshots

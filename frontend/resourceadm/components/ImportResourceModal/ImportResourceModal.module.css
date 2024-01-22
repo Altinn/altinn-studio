@@ -10,14 +10,22 @@
 
 .buttonWrapper {
   display: flex;
-  justify-content: flex-end;
+  gap: var(--fds-spacing-2);
   margin-top: var(--fds-spacing-10);
-}
-
-.importButton {
-  margin-left: var(--fds-spacing-2);
 }
 
 .contentWidth {
   max-width: 37.5rem;
+}
+
+.serviceContentWrapper {
+  margin-top: var(--fds-spacing-5);
+  max-width: 30rem;
+  width: 100%;
+}
+
+.contentDivider {
+  border: solid 1px var(--fds-semantic-border-neutral-subtle);
+  margin-top: var(--fds-spacing-6);
+  margin-bottom: var(--fds-spacing-4);
 }

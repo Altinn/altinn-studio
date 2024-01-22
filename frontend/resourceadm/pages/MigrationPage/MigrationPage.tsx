@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './MigrationPage.module.css';
-import { useValidatePolicyQuery, useValidateResourceQuery } from 'resourceadm/hooks/queries';
-import { MigrationStep } from 'resourceadm/components/MigrationStep';
+import { useValidatePolicyQuery, useValidateResourceQuery } from '../../hooks/queries';
+import { MigrationStep } from '../../components/MigrationStep';
 import {
   Textfield,
   Heading,
@@ -11,9 +11,9 @@ import {
   Link,
   Radio,
 } from '@digdir/design-system-react';
-import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 
 const envOptions = [
@@ -33,12 +33,12 @@ type MigrationPageProps = {
  * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
  * @property {string}[id] - The id of the page
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const MigrationPage = ({
   navigateToPageWithError,
   id,
-}: MigrationPageProps): React.ReactNode => {
+}: MigrationPageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { selectedContext, repo, resourceId } = useUrlParams();
@@ -196,12 +196,12 @@ export const MigrationPage = ({
                 {numDelegationsA2 && numDelegationsA3 && (
                   <div className={classes.delegations}>
                     <Paragraph size='small'>
-                      {t('resourceadm.resourceadm.migration_altinn_2')}:{' '}
-                      <strong>{numDelegationsA2}</strong> {t('resourceadm.migration_delegations')}
+                      {t('resourceadm.migration_altinn_2')}: <strong>{numDelegationsA2}</strong>{' '}
+                      {t('resourceadm.migration_delegations')}
                     </Paragraph>
                     <Paragraph size='small'>
-                      {t('resourceadm.resourceadm.migration_altinn_3')}:{' '}
-                      <strong>{numDelegationsA3}</strong> {t('resourceadm.migration_delegations')}
+                      {t('resourceadm.migration_altinn_3')}: <strong>{numDelegationsA3}</strong>{' '}
+                      {t('resourceadm.migration_delegations')}
                     </Paragraph>
                   </div>
                 )}
@@ -209,7 +209,7 @@ export const MigrationPage = ({
               <Label as='p' size='medium' spacing>
                 {t('resourceadm.migration_finish_migration')}
               </Label>
-              <Paragraph size='small'>{t('"resourceadm.migration_delegation_info"')}</Paragraph>
+              <Paragraph size='small'>{t('resourceadm.migration_delegation_info')}</Paragraph>
               <div className={classes.buttonWrapper}>
                 <StudioButton
                   aria-disabled={

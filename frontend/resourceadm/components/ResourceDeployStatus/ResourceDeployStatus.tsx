@@ -1,8 +1,8 @@
 import React from 'react';
 import classes from './ResourceDeployStatus.module.css';
-import { ArrowRightIcon } from '@navikt/aksel-icons';
-import type { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
-import type { DeployError } from 'resourceadm/types/DeployError';
+import { ArrowRightIcon } from '@studio/icons';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
+import type { DeployError } from '../../types/DeployError';
 import { Alert, Label, Paragraph } from '@digdir/design-system-react';
 import { LinkButton } from '../LinkButton';
 import { useTranslation } from 'react-i18next';
@@ -42,7 +42,7 @@ export type ResourceDeployStatusProps = {
  * @property {function}[onNavigateToPageWithError] - Function that navigates to the page with error
  * @property {string}[resourceId] - The id of the resource
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceDeployStatus = ({
   title,
@@ -50,7 +50,7 @@ export const ResourceDeployStatus = ({
   isSuccess = false,
   onNavigateToPageWithError,
   resourceId,
-}: ResourceDeployStatusProps): React.ReactNode => {
+}: ResourceDeployStatusProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const getPageToNavigateToAsString = (page: 'about' | 'policy') => {

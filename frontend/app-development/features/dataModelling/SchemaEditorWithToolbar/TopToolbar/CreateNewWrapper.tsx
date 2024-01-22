@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ErrorMessage, LegacyTextField, LegacyPopover } from '@digdir/design-system-react';
+import { ErrorMessage, Textfield, LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
@@ -92,16 +92,14 @@ export function CreateNewWrapper({
         </StudioButton>
       }
     >
-      <label>{t('schema_editor.create_model_description')}</label>
-      <LegacyTextField
+      <Textfield
         id='newModelInput'
-        placeholder={t('schema_editor.name')}
-        isValid={!nameError}
+        label={t('schema_editor.create_model_description')}
         onChange={onNameChange}
         onBlur={onInputBlur}
         onKeyUp={onKeyUp}
+        error={nameError && <ErrorMessage>{nameError}</ErrorMessage>}
       />
-      {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
       <StudioButton
         color='second'
         onClick={onCreateConfirmClick}

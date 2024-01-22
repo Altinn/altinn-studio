@@ -41,14 +41,14 @@ export type ResourceReferenceFieldsProps = {
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - If the error should be shown
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceReferenceFields = ({
   resourceReferenceList,
   onResourceReferenceFieldChanged,
   onFocus,
   showErrors,
-}: ResourceReferenceFieldsProps): React.ReactNode => {
+}: ResourceReferenceFieldsProps): React.JSX.Element => {
   return (
     <FieldsetWrapper<ResourceReference>
       list={resourceReferenceList}
