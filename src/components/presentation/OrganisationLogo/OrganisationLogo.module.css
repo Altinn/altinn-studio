@@ -5,10 +5,6 @@
   gap: var(--fds-spacing-2);
 }
 
-.img {
-  width: 100%;
-}
-
 .small {
   height: 32px;
 }

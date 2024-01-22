@@ -18,7 +18,7 @@ export const OrganisationLogo = () => {
       <img
         src={appLogoUrl}
         alt={appLogoAltText}
-        className={cn(classes.img, classes[appLogoSize])}
+        className={cn(classes[appLogoSize])}
       />
       {showAppOwner && <span>{appOwner}</span>}
     </div>
