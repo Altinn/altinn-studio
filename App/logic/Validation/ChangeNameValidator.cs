@@ -70,7 +70,6 @@ namespace Altinn.App.logic.Validation
                 validationIssues.Add(new ValidationIssue
                 {
                     Field = modelFirstName,
-                    Source = "Required",
                     Description = "Feltet er påkrevd (fra backend)",
                     Severity = ValidationIssueSeverity.Error,
                 });
