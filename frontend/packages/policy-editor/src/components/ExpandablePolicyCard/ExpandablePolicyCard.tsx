@@ -196,22 +196,20 @@ export const ExpandablePolicyCard = ({
     savePolicy(updatedRules);
   };
 
-  /**
-   * Displays the actions
-   */
   const displayActions = policyRule.actions.map((actionId, i) => {
     return (
       <ActionAndSubjectListItem
-        key={i}
-        title={t(`policy_editor.action_${actionId}`)}
+        key={actionId}
+        title={getTranslationByActionId(actionId)}
         onRemove={() => handleRemoveAction(i, actionId)}
       />
     );
   });
 
-  /**
-   * Handles the removal of actions
-   */
+  const getTranslationByActionId = (actionId: string): string | null => {
+    return t(`policy_editor.action_${actionId}`) || actionId;
+  };
+
   const handleRemoveAction = (index: number, actionTitle: string) => {
     // Remove from selected list
     const updatedActions = [...policyRule.actions];
@@ -455,7 +453,7 @@ export const ExpandablePolicyCard = ({
           <LegacySelect
             options={actionOptions.map((option) => ({
               ...option,
-              label: t(`policy_editor.action_${option.label}`),
+              label: getTranslationByActionId(option.label),
             }))}
             onChange={(value: string) => value !== null && handleClickActionInList(value)}
             disabled={actionOptions.length === 0}
