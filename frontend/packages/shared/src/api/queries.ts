@@ -4,6 +4,7 @@ import {
   appLibVersionPath,
   appMetadataPath,
   appPolicyPath,
+  appVersionPath,
   branchStatusPath,
   datamodelMetadataPath,
   datamodelPath,
@@ -71,8 +72,10 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import type { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import type { AppVersionResponse } from 'app-shared/types/api/AppVersionReponse';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
+export const getAppVersion = (owner: string, app: string) => get<AppVersionResponse>(appVersionPath(owner, app));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));

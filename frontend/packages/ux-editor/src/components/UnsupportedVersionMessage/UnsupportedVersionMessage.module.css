@@ -1,0 +1,11 @@
+.wrapper {
+  display: flex;
+  height: calc(100vh - var(--header-height));
+  align-items: center;
+  justify-content: center;
+}
+
+.message {
+  margin-top: 50px;
+  width: 600px;
+}

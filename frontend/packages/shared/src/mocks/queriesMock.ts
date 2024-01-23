@@ -50,6 +50,7 @@ import {
   appDeploymentsResponse,
   appLibVersion,
   appReleasesResponse,
+  appVersionResponse,
   applicationMetadata,
   branchStatus,
   commit,
@@ -69,12 +70,16 @@ import {
   user,
   validation,
 } from './mocks';
+import { AppVersionResponse } from 'app-shared/types/api/AppVersionReponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
   getAppReleases: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
+  getAppVersion: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppVersionResponse>(appVersionResponse)),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
   getComponentSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getComponentsCommonDefsSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),

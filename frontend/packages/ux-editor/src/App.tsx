@@ -12,6 +12,9 @@ import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './hooks/useAppContext';
 import { FormContextProvider } from '../../ux-editor/src/containers/FormContext';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { UnsupportedVersionMessage } from './components/UnsupportedVersionMessage';
+import { useAppVersionQuery } from 'app-shared/hooks/queries/useAppVersionQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -29,6 +32,7 @@ export function App() {
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
     useDatamodelMetadataQuery(org, app);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
+  const { data: appVersion, isSuccess: isAppVersionFetched } = useAppVersionQuery(org, app);
 
   useEffect(() => {
     if (
@@ -74,6 +78,16 @@ export function App() {
       setSelectedLayoutSet(layoutSets.sets[0].id);
     }
   }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
+
+  if (
+    isAppVersionFetched &&
+    appVersion.frontend.startsWith('4.') &&
+    !shouldDisplayFeature('shouldOverrideAppFrontendCheck')
+  ) {
+    return (
+      <UnsupportedVersionMessage version='V4' closestSupportedVersion='V3' category='too-new' />
+    );
+  }
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
