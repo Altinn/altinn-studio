@@ -122,19 +122,13 @@ export const TextRow = ({
       <TableCell className={classes.cellContent}>
         <ButtonContainer className={classes.buttonGroup}>
           {textIdEditOpen ? (
-            <FormField
+            <Textfield
               value={textIdValue}
-              onChange={handleTextIdChange}
-              renderField={({ fieldProps }) => (
-                <Textfield
-                  {...fieldProps}
-                  aria-label={'text key edit'}
-                  error={keyError}
-                  onBlur={keyError ? undefined : handleTextIdBlur}
-                  onChange={(e) => fieldProps.onChange(e.target.value, e)}
-                  size='small'
-                />
-              )}
+              aria-label={'text key edit'}
+              error={keyError}
+              onBlur={keyError ? undefined : handleTextIdBlur}
+              onChange={(e) => handleTextIdChange(e.target.value)}
+              size='small'
             />
           ) : (
             <div role='text' aria-readonly className={classes.textId}>
