@@ -1,12 +1,26 @@
 name: Playwright Tests in Dev
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
     paths:
       - 'frontend/**'
-      - '.githib/workflow/playwright.yml'
+      - '!frontend/stats/**'
+      - 'backend/**'
+      - '.github/workflows/run-playwright-on-pr.yaml'
+      - 'docker-compose.yml'
+      - 'Dockerfile'
+      - 'gitea/**'
+      - 'package.json'
+      - 'development/**'
+  workflow_dispatch:
+  #push:
+  #  branches:
+  #    - main
+  #  paths:
+  #    - 'frontend/**'
+  #    - '.githib/workflow/playwright.yml'
 
 jobs:
   playwright-run:
@@ -36,9 +50,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Attempt to wait for deploy to environment (10 minutes sleep)
-        run: sleep 10m
-        shell: bash
+      #- name: Attempt to wait for deploy to environment (10 minutes sleep)
+      #  run: sleep 10m
+      #  shell: bash
 
       - name: Playwright run
         working-directory: frontend/testing/playwright
