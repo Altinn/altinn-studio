@@ -450,7 +450,7 @@ export class SchemaModel {
     return this.hasReferringNodes(pointer) || this.areDefinitionParentsInUse(pointer);
   }
 
-  private hasReferringNodes(pointer: string): boolean {
+  public hasReferringNodes(pointer: string): boolean {
     const referringNodes = this.getReferringNodes(pointer);
     return !!referringNodes.length;
   }
