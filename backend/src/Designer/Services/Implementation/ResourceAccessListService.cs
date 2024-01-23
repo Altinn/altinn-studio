@@ -73,7 +73,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string env
         )
         {
-            AccessList accessList = _accessListMockData.Find(x => x.Identifier == identifier );
+            AccessList accessList = _accessListMockData.Find(x => x.Identifier == identifier);
             if (accessList == null)
             {
                 return new ObjectResult("List identifier not found") { StatusCode = 404 };
