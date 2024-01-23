@@ -42,7 +42,7 @@ export const Modal = ({
       onClose={onClose}
       title={
         <div className={classes.headingWrapper}>
-          <Heading size='xsmall' spacing level={1}>
+          <Heading size='xsmall' level={1}>
             {title}
           </Heading>
         </div>

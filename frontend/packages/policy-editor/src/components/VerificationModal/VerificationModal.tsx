@@ -43,7 +43,7 @@ export const VerificationModal = ({
       onClose={onClose}
       title={
         <div className={classes.headingWrapper}>
-          <Heading size='xsmall' spacing level={1}>
+          <Heading size='xsmall' level={1}>
             {t('policy_editor.verification_modal_heading')}
           </Heading>
         </div>
