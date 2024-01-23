@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Checkbox, Heading, Link as DigdirLink, Table } from '@digdir/design-system-react';
+import { Alert, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { StudioSpinner, StudioButton } from '@studio/components';
@@ -101,53 +101,46 @@ export const ResourceAccessLists = ({
           env: env.toUpperCase(),
         })}
       </Heading>
-      <Table size='small'>
-        <Table.Head>
-          <Table.Row>
-            <Table.HeaderCell>
-              {t('resourceadm.listadmin_resource_list_checkbox_header')}
-            </Table.HeaderCell>
-          </Table.Row>
-        </Table.Head>
-        <Table.Body>
-          {envListData.map((list) => {
-            return (
-              <Table.Row key={list.identifier}>
-                <Table.Cell className={classes.listCheckboxWrapper}>
-                  <Checkbox
-                    value={list.identifier}
-                    checked={selectedLists.indexOf(list.identifier) > -1}
-                    onChange={(event) => {
-                      if (event.target.checked) {
-                        handleAdd(list.identifier);
-                      } else {
-                        handleRemove(list.identifier);
-                      }
-                    }}
-                  >
-                    {list.name}
-                  </Checkbox>
-                  <StudioButton
-                    iconPlacement='right'
-                    size='small'
-                    variant='tertiary'
-                    icon={<PencilWritingIcon />}
-                    as={Link}
-                    to={`${getResourcePageURL(
-                      selectedContext,
-                      repo,
-                      resourceData.identifier,
-                      'accesslists',
-                    )}/${env}/${list.identifier}`}
-                  >
-                    {t('resourceadm.listadmin_edit_list')}
-                  </StudioButton>
-                </Table.Cell>
-              </Table.Row>
-            );
-          })}
-        </Table.Body>
-      </Table>
+      <Heading level={2} size='xsmall'>
+        {t('resourceadm.listadmin_resource_list_checkbox_header')}
+      </Heading>
+      <div className={classes.listCheckboxWrapper}>
+        {envListData.map((list) => {
+          return (
+            <div key={list.identifier} className={classes.listCheckboxItem}>
+              <Checkbox
+                value={list.identifier}
+                checked={selectedLists.indexOf(list.identifier) > -1}
+                onChange={(event) => {
+                  if (event.target.checked) {
+                    handleAdd(list.identifier);
+                  } else {
+                    handleRemove(list.identifier);
+                  }
+                }}
+              >
+                {list.name}
+              </Checkbox>
+              <StudioButton
+                iconPlacement='right'
+                size='small'
+                variant='tertiary'
+                icon={<PencilWritingIcon />}
+                as={Link}
+                aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
+                to={`${getResourcePageURL(
+                  selectedContext,
+                  repo,
+                  resourceData.identifier,
+                  'accesslists',
+                )}/${env}/${list.identifier}`}
+              >
+                {t('resourceadm.listadmin_edit_list')}
+              </StudioButton>
+            </div>
+          );
+        })}
+      </div>
       <StudioButton
         variant='secondary'
         size='small'

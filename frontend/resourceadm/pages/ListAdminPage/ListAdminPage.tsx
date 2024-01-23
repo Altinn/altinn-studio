@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, ToggleGroup, Table } from '@digdir/design-system-react';
+import { Heading, Link as DigdirLink, ToggleGroup } from '@digdir/design-system-react';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
@@ -66,49 +66,40 @@ export const ListAdminPage = (): React.JSX.Element => {
             />
             {isLoadingEnvListData && <StudioSpinner />}
             {envListData && (
-              <Table size='small'>
-                <Table.Head>
-                  <Table.Row>
-                    <Table.HeaderCell>
-                      {t('resourceadm.listadmin_lists_in', {
-                        environment: t(
-                          getAvailableEnvironments(selectedContext).find(
-                            (listEnv) => listEnv.id === selectedEnv,
-                          ).label,
-                        ),
-                      })}
-                    </Table.HeaderCell>
-                  </Table.Row>
-                </Table.Head>
-                <Table.Body>
-                  {envListData.map((x) => {
-                    return (
-                      <Table.Row key={x.identifier}>
-                        <Table.Cell>
-                          <div className={classes.tableRowContent}>
-                            <div>{x.name}</div>
-                            <StudioButton
-                              iconPlacement='right'
-                              size='small'
-                              variant='tertiary'
-                              icon={<PencilWritingIcon />}
-                              as={Link}
-                              to={getAccessListPageUrl(
-                                selectedContext,
-                                repo,
-                                selectedEnv,
-                                x.identifier,
-                              )}
-                            >
-                              {t('resourceadm.listadmin_edit_list')}
-                            </StudioButton>
-                          </div>
-                        </Table.Cell>
-                      </Table.Row>
-                    );
+              <div>
+                <Heading level={2} size='xsmall'>
+                  {t('resourceadm.listadmin_lists_in', {
+                    environment: t(
+                      getAvailableEnvironments(selectedContext).find(
+                        (listEnv) => listEnv.id === selectedEnv,
+                      ).label,
+                    ),
                   })}
-                </Table.Body>
-              </Table>
+                </Heading>
+                {envListData.map((list) => {
+                  return (
+                    <div key={list.identifier} className={classes.tableRowContent}>
+                      <div>{list.name}</div>
+                      <StudioButton
+                        iconPlacement='right'
+                        size='small'
+                        variant='tertiary'
+                        icon={<PencilWritingIcon />}
+                        aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
+                        as={Link}
+                        to={getAccessListPageUrl(
+                          selectedContext,
+                          repo,
+                          selectedEnv,
+                          list.identifier,
+                        )}
+                      >
+                        {t('resourceadm.listadmin_edit_list')}
+                      </StudioButton>
+                    </div>
+                  );
+                })}
+              </div>
             )}
             <div>
               <StudioButton
