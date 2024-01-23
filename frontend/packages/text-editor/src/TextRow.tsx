@@ -120,7 +120,7 @@ export const TextRow = ({
         );
       })}
       <TableCell className={classes.cellContent}>
-        <ButtonContainer className={classes.buttonGroup}>
+        <ButtonContainer className={classes.textIdContainer}>
           {textIdEditOpen ? (
             <Textfield
               value={textIdValue}

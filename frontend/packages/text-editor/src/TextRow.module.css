@@ -8,7 +8,6 @@
 }
 
 .textId {
-  max-width: 300px;
   overflow: scroll;
   overflow-wrap: break-word;
 }
@@ -23,8 +22,9 @@
   min-width: 340px;
 }
 
-.buttonGroup {
+.textIdContainer {
   justify-content: space-between;
+  max-width: 300px;
 }
 
 .cellContent {
