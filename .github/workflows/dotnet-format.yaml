@@ -1,11 +1,11 @@
 name: Dotnet format check
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - 'backend/**'
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
       - 'backend/**'
