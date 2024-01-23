@@ -200,18 +200,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         )
         {
             // valid operations: replace name and description, remove description
-            bool isValidOperation =
-                (AccessListPatch.Op == "replace" && AccessListPatch.Path == "/name")
-                || (AccessListPatch.Op == "replace" && AccessListPatch.Path == "/description")
-                || (AccessListPatch.Op == "remove" && AccessListPatch.Path == "/description");
-            if (isValidOperation)
-            {
-                return new StatusCodeResult(200);
-            }
-            else
-            {
-                return new ObjectResult("Invalid patch") { StatusCode = 400 };
-            }
+            bool isValidNameOperation = AccessListPatch.Op == "replace" && AccessListPatch.Path == "/name";
+            bool isValidDescriptionOperation = AccessListPatch.Path == "/description" && (AccessListPatch.Op is "replace" or "remove");
+            bool isValidOperation = isValidNameOperation || isValidDescriptionOperation;
+
+            return isValidOperation ? new StatusCodeResult(200) : new ObjectResult("Invalid patch") { StatusCode = 400 };
         }
 
         public async Task<ActionResult> AddAccessListMember(
