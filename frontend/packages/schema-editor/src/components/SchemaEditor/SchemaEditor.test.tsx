@@ -1,6 +1,6 @@
 import React from 'react';
 import { dataMock } from '../../mockData';
-import { act, screen } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
 import {
@@ -274,14 +274,136 @@ describe('SchemaEditor', () => {
         },
       },
     };
+    const setSelectedTypePointer = jest.fn();
+    const setSelectedNodePointer = jest.fn();
+
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
     renderEditor({
-      appContextProps: { schemaModel, selectedTypePointer, setSelectedTypePointer: jest.fn() },
+      appContextProps: {
+        schemaModel,
+        selectedTypePointer,
+        setSelectedTypePointer,
+        setSelectedNodePointer,
+      },
     });
     const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
     await act(() => user.click(type));
+    expect(
+      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
+    ).toBeInTheDocument();
     const closeType = screen.getByRole('button', { name: textMock('schema_editor.close_type') });
     await act(() => user.click(closeType));
-    expect(screen.queryByText(textMock('schema_editor.types_editing'))).toBeNull();
+    expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
+    expect(setSelectedNodePointer).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should not display the type panel when selectedTypePointer is null and selectedNodePointer are null/undefined', async () => {
+    const selectedTypePointer = `#/${Keyword.Definitions}/TestType`;
+    const jsonSchema: JsonSchema = {
+      [Keyword.Properties]: {
+        someProp: { [Keyword.Type]: FieldType.String },
+        testProp: { [Keyword.Reference]: selectedTypePointer },
+      },
+      [Keyword.Definitions]: {
+        TestType: {
+          [Keyword.Type]: FieldType.Object,
+          [Keyword.Properties]: {
+            prop1: { [Keyword.Type]: FieldType.String },
+            prop2: { [Keyword.Type]: FieldType.String },
+          },
+        },
+      },
+    };
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+    renderEditor({
+      appContextProps: { schemaModel, selectedTypePointer: null, selectedNodePointer: undefined },
+    });
+    expect(
+      screen.queryByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
+    ).toBeNull();
+  });
+
+  it('should close the type panel when deleting the selected unused type', async () => {
+    const selectedTypePointer = `#/${Keyword.Definitions}/TestType`;
+    const jsonSchema: JsonSchema = {
+      [Keyword.Definitions]: {
+        TestType: {
+          [Keyword.Type]: FieldType.Object,
+        },
+      },
+    };
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const setSelectedTypePointer = jest.fn();
+    const setSelectedNodePointer = jest.fn();
+    renderEditor({
+      appContextProps: {
+        schemaModel,
+        selectedTypePointer,
+        setSelectedTypePointer,
+        setSelectedNodePointer,
+      },
+    });
+
+    const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
+    await act(() => user.click(type));
+
+    expect(
+      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
+    ).toBeInTheDocument();
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    await act(() => user.click(deleteButton));
+
+    expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
+    expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
+  });
+
+  it('should not close the type panel when deleting a property of the selected type', async () => {
+    const selectedTypePointer = `#/${Keyword.Definitions}/TestType`;
+    const jsonSchema: JsonSchema = {
+      [Keyword.Definitions]: {
+        TestType: {
+          [Keyword.Type]: FieldType.Object,
+          [Keyword.Properties]: {
+            prop1: { [Keyword.Type]: FieldType.String },
+          },
+        },
+      },
+    };
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const setSelectedTypePointer = jest.fn();
+    const setSelectedNodePointer = jest.fn();
+    renderEditor({
+      appContextProps: {
+        schemaModel,
+        selectedTypePointer,
+        setSelectedTypePointer,
+        setSelectedNodePointer,
+      },
+    });
+
+    const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
+    await act(() => user.click(type));
+
+    expect(
+      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
+    ).toBeInTheDocument();
+
+    const treeItem = screen.getByRole('treeitem');
+    await act(() => user.click(treeItem));
+    const prop1 = screen.getByRole('none', {
+      name: /prop1/i,
+    });
+    await act(() => user.click(prop1));
+
+    //within prop1
+    const deleteButton = within(prop1).getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await act(() => user.click(deleteButton));
+
+    expect(setSelectedTypePointer).not.toHaveBeenCalledWith(null);
+    expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });
 });
