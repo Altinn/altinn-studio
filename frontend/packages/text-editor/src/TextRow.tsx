@@ -11,7 +11,6 @@ import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { FormField } from 'app-shared/components/FormField';
 import { StudioButton } from '@studio/components';
 
 export interface TextRowProps {
