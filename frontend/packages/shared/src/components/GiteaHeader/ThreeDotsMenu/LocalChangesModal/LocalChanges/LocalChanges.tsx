@@ -5,8 +5,6 @@ import { Paragraph } from '@digdir/design-system-react';
 import { DownloadIcon, TrashIcon } from '@navikt/aksel-icons';
 import { LocalChangesActionButton } from '../LocalChangesActionButton';
 import { DeleteModal } from '../DeleteModal';
-import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
-import { toast } from 'react-toastify';
 import { repoDownloadPath } from 'app-shared/api/paths';
 
 export type LocalChangesProps = {
@@ -17,18 +15,7 @@ export type LocalChangesProps = {
 export const LocalChanges = ({ org, app }: LocalChangesProps): ReactNode => {
   const { t } = useTranslation();
 
-  const { mutate: deleteLocalChanges } = useResetRepositoryMutation(org, app);
-
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-
-  const handleDelete = () => {
-    deleteLocalChanges(undefined, {
-      onSuccess: () => {
-        setDeleteModalOpen(false);
-        toast.success(t('local_changes.modal_deleted_success'));
-      },
-    });
-  };
 
   return (
     <div className={classes.contentWrapper}>
@@ -55,12 +42,11 @@ export const LocalChanges = ({ org, app }: LocalChangesProps): ReactNode => {
         text={t('local_changes.modal_delete_button')}
         action={{ type: 'button', onClick: () => setDeleteModalOpen(true) }}
       />
-
       <DeleteModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        onDelete={handleDelete}
-        appName={app}
+        app={app}
+        org={org}
       />
     </div>
   );

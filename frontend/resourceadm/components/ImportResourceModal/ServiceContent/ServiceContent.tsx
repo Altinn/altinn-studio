@@ -3,17 +3,15 @@ import classes from './ServiceContent.module.css';
 import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/design-system-react';
 import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useGetAltinn2LinkServicesQuery } from 'resourceadm/hooks/queries';
+import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import { ResourceContent } from './ResourceContent';
-import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
+import { mapAltinn2LinkServiceToSelectOption } from '../../../utils/mapperUtils';
 
 export type ServiceContentProps = {
   selectedContext: string;
   env: string;
   selectedService: Altinn2LinkService;
   onSelectService: (altinn2LinkService: Altinn2LinkService) => void;
-  resourceIdExists: boolean;
 };
 
 /**
@@ -24,7 +22,6 @@ export type ServiceContentProps = {
  * @property {string}[env] - The selected environment
  * @property {Altinn2LinkService}[selectedService] - The selected service
  * @property {function}[onSelectService] - Function to be executed when selecting the service
- * @property {boolean}[resourceIdExists] - If the id already exists
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -33,7 +30,6 @@ export const ServiceContent = ({
   env,
   selectedService,
   onSelectService,
-  resourceIdExists,
 }: ServiceContentProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -92,35 +88,27 @@ export const ServiceContent = ({
         );
       }
       return (
-        <div className={classes.contentWrapper}>
-          <Combobox
-            value={
-              selectedService
-                ? mapAltinn2LinkServiceToSelectOption([selectedService]).map((ls) => ls.value)
-                : undefined
+        <Combobox
+          value={
+            selectedService
+              ? mapAltinn2LinkServiceToSelectOption([selectedService]).map((ls) => ls.value)
+              : undefined
+          }
+          label={t('resourceadm.dashboard_import_modal_select_service')}
+          onValueChange={(newValue: string[]) => {
+            if (newValue?.length) {
+              handleSelectService(newValue[0]);
             }
-            label={t('resourceadm.dashboard_import_modal_select_service')}
-            onValueChange={(newValue: string[]) => {
-              if (newValue?.length) {
-                handleSelectService(newValue[0]);
-              }
-            }}
-          >
-            {mapAltinn2LinkServiceToSelectOption(altinn2LinkServices).map((ls) => {
-              return (
-                <Combobox.Option key={ls.value} value={ls.value}>
-                  {ls.label}
-                </Combobox.Option>
-              );
-            })}
-          </Combobox>
-          {selectedService && (
-            <ResourceContent
-              altinn2LinkService={selectedService}
-              resourceIdExists={resourceIdExists}
-            />
-          )}
-        </div>
+          }}
+        >
+          {mapAltinn2LinkServiceToSelectOption(altinn2LinkServices).map((ls) => {
+            return (
+              <Combobox.Option key={ls.value} value={ls.value}>
+                {ls.label}
+              </Combobox.Option>
+            );
+          })}
+        </Combobox>
       );
     }
   }

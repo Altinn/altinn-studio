@@ -36,7 +36,7 @@ export type FieldsetWrapperProps<T> = {
    * @param listItem the list item to render
    * @param onChange function to call when item is changed. Call this function from child fieldset render on change
    */
-  renderItem: (listItem: T, onChange: (item: T) => void) => React.ReactNode;
+  renderItem: (listItem: T, onChange: (item: T) => void) => React.JSX.Element;
 };
 
 /**
@@ -49,7 +49,7 @@ export type FieldsetWrapperProps<T> = {
  * @property {T}[emptyItem] - List object where all values are default values
  * @property {function}[renderItem] - Render function for rendering a list item.
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const FieldsetWrapper = <T,>({
   list,
@@ -57,12 +57,12 @@ export const FieldsetWrapper = <T,>({
   emptyItem,
   translations,
   renderItem,
-}: FieldsetWrapperProps<T>): React.ReactNode => {
+}: FieldsetWrapperProps<T>): React.JSX.Element => {
   const { t } = useTranslation();
   const deleteModalRef = useRef<HTMLDialogElement>(null);
 
   const [deleteId, setDeleteId] = useState<number>(DELETE_ID_NOT_SET);
-  const [listItems, setListItems] = useState<T[]>(list ?? [emptyItem]);
+  const [listItems, setListItems] = useState<T[]>(list?.length ? list : [emptyItem]);
 
   /**
    * Adds a new empty list item to the list

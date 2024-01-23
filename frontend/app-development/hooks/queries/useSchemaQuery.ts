@@ -6,7 +6,7 @@ import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
 import { removeStart } from 'app-shared/utils/stringUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { ApiError } from "app-shared/types/api/ApiError";
+import { ApiError } from 'app-shared/types/api/ApiError';
 
 export const useSchemaQuery = (
   modelPath: string,

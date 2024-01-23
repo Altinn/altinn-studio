@@ -1,12 +1,12 @@
 name: Build and Test on windows, linux and macos
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - 'testdata/**'
       - 'backend/**'
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
       - 'backend/**'

@@ -23,6 +23,7 @@ export interface Resource {
   enterpriseUserEnabled?: boolean;
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
+  limitedByRRR?: boolean;
 }
 
 export interface ResourceContactPoint {
@@ -84,4 +85,73 @@ export interface ResourceReference {
   referenceSource?: ResourceReferenceSource;
   reference?: string;
   referenceType?: ResourceReferenceType;
+}
+
+export interface BrregPagination {
+  first?: { href: string };
+  last?: { href: string };
+  next?: { href: string };
+  prev?: { href: string };
+  self?: { href: string };
+}
+
+export interface BrregPageInfo {
+  number: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface BrregPartySearchResult {
+  _embedded?: {
+    enheter: BrregParty[];
+  };
+  _links: BrregPagination;
+  page: BrregPageInfo;
+}
+
+export interface BrregSubPartySearchResult {
+  _embedded?: {
+    underenheter: BrregParty[];
+  };
+  _links: BrregPagination;
+  page: BrregPageInfo;
+}
+
+export interface BrregSearchResult {
+  parties: AccessListMember[];
+  links: BrregPagination;
+  page: BrregPageInfo;
+}
+
+export interface BrregParty {
+  organisasjonsnummer: string;
+  navn: string;
+}
+
+export interface AccessListMember {
+  orgNr: string;
+  orgName: string;
+  isSubParty: boolean;
+}
+
+export interface AccessList {
+  env: string;
+  identifier: string;
+  name: string;
+  description?: string;
+  members?: AccessListMember[];
+}
+
+export interface AccessListResourceLink {
+  resourceIdentifier: string;
+  accessListName: string;
+  accessListIdentifier: string;
+  actions: string[];
+}
+
+export interface JsonPatch {
+  op: 'replace' | 'add' | 'remove';
+  path: string;
+  value?: string | number;
 }

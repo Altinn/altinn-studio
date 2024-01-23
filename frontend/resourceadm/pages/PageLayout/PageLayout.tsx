@@ -8,15 +8,15 @@ import { userHasAccessToSelectedContext } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
 /**
  * @component
  *    The layout of each page, including the header and the Gitea header
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const PageLayout = (): React.ReactNode => {
+export const PageLayout = (): React.JSX.Element => {
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
 

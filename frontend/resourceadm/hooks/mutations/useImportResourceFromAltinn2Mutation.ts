@@ -12,12 +12,18 @@ export const useImportResourceFromAltinn2Mutation = (org: string) => {
   const { importResourceFromAltinn2 } = useServicesContext();
 
   return useMutation({
-    mutationFn: (payload: { environment: string; serviceCode: string; serviceEdition: string }) =>
+    mutationFn: (payload: {
+      environment: string;
+      serviceCode: string;
+      serviceEdition: string;
+      resourceId: string;
+    }) =>
       importResourceFromAltinn2(
         org,
         payload.environment,
         payload.serviceCode,
         payload.serviceEdition,
+        payload.resourceId,
       ),
     onSuccess: (data) => {
       queryClient.invalidateQueries({

@@ -35,11 +35,11 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       if (parentContainerId) {
         updatedLayout.order[parentContainerId].splice(
           updatedLayout.order[parentContainerId].indexOf(id),
-          1
+          1,
         );
       }
 
       return formLayoutsMutation.mutateAsync(updatedLayout);
-    }
+    },
   });
 };
