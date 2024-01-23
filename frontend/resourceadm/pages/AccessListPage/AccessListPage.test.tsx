@@ -33,12 +33,22 @@ describe('AccessListPage', () => {
       screen.getByText(textMock('resourceadm.listadmin_list_detail_header')),
     ).toBeInTheDocument();
   });
+
+  it('should show error message is list loading fails', async () => {
+    renderAccessListPage(true);
+
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+
+    expect(screen.getByText(textMock('resourceadm.listadmin_list_load_error'))).toBeInTheDocument();
+  });
 });
 
-const renderAccessListPage = () => {
+const renderAccessListPage = (isLoadError?: boolean) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getAccessList: jest.fn().mockImplementation(() => Promise.resolve({})),
+    getAccessList: jest
+      .fn()
+      .mockImplementation(() => (isLoadError ? Promise.reject({}) : Promise.resolve({}))),
   };
   return render(
     <MemoryRouter>
