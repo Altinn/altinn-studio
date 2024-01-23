@@ -94,7 +94,9 @@ describe('ResourceAccessLists', () => {
 
     expect(
       screen.getByText(
-        textMock('resourceadm.listadmin_create_list_header', { env: env.toUpperCase() }),
+        textMock('resourceadm.listadmin_create_list_header', {
+          env: textMock('resourceadm.deploy_test_env'),
+        }),
       ),
     ).toBeInTheDocument();
   });

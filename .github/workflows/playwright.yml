@@ -6,7 +6,8 @@ on:
       - main
     paths:
       - 'frontend/**'
-      - '.githib/workflow/playwright.yml'
+      - '.github/workflow/playwright.yml'
+  workflow_dispatch:
 
 jobs:
   playwright-run:
