@@ -27,7 +27,7 @@ export const Navigation = () => {
               <menuItem.icon className={classes.icon} />
               <span>{t(menuItem.key)}</span>
               {menuItem.isBeta && (
-                <Tag color='info' size='small' variant='primary'>
+                <Tag color='info' size='small'>
                   {t('general.beta')}
                 </Tag>
               )}

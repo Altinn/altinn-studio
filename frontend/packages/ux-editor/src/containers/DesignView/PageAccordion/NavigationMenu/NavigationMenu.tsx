@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, DropdownMenu } from '@digdir/design-system-react';
+import { DropdownMenu } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@navikt/aksel-icons';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
@@ -13,6 +13,7 @@ import { InputPopover } from './InputPopover';
 import { deepCopy } from 'app-shared/pure';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import classes from './NavigationMenu.module.css';
+import { StudioButton } from '@studio/components';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -67,7 +68,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   return (
     <div>
-      <Button
+      <StudioButton
         icon={<MenuElipsisVerticalIcon />}
         onClick={() => setDropdownOpen((v) => !v)}
         aria-haspopup='menu'

@@ -5,6 +5,7 @@ import { MakeCopyModal } from './MakeCopyModal';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -31,8 +32,7 @@ describe('MakeCopyModal', () => {
   });
 
   test('should not show error message when clicking confirm and name is added', async () => {
-    const copyAppMock = jest.fn(() => Promise.resolve());
-    renderWithMockServices({ copyApp: copyAppMock });
+    renderWithMockServices();
 
     await act(() => user.type(screen.getByRole('textbox'), 'new-repo-name'));
     await act(() =>
@@ -44,8 +44,8 @@ describe('MakeCopyModal', () => {
     );
 
     expect(screen.queryByText(textMock('dashboard.field_cannot_be_empty'))).not.toBeInTheDocument();
-    expect(copyAppMock).toHaveBeenCalledTimes(1);
-    expect(copyAppMock).toHaveBeenCalledWith('org', 'app', 'new-repo-name');
+    expect(queriesMock.copyApp).toHaveBeenCalledTimes(1);
+    expect(queriesMock.copyApp).toHaveBeenCalledWith('org', 'app', 'new-repo-name');
   });
 
   test('should show error message when clicking confirm without adding name', async () => {

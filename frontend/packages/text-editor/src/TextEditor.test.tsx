@@ -8,16 +8,21 @@ import { ITextResource, ITextResources } from 'app-shared/types/global';
 import * as testids from '../../../testing/testids';
 
 const user = userEvent.setup();
+let mockScrollIntoView = jest.fn();
 
 describe('TextEditor', () => {
+  const textId1 = 'textId1';
+  const textId2 = 'a-textId2';
+  const textValue1 = 'norsk-1';
+  const textValue2 = 'norsk-2';
   const nb: ITextResource[] = [
     {
-      id: 'textId1',
-      value: 'norsk-1',
+      id: textId1,
+      value: textValue1,
     },
     {
-      id: 'textId2',
-      value: 'norsk-2',
+      id: textId2,
+      value: textValue2,
     },
   ];
   const textResourceFiles: ITextResources = { nb };
@@ -37,6 +42,11 @@ describe('TextEditor', () => {
     };
     return rtlRender(<TextEditor {...defaultProps} {...props} />);
   };
+  beforeEach(() => {
+    // Need to mock the scrollIntoView function
+    mockScrollIntoView = jest.fn();
+    window.HTMLElement.prototype.scrollIntoView = mockScrollIntoView;
+  });
 
   it('fires upsertTextResource when Add new is clicked', async () => {
     jest.spyOn(global.Math, 'random').mockReturnValue(0);
@@ -72,8 +82,8 @@ describe('TextEditor', () => {
       user.click(
         screen.getByRole('button', {
           name: textMock('schema_editor.language_confirm_deletion'),
-        })
-      )
+        }),
+      ),
     );
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
@@ -95,8 +105,8 @@ describe('TextEditor', () => {
       user.click(
         screen.getByRole('button', {
           name: textMock('schema_editor.language_confirm_deletion'),
-        })
-      )
+        }),
+      ),
     );
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
@@ -122,6 +132,35 @@ describe('TextEditor', () => {
     expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb', 'en']);
   });
 
+  it('Calls ScrollIntoView when a new languages is selected', async () => {
+    renderTextEditor({
+      availableLanguages: ['nb', 'en', 'tw', 'ku'],
+      selectedLangCodes: ['nb', 'en', 'tw'],
+    });
+    const kurdishCheckbox = screen.getByRole('checkbox', {
+      name: /kurdisk/i,
+    });
+    await act(() => user.click(kurdishCheckbox));
+
+    expect(mockScrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('Sorts texts when sort chip is clicked', async () => {
+    renderTextEditor({});
+    const translations = screen.getAllByRole('textbox', {
+      name: 'nb translation',
+    });
+    expect(translations[0]).toHaveValue(textValue1);
+
+    const sortAlphabeticallyButton = screen.getByText(textMock('text_editor.sort_alphabetically'));
+    await act(() => user.click(sortAlphabeticallyButton));
+
+    const sortedTranslations = screen.getAllByRole('textbox', {
+      name: 'nb translation',
+    });
+    expect(sortedTranslations[0]).toHaveValue(textValue2);
+  });
+
   it('signals correctly when a translation is changed', async () => {
     const upsertTextResource = jest.fn();
     renderTextEditor({
@@ -137,7 +176,7 @@ describe('TextEditor', () => {
     await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`));
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
-      textId: 'textId1',
+      textId: textId1,
       translation: 'new translation',
     });
   });
@@ -158,8 +197,8 @@ describe('TextEditor', () => {
         user.click(
           screen.getByRole('button', {
             name: textMock('schema_editor.textRow-deletion-confirm'),
-          })
-        )
+          }),
+        ),
       );
 
       await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });
@@ -198,7 +237,7 @@ describe('TextEditor', () => {
 
     it('signals that a textId has changed', async () => {
       await makeChangesToTextIds();
-      const textIdRefsAfter1 = screen.getAllByText('textId2');
+      const textIdRefsAfter1 = screen.getAllByText(textId2);
       expect(textIdRefsAfter1).toHaveLength(1); // The id is also on the delete button
     });
 
@@ -208,7 +247,7 @@ describe('TextEditor', () => {
       const { error, onTextIdChange } = setupError();
       const original = await makeChangesToTextIds(onTextIdChange);
       expect(error).toHaveBeenCalledWith('Renaming text-id failed:\n', 'some error');
-      const textIdRefsAfter1 = screen.getAllByText('textId2');
+      const textIdRefsAfter1 = screen.getAllByText(textId2);
       expect(textIdRefsAfter1).toHaveLength(1);
 
       const textIdRefsAfter2 = screen.queryAllByText(/new-key/i);

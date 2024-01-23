@@ -3,7 +3,7 @@ import classes from './releaseContainer.module.css';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { Button, LegacyPopover } from '@digdir/design-system-react';
+import { LegacyPopover } from '@digdir/design-system-react';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
@@ -13,7 +13,7 @@ import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/querie
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { StudioSpinner } from '@studio/components';
+import { StudioButton, StudioSpinner } from '@studio/components';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
@@ -208,7 +208,7 @@ export function ReleaseContainer() {
           className={classes.popover}
           open={popoverOpenClick || popoverOpenHover}
           trigger={
-            <Button
+            <StudioButton
               className={classes.appCreateReleaseStatusButton}
               onClick={handlePopoverOpenClicked}
               onMouseOver={handlePopoverOpenHover}

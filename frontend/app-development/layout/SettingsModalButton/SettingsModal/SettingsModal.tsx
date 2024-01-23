@@ -5,7 +5,6 @@ import {
   CogIcon,
   InformationSquareIcon,
   PersonSuitIcon,
-  MonitorIcon,
   ShieldLockIcon,
   SidebarBothIcon,
 } from '@navikt/aksel-icons';
@@ -17,7 +16,6 @@ import { createNavigationTab } from './utils';
 import { useTranslation } from 'react-i18next';
 import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AboutTab';
-import { LocalChangesTab } from './components/Tabs/LocalChangesTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
 
@@ -30,12 +28,10 @@ export type SettingsModalProps = {
 
 /**
  * @component
- *    Displays the settings modal.
+ *    Displays the settings modal
  *
  * @property {boolean}[isOpen] - Flag for if the modal is open
  * @property {function}[onClose] - Function to be executed on close
- * @property {string}[org] - The org
- * @property {string}[app] - The app
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -50,7 +46,6 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
   const aboutTabId: SettingsModalTab = 'about';
   const setupTabId: SettingsModalTab = 'setup';
   const policyTabId: SettingsModalTab = 'policy';
-  const localChangesTabId: SettingsModalTab = 'localChanges';
   const accessControlTabId: SettingsModalTab = 'accessControl';
 
   /**
@@ -81,12 +76,6 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
       () => changeTabTo(accessControlTabId),
       currentTab,
     ),
-    createNavigationTab(
-      <MonitorIcon className={classes.icon} />,
-      localChangesTabId,
-      () => changeTabTo(localChangesTabId),
-      currentTab,
-    ),
   ];
 
   /**
@@ -115,9 +104,6 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
       case 'accessControl': {
         return <AccessControlTab org={org} app={app} />;
       }
-      case 'localChanges': {
-        return <LocalChangesTab org={org} app={app} />;
-      }
     }
   };
 
@@ -128,7 +114,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
       title={
         <div className={classes.headingWrapper}>
           <CogIcon className={classes.icon} />
-          <Heading level={1} size='medium'>
+          <Heading level={1} size='small'>
             {t('settings_modal.heading')}
           </Heading>
         </div>
@@ -142,7 +128,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
             selectedTab={currentTab}
           />
         </div>
-        {displayTabs()}
+        <div className={classes.contentWrapper}>{displayTabs()}</div>
       </div>
     </StudioModal>
   );

@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -543,10 +544,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/contents.zip")]
         public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
         {
+            AltinnRepoContext appContext = AltinnRepoContext.FromOrgRepo(org, repository);
             string appRoot;
             try
             {
-                appRoot = _repository.GetAppPath(org, repository);
+                appRoot = _repository.GetAppPath(appContext.Org, appContext.Repo);
 
                 if (!Directory.Exists(appRoot))
                 {
@@ -558,8 +560,15 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest("User does not have a local clone of the repository.");
             }
 
-            var outStream = new MemoryStream();
-            using (var archive = new ZipArchive(outStream, ZipArchiveMode.Create, leaveOpen: true))
+            var zipType = full ? "full" : "changes";
+            var zipFileName = $"{appContext.Org}-{appContext.Repo}-{zipType}.zip";
+            var tempAltinnFolderPath = Path.Combine(Path.GetTempPath(), "altinn");
+            Directory.CreateDirectory(tempAltinnFolderPath);
+            var zipFilePath = Path.Combine(tempAltinnFolderPath, zipFileName);
+
+            var fileStream = new FileStream(zipFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read, 512,
+                FileOptions.DeleteOnClose);
+            using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true))
             {
                 IEnumerable<string> changedFiles;
                 if (full)
@@ -568,8 +577,11 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 else
                 {
-                    changedFiles = _sourceControl.Status(org, repository).Select(f => f.FilePath);
-                }
+                    changedFiles = _sourceControl
+                        .Status(appContext.Org, appContext.Repo)
+                        .Where(f => f.FileStatus != FileStatus.DeletedFromWorkdir)
+                        .Select(f => f.FilePath);
+                };
 
                 foreach (var changedFile in changedFiles)
                 {
@@ -577,9 +589,9 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
-            outStream.Seek(0, SeekOrigin.Begin);
+            fileStream.Seek(0, SeekOrigin.Begin);
 
-            return File(outStream, "application/zip", $"{org}-{repository}.zip");
+            return File(fileStream, "application/zip", zipFileName);
         }
 
         private List<string> GetFilesInDirectory(string appRoot, DirectoryInfo currentDir)

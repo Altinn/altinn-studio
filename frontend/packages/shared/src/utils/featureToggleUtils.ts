@@ -6,9 +6,9 @@ const persistFeatureKey = 'persistFeatureFlag';
 // All the features that you want to be toggle on/off should be added here. To ensure that we type check the feature name.
 export type SupportedFeatureFlags =
   | 'componentConfigBeta'
-  | 'processEditor'
   | 'configureLayoutSet'
-  | 'shouldOverrideAppLibCheck';
+  | 'shouldOverrideAppLibCheck'
+  | 'resourceAccessLists';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

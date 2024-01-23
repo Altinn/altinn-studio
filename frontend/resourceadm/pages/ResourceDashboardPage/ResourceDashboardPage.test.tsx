@@ -1,15 +1,18 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryClient } from '@tanstack/react-query';
+import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { Organization } from 'app-shared/types/Organization';
+import { organization } from 'app-shared/mocks/mocks';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
@@ -54,9 +57,6 @@ const mockResourceList: ResourceListItem[] = [
   mockResourceListItem5,
 ];
 
-const getResourceList = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getOrganizations = jest.fn().mockImplementation(() => Promise.resolve([]));
-
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
@@ -64,40 +64,26 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
-// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
-const realConsole = console;
-
 describe('ResourceDashBoardPage', () => {
-  beforeEach(() => {
-    global.console = {
-      ...console,
-      error: jest.fn(),
-    };
-  });
   afterEach(() => {
-    global.console = realConsole;
     jest.clearAllMocks();
   });
   it('fetches resource list on mount', () => {
-    render();
-    expect(getResourceList).toHaveBeenCalledTimes(1);
+    renderResourceDashboardPage();
+    expect(queriesMock.getResourceList).toHaveBeenCalledTimes(1);
   });
 
   it('shows correct organization header', async () => {
-    getOrganizations.mockImplementation(() =>
-      Promise.resolve([
+    const getOrganizations = jest.fn().mockImplementation(() =>
+      Promise.resolve<Organization[]>([
         {
-          avatar_url: 'http://studio.localhost/repos/avatars/5d076e5c3d34cb8bb08e54a4bb7e223e',
-          description: 'Internt organisasjon for test av løsning',
+          ...organization,
           full_name: 'Testdepartementet',
-          id: 3,
-          location: '',
           username: 'ttd',
-          website: '',
         },
       ]),
     );
-    render();
+    renderResourceDashboardPage({ getOrganizations });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -107,7 +93,7 @@ describe('ResourceDashBoardPage', () => {
   });
 
   it('shows the loading state when page is loading', () => {
-    render();
+    renderResourceDashboardPage();
     expect(screen.getByTitle(textMock('resourceadm.dashboard_spinner'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
@@ -121,8 +107,10 @@ describe('ResourceDashBoardPage', () => {
   });
 
   it('does not show the spinner when the resource list is present', async () => {
-    getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
-    render();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -138,8 +126,10 @@ describe('ResourceDashBoardPage', () => {
 
   it('opens the import resource from altinn 2 modal on click', async () => {
     const user = userEvent.setup();
-    getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
-    render();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -165,8 +155,10 @@ describe('ResourceDashBoardPage', () => {
 
   it('opens the create new resource modal on click', async () => {
     const user = userEvent.setup();
-    getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
-    render();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -185,15 +177,17 @@ describe('ResourceDashBoardPage', () => {
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.dashboard_create_modal_title'),
-        level: 1,
+        level: 2,
       }),
     ).toBeInTheDocument();
   });
 
   it('filters the resource list when the search value changes', async () => {
     const user = userEvent.setup();
-    getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
-    render();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -209,8 +203,10 @@ describe('ResourceDashBoardPage', () => {
   });
 
   it('does not display the error message when the list is not empty', async () => {
-    getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
-    render();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -222,8 +218,10 @@ describe('ResourceDashBoardPage', () => {
 
   it('displays empty list message when the list is empty', async () => {
     const user = userEvent.setup();
-    getResourceList.mockImplementation(() => Promise.resolve(mockResourceList));
-    render();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
@@ -241,21 +239,25 @@ describe('ResourceDashBoardPage', () => {
       screen.getByText(textMock('resourceadm.dashboard_no_resources_result')),
     ).toBeInTheDocument();
   });
+
+  it('should show access list button when feature is enabled', () => {
+    addFeatureFlagToLocalStorage('resourceAccessLists');
+
+    renderResourceDashboardPage();
+
+    expect(
+      screen.getByText(textMock('resourceadm.dashboard_change_organization_lists')),
+    ).toBeInTheDocument();
+  });
 });
 
-const render = (
+const renderResourceDashboardPage = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    getResourceList,
-    getOrganizations,
-    ...queries,
-  };
-  return rtlRender(
+  return render(
     <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <ResourceDashboardPage />
       </ServicesContextProvider>
     </MemoryRouter>,

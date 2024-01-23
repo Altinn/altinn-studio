@@ -2,15 +2,16 @@ import React, { useMemo, useRef, useState } from 'react';
 import type {
   GridActionsColDef,
   GridColDef,
+  GridPaginationModel,
   GridRenderCellParams,
   GridRowParams,
   GridSortModel,
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridOverlay, nbNO } from '@mui/x-data-grid';
 import cn from 'classnames';
-import type { IRepository } from 'app-shared/types/global';
+import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +21,7 @@ import {
   DATAGRID_PAGE_SIZE_TYPE,
 } from '../../constants';
 import classes from './RepoList.module.css';
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 import { useSetStarredRepoMutation } from '../../hooks/mutations';
 import { useUnsetStarredRepoMutation } from '../../hooks/mutations';
 import {
@@ -33,7 +34,7 @@ import {
 
 export interface IRepoListProps {
   isLoading: boolean;
-  repos?: IRepository[];
+  repos?: RepositoryWithStarred[];
   isServerSort?: boolean;
   pageSize?: DATAGRID_PAGE_SIZE_TYPE;
   rowCount: number;
@@ -45,11 +46,9 @@ export interface IRepoListProps {
   disableVirtualization?: boolean;
 }
 
-const defaultPageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS;
-
 const isRowSelectable = () => false;
 
-const defaultArray: IRepository[] = [];
+const defaultArray: RepositoryWithStarred[] = [];
 
 const gridStyleOverride = {
   border: 'none',
@@ -87,21 +86,21 @@ export const RepoList = ({
   onPageChange,
   onSortModelChange,
   onPageSizeChange,
-  pageSizeOptions = defaultPageSizeOptions,
+  pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
-  const [paginationModel, setPaginationModel] = React.useState({
+  const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>({
     pageSize,
     page: 0,
   });
 
-  const handlePaginationModelChange = (newPaginationModel) => {
+  const handlePaginationModelChange = (newPaginationModel: GridPaginationModel) => {
     if (newPaginationModel.page !== paginationModel.page) {
-      onPageChange(newPaginationModel.page);
+      onPageChange?.(newPaginationModel.page);
     }
     if (newPaginationModel.pageSize !== paginationModel.pageSize) {
-      onPageSizeChange(newPaginationModel.pageSize);
+      onPageSizeChange?.(newPaginationModel.pageSize as DATAGRID_PAGE_SIZE_TYPE);
     }
     setPaginationModel(newPaginationModel);
   };
@@ -122,9 +121,10 @@ export const RepoList = ({
       headerClassName: classes.columnHeader,
       width: 50,
       getActions: (params: GridRowParams) => {
-        const repo = params.row as IRepository;
+        const repo = params.row as RepositoryWithStarred;
+
         const handleToggleFav = () => {
-          if (repo.user_has_starred) {
+          if (repo.hasStarred) {
             unsetStarredRepo(repo);
           } else {
             setStarredRepo(repo);
@@ -136,9 +136,9 @@ export const RepoList = ({
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
+            label={repo.hasStarred ? t('dashboard.unstar') : t('dashboard.star')}
             icon={
-              repo.user_has_starred ? (
+              repo.hasStarred ? (
                 <StarFillIcon name='star-fill-icon' className={classes.favoriteIcon} />
               ) : (
                 <StarIcon name='star-icon' className={classes.dropdownIcon} />
@@ -255,25 +255,18 @@ export const RepoList = ({
 
   const handleCloseCopyModal = () => setCopyCurrentRepoName(null);
 
-  const componentPropsLabelOverrides = useMemo(
-    () => ({
-      pagination: {
-        labelRowsPerPage: t('dashboard.rows_per_page'),
-      },
-    }),
-    [t],
-  );
+  const localText = {
+    ...nbNO.components.MuiDataGrid.defaultProps.localeText,
+    noRowsLabel: t('dashboard.no_repos_result'),
+  };
 
   return (
     <div ref={copyModalAnchorRef}>
       {isServerSort ? (
         <DataGrid
+          localeText={localText}
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
-          components={{
-            NoRowsOverlay: NoResults,
-          }}
-          componentsProps={componentPropsLabelOverrides}
           autoHeight={true}
           loading={isLoading}
           rows={repos}
@@ -291,12 +284,9 @@ export const RepoList = ({
         />
       ) : (
         <DataGrid
+          localeText={localText}
           paginationModel={paginationModel}
           onPaginationModelChange={handlePaginationModelChange}
-          componentsProps={componentPropsLabelOverrides}
-          components={{
-            NoRowsOverlay: NoResults,
-          }}
           autoHeight={true}
           loading={isLoading}
           rows={repos}

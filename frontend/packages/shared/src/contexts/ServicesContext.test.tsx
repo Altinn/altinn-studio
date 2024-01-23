@@ -27,7 +27,7 @@ const wrapper = ({
   queries = {},
 }: {
   children: React.JSX.Element;
-  queries: Partial<ServicesContextProps>;
+  queries?: Partial<ServicesContextProps>;
 }) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -40,7 +40,6 @@ describe('ServicesContext', () => {
   it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     jest.spyOn(global, 'setTimeout');
-    const logout = jest.fn().mockImplementation(() => Promise.resolve());
     renderHook(
       () =>
         useQuery({
@@ -50,14 +49,14 @@ describe('ServicesContext', () => {
         }),
       {
         wrapper: ({ children }) => {
-          return wrapper({ children, queries: { logout } });
+          return wrapper({ children });
         },
       },
     );
     expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
     jest.runAllTimers();
     await waitFor(() => {
-      expect(logout).toHaveBeenCalledTimes(1);
+      expect(queriesMock.logout).toHaveBeenCalledTimes(1);
     });
 
     expect(mockConsoleError).toHaveBeenCalled();
@@ -78,12 +77,12 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('api_errors.GT_01'))).toBeInTheDocument();
   });
 
-  it('displays a specific error message if API returns an error code and the error messages does exist', async () => {
+  it('displays a specific error message if API returns error code DM_01', async () => {
     const { result } = renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(500, 'DM_01')),
+          queryFn: () => Promise.reject(createApiErrorMock(422, 'DM_01')),
           retry: false,
         }),
       { wrapper },
@@ -92,6 +91,22 @@ describe('ServicesContext', () => {
     await waitFor(() => result.current.isError);
 
     expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
+  });
+
+  it('displays a specific error message if API returns error code DM_05', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(400, 'DM_05')),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => result.current.isError);
+
+    expect(await screen.findByText(textMock('api_errors.DM_05'))).toBeInTheDocument();
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {

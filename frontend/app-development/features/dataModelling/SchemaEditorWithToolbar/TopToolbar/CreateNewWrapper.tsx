@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Button, ErrorMessage, LegacyTextField, LegacyPopover } from '@digdir/design-system-react';
+import { ErrorMessage, Textfield, LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
 import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { StudioButton } from '@studio/components';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
@@ -79,7 +80,7 @@ export function CreateNewWrapper({
       open={createNewOpen}
       onOpenChange={setCreateNewOpen}
       trigger={
-        <Button
+        <StudioButton
           id='create-new-datamodel-button'
           disabled={disabled}
           icon={<PlusIcon />}
@@ -88,20 +89,18 @@ export function CreateNewWrapper({
           size='small'
         >
           {t('general.create_new')}
-        </Button>
+        </StudioButton>
       }
     >
-      <label>{t('schema_editor.create_model_description')}</label>
-      <LegacyTextField
+      <Textfield
         id='newModelInput'
-        placeholder={t('schema_editor.name')}
-        isValid={!nameError}
+        label={t('schema_editor.create_model_description')}
         onChange={onNameChange}
         onBlur={onInputBlur}
         onKeyUp={onKeyUp}
+        error={nameError && <ErrorMessage>{nameError}</ErrorMessage>}
       />
-      {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
-      <Button
+      <StudioButton
         color='second'
         onClick={onCreateConfirmClick}
         style={{ marginTop: 22 }}
@@ -109,7 +108,7 @@ export function CreateNewWrapper({
         size='small'
       >
         {t('schema_editor.create_model_confirm_button')}
-      </Button>
+      </StudioButton>
     </LegacyPopover>
   );
 }

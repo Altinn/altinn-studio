@@ -1,7 +1,7 @@
-import { repositoryMock } from './repositoryMock';
 import { mockDeployments } from './appDeploymentsMock';
 import type { RootState } from '../store';
 import { applicationMetadataMock } from './applicationMetadataMock';
+import { repository } from 'app-shared/mocks/mocks';
 
 export const rootStateMock: RootState = {
   applicationMetadataState: {
@@ -9,7 +9,7 @@ export const rootStateMock: RootState = {
     error: null,
   },
   serviceInformation: {
-    repositoryInfo: repositoryMock,
+    repositoryInfo: repository,
     error: null,
     initialCommit: null,
     serviceDescriptionObj: {

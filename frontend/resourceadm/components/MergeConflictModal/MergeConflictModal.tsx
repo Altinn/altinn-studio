@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import classes from './MergeConflictModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { Button, Link, Paragraph, Label } from '@digdir/design-system-react';
+import { Link, Paragraph, Label } from '@digdir/design-system-react';
 import { repoDownloadPath, repoResetPath } from 'app-shared/api/paths';
 import { RemoveChangesModal } from './RemoveChangesModal';
 import { get } from 'app-shared/utils/networking';
 import { Modal } from '../Modal';
+import { StudioButton } from '@studio/components';
 
 type MergeConflictModalProps = {
   /**
@@ -36,14 +37,14 @@ type MergeConflictModalProps = {
  * @property {string}[org] - The name of the organisation
  * @property {string}[repo] - The name of the repo
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const MergeConflictModal = ({
   isOpen,
   handleSolveMerge,
   org,
   repo,
-}: MergeConflictModalProps): React.ReactNode => {
+}: MergeConflictModalProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [resetModalOpen, setResetModalOpen] = useState(false);
@@ -74,9 +75,9 @@ export const MergeConflictModal = ({
             </Link>
           </div>
         </div>
-        <Button onClick={() => setResetModalOpen(true)} size='small'>
+        <StudioButton onClick={() => setResetModalOpen(true)} size='small'>
           {t('merge_conflict.remove_my_changes')}
-        </Button>
+        </StudioButton>
         <RemoveChangesModal
           isOpen={resetModalOpen}
           onClose={() => setResetModalOpen(false)}

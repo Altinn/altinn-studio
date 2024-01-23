@@ -1,4 +1,4 @@
-import { User } from 'app-shared/types/User';
+import { User } from 'app-shared/types/Repository';
 
 export const userMock: User = {
   id: 1,
@@ -6,4 +6,5 @@ export const userMock: User = {
   email: 'tester@tester.test',
   full_name: 'Tester Testersen',
   login: 'tester',
+  userType: 0,
 };

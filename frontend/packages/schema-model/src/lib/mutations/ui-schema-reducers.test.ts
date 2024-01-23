@@ -238,7 +238,7 @@ describe('ui-schema-reducers', () => {
 
     it('Calls the callback function with the new pointer', () => {
       result = setPropertyName(createNewModelMock(), args);
-      expect(callback).toBeCalledTimes(1);
+      expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(expectedPointer);
     });
   });

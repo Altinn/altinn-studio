@@ -1,8 +1,9 @@
 import React from 'react';
 import classes from './ResourceDeployEnvCard.module.css';
-import { Button, Tag, Paragraph, Spinner } from '@digdir/design-system-react';
-import { ArrowRightIcon } from '@navikt/aksel-icons';
+import { ArrowRightIcon } from '@studio/icons';
+import { Tag, Paragraph, Spinner } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { StudioButton } from '@studio/components';
 
 export type ResourceDeployEnvCardProps = {
   isDeployPossible: boolean;
@@ -25,7 +26,7 @@ export type ResourceDeployEnvCardProps = {
  * @property {function}[onClick] - Function to be executed on click
  * @property {boolean}[loading] - if a spinner should be shown
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceDeployEnvCard = ({
   isDeployPossible,
@@ -34,7 +35,7 @@ export const ResourceDeployEnvCard = ({
   newEnvVersion,
   onClick,
   loading,
-}: ResourceDeployEnvCardProps): React.ReactNode => {
+}: ResourceDeployEnvCardProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   return (
@@ -48,7 +49,7 @@ export const ResourceDeployEnvCard = ({
           </Paragraph>
           <Paragraph size='small'>{t('resourceadm.deploy_version_number_text')}</Paragraph>
           <div className={classes.envWrapper}>
-            <Tag color='neutral' variant='secondary' size='small'>
+            <Tag color='neutral' size='small'>
               {currentEnvVersion}
             </Tag>
             {newEnvVersion && (
@@ -57,15 +58,15 @@ export const ResourceDeployEnvCard = ({
                   title={t('resourceadm.deploy_card_arrow_icon', { env: envName })}
                   fontSize='1.5rem'
                 />
-                <Tag color='success' variant='secondary' size='small'>
+                <Tag color='success' size='small'>
                   {newEnvVersion}
                 </Tag>
               </>
             )}
           </div>
-          <Button disabled={!isDeployPossible} onClick={onClick} size='small'>
+          <StudioButton disabled={!isDeployPossible} onClick={onClick} size='small'>
             {t('resourceadm.deploy_card_publish', { env: envName })}
-          </Button>
+          </StudioButton>
         </>
       )}
     </div>

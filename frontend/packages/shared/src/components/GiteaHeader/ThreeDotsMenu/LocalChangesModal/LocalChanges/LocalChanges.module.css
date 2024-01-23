@@ -1,0 +1,11 @@
+.contentWrapper {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-3);
+  padding: var(--modal-padding);
+}
+
+.downloadIcon {
+  font-size: 1.2rem;
+}

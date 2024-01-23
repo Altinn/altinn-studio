@@ -6,13 +6,14 @@ import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
 import { removeStart } from 'app-shared/utils/stringUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { ApiError } from 'app-shared/types/api/ApiError';
 
 export const useSchemaQuery = (
   modelPath: string,
-): UseQueryResult<JsonSchema | null, AxiosError> => {
+): UseQueryResult<JsonSchema | null, AxiosError<ApiError, any>> => {
   const { org, app } = useStudioUrlParams();
   const { getDatamodel, addXsdFromRepo } = useServicesContext();
-  return useQuery<JsonSchema | null, AxiosError>({
+  return useQuery<JsonSchema | null, AxiosError<ApiError, any>>({
     queryKey: [QueryKey.JsonSchema, org, app, modelPath],
     queryFn: async (): Promise<JsonSchema> =>
       isXsdFile(modelPath)

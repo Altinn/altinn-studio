@@ -9,7 +9,7 @@ import type {
   SupportedLanguage,
 } from 'app-shared/types/ResourceAdm';
 import { ReactNode } from 'react';
-import { NavigationBarPage } from 'resourceadm/types/NavigationBarPage';
+import { NavigationBarPage } from '../../types/NavigationBarPage';
 
 /**
  * The map of resource type
@@ -39,6 +39,44 @@ export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string>
   Company: 'resourceadm.about_resource_available_for_type_company',
   BankruptcyEstate: 'resourceadm.about_resource_available_for_type_bankruptcy',
   SelfRegisteredUser: 'resourceadm.about_resource_available_for_type_self_registered',
+};
+
+export type EnvId = 'tt02' | 'prod' | 'at22' | 'at23';
+export type EnvType = 'test' | 'prod';
+export const getAvailableEnvironments = (
+  org: string,
+): {
+  id: EnvId;
+  label: string;
+  envType: EnvType;
+}[] => {
+  const availableEnvs = [
+    {
+      id: 'tt02' as EnvId,
+      label: 'resourceadm.deploy_test_env',
+      envType: 'test' as EnvType,
+    },
+    {
+      id: 'prod' as EnvId,
+      label: 'resourceadm.deploy_prod_env',
+      envType: 'prod' as EnvType,
+    },
+  ];
+  if (org === 'ttd') {
+    availableEnvs.push(
+      {
+        id: 'at22' as EnvId,
+        label: 'resourceadm.deploy_at22_env',
+        envType: 'test' as EnvType,
+      },
+      {
+        id: 'at23' as EnvId,
+        label: 'resourceadm.deploy_at23_env',
+        envType: 'test' as EnvType,
+      },
+    );
+  }
+  return availableEnvs;
 };
 
 /**

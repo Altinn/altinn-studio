@@ -248,6 +248,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     RepositoryContent content = new();
                     content.FilePath = item.FilePath;
+                    content.FileStatus = (Altinn.Studio.Designer.Enums.FileStatus)item.State;
                     repoContent.Add(content);
                 }
             }
@@ -482,8 +483,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 if (!remote.PushUrl.Equals(remoteUrl))
                 {
-                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files.
+                    // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
+                    // Requires administrator access to update files.
                     repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                 }
 

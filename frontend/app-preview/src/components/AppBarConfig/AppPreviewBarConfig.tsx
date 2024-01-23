@@ -1,7 +1,7 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
 import { TFunction } from 'i18next';
-import { Button, LegacyToggleButtonGroup, LegacySelect } from '@digdir/design-system-react';
+import { LegacyToggleButtonGroup, LegacySelect } from '@digdir/design-system-react';
 import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
@@ -12,6 +12,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import { StudioButton } from '@studio/components';
 
 export interface AppPreviewMenuItem {
   key: string;
@@ -83,15 +84,15 @@ export const SubPreviewMenuRightContent = () => {
   const { t } = useTranslation();
   return (
     <div className={classes.rightSubHeaderButtons}>
-      <Button icon={<ArrowCirclepathIcon />} variant='tertiary' size='small' color='inverted'>
+      <StudioButton icon={<ArrowCirclepathIcon />} variant='tertiary' size='small' color='inverted'>
         {t('preview.subheader.restart')}
-      </Button>
-      <Button icon={<EyeIcon />} variant='tertiary' size='small' color='inverted'>
+      </StudioButton>
+      <StudioButton icon={<EyeIcon />} variant='tertiary' size='small' color='inverted'>
         {t('preview.subheader.showas')}
-      </Button>
-      <Button icon={<LinkIcon />} variant='tertiary' size='small' color='inverted'>
+      </StudioButton>
+      <StudioButton icon={<LinkIcon />} variant='tertiary' size='small' color='inverted'>
         {t('preview.subheader.sharelink')}
-      </Button>
+      </StudioButton>
     </div>
   );
 };
@@ -108,9 +109,7 @@ export const appPreviewButtonActions = (
     {
       title: 'top_menu.preview_back_to_editing',
       menuKey: TopBarMenu.Preview,
-      buttonVariant: 'secondary',
-      headerButtonsClasses: classes.backToEditorBtn,
-      handleClick: () => packagesRouter.navigateToPackage('editorUiEditor', queryParams),
+      to: `${packagesRouter.getPackageNavigationUrl('editorUiEditor')}${queryParams}`,
     },
   ];
   return action;

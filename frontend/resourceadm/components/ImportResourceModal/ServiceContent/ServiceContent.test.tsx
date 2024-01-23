@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  render as rtlRender,
-  screen,
-  act,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { render, screen, act, waitForElementToBeRemoved } from '@testing-library/react';
 import { ServiceContent, ServiceContentProps } from './ServiceContent';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -16,8 +11,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockSelectedContext: string = 'selectedContext';
 const mockEnv: string = 'env1';
-
-const getAltinn2LinkServices = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const mockAltinn2LinkService: Altinn2LinkService = {
   externalServiceCode: 'code1',
@@ -34,26 +27,25 @@ const defaultProps: ServiceContentProps = {
   env: mockEnv,
   selectedService: mockAltinn2LinkService,
   onSelectService: mockOnSelectService,
-  resourceIdExists: false,
 };
 
 describe('ServiceContent', () => {
   afterEach(jest.clearAllMocks);
 
   it('initially displays the spinner when loading data', () => {
-    render();
+    renderServiceContent();
 
     expect(screen.getByTitle(textMock('resourceadm.import_resource_spinner'))).toBeInTheDocument();
   });
 
   it('fetches getAltinn2LinkServices on mount', () => {
-    render();
-    expect(getAltinn2LinkServices).toHaveBeenCalledTimes(1);
+    renderServiceContent();
+    expect(queriesMock.getAltinn2LinkServices).toHaveBeenCalledTimes(1);
   });
 
   it('shows an error message if an error occured on the "getAltinn2LinkServices" query', async () => {
     const errorMessage = 'error-message-test';
-    render(
+    renderServiceContent(
       {},
       {
         getAltinn2LinkServices: () => Promise.reject({ message: errorMessage }),
@@ -70,12 +62,7 @@ describe('ServiceContent', () => {
   });
 
   it('renders empty list state correctly', async () => {
-    render(
-      {},
-      {
-        getAltinn2LinkServices: () => Promise.resolve([]),
-      },
-    );
+    renderServiceContent();
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
@@ -116,26 +103,27 @@ describe('ServiceContent', () => {
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (props: Partial<ServiceContentProps> = {}) => {
-  getAltinn2LinkServices.mockImplementation(() => Promise.resolve(mockAltinn2LinkServices));
+  const getAltinn2LinkServices = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(mockAltinn2LinkServices));
 
-  render(props);
+  renderServiceContent(props, { getAltinn2LinkServices });
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('resourceadm.import_resource_spinner')),
   );
 };
 
-const render = (
+const renderServiceContent = (
   props: Partial<ServiceContentProps> = {},
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getAltinn2LinkServices,
     ...queries,
   };
 
-  return rtlRender(
+  return render(
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <ServiceContent {...defaultProps} {...props} />
     </ServicesContextProvider>,

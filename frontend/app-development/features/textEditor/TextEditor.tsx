@@ -26,11 +26,7 @@ export const TextEditor = () => {
   const getSearchQuery = () => searchParams.get('search') || '';
 
   const { data: appLangCodes } = useLanguagesQuery(org, app);
-  const {
-    data: textResources,
-    isPending: isInitialLoadingLang,
-    isFetching: isFetchingTranslations,
-  } = useTextResourcesQuery(org, app);
+  const { data: textResources, isPending: isInitialLoadingLang } = useTextResourcesQuery(org, app);
 
   const setSearchQuery = (search: string) => {
     setSearchParams(search.length > 0 ? { search } : {});
@@ -51,7 +47,7 @@ export const TextEditor = () => {
 
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
-  if (isInitialLoadingLang || isFetchingTranslations || !textResources) {
+  if (isInitialLoadingLang || !textResources) {
     return <StudioPageSpinner />;
   }
 

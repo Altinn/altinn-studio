@@ -36,5 +36,10 @@ namespace Altinn.Studio.Designer.Models
                 throw new ArgumentException("Provided organization name is not valid");
             }
         }
+
+        public static AltinnRepoContext FromOrgRepo(string org, string repo)
+        {
+            return new AltinnRepoContext(org, repo);
+        }
     }
 }

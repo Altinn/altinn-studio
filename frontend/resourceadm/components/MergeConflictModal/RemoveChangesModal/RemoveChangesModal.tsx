@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { Button, Textfield, Paragraph } from '@digdir/design-system-react';
+import { Textfield, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
-import { Modal } from 'resourceadm/components/Modal';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+import { Modal } from '../../../components/Modal';
+import { ScreenReaderSpan } from '../../../components/ScreenReaderSpan';
+import { StudioButton } from '@studio/components';
 
 type RemoveChangesModalProps = {
   /**
@@ -35,14 +36,14 @@ type RemoveChangesModalProps = {
  * @property {function}[handleClickResetRepo] - Function to be executed when the reset repo is clicked
  * @property {string}[repo] - The name of the repo
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const RemoveChangesModal = ({
   isOpen,
   onClose,
   handleClickResetRepo,
   repo,
-}: RemoveChangesModalProps): React.ReactNode => {
+}: RemoveChangesModalProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [deleteRepoName, setDeleteRepoName] = useState('');
@@ -64,14 +65,10 @@ export const RemoveChangesModal = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={t('settings_modal.local_changes_tab_delete_modal_title')}
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={t('local_changes.modal_delete_modal_title')}>
       <Paragraph size='small'>
         <Trans
-          i18nKey={'settings_modal.local_changes_tab_delete_modal_text'}
+          i18nKey={'local_changes.modal_delete_modal_text'}
           values={{ repositoryName: repo }}
           components={{ bold: <strong /> }}
         />
@@ -89,18 +86,18 @@ export const RemoveChangesModal = ({
         />
       </div>
       <div className={classes.buttonWrapper}>
-        <Button
+        <StudioButton
           color='danger'
           aria-disabled={repo !== deleteRepoName}
           onClick={repo === deleteRepoName && handleDelete}
           variant='secondary'
           size='small'
         >
-          {t('settings_modal.local_changes_tab_delete_modal_delete_button')}
-        </Button>
-        <Button color='second' onClick={handleClose} variant='secondary' size='small'>
+          {t('local_changes.modal_confirm_delete_button')}
+        </StudioButton>
+        <StudioButton color='second' onClick={handleClose} variant='secondary' size='small'>
           {t('general.cancel')}
-        </Button>
+        </StudioButton>
       </div>
     </Modal>
   );

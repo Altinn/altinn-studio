@@ -18,12 +18,13 @@ import {
 } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
-import { Button, Switch } from '@digdir/design-system-react';
+import { Switch } from '@digdir/design-system-react';
 import { CheckmarkIcon, PlusCircleIcon, TrashIcon } from '@navikt/aksel-icons';
 import { Trans } from 'react-i18next';
 import classes from '../ExpressionContent.module.css';
 import { stringifyData } from '../../../../../utils/jsonUtils';
 import { useText } from '../../../../../hooks';
+import { StudioButton } from '@studio/components';
 
 export interface ExpressionEditModeProps {
   expression: Expression;
@@ -109,7 +110,7 @@ export const ExpressionEditMode = ({
             components={{ bold: <strong /> }}
           />
         </p>
-        <Button
+        <StudioButton
           aria-label={t('right_menu.expression_delete')}
           color='danger'
           icon={<TrashIcon />}
@@ -134,17 +135,17 @@ export const ExpressionEditMode = ({
             onUpdateExpressionOperator={(expressionOp: Operator) => updateOperator(expressionOp)}
             onRemoveSubExpression={(subExp: SubExpression) => onDeleteSubExpression(subExp)}
           />
-          <Button
+          <StudioButton
             variant='tertiary'
             size='small'
             onClick={() => addSubExpression(expression.operator || Operator.And)}
             icon={<PlusCircleIcon />}
           >
             {t('right_menu.expressions_add_sub_expression')}
-          </Button>
+          </StudioButton>
         </div>
       )}
-      <Button
+      <StudioButton
         color='success'
         icon={<CheckmarkIcon />}
         onClick={() => {
@@ -156,7 +157,7 @@ export const ExpressionEditMode = ({
         disabled={!allowToSaveExpression}
       >
         {t('right_menu.expression_save')}
-      </Button>
+      </StudioButton>
     </div>
   );
 };

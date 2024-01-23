@@ -6,17 +6,13 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
 import * as testids from '../../testing/testids';
 import { textMock } from '../../testing/mocks/i18nMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 jest.mock('../../language/src/nb.json', jest.fn());
 jest.mock('../../language/src/en.json', jest.fn());
 
-// Mocking console.error due to Tanstack Query removing custom logger between V4 and v5 see issue: #11692
-const realConsole = console;
 const render = async (remainingMinutes: number = 40) => {
   renderWithProviders(<App />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-    queries: { ...queriesMock },
     preloadedState: {
       userState: {
         session: {
@@ -28,14 +24,7 @@ const render = async (remainingMinutes: number = 40) => {
 };
 
 describe('App', () => {
-  beforeEach(() => {
-    global.console = {
-      ...console,
-      error: jest.fn(),
-    };
-  });
   afterEach(() => {
-    global.console = realConsole;
     jest.clearAllMocks();
   });
 
