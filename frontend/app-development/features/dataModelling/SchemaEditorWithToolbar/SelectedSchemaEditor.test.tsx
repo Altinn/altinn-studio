@@ -11,7 +11,6 @@ import { dataMock } from '@altinn/schema-editor/mockData';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { SchemaEditorAppProps } from '@altinn/schema-editor/SchemaEditorApp';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 const user = userEvent.setup();
 
@@ -59,7 +58,7 @@ describe('SelectedSchemaEditor', () => {
     expect(screen.getByTestId(schemaEditorTestId)).toBeInTheDocument();
   });
 
-  test('Debounces the save function', async () => {
+  it('Debounces the save function', async () => {
     const saveDatamodel = jest.fn();
     const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
 
@@ -118,30 +117,12 @@ describe('SelectedSchemaEditor', () => {
   test('Does not save the datamodel when unmounting if the datamodel has been deleted', async () => {
     const saveDatamodel = jest.fn();
     const queryClient = createQueryClientMock();
-    const datamodelMetadataList: DatamodelMetadata[] = [
+    const datamodelMetadataList = jest.fn().mockImplementation(() => [
       {
-        description: '',
-        directory: '',
-        fileName: '',
-        filePath: '',
-        fileStatus: '',
-        fileType: '.xsd',
-        lastChanged: '',
-        repositoryRelativeUrl: '',
-        select: false,
+        ...jsonMetadataMock,
+        repositoryRelativeUrl: modelPath,
       },
-      {
-        description: '',
-        directory: '',
-        fileName: '',
-        filePath: '',
-        fileStatus: '',
-        fileType: '.json',
-        lastChanged: '',
-        repositoryRelativeUrl: '',
-        select: false,
-      },
-    ];
+    ]);
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, datamodelNameMock], dataMock);
     queryClient.setQueryData([QueryKey.DatamodelsJson, org, app], datamodelMetadataList);
     render({ saveDatamodel });

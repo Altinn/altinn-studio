@@ -85,9 +85,9 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
       app,
     ]);
     const metadataList = mergeJsonAndXsdData(jsonModels, xsdModels);
-    const datamodelExists =
-      Array.isArray(metadataList) &&
-      metadataList.some((datamodel) => datamodel.repositoryRelativeUrl === modelPath);
+    const datamodelExists = metadataList.some(
+      (datamodel) => datamodel.repositoryRelativeUrl === modelPath,
+    );
     if (datamodelExists) saveFunction();
   });
 
