@@ -11,8 +11,8 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../../hooks/useAppContext';
 import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
-import { useDeleteLayout } from './useDeleteLayout';
 import { StudioButton } from '@studio/components';
+import { useDeleteLayout } from './useDeleteLayout';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -51,7 +51,7 @@ export const PageAccordion = ({
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const layoutOrder = formLayoutSettings?.pages.order;
 
-  const { deleteLayout, isPending } = useDeleteLayout();
+  const { mutate: deleteLayout, isPending } = useDeleteLayout();
 
   const handleConfirmDelete = useCallback(() => {
     if (confirm(t('ux_editor.page_delete_text'))) {

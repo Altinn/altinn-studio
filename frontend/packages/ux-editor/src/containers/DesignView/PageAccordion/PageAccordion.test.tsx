@@ -33,15 +33,8 @@ jest.mock('react-router-dom', () => ({
 
 const mockDeleteFormLayout = jest.fn();
 jest.mock('./useDeleteLayout', () => ({
-  useDeleteLayout: () => mockDeleteFormLayout,
+  useDeleteLayout: jest.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
 }));
-
-jest.mock(
-  '../../../../../ux-editor/src/containers/DesignView/PageAccordion/useDeleteLayout',
-  () => ({
-    useDeleteLayout: jest.fn(() => ({ deleteLayout: mockDeleteFormLayout, isPending: false })),
-  }),
-);
 
 const mockChildren: ReactNode = (
   <div>
@@ -97,6 +90,25 @@ describe('PageAccordion', () => {
     expect(mockDeleteFormLayout).toHaveBeenCalledTimes(1);
     expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1);
     expect(mockSetSearchParams).toHaveBeenCalledWith({ layout: mockPageName2 });
+  });
+
+  it('Disables delete button when isPending is true', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    jest
+      .spyOn(require('./useDeleteLayout'), 'useDeleteLayout')
+      .mockImplementation(() => ({ mutate: mockDeleteFormLayout, isPending: true }));
+    await render();
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', { item: mockPageName1 }),
+    });
+
+    expect(deleteButton).toBeDisabled();
+    await act(async () => {
+      await user.click(deleteButton);
+    });
+    expect(mockDeleteFormLayout).not.toHaveBeenCalled();
+    expect(mockSetSearchParams).not.toHaveBeenCalled();
   });
 
   it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {
