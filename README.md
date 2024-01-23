@@ -170,7 +170,7 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 ## Contributing
 
-Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
 
