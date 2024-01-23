@@ -1,17 +1,19 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, Paragraph, ToggleGroup } from '@digdir/design-system-react';
+import { Heading, Link as DigdirLink, ToggleGroup } from '@digdir/design-system-react';
 import { StudioSpinner, StudioButton } from '@studio/components';
+import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import { EnvId, getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { selectedContext, repo, env: selectedEnv } = useUrlParams();
 
   const { data: envListData, isLoading: isLoadingEnvListData } = useGetAccessListsQuery(
@@ -19,7 +21,20 @@ export const ListAdminPage = (): React.JSX.Element => {
     selectedEnv,
   );
 
-  const navigate = useNavigate();
+  const navigateToListEnv = useCallback(
+    (navigateEnv: EnvId) => {
+      navigate(getAccessListPageUrl(selectedContext, repo, navigateEnv));
+    },
+    [selectedContext, repo, navigate],
+  );
+
+  useEffect(() => {
+    if (!selectedEnv) {
+      const availableEnvs = getAvailableEnvironments(selectedContext);
+      navigateToListEnv(availableEnvs[0].id);
+    }
+  }, [selectedContext, selectedEnv, navigateToListEnv]);
+
   const createAccessListModalRef = useRef<HTMLDialogElement>(null);
 
   return (
@@ -30,12 +45,8 @@ export const ListAdminPage = (): React.JSX.Element => {
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_header')}
       </Heading>
-      <Paragraph size='small'>{t('resourceadm.listadmin_select_environment')}</Paragraph>
       <div className={classes.environmentSelectorWrapper}>
-        <ToggleGroup
-          onChange={(newValue) => navigate(getAccessListPageUrl(selectedContext, repo, newValue))}
-          value={selectedEnv}
-        >
+        <ToggleGroup size='small' onChange={navigateToListEnv} value={selectedEnv}>
           {getAvailableEnvironments(selectedContext).map((environment) => {
             return (
               <ToggleGroup.Item key={environment.id} value={environment.id}>
@@ -44,38 +55,66 @@ export const ListAdminPage = (): React.JSX.Element => {
             );
           })}
         </ToggleGroup>
+        {selectedEnv && (
+          <>
+            <NewAccessListModal
+              ref={createAccessListModalRef}
+              org={selectedContext}
+              env={selectedEnv}
+              navigateUrl={getAccessListPageUrl(selectedContext, repo, selectedEnv)}
+              onClose={() => createAccessListModalRef.current?.close()}
+            />
+            {isLoadingEnvListData && <StudioSpinner />}
+            {envListData && (
+              <div>
+                <Heading level={2} size='xsmall'>
+                  {t('resourceadm.listadmin_lists_in', {
+                    environment: t(
+                      getAvailableEnvironments(selectedContext).find(
+                        (listEnv) => listEnv.id === selectedEnv,
+                      ).label,
+                    ),
+                  })}
+                </Heading>
+                {envListData.map((list) => {
+                  return (
+                    <div key={list.identifier} className={classes.tableRowContent}>
+                      <div>{list.name}</div>
+                      <StudioButton
+                        iconPlacement='right'
+                        size='small'
+                        variant='tertiary'
+                        icon={<PencilWritingIcon />}
+                        aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
+                        as={Link}
+                        to={getAccessListPageUrl(
+                          selectedContext,
+                          repo,
+                          selectedEnv,
+                          list.identifier,
+                        )}
+                      >
+                        {t('resourceadm.listadmin_edit_list')}
+                      </StudioButton>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div>
+              <StudioButton
+                variant='secondary'
+                size='small'
+                icon={<PlusIcon />}
+                iconPlacement='left'
+                onClick={() => createAccessListModalRef.current?.showModal()}
+              >
+                {t('resourceadm.listadmin_create_list')}
+              </StudioButton>
+            </div>
+          </>
+        )}
       </div>
-      {selectedEnv && (
-        <div className={classes.environmentLinkWrapper}>
-          <NewAccessListModal
-            ref={createAccessListModalRef}
-            org={selectedContext}
-            env={selectedEnv}
-            navigateUrl={getAccessListPageUrl(selectedContext, repo, selectedEnv)}
-            onClose={() => createAccessListModalRef.current?.close()}
-          />
-          {isLoadingEnvListData && <StudioSpinner />}
-          {!!envListData &&
-            envListData.map((x) => {
-              return (
-                <div key={x.identifier}>
-                  <DigdirLink
-                    as={Link}
-                    to={getAccessListPageUrl(selectedContext, repo, selectedEnv, x.identifier)}
-                  >
-                    {x.name}
-                  </DigdirLink>
-                </div>
-              );
-            })}
-          <StudioButton
-            variant='secondary'
-            onClick={() => createAccessListModalRef.current?.showModal()}
-          >
-            {t('resourceadm.listadmin_create_list')}
-          </StudioButton>
-        </div>
-      )}
     </div>
   );
 };
