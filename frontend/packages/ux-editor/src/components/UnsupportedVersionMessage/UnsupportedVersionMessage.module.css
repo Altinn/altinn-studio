@@ -8,3 +8,8 @@
 .message {
   width: 600px;
 }
+
+.bodyText {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}

@@ -37,10 +37,9 @@ export function UnsupportedVersionMessage({
         </Heading>
         {getBodyTextKeys(category).map((key) => {
           return (
-            <>
-              <br />
-              <Paragraph key={key}>{t(key, { version, closestSupportedVersion })}</Paragraph>
-            </>
+            <Paragraph key={key} className={classes.bodyText}>
+              {t(key, { version, closestSupportedVersion })}
+            </Paragraph>
           );
         })}
         <br />
