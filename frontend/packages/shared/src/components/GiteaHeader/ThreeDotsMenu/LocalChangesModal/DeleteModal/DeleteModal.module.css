@@ -1,7 +1,6 @@
 .contentWrapper {
   display: flex;
   flex-direction: column;
-  max-height: calc(var(--modal-content-max-height));
   min-width: 300px;
   width: 400px;
   padding-inline: 20px;

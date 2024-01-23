@@ -1,32 +1,24 @@
 .modalContent {
   display: flex;
-  height: calc(var(--modal-content-max-height));
+  height: var(--modal-content-max-height);
   width: 70vw;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .leftNavWrapper {
-  flex: 0 0 auto;
   height: 100%;
   top: 0;
   position: sticky;
   overflow-y: auto;
 }
 
-.leftNavigationBar {
-  min-height: 200px;
-}
-
 .contentWrapper {
-  flex: 1;
-  overflow-y: auto;
+  height: 100%;
 }
 
 .headingWrapper {
   display: flex;
   align-items: center;
-  padding-block: 10px;
-  padding-inline: 20px;
 }
 
 .headingWrapper > :first-child {
