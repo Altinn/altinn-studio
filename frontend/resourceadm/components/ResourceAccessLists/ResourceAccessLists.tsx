@@ -5,6 +5,7 @@ import { Alert, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-sys
 import classes from './ResourceAccessLists.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { StudioSpinner, StudioButton } from '@studio/components';
+import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
 import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';
 import { useRemoveResourceAccessListMutation } from '../../hooks/mutations/useRemoveResourceAccessListMutation';
@@ -100,26 +101,33 @@ export const ResourceAccessLists = ({
           env: env.toUpperCase(),
         })}
       </Heading>
-      <Checkbox.Group
-        legend={t('resourceadm.listadmin_resource_list_checkbox_header')}
-        size='medium'
-        onChange={(newValues: string[]) => {
-          if (selectedLists.length < newValues.length) {
-            const addedListIdentifier = newValues[newValues.length - 1];
-            handleAdd(addedListIdentifier);
-          } else {
-            const removedListIdentifier = selectedLists.find((x) => newValues.indexOf(x) === -1);
-            handleRemove(removedListIdentifier);
-          }
-        }}
-        value={selectedLists}
-      >
+      <Heading level={2} size='xsmall'>
+        {t('resourceadm.listadmin_resource_list_checkbox_header')}
+      </Heading>
+      <div className={classes.listCheckboxWrapper}>
         {envListData.map((list) => {
           return (
-            <div key={list.identifier} className={classes.listCheckboxWrapper}>
-              <Checkbox value={list.identifier}>{list.name}</Checkbox>
-              <DigdirLink
+            <div key={list.identifier} className={classes.listCheckboxItem}>
+              <Checkbox
+                value={list.identifier}
+                checked={selectedLists.indexOf(list.identifier) > -1}
+                onChange={(event) => {
+                  if (event.target.checked) {
+                    handleAdd(list.identifier);
+                  } else {
+                    handleRemove(list.identifier);
+                  }
+                }}
+              >
+                {list.name}
+              </Checkbox>
+              <StudioButton
+                iconPlacement='right'
+                size='small'
+                variant='tertiary'
+                icon={<PencilWritingIcon />}
                 as={Link}
+                aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
                 to={`${getResourcePageURL(
                   selectedContext,
                   repo,
@@ -127,14 +135,17 @@ export const ResourceAccessLists = ({
                   'accesslists',
                 )}/${env}/${list.identifier}`}
               >
-                {`(${t('general.edit')})`}
-              </DigdirLink>
+                {t('resourceadm.listadmin_edit_list')}
+              </StudioButton>
             </div>
           );
         })}
-      </Checkbox.Group>
+      </div>
       <StudioButton
         variant='secondary'
+        size='small'
+        icon={<PlusIcon />}
+        iconPlacement='left'
         onClick={() => createAccessListModalRef.current?.showModal()}
       >
         {t('resourceadm.listadmin_create_list')}
