@@ -1066,6 +1066,7 @@
   "schema_editor.depth_error": "Det er ikke mulig å plassere gruppen her fordi det vil føre til at skjemaet får for mange nivåer.",
   "schema_editor.description": "Tekst",
   "schema_editor.descriptive_fields": "Beskrivende felter",
+  "schema_editor.disable_deletion_info_for_used_definition": "Du kan ikke slette en definisjon som er i bruk.",
   "schema_editor.empty_node": "Dette elementet er tomt.",
   "schema_editor.enum": "Gyldige verdier",
   "schema_editor.enum_empty": "Listen er tom - alle verdier vil bli godtatt.",
