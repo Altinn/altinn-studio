@@ -3241,7 +3241,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.40.1":
+"@playwright/test@npm:^1.41.1":
   version: 1.41.1
   resolution: "@playwright/test@npm:1.41.1"
   dependencies:
@@ -13108,7 +13108,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "playwright-studio@workspace:frontend/testing/playwright"
   dependencies:
-    "@playwright/test": "npm:^1.40.1"
+    "@playwright/test": "npm:^1.41.1"
     "@types/dotenv": "npm:^8.2.0"
     "@types/node": "npm:^20.10.5"
     dotenv: "npm:^16.3.1"
