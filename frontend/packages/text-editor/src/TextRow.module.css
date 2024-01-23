@@ -8,13 +8,13 @@
 }
 
 .textId {
-  max-width: 200px;
+  max-width: 300px;
   overflow: scroll;
   overflow-wrap: break-word;
 }
 
 .textAreaCell {
-  min-width: 350px;
+  min-width: 450px;
   vertical-align: top;
 }
 

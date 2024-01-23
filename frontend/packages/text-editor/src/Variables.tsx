@@ -14,9 +14,9 @@ export const Variables = ({ variables }: VariablesProps) => {
   const [infoboxOpen, setInfoboxOpen] = useState(false);
   const { t } = useTranslation();
   return (
-    <div title={t('text_editor.variables_editing_not_supported')}>
+    <div>
       {variables.map((variable) => (
-        <div key={variable.key} className={classes.chip}>
+        <div key={variable.key} className={classes.chip} title={variable.key}>
           <span className={classes.variables}>{`${variable.key}: ${variable.dataSource}`}</span>
           {variable.defaultValue && (
             <span className={classes.variables}>
@@ -30,7 +30,10 @@ export const Variables = ({ variables }: VariablesProps) => {
         </div>
       ))}
       {variables.length > 0 && (
-        <span className={classes.infoButton}>
+        <span
+          className={classes.infoButton}
+          title={t('text_editor.variables_editing_not_supported')}
+        >
           <PopoverPanel
             title={'Kun for visning'}
             variant={PanelVariant.Info}
