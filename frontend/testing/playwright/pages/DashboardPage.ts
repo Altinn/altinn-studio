@@ -1,7 +1,6 @@
 ﻿import { BasePage } from '../helpers/BasePage';
 import { Page } from '@playwright/test';
 
-//
 export class DashboardPage extends BasePage {
   constructor(page: Page) {
     super(page);
