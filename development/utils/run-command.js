@@ -4,7 +4,7 @@ module.exports = (command) => {
   console.log('CMD:', command);
   try {
     execSync(command, {
-      cwd: path.resolve(__dirname, '..'),
+      cwd: path.resolve(__dirname, '../..'),
     });
   } catch (e) {
     console.error('     Command failed, run with --verbose to get the error message');
