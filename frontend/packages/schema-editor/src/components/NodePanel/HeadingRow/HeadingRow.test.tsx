@@ -45,6 +45,14 @@ const defaultAppContextProps: SchemaEditorAppContextProps = {
   name: datamodelName,
 };
 
+// Mocks:
+jest.mock('./HeadingRow.module.css', () => ({
+  root: 'root',
+  selected: 'selected',
+  heading: 'heading',
+  headingButton: 'headingButton',
+}));
+
 describe('HeadingRow', () => {
   afterEach(jest.clearAllMocks);
 
@@ -84,6 +92,13 @@ describe('HeadingRow', () => {
       renderHeadingRow();
       const deleteButton = screen.queryByRole('button', { name: textMock('general.delete') });
       expect(deleteButton).not.toBeInTheDocument();
+    });
+
+    it('Renders with the "selected" class name when the root node is selected', () => {
+      const selectedNodePointer = ROOT_POINTER;
+      const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedNodePointer };
+      const { container } = renderHeadingRow({ appContextProps });
+      expect(container.firstChild).toHaveClass('selected'); // eslint-disable-line testing-library/no-node-access
     });
   });
 
@@ -224,6 +239,13 @@ describe('HeadingRow', () => {
           expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
         });
       }
+
+      it('Renders with the "selected" class name when the root node is selected', () => {
+        const selectedNodePointer = pointer;
+        const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedNodePointer };
+        const { container } = renderHeadingRowForType(pointer, appContextProps);
+        expect(container.firstChild).toHaveClass('selected'); // eslint-disable-line testing-library/no-node-access
+      });
     });
 
     const renderHeadingRowForType = (

@@ -48,6 +48,15 @@ describe('StudioDropdownMenu', () => {
     expect(screen.getByTestId(icon3TestId)).toBeInTheDocument();
   });
 
+  it('Closes the dialog when clicking outside', async () => {
+    const user = userEvent.setup();
+    renderTestDropdownMenu();
+    await openDropdown(user);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await act(() => user.click(document.body));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   it("Forwards the items' ref object to the respective items", async () => {
     const user = userEvent.setup();
     renderTestDropdownMenu();
