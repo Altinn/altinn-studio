@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
-import { Combobox } from '@digdir/design-system-react';
+import { Combobox, Paragraph, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { EnvironmentType } from 'resourceadm/types/EnvironmentType';
+import { EnvironmentType } from '../../types/EnvironmentType';
 import { useNavigate } from 'react-router-dom';
 import { ServiceContent } from './ServiceContent';
 import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import { useImportResourceFromAltinn2Mutation } from 'resourceadm/hooks/mutations';
+import { useImportResourceFromAltinn2Mutation } from '../../hooks/mutations';
 import { Resource } from 'app-shared/types/ResourceAdm';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getResourcePageURL } from '../../utils/urlUtils';
 import { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
+import { formatIdString } from '../../utils/stringUtils';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
@@ -34,12 +35,12 @@ export type ImportResourceModalProps = {
  * @property {boolean}[isOpen] - Boolean for if the modal is open
  * @property {function}[onClose] - Function to handle close
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ImportResourceModal = ({
   isOpen,
   onClose,
-}: ImportResourceModalProps): React.ReactNode => {
+}: ImportResourceModalProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { selectedContext, repo } = useUrlParams();
@@ -48,7 +49,7 @@ export const ImportResourceModal = ({
 
   const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
   const [selectedService, setSelectedService] = useState<Altinn2LinkService>();
-
+  const [id, setId] = useState('');
   const [resourceIdExists, setResourceIdExists] = useState(false);
 
   const { mutate: importResourceFromAltinn2Mutation } =
@@ -71,6 +72,7 @@ export const ImportResourceModal = ({
         environment: selectedEnv,
         serviceCode: selectedService.externalServiceCode,
         serviceEdition: selectedService.externalServiceEditionCode,
+        resourceId: id,
       },
       {
         onSuccess: (resource: Resource) => {
@@ -106,27 +108,46 @@ export const ImportResourceModal = ({
         </Combobox>
       </div>
       {selectedEnv && (
-        <ServiceContent
-          selectedContext={selectedContext}
-          env={selectedEnv}
-          selectedService={selectedService}
-          onSelectService={(altinn2LinkService: Altinn2LinkService) =>
-            setSelectedService(altinn2LinkService)
-          }
-          resourceIdExists={resourceIdExists}
-        />
+        <div className={classes.serviceContentWrapper}>
+          <ServiceContent
+            selectedContext={selectedContext}
+            env={selectedEnv}
+            selectedService={selectedService}
+            onSelectService={(altinn2LinkService: Altinn2LinkService) => {
+              setSelectedService(altinn2LinkService);
+              setId(formatIdString(altinn2LinkService.serviceName));
+            }}
+          />
+          {selectedService && (
+            <div>
+              <div className={classes.contentDivider} />
+              <Paragraph size='small' spacing>
+                {t('resourceadm.dashboard_import_modal_resource_name_and_id_text')}
+              </Paragraph>
+              <Textfield
+                label={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
+                value={id}
+                onChange={(event) => setId(formatIdString(event.target.value))}
+                error={
+                  resourceIdExists ? t('resourceadm.dashboard_resource_name_and_id_error') : ''
+                }
+              />
+            </div>
+          )}
+        </div>
       )}
       <div className={classes.buttonWrapper}>
+        <StudioButton
+          onClick={handleImportResource}
+          color='first'
+          size='small'
+          disabled={!selectedEnv || !selectedService || !id}
+        >
+          {t('resourceadm.dashboard_import_modal_import_button')}
+        </StudioButton>
         <StudioButton onClick={handleClose} color='first' variant='tertiary' size='small'>
           {t('general.cancel')}
         </StudioButton>
-        {selectedEnv && selectedService && (
-          <div className={classes.importButton}>
-            <StudioButton onClick={handleImportResource} color='first' size='small'>
-              {t('resourceadm.dashboard_import_modal_import_button')}
-            </StudioButton>
-          </div>
-        )}
       </div>
     </Modal>
   );

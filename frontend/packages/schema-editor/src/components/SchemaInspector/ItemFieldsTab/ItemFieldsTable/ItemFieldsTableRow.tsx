@@ -43,7 +43,8 @@ export const ItemFieldsTableRow = ({
     );
   };
 
-  const onTypeChange = (path: string, type: FieldType) => save(setType(schemaModel, { path, type }));
+  const onTypeChange = (path: string, type: FieldType) =>
+    save(setType(schemaModel, { path, type }));
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();

@@ -1,9 +1,18 @@
 import { SavableSchemaModel } from './SavableSchemaModel';
-import { extractNameFromPointer, NodePosition, ROOT_POINTER, SchemaModel } from '../../../schema-model';
-import { uiSchemaNodesMock, definitionNodeMock, fieldNode1Mock, combinationNodeMock } from '../../test/mocks/uiSchemaMock';
+import {
+  extractNameFromPointer,
+  NodePosition,
+  ROOT_POINTER,
+  SchemaModel,
+} from '../../../schema-model';
+import {
+  uiSchemaNodesMock,
+  definitionNodeMock,
+  fieldNode1Mock,
+  combinationNodeMock,
+} from '../../test/mocks/uiSchemaMock';
 
 describe('SavableSchemaModel', () => {
-
   const save = jest.fn();
   const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   const setupSchema = (): SavableSchemaModel => {
@@ -53,7 +62,7 @@ describe('SavableSchemaModel', () => {
       const name = 'testdef';
       const definitionNode = savableSchema.addFieldType(name);
       expect(savableSchema.hasDefinition(name)).toBe(true);
-      expect(savableSchema.getDefinition(name)).toBe(definitionNode)
+      expect(savableSchema.getDefinition(name)).toBe(definitionNode);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
     });
@@ -85,7 +94,7 @@ describe('SavableSchemaModel', () => {
   });
 
   describe('moveNode', () => {
-    it('Moves a node, saves the model once and returns the object', () => {
+    it('Moves a node, saves the model once and returns the moved node', () => {
       const savableSchema = setupSchema();
       const { pointer } = fieldNode1Mock;
       const name = extractNameFromPointer(pointer);
@@ -93,11 +102,11 @@ describe('SavableSchemaModel', () => {
         parentPointer: ROOT_POINTER,
         index: -1,
       };
-      const result = savableSchema.moveNode(pointer, target);
+      const movedNode = savableSchema.moveNode(pointer, target);
       expect(savableSchema.doesNodeHaveChildWithName(ROOT_POINTER, name)).toBe(true);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
-      expect(result).toBe(savableSchema);
+      expect(movedNode).toBe(savableSchema.getNode(movedNode.pointer));
     });
   });
 

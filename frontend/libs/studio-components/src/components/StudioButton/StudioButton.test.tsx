@@ -52,7 +52,11 @@ describe('StudioButton', () => {
   });
 
   it('Supports polymorphism', () => {
-    render(<StudioButton as='a' href='/'>Test</StudioButton>);
+    render(
+      <StudioButton as='a' href='/'>
+        Test
+      </StudioButton>,
+    );
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByRole('link')).toBeInTheDocument();
   });

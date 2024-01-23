@@ -11,6 +11,7 @@ import { dataMock } from '@altinn/schema-editor/mockData';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { SchemaEditorAppProps } from '@altinn/schema-editor/SchemaEditorApp';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const user = userEvent.setup();
 
@@ -50,6 +51,17 @@ describe('SelectedSchemaEditor', () => {
     render({ getDatamodel });
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(screen.getByText(message)).toBeInTheDocument();
+  });
+
+  it('Displays custom error message if it exists when invalid xml response', async () => {
+    const customMessage =
+      "The 'xsd:schema' start tag on line 2 position 2 does not match the end tag of 'xs:schema'. Line 86, position 3";
+    const getDatamodel = jest
+      .fn()
+      .mockImplementation(() => Promise.reject(createApiErrorMock(400, 'DM_05', [customMessage])));
+    render({ getDatamodel });
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    expect(screen.getByText(customMessage)).toBeInTheDocument();
   });
 
   it('Renders SchemaEditorApp when finished loading', async () => {

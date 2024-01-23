@@ -44,7 +44,7 @@ type ResourceContactPointTextFieldProps = {
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[isValid] - If the field is valid
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceContactPointTextField = ({
   label,
@@ -53,7 +53,7 @@ export const ResourceContactPointTextField = ({
   onChange,
   onBlur,
   isValid,
-}: ResourceContactPointTextFieldProps): React.ReactNode => {
+}: ResourceContactPointTextFieldProps): React.JSX.Element => {
   return (
     <div>
       <Textfield

@@ -32,7 +32,9 @@ export const SelectedSchemaEditor = ({ modelPath }: SelectedSchemaEditorProps) =
           <Alert severity='danger'>
             <Paragraph>{t('general.fetch_error_message')}</Paragraph>
             <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
-            <ErrorMessage>{error.message}</ErrorMessage>
+            <ErrorMessage>
+              {error.response?.data?.customErrorMessages[0] ?? error.message}
+            </ErrorMessage>
           </Alert>
         </StudioCenter>
       );

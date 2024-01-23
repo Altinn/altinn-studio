@@ -12,6 +12,7 @@ import {
 import {
   definitionNodeMock,
   objectNodeMock,
+  referredNodeMock,
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
 import React from 'react';
@@ -82,6 +83,22 @@ describe('SchemaNode', () => {
     const savedModel = getSavedModel(save);
     const updatedNode = savedModel.getNode(pointer) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfChildren + 1);
+  });
+
+  it('Renders the delete button as disabled when the node is a definition in use', async () => {
+    const { pointer } = referredNodeMock;
+    render({ pointer });
+    const deleteButtonTitle = textMock('schema_editor.disable_deletion_info_for_used_definition');
+    const deleteButton = screen.getByRole('button', { name: deleteButtonTitle });
+    expect(deleteButton).toBeDisabled();
+  });
+
+  it('Renders the delete button as enabled when the node is an unused definition', async () => {
+    const { pointer } = definitionNodeMock;
+    render({ pointer });
+    const deleteButtonTitle = textMock('general.delete');
+    const deleteButton = screen.getByRole('button', { name: deleteButtonTitle });
+    expect(deleteButton).toBeEnabled();
   });
 
   it('Saves the model correctly when a node is deleted', async () => {

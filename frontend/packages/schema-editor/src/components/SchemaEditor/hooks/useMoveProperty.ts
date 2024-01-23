@@ -4,9 +4,11 @@ import { extractNameFromPointer, isCombination, NodePosition } from '@altinn/sch
 import { calculatePositionInFullList } from '../utils';
 import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import { useTranslation } from 'react-i18next';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export const useMoveProperty = (): HandleMove => {
   const savableModel = useSavableSchemaModel();
+  const { selectedNodePointer, setSelectedNodePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
   const areThereCollidingNames = useCallback(
@@ -32,9 +34,12 @@ export const useMoveProperty = (): HandleMove => {
         const parent = extractNameFromPointer(position.parentId);
         alert(t('schema_editor.move_node_same_name_error', { name, parent }));
       } else {
-        savableModel.moveNode(pointer, target);
+        const movedNode = savableModel.moveNode(pointer, target);
+        if (selectedNodePointer === pointer) {
+          setSelectedNodePointer(movedNode.pointer);
+        }
       }
     },
-    [savableModel, t, areThereCollidingNames],
+    [savableModel, t, areThereCollidingNames, selectedNodePointer, setSelectedNodePointer],
   );
 };

@@ -4,7 +4,7 @@ import classes from './ResourcePageInputs.module.css';
 import { Textarea, Textfield } from '@digdir/design-system-react';
 import { RightTranslationBar } from '../RightTranslationBar';
 import { SupportedLanguage } from 'app-shared/types/ResourceAdm';
-import { getMissingInputLanguageString } from 'resourceadm/utils/resourceUtils';
+import { getMissingInputLanguageString } from '../../utils/resourceUtils';
 
 /**
  * Initial value for languages with empty fields
@@ -66,7 +66,7 @@ type ResourceLanguageTextFieldProps = {
  * @property {string}[errorText] - The error text to be shown
  * @property {boolean}[useTextArea] - Whether the component should use textarea instead of input
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceLanguageTextField = ({
   label,
@@ -78,7 +78,7 @@ export const ResourceLanguageTextField = ({
   onBlur,
   errorText,
   useTextArea,
-}: ResourceLanguageTextFieldProps): React.ReactNode => {
+}: ResourceLanguageTextFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);

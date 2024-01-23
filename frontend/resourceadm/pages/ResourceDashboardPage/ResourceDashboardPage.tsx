@@ -1,29 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
+import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
 import { Spinner, Heading } from '@digdir/design-system-react';
-import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
-import { ResourceTable } from 'resourceadm/components/ResourceTable';
-import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { useGetResourceListQuery, useOrganizationsQuery } from 'resourceadm/hooks/queries';
-import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
-import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
-import { ImportResourceModal } from 'resourceadm/components/ImportResourceModal';
+import { ResourceTable } from '../../components/ResourceTable';
+import { SearchBox } from '../../components/ResourceSeachBox';
+import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
+import { MergeConflictModal } from '../../components/MergeConflictModal';
+import { NewResourceModal } from '../../components/NewResourceModal';
+import { ImportResourceModal } from '../../components/ImportResourceModal';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import { filterTableData } from 'resourceadm/utils/resourceListUtils';
+import { filterTableData } from '../../utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
-import { getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
-import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 
 /**
  * @component
  *    Displays the page for the resource dashboard
  *
- * @returns {React.ReactNode} - The rendered component
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const ResourceDashboardPage = (): React.ReactNode => {
+export const ResourceDashboardPage = (): React.JSX.Element => {
+  const createResourceModalRef = useRef<HTMLDialogElement>(null);
   const { selectedContext, repo } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
@@ -34,7 +36,6 @@ export const ResourceDashboardPage = (): React.ReactNode => {
   const [searchValue, setSearchValue] = useState('');
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
-  const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Get metadata with queries
@@ -73,7 +74,7 @@ export const ResourceDashboardPage = (): React.ReactNode => {
       return (
         <>
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
-          <div style={{ width: '100%' }}>
+          <div>
             <Heading size='xsmall' level={2}>
               {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
             </Heading>
@@ -99,13 +100,29 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           })}
         </Heading>
         <div className={classes.topRightWrapper}>
+          {shouldDisplayFeature('resourceAccessLists') && (
+            <>
+              <StudioButton
+                as={Link}
+                variant='tertiary'
+                color='second'
+                to={`${getResourceDashboardURL(selectedContext, repo)}/accesslists`}
+                size='medium'
+                icon={<TasklistIcon />}
+                iconPlacement='right'
+              >
+                <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+              </StudioButton>
+              <div className={classes.verticalDivider} />
+            </>
+          )}
           <StudioButton
             variant='tertiary'
             color='second'
-            icon={<MigrationIcon />}
-            iconPlacement='right'
             onClick={() => setImportModalOpen(true)}
             size='medium'
+            icon={<MigrationIcon />}
+            iconPlacement='right'
           >
             <strong>{t('resourceadm.dashboard_import_resource')}</strong>
           </StudioButton>
@@ -113,10 +130,10 @@ export const ResourceDashboardPage = (): React.ReactNode => {
           <StudioButton
             variant='tertiary'
             color='second'
+            onClick={() => createResourceModalRef.current?.showModal()}
+            size='medium'
             icon={<PlusCircleIcon />}
             iconPlacement='right'
-            onClick={() => setNewResourceModalOpen(true)}
-            size='medium'
           >
             <strong>{t('resourceadm.dashboard_create_resource')}</strong>
           </StudioButton>
@@ -133,8 +150,8 @@ export const ResourceDashboardPage = (): React.ReactNode => {
         />
       )}
       <NewResourceModal
-        isOpen={newResourceModalOpen}
-        onClose={() => setNewResourceModalOpen(false)}
+        ref={createResourceModalRef}
+        onClose={() => createResourceModalRef.current?.close()}
       />
       <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
     </div>

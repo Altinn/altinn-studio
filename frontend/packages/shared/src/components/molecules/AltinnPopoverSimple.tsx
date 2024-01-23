@@ -59,7 +59,12 @@ export const AltinnPopoverSimple = (props: IAltinnPopoverProps) => {
         <div>{props.children}</div>
         <ButtonContainer>
           {props.btnConfirmText && (
-            <StudioButton id={props.btnPrimaryId} color='first' onClick={btnClickedHandler} size='small'>
+            <StudioButton
+              id={props.btnPrimaryId}
+              color='first'
+              onClick={btnClickedHandler}
+              size='small'
+            >
               {props.btnConfirmText}
             </StudioButton>
           )}

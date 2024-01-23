@@ -1,14 +1,14 @@
 name: Cypress tests on pr
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
       - 'frontend/**'
       - '!frontend/stats/**'
       - 'backend/**'
       - '.github/workflows/run-cypress-on-pr.yaml'
-      - 'docker-compose.yml'
+      - 'compose.yaml'
       - 'Dockerfile'
       - 'gitea/**'
       - 'package.json'
