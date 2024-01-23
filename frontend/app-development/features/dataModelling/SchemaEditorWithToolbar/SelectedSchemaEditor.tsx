@@ -8,6 +8,11 @@ import { useTranslation } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useOnUnmount } from 'app-shared/hooks/useOnUnmount';
+import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { mergeJsonAndXsdData } from 'app-development/utils/metadataUtils';
 
 export interface SelectedSchemaEditorProps {
   modelPath: string;
@@ -43,7 +48,9 @@ interface SchemaEditorWithDebounceProps {
 }
 
 const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDebounceProps) => {
+  const { org, app } = useStudioUrlParams();
   const { mutate } = useSchemaMutation();
+  const queryClient = useQueryClient();
   const [model, setModel] = useState<JsonSchema>(jsonSchema);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const updatedModel = useRef<JsonSchema>(jsonSchema);
@@ -67,7 +74,21 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
 
   useOnUnmount(() => {
     clearTimeout(saveTimeoutRef.current);
-    saveFunction();
+    const jsonModels: DatamodelMetadataJson[] = queryClient.getQueryData([
+      QueryKey.DatamodelsJson,
+      org,
+      app,
+    ]);
+    const xsdModels: DatamodelMetadataXsd[] = queryClient.getQueryData([
+      QueryKey.DatamodelsXsd,
+      org,
+      app,
+    ]);
+    const metadataList = mergeJsonAndXsdData(jsonModels, xsdModels);
+    const datamodelExists =
+      Array.isArray(metadataList) &&
+      metadataList.some((datamodel) => datamodel.repositoryRelativeUrl === modelPath);
+    if (datamodelExists) saveFunction();
   });
 
   return <SchemaEditorApp jsonSchema={model} save={saveSchema} />;

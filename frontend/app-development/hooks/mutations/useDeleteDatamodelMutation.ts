@@ -3,6 +3,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
+import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export const useDeleteDatamodelMutation = () => {
   const { deleteDatamodel } = useServicesContext();
@@ -10,19 +11,26 @@ export const useDeleteDatamodelMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (modelPath: string) => {
-      await deleteDatamodel(org, app, modelPath);
+      queryClient.setQueryData(
+        [QueryKey.DatamodelsJson, org, app],
+        (oldData: DatamodelMetadata[]) => removeDatamodelFromList(oldData, modelPath),
+      );
+      queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], (oldData: DatamodelMetadata[]) =>
+        removeDatamodelFromList(oldData, modelPath),
+      );
       const respectiveFileNameInXsdOrJson = isXsdFile(modelPath)
         ? modelPath.replace('.xsd', '.schema.json')
         : modelPath.replace('.schema.json', '.xsd');
-      queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], undefined);
-      queryClient.setQueryData(
-        [QueryKey.JsonSchema, org, app, respectiveFileNameInXsdOrJson],
-        undefined,
-      );
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsJson, org, app] }),
-        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
-      ]);
+      queryClient.removeQueries({
+        queryKey: [QueryKey.JsonSchema, org, app, respectiveFileNameInXsdOrJson],
+      });
+      await deleteDatamodel(org, app, modelPath);
     },
   });
 };
+
+const removeDatamodelFromList = (
+  datamodels: DatamodelMetadata[],
+  relativeUrl: string,
+): DatamodelMetadata[] =>
+  datamodels.filter((datamodel) => datamodel.repositoryRelativeUrl !== relativeUrl);

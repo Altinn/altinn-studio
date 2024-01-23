@@ -11,6 +11,8 @@ import { dataMock } from '@altinn/schema-editor/mockData';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { SchemaEditorAppProps } from '@altinn/schema-editor/SchemaEditorApp';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { mergeJsonAndXsdData } from '../../../utils/metadataUtils';
 
 const user = userEvent.setup();
 
@@ -34,6 +36,10 @@ jest.mock('@altinn/schema-editor/SchemaEditorApp', () => ({
 }));
 jest.useFakeTimers({ advanceTimers: true });
 
+jest.mock('../../../utils/metadataUtils', () => ({
+  mergeJsonAndXsdData: jest.fn().mockImplementation(() => dataMock),
+}));
+
 describe('SelectedSchemaEditor', () => {
   it('Displays loading spinner while loading', () => {
     render();
@@ -54,11 +60,12 @@ describe('SelectedSchemaEditor', () => {
     expect(screen.getByTestId(schemaEditorTestId)).toBeInTheDocument();
   });
 
-  it('Debounces the save function', async () => {
+  test('Debounces the save function', async () => {
     const saveDatamodel = jest.fn();
     const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
 
     render({ getDatamodel, saveDatamodel });
+
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 
     const button = screen.getByTestId(saveButtonTestId);
@@ -70,8 +77,10 @@ describe('SelectedSchemaEditor', () => {
     expect(saveDatamodel).toHaveBeenCalledWith(org, app, modelPath, dataMock);
   });
 
-  it('Autosaves when changing between models that are not present in the cache', async () => {
+  test.only('Autosaves when changing between models that are not present in the cache', async () => {
     const saveDatamodel = jest.fn();
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.JsonSchema, org, app, datamodelNameMock], dataMock);
     const getDatamodel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
     const {
       renderResult: { rerender },
@@ -79,10 +88,7 @@ describe('SelectedSchemaEditor', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
     expect(saveDatamodel).not.toHaveBeenCalled();
 
-    const updatedProps = {
-      ...defaultProps,
-      modelPath: 'newModel',
-    };
+    const updatedProps = { ...defaultProps, modelPath: 'newModel' };
     rerender(<SelectedSchemaEditor {...updatedProps} />);
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
@@ -108,6 +114,40 @@ describe('SelectedSchemaEditor', () => {
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
     expect(saveDatamodel).toHaveBeenCalledWith(org, app, datamodelNameMock, dataMock);
+  });
+
+  test('Does not save the datamodel when unmounting if the datamodel has been deleted', async () => {
+    const saveDatamodel = jest.fn();
+    const queryClient = createQueryClientMock();
+    const datamodelMetadataList: DatamodelMetadata[] = [
+      {
+        description: '',
+        directory: '',
+        fileName: '',
+        filePath: '',
+        fileStatus: '',
+        fileType: '.xsd',
+        lastChanged: '',
+        repositoryRelativeUrl: '',
+        select: false,
+      },
+      {
+        description: '',
+        directory: '',
+        fileName: '',
+        filePath: '',
+        fileStatus: '',
+        fileType: '.json',
+        lastChanged: '',
+        repositoryRelativeUrl: '',
+        select: false,
+      },
+    ];
+    queryClient.setQueryData([QueryKey.JsonSchema, org, app, datamodelNameMock], dataMock);
+    queryClient.setQueryData([QueryKey.DatamodelsJson, org, app], datamodelMetadataList);
+    render({ saveDatamodel });
+    queryClient.setQueryData([QueryKey.DatamodelsJson, org, app], []);
+    expect(saveDatamodel).not.toHaveBeenCalled();
   });
 });
 
