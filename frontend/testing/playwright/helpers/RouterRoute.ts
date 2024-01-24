@@ -33,6 +33,10 @@ export class RouterRoute extends StudioEnvironment {
     return routerRoute;
   }
 
+  public getGiteaRoute(appName: string): string {
+    return `/repos/${this.org}/${appName}`;
+  }
+
   private replaceOrgAndMap(route: string): string {
     return route.replace('{{org}}', this.org).replace('{{app}}', this.app);
   }

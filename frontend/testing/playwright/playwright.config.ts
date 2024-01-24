@@ -65,5 +65,28 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.DATA_MODEL_APP,
       },
     },
+    {
+      name: 'dashboard',
+      dependencies: ['setup'],
+      testDir: './tests/dashboard/',
+      testMatch: '*.spec.ts',
+      teardown: 'teardown-dashboard',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.DASHBOARD_APP,
+        headless: true,
+      },
+    },
+    {
+      name: 'teardown-dashboard',
+      testDir: './tests/dashboard/',
+      testMatch: '*dashboard.teardown.ts',
+      use: {
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        testAppName: AppNames.DASHBOARD_APP,
+      },
+    },
   ],
 });
