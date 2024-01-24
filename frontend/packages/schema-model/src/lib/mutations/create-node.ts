@@ -6,7 +6,7 @@ import { deepCopy } from 'app-shared/pure';
 
 export const insertSchemaNode = (
   uiSchemaNodes: UiSchemaNodes,
-  newNode: UiSchemaNode
+  newNode: UiSchemaNode,
 ): UiSchemaNodes => {
   if (hasNodePointer(uiSchemaNodes, newNode.pointer)) {
     throw new Error(`Pointer ${newNode.pointer} exists already`);
@@ -32,7 +32,7 @@ export const insertSchemaNode = (
 export const createChildNode = (
   parentNode: UiSchemaNode,
   displayName: string,
-  isDefinition: boolean
+  isDefinition: boolean,
 ): UiSchemaNode => {
   const { pointer, isArray } = parentNode;
   if (isArray) {
@@ -40,9 +40,12 @@ export const createChildNode = (
   } else if (isReference(parentNode)) {
     throw new Error("Can't create a new node under a reference.");
   } else if (isCombination(parentNode)) {
-    return Object.assign(createNodeBase(pointer, parentNode.combinationType, parentNode.children.length.toString()), {
-      isCombinationItem: true,
-    });
+    return Object.assign(
+      createNodeBase(pointer, parentNode.combinationType, parentNode.children.length.toString()),
+      {
+        isCombinationItem: true,
+      },
+    );
   } else if (isField(parentNode) && isObject(parentNode) && isDefinition) {
     return createNodeBase(pointer, Keyword.Definitions, displayName);
   } else if (isField(parentNode) && isObject(parentNode) && !isDefinition) {

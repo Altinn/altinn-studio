@@ -4,7 +4,10 @@ import userEvent from '@testing-library/user-event';
 import type { DeleteWrapperProps } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+import {
+  jsonMetadata1Mock,
+  jsonMetadata2Mock,
+} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
@@ -30,10 +33,7 @@ const app = 'app';
 const defaultProps: DeleteWrapperProps = { selectedOption };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const render = (
   props: Partial<DeleteWrapperProps> = {},
@@ -41,9 +41,9 @@ const render = (
 ) => {
   queryClient.setQueryData(
     [QueryKey.DatamodelsMetadata, org, app],
-    [jsonMetadata1Mock, jsonMetadata2Mock]
+    [jsonMetadata1Mock, jsonMetadata2Mock],
   );
-  return renderWithMockStore({}, {}, queryClient)(<DeleteWrapper {...defaultProps} {...props}/>)
+  return renderWithMockStore({}, {}, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);
 };
 
 describe('DeleteWrapper', () => {

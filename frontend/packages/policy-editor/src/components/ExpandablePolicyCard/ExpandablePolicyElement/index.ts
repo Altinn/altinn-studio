@@ -1,1 +1,1 @@
-export { ExpandablePolicyElement } from './ExpandablePolicyElement'
+export { ExpandablePolicyElement } from './ExpandablePolicyElement';

@@ -1,1 +1,1 @@
-export { ResourceNameAndId } from './ResourceNameAndId'
+export { ResourceNameAndId } from './ResourceNameAndId';

@@ -1,13 +1,5 @@
-import type {
-  CombinationNode,
-  ReferenceNode,
-  UiSchemaNode
-} from '@altinn/schema-model';
-import {
-  CombinationKind,
-  FieldType,
-  ObjectKind
-} from '@altinn/schema-model';
+import type { CombinationNode, ReferenceNode, UiSchemaNode } from '@altinn/schema-model';
+import { CombinationKind, FieldType, ObjectKind } from '@altinn/schema-model';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { NodeIconProps } from './';
@@ -65,7 +57,7 @@ describe('NodeIcon', () => {
   });
 
   it('Does not have the isArray class when the node is not an array', () => {
-    renderNodeIcon({ node: nodeMockBase, });
+    renderNodeIcon({ node: nodeMockBase });
     expect(screen.getByRole('img')).not.toHaveClass('isArray');
   });
 

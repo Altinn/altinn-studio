@@ -20,14 +20,14 @@ function* createAppDeploymentSaga(action: PayloadAction<ICreateAppDeployment>): 
       AppDeploymentActions.createAppDeploymentFulfilled({
         envName,
         result,
-      })
+      }),
     );
   } catch (error) {
     yield put(
       AppDeploymentActions.createAppDeploymentRejected({
         envName,
         error,
-      })
+      }),
     );
   }
 }

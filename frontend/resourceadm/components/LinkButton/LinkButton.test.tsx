@@ -18,7 +18,7 @@ describe('LinkButton', () => {
     render(<LinkButton {...defaultProps} />);
 
     const linkButton = screen.getByRole('button', { name: /click me/i });
-    await act (() => user.click(linkButton));
+    await act(() => user.click(linkButton));
 
     expect(mockOnClick).toHaveBeenCalled();
   });

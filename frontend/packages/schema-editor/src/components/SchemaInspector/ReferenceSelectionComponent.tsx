@@ -30,12 +30,10 @@ export function ReferenceSelectionComponent({
         inputId={selectId}
         label={label}
         onChange={(value: string) => onChangeRef(selectedNode.pointer, value)}
-        options={
-          definitions.map(({ pointer }) => ({
-            value: pointer,
-            label: pointer.replace(`#/${Keyword.Definitions}/`, ''),
-          }))
-        }
+        options={definitions.map(({ pointer }) => ({
+          value: pointer,
+          label: pointer.replace(`#/${Keyword.Definitions}/`, ''),
+        }))}
         value={selectedNode.reference || ''}
       />
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>

@@ -5,7 +5,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 export const generateTextResourceId = (
   layoutName: string,
   componentId: string,
-  textKey: string
+  textKey: string,
 ) => {
   return `${layoutName}.${componentId}.${textKey}`;
 };

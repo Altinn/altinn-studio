@@ -25,7 +25,7 @@ export const EditTextResourceBinding = ({
 }: EditTextResourceBindingProps) => {
   const { t } = useTranslation();
   const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner?.layout?.selectedLayout
+    (state: IAppState) => state.formDesigner?.layout?.selectedLayout,
   );
 
   const handleTextResourceChange = (value: string) =>
@@ -42,7 +42,7 @@ export const EditTextResourceBinding = ({
     delete componentCopy.textResourceBindings?.[textKey];
     handleComponentChange(componentCopy);
     removeTextResourceBinding?.();
-  }
+  };
   return (
     <TextResource
       handleIdChange={handleTextResourceChange}

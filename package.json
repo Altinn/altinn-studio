@@ -89,6 +89,8 @@
     "build": "yarn workspaces foreach -A -p run build",
     "lint": "eslint \"frontend/**/*.ts*\"",
     "lint:fix": "yarn run lint --fix",
+    "codestyle:check": "prettier frontend --check",
+    "codestyle:fix": "prettier frontend --write",
     "setup": "husky install && node development/setup.js",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start",

@@ -21,7 +21,7 @@ describe('formValidationUtils', () => {
     describe('getPropertyByPath', () => {
       it('should return object at the given path', () => {
         expect(getPropertyByPath(layoutSchema, 'definitions/component/properties/id')).toEqual(
-          layoutSchema.definitions.component.properties.id
+          layoutSchema.definitions.component.properties.id,
         );
       });
     });
@@ -54,7 +54,7 @@ describe('formValidationUtils', () => {
     describe('validateProperty', () => {
       it('should validate property and return error keyword if validation fails', () => {
         expect(
-          validateProperty(`${layoutSchema.$id}#/definitions/component/properties/id`, '@')
+          validateProperty(`${layoutSchema.$id}#/definitions/component/properties/id`, '@'),
         ).toEqual('pattern');
       });
     });
@@ -65,7 +65,7 @@ describe('formValidationUtils', () => {
       expect(
         dereferenceSchema({
           $ref: 'https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicDataModelBindings',
-        })
+        }),
       ).toEqual({
         title: 'Data model bindings',
         description: 'Data model bindings for component',
@@ -95,7 +95,7 @@ describe('formValidationUtils', () => {
               $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
             },
           },
-        })
+        }),
       ).toEqual({
         properties: {
           required: {

@@ -1,14 +1,7 @@
 import React from 'react';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
-import type {
-  UiSchemaNode,
-  UiSchemaNodes
-} from '@altinn/schema-model';
-import {
-  FieldType,
-  ROOT_POINTER,
-  SchemaModel
-} from '@altinn/schema-model';
+import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import { FieldType, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { act, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -154,6 +147,6 @@ const render = (path: string = defaultPath) =>
     appContextProps: {
       schemaModel,
       save: saveDatamodel,
-      selectedNodePointer: path
+      selectedNodePointer: path,
     },
   })(<CustomProperties path={path} />);

@@ -23,11 +23,11 @@
       "@altinn/text-editor": ["./packages/schema-model/src/*"],
       "@altinn/ux-editor": ["./packages/ux-editor/src/*"],
       "@altinn/process-editor": ["./packages/process-editor/src/*"],
-      "@altinn/policy-editor": ["./packages/policy-editor/src/*"]
+      "@altinn/policy-editor": ["./packages/policy-editor/src/*"],
     },
-    "plugins": [{ "name": "typescript-plugin-css-modules" }]
+    "plugins": [{ "name": "typescript-plugin-css-modules" }],
   },
   "files": ["declaration.d.ts"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "tmp", "./testing/cypress/**", "dist", "**/prettier.config.js"]
+  "exclude": ["node_modules", "tmp", "./testing/cypress/**", "dist", "**/prettier.config.js"],
 }

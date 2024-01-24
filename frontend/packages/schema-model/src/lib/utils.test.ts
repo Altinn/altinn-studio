@@ -18,7 +18,7 @@ import {
   referenceNodeMock,
   simpleArrayMock,
   simpleParentNodeMock,
-  stringNodeMock
+  stringNodeMock,
 } from '../../test/uiSchemaMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
@@ -42,18 +42,18 @@ describe('utils', () => {
 
   test('getUniqueNodePath', () => {
     const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
-    expect(getUniqueNodePath(uiSchemaNodes, makePointerFromArray([Keyword.Properties, 'hello']))).toBe(
-      makePointerFromArray([Keyword.Properties, 'hello0'])
-    );
+    expect(
+      getUniqueNodePath(uiSchemaNodes, makePointerFromArray([Keyword.Properties, 'hello'])),
+    ).toBe(makePointerFromArray([Keyword.Properties, 'hello0']));
   });
 
   test('replaceLastPointerSegment', () => {
-    expect(replaceLastPointerSegment(makePointerFromArray(['some', 'thing', 'cozy']), 'scary')).toBe(
-      makePointerFromArray(['some', 'thing', 'scary'])
-    );
-    expect(replaceLastPointerSegment(makePointerFromArray(['trying', 'to', 'fool']), 'to/fool')).toBe(
-      makePointerFromArray(['trying', 'to', 'to', 'fool'])
-    );
+    expect(
+      replaceLastPointerSegment(makePointerFromArray(['some', 'thing', 'cozy']), 'scary'),
+    ).toBe(makePointerFromArray(['some', 'thing', 'scary']));
+    expect(
+      replaceLastPointerSegment(makePointerFromArray(['trying', 'to', 'fool']), 'to/fool'),
+    ).toBe(makePointerFromArray(['trying', 'to', 'to', 'fool']));
   });
 
   describe('isNodeValidParent', () => {

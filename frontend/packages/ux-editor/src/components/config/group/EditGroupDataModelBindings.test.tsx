@@ -17,7 +17,7 @@ const mockAppData: IAppDataState = {
 
 const render = (
   props?: Partial<EditGroupDataModelBindingProps>,
-  appData?: Partial<IAppDataState>
+  appData?: Partial<IAppDataState>,
 ) => {
   const defaultProps: EditGroupDataModelBindingProps = {
     dataModelBindings: {},
@@ -25,7 +25,7 @@ const render = (
   };
 
   renderWithMockStore({ appData: { ...mockAppData, ...appData } })(
-    <EditGroupDataModelBindings {...defaultProps} {...props} />
+    <EditGroupDataModelBindings {...defaultProps} {...props} />,
   );
 };
 

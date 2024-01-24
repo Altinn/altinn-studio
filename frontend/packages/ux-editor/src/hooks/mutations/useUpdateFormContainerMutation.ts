@@ -13,7 +13,12 @@ export interface UpdateFormContainerMutationArgs {
   id: string;
 }
 
-export const useUpdateFormContainerMutation = (org: string, app: string, layoutName: string, layoutSetName: string) => {
+export const useUpdateFormContainerMutation = (
+  org: string,
+  app: string,
+  layoutName: string,
+  layoutSetName: string,
+) => {
   const layout = useFormLayout(layoutName);
   const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
   const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
@@ -31,6 +36,6 @@ export const useUpdateFormContainerMutation = (org: string, app: string, layoutN
     },
     onSuccess: async ({ currentId, newId }) => {
       await switchSelectedFieldId(ruleConfig, currentId, newId, saveRuleConfig);
-    }
+    },
   });
 };

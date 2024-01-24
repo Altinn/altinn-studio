@@ -14,11 +14,7 @@ export type SchemaEditorAppProps = {
   save: (model: JsonSchema) => void;
 };
 
-export function SchemaEditorApp({
-  jsonSchema,
-  name,
-  save,
-}: SchemaEditorAppProps) {
+export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps) {
   const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
   const [selectedNodePointer, setSelectedNodePointer] = useState<string>(null);
 
@@ -32,12 +28,12 @@ export function SchemaEditorApp({
       setSelectedNodePointer,
       name,
     }),
-    [jsonSchema, save, selectedTypePointer, selectedNodePointer, name]
+    [jsonSchema, save, selectedTypePointer, selectedNodePointer, name],
   );
 
   return (
     <SchemaEditorAppContext.Provider value={value}>
-      <SchemaEditor/>
+      <SchemaEditor />
     </SchemaEditorAppContext.Provider>
   );
 }

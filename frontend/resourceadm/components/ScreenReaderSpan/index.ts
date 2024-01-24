@@ -1,1 +1,1 @@
-export { ScreenReaderSpan } from './ScreenReaderSpan'
+export { ScreenReaderSpan } from './ScreenReaderSpan';

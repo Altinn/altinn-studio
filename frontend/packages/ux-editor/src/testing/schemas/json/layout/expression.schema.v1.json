@@ -4,85 +4,27 @@
   "title": "Expression",
   "description": "Multi-purpose expression mini-language used to declare dynamic behaviour in Altinn 3 apps",
   "examples": [
-    [
-      "equals",
-      [
-        "dataModel",
-        "My.Model.Group.Field"
-      ],
-      "string constant"
-    ],
-    [
-      "greaterThanEq",
-      [
-        "component",
-        "my-component-id"
-      ],
-      [
-        "dataModel",
-        "My.Model.Other.Field"
-      ]
-    ],
-    [
-      "or",
-      [
-        "equals",
-        "foo",
-        "bar"
-      ],
-      [
-        "equals",
-        "foo",
-        "baz"
-      ]
-    ],
+    ["equals", ["dataModel", "My.Model.Group.Field"], "string constant"],
+    ["greaterThanEq", ["component", "my-component-id"], ["dataModel", "My.Model.Other.Field"]],
+    ["or", ["equals", "foo", "bar"], ["equals", "foo", "baz"]],
     [
       "if",
       [
         "or",
-        [
-          "equals",
-          [
-            "component",
-            "my-component"
-          ],
-          ""
-        ],
-        [
-          "equals",
-          [
-            "component",
-            "my-component"
-          ],
-          null
-        ]
+        ["equals", ["component", "my-component"], ""],
+        ["equals", ["component", "my-component"], null]
       ],
       "This will be the value if the condition above is true",
       "else",
       [
         "if",
-        [
-          "notEquals",
-          [
-            "component",
-            "my-other-component"
-          ],
-          "illegal value"
-        ],
+        ["notEquals", ["component", "my-other-component"], "illegal value"],
         "This will be the value if the first condition is false, and the second is true",
         "else",
         "This will be the value if all the conditions above are false"
       ]
     ],
-    [
-      "concat",
-      "Are you sure you want to delete ",
-      [
-        "dataModel",
-        "My.Model.Title"
-      ],
-      "?"
-    ]
+    ["concat", "Are you sure you want to delete ", ["dataModel", "My.Model.Title"], "?"]
   ],
   "$ref": "#/definitions/any",
   "definitions": {
@@ -367,11 +309,7 @@
           "const": "instanceContext"
         },
         {
-          "enum": [
-            "appId",
-            "instanceId",
-            "instanceOwnerPartyId"
-          ]
+          "enum": ["appId", "instanceId", "instanceOwnerPartyId"]
         }
       ],
       "additionalItems": false
@@ -386,14 +324,7 @@
           "const": "authContext"
         },
         {
-          "enum": [
-            "read",
-            "write",
-            "instantiate",
-            "confirm",
-            "sign",
-            "reject"
-          ]
+          "enum": ["read", "write", "instantiate", "confirm", "sign", "reject"]
         }
       ],
       "additionalItems": false

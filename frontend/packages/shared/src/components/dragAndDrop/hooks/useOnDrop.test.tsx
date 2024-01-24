@@ -56,7 +56,7 @@ describe('useOnDrop', () => {
     jest.spyOn(console, 'error').mockImplementation();
     const renderFn = () => renderHook(useOnDrop<string>);
     expect(renderFn).toThrow(
-      new Error('useOnDrop must be used within a DragAndDropRootContext provider.')
+      new Error('useOnDrop must be used within a DragAndDropRootContext provider.'),
     );
   });
 });
