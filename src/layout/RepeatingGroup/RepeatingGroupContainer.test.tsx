@@ -4,19 +4,15 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
-import {
-  type BackendValidationIssue,
-  BackendValidationSeverity,
-  ValidationIssueSources,
-} from 'src/features/validation';
+import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { RepeatingGroupContainer } from 'src/layout/RepeatingGroup/RepeatingGroupContainer';
 import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { ILayout } from 'src/layout/layout';
 import type {
-  CompGroupRepeatingExternal,
-  CompGroupRepeatingInternal,
+  CompRepeatingGroupExternal,
+  CompRepeatingGroupInternal,
 } from 'src/layout/RepeatingGroup/config.generated';
 import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -26,7 +22,7 @@ const mockContainer = getFormLayoutRepeatingGroupMock({
 });
 
 interface IRender {
-  container?: Partial<CompGroupRepeatingExternal>;
+  container?: Partial<CompRepeatingGroupExternal>;
   numRows?: number;
   validationIssues?: BackendValidationIssue[];
 }
@@ -92,7 +88,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
     },
   });
 
-  return await renderWithNode<true, BaseLayoutNode<CompGroupRepeatingInternal>>({
+  return await renderWithNode<true, BaseLayoutNode<CompRepeatingGroupInternal>>({
     renderer: ({ node }) => (
       <RepeatingGroupProvider node={node}>
         <LeakEditIndex />
@@ -214,7 +210,7 @@ describe('RepeatingGroupContainer', () => {
           customTextKey: 'Feltet er feil',
           field: 'Group[0].prop1',
           severity: BackendValidationSeverity.Error,
-          source: ValidationIssueSources.Custom,
+          source: 'custom',
         } as BackendValidationIssue,
       ],
     });
@@ -231,7 +227,7 @@ describe('RepeatingGroupContainer', () => {
       })[1],
     );
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Feltet er feil');
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Feltet er feil'));
   });
 
   it('should NOT trigger validate when saving if validation trigger is NOT present', async () => {
@@ -241,7 +237,7 @@ describe('RepeatingGroupContainer', () => {
           customTextKey: 'Feltet er feil',
           field: 'Group[0].prop1',
           severity: BackendValidationSeverity.Error,
-          source: ValidationIssueSources.Custom,
+          source: 'custom',
         } as BackendValidationIssue,
       ],
     });

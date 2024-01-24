@@ -10,6 +10,16 @@ const mui = new Common();
 describe('Grid component', () => {
   it('should work with basic table functionality', () => {
     cy.goto('changename');
+    // Fill out the rest of the form, so that we can attempt to send it and only get the validation message we care
+    // about for Grid.
+    cy.get(appFrontend.changeOfName.newFirstName).type('anna');
+    cy.get(appFrontend.changeOfName.newLastName).type('last name');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
+    cy.get(appFrontend.changeOfName.reasonRelationship).click();
+    cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
+    cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
+    cy.get(mui.selectedDate).click();
+
     cy.navPage('grid').click();
 
     // Dynamics hiding the entire grid table
@@ -32,18 +42,6 @@ describe('Grid component', () => {
     cy.get(appFrontend.grid.grid).find('tr').eq(4).find(appFrontend.grid.totalPercent).should('have.value', '85 %');
     cy.get(appFrontend.grid.bolig.percentComponent).should('not.contain.text', 'Prosentandel av gjeld i boliglån');
     cy.get(appFrontend.errorReport).should('not.exist');
-
-    // Fill out the rest of the form, so that we can attempt to send it and only get the validation message we care
-    // about for Grid.
-    cy.navPage('form').click();
-    cy.get(appFrontend.changeOfName.newFirstName).type('anna');
-    cy.get(appFrontend.changeOfName.newLastName).type('last name');
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
-    cy.get(appFrontend.changeOfName.reasonRelationship).click();
-    cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
-    cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
-    cy.get(mui.selectedDate).click();
-    cy.navPage('grid').click();
 
     // Validation error should be displayed in the error report and along with the totalAmount field
     cy.get(appFrontend.sendinButton).click();

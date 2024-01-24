@@ -3,7 +3,7 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
-import { httpDelete, httpGetRaw, httpPost, putWithoutConfig } from 'src/utils/network/networking';
+import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
   applicationLanguagesUrl,
@@ -41,11 +41,12 @@ import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { IFormDynamics } from 'src/features/form/dynamics';
+import type { IDataModelPatchRequest, IDataModelPatchResponse } from 'src/features/formData/types';
 import type { Instantiation } from 'src/features/instantiate/InstantiationContext';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssue, IExpressionValidationConfig } from 'src/features/validation';
-import type { ILayoutSets, ILayoutSettings, IOption } from 'src/layout/common.generated';
+import type { ILayoutSets, ILayoutSettings, IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ISimpleInstance } from 'src/types';
@@ -55,7 +56,6 @@ import type {
   IAppLanguage,
   IApplicationSettings,
   IData,
-  IDataAfterDataModelSave,
   IInstance,
   IParty,
   IProcess,
@@ -147,8 +147,12 @@ export const doAttachmentRemove = async (instanceId: string, dataGuid: string): 
   return response.data;
 };
 
-export const doPutFormData = (url: string, data: FormData): Promise<IDataAfterDataModelSave> => httpPut(url, data);
-export const doPostFormData = async (url: string, data: FormData): Promise<object> =>
+// When saving data for normal/stateful apps
+export const doPatchFormData = (url: string, data: IDataModelPatchRequest): Promise<IDataModelPatchResponse> =>
+  httpPatch(url, data);
+
+// When saving data for stateless apps
+export const doPostStatelessFormData = async (url: string, data: object): Promise<object> =>
   (await httpPost(url, undefined, data)).data;
 
 /**
@@ -183,7 +187,7 @@ export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection> =>
 export const fetchLayoutSettings = (layoutSetId: string | undefined): Promise<ILayoutSettings> =>
   httpGet(getLayoutSettingsUrl(layoutSetId));
 
-export const fetchOptions = (url: string): Promise<AxiosResponse<IOption[], any>> => httpGetRaw(url);
+export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[], any>> => httpGetRaw(url);
 
 export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
 

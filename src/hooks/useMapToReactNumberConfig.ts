@@ -1,11 +1,15 @@
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { formatNumber } from 'src/utils/formattingUtils';
 import type { IInputFormatting } from 'src/layout/Input/config.generated';
 import type { CurrencyFormattingOptions, UnitFormattingOptions } from 'src/utils/formattingUtils';
 
 export const useMapToReactNumberConfig = (formatting: IInputFormatting | undefined, value = ''): IInputFormatting => {
   const selectedLanguage = useCurrentLanguage();
-  return getMapToReactNumberConfig(formatting, value, selectedLanguage);
+  return useMemoDeepEqual(
+    () => getMapToReactNumberConfig(formatting, value, selectedLanguage),
+    [formatting, value, selectedLanguage],
+  );
 };
 
 export const getMapToReactNumberConfig = (

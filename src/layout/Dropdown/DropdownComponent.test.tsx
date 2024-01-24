@@ -5,13 +5,13 @@ import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { queryPromiseMock, renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const countries: IOption[] = [
+const countries: IRawOption[] = [
   {
     label: 'Norway',
     value: 'norway',
@@ -27,18 +27,17 @@ const countries: IOption[] = [
 ];
 
 interface Props extends Partial<Omit<RenderGenericComponentTestProps<'Dropdown'>, 'renderer' | 'type' | 'queries'>> {
-  options?: IOption[];
+  options?: IRawOption[];
 }
 
 function MySuperSimpleInput() {
-  const setValue = FD.useSetForBinding('myInput');
-  const value = FD.usePickFreshString('myInput');
+  const { setValue, formData } = useDataModelBindings({ simpleBinding: 'myInput' });
 
   return (
     <input
       data-testid='my-input'
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
+      value={formData.simpleBinding}
+      onChange={(e) => setValue('simpleBinding', e.target.value)}
     />
   );
 }
@@ -75,7 +74,7 @@ const render = async ({ component, genericProps, options, ...rest }: Props = {})
           : Promise.resolve({
               data: options,
               headers: {},
-            } as AxiosResponse<IOption[], any>),
+            } as AxiosResponse<IRawOption[], any>),
     },
     ...rest,
   });
@@ -131,7 +130,6 @@ describe('DropdownComponent', () => {
     await waitFor(() =>
       expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDropdown', newValue: 'denmark' }),
     );
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1);
   });
 
   it('should show spinner', async () => {
@@ -150,7 +148,7 @@ describe('DropdownComponent', () => {
     fetchOptions.resolve({
       data: countries,
       headers: {},
-    } as AxiosResponse<IOption[], any>);
+    } as AxiosResponse<IRawOption[], any>);
 
     await screen.findByText('Denmark');
 
@@ -170,7 +168,7 @@ describe('DropdownComponent', () => {
         },
       ],
       headers: {},
-    } as AxiosResponse<IOption[], any>);
+    } as AxiosResponse<IRawOption[], any>);
 
     await waitFor(() => expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument());
     expect(screen.getByText('Finland')).toBeInTheDocument();

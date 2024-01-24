@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 
 describe('useWaitForState', () => {
@@ -89,6 +90,42 @@ describe('useWaitForState', () => {
     // Render count is higher than 2, because the component renders once more when we set the state to 'waited'
     expect(screen.getByTestId('renderCount')).toHaveTextContent('3');
   });
+
+  it('should only render child once, even if state changes multiple times', async () => {
+    const callback = jest.fn();
+    render(
+      <TesterComponent
+        callback={callback}
+        initialState='initial'
+        targetState='updated'
+        buttonClickSets='updated'
+        otherButtonClickSets='other'
+      />,
+    );
+
+    expect(callback).not.toHaveBeenCalled();
+    expect(screen.getByTestId('current')).toHaveTextContent('initial');
+    expect(screen.getByTestId('renderCount')).toHaveTextContent('1');
+    expect(screen.getByTestId('childRenderCount')).toHaveTextContent('1');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Other' }));
+    await waitFor(() => expect(screen.getByTestId('current')).toHaveTextContent('other'));
+
+    expect(screen.getByTestId('renderCount')).toHaveTextContent('2');
+    expect(screen.getByTestId('childRenderCount')).toHaveTextContent('1');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Update' }));
+    await waitFor(() => expect(screen.getByTestId('current')).toHaveTextContent('updated'));
+
+    expect(screen.getByTestId('renderCount')).toHaveTextContent('3');
+    expect(screen.getByTestId('childRenderCount')).toHaveTextContent('1');
+
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(callback).toHaveBeenCalledWith('state now set to updated, return value was "fooBar"', 3);
+
+    // Render count is higher than 2, because the component renders once more when we set the state to 'waited'
+    expect(screen.getByTestId('childRenderCount')).toHaveTextContent('1');
+  });
 });
 
 interface Props {
@@ -96,12 +133,21 @@ interface Props {
   initialState: string;
   targetState: string;
   buttonClickSets: string;
+  otherButtonClickSets?: string;
   waitImmediatelyAndSet?: string;
 }
 
-function TesterComponent({ callback, initialState, targetState, buttonClickSets, waitImmediatelyAndSet }: Props) {
+function TesterComponent({
+  callback,
+  initialState,
+  targetState,
+  buttonClickSets,
+  otherButtonClickSets,
+  waitImmediatelyAndSet,
+}: Props) {
   const [mySimpleState, setMySimpleState] = useState<string>(initialState);
-  const waitFor = useWaitForState<'fooBar', string>(mySimpleState);
+  const mySimpleStateRef = useAsRef(mySimpleState);
+  const waitFor = useWaitForState<'fooBar', string>(mySimpleStateRef);
   const renderCount = useRef(0);
   renderCount.current++;
 
@@ -119,6 +165,12 @@ function TesterComponent({ callback, initialState, targetState, buttonClickSets,
     // eslint-disable-next-line testing-library/await-async-utils
   }, [callback, targetState, waitFor]);
 
+  const waitUntilTargetState = useCallback(
+    async () => await waitFor((state) => state === targetState),
+    // eslint-disable-next-line testing-library/await-async-utils
+    [targetState, waitFor],
+  );
+
   return (
     <>
       <div data-testid='current'>{mySimpleState}</div>
@@ -134,6 +186,25 @@ function TesterComponent({ callback, initialState, targetState, buttonClickSets,
       >
         Update
       </button>
+      {otherButtonClickSets && (
+        <button
+          onClick={async () => {
+            setMySimpleState(otherButtonClickSets);
+          }}
+        >
+          Other
+        </button>
+      )}
+      <ChildComponent wait={waitUntilTargetState} />
     </>
   );
 }
+
+function ChildComponentInner(_props: { wait: () => Promise<string> }) {
+  const renderCount = useRef(0);
+  renderCount.current++;
+
+  return <div data-testid='childRenderCount'>{renderCount.current}</div>;
+}
+
+const ChildComponent = React.memo(ChildComponentInner);

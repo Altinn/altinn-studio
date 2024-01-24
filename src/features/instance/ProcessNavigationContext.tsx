@@ -36,10 +36,9 @@ function useProcessNext() {
         throw new Error('Missing instance ID, cannot perform process/next');
       }
       await waitForSave(true);
-      return doProcessNext.call(instanceId, taskId, language, action);
+      return doProcessNext(instanceId, taskId, language, action);
     },
     onSuccess: async (data: IProcess) => {
-      doProcessNext.setLastResult(data);
       await reFetchInstanceData();
       setProcessData?.({ ...data, processTasks: currentProcessData?.processTasks });
       navigateToTask(data?.currentTask?.elementId);
@@ -111,13 +110,8 @@ const { Provider, useCtx } = createContext<ContextData | undefined>({
 
 export function ProcessNavigationProvider({ children }: React.PropsWithChildren) {
   const { perform, error } = useProcessNext();
-  const [_busyWithId, setBusyWithId] = useState<string>('');
-  // const submittingState = useAppSelector((state) => state.formData.submittingState);
-
+  const [busyWithId, setBusyWithId] = useState<string>('');
   const attachmentsPending = useHasPendingAttachments();
-
-  // const busyWithId = submittingState === 'inactive' ? '' : _busyWithId;
-  const busyWithId = _busyWithId;
 
   const next = useCallback(
     async ({ nodeId, ...rest }: ProcessNextProps & { nodeId: string }) => {

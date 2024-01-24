@@ -59,16 +59,20 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
   const targetHost = Cypress.env('host') || env.CYPRESS_HOST || 'localhost:8080';
 
   const visitOptions = {
-    onBeforeLoad: (win) => {
+    onBeforeLoad: (win: any) => {
       cy.spy(win.console, 'log').as('console.log');
       cy.spy(win.console, 'warn').as('console.warn');
       cy.spy(win.console, 'error').as('console.error');
     },
-    onLoad: (win) => {
+    onLoad: (win: any) => {
       if (win.logError) {
         cy.spy(win, 'logError').as('window.logError');
         cy.spy(win, 'logWarn').as('window.logWarn');
         cy.spy(win, 'logInfo').as('window.logInfo');
+
+        cy.spy(win, 'logErrorOnce').as('window.logErrorOnce');
+        cy.spy(win, 'logWarnOnce').as('window.logWarnOnce');
+        cy.spy(win, 'logInfoOnce').as('window.logInfoOnce');
       }
     },
   };

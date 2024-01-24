@@ -61,7 +61,7 @@ describe('Expression validation shared tests', () => {
       instanceDataSources: buildInstanceDataSources(),
       authContext: buildAuthContext(undefined),
       hiddenFields,
-      langTools,
+      langToolsRef: { current: langTools },
     };
 
     const customValidation = resolveExpressionValidationConfig(validationConfig);

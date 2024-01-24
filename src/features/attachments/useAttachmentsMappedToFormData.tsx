@@ -2,6 +2,7 @@ import React from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { type LayoutNode } from 'src/utils/layout/LayoutNode';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IDataModelBindingsSimple } from 'src/layout/common.generated';
@@ -76,14 +77,14 @@ function useMappingToolsForList(node: LayoutNode<'FileUpload' | 'FileUploadWithT
 }
 
 function useMappingToolsForSimple(node: LayoutNode<'FileUpload' | 'FileUploadWithTag'>): MappingTools {
-  const binding = ((node.item.dataModelBindings || {}) as IDataModelBindingsSimple).simpleBinding;
-  const saveData = FD.useSetForBinding(binding);
+  const bindings = (node.item.dataModelBindings || {}) as IDataModelBindingsSimple;
+  const { setValue } = useDataModelBindings(bindings);
   return {
     addAttachment: (uuid: string) => {
-      saveData(uuid);
+      setValue('simpleBinding', uuid);
     },
     removeAttachment: () => {
-      saveData(undefined);
+      setValue('simpleBinding', undefined);
     },
   };
 }

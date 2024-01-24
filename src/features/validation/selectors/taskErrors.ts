@@ -5,8 +5,8 @@ import type { BaseValidation, NodeValidation } from '..';
 import {
   getValidationsForNode,
   getVisibilityMask,
+  selectValidations,
   shouldValidateNode,
-  validationsFromGroups,
   validationsOfSeverity,
 } from 'src/features/validation/utils';
 import { useValidationContext } from 'src/features/validation/validationContext';
@@ -40,7 +40,7 @@ export function useTaskErrors(): {
     if (showAllErrors) {
       const backendMask = getVisibilityMask(['Backend', 'CustomBackend']);
       for (const field of Object.values(state.fields)) {
-        taskErrors.push(...(validationsFromGroups(field, backendMask, 'error') as BaseValidation<'error'>[]));
+        taskErrors.push(...(selectValidations(field, backendMask, 'error') as BaseValidation<'error'>[]));
       }
       for (const validation of validationsOfSeverity(state.task, 'error')) {
         taskErrors.push(validation);

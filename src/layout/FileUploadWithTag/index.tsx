@@ -66,7 +66,7 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
             },
             severity: 'error',
             componentId: node.item.id,
-            group: FrontendValidationSource.Component,
+            source: FrontendValidationSource.Component,
             meta: { attachmentId },
             category: ValidationMask.Component,
           });
@@ -80,7 +80,7 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
         },
         severity: 'error',
         componentId: node.item.id,
-        group: FrontendValidationSource.Component,
+        source: FrontendValidationSource.Component,
         category: ValidationMask.Component,
       });
     }

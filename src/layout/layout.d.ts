@@ -61,8 +61,10 @@ export type CompRendersLabel<T extends CompTypes> = (typeof ComponentConfigs)[T]
  * This is the type you should use when referencing a specific component type, and will give
  * you the correct data model bindings for that component.
  */
-export type IDataModelBindings<T extends CompTypes = CompTypes> =
-  ComponentTypeConfigs[T]['nodeItem']['dataModelBindings'];
+export type IDataModelBindings<T extends CompTypes = CompTypes> = Exclude<
+  ComponentTypeConfigs[T]['nodeItem']['dataModelBindings'],
+  undefined
+>;
 
 export type ITextResourceBindings<T extends CompTypes = CompTypes> =
   ComponentTypeConfigs[T]['nodeItem']['textResourceBindings'];

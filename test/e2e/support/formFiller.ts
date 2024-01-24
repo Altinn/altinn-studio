@@ -14,6 +14,7 @@ function fillOutChangeName() {
     // first will avoid a lingering validation error on the grid page. A real developer and app would probably not
     // make this mistake in designing their form.
     cy.navPage('grid').click();
+    cy.get(appFrontend.grid.totalAmount).should('have.value', '0 kr');
     cy.get(appFrontend.grid.totalAmount).type('1000000');
 
     // These fields are filled out every meticulously, because the number formatting and complex state management
@@ -36,6 +37,8 @@ function fillOutChangeName() {
     cy.get(appFrontend.grid.kredittkort.percent).type('5');
     cy.get(appFrontend.grid.kredittkort.percent).blur();
     cy.get(appFrontend.grid.kredittkort.percent).should('have.value', '5 %');
+
+    cy.get(appFrontend.grid.kredittkort.amount).should('have.value', '50 000 kr');
 
     cy.navPage('form').click();
     cy.get(appFrontend.changeOfName.newFirstName).type('a');

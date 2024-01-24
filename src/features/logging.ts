@@ -63,23 +63,24 @@ export function parseErrorArgs(args: any[]): string {
     }, '');
 }
 
-window.logError = (...args: any[]) => {
-  postLog('error', args);
-};
-window.logErrorOnce = (...args: any[]) => {
-  postLog('error', args, true);
-};
+['Error', 'Warn', 'Info'].forEach((level) => {
+  const levelLower = level.toLowerCase() as 'error' | 'warn' | 'info';
+  for (const suffix of ['', 'Once']) {
+    window[`log${level}${suffix}`] =
+      window[`log${level}${suffix}`] ??
+      ((...args: any[]) => {
+        postLog(levelLower, args);
+      });
+  }
+});
 
-window.logWarn = (...args: any[]) => {
-  postLog('warn', args);
+window.CypressLog = (...args: string[]) => {
+  if (!window.Cypress) {
+    return;
+  }
+  (window as any)._cyLog = (window as any)._cyLog || [];
+  (window as any)._cyLog.push(args.join(' '));
 };
-window.logWarnOnce = (...args: any[]) => {
-  postLog('warn', args, true);
-};
-
-window.logInfo = (...args: any[]) => {
-  postLog('info', args);
-};
-window.logInfoOnce = (...args: any[]) => {
-  postLog('info', args, true);
+window.CypressSaveLog = () => {
+  (window as any)._cyLogSave = true;
 };

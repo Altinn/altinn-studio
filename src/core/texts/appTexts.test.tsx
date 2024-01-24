@@ -4,13 +4,7 @@ import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { LanguageProvider } from 'src/features/language/LanguageProvider';
-import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
-import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
-import { ProfileProvider } from 'src/features/profile/ProfileProvider';
-import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
+import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAltinnOrg, IAltinnOrgs } from 'src/types/shared';
@@ -37,22 +31,8 @@ async function render({
   applicationMetadata = getApplicationMetadataMock(),
   orgs = {},
 }: RenderProps) {
-  return await renderWithMinimalProviders({
-    renderer: () => (
-      <LanguageProvider>
-        <ApplicationMetadataProvider>
-          <LayoutSetsProvider>
-            <OrgsProvider>
-              <ProfileProvider>
-                <TextResourcesProvider>
-                  <AppTextsRenderer />
-                </TextResourcesProvider>
-              </ProfileProvider>
-            </OrgsProvider>
-          </LayoutSetsProvider>
-        </ApplicationMetadataProvider>
-      </LanguageProvider>
-    ),
+  return await renderWithoutInstanceAndLayout({
+    renderer: () => <AppTextsRenderer />,
     queries: {
       fetchApplicationMetadata: async () => applicationMetadata,
       fetchTextResources: async () => ({
@@ -94,10 +74,11 @@ describe('appTexts', () => {
     it('should return appName if defined in applicationMetadata and not by text resource keys', async () => {
       await render({
         applicationMetadata: {
+          ...getApplicationMetadataMock(),
           title: {
             nb: 'SomeAppName',
           },
-        } as unknown as IApplicationMetadata,
+        },
       });
 
       expect(screen.getByTestId('appName')).toHaveTextContent('SomeAppName');
@@ -112,10 +93,11 @@ describe('appTexts', () => {
           },
         ],
         applicationMetadata: {
+          ...getApplicationMetadataMock(),
           title: {
             nb: 'AppNameFromMetadata',
           },
-        } as unknown as IApplicationMetadata,
+        },
       });
 
       expect(screen.getByTestId('appName')).toHaveTextContent('AppNameFromTextResource');
@@ -130,10 +112,11 @@ describe('appTexts', () => {
           },
         ],
         applicationMetadata: {
+          ...getApplicationMetadataMock(),
           title: {
             nb: 'AppNameFromMetadata',
           },
-        } as unknown as IApplicationMetadata,
+        },
       });
 
       expect(screen.getByTestId('appName')).toHaveTextContent('AppNameFromTextResource');
@@ -142,10 +125,11 @@ describe('appTexts', () => {
     it('should fall back to nb-key from appMetadata if userLanguage is not present in application.title and no text resources exist', async () => {
       await render({
         applicationMetadata: {
+          ...getApplicationMetadataMock(),
           title: {
             nb: 'NorwegianName',
           },
-        } as unknown as IApplicationMetadata,
+        },
       });
 
       expect(screen.getByTestId('appName')).toHaveTextContent('NorwegianName');

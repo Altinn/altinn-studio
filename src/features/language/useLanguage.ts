@@ -1,20 +1,16 @@
 import { Children, isValidElement, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
-import { useLaxApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
-import { DataModelReaders, useDataModelReaders } from 'src/features/formData/FormDataReaders';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { DataModelReaders } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
+import { useLangToolsDataSources } from 'src/features/language/LangToolsStore';
 import { getLanguageFromCode } from 'src/language/languages';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
-import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
+import type { useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { FixedLanguageList } from 'src/language/languages';
 import type { IApplicationSettings, IInstanceDataSources, ILanguage, IVariable } from 'src/types/shared';
@@ -49,7 +45,7 @@ export interface IUseLanguage {
   elementAsString(element: ReactNode): string;
 }
 
-interface TextResourceVariablesDataSources {
+export interface TextResourceVariablesDataSources {
   node: LayoutNode | undefined;
   applicationSettings: IApplicationSettings | null;
   instanceDataSources: IInstanceDataSources | null;
@@ -74,8 +70,6 @@ type ObjectToDotNotation<T extends Record<string, any>, Prefix extends string = 
 
 export type ValidLanguageKey = ObjectToDotNotation<FixedLanguageList>;
 
-const emptyObject = {};
-
 /**
  * Hook to resolve a key to a language string or React element (if the key is found and contains markdown or HTML).
  * Prefer this over using the long-named language functions. When those are less used, we can refactor their
@@ -85,30 +79,25 @@ const emptyObject = {};
  * - lang(key, params) usually returns a React element
  */
 export function useLanguage(node?: LayoutNode) {
-  const textResources = useTextResources();
-  const selectedAppLanguage = useCurrentLanguage();
   const componentCtx = useFormComponentCtx();
   const nearestNode = node || componentCtx?.node;
-  const dataModels = useDataModelReaders();
-  const _applicationSettings = useLaxApplicationSettings();
-  const applicationSettings = _applicationSettings === ContextNotProvided ? emptyObject : _applicationSettings;
-  const instance = useLaxInstanceData();
-  const instanceDataSources = useMemo(() => buildInstanceDataSources(instance), [instance]);
 
-  const dataSources: TextResourceVariablesDataSources = useMemo(
-    () => ({
-      node: nearestNode,
-      dataModels,
-      applicationSettings,
-      instanceDataSources,
-    }),
-    [nearestNode, dataModels, applicationSettings, instanceDataSources],
-  );
+  return useLanguageWithForcedNode(nearestNode);
+}
 
-  return useMemo(
-    () => staticUseLanguage(textResources, null, selectedAppLanguage, dataSources),
-    [selectedAppLanguage, textResources, dataSources],
-  );
+export function useLanguageWithForcedNode(node: LayoutNode | undefined) {
+  const { textResources, language, selectedLanguage, ...dataSources } = useLangToolsDataSources() || {};
+
+  return useMemo(() => {
+    if (!textResources || !language || !selectedLanguage) {
+      throw new Error('useLanguage must be used inside a LangToolsStoreProvider');
+    }
+
+    return staticUseLanguage(textResources, language, selectedLanguage, {
+      ...(dataSources as Omit<TextResourceVariablesDataSources, 'node'>),
+      node,
+    });
+  }, [dataSources, language, node, selectedLanguage, textResources]);
 }
 
 interface ILanguageState {
@@ -142,7 +131,7 @@ export function staticUseLanguageForTests({
   return staticUseLanguage(textResources, language, selectedLanguage, dataSources);
 }
 
-function staticUseLanguage(
+export function staticUseLanguage(
   textResources: TextResourceMap,
   _language: ILanguage | null,
   selectedLanguage: string,
@@ -305,12 +294,12 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
         } else if (dataModel.isLoading()) {
           value = '...'; // TODO: Use a loading indicator, or at least let this value be configurable
         } else if (dataModelName === 'default' && !hasDefaultValue) {
-          window.logWarn(
+          window.logWarnOnce(
             `A text resource variable with key '${variable.key}' did not exist in the default data model. ` +
               `You should provide a specific data model name instead, and/or set a defaultValue.`,
           );
         } else if (dataModel.hasError() && !hasDefaultValue) {
-          window.logWarn(
+          window.logWarnOnce(
             `A text resource variable with key '${variable.key}' did not exist in the data model '${dataModelName}'. ` +
               `You may want to set a defaultValue to prevent the full key from being presented to the user.`,
           );

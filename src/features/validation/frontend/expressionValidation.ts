@@ -184,7 +184,7 @@ export function runExpressionValidationsOnNode(
       if (isInvalid) {
         validations.push({
           field: resolvedField,
-          group: FrontendValidationSource.Expression,
+          source: FrontendValidationSource.Expression,
           message: { key: validationDef.message },
           severity: validationDef.severity,
           category: validationDef.showImmediately ? 0 : ValidationMask.Expression,

@@ -9,7 +9,6 @@ import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
-import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
 import { FrontendValidationSource } from 'src/features/validation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
@@ -24,13 +23,6 @@ export function Form() {
   const page = currentPageId && nodes?.all?.()?.[currentPageId];
   useRedirectToStoredPage();
 
-  const { scrollPosition } = usePageNavigationContext();
-  useEffect(() => {
-    if (currentPageId !== undefined && scrollPosition === undefined) {
-      window.scrollTo({ top: 0 });
-    }
-  }, [currentPageId, scrollPosition]);
-
   useRegisterNodeNavigationHandler((targetNode) => {
     const targetView = targetNode?.top.top.myKey;
     if (targetView && targetView !== currentPageId) {
@@ -43,7 +35,7 @@ export function Form() {
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
   const requiredFieldsMissing = formErrors.some(
-    (error) => error.group === FrontendValidationSource.EmptyField && error.pageKey === currentPageId,
+    (error) => error.source === FrontendValidationSource.EmptyField && error.pageKey === currentPageId,
   );
 
   const [mainNodes, errorReportNodes] = React.useMemo(() => {

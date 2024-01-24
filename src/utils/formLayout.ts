@@ -52,16 +52,23 @@ export function splitDashedKey(componentId: string): SplitKey {
   };
 }
 
-export const getRepeatingGroupStartStopIndex = (repeatingGroupIndex: number, filter?: ILikertFilter) => {
-  if (typeof repeatingGroupIndex === 'undefined') {
+export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilter = []) => {
+  if (typeof lastIndex === 'undefined') {
     return { startIndex: 0, stopIndex: -1 };
   }
 
-  const start = filter?.find(({ key }) => key === 'start')?.value;
-  const stop = filter?.find(({ key }) => key === 'stop')?.value;
-  const startIndex = start ? parseInt(start) : 0;
-  const stopIndex = stop ? Math.min(parseInt(stop) - 1, repeatingGroupIndex) : repeatingGroupIndex;
-  return { startIndex, stopIndex };
+  const start = filters.find(({ key }) => key === 'start')?.value;
+  const stop = filters.find(({ key }) => key === 'stop')?.value;
+  const startIndex = typeof start === 'string' ? parseInt(start) : start ?? 0;
+  const providedStopIndex = typeof stop === 'string' ? parseInt(stop) : stop;
+
+  // For some reason, the stop index configuration is 1-based, while the start index is 0-based in the Likert
+  // configuration. We'll work around that here, but it should be fixed in Likert2.
+  const stopIndex = typeof providedStopIndex === 'number' ? providedStopIndex - 1 : lastIndex;
+
+  const boundedStopIndex = Math.min(stopIndex, lastIndex);
+
+  return { startIndex, stopIndex: boundedStopIndex };
 };
 
 /**

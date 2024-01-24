@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
@@ -8,12 +8,13 @@ import { useGetOptionsQuery } from 'src/features/options/useGetOptionsQuery';
 import { useSourceOptions } from 'src/hooks/useSourceOptions';
 import { duplicateOptionFilter } from 'src/utils/options';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type {
   IDataModelBindingsOptionsSimple,
   IDataModelBindingsSimple,
   IMapping,
-  IOption,
   IOptionSourceExternal,
+  IRawOption,
 } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -30,7 +31,7 @@ interface Props<T extends ValueType> {
   dataModelBindings?: IDataModelBindingsOptionsSimple | IDataModelBindingsSimple;
 
   // Simple options, static and pre-defined
-  options?: IOption[];
+  options?: IRawOption[];
 
   // Fetch options from API
   optionsId?: string;
@@ -42,11 +43,11 @@ interface Props<T extends ValueType> {
   sortOrder?: SortOrder;
 }
 
-type CurrentValue<T extends ValueType> = T extends 'single' ? IOption | undefined : IOption[];
+type CurrentValue<T extends ValueType> = T extends 'single' ? IOptionInternal | undefined : IOptionInternal[];
 type CurrentValueAsString<T extends ValueType> = T extends 'single' ? string : string[];
 type ValueSetter<T extends ValueType> = T extends 'single'
-  ? (value: string | IOption) => void
-  : (value: string[] | IOption[]) => void;
+  ? (value: string | IOptionInternal) => void
+  : (value: string[] | IOptionInternal[]) => void;
 
 export interface OptionsResult<T extends ValueType> {
   // The current value, as an option (for single-option components) or an array of options (for multi-option components)
@@ -65,7 +66,7 @@ export interface OptionsResult<T extends ValueType> {
 
   // The final list of options deduced from the component settings. This will be an array of objects, where each object
   // has a string-typed 'value' property, regardless of the underlying options configuration.
-  options: IOption[];
+  options: IOptionInternal[];
 
   // Whether the options are currently being fetched from the API. This is usually false in normal components, as
   // options are always fetched on page load, but it can be true if the options are fetched dynamically based on
@@ -74,20 +75,20 @@ export interface OptionsResult<T extends ValueType> {
 }
 
 interface EffectProps<T extends ValueType> {
-  options: IOption[] | undefined;
+  options: IOptionInternal[] | undefined;
   disable: boolean;
   valueType: T;
-  preselectedOptionIndex?: number;
+  preselectedOption: IOptionInternal | undefined;
   currentValue: CurrentValue<T>;
   setValue: ValueSetter<T>;
 }
 
-const defaultOptions: IOption[] = [];
+const defaultOptions: IOptionInternal[] = [];
 
 type SortOrder = 'asc' | 'desc';
 const compareOptionAlphabetically =
   (langAsString: IUseLanguage['langAsString'], sortOrder: SortOrder = 'asc', language: string = 'nb') =>
-  (a: IOption, b: IOption) => {
+  (a: IOptionInternal, b: IOptionInternal) => {
     const comparison = langAsString(a.label).localeCompare(langAsString(b.label), language, {
       sensitivity: 'base',
       numeric: true,
@@ -108,35 +109,59 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
     sortOrder,
     dataModelBindings,
     valueType,
+    preselectedOptionIndex,
   } = props;
-  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
-  const setDataUpstream = FD.useSetForBindings(dataModelBindings);
+  const { formData, setValue } = useDataModelBindings(dataModelBindings);
+  const value = formData.simpleBinding ?? '';
   const sourceOptions = useSourceOptions({ source, node });
-  const staticOptions = optionsId ? undefined : options;
+  const staticOptions = useMemo(() => (optionsId ? undefined : castOptionsToStrings(options)), [options, optionsId]);
   const { data: fetchedOptions, isFetching } = useGetOptionsQuery(optionsId, mapping, queryParameters, secure);
-  const calculatedOptions = sourceOptions || fetchedOptions?.data || castOptionsToStrings(staticOptions);
   const { langAsString } = useLanguage();
   const selectedLanguage = useCurrentLanguage();
+
+  const [calculatedOptions, preselectedOption] = useMemo(() => {
+    let draft = sourceOptions || fetchedOptions?.data || staticOptions;
+    let preselectedOption: IOptionInternal | undefined = undefined;
+    if (preselectedOptionIndex !== undefined && draft && draft[preselectedOptionIndex]) {
+      // This index uses the original options array, before any filtering or sorting
+      preselectedOption = draft[preselectedOptionIndex];
+    }
+
+    if (draft && removeDuplicates) {
+      draft = draft.filter(duplicateOptionFilter);
+    }
+    if (draft && sortOrder) {
+      draft = [...draft].sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage));
+    }
+
+    return [draft, preselectedOption];
+  }, [
+    fetchedOptions?.data,
+    langAsString,
+    preselectedOptionIndex,
+    removeDuplicates,
+    selectedLanguage,
+    sortOrder,
+    sourceOptions,
+    staticOptions,
+  ]);
+
+  const alwaysOptions = calculatedOptions || defaultOptions;
 
   const downstreamParameters: string = fetchedOptions?.headers['altinn-downstreamparameters'];
   useEffect(() => {
     if (dataModelBindings && 'metadata' in dataModelBindings && dataModelBindings.metadata && downstreamParameters) {
-      setDataUpstream('metadata' as any, downstreamParameters);
+      setValue('metadata' as any, downstreamParameters);
     }
-  }, [dataModelBindings, downstreamParameters, setDataUpstream]);
-
-  const optionsWithoutDuplicates =
-    removeDuplicates && calculatedOptions
-      ? calculatedOptions.filter(duplicateOptionFilter)
-      : calculatedOptions || defaultOptions;
+  }, [dataModelBindings, downstreamParameters, setValue]);
 
   const current = useMemo(() => {
     if (valueType === 'single') {
-      return optionsWithoutDuplicates.find((option) => String(option.value) === String(value)) as CurrentValue<T>;
+      return alwaysOptions.find((option) => String(option.value) === String(value)) as CurrentValue<T>;
     }
     const stringValues = value && value.length > 0 ? value.split(',') : [];
-    return optionsWithoutDuplicates.filter((option) => stringValues.includes(option.value)) as CurrentValue<T>;
-  }, [value, valueType, optionsWithoutDuplicates]);
+    return alwaysOptions.filter((option) => stringValues.includes(option.value)) as CurrentValue<T>;
+  }, [value, valueType, alwaysOptions]);
 
   const currentStringy = useMemo(() => {
     if (valueType === 'single') {
@@ -147,26 +172,26 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
 
   const setData = useMemo(() => {
     if (valueType === 'single') {
-      return (value: string | IOption) =>
-        setDataUpstream('simpleBinding', typeof value === 'string' ? value : value.value);
+      return (value: string | IOptionInternal) =>
+        setValue('simpleBinding', typeof value === 'string' ? value : value.value);
     }
 
-    return (value: (string | IOption)[]) => {
+    return (value: (string | IOptionInternal)[]) => {
       const asString = value.map((v) => (typeof v === 'string' ? v : v.value)).join(',');
-      setDataUpstream('simpleBinding', asString);
+      setValue('simpleBinding', asString);
     };
-  }, [setDataUpstream, valueType]) as ValueSetter<T>;
+  }, [setValue, valueType]) as ValueSetter<T>;
 
   const effectProps: EffectProps<T> = useMemo(
     () => ({
       options: calculatedOptions,
       disable: !(props.dataModelBindings && 'simpleBinding' in props.dataModelBindings),
       valueType,
-      preselectedOptionIndex: props.preselectedOptionIndex,
+      preselectedOption,
       currentValue: current,
       setValue: setData,
     }),
-    [calculatedOptions, current, props.dataModelBindings, props.preselectedOptionIndex, setData, valueType],
+    [calculatedOptions, current, preselectedOption, props.dataModelBindings, setData, valueType],
   );
 
   usePreselectedOptionIndex(effectProps);
@@ -176,9 +201,7 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
     current,
     currentStringy,
     setData,
-    options: sortOrder
-      ? [...optionsWithoutDuplicates].sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage))
-      : optionsWithoutDuplicates,
+    options: alwaysOptions,
     isFetching: isFetching || !calculatedOptions,
   };
 }
@@ -187,39 +210,21 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
  * as options are ready. The code is complex to guard against overwriting data that has been set by the user.
  */
 function usePreselectedOptionIndex<T extends ValueType>(props: EffectProps<T>) {
-  const { options, disable, preselectedOptionIndex } = props;
+  const { disable, preselectedOption } = props;
   const hasSelectedInitial = useRef(false);
-
-  let hasValue = false;
-  let shouldSelectOptionAutomatically = false;
-  let option: string | undefined;
-
-  if (!disable) {
-    hasValue = isSingle(props) ? !!props.currentValue : isMulti(props) ? props.currentValue.length > 0 : false;
-
-    shouldSelectOptionAutomatically =
-      !hasValue &&
-      typeof preselectedOptionIndex !== 'undefined' &&
-      preselectedOptionIndex >= 0 &&
-      !!options &&
-      preselectedOptionIndex < options.length &&
-      !hasSelectedInitial.current;
-    option =
-      shouldSelectOptionAutomatically && options && typeof preselectedOptionIndex !== 'undefined'
-        ? options[preselectedOptionIndex].value
-        : undefined;
-  }
+  const hasValue = isSingle(props) ? !!props.currentValue : isMulti(props) ? props.currentValue.length > 0 : false;
+  const shouldSelectOptionAutomatically = !disable && !hasValue && !hasSelectedInitial.current;
 
   useEffect(() => {
-    if (shouldSelectOptionAutomatically && option !== undefined && !disable) {
+    if (shouldSelectOptionAutomatically && preselectedOption !== undefined && !disable) {
       if (isMulti(props)) {
-        props.setValue([option]);
+        props.setValue([preselectedOption]);
       } else if (isSingle(props)) {
-        props.setValue(option);
+        props.setValue(preselectedOption);
       }
       hasSelectedInitial.current = true;
     }
-  }, [disable, option, props, shouldSelectOptionAutomatically]);
+  }, [disable, preselectedOption, props, shouldSelectOptionAutomatically]);
 }
 
 /**

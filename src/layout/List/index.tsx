@@ -74,7 +74,7 @@ export class List extends ListDef {
         },
         severity: 'error',
         componentId: node.item.id,
-        group: FrontendValidationSource.EmptyField,
+        source: FrontendValidationSource.EmptyField,
         category: ValidationMask.Required,
       });
     }

@@ -1,9 +1,6 @@
 import type { SortDirection } from '@digdir/design-system-react';
 
-import { mapFormData } from 'src/utils/databindings';
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
-import type { IFormData } from 'src/features/formData';
-import type { IMapping } from 'src/layout/common.generated';
 
 const { org, app } = window;
 const origin = window.location.origin;
@@ -160,23 +157,13 @@ export const frontendVersionsCDN = `${appFrontendCDNPath}/index.json`;
 
 export interface IGetOptionsUrlParams {
   optionsId: string;
-  dataMapping?: IMapping;
-  fixedQueryParameters?: Record<string, string>;
-  formData?: IFormData;
+  queryParameters?: Record<string, string>;
   language?: string;
   secure?: boolean;
   instanceId?: string;
 }
 
-export const getOptionsUrl = ({
-  optionsId,
-  dataMapping,
-  fixedQueryParameters,
-  formData,
-  language,
-  secure,
-  instanceId,
-}: IGetOptionsUrlParams) => {
+export const getOptionsUrl = ({ optionsId, queryParameters, language, secure, instanceId }: IGetOptionsUrlParams) => {
   let url: URL;
   if (secure) {
     url = new URL(`${appPath}/instances/${instanceId}/options/${optionsId}`);
@@ -185,17 +172,10 @@ export const getOptionsUrl = ({
   }
 
   const params: Record<string, string> = {};
-
   if (language) {
     params.language = language;
   }
-  if (fixedQueryParameters) {
-    Object.assign(params, fixedQueryParameters);
-  }
-  if (formData && dataMapping) {
-    const mapped = mapFormData(formData, dataMapping);
-    Object.assign(params, mapped);
-  }
+  queryParameters && Object.assign(params, queryParameters);
 
   url.search = new URLSearchParams(params).toString();
   return url.toString();

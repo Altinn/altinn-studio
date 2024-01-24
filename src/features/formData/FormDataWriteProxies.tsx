@@ -32,6 +32,8 @@ const { Provider, useCtx } = createContext<FormDataWriteProxies>({
   required: false,
   default: {
     debounce: defaultProxy as Proxy<'debounce'>,
+    saveStarted: defaultProxy as Proxy<'saveStarted'>,
+    cancelSave: defaultProxy as Proxy<'cancelSave'>,
     saveFinished: defaultProxy as Proxy<'saveFinished'>,
     setLeafValue: defaultProxy as Proxy<'setLeafValue'>,
     appendToListUnique: defaultProxy as Proxy<'appendToListUnique'>,

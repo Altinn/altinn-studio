@@ -11,7 +11,7 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
-import type { IOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternalExact } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
@@ -392,7 +392,7 @@ async function renderAbstract<T extends Types>({
             { value: 'tag3', label: 'Tag 3' },
           ],
           headers: {},
-        } as AxiosResponse<IOption[], any>),
+        } as AxiosResponse<IRawOption[], any>),
     },
   });
 

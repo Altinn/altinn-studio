@@ -6,17 +6,9 @@ import type { AxiosResponse } from 'axios';
 
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithNode } from 'src/test/renderWithProviders';
-import type { IOption, ISelectionComponentExternal } from 'src/layout/common.generated';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
+import type { IRawOption, ISelectionComponentExternal } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-
-/**
- * This is defined because it is possible for the options to be defined as other types than strings, but
- * useGetOptions will always return options as strings. So the internal type is correct, but this represents
- * potential external types.
- */
-type IRawOption = Omit<IOption, 'value'> & {
-  value: string | number | boolean;
-};
 
 interface RenderProps {
   type: 'single' | 'multi';
@@ -49,7 +41,7 @@ function TestOptions({ node }: { node: LayoutNode<'Dropdown' | 'MultipleSelect'>
 
 async function render(props: RenderProps) {
   const layoutConfig: ISelectionComponentExternal = {
-    options: props.via === 'layout' ? (props.options as unknown as IOption[]) : undefined,
+    options: props.via === 'layout' ? props.options : undefined,
     optionsId: props.via === 'api' ? 'myOptions' : undefined,
     source:
       props.via === 'repeatingGroups'
@@ -93,7 +85,7 @@ async function render(props: RenderProps) {
         ({
           data: props.options,
           headers: {},
-        }) as AxiosResponse<IOption[], any>,
+        }) as AxiosResponse<IRawOption[], any>,
       fetchTextResources: async () => ({
         resources: [
           {
@@ -136,7 +128,7 @@ describe('useGetOptions', () => {
     });
 
     const textContent = screen.getByTestId('options').textContent;
-    const asArray = JSON.parse(textContent as string) as IOption[];
+    const asArray = JSON.parse(textContent as string) as IOptionInternal[];
 
     expect(asArray).toEqual([
       { label: 'first', value: 'hello' },

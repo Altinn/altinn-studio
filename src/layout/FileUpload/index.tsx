@@ -48,7 +48,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent {
           params: [node.item.minNumberOfAttachments],
         },
         severity: 'error',
-        group: FrontendValidationSource.Component,
+        source: FrontendValidationSource.Component,
         componentId: node.item.id,
         category: ValidationMask.Component,
       });

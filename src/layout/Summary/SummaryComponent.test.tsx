@@ -2,11 +2,7 @@ import React from 'react';
 
 import { fireEvent, screen } from '@testing-library/react';
 
-import {
-  type BackendValidationIssue,
-  BackendValidationSeverity,
-  ValidationIssueSources,
-} from 'src/features/validation';
+import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
@@ -62,7 +58,7 @@ describe('SummaryComponent', () => {
           customTextKey: 'Error message',
           field: 'field',
           severity: BackendValidationSeverity.Error,
-          source: ValidationIssueSources.Custom,
+          source: 'custom',
           showImmediately: true,
         } as BackendValidationIssue,
       ],

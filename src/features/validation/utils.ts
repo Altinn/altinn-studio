@@ -1,17 +1,16 @@
-import {
-  type BaseValidation,
-  type ComponentValidation,
-  type FieldValidation,
-  type FormValidations,
-  type GroupedValidation,
-  type NodeValidation,
-  type ValidationGroup,
-  ValidationMask,
-  type ValidationMaskKeys,
-  type ValidationSeverity,
-  type ValidationState,
-} from 'src/features/validation';
+import { ValidationMask } from 'src/features/validation';
 import type { IAttachments, UploadedAttachment } from 'src/features/attachments';
+import type {
+  BaseValidation,
+  ComponentValidation,
+  FieldValidation,
+  FieldValidations,
+  FrontendValidations,
+  NodeValidation,
+  ValidationMaskKeys,
+  ValidationSeverity,
+  ValidationState,
+} from 'src/features/validation';
 import type { CompInternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -26,39 +25,24 @@ export function isComponentValidation(
   return 'componentId' in validation;
 }
 
-export function mergeFormValidations(dest: FormValidations | ValidationState, src: FormValidations | ValidationState) {
-  for (const [field, groups] of Object.entries(src.fields)) {
-    if (!dest.fields[field]) {
-      dest.fields[field] = {};
+export function mergeFieldValidations(a: FieldValidations, b: FieldValidations): FieldValidations {
+  const out = { ...a };
+  for (const [field, validations] of Object.entries(b)) {
+    if (!out[field]) {
+      out[field] = [];
     }
-    for (const [group, validations] of Object.entries(groups)) {
-      dest.fields[field][group] = validations;
-    }
+    out[field].push(...validations);
   }
+  return out;
+}
 
-  for (const [componentId, compValidations] of Object.entries(src.components)) {
-    if (!dest.components[componentId]) {
-      dest.components[componentId] = {
-        bindingKeys: {},
-        component: {},
-      };
+export function mergeNewFrontendValidations(dest: FrontendValidations, newValidations: FrontendValidations[]): void {
+  for (const validations of newValidations) {
+    for (const field of Object.keys(validations.fields)) {
+      dest.fields[field] = validations.fields[field];
     }
-
-    if (compValidations.component) {
-      for (const [group, validations] of Object.entries(compValidations.component)) {
-        dest.components[componentId].component[group] = validations;
-      }
-    }
-
-    if (compValidations.bindingKeys) {
-      for (const [bindingKey, groups] of Object.entries(compValidations.bindingKeys)) {
-        if (!dest.components[componentId].bindingKeys[bindingKey]) {
-          dest.components[componentId].bindingKeys[bindingKey] = {};
-        }
-        for (const [group, validations] of Object.entries(groups)) {
-          dest.components[componentId].bindingKeys[bindingKey][group] = validations;
-        }
-      }
+    for (const componentId of Object.keys(validations.components)) {
+      dest.components[componentId] = validations.components[componentId];
     }
   }
 }
@@ -104,14 +88,12 @@ function isValidationVisible<T extends BaseValidation>(validation: T, mask: numb
   return (mask & validation.category) > 0;
 }
 
-export function validationsFromGroups<T extends GroupedValidation>(
-  groups: ValidationGroup<T>,
+export function selectValidations<T extends BaseValidation>(
+  validations: T[],
   mask: number,
   severity?: ValidationSeverity,
 ) {
-  const validationsFlat = Object.values(groups).flat();
-
-  const filteredValidations = severity ? validationsOfSeverity(validationsFlat, severity) : validationsFlat;
+  const filteredValidations = severity ? validationsOfSeverity(validations, severity) : validations;
   return filteredValidations.filter((validation) => isValidationVisible(validation, mask));
 }
 
@@ -140,18 +122,14 @@ export function getValidationsForNode(
   if (node.item.dataModelBindings) {
     for (const [bindingKey, field] of Object.entries(node.item.dataModelBindings)) {
       if (state.fields[field]) {
-        const validations = validationsFromGroups(state.fields[field], mask, severity);
+        const validations = selectValidations(state.fields[field], mask, severity);
         for (const validation of validations) {
           validationMessages.push(buildNodeValidation(node, validation, bindingKey));
         }
       }
 
       if (state.components[node.item.id]?.bindingKeys?.[bindingKey]) {
-        const validations = validationsFromGroups(
-          state.components[node.item.id].bindingKeys[bindingKey],
-          mask,
-          severity,
-        );
+        const validations = selectValidations(state.components[node.item.id].bindingKeys[bindingKey], mask, severity);
         for (const validation of validations) {
           validationMessages.push(buildNodeValidation(node, validation, bindingKey));
         }
@@ -159,7 +137,7 @@ export function getValidationsForNode(
     }
   }
   if (state.components[node.item.id]?.component) {
-    const validations = validationsFromGroups(state.components[node.item.id].component, mask, severity);
+    const validations = selectValidations(state.components[node.item.id].component, mask, severity);
     for (const validation of validations) {
       validationMessages.push(buildNodeValidation(node, validation));
     }
@@ -206,22 +184,11 @@ export function attachmentIsMissingTag(attachment: UploadedAttachment): boolean 
 }
 
 /**
- * Updates an existing validation states using the values from the new state.
- */
-export function mergeValidationState(prevState: ValidationState, newState: ValidationState): void {
-  mergeFormValidations(prevState, newState);
-
-  if (newState.task) {
-    prevState.task = newState.task;
-  }
-}
-
-/**
  * Remove validation from removed nodes.
  * This also removes field validations which are no longer bound to any other nodes.
  */
 export function purgeValidationsForNodes(
-  state: FormValidations,
+  state: FrontendValidations,
   removedNodes: LayoutNode[],
   currentNodes: LayoutNode[],
 ): void {

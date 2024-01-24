@@ -12,7 +12,7 @@ import { type LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type {
   ComponentValidation,
-  FormValidations,
+  FrontendValidations,
   ISchemaValidationError,
   ValidationDataSources,
 } from 'src/features/validation';
@@ -64,7 +64,7 @@ export class Likert extends LikertDef implements ValidateAny {
     node: LayoutNode,
     ctx: ValidationDataSources,
     schemaErrors: ISchemaValidationError[],
-  ): FormValidations {
+  ): FrontendValidations {
     return runAllValidations(node, ctx, schemaErrors);
   }
 
@@ -78,18 +78,19 @@ export class Likert extends LikertDef implements ValidateAny {
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Likert'>): string[] {
-    const [errors, result] = this.validateDataModelBindingsAny(ctx, 'Likert', ['array']);
-    if (errors) {
-      return errors;
+    const [questionsErr, questions] = this.validateDataModelBindingsAny(ctx, 'questions', ['array']);
+    const errors: string[] = [...(questionsErr || [])];
+
+    if (
+      questions &&
+      (!questions.items ||
+        typeof questions.items !== 'object' ||
+        Array.isArray(questions.items) ||
+        questions.items.type !== 'object')
+    ) {
+      errors.push(`questions-datamodellbindingen peker mot en ukjent type i datamodellen (forventet type: object)`);
     }
 
-    if (result) {
-      const innerType = Array.isArray(result.items) ? result.items[0] : result.items;
-      if (!innerType || typeof innerType !== 'object' || !innerType.type || innerType.type !== 'object') {
-        return [`Likert-datamodellbindingen peker mot en ukjent type i datamodellen`];
-      }
-    }
-
-    return [];
+    return errors;
   }
 }

@@ -1,15 +1,16 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import deepEqual from 'fast-deep-equal';
+import { createStore } from 'zustand';
 
-import { createContext } from 'src/core/contexts/context';
+import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { useLaxProcessData, useRealTaskType } from 'src/features/instance/ProcessContext';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { ProcessTaskType } from 'src/types';
 import { useNodes } from 'src/utils/layout/NodesContext';
-import type { IOption } from 'src/layout/common.generated';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 /**
@@ -18,7 +19,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
  * the page with the option-based component is rendered. This way we can use the 'displayValue' expression
  * function, and show summaries/PDF even if the source component has not been rendered yet.
  */
-export type AllOptionsMap = { [nodeId: string]: IOption[] | undefined };
+export type AllOptionsMap = { [nodeId: string]: IOptionInternal[] | undefined };
 
 interface State {
   allInitiallyLoaded: boolean;
@@ -26,78 +27,77 @@ interface State {
   nodes: AllOptionsMap;
 }
 
-interface Context {
-  state: State;
-  dispatch: React.Dispatch<Actions>;
+interface Functions {
+  setAllInitiallyLoaded: (allInitiallyLoaded: boolean) => void;
+  setCurrentTaskId: (currentTaskId?: string) => void;
+  setNodesFound: (nodesFound: string[]) => void;
+  setNodeOptions: (nodeId: string, options: IOptionInternal[]) => void;
 }
 
-const { Provider, useCtx } = createContext<Context>({ name: 'AllOptions', required: true });
-
-export const useAllOptions = () => useCtx().state.nodes;
-export const useAllOptionsInitiallyLoaded = () => useCtx().state.allInitiallyLoaded;
-
-type Actions =
-  | { type: 'nodeFetched'; nodeId: string; options: IOption[] }
-  | { type: 'nodesFound'; nodesFound: string[] }
-  | { type: 'setCurrentTask'; currentTaskId: string | undefined };
-
-const reducer = (state: State, action: Actions) => {
-  if (action.type === 'nodeFetched') {
-    const existingOptions = state.nodes[action.nodeId];
-    if (deepEqual(existingOptions, action.options)) {
-      return state;
-    }
-    const newNodes = {
-      ...state.nodes,
-      [action.nodeId]: action.options,
-    };
-    return {
-      ...state,
-      allInitiallyLoaded: state.allInitiallyLoaded || Object.values(newNodes).every((v) => v),
-      nodes: newNodes,
-    };
-  } else if (action.type === 'nodesFound') {
-    if (state.allInitiallyLoaded) {
-      return state;
-    }
-
-    const newNodes = { ...state.nodes };
-    let changes = false;
-    for (const nodeId of action.nodesFound) {
-      if (newNodes[nodeId] === undefined) {
-        newNodes[nodeId] = undefined;
-        changes = true;
-      }
-    }
-    if (action.nodesFound.length === 0) {
-      return {
-        ...state,
-        allInitiallyLoaded: true,
-      };
-    }
-
-    if (!changes) {
-      return state;
-    }
-    return {
-      ...state,
-      allInitiallyLoaded: false,
-      nodes: newNodes,
-    };
-  } else if (action.type === 'setCurrentTask') {
-    if (state.currentTaskId === action.currentTaskId) {
-      return state;
-    }
-
-    return {
-      allInitiallyLoaded: false,
-      currentTaskId: action.currentTaskId,
-      nodes: {},
-    };
+function isAllLoaded(nodes: AllOptionsMap, existingValue: boolean) {
+  if (existingValue) {
+    return true;
   }
 
-  return state;
-};
+  for (const options of Object.values(nodes)) {
+    if (options === undefined) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function newStore() {
+  return createStore<State & Functions>((set) => ({
+    allInitiallyLoaded: false,
+    nodes: {},
+    setAllInitiallyLoaded: (allInitiallyLoaded) => set({ allInitiallyLoaded }),
+    setCurrentTaskId: (currentTaskId) => set({ currentTaskId }),
+    setNodesFound: (nodesFound) => {
+      set((state) => {
+        if (state.allInitiallyLoaded) {
+          return state;
+        }
+        const missingNodes = nodesFound.filter((nodeId) => !(nodeId in state.nodes));
+        if (missingNodes.length === 0) {
+          return { allInitiallyLoaded: isAllLoaded(state.nodes, state.allInitiallyLoaded) };
+        }
+        const newNodes = {
+          ...state.nodes,
+          ...Object.fromEntries(missingNodes.map((nodeId) => [nodeId, undefined])),
+        };
+        return {
+          nodes: newNodes,
+          allInitiallyLoaded: isAllLoaded(newNodes, state.allInitiallyLoaded),
+        };
+      });
+    },
+    setNodeOptions: (nodeId, options) =>
+      set((state) => {
+        if (deepEqual(state.nodes[nodeId], options)) {
+          return state;
+        }
+        const newNodes = {
+          ...state.nodes,
+          [nodeId]: options,
+        };
+        return {
+          nodes: newNodes,
+          allInitiallyLoaded: isAllLoaded(newNodes, state.allInitiallyLoaded),
+        };
+      }),
+  }));
+}
+
+const { Provider, useSelector } = createZustandContext<ReturnType<typeof newStore>>({
+  name: 'AllOptions',
+  required: true,
+  initialCreateStore: newStore,
+});
+
+export const useAllOptions = () => useSelector((state) => state.nodes);
+export const useAllOptionsInitiallyLoaded = () => useSelector((state) => state.allInitiallyLoaded);
 
 function isNodeOptionBased(node: LayoutNode) {
   return (
@@ -107,27 +107,20 @@ function isNodeOptionBased(node: LayoutNode) {
   );
 }
 
-export function AllOptionsStoreProvider({ children }: PropsWithChildren) {
-  const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
-  const initialState: State = {
-    allInitiallyLoaded: false,
-    nodes: {},
-    currentTaskId,
-  };
-  const [state, dispatch] = useReducer(reducer, initialState);
-
-  return <Provider value={{ state, dispatch }}>{children}</Provider>;
-}
+export const AllOptionsStoreProvider = Provider;
 
 export function AllOptionsProvider({ children }: PropsWithChildren) {
   const nodes = useNodes();
   const currentTaskType = useRealTaskType();
-  const { state, dispatch } = useCtx();
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
+  const setCurrentTaskId = useSelector((state) => state.setCurrentTaskId);
+  const setNodesFound = useSelector((state) => state.setNodesFound);
+  const setNodeOptions = useSelector((state) => state.setNodeOptions);
+  const allInitiallyLoaded = useAllOptionsInitiallyLoaded();
 
   useEffect(() => {
-    dispatch({ type: 'setCurrentTask', currentTaskId });
-  }, [currentTaskId, dispatch]);
+    setCurrentTaskId(currentTaskId);
+  }, [currentTaskId, setCurrentTaskId]);
 
   useEffect(() => {
     const nodesFound: string[] = [];
@@ -142,12 +135,9 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
     // Make sure we dispatch if on the receipt page and other non-node based pages, so that we
     // stop loading options and show the page
     if (nodes || currentTaskType !== ProcessTaskType.Data) {
-      dispatch({
-        type: 'nodesFound',
-        nodesFound,
-      });
+      setNodesFound(nodesFound);
     }
-  }, [nodes, currentTaskType, dispatch]);
+  }, [currentTaskType, nodes, setNodesFound]);
 
   const dummies = nodes
     ?.allNodes()
@@ -157,16 +147,12 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
         key={node.item.id}
         node={node}
         loadingDone={(options) => {
-          dispatch({
-            type: 'nodeFetched',
-            nodeId: node.item.id,
-            options,
-          });
+          setNodeOptions(node.item.id, options);
         }}
       />
     ));
 
-  if (!state.allInitiallyLoaded) {
+  if (!allInitiallyLoaded) {
     return (
       <>
         {dummies}
@@ -183,10 +169,20 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
   );
 }
 
-function DummyOptionsSaver({ node, loadingDone }: { node: LayoutNode; loadingDone: (options: IOption[]) => void }) {
+function DummyOptionsSaver({
+  node,
+  loadingDone,
+}: {
+  node: LayoutNode;
+  loadingDone: (options: IOptionInternal[]) => void;
+}) {
   const { options: calculatedOptions, isFetching } = useGetOptions({
     ...node.item,
     node,
+
+    // These don't really matter to us, but by setting them we effectively disable the 'preselectedOptionIndex'
+    // functionality, and automatic resetting of stale values. We only want to fetch options here, not update the
+    // data model in any way.
     valueType: 'single',
     dataModelBindings: undefined,
   });

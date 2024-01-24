@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { LegacyTextField } from '@digdir/design-system-react';
 
 import { Label } from 'src/components/form/Label';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
@@ -22,14 +22,12 @@ export function AddressComponent({ node }: IAddressComponentProps) {
   const bindingValidations = useBindingValidationsForNode(node);
   const componentValidations = useComponentValidationsForNode(node);
 
-  const bindings = ('dataModelBindings' in node.item && node.item.dataModelBindings) || {};
-  const saveData = FD.useSetForBindings(bindings, saveWhileTyping);
-  const debounce = FD.useDebounceImmediately();
-  const { address, careOf, postPlace, zipCode, houseNumber } = FD.usePickFreshStrings(bindings);
+  const { formData, setValue, debounce } = useDataModelBindings(node.item.dataModelBindings, saveWhileTyping);
+  const { address, careOf, postPlace, zipCode, houseNumber } = formData;
 
   const updatePostPlace = useEffectEvent((newPostPlace) => {
     if (newPostPlace != null && newPostPlace != postPlace) {
-      saveData('postPlace', newPostPlace);
+      setValue('postPlace', newPostPlace);
     }
   });
   const postPlaceQueryData = usePostPlaceQuery(zipCode, !hasValidationErrors(bindingValidations?.zipCode));
@@ -53,7 +51,7 @@ export function AddressComponent({ node }: IAddressComponentProps) {
           id={`address_address_${id}`}
           isValid={!hasValidationErrors(bindingValidations?.address)}
           value={address}
-          onChange={(ev) => saveData('address', ev.target.value)}
+          onChange={(ev) => setValue('address', ev.target.value)}
           onBlur={debounce}
           readOnly={readOnly}
           required={required}
@@ -79,7 +77,7 @@ export function AddressComponent({ node }: IAddressComponentProps) {
             id={`address_care_of_${id}`}
             isValid={!hasValidationErrors(bindingValidations?.careOf)}
             value={careOf}
-            onChange={(ev) => saveData('careOf', ev.target.value)}
+            onChange={(ev) => setValue('careOf', ev.target.value)}
             onBlur={debounce}
             readOnly={readOnly}
             autoComplete='address-line2'
@@ -106,7 +104,7 @@ export function AddressComponent({ node }: IAddressComponentProps) {
               id={`address_zip_code_${id}`}
               isValid={!hasValidationErrors(bindingValidations?.zipCode)}
               value={zipCode}
-              onChange={(ev) => saveData('zipCode', ev.target.value)}
+              onChange={(ev) => setValue('zipCode', ev.target.value)}
               onBlur={debounce}
               readOnly={readOnly}
               required={required}
@@ -162,7 +160,7 @@ export function AddressComponent({ node }: IAddressComponentProps) {
               id={`address_house_number_${id}`}
               isValid={!hasValidationErrors(bindingValidations?.houseNumber)}
               value={houseNumber}
-              onChange={(ev) => saveData('houseNumber', ev.target.value)}
+              onChange={(ev) => setValue('houseNumber', ev.target.value)}
               onBlur={debounce}
               readOnly={readOnly}
               autoComplete='address-line3'

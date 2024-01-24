@@ -8,5 +8,6 @@
 # Downloads
 /downloads/
 
-# Redux state history saved when tests fail
-/redux-history
+# Various log files produced from running tests
+/redux-history/
+/logs/

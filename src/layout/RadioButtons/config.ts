@@ -1,4 +1,4 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 
@@ -12,7 +12,7 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
   },
 })
-  .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple').optional({ onlyIn: Variant.Internal }))
+  .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .makeSelectionComponent()
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()))
   .addProperty(

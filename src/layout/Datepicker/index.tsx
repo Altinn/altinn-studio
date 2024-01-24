@@ -70,7 +70,7 @@ export class Datepicker extends DatepickerDef implements ValidateComponent {
         message: { key: 'date_picker.invalid_date_message', params: [format] },
         severity: 'error',
         componentId: node.item.id,
-        group: FrontendValidationSource.Component,
+        source: FrontendValidationSource.Component,
         category: ValidationMask.Component,
       });
     }
@@ -80,7 +80,7 @@ export class Datepicker extends DatepickerDef implements ValidateComponent {
         message: { key: 'date_picker.min_date_exeeded' },
         severity: 'error',
         componentId: node.item.id,
-        group: FrontendValidationSource.Component,
+        source: FrontendValidationSource.Component,
         category: ValidationMask.Component,
       });
     } else if (date.isAfter(maxDate)) {
@@ -88,7 +88,7 @@ export class Datepicker extends DatepickerDef implements ValidateComponent {
         message: { key: 'date_picker.max_date_exeeded' },
         severity: 'error',
         componentId: node.item.id,
-        group: FrontendValidationSource.Component,
+        source: FrontendValidationSource.Component,
         category: ValidationMask.Component,
       });
     }
@@ -111,7 +111,7 @@ export class Datepicker extends DatepickerDef implements ValidateComponent {
           message: error.message,
           severity: 'error',
           field,
-          group: FrontendValidationSource.Schema,
+          source: FrontendValidationSource.Schema,
           category: ValidationMask.Schema,
         });
       }

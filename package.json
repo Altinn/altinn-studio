@@ -151,6 +151,8 @@
     "dompurify": "3.0.6",
     "dot-object": "2.1.4",
     "eslint-plugin-preferred-import-path": "^1.1.0",
+    "fast-array-diff": "^1.1.0",
+    "fast-json-patch": "^3.1.1",
     "html-react-parser": "5.0.6",
     "immer": "^10.0.3",
     "jsonpointer": "5.0.1",

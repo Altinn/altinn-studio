@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import type { NodeValidation } from '..';
 
-import { buildNodeValidation, validationsFromGroups } from 'src/features/validation/utils';
+import { buildNodeValidation, selectValidations } from 'src/features/validation/utils';
 import { useValidationContext } from 'src/features/validation/validationContext';
 import { getVisibilityForNode } from 'src/features/validation/visibility';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
@@ -31,13 +31,13 @@ export function useBindingValidationsForNode<
       bindingValidations[bindingKey] = [];
 
       if (fields[field]) {
-        const validations = validationsFromGroups(fields[field], mask);
+        const validations = selectValidations(fields[field], mask);
         bindingValidations[bindingKey].push(
           ...validations.map((validation) => buildNodeValidation(node, validation, bindingKey)),
         );
       }
       if (component?.bindingKeys?.[bindingKey]) {
-        const validations = validationsFromGroups(component.bindingKeys[bindingKey], mask);
+        const validations = selectValidations(component.bindingKeys[bindingKey], mask);
         bindingValidations[bindingKey].push(
           ...validations.map((validation) => buildNodeValidation(node, validation, bindingKey)),
         );

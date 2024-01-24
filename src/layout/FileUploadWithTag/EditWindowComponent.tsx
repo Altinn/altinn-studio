@@ -19,14 +19,14 @@ import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTabl
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
 import type { IAttachment } from 'src/features/attachments';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IOption } from 'src/layout/common.generated';
 
 export interface EditWindowProps {
   node: PropsFromGenericComponent<'FileUploadWithTag'>['node'];
   attachment: IAttachment;
   mobileView: boolean;
-  options?: IOption[];
+  options?: IOptionInternal[];
 }
 
 export function EditWindowComponent({ attachment, mobileView, node, options }: EditWindowProps): React.JSX.Element {
@@ -35,7 +35,7 @@ export function EditWindowComponent({ attachment, mobileView, node, options }: E
   const { setEditIndex } = useFileTableRow();
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
   const rawSelectedTag = uploadedAttachment?.data.tags ? uploadedAttachment.data.tags[0] : undefined;
-  const [chosenOption, setChosenOption] = useState<IOption | undefined>(
+  const [chosenOption, setChosenOption] = useState<IOptionInternal | undefined>(
     rawSelectedTag ? options?.find((o) => o.value === rawSelectedTag) : undefined,
   );
   const formattedOptions = useFormattedOptions(options);
@@ -72,7 +72,7 @@ export function EditWindowComponent({ attachment, mobileView, node, options }: E
     onAttachmentSave(node, uploadedAttachment.data.id);
   };
 
-  const setAttachmentTag = async (option?: IOption) => {
+  const setAttachmentTag = async (option?: IOptionInternal) => {
     if (!isAttachmentUploaded(attachment)) {
       return;
     }

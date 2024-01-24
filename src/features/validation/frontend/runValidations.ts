@@ -1,18 +1,14 @@
 import { getSchemaValidationErrors } from 'src/features/validation/frontend/schemaValidation';
-import { mergeFormValidations } from 'src/features/validation/utils';
 import { implementsAnyValidation } from 'src/layout';
-import type { FormValidations, ValidationDataSources } from 'src/features/validation';
+import type { FrontendValidations, ValidationDataSources } from 'src/features/validation';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function runValidationOnNodes(nodes: LayoutNode[], context: ValidationDataSources): FormValidations {
+export function runValidationOnNodes(nodes: LayoutNode[], context: ValidationDataSources): FrontendValidations[] {
   const nodesToValidate = nodes.filter(
     (node) => implementsAnyValidation(node.def) && !('renderAsSummary' in node.item && node.item.renderAsSummary),
   );
 
-  const validations: FormValidations = {
-    fields: {},
-    components: {},
-  };
+  const validations: FrontendValidations[] = [];
 
   if (nodesToValidate.length === 0) {
     return validations;
@@ -22,7 +18,7 @@ export function runValidationOnNodes(nodes: LayoutNode[], context: ValidationDat
 
   for (const node of nodesToValidate) {
     if (implementsAnyValidation(node.def)) {
-      mergeFormValidations(validations, node.def.runValidations(node as any, context, schemaErrors));
+      validations.push(node.def.runValidations(node as any, context, schemaErrors));
     }
   }
 

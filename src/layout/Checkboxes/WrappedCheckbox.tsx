@@ -9,11 +9,11 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
 import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.css';
-import type { IOption } from 'src/layout/common.generated';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
 interface IWrappedCheckboxProps {
   id: string;
-  option: IOption;
+  option: IOptionInternal;
   hideLabel?: boolean;
   alertOnChange?: boolean;
   checked: boolean;

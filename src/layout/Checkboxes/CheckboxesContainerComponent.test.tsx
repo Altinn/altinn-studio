@@ -8,10 +8,10 @@ import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepG
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const twoOptions: IOption[] = [
+const twoOptions: IRawOption[] = [
   {
     label: 'Norway',
     value: 'norway',
@@ -22,7 +22,7 @@ const twoOptions: IOption[] = [
   },
 ];
 
-const threeOptions: IOption[] = [
+const threeOptions: IRawOption[] = [
   ...twoOptions,
   {
     label: 'Denmark',
@@ -31,7 +31,7 @@ const threeOptions: IOption[] = [
 ];
 
 interface Props extends Partial<RenderGenericComponentTestProps<'Checkboxes'>> {
-  options?: IOption[];
+  options?: IRawOption[];
   formData?: string;
   groupData?: object;
 }
@@ -50,7 +50,7 @@ const render = async ({ component, options, formData, groupData = getFormDataMoc
     queries: {
       fetchOptions: () =>
         options
-          ? Promise.resolve({ data: options, headers: {} } as AxiosResponse<IOption[], any>)
+          ? Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
           : Promise.reject(new Error('No options provided to render()')),
       fetchFormData: async () => (formData ? { selectedValues: formData, ...groupData } : { ...groupData }),
     },

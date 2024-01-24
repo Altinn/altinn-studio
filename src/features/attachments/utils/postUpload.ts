@@ -243,7 +243,7 @@ function useAttachmentsAddTagMutation() {
         throw new Error('Missing instanceId, cannot add attachment');
       }
 
-      return doAttachmentAddTag.call(instanceId, dataGuid, tagToAdd);
+      return doAttachmentAddTag(instanceId, dataGuid, tagToAdd);
     },
     onError: (error: HttpClientError) => {
       window.logError('Failed to add tag to attachment:\n', error);
@@ -261,7 +261,7 @@ function useAttachmentsRemoveTagMutation() {
         throw new Error('Missing instanceId, cannot remove attachment');
       }
 
-      return doAttachmentRemoveTag.call(instanceId, dataGuid, tagToRemove);
+      return doAttachmentRemoveTag(instanceId, dataGuid, tagToRemove);
     },
     onError: (error: HttpClientError) => {
       window.logError('Failed to remove tag from attachment:\n', error);
@@ -279,7 +279,7 @@ function useAttachmentsRemoveMutation() {
         throw new Error('Missing instanceId, cannot remove attachment');
       }
 
-      return doAttachmentRemove.call(instanceId, dataGuid);
+      return doAttachmentRemove(instanceId, dataGuid);
     },
     onError: (error: HttpClientError) => {
       window.logError('Failed to delete attachment:\n', error);

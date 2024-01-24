@@ -97,7 +97,7 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
       if (!instanceGuid || !partyId) {
         throw Error('Cannot perform action without partyId and instanceGuid');
       }
-      return doPerformAction.call(partyId, instanceGuid, { action: action.id, buttonId });
+      return doPerformAction(partyId, instanceGuid, { action: action.id, buttonId });
     },
   });
 

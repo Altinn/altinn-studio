@@ -4,11 +4,7 @@ import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { Form } from 'src/components/form/Form';
-import {
-  type BackendValidationIssue,
-  BackendValidationSeverity,
-  ValidationIssueSources,
-} from 'src/features/validation';
+import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayout } from 'src/layout/layout';
 import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
@@ -145,7 +141,7 @@ describe('Form', () => {
       {
         customTextKey: 'some error message',
         field: 'Group.prop1',
-        source: ValidationIssueSources.Custom,
+        source: 'custom',
         severity: BackendValidationSeverity.Error,
         showImmediately: true,
       } as BackendValidationIssue,
@@ -171,7 +167,7 @@ describe('Form', () => {
           code: 'some unmapped error message',
           field: 'Group[0].prop1',
           severity: BackendValidationSeverity.Error,
-          source: ValidationIssueSources.Custom,
+          source: 'custom',
         } as BackendValidationIssue,
       ],
     );
@@ -179,7 +175,7 @@ describe('Form', () => {
     // Unmapped errors are not shown until submit is clicked
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
-    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
+    await screen.findByTestId('ErrorReport');
   });
 
   it('should separate NavigationButtons and display them inside ErrorReport', async () => {
@@ -195,7 +191,7 @@ describe('Form', () => {
         {
           customTextKey: 'some error message',
           field: 'Group.prop1',
-          source: ValidationIssueSources.Custom,
+          source: 'custom',
           severity: BackendValidationSeverity.Error,
           showImmediately: true,
         } as BackendValidationIssue,

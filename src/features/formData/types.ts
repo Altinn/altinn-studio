@@ -1,11 +1,5 @@
-/**
- * This format is used to represent the form data in a flat structure. It has no hierarchy, and it's difficult to
- * work with objects and arrays in this format. Use it when you need direct access to leaf values (e.g. strings),
- * but use the object format when you need to work with objects and arrays.
- */
-export interface IFormData {
-  [dataFieldKey: string]: string;
-}
+import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
+import type { BackendValidationIssueGroups, BuiltInValidationIssueSources } from 'src/features/validation';
 
 /**
  * This is the default time (in milliseconds) to wait before debouncing the form data. That means, we'll wait this
@@ -17,3 +11,13 @@ export interface IFormData {
  * configured separately by for example saving the data on page navigation only.
  */
 export const DEFAULT_DEBOUNCE_TIMEOUT = 400;
+
+export interface IDataModelPatchRequest {
+  patch: JsonPatch;
+  ignoredValidators: BuiltInValidationIssueSources[];
+}
+
+export interface IDataModelPatchResponse {
+  validationIssues: BackendValidationIssueGroups;
+  newDataModel: object;
+}

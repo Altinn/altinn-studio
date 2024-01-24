@@ -10,7 +10,7 @@ import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type {
   ComponentValidation,
-  FormValidations,
+  FrontendValidations,
   ISchemaValidationError,
   ValidationDataSources,
 } from 'src/features/validation';
@@ -75,7 +75,7 @@ export class Group extends GroupDef implements ValidateAny, ValidateComponent {
     node: LayoutNode,
     ctx: ValidationDataSources,
     schemaErrors: ISchemaValidationError[],
-  ): FormValidations {
+  ): FrontendValidations {
     return runAllValidations(node, ctx, schemaErrors);
   }
 

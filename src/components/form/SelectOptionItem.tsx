@@ -2,10 +2,10 @@ import React from 'react';
 
 import classes from 'src/components/form/SelectOptionItem.module.css';
 import { useLanguage } from 'src/features/language/useLanguage';
-import type { IOption } from 'src/layout/common.generated';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
 type ISelectOptionItemProps = {
-  option: IOption;
+  option: IOptionInternal;
   listHasDescription: boolean;
 };
 

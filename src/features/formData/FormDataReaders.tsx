@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 import dot from 'dot-object';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
+import { Loader } from 'src/core/loading/Loader';
 import { useDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
@@ -75,6 +76,10 @@ export class DataModelReaders {
     protected readonly defaultModel: string,
   ) {}
 
+  getDefaultName(): string {
+    return this.defaultModel;
+  }
+
   getReader(dataModelName: string): DataModelReader {
     const name = dataModelName === 'default' ? this.defaultModel : dataModelName;
 
@@ -103,22 +108,31 @@ export class DataModelReaders {
 }
 
 /**
- * This provider gives us readers for both the current data model and any others we might need to load.
+ * This provider gives us a reader for the current data model.
  * It should only be provided somewhere inside a FormDataWriteProvider when rendering a form.
  */
-export function FormDataReadersProvider({ children }: PropsWithChildren) {
+export function FormDataReaderProvider({ children }: PropsWithChildren) {
   const layoutSetId = useCurrentLayoutSetId();
   const currentDataType = useDataTypeByLayoutSetId(layoutSetId);
   const currentModel = FD.useDebounced();
-  const { updateModel } = useCtx();
+  const { updateModel, readers } = useCtx();
+
+  const readerMemo = useMemo(() => {
+    if (!currentDataType) {
+      return undefined;
+    }
+    return new DataModelReader(currentDataType, currentModel, 'loaded');
+  }, [currentDataType, currentModel]);
 
   useEffect(() => {
-    if (!currentDataType) {
-      return;
+    if (readerMemo) {
+      return updateModel(readerMemo, true);
     }
-    const newModel = new DataModelReader(currentDataType, currentModel, 'loaded');
-    updateModel(newModel, true);
-  }, [currentDataType, currentModel, updateModel]);
+  }, [readerMemo, updateModel]);
+
+  if (!currentDataType || readers.getDefaultName() !== currentDataType) {
+    return <Loader reason={'formDataReader'} />;
+  }
 
   return <>{children}</>;
 }

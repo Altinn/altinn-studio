@@ -4,11 +4,17 @@ import type { MultiSelectOption, SingleSelectOption } from '@digdir/design-syste
 
 import { SelectOptionItem } from 'src/components/form/SelectOptionItem';
 import { useLanguage } from 'src/features/language/useLanguage';
-import type { IOption } from 'src/layout/common.generated';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
-export function useFormattedOptions(options: IOption[] | undefined, includeDeleteLabel?: false): SingleSelectOption[];
-export function useFormattedOptions(options: IOption[] | undefined, includeDeleteLabel: true): MultiSelectOption[];
-export function useFormattedOptions(options: IOption[] | undefined, includeDeleteLabel?: boolean) {
+export function useFormattedOptions(
+  options: IOptionInternal[] | undefined,
+  includeDeleteLabel?: false,
+): SingleSelectOption[];
+export function useFormattedOptions(
+  options: IOptionInternal[] | undefined,
+  includeDeleteLabel: true,
+): MultiSelectOption[];
+export function useFormattedOptions(options: IOptionInternal[] | undefined, includeDeleteLabel?: boolean) {
   const { langAsString } = useLanguage();
   const listHasDescription = options?.some((option) => option.description) || false;
   return useMemo(

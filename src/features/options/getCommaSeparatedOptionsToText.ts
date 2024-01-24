@@ -1,7 +1,11 @@
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { IOption } from 'src/layout/common.generated';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
-export function getCommaSeparatedOptionsToText(value: string, optionList: IOption[], { langAsString }: IUseLanguage) {
+export function getCommaSeparatedOptionsToText(
+  value: string,
+  optionList: IOptionInternal[],
+  { langAsString }: IUseLanguage,
+) {
   const split = value.split(',').filter((value) => !!value.trim());
   const out: { [key: string]: string } = {};
   split?.forEach((part) => {

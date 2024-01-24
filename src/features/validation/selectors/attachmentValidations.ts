@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import type { NodeValidation } from '..';
 
-import { buildNodeValidation, validationsFromGroups } from 'src/features/validation/utils';
+import { buildNodeValidation, selectValidations } from 'src/features/validation/utils';
 import { useValidationContext } from 'src/features/validation/validationContext';
 import { getResolvedVisibilityForAttachment } from 'src/features/validation/visibility';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -18,7 +18,7 @@ export function useAttachmentValidations(node: LayoutNode, attachmentId: string 
     if (!component?.component || !attachmentId) {
       return [];
     }
-    const validations = validationsFromGroups(
+    const validations = selectValidations(
       component.component!,
       getResolvedVisibilityForAttachment(attachmentId, node, visibility),
     );

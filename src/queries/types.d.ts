@@ -8,11 +8,3 @@ type KeysStartingWith<T, U extends string> = {
 
 export type AppQueries = KeysStartingWith<AppQueriesContext, 'fetch'>;
 export type AppMutations = KeysStartingWith<AppQueriesContext, 'do'>;
-
-export type EnhancedMutations = {
-  [K in keyof AppMutations]: {
-    call: AppMutations[K];
-    lastResult: Awaited<ReturnType<AppMutations[K]>> | undefined;
-    setLastResult: (result: Awaited<ReturnType<AppMutations[K]>>) => void;
-  };
-};

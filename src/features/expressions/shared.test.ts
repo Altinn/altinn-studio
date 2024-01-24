@@ -5,6 +5,7 @@ import { convertInstanceDataToAttachments, convertLayouts, getSharedTests } from
 import { asExpression } from 'src/features/expressions/validation';
 import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsMap';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
+import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { getLayoutComponentObject } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
 import { splitDashedKey } from 'src/utils/formLayout';
@@ -79,9 +80,11 @@ describe('Expressions shared function tests', () => {
           instanceDataSources: buildInstanceDataSources(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
           authContext: buildAuthContext(permissions),
-          langTools: staticUseLanguageForTests({
-            textResources: textResources ? resourcesAsMap(textResources) : {},
-          }),
+          langToolsRef: {
+            current: staticUseLanguageForTests({
+              textResources: textResources ? resourcesAsMap(textResources) : {},
+            }),
+          },
           currentLanguage: profileSettings?.language || 'nb',
           options,
         };
@@ -97,7 +100,7 @@ describe('Expressions shared function tests', () => {
           if ('options' in node.item) {
             // Extremely simple mock of useGetOptions() and useAllOptions(), assuming
             // all components use plain static options
-            options[node.item.id] = node.item.options;
+            options[node.item.id] = castOptionsToStrings(node.item.options);
           }
         }
 

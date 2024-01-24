@@ -11,7 +11,7 @@ import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IDisplayLikertContainer {
   groupNode: BaseLayoutNode<CompLikertInternal>;
-  ref?: React.Ref<HTMLDivElement>;
+  divRef?: React.Ref<HTMLDivElement>;
   id?: string;
   onlyRowIndex?: number | undefined;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
@@ -26,7 +26,7 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['size']
 };
 
 export function LargeLikertSummaryContainer({
-  ref,
+  divRef,
   groupNode,
   id,
   onlyRowIndex,
@@ -58,7 +58,7 @@ export function LargeLikertSummaryContainer({
       className={classes.summary}
     >
       <div
-        ref={ref}
+        ref={divRef}
         id={id || container.id}
         data-componentid={container.id}
         data-testid='display-group-container'

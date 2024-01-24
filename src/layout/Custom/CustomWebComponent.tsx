@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -34,16 +34,14 @@ export function CustomWebComponent({
   };
   const Tag = tagName;
   const wcRef = React.useRef<any>(null);
-
-  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
-  const setData = FD.useSetForBindings(dataModelBindings);
+  const { formData, setValue } = useDataModelBindings(dataModelBindings);
 
   React.useLayoutEffect(() => {
     const { current } = wcRef;
     if (current) {
       const handleChange = (customEvent: CustomEvent) => {
         const { value, field } = customEvent.detail;
-        setData(field, value);
+        setValue(field, value);
       };
 
       current.addEventListener('dataChanged', handleChange);
@@ -51,7 +49,7 @@ export function CustomWebComponent({
         current.removeEventListener('dataChanged', handleChange);
       };
     }
-  }, [setData, wcRef]);
+  }, [setValue, wcRef]);
 
   React.useLayoutEffect(() => {
     const { current } = wcRef;
@@ -65,12 +63,10 @@ export function CustomWebComponent({
   React.useLayoutEffect(() => {
     const { current } = wcRef;
     if (current) {
-      current.formData = {
-        simpleBinding: value,
-      };
+      current.formData = formData;
       current.componentValidations = componentValidations;
     }
-  }, [value, componentValidations]);
+  }, [formData, componentValidations]);
 
   if (node.isHidden() || !Tag) {
     return null;

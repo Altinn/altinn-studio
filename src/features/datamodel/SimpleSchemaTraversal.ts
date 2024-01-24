@@ -219,14 +219,16 @@ class SimpleSchemaTraversal {
     return current;
   }
 
-  public getAlternatives(item = this.current): JSONSchema7[] {
-    const alternatives = [this.resolveRef(item)];
+  public getAlternatives(_item = this.current): JSONSchema7[] {
+    const item = this.resolveRef(_item);
+    const alternatives = [item];
     const others = [item.allOf, item.anyOf, item.oneOf].map((list) => list?.map((i) => this.resolveRef(i)));
     for (const other of others) {
-      for (const _item of other || []) {
-        const item = this.resolveRef(_item);
-        if (typeof item === 'object') {
-          alternatives.push(...this.getAlternatives(item));
+      for (const _innerItem of other || []) {
+        const innerItem = this.resolveRef(_innerItem);
+        if (typeof innerItem === 'object') {
+          const innerAlternatives = this.getAlternatives(innerItem);
+          alternatives.push(...innerAlternatives);
         }
       }
     }
@@ -253,14 +255,14 @@ type MinimalError<T extends ErrorUnion> = Omit<
   'isError' | 'error' | 'stoppedAtDotNotation' | 'stoppedAtPointer' | 'fullPointer' | 'fullDotNotation'
 >;
 
-type Ret = [JSONSchema7, undefined] | [undefined, SchemaLookupError];
+export type SchemaLookupResult = [JSONSchema7, undefined] | [undefined, SchemaLookupError];
 
 /**
  * Looks up a binding in a schema to find the corresponding JSON schema definition for that binding.
  * Uses the SimpleSchemaTraversal class to do the actual lookup, but use this function instead of
  * instantiating the class directly.
  */
-export function lookupBindingInSchema(props: Props): Ret {
+export function lookupBindingInSchema(props: Props): SchemaLookupResult {
   const { schema, rootElementPath, targetPointer } = props;
 
   try {

@@ -9,15 +9,12 @@ import {
   getFirstDataElementId,
   useDataTypeByLayoutSetId,
 } from 'src/features/applicationMetadata/appMetadataUtils';
-import { useCurrentDataModelSchema } from 'src/features/datamodel/DataModelSchemaProvider';
-import { dotNotationToPointer } from 'src/features/datamodel/notations';
-import { lookupBindingInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
+import { useLaxCurrentDataModelSchemaLookup } from 'src/features/datamodel/DataModelSchemaProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
-import { getRootElementPath } from 'src/utils/schemaUtils';
 import {
   getAnonymousStatelessDataModelUrl,
   getDataElementUrl,
@@ -26,7 +23,7 @@ import {
 import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
 import type { IDataModelBindings } from 'src/layout/layout';
 
-type AsSchema<T> = {
+export type AsSchema<T> = {
   [P in keyof T]: JSONSchema7 | null;
 };
 
@@ -104,24 +101,15 @@ export function useCurrentDataModelType() {
 }
 
 export function useBindingSchema<T extends IDataModelBindings | undefined>(bindings: T): AsSchema<T> | undefined {
-  const currentSchema = useCurrentDataModelSchema();
-  const dataType = useCurrentDataModelType();
+  const lookup = useLaxCurrentDataModelSchemaLookup();
 
   return useMemo(() => {
     const resolvedBindings = bindings && Object.values(bindings).length ? { ...bindings } : undefined;
-    if (resolvedBindings && currentSchema) {
-      const rootElementPath = getRootElementPath(currentSchema, dataType);
+    if (resolvedBindings && lookup) {
       const out = {} as AsSchema<T>;
       for (const [key, _value] of Object.entries(resolvedBindings)) {
         const value = _value as string;
-        const bindingPointer = dotNotationToPointer(value);
-
-        const [schema] = lookupBindingInSchema({
-          schema: currentSchema,
-          rootElementPath,
-          targetPointer: bindingPointer,
-        });
-
+        const [schema] = lookup.getSchemaForPath(value);
         out[key] = schema || null;
       }
 
@@ -129,5 +117,5 @@ export function useBindingSchema<T extends IDataModelBindings | undefined>(bindi
     }
 
     return undefined;
-  }, [currentSchema, bindings, dataType]);
+  }, [bindings, lookup]);
 }

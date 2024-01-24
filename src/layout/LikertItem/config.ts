@@ -11,7 +11,7 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
   },
 })
-  .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple').optional({ onlyIn: Variant.Internal }))
+  .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .addTextResource(
     new CG.trb({
       name: 'title',

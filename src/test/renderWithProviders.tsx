@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { StrictMode } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
@@ -20,6 +20,7 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import { RenderStart } from 'src/core/ui/RenderStart';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
@@ -30,6 +31,7 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstantiationProvider } from 'src/features/instantiate/InstantiationContext';
+import { LangToolsStoreProvider } from 'src/features/language/LangToolsStore';
 import { LanguageProvider } from 'src/features/language/LanguageProvider';
 import { TextResourcesProvider } from 'src/features/language/textResources/TextResourcesProvider';
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
@@ -44,14 +46,14 @@ import type { IFooterLayout } from 'src/features/footer/types';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
 import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
-import type { IOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternalExact, CompTypes } from 'src/layout/layout';
 import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
-  renderer: () => React.ReactElement;
+  renderer: (() => React.ReactElement) | React.ReactElement;
   router?: (props: PropsWithChildren) => React.ReactNode;
   waitUntilLoaded?: boolean;
   queries?: Partial<AppQueries>;
@@ -107,8 +109,8 @@ export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
   doAttachmentRemove: makeMock('doAttachmentRemove'),
   doAttachmentRemoveTag: makeMock('doAttachmentRemoveTag'),
   doAttachmentUpload: makeMock('doAttachmentUpload'),
-  doPutFormData: makeMock('doPutFormData'),
-  doPostFormData: makeMock('doPostFormData'),
+  doPatchFormData: makeMock('doPatchFormData'),
+  doPostStatelessFormData: makeMock('doPostStatelessFormData'),
   doSetCurrentParty: makeMock('doSetCurrentParty'),
   doInstantiate: makeMock('doInstantiate'),
   doProcessNext: makeMock('doProcessNext'),
@@ -131,7 +133,7 @@ const defaultQueryMocks: AppQueries = {
   fetchRefreshJwtToken: async () => ({}),
   fetchCustomValidationConfig: async () => null,
   fetchFormData: async () => ({}),
-  fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IOption[], any>,
+  fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], any>,
   fetchDataList: async () => ({}) as unknown as IDataList,
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchDynamics: async () => null,
@@ -174,6 +176,8 @@ export const makeFormDataMethodProxies = (
 ): { proxies: FormDataWriteProxies; mocks: FormDataMethods } => {
   const all: { [M in keyof FormDataMethods]: { mock: jest.Mock; proxy: Proxy<M> } } = {
     debounce: makeProxy('debounce', ref),
+    saveStarted: makeProxy('saveStarted', ref),
+    cancelSave: makeProxy('cancelSave', ref),
     saveFinished: makeProxy('saveFinished', ref),
     setLeafValue: makeProxy('setLeafValue', ref),
     setMultiLeafValues: makeProxy('setMultiLeafValues', ref),
@@ -262,33 +266,52 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       queryClient={queryClient}
     >
       <LanguageProvider>
-        <MuiThemeProvider theme={theme}>
-          <PageNavigationProvider>
-            <Router>
-              <ApplicationMetadataProvider>
-                <GlobalFormDataReadersProvider>
-                  <OrgsProvider>
-                    <ApplicationSettingsProvider>
-                      <LayoutSetsProvider>
-                        <ProfileProvider>
-                          <PartyProvider>
-                            <TextResourcesProvider>
-                              <FooterLayoutProvider>
-                                <InstantiationProvider>{children}</InstantiationProvider>
-                              </FooterLayoutProvider>
-                            </TextResourcesProvider>
-                          </PartyProvider>
-                        </ProfileProvider>
-                      </LayoutSetsProvider>
-                    </ApplicationSettingsProvider>
-                  </OrgsProvider>
-                </GlobalFormDataReadersProvider>
-              </ApplicationMetadataProvider>
-            </Router>
-          </PageNavigationProvider>
-        </MuiThemeProvider>
+        <LangToolsStoreProvider>
+          <MuiThemeProvider theme={theme}>
+            <PageNavigationProvider>
+              <Router>
+                <ApplicationMetadataProvider>
+                  <GlobalFormDataReadersProvider>
+                    <OrgsProvider>
+                      <ApplicationSettingsProvider>
+                        <LayoutSetsProvider>
+                          <ProfileProvider>
+                            <PartyProvider>
+                              <TextResourcesProvider>
+                                <FooterLayoutProvider>
+                                  <InstantiationProvider>{children}</InstantiationProvider>
+                                </FooterLayoutProvider>
+                              </TextResourcesProvider>
+                            </PartyProvider>
+                          </ProfileProvider>
+                        </LayoutSetsProvider>
+                      </ApplicationSettingsProvider>
+                    </OrgsProvider>
+                  </GlobalFormDataReadersProvider>
+                </ApplicationMetadataProvider>
+              </Router>
+            </PageNavigationProvider>
+          </MuiThemeProvider>
+        </LangToolsStoreProvider>
       </LanguageProvider>
     </AppQueriesProvider>
+  );
+}
+
+interface InstanceProvidersProps extends PropsWithChildren {
+  formDataProxies: FormDataWriteProxies;
+  waitForAllNodes: boolean;
+}
+
+function InstanceFormAndLayoutProviders({ children, formDataProxies, waitForAllNodes }: InstanceProvidersProps) {
+  return (
+    <InstanceProvider>
+      <FormDataWriteProxyProvider value={formDataProxies}>
+        <FormProvider>
+          <WaitForNodes waitForAllNodes={waitForAllNodes}>{children}</WaitForNodes>
+        </FormProvider>
+      </FormDataWriteProxyProvider>
+    </InstanceProvider>
   );
 }
 
@@ -298,7 +321,9 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       {...queries}
       queryClient={queryClient}
     >
-      <Router>{children}</Router>
+      <LangToolsStoreProvider>
+        <Router>{children}</Router>
+      </LangToolsStoreProvider>
     </AppQueriesProvider>
   );
 }
@@ -378,20 +403,27 @@ const renderBase = async ({
   ) as AppMutations;
 
   const ProviderWrapper = ({ children }: PropsWithChildren) => (
-    <Providers
-      Router={router || PageNavigationRouter({ currentPageId: 'formLayout' })}
-      queryClient={queryClient}
-      queries={{
-        ...queryMocks,
-        ...mutationMocks,
-      }}
-    >
-      {children}
-    </Providers>
+    <StrictMode>
+      <Providers
+        Router={router || PageNavigationRouter({ currentPageId: 'formLayout' })}
+        queryClient={queryClient}
+        queries={{
+          ...queryMocks,
+          ...mutationMocks,
+        }}
+      >
+        <RenderStart
+          devTools={false}
+          dataModelFetcher={false}
+        >
+          {children}
+        </RenderStart>
+      </Providers>
+    </StrictMode>
   );
 
   const startTime = Date.now();
-  const children = renderer();
+  const children = typeof renderer === 'function' ? renderer() : renderer;
   const utils = rtlRender(children, {
     ...renderOptions,
     wrapper: ProviderWrapper,
@@ -508,14 +540,16 @@ export const renderWithInstanceAndLayout = async ({
     ...(await renderBase({
       ...renderOptions,
       initialRenderRef,
-      renderer: () => (
-        <InstanceProvider>
-          <FormDataWriteProxyProvider value={formDataProxies}>
-            <FormProvider>
-              <WaitForNodes waitForAllNodes={true}>{renderer()}</WaitForNodes>
-            </FormProvider>
-          </FormDataWriteProxyProvider>
-        </InstanceProvider>
+      renderer,
+      Providers: ({ children, ...props }: ProvidersProps) => (
+        <DefaultProviders {...props}>
+          <InstanceFormAndLayoutProviders
+            formDataProxies={formDataProxies}
+            waitForAllNodes={true}
+          >
+            {children}
+          </InstanceFormAndLayoutProviders>
+        </DefaultProviders>
       ),
       router: ({ children }) => (
         <InstanceRouter

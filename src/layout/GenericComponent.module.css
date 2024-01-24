@@ -51,3 +51,14 @@
     padding-left: 12px;
   }
 }
+
+.errorFallback {
+  border: 3px solid red;
+  padding: 12px;
+  width: 100%;
+}
+
+/* Gap between multiple .errorFallback over/under each other */
+.errorFallback + .errorFallback {
+  margin-top: 12px;
+}

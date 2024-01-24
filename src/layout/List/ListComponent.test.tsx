@@ -3,9 +3,10 @@ import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -51,11 +52,10 @@ const countries = [
 
 function RenderCounter({ node }: { node: LayoutNode<'List'> }) {
   const renderCount = React.useRef(0);
-  const bindings = node.item.dataModelBindings;
 
   // This simulates the List component data model fetching. It will trigger a re-render of the component once every
   // time any of the data model bindings change.
-  FD.usePickFreshStrings(bindings);
+  useDataModelBindings(node.item.dataModelBindings);
 
   renderCount.current++;
 
@@ -90,6 +90,20 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       ...component,
     },
     queries: {
+      fetchDataModelSchema: async () => ({
+        type: 'object',
+        properties: {
+          CountryName: {
+            type: 'string',
+          },
+          CountryPopulation: {
+            type: 'number',
+          },
+          CountryHighestMountain: {
+            type: 'number',
+          },
+        },
+      }),
       fetchDataList: async () => ({
         listItems: countries,
         _metaData: {
@@ -128,7 +142,7 @@ describe('ListComponent', () => {
     await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
     expect(screen.queryByRole('radio', { checked: true })).not.toBeInTheDocument();
 
-    expect(screen.getByTestId('render-count')).toHaveTextContent('2');
+    expect(screen.getByTestId('render-count')).toHaveTextContent('1');
 
     // Select the second row
     await user.click(screen.getAllByRole('radio')[1]);
@@ -152,20 +166,19 @@ describe('ListComponent', () => {
         { path: 'CountryHighestMountain', newValue: 170 },
       ],
     });
-    expect(screen.getByTestId('render-count')).toHaveTextContent('4');
+    expect(screen.getByTestId('render-count')).toHaveTextContent('5');
 
     // Wait until the debounce timeout has definitely passed, then expect the form data to be saved. It should only
     // be saved once (even though we changed the value twice) because the debouncing happens globally.
     act(() => jest.advanceTimersByTime(2000));
-    await waitFor(() => expect(mutations.doPutFormData.mock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
 
-    const multiPart: FormData = (mutations.doPutFormData.mock as jest.Mock).mock.calls[0][1];
-    const formData = JSON.parse(multiPart.get('dataModel') as string);
-    expect(formData).toEqual({
-      CountryName: 'Denmark',
-      CountryPopulation: '6',
-      CountryHighestMountain: '170',
-    });
+    const patch: JsonPatch = (mutations.doPatchFormData.mock as jest.Mock).mock.calls[0][1].patch;
+    expect(patch).toEqual([
+      { op: 'add', path: '/CountryName', value: 'Denmark' },
+      { op: 'add', path: '/CountryPopulation', value: 6 },
+      { op: 'add', path: '/CountryHighestMountain', value: 170 },
+    ]);
 
     jest.useRealTimers();
   });

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
@@ -9,11 +9,11 @@ import { useOnDeleteGroupRow } from 'src/features/validation/validationContext';
 import { useAsRef, useAsRefObject } from 'src/hooks/useAsRef';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useWaitForState } from 'src/hooks/useWaitForState';
-import type { CompGroupRepeatingInternal } from 'src/layout/RepeatingGroup/config.generated';
+import type { CompRepeatingGroupInternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface RepeatingGroupContext {
-  node: BaseLayoutNode<CompGroupRepeatingInternal>;
+  node: BaseLayoutNode<CompRepeatingGroupInternal>;
 
   // If this is true, we're rendering the group for the first time in this context. This is used to
   // determine whether we should open the first/last row for editing when first displaying the group. If, however,
@@ -47,7 +47,7 @@ const { Provider, useCtx } = createContext<RepeatingGroupContext>({
   required: true,
 });
 
-function usePureStates(node: BaseLayoutNode<CompGroupRepeatingInternal>) {
+function usePureStates(node: BaseLayoutNode<CompRepeatingGroupInternal>) {
   const editingAll = node.item.edit?.mode === 'showAll';
   const editingNone = node.item.edit?.mode === 'onlyTable';
   const binding = node.item.dataModelBindings?.group;
@@ -101,7 +101,7 @@ function usePureStates(node: BaseLayoutNode<CompGroupRepeatingInternal>) {
   };
 }
 
-function useRepeatingGroupState(node: BaseLayoutNode<CompGroupRepeatingInternal>): RepeatingGroupContext {
+function useRepeatingGroupState(node: BaseLayoutNode<CompRepeatingGroupInternal>): RepeatingGroupContext {
   const appendToList = FD.useAppendToList();
   const removeIndexFromList = FD.useRemoveIndexFromList();
   const { onBeforeRowDeletion } = useAttachmentDeletionInRepGroups(node);
@@ -119,8 +119,8 @@ function useRepeatingGroupState(node: BaseLayoutNode<CompGroupRepeatingInternal>
     deletableRowIndexes,
     editingIndex,
   } = useAsRefObject(pureStates);
-  const waitForRows = useWaitForState(node.item.rows);
   const nodeRef = useAsRef(node);
+  const waitForNode = useWaitForState(nodeRef);
 
   const validateOnSaveRow = nodeRef.current.item.validateOnSaveRow;
 
@@ -208,18 +208,21 @@ function useRepeatingGroupState(node: BaseLayoutNode<CompGroupRepeatingInternal>
     [editingAll, editingIndex, editingNone],
   );
 
+  const addingRowRef = useRef<number | false>(false);
   const addRow = useCallback(async () => {
-    if (binding.current && !(await maybeValidateRow())) {
+    if (binding.current && !(await maybeValidateRow()) && addingRowRef.current === false) {
       const nextIndex = nodeRef.current.item.rows.length;
       const nextLength = nextIndex + 1;
+      addingRowRef.current = nextIndex;
       appendToList({
         path: binding.current,
         newValue: {},
       });
-      await waitForRows((rows) => rows.length === nextLength);
-      openForEditing(nextIndex);
+      await waitForNode((node) => node.item.rows.length === nextLength);
+      await openForEditing(nextIndex);
+      addingRowRef.current = false;
     }
-  }, [appendToList, binding, maybeValidateRow, nodeRef, openForEditing, waitForRows]);
+  }, [appendToList, binding, maybeValidateRow, nodeRef, openForEditing, waitForNode]);
 
   const deleteRow = useCallback(
     async (index: number) => {
@@ -308,7 +311,7 @@ function useRepeatingGroupState(node: BaseLayoutNode<CompGroupRepeatingInternal>
 }
 
 interface Props {
-  node: BaseLayoutNode<CompGroupRepeatingInternal>;
+  node: BaseLayoutNode<CompRepeatingGroupInternal>;
 }
 
 export function RepeatingGroupProvider({ node, children }: PropsWithChildren<Props>) {

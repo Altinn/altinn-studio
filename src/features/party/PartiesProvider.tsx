@@ -50,10 +50,7 @@ const useSetCurrentPartyMutation = () => {
   const { doSetCurrentParty } = useAppMutations();
   return useMutation({
     mutationKey: ['doSetCurrentParty'],
-    mutationFn: (party: IParty) => doSetCurrentParty.call(party.partyId),
-    onSuccess: (result) => {
-      doSetCurrentParty.setLastResult(result);
-    },
+    mutationFn: (party: IParty) => doSetCurrentParty(party.partyId),
     onError: (error: HttpClientError) => {
       window.logError('Setting current party failed:\n', error);
     },

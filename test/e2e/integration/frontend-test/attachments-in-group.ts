@@ -6,7 +6,6 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import type { makeUploaderSelectors } from 'test/e2e/pageobjects/app-frontend';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { flattenObject } from 'src/utils/databindings';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 
 const appFrontend = new AppFrontend();
@@ -90,8 +89,9 @@ describe('Repeating group attachments', () => {
     }
   };
 
-  const expectAttachmentsToBe = (expected: any) =>
-    cy.waitUntil(() =>
+  const expectAttachmentsToBe = (expected: any) => {
+    cy.log('Waiting until attachments equals', expected);
+    return cy.waitUntil(() =>
       cy.window().then((win) => {
         const attachments = win.CypressState?.attachments || {};
         const keys = Object.keys(attachments);
@@ -112,9 +112,11 @@ describe('Repeating group attachments', () => {
         return deepEqual(expected, actual);
       }),
     );
+  };
 
-  const expectFormDataToBe = (expected: any) =>
-    cy.waitUntil(() =>
+  const expectFormDataToBe = (expected: any) => {
+    cy.log('Waiting until formData equals', expected);
+    return cy.waitUntil(() =>
       cy.window().then((win) => {
         const formData = win.CypressState?.formData || {};
         const actual: [string, string][] = [];
@@ -131,13 +133,13 @@ describe('Repeating group attachments', () => {
 
         const expectedPrefix = 'Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788';
         const innerObj = dot.pick(expectedPrefix, formData);
-        const innerFlat = flattenObject(innerObj);
+        const innerFlat = dot.dot(innerObj);
         for (const key of Object.keys(innerFlat)) {
           if (key.includes('fileUpload')) {
             const uuid = innerFlat[key];
             if (idToNameMapping[uuid]) {
               actual.push([key.replace(expectedPrefix, ''), idToNameMapping[uuid]]);
-            } else {
+            } else if (uuid !== null) {
               actual.push([key.replace(expectedPrefix, ''), uuid]);
             }
           }
@@ -147,13 +149,14 @@ describe('Repeating group attachments', () => {
         return deepEqual(expected, actualSorted);
       }),
     );
+  };
 
   const interceptFormDataSave = () => {
-    cy.intercept('PUT', getInstanceIdRegExp({ prefix: 'instances', postfix: 'data' })).as('saveInstanceData');
+    cy.intercept('PATCH', getInstanceIdRegExp({ prefix: 'instances', postfix: 'data' })).as('saveInstanceData');
   };
 
   const waitForFormDataSave = () => {
-    cy.wait('@saveInstanceData').its('response.statusCode').should('eq', 201);
+    cy.wait('@saveInstanceData').its('response.statusCode').should('eq', 200);
   };
 
   it('Works when uploading attachments to repeating groups, supports deleting attachments and entire rows', () => {

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import deepEqual from 'fast-deep-equal';
+
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { usePostUpload } from 'src/features/attachments/utils/postUpload';
 import { usePreUpload } from 'src/features/attachments/utils/preUpload';
@@ -25,7 +27,7 @@ interface IAttachmentsMethodsCtx {
 
 interface IAttachmentsStoreCtx {
   attachments: IAttachments;
-  setAttachments(attachments: IAttachments): void;
+  setAttachments: React.Dispatch<React.SetStateAction<IAttachments>>;
 }
 
 const {
@@ -57,7 +59,12 @@ export const AttachmentsProvider = ({ children }: PropsWithChildren) => {
   const attachments = useMemo(() => mergeAndSort(preUpload, postUpload), [preUpload, postUpload]);
 
   useEffect(() => {
-    setAttachments(attachments);
+    setAttachments((oldAttachments) => {
+      if (deepEqual(oldAttachments, attachments)) {
+        return oldAttachments;
+      }
+      return attachments;
+    });
   }, [attachments, setAttachments]);
 
   return (

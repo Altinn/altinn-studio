@@ -138,7 +138,7 @@ async function render(props: TestProps) {
 
 describe('FormDataReaders', () => {
   beforeAll(() => {
-    jest.spyOn(window, 'logWarn').mockImplementation(() => {});
+    jest.spyOn(window, 'logWarnOnce').mockImplementation(() => {});
     jest.spyOn(window, 'logError').mockImplementation(() => {});
     jest.spyOn(window, 'logErrorOnce').mockImplementation(() => {});
   });
@@ -292,14 +292,12 @@ describe('FormDataReaders', () => {
     expect(window.logError).toHaveBeenCalledTimes(1);
     expect(window.logError).toHaveBeenCalledWith('Fetching form data failed:\n', missingError);
 
-    expect(window.logErrorOnce).toHaveBeenCalledTimes(1);
     expect(window.logErrorOnce).toHaveBeenCalledWith(
       `One or more text resources look up variables from 'dataModel.modelMissing', but we failed to fetch it:\n`,
       missingError,
     );
 
-    expect(window.logWarn).toHaveBeenCalledTimes(1);
-    expect(window.logWarn).toHaveBeenCalledWith(
+    expect(window.logWarnOnce).toHaveBeenCalledWith(
       `A text resource variable with key 'name' did not exist in the data model 'modelMissing'. ` +
         `You may want to set a defaultValue to prevent the full key from being presented to the user.`,
     );

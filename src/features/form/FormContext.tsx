@@ -29,8 +29,8 @@ export function FormProvider({ children }: React.PropsWithChildren) {
           <PageNavigationProvider>
             <DynamicsProvider>
               <RulesProvider>
-                <InitialFormDataProvider>
-                  <DataModelSchemaProvider>
+                <DataModelSchemaProvider>
+                  <InitialFormDataProvider>
                     <AttachmentsStoreProvider>
                       <AllOptionsStoreProvider>
                         <NodesProvider>
@@ -50,8 +50,8 @@ export function FormProvider({ children }: React.PropsWithChildren) {
                         </NodesProvider>
                       </AllOptionsStoreProvider>
                     </AttachmentsStoreProvider>
-                  </DataModelSchemaProvider>
-                </InitialFormDataProvider>
+                  </InitialFormDataProvider>
+                </DataModelSchemaProvider>
               </RulesProvider>
             </DynamicsProvider>
           </PageNavigationProvider>

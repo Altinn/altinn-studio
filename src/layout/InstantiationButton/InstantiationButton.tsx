@@ -4,32 +4,30 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
-import { mapFormData } from 'src/utils/databindings';
 import type { IInstantiationButtonComponentProvidedProps } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 
 type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedProps>, 'text'>;
 
 export const InstantiationButton = ({ children, ...props }: Props) => {
-  const instantiation = useInstantiation();
-  const formData = FD.useDebouncedDotMap();
+  const { instantiateWithPrefill, error, isLoading } = useInstantiation();
+  const prefill = FD.useMapping(props.mapping);
   const party = useCurrentParty();
 
   const instantiate = () => {
-    const prefill = mapFormData(formData, props.mapping);
-    instantiation.instantiateWithPrefill(props.node, {
+    instantiateWithPrefill(props.node, {
       prefill,
       instanceOwner: {
         partyId: party?.partyId.toString(),
       },
     });
   };
-  const busyWithId = instantiation.isLoading ? props.id : '';
+  const busyWithId = isLoading ? props.id : '';
 
   React.useEffect(() => {
-    if (instantiation.error) {
-      throw new Error('Something went wrong trying to start new instance');
+    if (error) {
+      throw error;
     }
-  }, [instantiation.error]);
+  }, [error]);
 
   return (
     <WrappedButton

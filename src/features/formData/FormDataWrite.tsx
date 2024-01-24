@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useMutation } from '@tanstack/react-query';
@@ -9,35 +9,29 @@ import deepEqual from 'fast-deep-equal';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
+import { useCurrentDataModelSchemaLookup } from 'src/features/datamodel/DataModelSchemaProvider';
 import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
-import { diffModels } from 'src/features/formData/diffModels';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
-import { useAsRef } from 'src/hooks/useAsRef';
-import { useIsDev } from 'src/hooks/useIsDev';
+import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
+import { useAsRef, useAsRefFromLaxSelector } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
-import { flattenObject } from 'src/utils/databindings';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
+import type { SchemaLookupTool } from 'src/features/datamodel/DataModelSchemaProvider';
 import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
-import type { FDNewValues, FormDataContext } from 'src/features/formData/FormDataWriteStateMachine';
-import type { IFormData } from 'src/features/formData/index';
-import type { SaveWhileTyping } from 'src/layout/common.generated';
+import type { FormDataContext } from 'src/features/formData/FormDataWriteStateMachine';
+import type { BackendValidationIssueGroups } from 'src/features/validation';
+import type { IMapping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { IDataAfterDataModelSave } from 'src/types/shared';
 
-export type FDValue = string | number | boolean | object | undefined | null | FDValue[];
-
-type SetLeafValueForBindings<B extends IDataModelBindings> = (key: keyof Exclude<B, undefined>, newValue: any) => void;
-type SetMultiLeafValuesForBindings<B extends IDataModelBindings> = (
-  changes: { binding: keyof Exclude<B, undefined>; newValue: any }[],
-) => void;
+export type FDLeafValue = string | number | boolean | null | undefined;
+export type FDValue = FDLeafValue | object | FDValue[];
 
 interface MutationArg {
   dataModelUrl: string;
-  newData: object;
-  diff: Record<string, any>;
+  next: object;
+  prev: object;
 }
 
 interface FormDataContextInitialProps {
@@ -46,56 +40,43 @@ interface FormDataContextInitialProps {
   autoSaving: boolean;
   proxies: FormDataWriteProxies;
   ruleConnections: IRuleConnections | null;
+  schemaLookup: SchemaLookupTool;
 }
 
-const { Provider, useSelector, useLaxSelector } = createZustandContext({
+const { Provider, useSelector, useMemoSelector, useLaxSelector, useLaxStore } = createZustandContext({
   name: 'FormDataWrite',
   required: true,
-  initialCreateStore: ({ url, initialData, autoSaving, proxies, ruleConnections }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(url, initialData, autoSaving, proxies, ruleConnections),
+  initialCreateStore: ({
+    url,
+    initialData,
+    autoSaving,
+    proxies,
+    ruleConnections,
+    schemaLookup,
+  }: FormDataContextInitialProps) =>
+    createFormDataWriteStore(url, initialData, autoSaving, proxies, ruleConnections, schemaLookup),
 });
 
-function createFormDataRequestFromDiff(modelToSave: object, diff: object, pretty?: boolean) {
-  const data = new FormData();
-  data.append('dataModel', JSON.stringify(modelToSave, undefined, pretty ? 2 : undefined));
-  data.append('previousValues', JSON.stringify(diff, undefined, pretty ? 2 : undefined));
-  return data;
-}
-
 const useFormDataSaveMutation = (ctx: FormDataContext) => {
-  const { doPutFormData, doPostFormData } = useAppMutations();
-  const { saveFinished } = ctx;
-  const isDev = useIsDev();
+  const { doPatchFormData, doPostStatelessFormData } = useAppMutations();
+  const { saveStarted, saveFinished } = ctx;
   const isStateless = useIsStatelessApp();
 
   return useMutation({
     mutationKey: ['saveFormData'],
     mutationFn: async (arg: MutationArg) => {
-      const { dataModelUrl, newData, diff } = arg;
-      const data = createFormDataRequestFromDiff(newData, diff, isDev);
-      try {
-        if (isStateless) {
-          const newModel = await doPostFormData.call(dataModelUrl, data);
-          doPostFormData.setLastResult(newModel);
-          saveFinished(newData, { newModel });
-        } else {
-          const metaData = await doPutFormData.call(dataModelUrl, data);
-          doPutFormData.setLastResult(metaData);
-          saveFinished(newData, { changedFields: metaData.changedFields });
-        }
-      } catch (error) {
-        if (isAxiosError(error) && error.response?.status === 303) {
-          // Fallback to old behavior if the server responds with 303 when there are changes. We handle these just
-          // like we handle 200 responses.
-          const data = error.response.data as IDataAfterDataModelSave;
-          if (isStateless) {
-            saveFinished(newData, { newModel: data });
-          } else {
-            saveFinished(newData, { changedFields: data.changedFields });
-          }
-          return;
-        }
-        throw error;
+      const { dataModelUrl, next, prev } = arg;
+      saveStarted();
+      if (isStateless) {
+        const newDataModel = await doPostStatelessFormData(dataModelUrl, next);
+        saveFinished({ newDataModel, savedData: next, validationIssues: undefined });
+      } else {
+        const patch = createPatch({ prev, next });
+        const result = await doPatchFormData(dataModelUrl, {
+          patch,
+          ignoredValidators: [],
+        });
+        saveFinished({ ...result, patch, savedData: next });
       }
     },
   });
@@ -110,6 +91,7 @@ interface FormDataWriterProps extends PropsWithChildren {
 export function FormDataWriteProvider({ url, initialData, autoSaving, children }: FormDataWriterProps) {
   const proxies = useFormDataWriteProxies();
   const ruleConnections = useRuleConnections();
+  const schemaLookup = useCurrentDataModelSchemaLookup();
 
   return (
     <Provider
@@ -118,6 +100,7 @@ export function FormDataWriteProvider({ url, initialData, autoSaving, children }
       proxies={proxies}
       initialData={initialData}
       ruleConnections={ruleConnections}
+      schemaLookup={schemaLookup}
     >
       <FormDataEffects url={url} />
       {children}
@@ -127,9 +110,9 @@ export function FormDataWriteProvider({ url, initialData, autoSaving, children }
 
 function FormDataEffects({ url }: { url: string }) {
   const state = useSelector((s) => s);
-  const { currentData, debouncedCurrentData, lastSavedData, controlState } = state;
-  const { debounceTimeout, autoSaving, manualSaveRequested, lockedBy } = controlState;
-  const { mutate, isLoading: isSaving, error } = useFormDataSaveMutation(state);
+  const { currentData, debouncedCurrentData, lastSavedData, controlState, hasUnsavedChanges, cancelSave } = state;
+  const { debounceTimeout, autoSaving, manualSaveRequested, lockedBy, isSaving } = controlState;
+  const { mutate, error } = useFormDataSaveMutation(state);
   const debounce = useDebounceImmediately();
 
   // This component re-renders on every keystroke in a form field. We don't want to save on every keystroke, nor
@@ -147,21 +130,21 @@ function FormDataEffects({ url }: { url: string }) {
 
   const performSave = useCallback(
     (dataToSave: object) => {
-      if (deepEqual(dataToSave, lastSavedDataRef.current) || isSavingRef.current) {
+      if (isSavingRef.current) {
+        return;
+      }
+      if (deepEqual(dataToSave, lastSavedDataRef.current)) {
+        cancelSave();
         return;
       }
 
-      const toSaveFlat = flattenObject(dataToSave);
-      const lastSavedDataFlat = flattenObject(lastSavedDataRef.current);
-      const diff = diffModels(toSaveFlat, lastSavedDataFlat);
-
       mutate({
         dataModelUrl: url,
-        newData: dataToSave,
-        diff,
+        next: dataToSave,
+        prev: lastSavedDataRef.current,
       });
     },
-    [isSavingRef, lastSavedDataRef, mutate, url],
+    [cancelSave, isSavingRef, lastSavedDataRef, mutate, url],
   );
 
   // Debounce the data model when the user stops typing. This has the effect of triggering the useEffect below,
@@ -178,29 +161,36 @@ function FormDataEffects({ url }: { url: string }) {
 
   // Save the data model when the data has been frozen to debouncedCurrentData and is different from the saved data
   useEffect(() => {
-    const hasUnsavedDebouncedChanges =
-      debouncedCurrentData !== lastSavedData && !deepEqual(debouncedCurrentData, lastSavedData);
+    const isDebounced = currentData === debouncedCurrentData;
+    if (isDebounced && !isSaving && !lockedBy && (autoSaving || manualSaveRequested)) {
+      const hasUnsavedDebouncedChanges =
+        debouncedCurrentData !== lastSavedData && !deepEqual(debouncedCurrentData, lastSavedData);
 
-    const shouldSave = hasUnsavedDebouncedChanges && !isSaving && !lockedBy;
-
-    if (shouldSave && (autoSaving || manualSaveRequested)) {
-      performSave(debouncedCurrentData);
+      if (hasUnsavedDebouncedChanges) {
+        performSave(debouncedCurrentData);
+      }
     }
-  }, [autoSaving, debouncedCurrentData, isSaving, lastSavedData, lockedBy, manualSaveRequested, performSave]);
+  }, [
+    autoSaving,
+    currentData,
+    debouncedCurrentData,
+    isSaving,
+    lastSavedData,
+    lockedBy,
+    manualSaveRequested,
+    performSave,
+  ]);
 
   // Always save unsaved changes when the user navigates away from the page and this component is unmounted.
   // We cannot put the current and last saved data in the dependency array, because that would cause the effect
   // to trigger when the user is typing, which is not what we want.
   useEffect(
     () => () => {
-      const hasUnsavedChanges =
-        currentDataRef.current !== lastSavedDataRef.current &&
-        !deepEqual(currentDataRef.current, lastSavedDataRef.current);
       if (hasUnsavedChanges) {
         performSave(currentDataRef.current);
       }
     },
-    [currentDataRef, lastSavedDataRef, performSave],
+    [currentDataRef, hasUnsavedChanges, performSave],
   );
 
   // Sets the debounced data in the window object, so that Cypress tests can access it.
@@ -234,39 +224,53 @@ const useDebounceImmediately = () => {
   }, [debounce]);
 };
 
-/**
- * TODO: This is being called from a lot of places now, and it should be optimized. Instead of calculating it
- * every time, we should probably store this in the zustand context.
- */
 const useHasUnsavedChanges = () => {
-  const result = useLaxSelector((s) => s.lastSavedData !== s.currentData && !deepEqual(s.lastSavedData, s.currentData));
+  const result = useLaxSelector((s) => s.hasUnsavedChanges);
   if (result === ContextNotProvided) {
     return false;
   }
   return result;
 };
 
+type FromRef<T> = T extends React.MutableRefObject<infer U> ? U : T;
 const useWaitForSave = () => {
   const requestSave = useRequestManualSave();
   const url = useLaxSelector((s) => s.controlState.saveUrl);
-  const hasUnsavedChanges = useHasUnsavedChanges();
-  const waitForUnsaved = useWaitForState(hasUnsavedChanges);
+  const ref = useAsRefFromLaxSelector(useLaxStore(), (s) => ({
+    hasUnsavedChanges: s.hasUnsavedChanges,
+    isSaving: s.controlState.isSaving,
+    validation: s.validationIssues,
+  }));
+  const waitFor = useWaitForState<BackendValidationIssueGroups | undefined, FromRef<typeof ref>>(ref);
 
   return useCallback(
-    (requestManualSave = false) => {
+    async (requestManualSave = false): Promise<BackendValidationIssueGroups | undefined> => {
       if (url === ContextNotProvided) {
-        return Promise.resolve();
+        return Promise.resolve(undefined);
       }
 
       if (requestManualSave) {
         requestSave();
       }
 
-      return waitForUnsaved((hasUnsavedChanges) => !hasUnsavedChanges);
+      return await waitFor((state, setReturnValue) => {
+        if (state === ContextNotProvided) {
+          setReturnValue(undefined);
+          return true;
+        }
+        if (!state.hasUnsavedChanges && !state.isSaving) {
+          setReturnValue(state.validation);
+          return true;
+        }
+
+        return false;
+      });
     },
-    [requestSave, url, waitForUnsaved],
+    [requestSave, url, waitFor],
   );
 };
+
+const emptyObject: any = {};
 
 export const FD = {
   /**
@@ -278,77 +282,34 @@ export const FD = {
   },
 
   /**
-   * This will return the form data as a deep object, just like the server sends it to us (and the way we send it back).
-   * This will always give you the latest data, which is always the data the backend has saved.
-   */
-  useLastSaved(): object {
-    return useSelector((v) => v.lastSavedData);
-  },
-
-  /**
-   * This will return the form data as a dot map, where the keys are dot-separated paths. This is the same format
-   * as the older form data. Consider using any of the newer methods instead, which may come with performance benefits.
-   * This will always give you the debounced (late) data, which may or may not be saved to the backend yet.
-   */
-  useDebouncedDotMap(): IFormData {
-    const debouncedCurrentData = useSelector((v) => v.debouncedCurrentData);
-    return useMemo(() => flattenObject(debouncedCurrentData), [debouncedCurrentData]);
-  },
-
-  /**
-   * This returns a single value, as picked from the form data. The data is always converted to a string.
-   * If the path points to a complex data type, like an object or array, an empty string is returned.
-   * Use this when you expect a string/leaf value, and provide that to a controlled React component
-   */
-  usePickFreshString: (path: string | undefined): string => {
-    const value = useSelector((v) => (path ? dot.pick(path, v.currentData) : undefined));
-    return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? value.toString() : '';
-  },
-
-  /**
-   * This is like the one above, but for multiple values. The values in the input object is expected to be
-   * dot-separated paths, and the return value will be an object with the same keys, but with the values picked
-   * from the form data.
-   */
-  usePickFreshStrings: <B extends IDataModelBindings>(_bindings: B): { [key in keyof B]: string } => {
-    const bindings = _bindings as any;
-    return useSelector((s) => {
-      const out: any = {};
-      if (bindings) {
-        for (const key of Object.keys(bindings)) {
-          const value = dot.pick(bindings[key], s.currentData);
-          if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            out[key] = value;
-          } else {
-            out[key] = '';
-          }
-        }
-      }
-      return out;
-    });
-  },
-
-  /**
-   * This returns a value, as picked from the form data. It may also return an array, object or null.
-   * If you only expect a string/leaf value, use usePickString() instead.
-   */
-  usePickFreshAny: (path: string | undefined): FDValue =>
-    useSelector((s) => (path ? dot.pick(path, s.currentData) : undefined)),
-
-  /**
    * This returns multiple values, as picked from the form data. The values in the input object is expected to be
    * dot-separated paths, and the return value will be an object with the same keys, but with the values picked
    * from the form data. If a value is not found, undefined is returned. Null may also be returned if the value
    * is explicitly set to null.
    */
-  useFreshBindings: <T extends IDataModelBindings | undefined>(
+  useFreshBindings: <T extends IDataModelBindings | undefined, O extends 'raw' | 'string'>(
     bindings: T,
-  ): T extends undefined ? Record<string, never> : { [key in keyof T]: FDValue } =>
-    useSelector((s) => {
+    dataAs: O,
+  ): T extends undefined ? Record<string, never> : { [key in keyof T]: O extends 'raw' ? FDValue : string } =>
+    useMemoSelector((s) => {
+      if (!bindings || Object.keys(bindings).length === 0) {
+        return emptyObject;
+      }
       const out: any = {};
-      if (bindings) {
-        for (const key of Object.keys(bindings)) {
-          out[key] = dot.pick(bindings[key], s.currentData);
+      for (const key of Object.keys(bindings)) {
+        const invalidValue = dot.pick(bindings[key], s.invalidCurrentData);
+        if (invalidValue !== undefined) {
+          out[key] = invalidValue;
+          continue;
+        }
+
+        const value = dot.pick(bindings[key], s.currentData);
+        if (dataAs === 'raw') {
+          out[key] = value;
+        } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          out[key] = String(value);
+        } else {
+          out[key] = '';
         }
       }
 
@@ -356,103 +317,74 @@ export const FD = {
     }),
 
   /**
+   * This returns multiple values, as picked from the form data. The values in the input object is expected to be
+   * dot-separated paths, and the return value will be an object with the same keys, but with boolean values
+   * indicating whether the current value is valid according to the schema or not. As an example, when typing '-5' into
+   * a number field that maps to a number-typed property in the data model, the value will be invalid when the user
+   * has only typed the '-' sign, but will be valid when the user has typed '-5'. We still store the invalid value
+   * temporarily, so that the user can see what they have typed, but we don't send that value to the backend, even
+   * when the user stops typing and the invalid value stays. This hook allows you to check whether the value is valid
+   * and warn the user if it is not.
+   */
+  useBindingsAreValid: <T extends IDataModelBindings | undefined>(bindings: T): { [key in keyof T]: boolean } =>
+    useMemoSelector((s) => {
+      if (!bindings || Object.keys(bindings).length === 0) {
+        return emptyObject;
+      }
+      const out: any = {};
+      for (const key of Object.keys(bindings)) {
+        out[key] = dot.pick(bindings[key], s.invalidCurrentData) === undefined;
+      }
+      return out;
+    }),
+
+  /**
+   * This returns an object that can be used to generate a query string for parts of the current form data.
+   * It is almost the same as usePickFreshStrings(), but with important differences:
+   *   1. The _keys_ in the input are expected to contain the data model paths, not the values. Mappings are reversed
+   *      in that sense.
+   *   2. The data is fetched from the debounced model, not the fresh/current one. That ensures queries that are
+   *      generated from this hook are more stable, and aren't re-fetched on every keystroke.
+   *   3. Values that don't exist in the debounced model are not included in the output at all.
+   */
+  useMapping: <D extends 'string' | 'raw' = 'string'>(
+    mapping: IMapping | undefined,
+    dataAs?: D,
+  ): D extends 'raw' ? { [key: string]: FDValue } : { [key: string]: string } =>
+    useMemoSelector((s) => {
+      const realDataAs = dataAs || 'string';
+      const out: any = {};
+      if (mapping) {
+        for (const key of Object.keys(mapping)) {
+          const outputKey = mapping[key];
+          const value = dot.pick(key, s.debouncedCurrentData);
+          if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            out[outputKey] = realDataAs === 'raw' ? value : String(value);
+          } else if (value && realDataAs === 'string') {
+            out[outputKey] = JSON.stringify(value);
+          } else if (value && realDataAs === 'raw') {
+            out[outputKey] = value;
+          }
+        }
+      }
+      return out;
+    }),
+
+  /**
    * This returns the raw method for setting a value in the form data. This is useful if you want to
-   * set a value in the form data.
+   * set a value in the form data. This is probably too low-level for what you really want to do, so
+   * consider using something like useDataModelBindings() instead.
+   * @see useDataModelBindings
    */
   useSetLeafValue: () => useSelector((s) => s.setLeafValue),
 
   /**
-   * Use this hook to get a function you can use to set a single value in the form data, using a binding.
+   * This returns the raw method for setting multiple leaf values in the form data at once. This is
+   * useful if you want to many values at the same time, atomically. This is probably too low-level
+   * for what you really want to do, so consider using something like useDataModelBindings() instead.
+   * @see useDataModelBindings
    */
-  useSetForBinding: (binding: string | undefined, saveWhileTyping?: SaveWhileTyping) => {
-    const setLeafValue = useSelector((s) => s.setLeafValue);
-
-    return useCallback(
-      (newValue: any) => {
-        if (!binding) {
-          window.logWarn(`No data model binding found, silently ignoring request to save ${newValue}`);
-          return;
-        }
-        setLeafValue({
-          path: binding,
-          newValue,
-          debounceTimeout: typeof saveWhileTyping === 'number' ? saveWhileTyping : undefined,
-        });
-      },
-      [binding, saveWhileTyping, setLeafValue],
-    );
-  },
-
-  /**
-   * Use this hook to get a function you can use to set multiple values in the form data, using a data model bindings
-   * object.
-   */
-  useSetForBindings: <B extends IDataModelBindings>(
-    bindings: B,
-    saveWhileTyping?: SaveWhileTyping,
-  ): SetLeafValueForBindings<B> => {
-    const setLeafValue = useSelector((s) => s.setLeafValue);
-
-    return useCallback(
-      (key: keyof B, newValue: any) => {
-        const binding = (bindings as any)[key];
-        if (!binding) {
-          const keyAsString = key as string;
-          window.logWarn(
-            `No data model binding found for ${keyAsString}, silently ignoring request to save ${newValue}`,
-          );
-          return;
-        }
-        setLeafValue({
-          path: binding,
-          newValue,
-          debounceTimeout: typeof saveWhileTyping === 'number' ? saveWhileTyping : undefined,
-        });
-      },
-      [bindings, saveWhileTyping, setLeafValue],
-    );
-  },
-
-  /**
-   * Use this hook to get a function you can use to set multiple values in the form data atomically, using a data model
-   * bindings object.
-   */
-  useMultiSetForBindings: <B extends IDataModelBindings>(
-    bindings: B,
-    saveWhileTyping?: SaveWhileTyping,
-  ): SetMultiLeafValuesForBindings<B> => {
-    const setMultiLeafValues = useSelector((s) => s.setMultiLeafValues);
-
-    return useCallback(
-      (changes: { binding: keyof B; newValue: any }[]) => {
-        const realChanges: FDNewValues = {
-          changes: [],
-          debounceTimeout: typeof saveWhileTyping === 'number' ? saveWhileTyping : undefined,
-        };
-
-        for (const change of changes) {
-          const { binding: key, newValue } = change;
-          const bindingPath = (bindings as any)[key];
-          if (!bindingPath) {
-            const keyAsString = key as string;
-            window.logWarn(
-              `No data model binding found for ${keyAsString}, silently ignoring request to save ${newValue}`,
-            );
-            return;
-          }
-          realChanges.changes.push({
-            path: bindingPath,
-            newValue,
-          });
-        }
-
-        if (realChanges.changes.length > 0) {
-          setMultiLeafValues(realChanges);
-        }
-      },
-      [bindings, saveWhileTyping, setMultiLeafValues],
-    );
-  },
+  useSetMultiLeafValues: () => useSelector((s) => s.setMultiLeafValues),
 
   /**
    * The locking functionality allows you to prevent form data from saving, even if the user stops typing (or navigates
@@ -557,4 +489,9 @@ export const FD = {
    * safer alternative to useRemoveIndexFromList().
    */
   useRemoveValueFromList: () => useSelector((s) => s.removeValueFromList),
+
+  /**
+   * Returns the latest validation issues from the backend, from the last time the form data was saved.
+   */
+  useLastSaveValidationIssues: () => useSelector((s) => s.validationIssues),
 };

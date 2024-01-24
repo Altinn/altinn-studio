@@ -1,7 +1,7 @@
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { IOption } from 'src/layout/common.generated';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
-export function getSelectedValueToText(value: string, { langAsString }: IUseLanguage, optionList: IOption[]) {
+export function getSelectedValueToText(value: string, { langAsString }: IUseLanguage, optionList: IOptionInternal[]) {
   const label = optionList.find((option) => option.value === value)?.label;
 
   if (!label) {

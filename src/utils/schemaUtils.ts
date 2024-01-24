@@ -3,10 +3,10 @@ import type { JSONSchema7 } from 'json-schema';
 
 import type { IDataType } from 'src/types/shared';
 
-export const getRootElementPath = (schema: any, dataType: IDataType | undefined) => {
+export const getRootElementPath = (schema: any, dataType: IDataType | undefined): string => {
   if (![null, undefined].includes(schema.info?.rootNode)) {
     // If rootNode is defined in the schema
-    return schema.info.rootNode;
+    return schema.info.rootNode as string;
   }
   if (schema.info?.meldingsnavn && schema.properties) {
     // SERES workaround

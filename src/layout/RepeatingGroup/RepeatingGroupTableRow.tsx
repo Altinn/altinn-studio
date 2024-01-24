@@ -24,8 +24,8 @@ import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { AlertOnChange } from 'src/hooks/useAlertOnChange';
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type {
-  CompGroupRepeatingExternal,
-  CompGroupRepeatingInternal,
+  CompRepeatingGroupExternal,
+  CompRepeatingGroupInternal,
   IGroupEditPropertiesInternal,
 } from 'src/layout/RepeatingGroup/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -58,7 +58,7 @@ function getTableTitle(textResourceBindings: ITextResourceBindings) {
 function getEditButtonText(
   isEditing: boolean,
   langTools: IUseLanguage,
-  textResourceBindings: CompGroupRepeatingInternal['textResourceBindings'] | undefined,
+  textResourceBindings: CompRepeatingGroupInternal['textResourceBindings'] | undefined,
 ) {
   const buttonTextKey = isEditing
     ? textResourceBindings?.edit_button_close
@@ -96,7 +96,7 @@ export function RepeatingGroupTableRow({
   const resolvedTextBindings = {
     ...group.textResourceBindings,
     ...expressionsForRow?.textResourceBindings,
-  } as CompGroupRepeatingInternal['textResourceBindings'];
+  } as CompRepeatingGroupInternal['textResourceBindings'];
 
   const rowValdiations = useDeepValidationsForNode(node, true, index);
   const rowHasErrors = hasValidationErrors(rowValdiations);
@@ -308,7 +308,7 @@ export function RepeatingGroupTableRow({
 export function shouldEditInTable(
   groupEdit: IGroupEditPropertiesInternal,
   tableNode: LayoutNode,
-  columnSettings: CompGroupRepeatingExternal['tableColumns'],
+  columnSettings: CompRepeatingGroupExternal['tableColumns'],
 ) {
   const column = columnSettings && columnSettings[tableNode.item.baseComponentId || tableNode.item.id];
   if (groupEdit?.mode === 'onlyTable' && column?.editInTable !== false) {

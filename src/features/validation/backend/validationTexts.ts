@@ -1,8 +1,8 @@
 import type { ValidLanguageKey } from 'src/features/language/useLanguage';
-import type { ValidationIssueSources } from 'src/features/validation';
+import type { BuiltInValidationIssueSources } from 'src/features/validation';
 
 export type IValidationTextMap = {
-  [source in ValidationIssueSources]?: {
+  [source in BuiltInValidationIssueSources]?: {
     [code: string]: ValidLanguageKey | undefined;
   };
 };

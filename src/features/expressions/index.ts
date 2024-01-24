@@ -586,7 +586,7 @@ export const ExprFunctions = {
       return component.def.getDisplayData(component as any, {
         attachments: this.dataSources.attachments,
         options: this.dataSources.options,
-        langTools: this.dataSources.langTools,
+        langTools: this.dataSources.langToolsRef.current,
         currentLanguage: this.dataSources.currentLanguage,
       });
     },
@@ -621,7 +621,7 @@ export const ExprFunctions = {
         return null;
       }
 
-      return this.dataSources.langTools.langAsNonProcessedString(key);
+      return this.dataSources.langToolsRef.current.langAsNonProcessedString(key);
     },
     args: [ExprVal.String] as const,
     returns: ExprVal.String,

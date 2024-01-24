@@ -212,11 +212,8 @@ describe('Frontend urlHelper.ts', () => {
     it('should return correct url when no language is passed and formData/dataMapping is provided', () => {
       const result = getOptionsUrl({
         optionsId: 'country',
-        formData: {
-          country: 'Norway',
-        },
-        dataMapping: {
-          country: 'selectedCountry',
+        queryParameters: {
+          selectedCountry: 'Norway',
         },
       });
 
@@ -226,11 +223,7 @@ describe('Frontend urlHelper.ts', () => {
     it('should return correct url when fixed query parameters is provided', () => {
       const result = getOptionsUrl({
         optionsId: 'country',
-        formData: {
-          country: 'Norway',
-        },
-        dataMapping: undefined,
-        fixedQueryParameters: {
+        queryParameters: {
           level: '1',
         },
       });
@@ -241,14 +234,9 @@ describe('Frontend urlHelper.ts', () => {
     it('should return correct url when fixed query parameters and dataMapping is provided', () => {
       const result = getOptionsUrl({
         optionsId: 'country',
-        formData: {
-          country: 'Norway',
-        },
-        dataMapping: {
-          country: 'selectedCountry',
-        },
-        fixedQueryParameters: {
+        queryParameters: {
           level: '1',
+          selectedCountry: 'Norway',
         },
       });
 
@@ -259,13 +247,9 @@ describe('Frontend urlHelper.ts', () => {
       const result = getOptionsUrl({
         optionsId: 'country',
         language: 'en',
-        formData: {
-          country: 'Norway',
-          postCode: '0123',
-        },
-        dataMapping: {
-          country: 'selectedCountry',
-          postCode: 'selectedPostCode',
+        queryParameters: {
+          selectedCountry: 'Norway',
+          selectedPostCode: '0123',
         },
       });
 
@@ -278,13 +262,9 @@ describe('Frontend urlHelper.ts', () => {
       const result = getOptionsUrl({
         optionsId: 'country',
         language: 'en',
-        formData: {
-          country: 'Norway',
-          postCode: '0123',
-        },
-        dataMapping: {
-          country: 'selectedCountry',
-          postCode: 'selectedPostCode',
+        queryParameters: {
+          selectedCountry: 'Norway',
+          selectedPostCode: '0123',
         },
         secure: true,
         instanceId: 'someInstanceId',

@@ -62,7 +62,7 @@ export class GenerateComponentLike {
           | 'IDataModelBindingsSimple'
           | 'IDataModelBindingsList'
           | 'IDataModelBindingsOptionsSimple'
-          | 'IDataModelBindingsLikertSimple'
+          | 'IDataModelBindingsLikert'
         >
       | GenerateObject<any>,
   ): this {

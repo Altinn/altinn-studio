@@ -10,8 +10,8 @@ import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettin
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useLangToolsRef } from 'src/features/language/LangToolsStore';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useAllOptions } from 'src/features/options/useAllOptions';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { getLayoutComponentObject } from 'src/layout';
@@ -100,7 +100,7 @@ export function useExpressionDataSources(hiddenComponents: Set<string>): Hierarc
   const applicationSettings = useApplicationSettings();
   const devToolsIsOpen = useDevToolsStore((state) => state.isOpen);
   const devToolsHiddenComponents = useDevToolsStore((state) => state.hiddenComponents);
-  const langTools = useLanguage();
+  const langToolsRef = useLangToolsRef();
   const currentLanguage = useCurrentLanguage();
   const pageNavigationConfig = usePageNavigationConfig();
 
@@ -117,7 +117,7 @@ export function useExpressionDataSources(hiddenComponents: Set<string>): Hierarc
       hiddenFields: hiddenComponents,
       devToolsIsOpen,
       devToolsHiddenComponents,
-      langTools,
+      langToolsRef,
       currentLanguage,
     }),
     [
@@ -132,7 +132,7 @@ export function useExpressionDataSources(hiddenComponents: Set<string>): Hierarc
       hiddenComponents,
       devToolsIsOpen,
       devToolsHiddenComponents,
-      langTools,
+      langToolsRef,
       currentLanguage,
     ],
   );

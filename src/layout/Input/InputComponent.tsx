@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import { SearchField } from '@altinn/altinn-design-system';
 import { LegacyTextField } from '@digdir/design-system-react';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { useRerender } from 'src/hooks/useReload';
-import { canBeParsedToDecimal } from 'src/utils/formattingUtils';
 import { useCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IInputFormatting } from 'src/layout/Input/config.generated';
@@ -28,25 +27,22 @@ export function InputComponent({ node, isValid, overrideDisplay }: IInputProps) 
     maxLength,
   } = node.item;
   const characterLimit = useCharacterLimit(maxLength);
-  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
   const { langAsString } = useLanguage();
+  const {
+    formData: { simpleBinding: value },
+    setValue,
+    debounce,
+  } = useDataModelBindings(dataModelBindings, saveWhileTyping);
+
   const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IInputFormatting | undefined, value);
   const [inputKey, rerenderInput] = useRerender('input');
-  const setValue = FD.useSetForBindings(dataModelBindings, saveWhileTyping);
-  const debounce = FD.useDebounceImmediately();
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!reactNumberFormatConfig.number || canBeParsedToDecimal(e.target.value)) {
-      setValue('simpleBinding', e.target.value);
-    }
-  }
-
-  function onBlur() {
+  const onBlur = useCallback(() => {
     if (reactNumberFormatConfig.number) {
       rerenderInput();
     }
     debounce();
-  }
+  }, [debounce, reactNumberFormatConfig.number, rerenderInput]);
 
   const ariaLabel = overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined;
 
@@ -56,7 +52,7 @@ export function InputComponent({ node, isValid, overrideDisplay }: IInputProps) 
         <SearchField
           id={id}
           value={value}
-          onChange={handleChange}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue('simpleBinding', e.target.value)}
           onBlur={onBlur}
           disabled={readOnly}
           aria-label={ariaLabel}
@@ -67,7 +63,7 @@ export function InputComponent({ node, isValid, overrideDisplay }: IInputProps) 
           key={inputKey}
           id={id}
           onBlur={onBlur}
-          onChange={handleChange}
+          onChange={(e) => setValue('simpleBinding', e.target.value)}
           characterLimit={!readOnly ? characterLimit : undefined}
           readOnly={readOnly}
           isValid={isValid}

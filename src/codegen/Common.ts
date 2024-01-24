@@ -1,6 +1,6 @@
 import { CG, Variant } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
-import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData';
+import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import type { MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
 
 const common = {
@@ -144,13 +144,25 @@ const common = {
         'Describes the location in the data model where the component should store its value(s). A simple ' +
           'binding is used for components that only store a single value, usually a string.',
       ),
-  IDataModelBindingsLikertSimple: () =>
+  IDataModelBindingsLikert: () =>
     new CG.obj(
-      new CG.prop('simpleBinding', new CG.str()),
+      new CG.prop(
+        'answer',
+        new CG.str()
+          .setTitle('Answer')
+          .setDescription(
+            'Dot notation location for the answers. This must point to a property of the objects inside the ' +
+              'question array. The answer for each question will be stored in the answer property of the ' +
+              'corresponding question object.',
+          )
+          .optional({
+            onlyIn: Variant.Internal,
+          }),
+      ),
       new CG.prop(
         'questions',
         new CG.str()
-          .setTitle('Qestions')
+          .setTitle('Questions')
           .setDescription('Dot notation location for a likert structure (array of objects), where the data is stored'),
       ),
     )
@@ -215,10 +227,16 @@ const common = {
     }),
 
   // Options/code lists:
-  IOption: () =>
+  IRawOption: () =>
     new CG.obj(
       new CG.prop('label', new CG.str()),
-      new CG.prop('value', new CG.str()),
+      new CG.prop(
+        'value',
+
+        // Options are converted to strings when working on them internally, but externally we can handle
+        // receiving them as any primitive type
+        new CG.union(new CG.str(), new CG.num(), new CG.bool()),
+      ),
       new CG.prop('description', new CG.str().optional()),
       new CG.prop('helpText', new CG.str().optional()),
     ).addExample({ label: '', value: '' }),
@@ -297,7 +315,10 @@ const common = {
       new CG.prop('queryParameters', CG.common('IQueryParameters').optional()),
       new CG.prop(
         'options',
-        new CG.arr(CG.common('IOption')).optional().setTitle('Static options').setDescription('List of static options'),
+        new CG.arr(CG.common('IRawOption'))
+          .optional()
+          .setTitle('Static options')
+          .setDescription('List of static options'),
       ),
       new CG.prop(
         'secure',
@@ -448,7 +469,8 @@ const common = {
   GridComponentRef: () =>
     new CG.obj(
       new CG.prop('component', new CG.str().optional().setTitle('Component ID').setDescription('ID of the component')),
-    ),
+      new CG.prop('columnOptions', CG.common('ITableColumnProperties').optional()),
+    ).extends(CG.common('ITableColumnProperties')),
   GridCellLabelFrom: () =>
     new CG.obj(
       new CG.prop(
@@ -457,6 +479,7 @@ const common = {
           .setTitle('Fetch label from other component')
           .setDescription('Set this to a component id to display the label from that component'),
       ),
+      new CG.prop('columnOptions', CG.common('ITableColumnProperties').optional()),
     ).extends(CG.common('ITableColumnProperties')),
   GridCellText: () =>
     new CG.obj(
@@ -465,6 +488,7 @@ const common = {
         new CG.str().setTitle('Text').setDescription('Text to display (can also be a key in text resources)'),
       ),
       new CG.prop('help', new CG.str().optional().setTitle('Help').setDescription('Help text to display')),
+      new CG.prop('columnOptions', CG.common('ITableColumnProperties').optional()),
     ).extends(CG.common('ITableColumnProperties')),
   GridCell: () =>
     new CG.union(

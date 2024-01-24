@@ -11,7 +11,7 @@ import type { IData } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const availableOptions = {
-  'https://local.altinn.cloud/ttd/test/api/options/a?language=nb&b=undefined': {
+  'https://local.altinn.cloud/ttd/test/api/options/a?language=nb': {
     data: [
       { value: 'a', label: 'aa option value' },
       { value: 'b', label: 'ab option value' },
@@ -35,7 +35,7 @@ const availableOptions = {
     ],
     headers: {},
   },
-  'https://local.altinn.cloud/ttd/test/api/options/d?language=nb&b=undefined': {
+  'https://local.altinn.cloud/ttd/test/api/options/d?language=nb': {
     data: [
       { value: 'a', label: 'da option value' },
       { value: 'b', label: 'db option value' },

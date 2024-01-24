@@ -30,7 +30,11 @@ export interface ContextDataSources {
   options: AllOptionsMap;
   authContext: Partial<IAuthContext> | null;
   hiddenFields: Set<string>;
-  langTools: IUseLanguage;
+  langToolsRef: {
+    // We pass langTools as a ref, because it itself re-renders a lot, and we don't want to
+    // re-create the hierarchy every time language stuff changes.
+    current: IUseLanguage;
+  };
   currentLanguage: string;
 }
 

@@ -142,7 +142,7 @@ export class AppFrontend {
     newMiddleName: '#newMiddleName',
     newMiddleNameDescription: '#description-newMiddleName',
     oldFullName: '#changeNameFrom',
-    newFullName: '#changeNameTo_æøå',
+    newFullName: '#changeNameTo',
     confirmChangeName: '#confirmChangeName',
     reasons: '#reason',
     reference: '#reference',

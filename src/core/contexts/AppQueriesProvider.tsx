@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { createContext } from 'src/core/contexts/context';
-import type { AppMutations, AppQueries, AppQueriesContext, EnhancedMutations } from 'src/queries/types';
+import type { AppMutations, AppQueries, AppQueriesContext } from 'src/queries/types';
 
 export interface AppQueriesProps extends AppQueriesContext {
   queryClient?: QueryClient;
@@ -11,7 +11,7 @@ export interface AppQueriesProps extends AppQueriesContext {
 
 interface ContextData {
   queries: AppQueries;
-  mutations: EnhancedMutations;
+  mutations: AppMutations;
 }
 
 const { Provider, useCtx } = createContext<ContextData>({ name: 'AppQueriesContext', required: true });
@@ -42,31 +42,16 @@ export const AppQueriesProvider = ({
     Object.entries(allQueries).filter(([key]) => key.startsWith('do')),
   ) as AppMutations;
 
-  const enhancedMutations = Object.fromEntries(
-    Object.entries(mutations).map(([key, mutation]) => {
-      // As long as the queries are all the same each time, this should be fine
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [lastResult, setLastResult] = useState<Awaited<ReturnType<typeof mutation>>>();
-      return [key, { call: mutation, lastResult, setLastResult }];
-    }),
-  ) as EnhancedMutations;
-
   // Lets us access the query client from the console, and inject data into the cache (for example for use in
   // Cypress tests)
   window.queryClient = queryClient;
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Provider value={{ queries, mutations: enhancedMutations }}>{children}</Provider>
+      <Provider value={{ queries, mutations }}>{children}</Provider>
     </QueryClientProvider>
   );
 };
 
 export const useAppQueries = () => useCtx().queries;
 export const useAppMutations = () => useCtx().mutations;
-export const useLastMutationResult = <K extends keyof AppMutations>(
-  key: K,
-): Awaited<ReturnType<AppMutations[K]>> | undefined => {
-  const { lastResult } = useAppMutations()[key];
-  return lastResult;
-};

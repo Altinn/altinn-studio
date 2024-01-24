@@ -1,5 +1,5 @@
 import type { DeepPartial } from 'utility-types';
 
-import type { CompGroupRepeatingInternal } from 'src/layout/RepeatingGroup/config.generated';
+import type { CompRepeatingGroupInternal } from 'src/layout/RepeatingGroup/config.generated';
 
-export type HRepeatingGroupExpressions = DeepPartial<CompGroupRepeatingInternal>;
+export type HRepeatingGroupExpressions = DeepPartial<CompRepeatingGroupInternal>;

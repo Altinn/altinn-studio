@@ -1,53 +1,36 @@
 import { implementsValidateComponent, implementsValidateEmptyField, implementsValidateSchema } from '.';
 
-import { FrontendValidationSource } from 'src/features/validation';
 import { runExpressionValidationsOnNode } from 'src/features/validation/frontend/expressionValidation';
 import { isComponentValidation, isFieldValidation } from 'src/features/validation/utils';
 import type {
   ComponentValidation,
   FieldValidation,
-  FormValidations,
+  FrontendValidations,
   ISchemaValidationError,
   ValidationDataSources,
 } from 'src/features/validation';
 import type { CompTypes } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-// TODO(Validation): Merge all frontend validations into one group?
 export function runAllValidations<Type extends CompTypes>(
   node: LayoutNode<Type>,
   ctx: ValidationDataSources,
   schemaErrors: ISchemaValidationError[],
-): FormValidations {
-  const formValidations: FormValidations = {
+): FrontendValidations {
+  const formValidations: FrontendValidations = {
     fields: {},
     components: {
       [node.item.id]: {
         bindingKeys: {},
-        component: {
-          [FrontendValidationSource.EmptyField]: [],
-          [FrontendValidationSource.Component]: [],
-          [FrontendValidationSource.Schema]: [],
-          [FrontendValidationSource.Expression]: [],
-        },
+        component: [],
       },
     },
   };
 
   if (node.item.dataModelBindings) {
     for (const [bindingKey, field] of Object.entries(node.item.dataModelBindings)) {
-      formValidations.fields[field] = {
-        [FrontendValidationSource.EmptyField]: [],
-        [FrontendValidationSource.Component]: [],
-        [FrontendValidationSource.Schema]: [],
-        [FrontendValidationSource.Expression]: [],
-      };
-      formValidations.components[node.item.id].bindingKeys[bindingKey] = {
-        [FrontendValidationSource.EmptyField]: [],
-        [FrontendValidationSource.Component]: [],
-        [FrontendValidationSource.Schema]: [],
-        [FrontendValidationSource.Expression]: [],
-      };
+      formValidations.fields[field] = [];
+      formValidations.components[node.item.id].bindingKeys[bindingKey] = [];
     }
   }
 
@@ -65,12 +48,12 @@ export function runAllValidations<Type extends CompTypes>(
 
   for (const validation of validations) {
     if (isFieldValidation(validation)) {
-      formValidations.fields[validation.field][validation.group].push(validation);
+      formValidations.fields[validation.field].push(validation);
     } else if (isComponentValidation(validation)) {
       if (validation.bindingKey) {
-        formValidations.components[node.item.id].bindingKeys[validation.bindingKey][validation.group].push(validation);
+        formValidations.components[node.item.id].bindingKeys[validation.bindingKey].push(validation);
       } else {
-        formValidations.components[node.item.id].component[validation.group].push(validation);
+        formValidations.components[node.item.id].component.push(validation);
       }
     }
   }

@@ -1,6 +1,6 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import type { IOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 
 const appFrontend = new AppFrontend();
 
@@ -85,7 +85,7 @@ describe('Options', () => {
     for (const optionsId of ['references', 'test']) {
       cy.intercept({ method: 'GET', url: `**/options/${optionsId}**` }, (req) => {
         req.reply((res) => {
-          const options = res.body as IOption[];
+          const options = res.body as IRawOption[];
           options.push({
             value: 'fixedValue',
             label: 'My fixed value',

@@ -7,7 +7,7 @@ import type { AllOptionsMap } from 'src/features/options/useAllOptions';
 import type {
   ComponentValidation,
   FieldValidation,
-  FormValidations,
+  FrontendValidations,
   ISchemaValidationError,
   ValidationDataSources,
 } from 'src/features/validation';
@@ -66,7 +66,7 @@ export interface ValidateAny {
     node: LayoutNode,
     ctx: ValidationDataSources,
     schemaErrors: ISchemaValidationError[],
-  ) => FormValidations;
+  ) => FrontendValidations;
 }
 
 export function implementsAnyValidation<Type extends CompTypes>(

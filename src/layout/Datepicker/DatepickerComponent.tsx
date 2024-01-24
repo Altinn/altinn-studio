@@ -7,7 +7,7 @@ import { CalendarIcon } from '@navikt/aksel-icons';
 import moment from 'moment';
 import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
-import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useIsMobile';
@@ -125,18 +125,17 @@ export function DatepickerComponent({ node, isValid, overrideDisplay }: IDatepic
   const calculatedFormat = getDateFormat(format, languageLocale);
   const isMobile = useIsMobile();
 
-  const setValue = FD.useSetForBinding(dataModelBindings?.simpleBinding);
-  const debounce = FD.useDebounceImmediately();
-  const value = FD.usePickFreshString(dataModelBindings?.simpleBinding);
-  const dateValue = moment(value, moment.ISO_8601);
+  const { setValue, debounce, formData } = useDataModelBindings(dataModelBindings);
+  const value = formData.simpleBinding;
+  const dateValue = moment(formData.simpleBinding, moment.ISO_8601);
   const [date, input] = dateValue.isValid() ? [dateValue, undefined] : [null, value ?? ''];
 
   const handleDateValueChange = (dateValue: MaterialUiPickersDate, inputValue: string | undefined) => {
     if (dateValue?.isValid()) {
       dateValue.set('hour', 12).set('minute', 0).set('second', 0).set('millisecond', 0);
-      setValue(getDateString(dateValue, timeStamp));
+      setValue('simpleBinding', getDateString(dateValue, timeStamp));
     } else {
-      setValue(inputValue ?? '');
+      setValue('simpleBinding', inputValue ?? '');
     }
   };
 

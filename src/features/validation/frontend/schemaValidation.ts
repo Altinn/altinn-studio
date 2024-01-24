@@ -213,7 +213,7 @@ export function getSchemaValidationErrors({
     const invalidDataType = error.keyword === 'type' || error.keyword === 'format';
 
     let errorParams = error.params[errorMessageKeys[error.keyword]?.paramKey];
-    if (errorParams === undefined) {
+    if (errorParams === undefined && error.keyword !== 'const') {
       console.warn(`WARN: Error message for ${error.keyword} not implemented`);
     }
     if (Array.isArray(errorParams)) {

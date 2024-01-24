@@ -1,5 +1,9 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
+
+import type { StoreApi } from 'zustand';
+
+import { ContextNotProvided } from 'src/core/contexts/context';
 
 /**
  * Returns a mutable ref object whose `.current` property is always set to the most recent value passed to `useAsRef`.
@@ -12,6 +16,53 @@ import type { MutableRefObject } from 'react';
 export function useAsRef<T>(value: T): MutableRefObject<T> {
   const ref = useRef(value);
   ref.current = value;
+  return ref;
+}
+
+/**
+ * Special version of `useAsRef` that takes a Zustand store and a selector function. The ref will be updated
+ * whenever the selected value changes, without re-rendering the component/hook that uses it.
+ *
+ * @see https://github.com/pmndrs/zustand#transient-updates-for-often-occurring-state-changes
+ */
+export function useAsRefFromSelector<T, U>(store: StoreApi<T>, selector: (state: T) => U) {
+  const ref = useRef<U>(selector(store.getState()));
+
+  useEffect(
+    () =>
+      store.subscribe((state) => {
+        ref.current = selector(state);
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+  return ref;
+}
+
+/**
+ * Same as `useAsRefFromSelector`, but allows the store to be `ContextNotProvided`. In that case the ref will
+ * always be set to `ContextNotProvided`.
+ */
+export function useAsRefFromLaxSelector<T, U>(
+  store: StoreApi<T> | typeof ContextNotProvided,
+  selector: (state: T) => U,
+) {
+  const ref = useRef<U | typeof ContextNotProvided>(
+    store === ContextNotProvided ? ContextNotProvided : selector(store.getState()),
+  );
+
+  useEffect(
+    () => {
+      if (store === ContextNotProvided) {
+        return;
+      }
+      return store.subscribe((state) => {
+        ref.current = selector(state);
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store],
+  );
   return ref;
 }
 

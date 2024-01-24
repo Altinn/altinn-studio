@@ -3,10 +3,13 @@ import React, { useMemo } from 'react';
 import { Grid } from '@material-ui/core';
 import classNames from 'classnames';
 
+import { useLayoutValidationForNode } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { NavigationResult, useFinishNodeNavigation } from 'src/features/form/layout/NavigateToNode';
+import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
+import { useIsDev } from 'src/hooks/useIsDev';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { GenericComponentDescription, GenericComponentLabel } from 'src/layout/GenericComponentUtils';
@@ -27,6 +30,30 @@ export interface IGenericComponentProps<Type extends CompTypes> {
 }
 
 export function GenericComponent<Type extends CompTypes = CompTypes>({
+  node,
+  overrideItemProps,
+  overrideDisplay,
+}: IGenericComponentProps<Type>) {
+  const layoutErrors = useLayoutValidationForNode(node);
+  if (layoutErrors?.length !== undefined && layoutErrors?.length > 0) {
+    return (
+      <ErrorList
+        node={node}
+        errors={layoutErrors}
+      />
+    );
+  }
+
+  return (
+    <ActualGenericComponent<Type>
+      node={node}
+      overrideItemProps={overrideItemProps}
+      overrideDisplay={overrideDisplay}
+    />
+  );
+}
+
+function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   node,
   overrideItemProps,
   overrideDisplay,
@@ -198,4 +225,31 @@ const gridToClasses = (labelGrid: IGridStyling | undefined, classes: { [key: str
     [classes.lg]: labelGrid.lg !== undefined && labelGrid.lg !== 'auto' && labelGrid.lg > 0 && labelGrid.lg < 12,
     [classes.xl]: labelGrid.xl !== undefined && labelGrid.xl !== 'auto' && labelGrid.xl > 0 && labelGrid.xl < 12,
   };
+};
+
+const ErrorList = ({ node, errors }: { node: LayoutNode; errors: string[] }) => {
+  const { id } = node.item;
+  const isDev = useIsDev();
+  if (!isDev) {
+    return null;
+  }
+
+  return (
+    <div className={classes.errorFallback}>
+      <h3>
+        <Lang
+          id={'config_error.component_has_errors'}
+          params={[id]}
+        />
+      </h3>
+      <ul>
+        {errors.map((error) => (
+          <li key={error}>{error}</li>
+        ))}
+      </ul>
+      <p>
+        <Lang id={'config_error.component_has_errors_after'} />
+      </p>
+    </div>
+  );
 };

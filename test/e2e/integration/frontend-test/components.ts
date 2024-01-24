@@ -4,6 +4,7 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
+import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
 
@@ -63,6 +64,7 @@ describe('UI Components', () => {
     cy.snapshot('components:attachment');
     cy.get(appFrontend.changeOfName.deleteAttachment).click();
     cy.get(appFrontend.changeOfName.deleteAttachment).should('not.exist');
+    cy.get('[role=alert]').should('not.exist');
   });
 
   it('is possible to download attachments that are uploaded', () => {
@@ -229,6 +231,18 @@ describe('UI Components', () => {
 
   it('radios, checkboxes and other components can be readOnly', () => {
     cy.interceptLayout('changename', (component) => {
+      const formTypes: CompExternal['type'][] = [
+        'AddressComponent',
+        'Checkboxes',
+        'Datepicker',
+        'Dropdown',
+        'FileUpload',
+        'FileUploadWithTag',
+        'Input',
+        'RadioButtons',
+        'TextArea',
+        'MultipleSelect',
+      ];
       if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
         component.readOnly = [
           'or',
@@ -241,7 +255,7 @@ describe('UI Components', () => {
           ['equals', ['component', 'newMiddleName'], 'radio_readOnly'],
           ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
         ];
-      } else {
+      } else if (formTypes.includes(component.type as CompExternal['type'])) {
         (component as any).readOnly = ['equals', ['component', 'newMiddleName'], 'all_readOnly'];
       }
     });

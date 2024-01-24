@@ -9,45 +9,45 @@ const mui = new Common();
 
 describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {
-    let putFormDataCounter = 0;
+    let formDataReqCounter = 0;
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangeFormData' });
     cy.goto('group').then(() => {
-      cy.intercept('PUT', '**/data/**', () => {
-        putFormDataCounter++;
+      cy.intercept('PATCH', '**/data/**', () => {
+        formDataReqCounter++;
       }).as('putFormData');
       cy.get(appFrontend.group.prefill.liten).dsCheck();
       cy.wait('@putFormData').then(() => {
-        expect(putFormDataCounter).to.be.eq(1);
+        expect(formDataReqCounter).to.be.eq(1);
       });
       cy.get(appFrontend.nextButton).clickAndGone();
       cy.get(appFrontend.backButton).clickAndGone();
       // Doing a hard wait to be sure no request is sent to backend
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(1000).then(() => {
-        expect(putFormDataCounter).to.be.eq(1);
+        expect(formDataReqCounter).to.be.eq(1);
       });
     });
   });
 
   it('onChangePage: Should not save form when interacting with form element(checkbox), but should save on navigating between pages', () => {
-    let putFormDataCounter = 0;
+    let formDataReqCounter = 0;
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
 
     cy.goto('group').then(() => {
-      cy.intercept('PUT', '**/data/**', () => {
-        putFormDataCounter++;
+      cy.intercept('PATCH', '**/data/**', () => {
+        formDataReqCounter++;
       }).as('putFormData');
       cy.get(appFrontend.group.prefill.liten).dsCheck();
       // Doing a hard wait to be sure no request is sent to backend
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(1000).then(() => {
-        expect(putFormDataCounter).to.be.eq(0);
+        expect(formDataReqCounter).to.be.eq(0);
       });
 
       // NavigationButtons
       cy.get(appFrontend.nextButton).clickAndGone();
       cy.wait('@putFormData').then(() => {
-        expect(putFormDataCounter).to.be.eq(1);
+        expect(formDataReqCounter).to.be.eq(1);
       });
 
       // Clicking the back button does not save anything, because we didn't
@@ -60,21 +60,21 @@ describe('Auto save behavior', () => {
       cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
       cy.get(appFrontend.backButton).clickAndGone();
       cy.wait('@putFormData').then(() => {
-        expect(putFormDataCounter).to.be.eq(2);
+        expect(formDataReqCounter).to.be.eq(2);
       });
 
       // NavigationBar
       cy.get(appFrontend.group.prefill.middels).dsCheck();
       cy.get(appFrontend.navMenu).findByRole('button', { name: '2. repeating' }).click();
       cy.wait('@putFormData').then(() => {
-        expect(putFormDataCounter).to.be.eq(3);
+        expect(formDataReqCounter).to.be.eq(3);
       });
 
       // Icon previous button
       cy.get(appFrontend.group.showGroupToContinue).find('input').dsUncheck();
       cy.get(appFrontend.prevButton).clickAndGone();
       cy.wait('@putFormData').then(() => {
-        expect(putFormDataCounter).to.be.eq(4);
+        expect(formDataReqCounter).to.be.eq(4);
       });
     });
   });
@@ -93,9 +93,9 @@ describe('Auto save behavior', () => {
       });
 
       cy.goto('changename');
-      let putFormDataCounter = 0;
-      cy.intercept('PUT', '**/data/**', () => {
-        putFormDataCounter++;
+      let formDataReqCounter = 0;
+      cy.intercept('PATCH', '**/data/**', () => {
+        formDataReqCounter++;
       }).as('putFormData');
 
       // The newFirstName field has a trigger for single field validation, and it should cause a very specific error
@@ -112,7 +112,7 @@ describe('Auto save behavior', () => {
 
       cy.get(appFrontend.nextButton).clickAndGone();
       cy.wait('@putFormData').then(() => {
-        expect(putFormDataCounter).to.be.eq(1);
+        expect(formDataReqCounter).to.be.eq(1);
       });
 
       // None of the triggers should cause the page to change, because all of them should be triggered validation

@@ -8,25 +8,27 @@ import { useLaxInstance } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
-import type { IMapping, IOption } from 'src/layout/common.generated';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
+import type { IMapping } from 'src/layout/common.generated';
 
 export const useGetOptionsQuery = (
   optionsId: string | undefined,
   mapping?: IMapping,
   queryParameters?: Record<string, string>,
   secure?: boolean,
-): UseQueryResult<AxiosResponse<IOption[], any>> => {
+): UseQueryResult<AxiosResponse<IOptionInternal[], any>> => {
   const { fetchOptions } = useAppQueries();
-  const formData = FD.useDebouncedDotMap();
+  const mappingResult = FD.useMapping(mapping);
   const language = useCurrentLanguage();
   const instanceId = useLaxInstance()?.instanceId;
 
   const url = getOptionsUrl({
     optionsId: optionsId || '',
-    formData,
     language,
-    dataMapping: mapping,
-    fixedQueryParameters: queryParameters,
+    queryParameters: {
+      ...mappingResult,
+      ...queryParameters,
+    },
     secure,
     instanceId,
   });

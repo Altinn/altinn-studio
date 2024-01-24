@@ -4,10 +4,10 @@ const appFrontend = new AppFrontend();
 
 it('should be possible to hide rows when "Endre fra" is greater or equals to [...]', () => {
   cy.goto('group');
-  cy.intercept('PUT', '**/data/**').as('putFormData');
+  cy.intercept('PATCH', '**/data/**').as('saveFormData');
   for (const prefill of Object.values(appFrontend.group.prefill)) {
     cy.get(prefill).dsCheck();
-    cy.wait('@putFormData');
+    cy.wait('@saveFormData');
   }
   const headerRow = 1;
 

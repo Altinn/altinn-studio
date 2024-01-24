@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { useHiddenLayoutsExpressions } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentView, useOrder } from 'src/hooks/useNavigatePage';
 import type { PageNavigationConfig } from 'src/features/expressions/ExprContext';
-import type { IComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
 
 export type PageNavigationContext = {
   /**
@@ -13,14 +12,6 @@ export type PageNavigationContext = {
    */
   returnToView?: string;
   setReturnToView: React.Dispatch<React.SetStateAction<string | undefined>>;
-
-  /**
-   * Keeps track of scroll position to be able to scroll the page to the
-   * next-button when navigation is stopped by validation errors, and the
-   * page height changes as a result of displaying those validation errors.
-   */
-  scrollPosition?: IComponentScrollPos | undefined;
-  setScrollPosition: React.Dispatch<React.SetStateAction<IComponentScrollPos | undefined>>;
 
   /**
    * Keeps track of which pages are hidden by expressions.
@@ -36,7 +27,6 @@ const { Provider, useCtx, useLaxCtx } = createContext<PageNavigationContext>({
 
 export function PageNavigationProvider({ children }: React.PropsWithChildren) {
   const [returnToView, setReturnToView] = useState<string>();
-  const [scrollPosition, setScrollPosition] = useState<IComponentScrollPos | undefined>();
   const [hidden, setHidden] = useState<string[]>([]);
 
   return (
@@ -44,8 +34,6 @@ export function PageNavigationProvider({ children }: React.PropsWithChildren) {
       value={{
         returnToView,
         setReturnToView,
-        scrollPosition,
-        setScrollPosition,
         hidden,
         setHiddenPages: setHidden,
       }}
@@ -61,12 +49,16 @@ export const usePageNavigationConfig = (): PageNavigationConfig => {
   const hiddenExpr = useHiddenLayoutsExpressions();
   const { hidden } = usePageNavigationContext();
   const order = useOrder();
-  return {
-    currentView,
-    hidden,
-    hiddenExpr,
-    order,
-  };
+
+  return useMemo(
+    () => ({
+      currentView,
+      hidden,
+      hiddenExpr,
+      order,
+    }),
+    [currentView, hidden, hiddenExpr, order],
+  );
 };
 export const useHiddenPages = () => {
   const ctx = useLaxCtx();

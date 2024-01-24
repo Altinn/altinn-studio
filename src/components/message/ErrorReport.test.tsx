@@ -4,11 +4,7 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { Form } from 'src/components/form/Form';
-import {
-  type BackendValidationIssue,
-  BackendValidationSeverity,
-  ValidationIssueSources,
-} from 'src/features/validation';
+import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('ErrorReport', () => {
@@ -70,11 +66,10 @@ describe('ErrorReport', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
-    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
+    await screen.findByTestId('ErrorReport');
 
     // Unmapped errors should not be clickable
-    const errorNode = screen.getByText('some unmapped error');
-    expect(errorNode).toBeInTheDocument();
+    const errorNode = await screen.findByText('some unmapped error');
     // eslint-disable-next-line testing-library/no-node-access
     expect(errorNode.parentElement?.tagName).toEqual('LI');
   });
@@ -85,17 +80,16 @@ describe('ErrorReport', () => {
         customTextKey: 'some unbound mapped error',
         field: 'unboundField',
         severity: BackendValidationSeverity.Error,
-        source: ValidationIssueSources.Custom,
+        source: 'custom',
       } as BackendValidationIssue,
     ]);
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
-
-    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
+    await screen.findByTestId('ErrorReport');
 
     // mapped errors not bound to any component should not be clickable
-    const errorNode = screen.getByText('some unbound mapped error');
-    expect(errorNode).toBeInTheDocument();
+    const errorNode = await screen.findByText('some unbound mapped error');
+
     // eslint-disable-next-line testing-library/no-node-access
     expect(errorNode.parentElement?.tagName).toEqual('LI');
   });
@@ -106,16 +100,15 @@ describe('ErrorReport', () => {
         customTextKey: 'some mapped error',
         field: 'boundField',
         severity: BackendValidationSeverity.Error,
-        source: ValidationIssueSources.Custom,
+        source: 'custom',
       } as BackendValidationIssue,
     ]);
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
-    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
+    await screen.findByTestId('ErrorReport');
+    const errorNode = await screen.findByText('some mapped error');
 
-    const errorNode = screen.getByText('some mapped error');
-    expect(errorNode).toBeInTheDocument();
     // eslint-disable-next-line testing-library/no-node-access
     expect(errorNode.parentElement?.tagName).toEqual('BUTTON');
     // eslint-disable-next-line testing-library/no-node-access

@@ -6,7 +6,7 @@ import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/sr
 import type { ChangeProps, LegacyResponsiveTableConfig, SortDirection } from '@digdir/design-system-react';
 
 import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
-import { FD } from 'src/features/formData/FormDataWrite';
+import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { GenericComponentLegend } from 'src/layout/GenericComponentUtils';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
@@ -39,15 +39,14 @@ export const ListComponent = ({ node }: IListProps) => {
   const calculatedDataList = (data && data.listItems) || defaultDataList;
 
   const bindings = node.item.dataModelBindings || defaultBindings;
-  const saveData = FD.useMultiSetForBindings(bindings);
-  const formData = FD.usePickFreshStrings(bindings);
+  const { formData, setValues } = useDataModelBindings(bindings);
 
   const handleChange = ({ selectedValue: selectedValue }: ChangeProps<Record<string, string>>) => {
-    const changes: { binding: string; newValue: string }[] = [];
+    const next: Record<string, string> = {};
     for (const binding of Object.keys(bindings)) {
-      changes.push({ binding, newValue: selectedValue[binding] });
+      next[binding] = selectedValue[binding];
     }
-    saveData(changes);
+    setValues(next);
   };
 
   const tableHeadersValues = { ...tableHeaders };

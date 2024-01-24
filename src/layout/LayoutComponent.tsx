@@ -18,7 +18,7 @@ import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation
 import type {
   ComponentValidation,
   FieldValidation,
-  FormValidations,
+  FrontendValidations,
   ISchemaValidationError,
   ValidationDataSources,
 } from 'src/features/validation';
@@ -303,7 +303,7 @@ export abstract class FormComponent<Type extends CompTypes>
     node: LayoutNode,
     ctx: ValidationDataSources,
     schemaErrors: ISchemaValidationError[],
-  ): FormValidations {
+  ): FrontendValidations {
     return runAllValidations(node, ctx, schemaErrors);
   }
 
@@ -329,7 +329,7 @@ export abstract class FormComponent<Type extends CompTypes>
 
         validations.push({
           componentId: node.item.id,
-          group: FrontendValidationSource.EmptyField,
+          source: FrontendValidationSource.EmptyField,
           bindingKey,
           message: { key, params: [fieldReference] },
           severity: 'error',
@@ -348,7 +348,7 @@ export abstract class FormComponent<Type extends CompTypes>
           if (field === error.bindingField) {
             validations.push({
               field,
-              group: FrontendValidationSource.Schema,
+              source: FrontendValidationSource.Schema,
               message: error.message,
               severity: 'error',
               category: ValidationMask.Schema,

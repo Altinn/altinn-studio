@@ -83,8 +83,8 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: redux-state-history
-          path: test/redux-history/*.json
+          name: logs
+          path: test/logs/*
 
   external:
     if: |
@@ -137,6 +137,6 @@ jobs:
         with:
           name: redux-state-history
           path: |
-            test/redux-history/*.json
+            test/logs/*
             test/screenshots/*
             test/videos/*
