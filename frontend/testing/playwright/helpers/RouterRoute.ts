@@ -6,7 +6,10 @@ type SupportedRoutes =
   | 'dashboard'
   | 'dashboardCreateApp'
   | 'editorOverview'
-  | 'editorDatamodel';
+  | 'editorDatamodel'
+  | 'editorProcess'
+  | 'editorText'
+  | 'editorUi';
 
 type RouterRoutes = Record<SupportedRoutes, string>;
 
@@ -16,6 +19,9 @@ const routerRoutes: RouterRoutes = {
   dashboardCreateApp: '/dashboard/self/new',
   editorOverview: `/editor/{{org}}/{{app}}/overview`,
   editorDatamodel: `/editor/{{org}}/{{app}}/datamodel`,
+  editorProcess: `/editor/{{org}}/{{app}}/process-editor`,
+  editorText: `/editor/{{org}}/{{app}}/text-editor`,
+  editorUi: `/editor/{{org}}/{{app}}/ui-editor`,
 };
 
 export class RouterRoute extends StudioEnvironment {
