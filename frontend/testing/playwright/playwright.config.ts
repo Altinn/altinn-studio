@@ -88,5 +88,28 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.DASHBOARD_APP,
       },
     },
+    {
+      name: 'overview',
+      dependencies: ['setup'],
+      testDir: './tests/overview/',
+      testMatch: '*.spec.ts',
+      teardown: 'teardown-overview',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.OVERVIEW_APP,
+        headless: true,
+      },
+    },
+    {
+      name: 'teardown-overview',
+      testDir: './tests/overview/',
+      testMatch: '*overview.teardown.ts',
+      use: {
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        testAppName: AppNames.OVERVIEW_APP,
+      },
+    },
   ],
 });
