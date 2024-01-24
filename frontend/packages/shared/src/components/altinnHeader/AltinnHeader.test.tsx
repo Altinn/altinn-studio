@@ -1,12 +1,13 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { AltinnHeader, AltinnHeaderProps } from './AltinnHeader';
+import type { AltinnHeaderProps } from './AltinnHeader';
+import { AltinnHeader } from './AltinnHeader';
 import { Button } from '@digdir/design-system-react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { MemoryRouter } from 'react-router-dom';
-import { AltinnButtonActionItem } from './types';
+import type { AltinnButtonActionItem } from './types';
 
 const mockTo: string = '/test';
 const mockButtonTitle: string = 'title';

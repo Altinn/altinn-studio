@@ -1,4 +1,4 @@
-import { IFormLayouts } from '../types/global';
+import type { IFormLayouts } from '../types/global';
 import {
   addOrRemoveNavigationButtons,
   convertExternalLayoutsToInternalFormat,
@@ -8,7 +8,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
-import { FormButtonComponent } from '../types/FormComponent';
+import type { FormButtonComponent } from '../types/FormComponent';
 
 describe('formLayoutsUtils', () => {
   describe('addOrRemoveNavigationButtons', () => {

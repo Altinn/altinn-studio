@@ -1,6 +1,8 @@
 import React from 'react';
-import { TreeView, TreeViewRootProps } from './';
-import { act, ByRoleOptions, render, screen } from '@testing-library/react';
+import type { TreeViewRootProps } from './';
+import { TreeView } from './';
+import type { ByRoleOptions } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();

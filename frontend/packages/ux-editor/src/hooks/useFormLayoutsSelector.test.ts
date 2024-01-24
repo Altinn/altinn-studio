@@ -9,7 +9,7 @@ import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { externalLayoutsMock, layoutMock, layout1NameMock } from '../testing/layoutMock';
 import { waitFor } from '@testing-library/react';
 import { convertExternalLayoutsToInternalFormat } from '../utils/formLayoutsUtils';
-import { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
+import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
 
 // Test data:
 const org = 'org';

@@ -1,10 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ResourceNarrowingList, ResourceNarrowingListProps } from './ResourceNarrowingList';
+import type { ResourceNarrowingListProps } from './ResourceNarrowingList';
+import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { PolicyRuleResource, PolicyEditorUsage } from '../../../types';
+import type { PolicyRuleResource, PolicyEditorUsage } from '../../../types';
 
 const mockResource1: PolicyRuleResource = { type: 'type1', id: 'id1' };
 const mockResource2: PolicyRuleResource = { type: 'type2', id: 'id2' };

@@ -1,9 +1,10 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './AccessControlTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import { Checkbox, ErrorMessage, Paragraph } from '@digdir/design-system-react';
-import { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
+import type { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import {
   getPartyTypesAllowedOptions,

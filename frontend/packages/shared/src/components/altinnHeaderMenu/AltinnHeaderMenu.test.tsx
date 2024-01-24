@@ -1,8 +1,9 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { AltinnHeaderMenu, IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
+import type { IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
+import { AltinnHeaderMenu } from './AltinnHeaderMenu';
 import { MemoryRouter } from 'react-router-dom';
-import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { RepositoryType } from 'app-shared/types/global';
 import { textMock } from '../../../../../testing/mocks/i18nMock';

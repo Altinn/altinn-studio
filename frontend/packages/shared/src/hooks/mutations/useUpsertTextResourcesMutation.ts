@@ -1,4 +1,4 @@
-import { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';

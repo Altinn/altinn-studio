@@ -1,6 +1,7 @@
-import { useQuery, UseQueryResult, QueryMeta } from '@tanstack/react-query';
+import type { UseQueryResult, QueryMeta } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useEnvironmentsQuery = (meta?: QueryMeta): UseQueryResult<DeployEnvironment[]> => {

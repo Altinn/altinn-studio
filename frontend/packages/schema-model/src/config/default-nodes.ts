@@ -1,7 +1,7 @@
-import { CombinationNode } from '../types/CombinationNode';
+import type { CombinationNode } from '../types/CombinationNode';
 import { CombinationKind, FieldType, ObjectKind } from '../types';
-import { FieldNode } from '../types/FieldNode';
-import { ReferenceNode } from '../types/ReferenceNode';
+import type { FieldNode } from '../types/FieldNode';
+import type { ReferenceNode } from '../types/ReferenceNode';
 
 export const defaultCombinationNode: CombinationNode = {
   children: [],

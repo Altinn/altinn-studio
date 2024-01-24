@@ -1,4 +1,4 @@
-import { Build } from 'app-shared/types/Build';
+import type { Build } from 'app-shared/types/Build';
 
 export interface AppDeployment {
   id: string;

@@ -1,12 +1,19 @@
-import { FieldType, NodePosition, ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
+import type { FieldType, NodePosition } from '@altinn/schema-model';
+import { ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { useSavableSchemaModel } from '../hooks/useSavableSchemaModel';
 
-export const useAddProperty = () => {
+type AddProperty = (
+  objectKind: ObjectKind,
+  fieldType?: FieldType,
+  parentPointer?: string
+) => string | undefined;
+
+export const useAddProperty = (): AddProperty => {
   const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
 
-  const addProperty = (
+  const addProperty: AddProperty = (
     objectKind: ObjectKind,
     fieldType?: FieldType,
     parentPointer: string = ROOT_POINTER

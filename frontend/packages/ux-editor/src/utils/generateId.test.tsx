@@ -1,4 +1,4 @@
-import { IFormLayouts } from '../types/global';
+import type { IFormLayouts } from '../types/global';
 import { generateComponentId, generateTextResourceId } from './generateId';
 import { ComponentType } from 'app-shared/types/ComponentType';
 

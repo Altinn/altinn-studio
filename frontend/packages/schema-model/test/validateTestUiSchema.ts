@@ -1,4 +1,5 @@
-import { FieldType, ObjectKind, ROOT_POINTER, UiSchemaNodes } from '../src';
+import type { UiSchemaNodes } from '../src';
+import { FieldType, ObjectKind, ROOT_POINTER } from '../src';
 import { getPointers } from '../src/lib/mappers/getPointers';
 import { areItemsUnique, mapByKey, removeItemByValue } from 'app-shared/utils/arrayUtils';
 import {

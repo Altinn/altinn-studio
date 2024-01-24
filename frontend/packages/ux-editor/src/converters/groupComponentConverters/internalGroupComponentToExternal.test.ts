@@ -1,6 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { internalGroupComponentToExternal } from './internalGroupComponentToExternal';
-import { FormContainer } from '../../types/FormContainer';
+import type { FormContainer } from '../../types/FormContainer';
 
 // Test data:
 const id = '1';

@@ -5,7 +5,7 @@ import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithMockStore } from '../../testing/mocks';
 import { layoutSetsMock } from '../../testing/layoutMock';
-import { AppContextProps } from '../../AppContext';
+import type { AppContextProps } from '../../AppContext';
 import { appStateMock } from '../../testing/stateMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 

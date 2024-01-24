@@ -1,5 +1,7 @@
 export * from './StudioButton';
 export * from './StudioCenter';
+export * from './StudioDeleteButton';
+export * from './StudioDropdownMenu';
 export * from './StudioGridSelector';
 export * from './StudioModal';
 export * from './StudioNotFoundPage';

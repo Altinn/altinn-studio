@@ -3,8 +3,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ResourceReference } from 'app-shared/types/ResourceAdm';
-import { ResourceReferenceFields, ResourceReferenceFieldsProps } from './ResourceReferenceFields';
+import type { ResourceReference } from 'app-shared/types/ResourceAdm';
+import type { ResourceReferenceFieldsProps } from './ResourceReferenceFields';
+import { ResourceReferenceFields } from './ResourceReferenceFields';
 
 const mockReference1: ResourceReference = {
   referenceSource: 'Default',

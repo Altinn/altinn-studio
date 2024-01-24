@@ -1,4 +1,4 @@
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 /**
  * Represents a configurable item in a configuration file.

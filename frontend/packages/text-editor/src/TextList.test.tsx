@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type { TextListProps } from './TextList';
 import { TextList } from './TextList';
 import { screen, render as rtlRender, act } from '@testing-library/react';
-import { TextTableRow } from './types';
+import type { TextTableRow } from './types';
 
 const renderTextList = (props: Partial<TextListProps> = {}) => {
   const resourceRows: TextTableRow[] = [

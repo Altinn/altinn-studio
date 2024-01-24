@@ -1,4 +1,5 @@
-import React, { ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
+import React from 'react';
 import classes from './ResourceSeachBox.module.css';
 import { Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';

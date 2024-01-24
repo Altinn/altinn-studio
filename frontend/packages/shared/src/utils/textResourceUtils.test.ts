@@ -3,7 +3,7 @@ import {
   convertTextResourcesObjectToArray,
   modifyTextResources,
 } from 'app-shared/utils/textResourceUtils';
-import { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
 
 // Test data:
 const textResourceId1 = 'id1';

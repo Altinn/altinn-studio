@@ -1,6 +1,6 @@
-import { ObjectKind } from './ObjectKind';
-import { CombinationKind } from './CombinationKind';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { ObjectKind } from './ObjectKind';
+import type { CombinationKind } from './CombinationKind';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export type CombinationNode = {
   objectKind: ObjectKind.Combination;

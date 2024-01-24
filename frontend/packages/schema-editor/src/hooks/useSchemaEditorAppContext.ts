@@ -1,7 +1,5 @@
-import {
-  SchemaEditorAppContext,
-  SchemaEditorAppContextProps
-} from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { useContext } from 'react';
 
 export const useSchemaEditorAppContext = (): SchemaEditorAppContextProps => {

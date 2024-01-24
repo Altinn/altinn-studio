@@ -1,4 +1,4 @@
-import { IInternalLayout } from '../../types/global';
+import type { IInternalLayout } from '../../types/global';
 import { FormTree } from './FormTree';
 import React from 'react';
 import { hasMultiPageGroup } from '../../utils/formLayoutUtils';

@@ -1,4 +1,5 @@
-import { DragAndDrop, DragAndDropProviderProps } from 'app-shared/components/dragAndDrop';
+import type { DragAndDropProviderProps } from 'app-shared/components/dragAndDrop';
+import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import React from 'react';
 
 export type DragAndDropTreeProviderProps<T> = Omit<DragAndDropProviderProps<T>, 'gap'>;

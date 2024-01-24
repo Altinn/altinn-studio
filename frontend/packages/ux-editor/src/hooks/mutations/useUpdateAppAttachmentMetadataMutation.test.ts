@@ -1,7 +1,7 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
-import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 
 // Test data:
 const org = 'org';

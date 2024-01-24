@@ -3,10 +3,10 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { CreateService } from './CreateService';
-import { User } from 'app-shared/types/Repository';
-import { Organization } from 'app-shared/types/Organization';
+import type { User } from 'app-shared/types/Repository';
+import type { Organization } from 'app-shared/types/Organization';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, user as userMock } from 'app-shared/mocks/mocks';
 
 const orgMock: Organization = {

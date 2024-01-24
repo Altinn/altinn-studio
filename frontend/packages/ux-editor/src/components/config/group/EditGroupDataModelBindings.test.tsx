@@ -3,11 +3,9 @@ import { act, screen } from '@testing-library/react';
 
 import { renderWithMockStore } from '../../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
-import { IAppDataState } from '../../../features/appData/appDataReducers';
-import {
-  EditGroupDataModelBindings,
-  EditGroupDataModelBindingProps,
-} from './EditGroupDataModelBindings';
+import type { IAppDataState } from '../../../features/appData/appDataReducers';
+import type { EditGroupDataModelBindingProps } from './EditGroupDataModelBindings';
+import { EditGroupDataModelBindings } from './EditGroupDataModelBindings';
 import userEvent from '@testing-library/user-event';
 
 const mockAppData: IAppDataState = {

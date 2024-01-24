@@ -6,8 +6,8 @@ import {
   validateProperty,
   isPropertyRequired,
 } from '../../../../ux-editor/src/utils/formValidationUtils';
-import { TranslationKey } from 'language/type';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { TranslationKey } from 'language/type';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export type RenderFieldArgs<TT> = {
   errorCode: string;

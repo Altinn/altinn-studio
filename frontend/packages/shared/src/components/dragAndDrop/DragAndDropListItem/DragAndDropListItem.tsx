@@ -1,20 +1,9 @@
-import {
-  DndItem,
-  DragCursorPosition,
-  DraggableEditorItemType,
-  ExistingDndItem,
-} from '../../../types/dndTypes';
-import React, {
-  CSSProperties,
-  ElementType,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { ConnectDragSource, useDrag, useDrop } from 'react-dnd';
+import type { DndItem, ExistingDndItem } from '../../../types/dndTypes';
+import { DragCursorPosition, DraggableEditorItemType } from '../../../types/dndTypes';
+import type { CSSProperties, ElementType, ReactNode } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ConnectDragSource } from 'react-dnd';
+import { useDrag, useDrop } from 'react-dnd';
 import { calculateNewPosition, getDragCursorPosition } from '../../../utils/dndUtils';
 import classes from './DragAndDropListItem.module.css';
 import { useIsParentDisabled } from '../hooks/useIsParentDisabled';

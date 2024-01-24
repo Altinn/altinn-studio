@@ -2,8 +2,9 @@ import React from 'react';
 import { ConfigPanel } from './ConfigPanel';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { BpmnContext, BpmnContextProps } from '../../contexts/BpmnContext';
-import { BpmnDetails } from '../../types/BpmnDetails';
+import type { BpmnContextProps } from '../../contexts/BpmnContext';
+import { BpmnContext } from '../../contexts/BpmnContext';
+import type { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
