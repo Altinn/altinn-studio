@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditComponentId } from './editModal/EditComponentId';
-import { Label, Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
@@ -228,7 +228,9 @@ export const FormComponentConfig = ({
         if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
           return (
             <div key={propertyKey}>
-              <Label as='p'>{getComponentPropertyLabel(propertyKey, t)}</Label>
+              <Heading level={3} size='xxsmall'>
+                {getComponentPropertyLabel(propertyKey, t)}
+              </Heading>
               {rest[propertyKey]?.description && (
                 <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
               )}
