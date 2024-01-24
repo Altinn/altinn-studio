@@ -103,7 +103,7 @@ describe('SchemaModel', () => {
       expect(schemaModel.getRootNode()).toEqual(rootNodeMock);
     });
 
-    it('Throws an error if the root node is not a field node', () => {
+    it('Throws an error if the root node is not a field nor a combination node', () => {
       const invalidRootNode = { ...referenceNodeMock, pointer: ROOT_POINTER };
       const model = SchemaModel.fromArray([invalidRootNode]);
       expect(() => model.getRootNode()).toThrowError();
