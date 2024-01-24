@@ -21,8 +21,7 @@
           },
           {
             "id": "page1-Group",
-            "type": "Group",
-            "maxCount": 99,
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "Dyr"
             },
@@ -51,8 +50,7 @@
         "layout": [
           {
             "id": "myGroup",
-            "type": "Group",
-            "maxCount": 99,
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "Mennesker"
             },
@@ -74,8 +72,7 @@
           },
           {
             "id": "favoritt-dyr",
-            "type": "Group",
-            "maxCount": 99,
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "Mennesker.FavorittDyr"
             },

@@ -10,12 +10,11 @@
           },
           {
             "id": "group1",
-            "type": "Group",
+            "type": "RepeatingGroup",
             "children": ["comp3", "comp4"],
             "dataModelBindings": {
               "group": "dddd"
-            },
-            "maxCount": 99
+            }
           },
           {
             "id": "comp3",

@@ -50,11 +50,10 @@
         "layout": [
           {
             "id": "names-group",
-            "type": "Group",
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "form.names"
             },
-            "maxCount": 99,
             "children": ["name-input"],
             "hiddenRow": ["dataModel", "form.names.hidden"]
           },

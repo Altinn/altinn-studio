@@ -9,8 +9,7 @@
         "layout": [
           {
             "id": "bedrifter",
-            "type": "Group",
-            "maxCount": 99,
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "Bedrifter"
             },
@@ -25,8 +24,7 @@
           },
           {
             "id": "ansatte",
-            "type": "Group",
-            "maxCount": 99,
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "Bedrifter.Ansatte"
             },

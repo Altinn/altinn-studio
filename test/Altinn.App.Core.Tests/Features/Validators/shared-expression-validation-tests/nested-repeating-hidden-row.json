@@ -140,11 +140,10 @@
         "layout": [
           {
             "id": "people-group",
-            "type": "Group",
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "form.people"
             },
-            "maxCount": 99,
             "children": ["number-input", "names-group"],
             "hiddenRow": ["dataModel", "form.people.hidden"]
           },
@@ -157,11 +156,10 @@
           },
           {
             "id": "names-group",
-            "type": "Group",
+            "type": "RepeatingGroup",
             "dataModelBindings": {
               "group": "form.people.names"
             },
-            "maxCount": 99,
             "children": ["name-input"],
             "hiddenRow": ["dataModel", "form.people.names.hidden"]
           },
