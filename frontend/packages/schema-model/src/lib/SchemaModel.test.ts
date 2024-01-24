@@ -104,7 +104,7 @@ describe('SchemaModel', () => {
     });
 
     it('Throws an error if the root node is not a field node', () => {
-      const invalidRootNode = { ...allOfNodeMock, pointer: ROOT_POINTER };
+      const invalidRootNode = { ...referenceNodeMock, pointer: ROOT_POINTER };
       const model = SchemaModel.fromArray([invalidRootNode]);
       expect(() => model.getRootNode()).toThrowError();
     });
