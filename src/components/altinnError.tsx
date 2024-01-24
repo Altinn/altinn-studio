@@ -6,7 +6,7 @@ import classes from 'src/components/altinnError.module.css';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from 'src/utils/urls/urlHelper';
 
 export interface IAltinnErrorProps {
-  statusCode: string | React.ReactNode;
+  statusCode?: string | React.ReactNode;
   title: string | React.ReactNode;
   content: string | React.ReactNode;
   url?: string;
@@ -31,12 +31,14 @@ export const AltinnError = ({
     className={classes.flexContainer}
   >
     <div className={classes.contentContainer}>
-      <span
-        data-testid='StatusCode'
-        className={cn(classes.statusCode, classes.contentMargin)}
-      >
-        {statusCode}
-      </span>
+      {statusCode && (
+        <span
+          data-testid='StatusCode'
+          className={cn(classes.statusCode, classes.contentMargin)}
+        >
+          {statusCode}
+        </span>
+      )}
       <h1 className={cn(classes.title, classes.contentMargin)}>{title}</h1>
       <p className={cn(classes.articleText, classes.contentMargin)}>{content}</p>
       <div>

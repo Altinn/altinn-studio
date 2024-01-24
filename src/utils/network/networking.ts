@@ -31,7 +31,7 @@ export async function httpPost(url: string, options?: AxiosRequestConfig, data?:
 
 export async function httpPatch(url: string, data: any, options?: AxiosRequestConfig): Promise<any> {
   const response = await axios.patch(url, data, options);
-  return response.data ? response.data : null;
+  return response.data ?? null;
 }
 
 export async function httpDelete(url: string, options?: AxiosRequestConfig): Promise<AxiosResponse> {

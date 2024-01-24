@@ -7,6 +7,7 @@ type ILogoOptions = {
 };
 
 export interface IApplicationMetadata {
+  altinnNugetVersion?: string;
   createdBy: string;
   created: string;
   dataTypes: IDataType[];

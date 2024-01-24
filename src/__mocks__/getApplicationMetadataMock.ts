@@ -1,3 +1,4 @@
+import { MINIMUM_APPLICATION_VERSION } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 
 export const getApplicationMetadataMock = (
@@ -9,6 +10,7 @@ export const getApplicationMetadataMock = (
     title: {
       nb: 'Test App',
     },
+    altinnNugetVersion: MINIMUM_APPLICATION_VERSION.build,
     autoDeleteOnProcessEnd: false,
     dataTypes: [
       {

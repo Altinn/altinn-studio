@@ -331,5 +331,11 @@ export function nb(): FixedLanguageList {
       component_has_errors_after:
         'Så lenge komponenten har konfigurasjonsfeil kan vi ikke vise den i skjemaet. Rett opp i feilene og prøv igjen.',
     },
+    version_error: {
+      version_mismatch: 'Versjonsfeil',
+      version_mismatch_message:
+        'Denne versjonen av app frontend er ikke kompatibel med den versjonen av backend-bibliotekene du bruker. Oppdater til nyeste versjon av pakkene og prøv igjen.',
+      min_backend_version: 'Minimum backend versjon er {0}',
+    },
   };
 }

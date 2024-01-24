@@ -328,5 +328,11 @@ export function en() {
       component_has_errors_after:
         'As long as the component has configuration errors, we cannot show it in the form. Fix the errors and try again.',
     },
+    version_error: {
+      version_mismatch: 'Version mismatch',
+      version_mismatch_message:
+        'This version of the app frontend is not compatible with the version of the backend libraries you are using. Update to the latest version of the packages and try again.',
+      min_backend_version: 'Minimum backend version is {0}',
+    },
   };
 }

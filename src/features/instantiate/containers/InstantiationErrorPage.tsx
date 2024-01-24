@@ -9,7 +9,7 @@ import { InstantiationContainer } from 'src/features/instantiate/containers/Inst
 export type IInstantiationErrorPageProps = {
   title: React.ReactNode;
   content: React.ReactNode;
-  statusCode: React.ReactNode;
+  statusCode?: React.ReactNode;
 } & RouteProps;
 
 export function InstantiationErrorPage({ content, statusCode, title }: IInstantiationErrorPageProps) {
