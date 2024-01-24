@@ -6,7 +6,6 @@ import type { NodeMap } from '../types/NodeMap';
 import {
   isCombination,
   isDefinition,
-  isField,
   isFieldOrCombination,
   isNodeValidParent,
   isProperty,
@@ -65,9 +64,9 @@ export class SchemaModel {
     return this.nodeMap.size <= 1;
   }
 
-  public getRootNode(): FieldNode {
+  public getRootNode(): FieldNode | CombinationNode {
     const rootNode = this.getNode(ROOT_POINTER);
-    if (!isField(rootNode)) throw new Error('Root node is not a field.');
+    if (!isFieldOrCombination(rootNode)) throw new Error('Root node is not a field nor a combination.');
     return rootNode;
   }
 
