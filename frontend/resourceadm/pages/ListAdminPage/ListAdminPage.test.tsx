@@ -1,5 +1,5 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useParams } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
@@ -17,34 +17,50 @@ const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockedNavigate,
-  useParams: () => {
-    return {
-      selectedContext: 'ttd',
-      env: 'tt02',
-    };
-  },
+  useParams: jest.fn(),
 }));
 
 describe('ListAdminPage', () => {
   afterEach(jest.clearAllMocks);
 
+  it('should navigate to first available enviromnent if no environment is selected', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: 'ttd',
+    });
+    renderListAdminPage();
+
+    expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/tt02/`);
+  });
+
   it('should show lists after environment is selected', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: 'ttd',
+      env: 'tt02',
+    });
     renderListAdminPage();
 
     expect(await screen.findByText('Test-list')).toBeInTheDocument();
   });
 
   it('should change environment on toggle button click', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: 'ttd',
+      env: 'tt02',
+    });
     const user = userEvent.setup();
     renderListAdminPage();
 
     const prodEnvButton = screen.getByText(textMock('resourceadm.deploy_prod_env'));
     await act(() => user.click(prodEnvButton));
 
-    expect(mockedNavigate).toHaveBeenCalled();
+    expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/prod/`);
   });
 
   it('should show create dialog when create new button is clicked', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: 'ttd',
+      env: 'tt02',
+    });
     const user = userEvent.setup();
     renderListAdminPage();
 
@@ -52,7 +68,11 @@ describe('ListAdminPage', () => {
     await act(() => user.click(createNewButton));
 
     expect(
-      screen.getByText(textMock('resourceadm.listadmin_create_list_header', { env: 'TT02' })),
+      screen.getByText(
+        textMock('resourceadm.listadmin_create_list_header', {
+          env: textMock('resourceadm.deploy_test_env'),
+        }),
+      ),
     ).toBeInTheDocument();
   });
 });

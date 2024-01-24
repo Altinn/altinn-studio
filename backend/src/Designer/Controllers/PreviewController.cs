@@ -829,7 +829,8 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (NotFoundException)
             {
-                return NoContent();
+                // Return empty list since app-frontend don't handle a null result
+                return Ok(new List<string>());
             }
         }
 
