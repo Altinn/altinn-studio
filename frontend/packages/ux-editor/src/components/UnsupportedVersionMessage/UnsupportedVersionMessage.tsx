@@ -32,17 +32,16 @@ export function UnsupportedVersionMessage({
   return (
     <div className={classes.wrapper}>
       <Alert severity='info' className={classes.message}>
-        <Heading level={2} size='small'>
+        <Heading level={2} size='small' spacing>
           {t('ux_editor.unsupported_version_message_title', { version })}
         </Heading>
         {getBodyTextKeys(category).map((key) => {
           return (
-            <Paragraph key={key} className={classes.bodyText}>
+            <Paragraph key={key} spacing>
               {t(key, { version, closestSupportedVersion })}
             </Paragraph>
           );
         })}
-        <br />
       </Alert>
     </div>
   );

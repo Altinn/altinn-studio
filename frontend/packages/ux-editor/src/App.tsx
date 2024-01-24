@@ -32,7 +32,7 @@ export function App() {
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
     useDatamodelMetadataQuery(org, app);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
-  const { data: appVersion, isSuccess: isAppVersionFetched } = useAppVersionQuery(org, app);
+  const { data: appVersion } = useAppVersionQuery(org, app);
 
   useEffect(() => {
     if (
@@ -80,8 +80,7 @@ export function App() {
   }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
 
   if (
-    isAppVersionFetched &&
-    appVersion.frontendVersion.startsWith('4') &&
+    appVersion?.frontendVersion.startsWith('4') &&
     !shouldDisplayFeature('shouldOverrideAppFrontendCheck')
   ) {
     return (
