@@ -81,7 +81,7 @@ export function App() {
 
   if (
     isAppVersionFetched &&
-    appVersion.frontend.startsWith('4.') &&
+    appVersion.frontendVersion.startsWith('4') &&
     !shouldDisplayFeature('shouldOverrideAppFrontendCheck')
   ) {
     return (

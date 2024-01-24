@@ -18,7 +18,7 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Policy } from '@altinn/policy-editor';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
-import type { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import type { AppVersion } from 'app-shared/types/AppVersion';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { AppDeployment } from 'app-shared/types/AppDeployment';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
@@ -157,7 +157,7 @@ export const validation: Validation = {
   errors: [],
 };
 
-export const appLibVersion: AppLibVersion = {
+export const appVersion: AppVersion = {
   backendVersion: '',
   frontendVersion: '',
 };

@@ -1,7 +1,7 @@
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import type { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Commit } from 'app-shared/types/Commit';
@@ -48,9 +48,8 @@ import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor
 import {
   appConfig,
   appDeploymentsResponse,
-  appLibVersion,
+  appVersion,
   appReleasesResponse,
-  appVersionResponse,
   applicationMetadata,
   branchStatus,
   commit,
@@ -70,16 +69,13 @@ import {
   user,
   validation,
 } from './mocks';
-import { AppVersionResponse } from 'app-shared/types/api/AppVersionReponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
   getAppReleases: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
-  getAppVersion: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<AppVersionResponse>(appVersionResponse)),
+  getAppVersion: jest.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
   getComponentSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getComponentsCommonDefsSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
@@ -163,9 +159,6 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<BrregSubPartySearchResult>(null)),
 
   // Queries - PrgetBpmnFile
-  getAppLibVersion: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<AppLibVersion>(appLibVersion)),
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
 
   // Mutations
