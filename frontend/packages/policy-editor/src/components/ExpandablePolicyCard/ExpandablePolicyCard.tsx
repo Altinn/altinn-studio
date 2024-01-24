@@ -196,6 +196,10 @@ export const ExpandablePolicyCard = ({
     savePolicy(updatedRules);
   };
 
+  const getTranslationByActionId = (actionId: string): string | null => {
+    return t(`policy_editor.action_${actionId}`) || actionId;
+  };
+
   const displayActions = policyRule.actions.map((actionId, i) => {
     return (
       <ActionAndSubjectListItem
@@ -205,10 +209,6 @@ export const ExpandablePolicyCard = ({
       />
     );
   });
-
-  const getTranslationByActionId = (actionId: string): string | null => {
-    return t(`policy_editor.action_${actionId}`) || actionId;
-  };
 
   const handleRemoveAction = (index: number, actionTitle: string) => {
     // Remove from selected list
