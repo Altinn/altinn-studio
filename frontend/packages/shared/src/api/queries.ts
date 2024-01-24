@@ -1,7 +1,6 @@
 import { get } from 'app-shared/utils/networking';
 import {
   altinn2LinkServicesPath,
-  appLibVersionPath,
   appMetadataPath,
   appPolicyPath,
   appVersionPath,
@@ -74,7 +73,7 @@ import type { NewsList } from 'app-shared/types/api/NewsList';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
-export const getAppVersion = (org: string, app: string) => get<AppVersion>(appLibVersionPath(org, app));
+export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));

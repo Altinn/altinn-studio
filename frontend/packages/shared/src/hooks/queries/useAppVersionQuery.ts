@@ -7,7 +7,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 export const useAppVersionQuery = (org: string, app: string): UseQueryResult<AppVersion> => {
   const { getAppVersion } = useServicesContext();
   return useQuery<AppVersion>({
-    queryKey: [QueryKey.FrontEndSettings, org, app],
+    queryKey: [QueryKey.AppVersion, org, app],
     queryFn: () => getAppVersion(org, app),
   });
 };
