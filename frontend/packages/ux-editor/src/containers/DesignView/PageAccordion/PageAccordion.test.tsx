@@ -104,9 +104,7 @@ describe('PageAccordion', () => {
     });
 
     expect(deleteButton).toBeDisabled();
-    await act(async () => {
-      await user.click(deleteButton);
-    });
+    await act(() => user.click(deleteButton));
     expect(mockDeleteFormLayout).not.toHaveBeenCalled();
     expect(mockSetSearchParams).not.toHaveBeenCalled();
   });
