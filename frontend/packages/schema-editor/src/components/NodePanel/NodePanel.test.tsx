@@ -1,10 +1,11 @@
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import React from 'react';
 import { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
-import { NodePanel, NodePanelProps } from './';
+import { NodePanel } from './';
+import type { NodePanelProps } from './';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import { definitionNodeMock, stringDefinitionNodeMock, uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
-import { DragAndDropTreeProviderProps } from 'app-shared/components/DragAndDropTree/DragAndDropTreeProvider';
+import type { DragAndDropTreeProviderProps } from 'app-shared/components/DragAndDropTree/DragAndDropTreeProvider';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { act, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';

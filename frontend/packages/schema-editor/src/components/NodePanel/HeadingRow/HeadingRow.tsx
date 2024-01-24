@@ -21,7 +21,7 @@ import {
   StringIcon,
 } from '@studio/icons';
 import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
-import { TranslationKey } from '@altinn-studio/language/type';
+import type { TranslationKey } from '@altinn-studio/language/type';
 import { useAddProperty } from '../../../hooks/useAddProperty';
 import cn from 'classnames';
 

@@ -1,6 +1,7 @@
-import { HeadingRow, HeadingRowProps } from './HeadingRow';
+import { HeadingRow } from './HeadingRow';
+import type { HeadingRowProps } from './HeadingRow';
 import React from 'react';
-import { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
+import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import { act, screen } from '@testing-library/react';
@@ -21,7 +22,7 @@ import {
   unusedObjectDefinitionPointer,
   unusedStringDefinitionPointer,
 } from './test-data';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 // Test data:
 const initialModel = SchemaModel.fromArray(schemaNodesMock);

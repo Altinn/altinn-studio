@@ -1,7 +1,8 @@
 import { act, render, screen } from '@testing-library/react';
 import { StudioDropdownMenu } from './';
 import React, { createRef } from 'react';
-import userEvent, { UserEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
+import type { UserEvent } from '@testing-library/user-event';
 
 describe('StudioDropdownMenu', () => {
   it('Displays a dropdown menu when the button is clicked', async () => {

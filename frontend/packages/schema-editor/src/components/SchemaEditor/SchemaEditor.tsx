@@ -7,7 +7,7 @@ import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { useMoveProperty } from './hooks/useMoveProperty';
 import { useAddReference } from './hooks/useAddReference';
-import { NodePanel } from '@altinn/schema-editor/components/NodePanel/NodePanel';
+import { NodePanel } from '../NodePanel';
 
 export const SchemaEditor = () => {
   const { schemaModel, selectedTypePointer, selectedNodePointer } = useSchemaEditorAppContext();
