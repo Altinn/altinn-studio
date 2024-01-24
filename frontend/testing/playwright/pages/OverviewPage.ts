@@ -11,7 +11,7 @@ export class OverviewPage extends BasePage {
     await this.page.goto(this.getRoute('editorOverview'));
   }
 
-  public async verifOverviewPage(): Promise<void> {
+  public async verifyOverviewPage(): Promise<void> {
     await this.page.waitForURL(this.getRoute('editorOverview'));
   }
 }

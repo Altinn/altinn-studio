@@ -92,5 +92,5 @@ test('It is possible to open an application from the dashboard', async ({ page, 
   const overviewPage = new OverviewPage(page, { app: testAppName });
 
   await dashboardPage.clickOnTestAppEditButton(testAppName);
-  await overviewPage.verifOverviewPage();
+  await overviewPage.verifyOverviewPage();
 });
