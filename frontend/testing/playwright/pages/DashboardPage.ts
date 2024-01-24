@@ -82,8 +82,4 @@ export class DashboardPage extends BasePage {
   public async clickOnTestAppEditButton(appName: string): Promise<void> {
     await this.getMenuItemByTextKey('dashboard.edit_app', { appName }).click();
   }
-
-  public async verifyEditorOverviewPage(): Promise<void> {
-    await this.page.waitForURL(this.getRoute('editorOverview'));
-  }
 }
