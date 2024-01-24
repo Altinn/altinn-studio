@@ -1,5 +1,5 @@
 ﻿import { useEffect } from 'react';
-import Modeler from 'bpmn-js/lib/Modeler';
+import type Modeler from 'bpmn-js/lib/Modeler';
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import SupportedPaletteProvider from '../../bpmnProviders/SupportedPaletteProvider';
 import SupportedContextPadProvider from '../../bpmnProviders/SupportedContextPadProvider';

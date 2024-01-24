@@ -1,4 +1,5 @@
-import { createContext, RefObject } from 'react';
+import type { RefObject } from 'react';
+import { createContext } from 'react';
 
 export interface AppContextProps {
   previewIframeRef: RefObject<HTMLIFrameElement>;

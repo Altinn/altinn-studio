@@ -1,9 +1,10 @@
 import React from 'react';
-import { FormComponentConfig, FormComponentConfigProps } from './FormComponentConfig';
+import type { FormComponentConfigProps } from './FormComponentConfig';
+import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithMockStore } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 

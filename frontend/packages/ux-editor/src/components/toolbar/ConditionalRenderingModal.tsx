@@ -13,7 +13,7 @@ import {
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
-import { ConditionalRenderingConnection } from 'app-shared/types/RuleConfig';
+import type { ConditionalRenderingConnection } from 'app-shared/types/RuleConfig';
 import { addConditionalRenderingConnection, deleteConditionalRenderingConnection } from '../../utils/ruleConfigUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';

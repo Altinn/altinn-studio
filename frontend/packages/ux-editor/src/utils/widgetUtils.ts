@@ -1,5 +1,5 @@
-import { IWidgetTexts } from '../types/global';
-import { ITextResource } from 'app-shared/types/global';
+import type { IWidgetTexts } from '../types/global';
+import type { ITextResource } from 'app-shared/types/global';
 
 /**
  * Extracts all languages from a list of widget texts.

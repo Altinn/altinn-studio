@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
-import { AltinnTextField, AltinnTextFieldProps } from 'app-shared/components/AltinnTextField/AltinnTextField';
+import type { AltinnTextFieldProps } from 'app-shared/components/AltinnTextField/AltinnTextField';
+import { AltinnTextField } from 'app-shared/components/AltinnTextField/AltinnTextField';
 
 jest.mock('./AltinnTextField.module.css', () => ({
   withAsterisk: 'withAsterisk',

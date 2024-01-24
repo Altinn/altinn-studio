@@ -1,4 +1,4 @@
-import { SchemaModel } from '@altinn/schema-model';
+import type { SchemaModel } from '@altinn/schema-model';
 
 /**
  * Get the saved model from the saveDatamodel mock.

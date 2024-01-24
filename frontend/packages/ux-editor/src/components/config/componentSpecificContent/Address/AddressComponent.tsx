@@ -2,7 +2,7 @@ import React from 'react';
 import { Switch, Fieldset } from '@digdir/design-system-react';
 import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
-import { IGenericEditComponent } from '../../componentConfig';
+import type { IGenericEditComponent } from '../../componentConfig';
 import { AddressKeys, getTextResourceByAddressKey } from '../../../../utils/component';
 import { EditDataModelBindings } from '../../editModal/EditDataModelBindings';
 import type { FormAddressComponent } from '../../../../types/FormComponent';

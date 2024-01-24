@@ -1,13 +1,10 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { DragAndDropList } from './';
-import {
-  DragAndDropListItemContext,
-  DragAndDropListItemContextProps,
-} from '../DragAndDropListItem/DragAndDropListItemContext';
-import {
-  DragAndDropRootContext,
-  DragAndDropRootContextProps,
-} from '../DragAndDropProvider/DragAndDropRootContext';
+import type { DragAndDropListItemContextProps } from '../DragAndDropListItem/DragAndDropListItemContext';
+import { DragAndDropListItemContext } from '../DragAndDropListItem/DragAndDropListItemContext';
+import type { DragAndDropRootContextProps } from '../DragAndDropProvider/DragAndDropRootContext';
+import { DragAndDropRootContext } from '../DragAndDropProvider/DragAndDropRootContext';
 import { render as renderRtl } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';

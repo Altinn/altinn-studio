@@ -3,11 +3,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { IFormLayouts } from '../../types/global';
+import type { IFormLayouts } from '../../types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { ILayoutSettings } from 'app-shared/types/global';
 
 export interface UpdateLayoutNameMutationArgs {
   oldName: string;

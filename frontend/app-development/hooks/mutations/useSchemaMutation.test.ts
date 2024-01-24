@@ -1,7 +1,7 @@
 import { renderHookWithMockStore } from '../../test/mocks';
 import { useSchemaMutation } from './useSchemaMutation';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { jsonSchemaMock } from '../../test/jsonSchemaMock';
 import { waitFor } from '@testing-library/react';

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { ILayoutSettings } from 'app-shared/types/global';
 
 export const useFormLayoutSettingsQuery = (
   org: string,

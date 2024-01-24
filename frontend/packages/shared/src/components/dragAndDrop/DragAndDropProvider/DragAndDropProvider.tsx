@@ -1,8 +1,9 @@
-import React, { ReactNode, useId } from 'react';
+import type { ReactNode } from 'react';
+import React, { useId } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DragAndDropRootContext } from './DragAndDropRootContext';
-import { HandleAdd, HandleDrop, HandleMove } from 'app-shared/types/dndTypes';
+import type { HandleAdd, HandleDrop, HandleMove } from 'app-shared/types/dndTypes';
 
 export interface DragAndDropProviderProps<T> {
   children: ReactNode;

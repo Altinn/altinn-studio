@@ -1,4 +1,4 @@
-import { ITextResources } from 'app-shared/types/global';
+import type { ITextResources } from 'app-shared/types/global';
 import { allTextResourceIdsWithTextSelector, getAllLanguages } from './textResourceSelectors';
 
 describe('textResourceSelectors', () => {

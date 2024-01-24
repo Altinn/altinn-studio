@@ -1,4 +1,5 @@
-import React, { ReactNode, useCallback } from 'react';
+import type { ReactNode } from 'react';
+import React, { useCallback } from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { Accordion } from '@digdir/design-system-react';

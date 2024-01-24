@@ -5,8 +5,8 @@ import type { IRuleModelFieldElement } from '../../types/global';
 import { withTranslation } from 'react-i18next';
 import classes from './RuleComponent.module.css';
 import Modal from 'react-modal';
-import { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
-import i18next from 'i18next';
+import type { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
+import type i18next from 'i18next';
 import { Buldings2Icon } from '@navikt/aksel-icons';
 
 export interface IRuleComponentProps {

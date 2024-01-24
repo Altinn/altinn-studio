@@ -1,8 +1,8 @@
 ﻿import * as nbTexts from '@altinn-studio/language/src/nb.json';
 import * as enTexts from '@altinn-studio/language/src/en.json';
-import { Locator, Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { RouterRoute } from './RouterRoute';
-import { Environment } from './StudioEnvironment';
+import type { Environment } from './StudioEnvironment';
 
 type Locale = 'nb' | 'en';
 type TextKey = keyof typeof nbTexts | keyof typeof enTexts;

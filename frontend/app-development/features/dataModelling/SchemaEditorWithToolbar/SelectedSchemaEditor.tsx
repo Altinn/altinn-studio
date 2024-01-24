@@ -6,7 +6,7 @@ import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useOnUnmount } from 'app-shared/hooks/useOnUnmount';
 import { extractFilename, removeSchemaExtension } from 'app-shared/utils/filenameUtils';
 

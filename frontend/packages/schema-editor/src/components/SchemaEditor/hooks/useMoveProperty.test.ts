@@ -1,7 +1,7 @@
 import { renderHookWithProviders } from '../../../../test/renderHookWithProviders';
 import { useMoveProperty } from './useMoveProperty';
-import { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
-import { HandleMove, ItemPosition } from 'app-shared/types/dndTypes';
+import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
+import type { HandleMove, ItemPosition } from 'app-shared/types/dndTypes';
 import {
   extractNameFromPointer,
   ROOT_POINTER,
@@ -18,7 +18,7 @@ import {
   toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
-import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
+import type { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
 
 describe('useMoveProperty', () => {
   const setup = (schemaEditorAppContextProps?: Partial<SchemaEditorAppContextProps>) => {

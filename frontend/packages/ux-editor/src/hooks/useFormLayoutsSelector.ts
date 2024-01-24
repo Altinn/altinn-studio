@@ -1,6 +1,6 @@
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { useSelector } from 'react-redux';
-import { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
+import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
 import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { createEmptyLayout } from '../utils/formLayoutUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';

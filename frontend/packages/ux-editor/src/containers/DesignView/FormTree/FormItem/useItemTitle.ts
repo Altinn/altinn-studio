@@ -1,4 +1,4 @@
-import { ITextResource } from 'app-shared/types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../../../../hooks';
 import { textResourcesByLanguageSelector } from '../../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useCallback } from 'react';
 import { getTextResource } from '../../../../utils/language';
 import { useComponentTypeName } from '../../../../hooks/useComponentTypeName';
-import { FormComponent } from '../../../../types/FormComponent';
-import { FormContainer } from '../../../../types/FormContainer';
+import type { FormComponent } from '../../../../types/FormComponent';
+import type { FormContainer } from '../../../../types/FormContainer';
 
 export const useItemTitle = (): ((item: FormComponent | FormContainer) => string) => {
   const containerTitle = useContainerTitle();

@@ -1,4 +1,4 @@
-import {
+import type {
   AppStateSelector,
   FormLayoutsSelector, IFormDesignerComponents,
   IFormDesignerContainers, IFormLayoutOrder,

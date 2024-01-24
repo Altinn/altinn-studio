@@ -30,13 +30,14 @@ import {
 } from '../../test/uiSchemaMock';
 import { expect } from '@jest/globals';
 import { validateTestUiSchema } from '../../test/validateTestUiSchema';
-import { CombinationKind, FieldType, NodePosition, ObjectKind } from '../types';
-import { FieldNode } from '../types/FieldNode';
-import { ReferenceNode } from '../types/ReferenceNode';
+import type { NodePosition } from '../types';
+import { CombinationKind, FieldType, ObjectKind } from '../types';
+import type { FieldNode } from '../types/FieldNode';
+import type { ReferenceNode } from '../types/ReferenceNode';
 import { extractNameFromPointer } from './pointerUtils';
 import { isArray, isDefinition } from './utils';
 import { ROOT_POINTER } from './constants';
-import { CombinationNode } from '../types/CombinationNode';
+import type { CombinationNode } from '../types/CombinationNode';
 import { last } from 'app-shared/utils/arrayUtils';
 
 // Test data:

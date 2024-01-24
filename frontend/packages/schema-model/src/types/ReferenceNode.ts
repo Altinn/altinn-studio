@@ -1,5 +1,5 @@
-import { ObjectKind } from './ObjectKind';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { ObjectKind } from './ObjectKind';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export type ReferenceNode = {
   objectKind: ObjectKind.Reference;

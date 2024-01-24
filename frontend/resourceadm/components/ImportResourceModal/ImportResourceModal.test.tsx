@@ -1,13 +1,15 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ImportResourceModal, ImportResourceModalProps } from './ImportResourceModal';
+import type { ImportResourceModalProps } from './ImportResourceModal';
+import { ImportResourceModal } from './ImportResourceModal';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
 import { MemoryRouter } from 'react-router-dom';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockAltinn2LinkService: Altinn2LinkService = {

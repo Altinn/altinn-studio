@@ -1,5 +1,6 @@
 import { SavableSchemaModel } from './SavableSchemaModel';
-import { extractNameFromPointer, NodePosition, ROOT_POINTER, SchemaModel } from '../../../schema-model';
+import type { NodePosition } from '../../../schema-model';
+import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '../../../schema-model';
 import { uiSchemaNodesMock, definitionNodeMock, fieldNode1Mock, combinationNodeMock } from '../../test/mocks/uiSchemaMock';
 
 describe('SavableSchemaModel', () => {

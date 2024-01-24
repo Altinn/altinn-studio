@@ -1,5 +1,5 @@
 import { ViewSize } from './types/ViewSize';
-import { GridSizes } from './types/GridSizes';
+import type { GridSizes } from './types/GridSizes';
 import { findEffectiveGridSize } from './utils';
 
 describe('utils', () => {

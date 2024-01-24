@@ -1,5 +1,7 @@
-import React, { ChangeEvent } from 'react';
-import { isField, isReference, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
+import type { ChangeEvent } from 'react';
+import React from 'react';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { isField, isReference, pointerIsDefinition } from '@altinn/schema-model';
 import { FieldType } from '@altinn/schema-model';
 import { setRequired, setRestriction, setRestrictions } from '@altinn/schema-model';
 import { ArrayRestrictions } from './ArrayRestrictions';
@@ -10,7 +12,7 @@ import classes from './ItemRestrictions.module.css';
 import { Switch } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { EnumList } from './EnumList';
 

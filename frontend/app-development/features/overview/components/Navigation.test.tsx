@@ -8,7 +8,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { RepositoryType } from 'app-shared/types/global';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
-import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 
 describe('Navigation', () => {
   beforeEach(() => {

@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { SchemaModel } from '@altinn/schema-model';
+import type { SchemaModel } from '@altinn/schema-model';
 
 export interface SchemaEditorAppContextProps {
   schemaModel: SchemaModel;

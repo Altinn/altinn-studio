@@ -5,7 +5,7 @@ import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
 import { useTranslation } from 'react-i18next';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
-import { RuleConnection } from 'app-shared/types/RuleConfig';
+import type { RuleConnection } from 'app-shared/types/RuleConfig';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';

@@ -11,7 +11,7 @@ import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddRe
 import { useRemoveResourceAccessListMutation } from '../../hooks/mutations/useRemoveResourceAccessListMutation';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { NewAccessListModal } from '../NewAccessListModal';
-import { Resource } from 'app-shared/types/ResourceAdm';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 
 export interface ResourceAccessListsProps {

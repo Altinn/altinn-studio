@@ -1,7 +1,8 @@
-import { CombinationKind, FieldType, NodePosition, UiSchemaReducer } from '../../types';
+import type { CombinationKind, NodePosition, UiSchemaReducer } from '../../types';
+import { FieldType } from '../../types';
 import { isField, isReference, splitPointerInBaseAndName } from '../utils';
 import { convertPropToType } from './convert-node';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { castRestrictionType } from '../restrictions';
 import { swapArrayElements } from 'app-shared/utils/arrayUtils';
 import { changeNameInPointer } from '../pointerUtils';

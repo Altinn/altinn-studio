@@ -1,7 +1,8 @@
-import { Keyword, ObjectKind, UiSchemaNode } from '../types';
+import type { UiSchemaNode } from '../types';
+import { Keyword, ObjectKind } from '../types';
 import { ROOT_POINTER } from './constants';
-import { FieldNode } from '../types/FieldNode';
-import { CombinationNode } from '../types/CombinationNode';
+import type { FieldNode } from '../types/FieldNode';
+import type { CombinationNode } from '../types/CombinationNode';
 import { isNodeValidParent } from './utils';
 
 export const createDefinitionPointer = (name: string): string =>
