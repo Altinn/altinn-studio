@@ -24,15 +24,14 @@ import type { AppDeployment } from 'app-shared/types/AppDeployment';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import type { Organization } from 'app-shared/types/Organization';
 import type { Repository } from 'app-shared/types/Repository';
-import type { AppVersionResponse } from 'app-shared/types/api/AppVersionReponse';
 
 export const appReleasesResponse: AppReleasesResponse = {
   results: [],
 };
 
-export const appVersionResponse: AppVersionResponse = {
-  backend: '8.0.0',
-  frontend: '4.0.0',
+export const appVersion: AppVersion = {
+  backendVersion: '',
+  frontendVersion: '',
 };
 
 export const branchStatus: BranchStatus = {
@@ -155,11 +154,6 @@ export const resourceVersionStatus: ResourceVersionStatus = {
 export const validation: Validation = {
   status: 200,
   errors: [],
-};
-
-export const appVersion: AppVersion = {
-  backendVersion: '',
-  frontendVersion: '',
 };
 
 export const repository: Repository = {
