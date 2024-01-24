@@ -6,7 +6,7 @@ import type {
   UpsertTextResourceMutation,
 } from './types';
 import { filterFunction, getLangName } from './utils';
-import { TextTableRow } from './types';
+import type { TextTableRow } from './types';
 import {
   LegacyTable,
   LegacyTableBody,

@@ -5,7 +5,7 @@ import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
 import { ErrorMessage, TableCell, TableRow, LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
-import { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
+import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
 import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';

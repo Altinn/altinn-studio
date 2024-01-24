@@ -1,4 +1,4 @@
-import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 
 /* UTIL METHODS FOR HANDLING DATA MODEL */
 export function filterDataModelForIntellisense(

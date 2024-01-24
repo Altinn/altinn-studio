@@ -1,11 +1,12 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Accordion } from '@digdir/design-system-react';
-import { IFormLayouts } from '../../types/global';
+import type { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';

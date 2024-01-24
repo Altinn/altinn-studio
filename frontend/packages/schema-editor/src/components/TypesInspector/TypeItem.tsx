@@ -1,5 +1,6 @@
 import React from 'react';
-import { extractNameFromPointer, UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { extractNameFromPointer } from '@altinn/schema-model';
 import { CogIcon, FileJsonIcon } from '@navikt/aksel-icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';

@@ -1,6 +1,6 @@
 import { BasePage } from '../helpers/BasePage';
-import { Locator, Page } from '@playwright/test';
-import { Environment } from '../helpers/StudioEnvironment';
+import type { Locator, Page } from '@playwright/test';
+import type { Environment } from '../helpers/StudioEnvironment';
 import * as testids from '../../testids';
 import path from 'path';
 
@@ -66,7 +66,7 @@ export class DataModelPage extends BasePage {
   }
 
   public async clickOnAddNodeToPropertyButton(): Promise<void> {
-    await this.getButtonByTextKey('schema_editor.add_node_of_type').click();
+    await this.getButtonByTextKey('schema_editor.add_node_of_type').last().click();
   }
 
   public async clickOnAddFieldToNodeButton(): Promise<void> {

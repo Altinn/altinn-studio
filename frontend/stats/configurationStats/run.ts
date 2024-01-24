@@ -1,6 +1,6 @@
 import { Layout } from './Layout';
 import { LayoutSettings } from './LayoutSettings';
-import { ConfigFile } from './ConfigFile';
+import type { ConfigFile } from './ConfigFile';
 import { Application } from './Application';
 import axios from 'axios';
 

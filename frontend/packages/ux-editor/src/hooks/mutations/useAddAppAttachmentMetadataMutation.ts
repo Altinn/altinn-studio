@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApplicationMetadataActions } from '../../../../../app-development/sharedResources/applicationMetadata/applicationMetadataSlice';

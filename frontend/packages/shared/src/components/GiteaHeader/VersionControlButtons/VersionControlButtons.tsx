@@ -3,7 +3,7 @@ import classes from './VersionControlButtons.module.css';
 import { FetchChangesButton } from './FetchChangesButton';
 import { ShareChangesButton } from './ShareChangesButton';
 import { SyncModal } from './SyncModal';
-import { IContentStatus, IGitStatus } from 'app-shared/types/global';
+import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { useTranslation } from 'react-i18next';
 import {
   useRepoMetadataQuery,

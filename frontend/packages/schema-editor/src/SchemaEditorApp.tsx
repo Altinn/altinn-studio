@@ -2,21 +2,21 @@ import React, { useMemo, useState } from 'react';
 import './App.css';
 
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
-import {
-  SchemaEditorAppContext,
-  SchemaEditorAppContextProps
-} from './contexts/SchemaEditorAppContext';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { SchemaEditorAppContextProps } from './contexts/SchemaEditorAppContext';
+import { SchemaEditorAppContext } from './contexts/SchemaEditorAppContext';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
 import { SchemaEditor } from './components/SchemaEditor';
 
 export type SchemaEditorAppProps = {
   jsonSchema: JsonSchema;
+  name: string;
   save: (model: JsonSchema) => void;
 };
 
 export function SchemaEditorApp({
   jsonSchema,
+  name,
   save,
 }: SchemaEditorAppProps) {
   const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
@@ -30,8 +30,9 @@ export function SchemaEditorApp({
       setSelectedTypePointer,
       selectedNodePointer,
       setSelectedNodePointer,
+      name,
     }),
-    [jsonSchema, save, selectedTypePointer, selectedNodePointer]
+    [jsonSchema, save, selectedTypePointer, selectedNodePointer, name]
   );
 
   return (

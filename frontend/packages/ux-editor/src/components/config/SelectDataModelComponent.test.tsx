@@ -3,12 +3,12 @@ import { act, screen, waitFor } from '@testing-library/react';
 
 import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
-import { IAppDataState } from '../../features/appData/appDataReducers';
+import type { IAppDataState } from '../../features/appData/appDataReducers';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import userEvent from '@testing-library/user-event';
-import { DatamodelMetadataResponse } from 'app-shared/types/api';
+import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 
 const getDatamodelMetadata = () =>
   Promise.resolve<DatamodelMetadataResponse>({

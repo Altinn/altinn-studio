@@ -1,12 +1,12 @@
 import { useItemTitle } from './useItemTitle';
 import { renderHookWithMockStore } from '../../../../testing/mocks';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { FormContainer } from '../../../../types/FormContainer';
-import { FormComponent } from '../../../../types/FormComponent';
+import type { FormContainer } from '../../../../types/FormContainer';
+import type { FormComponent } from '../../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 // Test data:

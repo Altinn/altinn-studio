@@ -1,14 +1,15 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { internalExpressionWithMultipleSubExpressions } from '../../../../../../testing/expressionMocks';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../../testing/mocks';
 import { formDesignerMock } from '../../../../../../testing/stateMocks';
-import { SimpleExpression, SimpleExpressionProps } from './SimpleExpression';
+import type { SimpleExpressionProps } from './SimpleExpression';
+import { SimpleExpression } from './SimpleExpression';
 import { textMock } from '../../../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { IFormLayouts } from '../../../../../../types/global';
+import type { IFormLayouts } from '../../../../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../../../../testing/layoutMock';
 
 const org = 'org';

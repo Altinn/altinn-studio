@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import classes from './ResourcePageInputs.module.css';
 import { Textarea, Textfield } from '@digdir/design-system-react';
 import { RightTranslationBar } from '../RightTranslationBar';
-import { SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { getMissingInputLanguageString } from '../../utils/resourceUtils';
 
 /**

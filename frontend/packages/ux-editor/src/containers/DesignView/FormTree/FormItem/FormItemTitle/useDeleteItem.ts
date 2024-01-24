@@ -3,8 +3,8 @@ import { useDeleteFormContainerMutation } from '../../../../../hooks/mutations/u
 import { useDeleteFormComponentMutation } from '../../../../../hooks/mutations/useDeleteFormComponentMutation';
 import { useMemo } from 'react';
 import { isContainer } from '../../../../../utils/formItemUtils';
-import { FormComponent } from '../../../../../types/FormComponent';
-import { FormContainer } from '../../../../../types/FormContainer';
+import type { FormComponent } from '../../../../../types/FormComponent';
+import type { FormContainer } from '../../../../../types/FormContainer';
 import { useAppContext } from '../../../../../hooks/useAppContext';
 
 export const useDeleteItem = (formItem: FormComponent | FormContainer) => {

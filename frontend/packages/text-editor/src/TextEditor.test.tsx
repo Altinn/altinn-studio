@@ -4,7 +4,7 @@ import type { TextEditorProps } from './TextEditor';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import * as testids from '../../../testing/testids';
 
 const user = userEvent.setup();

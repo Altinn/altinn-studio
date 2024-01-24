@@ -1,5 +1,6 @@
-import { TabAction } from 'app-shared/types/LeftNavigationTab';
-import React, { ReactNode } from 'react';
+import type { TabAction } from 'app-shared/types/LeftNavigationTab';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 export type TabContentProps = {

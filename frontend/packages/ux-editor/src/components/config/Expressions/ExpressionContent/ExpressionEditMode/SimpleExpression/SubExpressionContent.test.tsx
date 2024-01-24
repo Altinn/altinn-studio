@@ -1,21 +1,22 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SubExpressionContent, SubExpressionContentProps } from './SubExpressionContent';
+import type { SubExpressionContentProps } from './SubExpressionContent';
+import { SubExpressionContent } from './SubExpressionContent';
 import {
   baseInternalSubExpression,
   componentId,
   stringValue,
   subExpression0,
 } from '../../../../../../testing/expressionMocks';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../../testing/mocks';
 import { formDesignerMock } from '../../../../../../testing/stateMocks';
 import { textMock } from '../../../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layout1NameMock, layoutMock } from '../../../../../../testing/layoutMock';
-import { IFormLayouts } from '../../../../../../types/global';
+import type { IFormLayouts } from '../../../../../../types/global';
 import { DataSource } from '../../../../../../types/Expressions';
 
 const user = userEvent.setup();

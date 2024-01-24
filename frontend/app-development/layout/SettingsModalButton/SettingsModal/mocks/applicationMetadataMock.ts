@@ -1,4 +1,4 @@
-import {
+import type {
   ApplicationMetadata,
   CopyInstanceSettings,
   HideSettings,

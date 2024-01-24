@@ -1,4 +1,5 @@
-import React, { ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
+import React, { useState } from 'react';
 import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from '@navikt/aksel-icons';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';

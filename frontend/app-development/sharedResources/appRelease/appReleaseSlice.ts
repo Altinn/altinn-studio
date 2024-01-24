@@ -8,7 +8,7 @@ import type {
   IGetReleaseActionFulfilled,
   IGetReleaseActionRejected,
 } from './types';
-import { AppRelease } from 'app-shared/types/AppRelease';
+import type { AppRelease } from 'app-shared/types/AppRelease';
 
 export interface IAppReleaseState {
   releases: AppRelease[];

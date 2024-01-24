@@ -6,8 +6,8 @@ import { renderWithMockStore } from '../../testing/mocks';
 import { formContextProviderMock } from '../../testing/formContextMocks';
 import { Dynamics } from './Dynamics';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
-import { FormComponent } from '../../types/FormComponent';
+import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
+import type { FormComponent } from '../../types/FormComponent';
 
 const user = userEvent.setup();
 

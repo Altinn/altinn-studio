@@ -1,13 +1,15 @@
 import React from 'react';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
-import {
-  FieldType,
-  ROOT_POINTER,
-  SchemaModel,
+import type {
   UiSchemaNode,
   UiSchemaNodes
 } from '@altinn/schema-model';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import {
+  FieldType,
+  ROOT_POINTER,
+  SchemaModel
+} from '@altinn/schema-model';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { act, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';

@@ -10,7 +10,7 @@ import classes from './MakeCopyModal.module.css';
 import { SimpleContainer } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 export interface IMakeCopyModalProps {

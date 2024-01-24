@@ -3,9 +3,9 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from 'app-development/test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { News } from './News';
-import { NewsList } from 'app-shared/types/api/NewsList';
+import type { NewsList } from 'app-shared/types/api/NewsList';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 describe('News', () => {
   it('section title is always rendered', async () => {

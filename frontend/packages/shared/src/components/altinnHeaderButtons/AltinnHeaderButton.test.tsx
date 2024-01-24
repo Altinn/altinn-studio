@@ -1,8 +1,9 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { AltinnHeaderButton, AltinnHeaderButtonProps } from './AltinnHeaderButton';
+import type { AltinnHeaderButtonProps } from './AltinnHeaderButton';
+import { AltinnHeaderButton } from './AltinnHeaderButton';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { AltinnButtonActionItem } from '../altinnHeader/types';
+import type { AltinnButtonActionItem } from '../altinnHeader/types';
 
 const mockTo: string = '/test';
 const mockButtonTitle: string = 'title';

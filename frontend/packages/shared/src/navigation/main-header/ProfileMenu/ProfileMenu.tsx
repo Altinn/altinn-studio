@@ -1,11 +1,12 @@
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import classes from './ProfileMenu.module.css';
 import { Menu, MenuItem } from '@mui/material';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../../utils/networking';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../../api/paths';
 import { useTranslation } from 'react-i18next';
-import { User } from 'app-shared/types/Repository';
+import type { User } from 'app-shared/types/Repository';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { StudioButton } from '@studio/components';
 import * as testids from '../../../../../../testing/testids';

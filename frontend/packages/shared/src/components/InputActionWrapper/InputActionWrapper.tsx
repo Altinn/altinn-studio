@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
 import { useText } from '../../../../ux-editor/src/hooks';
-import { ButtonProps } from '@digdir/design-system-react';
+import type { ButtonProps } from '@digdir/design-system-react';
 import classes from './InputActionWrapper.module.css';
 import cn from 'classnames';
 import { StudioButton } from '@studio/components';

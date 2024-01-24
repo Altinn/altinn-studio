@@ -1,7 +1,7 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { IDataModelBindings, ITextResourceBindings, IOption } from './global';
-import { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { FormComponent } from '../components/FormComponent';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { IDataModelBindings, ITextResourceBindings, IOption } from './global';
+import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { FormComponent } from '../components/FormComponent';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;

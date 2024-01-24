@@ -1,6 +1,7 @@
-import { MutationMeta, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { MutationMeta } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
+import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useCreateDeploymentMutation = (owner, app, meta?: MutationMeta) => {
