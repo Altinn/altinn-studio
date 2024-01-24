@@ -4,6 +4,7 @@ import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { DashboardPage } from 'testing/playwright/pages/DashboardPage';
+import { OverviewPage } from 'testing/playwright/pages/OverviewPage';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -88,7 +89,8 @@ test('It is possible to open Gitea repository of an app from the dashboard', asy
 
 test('It is possible to open an application from the dashboard', async ({ page, testAppName }) => {
   const dashboardPage = await setupAndVerifyDashboardPage(page, testAppName);
+  const overviewPage = new OverviewPage(page, { app: testAppName });
 
   await dashboardPage.clickOnTestAppEditButton(testAppName);
-  await dashboardPage.verifyEditorOverviewPage();
+  await overviewPage.verifOverviewPage();
 });
