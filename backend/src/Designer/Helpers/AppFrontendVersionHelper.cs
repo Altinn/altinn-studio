@@ -33,7 +33,7 @@ public static class AppFrontendVersionHelper
         int prefixIndex = srcAttribute.IndexOf(prefix, StringComparison.Ordinal);
         int suffixIndex = srcAttribute.IndexOf(suffix, StringComparison.Ordinal);
 
-        if (prefixIndex == -1 || suffixIndex == -1)
+        if (prefixIndex == -1 || suffixIndex == -1 || prefixIndex >= suffixIndex)
         {
             return false;
         }

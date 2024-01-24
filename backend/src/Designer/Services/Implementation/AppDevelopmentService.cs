@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,9 +8,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using HtmlAgilityPack;
 using Microsoft.AspNetCore.Http;
-using NuGet.ProjectModel;
 using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -304,7 +301,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-            string indexFilePath = altinnAppGitRepository.FindFiles(new[] { "App/Views/Home/Index.cshtml" }).FirstOrDefault();
+            string indexFilePath;
+
+            try
+            {
+                indexFilePath = altinnAppGitRepository.FindFiles(new[] { "App/Views/Home/Index.cshtml" }).FirstOrDefault();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return false;
+            }
+
 
             return indexFilePath is not null && AppFrontendVersionHelper.TryGetFrontendVersionFromIndexFile(indexFilePath, out version);
         }
