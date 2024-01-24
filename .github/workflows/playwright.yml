@@ -3,10 +3,11 @@ name: Playwright Tests in Dev
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - 'frontend/**'
-      - '.githib/workflow/playwright.yml'
+      - '.github/workflow/playwright.yml'
+  workflow_dispatch:
 
 jobs:
   playwright-run:

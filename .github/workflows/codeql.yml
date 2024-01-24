@@ -2,12 +2,12 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
     paths:
       - 'testdata/**'
       - 'backend/**'
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
     paths:
       - 'testdata/**'
       - 'backend/**'
