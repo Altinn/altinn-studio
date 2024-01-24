@@ -4,13 +4,12 @@ import React, { forwardRef, ReactNode } from 'react';
 import cn from 'classnames';
 import classes from './StudioButton.module.css';
 import type { OverridableComponent } from '../../types/OverridableComponent';
+import { IconPlacement } from '../../types/IconPlacement';
 
-export type IconPlacement = 'left' | 'right';
-
-export type StudioButtonProps = ButtonProps & {
+export interface StudioButtonProps extends ButtonProps {
   icon?: ReactNode;
   iconPlacement?: IconPlacement;
-};
+}
 
 const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef<
   HTMLButtonElement,

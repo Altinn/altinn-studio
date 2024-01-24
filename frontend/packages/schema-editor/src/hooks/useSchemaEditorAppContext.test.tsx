@@ -17,6 +17,7 @@ describe('useSchemaEditorAppContext', () => {
       save,
       setSelectedTypePointer: jest.fn(),
       setSelectedNodePointer: jest.fn(),
+      name: 'test',
     };
     const { result } = renderHook(() => useSchemaEditorAppContext(), {
       wrapper: ({ children }) => (

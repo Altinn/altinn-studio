@@ -21,6 +21,7 @@ export const renderHookWithProviders = ({
     setSelectedNodePointer: jest.fn(),
     selectedTypePointer: null,
     setSelectedTypePointer: jest.fn(),
+    name: 'Test',
     ...appContextProps,
   };
 
