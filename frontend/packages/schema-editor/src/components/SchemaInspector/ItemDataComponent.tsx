@@ -11,9 +11,10 @@ import {
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import {
+import type {
   CombinationKind,
-  UiSchemaNode,
+  UiSchemaNode } from '@altinn/schema-model';
+import {
   addCombinationItem,
   deleteNode,
   pointerIsDefinition,

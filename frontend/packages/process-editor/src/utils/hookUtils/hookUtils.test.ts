@@ -1,11 +1,11 @@
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
-import { BpmnBusinessObjectViewer } from '../../types/BpmnBusinessObjectViewer';
-import {
+import type { BpmnBusinessObjectViewer } from '../../types/BpmnBusinessObjectViewer';
+import type {
   BpmnBusinessObjectEditor,
   BpmnExtensionElementsEditor,
 } from '../../types/BpmnBusinessObjectEditor';
-import { BpmnDetails } from '../../types/BpmnDetails';
-import { BpmnTaskType } from '../../types/BpmnTaskType';
+import type { BpmnDetails } from '../../types/BpmnDetails';
+import type { BpmnTaskType } from '../../types/BpmnTaskType';
 import {
   getBpmnEditorDetailsFromBusinessObject,
   getBpmnViewerDetailsFromBusinessObject,

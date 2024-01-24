@@ -1,6 +1,6 @@
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import React from 'react';
-import { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
+import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
 import { NodePanel } from './';
 import type { NodePanelProps } from './';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';

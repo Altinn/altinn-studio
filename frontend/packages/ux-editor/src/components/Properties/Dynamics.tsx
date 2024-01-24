@@ -3,7 +3,7 @@ import { Switch } from '@digdir/design-system-react';
 import { ConditionalRendering } from './ConditionalRendering';
 import { Expressions } from '../config/Expressions';
 import { useText } from '../../hooks';
-import { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
+import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
 import { useFormContext } from '../../containers/FormContext';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';

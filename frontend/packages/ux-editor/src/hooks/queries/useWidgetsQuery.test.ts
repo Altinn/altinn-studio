@@ -1,8 +1,8 @@
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useWidgetsQuery } from './useWidgetsQuery';
-import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
-import { IWidget } from '../../types/global';
+import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
+import type { IWidget } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:

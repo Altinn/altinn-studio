@@ -10,9 +10,10 @@ import {
   SchemaModel,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
+import type { RenderWithProvidersData } from '../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import * as testids from '../../../../../testing/testids';
 import { uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
 

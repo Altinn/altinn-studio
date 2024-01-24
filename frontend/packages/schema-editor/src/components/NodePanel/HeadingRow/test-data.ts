@@ -1,12 +1,10 @@
-import {
-  CombinationKind,
+import type {
   CombinationNode,
   FieldNode,
-  FieldType,
-  ObjectKind,
   ReferenceNode,
-  ROOT_POINTER, UiSchemaNodes
+  UiSchemaNodes,
 } from '@altinn/schema-model';
+import { CombinationKind, FieldType, ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 import { nodeMockBase } from '../../../../test/mocks/uiSchemaMock';
 
 export const objectDefinitionPointer = '#/$defs/objectDefinition';
@@ -125,7 +123,6 @@ const numberRefMock: ReferenceNode = {
   pointer: numberRefPointer,
   reference: numberDefinitionPointer,
 };
-
 
 const booleanRefMock: ReferenceNode = {
   ...nodeMockBase,

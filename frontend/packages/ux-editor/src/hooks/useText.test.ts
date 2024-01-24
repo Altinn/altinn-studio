@@ -1,7 +1,7 @@
 import { renderHookWithMockStore } from '../testing/mocks';
 import { appDataMock } from '../testing/stateMocks';
 import { useText } from './useText';
-import { IAppDataState } from '../features/appData/appDataReducers';
+import type { IAppDataState } from '../features/appData/appDataReducers';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 // Test data:

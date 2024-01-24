@@ -2,15 +2,20 @@
 
 import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
-import { DragAndDropTreeItem, DragAndDropTreeItemProps } from './DragAndDropTreeItem';
+import type { DragAndDropTreeItemProps } from './DragAndDropTreeItem';
+import { DragAndDropTreeItem } from './DragAndDropTreeItem';
+import type {
+  DragAndDropTreeRootContextProps
+} from '../DragAndDropTreeRoot';
 import {
-  DragAndDropTreeRootContext,
-  DragAndDropTreeRootContextProps,
+  DragAndDropTreeRootContext
 } from '../DragAndDropTreeRoot';
 import { DragAndDropTreeProvider } from '../DragAndDropTreeProvider';
+import type {
+  DragAndDropTreeItemContextProps
+} from 'app-shared/components/DragAndDropTree/DragAndDropTreeItem/DragAndDropTreeItemContext';
 import {
-  DragAndDropTreeItemContext,
-  DragAndDropTreeItemContextProps,
+  DragAndDropTreeItemContext
 } from 'app-shared/components/DragAndDropTree/DragAndDropTreeItem/DragAndDropTreeItemContext';
 import { TreeViewRoot } from 'app-shared/components/TreeView/TreeViewRoot';
 

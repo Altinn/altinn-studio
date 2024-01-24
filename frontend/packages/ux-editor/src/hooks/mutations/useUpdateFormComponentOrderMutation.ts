@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { IFormLayoutOrder } from '../../types/global';
+import type { IFormLayoutOrder } from '../../types/global';
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutMutation } from './useFormLayoutMutation';

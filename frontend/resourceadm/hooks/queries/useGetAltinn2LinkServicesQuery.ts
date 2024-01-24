@@ -1,8 +1,9 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 
 /**
  * Query to get the list of services from Altinn 2.

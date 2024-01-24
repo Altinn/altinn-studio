@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { AltinnButtonActionItem } from '../altinnHeader/types';
+import type { AltinnButtonActionItem } from '../altinnHeader/types';
 import { StudioButton } from '@studio/components';
 
 export interface AltinnHeaderButtonProps {

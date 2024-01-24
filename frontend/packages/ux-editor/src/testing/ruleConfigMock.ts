@@ -1,10 +1,10 @@
-import {
+import type {
   ConditionalRenderingConnection,
   ConditionalRenderingConnections, RuleConfig,
   RuleConnection,
   RuleConnections
 } from 'app-shared/types/RuleConfig';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { component1IdMock, container1IdMock } from './layoutMock';
 
 export const ruleConnection1Id = 'id1';

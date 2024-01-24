@@ -15,7 +15,7 @@ import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
 import { TextList } from './TextList';
 import ISO6391 from 'iso-639-1';
-import { ITextResources } from 'app-shared/types/global';
+import type { ITextResources } from 'app-shared/types/global';
 import { useTranslation } from 'react-i18next';
 
 export interface TextEditorProps {

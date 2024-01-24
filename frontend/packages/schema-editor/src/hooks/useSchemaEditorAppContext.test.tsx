@@ -1,10 +1,8 @@
 import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { useSchemaEditorAppContext } from './useSchemaEditorAppContext';
-import {
-  SchemaEditorAppContext,
-  SchemaEditorAppContextProps,
-} from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { uiSchemaNodesMock } from '../../test/mocks/uiSchemaMock';
 import { SchemaModel } from '@altinn/schema-model';
 

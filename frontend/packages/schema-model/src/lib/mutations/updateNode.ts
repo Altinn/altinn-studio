@@ -1,4 +1,4 @@
-import { UiSchemaNode, UiSchemaNodes } from '../../types';
+import type { UiSchemaNode, UiSchemaNodes } from '../../types';
 import { replaceByPredicate } from 'app-shared/utils/arrayUtils';
 
 export const updateNode = (

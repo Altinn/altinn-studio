@@ -12,7 +12,7 @@ import {
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';
-import { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
+import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
 
 describe('ItemPropertiesTab', () => {
   it('Renders combinations', async () => {

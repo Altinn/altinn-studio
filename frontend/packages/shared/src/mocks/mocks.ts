@@ -1,29 +1,29 @@
-import {
+import type {
   AppDeploymentsResponse,
   AppReleasesResponse,
   CreateRepoCommitPayload,
   DatamodelMetadataResponse,
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
-import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { NewsList } from 'app-shared/types/api/NewsList';
-import { BranchStatus } from 'app-shared/types/BranchStatus';
-import { Commit } from 'app-shared/types/Commit';
-import { OrgsState } from 'app-shared/types/OrgsState';
-import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
-import { ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { User } from 'app-shared/types/Repository';
-import { AppConfig } from 'app-shared/types/AppConfig';
-import { Policy } from '@altinn/policy-editor';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
-import { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { NewsList } from 'app-shared/types/api/NewsList';
+import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { Commit } from 'app-shared/types/Commit';
+import type { OrgsState } from 'app-shared/types/OrgsState';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { User } from 'app-shared/types/Repository';
+import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { Policy } from '@altinn/policy-editor';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
+import type { AppLibVersion } from 'app-shared/types/AppLibVersion';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { AppDeployment } from 'app-shared/types/AppDeployment';
-import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
-import { Organization } from 'app-shared/types/Organization';
-import { Repository } from 'app-shared/types/Repository';
+import type { AppDeployment } from 'app-shared/types/AppDeployment';
+import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { Organization } from 'app-shared/types/Organization';
+import type { Repository } from 'app-shared/types/Repository';
 
 export const appReleasesResponse: AppReleasesResponse = {
   results: [],

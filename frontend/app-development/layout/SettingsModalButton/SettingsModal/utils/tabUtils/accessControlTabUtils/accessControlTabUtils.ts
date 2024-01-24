@@ -1,4 +1,4 @@
-import { PartyTypesAllowed, AllowedPartyTypes } from 'app-shared/types/ApplicationMetadata';
+import type { PartyTypesAllowed, AllowedPartyTypes } from 'app-shared/types/ApplicationMetadata';
 
 /**
  * PartyTypesAllowed where all values are set to false

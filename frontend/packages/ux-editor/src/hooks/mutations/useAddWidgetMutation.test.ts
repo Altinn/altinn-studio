@@ -2,10 +2,11 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
-import { AddWidgetMutationArgs, useAddWidgetMutation } from './useAddWidgetMutation';
-import { IWidget, IWidgetTexts } from '../../types/global';
+import type { AddWidgetMutationArgs } from './useAddWidgetMutation';
+import { useAddWidgetMutation } from './useAddWidgetMutation';
+import type { IWidget, IWidgetTexts } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { ITextResource } from 'app-shared/types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 
 // Test data:

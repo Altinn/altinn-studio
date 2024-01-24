@@ -1,4 +1,4 @@
-import { IInternalLayout } from '../../types/global';
+import type { IInternalLayout } from '../../types/global';
 import { useMutation } from '@tanstack/react-query';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';

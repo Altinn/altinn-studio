@@ -46,20 +46,20 @@ import {
   widgetSettingsPath,
   resourceAccessListsPath,
 } from './paths';
-import { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
-import { BranchStatus } from 'app-shared/types/BranchStatus';
-import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
-import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
-import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
-import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { ILayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings } from 'app-shared/types/global';
-import { Organization } from 'app-shared/types/Organization';
-import { OrgsState } from 'app-shared/types/OrgsState';
-import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { Repository } from 'app-shared/types/Repository';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
-import { User } from 'app-shared/types/Repository';
-import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
+import type { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { ILayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings } from 'app-shared/types/global';
+import type { Organization } from 'app-shared/types/Organization';
+import type { OrgsState } from 'app-shared/types/OrgsState';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import type { Repository } from 'app-shared/types/Repository';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { User } from 'app-shared/types/Repository';
+import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
@@ -68,9 +68,9 @@ import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Acc
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import { NewsList } from 'app-shared/types/api/NewsList';
-import { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import type { NewsList } from 'app-shared/types/api/NewsList';
+import type { AppLibVersion } from 'app-shared/types/AppLibVersion';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));

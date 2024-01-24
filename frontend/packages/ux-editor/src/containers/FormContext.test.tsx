@@ -2,15 +2,11 @@ import React from 'react';
 import { screen, waitFor, act } from '@testing-library/react';
 import { FormContextProvider, FormContext } from './FormContext';
 import userEvent from '@testing-library/user-event';
-import {
-  UpdateFormContainerMutationArgs,
-  useUpdateFormContainerMutation,
-} from '../hooks/mutations/useUpdateFormContainerMutation';
-import {
-  UpdateFormComponentMutationArgs,
-  useUpdateFormComponentMutation,
-} from '../hooks/mutations/useUpdateFormComponentMutation';
-import { UseMutationResult } from '@tanstack/react-query';
+import type { UpdateFormContainerMutationArgs } from '../hooks/mutations/useUpdateFormContainerMutation';
+import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
+import type { UpdateFormComponentMutationArgs } from '../hooks/mutations/useUpdateFormComponentMutation';
+import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
+import type { UseMutationResult } from '@tanstack/react-query';
 import { renderWithMockStore } from '../testing/mocks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';

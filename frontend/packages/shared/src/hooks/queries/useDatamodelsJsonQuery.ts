@@ -1,8 +1,9 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { DatamodelMetadataJson } from 'app-shared/types/DatamodelMetadata';
-import { AxiosError } from 'axios';
+import type { DatamodelMetadataJson } from 'app-shared/types/DatamodelMetadata';
+import type { AxiosError } from 'axios';
 
 export const useDatamodelsJsonQuery = (
   owner,

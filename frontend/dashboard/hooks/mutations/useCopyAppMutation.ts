@@ -1,5 +1,6 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { MutationMeta, useMutation } from '@tanstack/react-query';
+import type { MutationMeta } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 interface CopyAppMutationArgs {
   org: string;

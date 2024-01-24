@@ -1,5 +1,5 @@
 import type { AxiosError } from 'axios';
-import { DeploymentStatus } from "../../features/appPublish/components/appDeploymentComponent";
+import type { DeploymentStatus } from "../../features/appPublish/components/appDeploymentComponent";
 
 export interface IBuild {
   id: string;

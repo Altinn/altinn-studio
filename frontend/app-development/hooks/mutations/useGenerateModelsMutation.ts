@@ -1,10 +1,11 @@
-import { useMutation, UseMutationResult, useQueryClient, QueryMeta } from '@tanstack/react-query';
+import type { UseMutationResult, QueryMeta } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { AxiosError } from 'axios';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { AxiosError } from 'axios';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { ApiError } from 'app-shared/types/api/ApiError';
+import type { ApiError } from 'app-shared/types/api/ApiError';
 
 export const useGenerateModelsMutation = (
   modelPath: string,

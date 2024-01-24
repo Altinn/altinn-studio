@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, act, screen } from '@testing-library/react';
-import { InputPopover, InputPopoverProps } from './InputPopover';
+import type { InputPopoverProps } from './InputPopover';
+import { InputPopover } from './InputPopover';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 

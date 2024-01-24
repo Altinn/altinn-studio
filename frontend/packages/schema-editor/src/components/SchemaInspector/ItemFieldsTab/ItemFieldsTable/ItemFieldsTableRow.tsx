@@ -1,7 +1,9 @@
-import React, { ReactNode, KeyboardEvent, ChangeEventHandler, useState } from 'react';
+import type { ReactNode, KeyboardEvent, ChangeEventHandler } from 'react';
+import React, { useState } from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
-import { FieldType, UiSchemaNode, deleteNode, setType, isField } from '@altinn/schema-model';
+import type { FieldType, UiSchemaNode } from '@altinn/schema-model';
+import { deleteNode, setType, isField } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { NativeSelect, Switch } from '@digdir/design-system-react';

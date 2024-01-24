@@ -3,7 +3,7 @@ import { parentNodeMock, uiSchemaMock } from '../../../test/uiSchemaMock';
 import { getPointers } from '../mappers/getPointers';
 import { getNodeByPointer } from '../selectors';
 import { expect } from '@jest/globals';
-import { CombinationNode } from '../../types/CombinationNode';
+import type { CombinationNode } from '../../types/CombinationNode';
 
 describe('renameNodePointer', () => {
   const oldPointer = parentNodeMock.pointer;

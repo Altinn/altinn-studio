@@ -1,11 +1,12 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
-import { AboutResourcePageProps, AboutResourcePage } from './AboutResourcePage';
+import type { AboutResourcePageProps } from './AboutResourcePage';
+import { AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import {
+import type {
   Resource,
   ResourceContactPoint,
   ResourceStatusOption,

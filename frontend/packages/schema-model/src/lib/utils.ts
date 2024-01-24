@@ -2,10 +2,10 @@ import type { UiSchemaNode, UiSchemaNodes } from '../types';
 import { CombinationKind, FieldType, Keyword, ObjectKind } from '../types';
 import { hasNodePointer } from './selectors';
 import { ROOT_POINTER } from './constants';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { FieldNode } from '../types/FieldNode';
-import { CombinationNode } from '../types/CombinationNode';
-import { ReferenceNode } from '../types/ReferenceNode';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { FieldNode } from '../types/FieldNode';
+import type { CombinationNode } from '../types/CombinationNode';
+import type { ReferenceNode } from '../types/ReferenceNode';
 import { makePointerFromArray } from './pointerUtils';
 
 export const createNodeBase = (...args: string[]): FieldNode => ({

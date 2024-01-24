@@ -1,6 +1,6 @@
 import { BasePage } from '../helpers/BasePage';
-import { Locator, Page } from '@playwright/test';
-import { Environment } from '../helpers/StudioEnvironment';
+import type { Locator, Page } from '@playwright/test';
+import type { Environment } from '../helpers/StudioEnvironment';
 import * as testids from '../../testids';
 import path from 'path';
 
