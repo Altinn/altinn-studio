@@ -1,16 +1,18 @@
 import { render as renderRtl, screen } from '@testing-library/react';
 import { renderIcon } from './renderIcon';
-import {
-  CombinationKind,
+import type {
   CombinationNode,
   FieldNode,
-  FieldType,
-  ObjectKind,
   ReferenceNode,
-  ROOT_POINTER,
-  SchemaModel,
   UiSchemaNode,
   UiSchemaNodes,
+} from '@altinn/schema-model';
+import {
+  CombinationKind,
+  FieldType,
+  ObjectKind,
+  ROOT_POINTER,
+  SchemaModel,
   validateTestUiSchema,
 } from '@altinn/schema-model';
 import { nodeMockBase } from '../../../../test/mocks/uiSchemaMock';

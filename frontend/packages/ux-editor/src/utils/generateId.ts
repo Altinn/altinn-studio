@@ -1,4 +1,4 @@
-import { IFormLayouts } from '../types/global';
+import type { IFormLayouts } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { ComponentType } from 'app-shared/types/ComponentType';
 

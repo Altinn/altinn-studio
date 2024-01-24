@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { ILayoutSettings } from 'app-shared/types/global';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';

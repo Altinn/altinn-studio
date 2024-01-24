@@ -1,14 +1,14 @@
-import { IInternalLayout } from '../../types/global';
-import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
+import type { IInternalLayout } from '../../types/global';
+import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
-import { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
+import type { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
 import { internalGroupComponentToExternal } from '../groupComponentConverters';
-import { FormContainer } from '../../types/FormContainer';
+import type { FormContainer } from '../../types/FormContainer';
 import { addPageIndexPrefix } from './pageIndexUtils';
 import { internalSimpleComponentToExternal } from '../simpleComponentConverters';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { CompareFunction } from 'app-shared/utils/compareFunctions';
-import { FormComponent } from '../../types/FormComponent';
+import type { CompareFunction } from 'app-shared/utils/compareFunctions';
+import type { FormComponent } from '../../types/FormComponent';
 
 export const internalLayoutToExternal = (internalLayout: IInternalLayout): ExternalFormLayout => ({
   $schema: layoutSchemaUrl(),

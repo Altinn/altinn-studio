@@ -3,7 +3,8 @@ import { render as rtlRender, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Canvas } from './Canvas';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { BpmnContextProvider, BpmnContextProviderProps } from '../../contexts/BpmnContext';
+import type { BpmnContextProviderProps } from '../../contexts/BpmnContext';
+import { BpmnContextProvider } from '../../contexts/BpmnContext';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 
 const mockOnSave = jest.fn();

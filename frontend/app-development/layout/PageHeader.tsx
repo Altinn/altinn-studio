@@ -3,11 +3,11 @@ import { AltinnHeader } from 'app-shared/components/altinnHeader/AltinnHeader';
 import { getFilteredTopBarMenu } from './AppBar/appBarConfig';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useAppSelector } from 'app-development/hooks';
-import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
+import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
-import { User } from 'app-shared/types/Repository';
+import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
 

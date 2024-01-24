@@ -1,5 +1,7 @@
-import React, { RefObject, forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
-import { Textfield, TextfieldProps } from '@digdir/design-system-react';
+import type { RefObject } from 'react';
+import React, { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
+import type { TextfieldProps } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
 

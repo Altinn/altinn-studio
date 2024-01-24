@@ -1,0 +1,22 @@
+.root {
+  --gap: var(--fds-spacing-1);
+  align-items: center;
+  display: flex;
+  padding: var(--gap) 0;
+  gap: var(--gap);
+}
+
+.root.selected .headingButton {
+  background-color: var(--fds-semantic-surface-action-first-no_fill-active);
+}
+
+.heading {
+  display: contents;
+}
+
+.heading .headingButton {
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+  font: var(--fds-typography-paragraph-short-large);
+  min-height: var(--fds-sizing-12);
+}

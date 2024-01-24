@@ -3,7 +3,8 @@ import { CloneModal } from './CloneModal';
 import type { ICloneModalProps } from './CloneModal';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 
 const render = (props: Partial<ICloneModalProps> = {}) => {
   const allProps = {

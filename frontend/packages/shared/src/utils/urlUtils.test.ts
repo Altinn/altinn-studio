@@ -1,5 +1,5 @@
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 describe('urlUtils', () => {
   describe('buildQueryParams', () => {

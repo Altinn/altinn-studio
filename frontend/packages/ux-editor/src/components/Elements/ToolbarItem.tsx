@@ -1,6 +1,7 @@
-import React, { MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 interface IToolbarItemProps {

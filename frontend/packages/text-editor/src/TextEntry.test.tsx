@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import { TextEntry, TextEntryProps } from './TextEntry';
+import type { TextEntryProps } from './TextEntry';
+import { TextEntry } from './TextEntry';
 import { renderWithMockStore } from '../../ux-editor/src/testing/mocks';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';

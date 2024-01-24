@@ -1,5 +1,5 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormComponent } from '../../types/FormComponent';
+import type { FormComponent } from '../../types/FormComponent';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { internalSimpleComponentToExternal } from './internalSimpleComponentToExternal';
 

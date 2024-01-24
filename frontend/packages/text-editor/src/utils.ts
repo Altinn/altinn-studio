@@ -1,6 +1,6 @@
 import ISO6391 from 'iso-639-1';
 import type { Option, TextTableRow, TextTableRowEntry } from './types';
-import { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { alphabeticalCompareFunction } from 'app-shared/utils/compareFunctions';
 
 const intlNb = new Intl.DisplayNames(['nb'], { type: 'language' });

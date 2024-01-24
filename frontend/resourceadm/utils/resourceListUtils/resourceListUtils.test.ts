@@ -1,5 +1,5 @@
 import { filterTableData } from "./resourceListUtils";
-import { ResourceListItem } from "app-shared/types/ResourceAdm";
+import type { ResourceListItem } from "app-shared/types/ResourceAdm";
 
 describe('filterTableData', () => {
   it('Filter out the data searched for', () => {

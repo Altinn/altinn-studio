@@ -1,4 +1,4 @@
-import { TranslationKey } from 'language/type';
+import type { TranslationKey } from 'language/type';
 import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
 
 /**

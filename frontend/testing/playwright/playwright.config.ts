@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { config } from 'dotenv';
-import { ExtendedTestOptions } from './extenders/testExtend';
+import type { ExtendedTestOptions } from './extenders/testExtend';
 import { AppNames } from './enum/AppNames';
 
 config();

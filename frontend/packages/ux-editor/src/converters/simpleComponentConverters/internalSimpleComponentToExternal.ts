@@ -1,6 +1,6 @@
-import { FormComponent } from '../../types/FormComponent';
-import { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
-import { SimpleComponentType } from '../../types/SimpleComponentType';
+import type { FormComponent } from '../../types/FormComponent';
+import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
+import type { SimpleComponentType } from '../../types/SimpleComponentType';
 
 export const internalSimpleComponentToExternal = <T extends SimpleComponentType>(
   internalComponent: FormComponent<T>,

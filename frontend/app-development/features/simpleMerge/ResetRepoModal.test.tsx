@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
 
 import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import * as testids from '../../../testing/testids';
 
 const user = userEvent.setup();

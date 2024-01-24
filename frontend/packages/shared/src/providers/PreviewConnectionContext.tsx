@@ -1,6 +1,8 @@
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { previewSignalRHubSubPath } from 'app-shared/api/paths';
-import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import type { HubConnection } from '@microsoft/signalr';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 
 const PreviewConnectionContext = createContext<HubConnection>(null);
 

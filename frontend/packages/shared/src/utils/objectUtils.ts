@@ -1,4 +1,4 @@
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { areItemsUnique } from 'app-shared/utils/arrayUtils';
 
 /**

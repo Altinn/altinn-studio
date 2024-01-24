@@ -1,5 +1,5 @@
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import type {
   ResourceTypeOption,
   ResourceStatusOption,
@@ -8,8 +8,8 @@ import type {
   ValidLanguage,
   SupportedLanguage,
 } from 'app-shared/types/ResourceAdm';
-import { ReactNode } from 'react';
-import { NavigationBarPage } from '../../types/NavigationBarPage';
+import type { ReactNode } from 'react';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
 
 /**
  * The map of resource type

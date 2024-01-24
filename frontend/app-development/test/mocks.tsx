@@ -4,13 +4,14 @@ import configureStore from 'redux-mock-store';
 import type { RootState } from '../store';
 import { Provider } from 'react-redux';
 import { render, renderHook } from '@testing-library/react';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { BrowserRouter } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { rootStateMock } from './rootStateMock';
-import { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];

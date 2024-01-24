@@ -1,7 +1,7 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { getReposLabel, validateRepoName } from './repoUtils';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { Organization } from 'app-shared/types/Organization';
+import type { Organization } from 'app-shared/types/Organization';
 
 const t = textMock;
 const orgs: Organization[] = [];

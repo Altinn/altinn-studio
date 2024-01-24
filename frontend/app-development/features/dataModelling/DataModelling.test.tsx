@@ -7,12 +7,13 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { jsonMetadata1Mock } from '../../../packages/schema-editor/test/mocks/metadataMocks';
-import { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 

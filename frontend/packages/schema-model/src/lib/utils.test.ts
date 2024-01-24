@@ -5,7 +5,8 @@ import {
   isNodeValidParent,
   replaceLastPointerSegment,
 } from './utils';
-import { FieldType, Keyword, UiSchemaNode } from '../types';
+import type { UiSchemaNode } from '../types';
+import { FieldType, Keyword } from '../types';
 import { expect } from '@jest/globals';
 import { buildUiSchema } from './build-ui-schema';
 import { selectorsTestSchema } from '../../test/testUtils';
@@ -19,7 +20,7 @@ import {
   simpleParentNodeMock,
   stringNodeMock
 } from '../../test/uiSchemaMock';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 describe('utils', () => {
   test('creatNodeBase', () => {

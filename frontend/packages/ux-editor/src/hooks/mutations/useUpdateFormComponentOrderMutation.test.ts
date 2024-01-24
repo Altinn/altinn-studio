@@ -3,7 +3,7 @@ import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useUpdateFormComponentOrderMutation } from './useUpdateFormComponentOrderMutation';
-import { IFormLayoutOrder } from '../../types/global';
+import type { IFormLayoutOrder } from '../../types/global';
 import {
   component1IdMock,
   component2IdMock,
@@ -12,7 +12,7 @@ import {
   layout1NameMock,
   layoutMock,
 } from '../../testing/layoutMock';
-import { FormLayoutsResponse } from 'app-shared/types/api';
+import type { FormLayoutsResponse } from 'app-shared/types/api';
 
 // Test data:
 const org = 'org';
