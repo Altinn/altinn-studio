@@ -5,11 +5,13 @@ import {
   screen,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
-import { AccessControlTab, AccessControlTabProps } from './AccessControlTab';
+import type { AccessControlTabProps } from './AccessControlTab';
+import { AccessControlTab } from './AccessControlTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient, UseMutationResult } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';

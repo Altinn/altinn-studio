@@ -1,8 +1,8 @@
-import { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
+import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { IInternalLayout } from '../types/global';
-import { FormComponent } from '../types/FormComponent';
-import { FormContainer } from '../types/FormContainer';
+import type { IInternalLayout } from '../types/global';
+import type { FormComponent } from '../types/FormComponent';
+import type { FormContainer } from '../types/FormContainer';
 import { customDataPropertiesMock, customRootPropertiesMock } from './layoutMock';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 

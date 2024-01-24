@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
-import {
-  Expression,
-  expressionInPreviewPropertyTextKeys,
-  Operator,
-  SubExpression,
-} from '../../../../../types/Expressions';
+import type { Expression, SubExpression } from '../../../../../types/Expressions';
+import { expressionInPreviewPropertyTextKeys, Operator } from '../../../../../types/Expressions';
 import {
   addSubExpressionToExpression,
   canExpressionBeSaved,

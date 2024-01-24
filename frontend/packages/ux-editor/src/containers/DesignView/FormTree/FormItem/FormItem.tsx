@@ -1,5 +1,5 @@
 import React from 'react';
-import { IInternalLayout } from '../../../../types/global';
+import type { IInternalLayout } from '../../../../types/global';
 import { getItem, isContainer } from '../../../../utils/formLayoutUtils';
 import { renderItemList } from '../renderItemList';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';

@@ -1,5 +1,6 @@
-import { APIRequestContext, APIResponse } from '@playwright/test';
-import { Environment, StudioEnvironment } from './StudioEnvironment';
+import type { APIRequestContext, APIResponse } from '@playwright/test';
+import type { Environment } from './StudioEnvironment';
+import { StudioEnvironment } from './StudioEnvironment';
 import type { Cookie, StorageState } from '../types/StorageState';
 
 export class DesignerApi extends StudioEnvironment {

@@ -1,5 +1,5 @@
 import { extractLanguagesFromWidgetTexts, extractTextsFromWidgetTextsByLanguage } from './widgetUtils';
-import { IWidgetTexts } from '../types/global';
+import type { IWidgetTexts } from '../types/global';
 
 describe('widgetUtils', () => {
   describe('extractLanguagesFromWidgetTexts', () => {

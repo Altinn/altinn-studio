@@ -1,6 +1,6 @@
-import { HandleAdd, ItemPosition } from 'app-shared/types/dndTypes';
+import type { HandleAdd, ItemPosition } from 'app-shared/types/dndTypes';
 import { useCallback } from 'react';
-import { NodePosition } from '@altinn/schema-model';
+import type { NodePosition } from '@altinn/schema-model';
 import { calculatePositionInFullList } from '../utils';
 import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 

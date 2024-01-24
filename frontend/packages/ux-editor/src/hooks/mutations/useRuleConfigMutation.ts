@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 

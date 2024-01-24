@@ -19,8 +19,8 @@ import {
   xsdMetadata1Mock,
   xsdMetadata2Mock
 } from '../../packages/schema-editor/test/mocks/metadataMocks';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
-import { MetadataOption } from '../types/MetadataOption';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { MetadataOption } from '../types/MetadataOption';
 
 // Test data:
 const jsonMetadataOption1: MetadataOption = {

@@ -1,4 +1,4 @@
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 const applicationMetadataString = `
 {

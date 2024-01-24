@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useCallback } from 'react';
 
 export function useComponentTypeName(): (type: ComponentType) => string {

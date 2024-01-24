@@ -1,6 +1,8 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { render } from '@testing-library/react';
-import { SchemaEditorAppContext, SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
 import { SchemaModel } from '../../schema-model';
 
@@ -14,6 +16,8 @@ export const renderWithProviders = ({
   appContextProps: {},
 }) => (element: ReactNode) => {
 
+  const name = 'Test';
+
   const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
     schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
     save: jest.fn(),
@@ -21,6 +25,7 @@ export const renderWithProviders = ({
     setSelectedNodePointer: jest.fn(),
     selectedTypePointer: null,
     setSelectedTypePointer: jest.fn(),
+    name,
     ...appContextProps,
   };
 
@@ -42,6 +47,7 @@ export const renderWithProviders = ({
       setSelectedNodePointer: jest.fn(),
       selectedTypePointer: null,
       setSelectedTypePointer: jest.fn(),
+      name,
       ...rerenderAppContextProps,
     };
 

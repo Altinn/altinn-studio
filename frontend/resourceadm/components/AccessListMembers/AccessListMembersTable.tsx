@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Table } from '@digdir/design-system-react';
-import { AccessListMember } from 'app-shared/types/ResourceAdm';
+import type { AccessListMember } from 'app-shared/types/ResourceAdm';
 import { StudioButton } from '@studio/components';
 import classes from './AccessListMembers.module.css';
 

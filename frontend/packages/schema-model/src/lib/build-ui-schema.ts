@@ -11,7 +11,7 @@ import { findRestrictionsOnNode } from './restrictions';
 import { findUiFieldType } from './mappers/field-type';
 import { findGenericKeywordsOnNode, findReference } from './mappers/generic';
 import { ROOT_POINTER } from './constants';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { makePointerFromArray } from './pointerUtils';
 

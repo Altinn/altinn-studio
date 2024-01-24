@@ -1,10 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ExpandablePolicyCard, ExpandablePolicyCardProps } from './ExpandablePolicyCard';
+import type { ExpandablePolicyCardProps } from './ExpandablePolicyCard';
+import { ExpandablePolicyCard } from './ExpandablePolicyCard';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { PolicyEditorUsage } from '../../types';
+import type { PolicyEditorUsage } from '../../types';
 import {
   mockActionTitle1,
   mockActionTitle2,

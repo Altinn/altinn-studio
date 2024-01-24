@@ -1,4 +1,4 @@
-﻿import { Page } from '@playwright/test';
+﻿import type { Page } from '@playwright/test';
 import { BasePage } from '../helpers/BasePage';
 
 // Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.

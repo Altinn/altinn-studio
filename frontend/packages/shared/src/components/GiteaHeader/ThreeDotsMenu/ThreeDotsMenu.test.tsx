@@ -1,7 +1,8 @@
 import React from 'react';
 import { render as rtlRender, act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThreeDotsMenu, ThreeDotsMenuProps } from './ThreeDotsMenu';
+import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
+import { ThreeDotsMenu } from './ThreeDotsMenu';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();

@@ -1,14 +1,14 @@
-import { IOption } from '../types/global';
+import type { IOption } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import type {
   FormCheckboxesComponent,
   FormComponent,
   FormRadioButtonsComponent,
 } from '../types/FormComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 import { formItemConfigs } from '../data/formItemConfig';
-import { FormItem } from '../types/FormItem';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { FormItem } from '../types/FormItem';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export function getTextResourceByAddressKey(key: AddressKeys, t: (key: string) => string): string {
   switch (key) {

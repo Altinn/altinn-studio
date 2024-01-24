@@ -1,9 +1,9 @@
 import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import i18next from 'i18next';
-import { UseText } from '../hooks';
-import { TranslationKey } from 'app-shared/types/language';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type i18next from 'i18next';
+import type { UseText } from '../hooks';
+import type { TranslationKey } from 'app-shared/types/language';
 
 /**
  * Get the help text for a given component type

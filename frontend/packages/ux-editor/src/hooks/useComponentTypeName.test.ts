@@ -1,4 +1,4 @@
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { renderHook } from '@testing-library/react';
 import { useComponentTypeName } from './useComponentTypeName';

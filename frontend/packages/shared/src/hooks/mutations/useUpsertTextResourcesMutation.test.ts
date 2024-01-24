@@ -2,11 +2,9 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../../../ux-editor/src/testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useTextResourcesQuery } from '../../../../../app-development/hooks/queries';
-import {
-  UpsertTextResourcesMutationArgs,
-  useUpsertTextResourcesMutation,
-} from './useUpsertTextResourcesMutation';
-import { ITextResource } from 'app-shared/types/global';
+import type { UpsertTextResourcesMutationArgs } from './useUpsertTextResourcesMutation';
+import { useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';
+import type { ITextResource } from 'app-shared/types/global';
 
 // Test data:
 const org = 'org';

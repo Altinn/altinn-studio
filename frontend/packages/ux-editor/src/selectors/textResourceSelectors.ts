@@ -1,4 +1,4 @@
-import { IAppState, TextResourcesSelector } from '../types/global';
+import type { IAppState, TextResourcesSelector } from '../types/global';
 import type { ITextResource } from 'app-shared/types/global';
 import { ArrayUtils } from '@studio/pure-functions';
 

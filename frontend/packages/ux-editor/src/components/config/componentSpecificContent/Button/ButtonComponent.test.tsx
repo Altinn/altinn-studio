@@ -5,7 +5,7 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { ButtonComponent } from './ButtonComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
-import { IGenericEditComponent } from '../../componentConfig';
+import type { IGenericEditComponent } from '../../componentConfig';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:

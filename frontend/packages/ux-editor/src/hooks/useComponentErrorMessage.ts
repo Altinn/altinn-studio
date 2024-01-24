@@ -1,4 +1,4 @@
-import { FormComponent } from '../types/FormComponent';
+import type { FormComponent } from '../types/FormComponent';
 import { useTranslation } from 'react-i18next';
 import { useValidateComponent } from './useValidateComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';

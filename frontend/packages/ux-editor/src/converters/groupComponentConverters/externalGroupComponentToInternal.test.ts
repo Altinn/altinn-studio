@@ -1,4 +1,4 @@
-import { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
+import type { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
 import { externalGroupComponentToInternal } from './externalGroupComponentToInternal';
 import { ComponentType } from 'app-shared/types/ComponentType';
 

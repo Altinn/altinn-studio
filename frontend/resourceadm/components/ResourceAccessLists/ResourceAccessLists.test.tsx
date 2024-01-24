@@ -5,8 +5,10 @@ import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ResourceAccessLists, ResourceAccessListsProps } from './ResourceAccessLists';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ResourceAccessListsProps } from './ResourceAccessLists';
+import { ResourceAccessLists } from './ResourceAccessLists';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const resourceId = 'res1';

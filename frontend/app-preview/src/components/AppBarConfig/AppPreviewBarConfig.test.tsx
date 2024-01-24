@@ -1,5 +1,5 @@
 import { RepositoryType } from 'app-shared/types/global';
-import { AppPreviewMenuItem } from './AppPreviewBarConfig';
+import type { AppPreviewMenuItem } from './AppPreviewBarConfig';
 import { mockUseTranslation, textMock } from '../../../../testing/mocks/i18nMock';
 import { getTopBarAppPreviewMenu, menu } from './AppPreviewBarConfig';
 import React from 'react';

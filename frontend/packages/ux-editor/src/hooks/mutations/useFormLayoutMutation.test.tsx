@@ -2,11 +2,12 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { IInternalLayout } from '../../types/global';
+import type { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { baseContainerIdMock } from '../../testing/layoutMock';
-import { AppContextProps } from '../../AppContext';
-import { createRef, RefObject } from 'react';
+import type { AppContextProps } from '../../AppContext';
+import type { RefObject } from 'react';
+import { createRef } from 'react';
 
 // Test data:
 const org = 'org';

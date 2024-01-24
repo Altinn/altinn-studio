@@ -1,10 +1,7 @@
-import React, { ReactNode, createContext, useEffect, useMemo } from 'react';
-import {
-  ApplicationInsights,
-  IConfiguration,
-  IConfig,
-  ITelemetryPlugin,
-} from '@microsoft/applicationinsights-web';
+import type { ReactNode } from 'react';
+import React, { createContext, useEffect, useMemo } from 'react';
+import type { IConfiguration, IConfig, ITelemetryPlugin } from '@microsoft/applicationinsights-web';
+import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js';
 
 export type LoggerConfig = IConfiguration & IConfig;

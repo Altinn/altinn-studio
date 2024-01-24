@@ -4,6 +4,7 @@
   width: 280px;
   min-height: 100%;
   background: rgba(224, 224, 224, 0.3);
+  border-right: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
 .types {

@@ -1,11 +1,11 @@
 import { generateComponentId } from '../../utils/generateId';
-import { IInternalLayout } from '../../types/global';
+import type { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { FormContainer } from '../../types/FormContainer';
+import type { FormContainer } from '../../types/FormContainer';
 
 export interface AddFormContainerMutationArgs {
   container: FormContainer;

@@ -1,6 +1,7 @@
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 
 export const useRuleConfigQuery = (
