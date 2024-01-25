@@ -38,7 +38,7 @@ export const ProcessEditor = () => {
     <ProcessEditorImpl
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       onSave={saveBpmnXml}
-      appLibVersion={appLibData.version}
+      appLibVersion={appLibData.backendVersion}
     />
   );
 };
