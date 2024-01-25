@@ -4,12 +4,6 @@
   flex: var(--preview-width-fraction);
 }
 
-.hiddenPreviewRoot {
-  display: flex;
-  flex-direction: row;
-  width: min-content;
-}
-
 .openPreviewButton {
   writing-mode: vertical-lr;
   text-transform: uppercase;
