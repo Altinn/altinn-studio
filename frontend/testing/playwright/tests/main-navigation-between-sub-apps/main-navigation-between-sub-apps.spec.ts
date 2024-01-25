@@ -126,7 +126,6 @@ test('That it is possible to navigate from overview to the deploy page and back 
   const response = await designerApi.createApp(request, storageState as StorageState, 'ttd');
   expect(response.ok()).toBeTruthy();
 
-  // const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
   const dashboardPage = new DashboardPage(page, { app: testAppName });
   const overviewPage = new OverviewPage(page, { app: testAppName });
   const deployPage = new DeployPage(page, { app: testAppName });
@@ -134,7 +133,7 @@ test('That it is possible to navigate from overview to the deploy page and back 
   await dashboardPage.loadDashboardPage();
   await dashboardPage.verifyDashboardPage();
 
-  // Change to TTD
+  // Change org to TTD
   await dashboardPage.clickOnHeaderAvatar();
   await dashboardPage.clickOnOrgApplications();
   await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
