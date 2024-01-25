@@ -66,7 +66,8 @@ export class SchemaModel {
 
   public getRootNode(): FieldNode | CombinationNode {
     const rootNode = this.getNode(ROOT_POINTER);
-    if (!isFieldOrCombination(rootNode)) throw new Error('Root node is not a field nor a combination.');
+    if (!isFieldOrCombination(rootNode))
+      throw new Error('Root node is not a field nor a combination.');
     return rootNode;
   }
 

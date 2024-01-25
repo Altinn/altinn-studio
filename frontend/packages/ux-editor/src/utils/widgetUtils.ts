@@ -14,7 +14,7 @@ export const extractLanguagesFromWidgetTexts = (texts: IWidgetTexts[]): string[]
     }
   });
   return languages;
-}
+};
 
 /**
  * Extracts all text resources from a list of widget texts by language.
@@ -22,7 +22,10 @@ export const extractLanguagesFromWidgetTexts = (texts: IWidgetTexts[]): string[]
  * @param language The language to filter text resources by.
  * @returns An array of the text resources with the given language.
  */
-export const extractTextsFromWidgetTextsByLanguage = (texts: IWidgetTexts[], language: string): ITextResource[] =>
+export const extractTextsFromWidgetTextsByLanguage = (
+  texts: IWidgetTexts[],
+  language: string,
+): ITextResource[] =>
   texts
     .filter((text) => text.language === language)
     .map((text) => text.resources)

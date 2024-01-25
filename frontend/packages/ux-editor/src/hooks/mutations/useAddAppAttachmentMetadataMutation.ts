@@ -15,12 +15,14 @@ export const useAddAppAttachmentMetadataMutation = (org: string, app: string) =>
       return metadata;
     },
     onSuccess: (metadata: ApplicationAttachmentMetadata) => {
-      dispatch(ApplicationMetadataActions.getApplicationMetadataFulfilled({
-        applicationMetadata: {
-          ...applicationMetadata,
-          ...metadata
-        }
-      }));
-    }
+      dispatch(
+        ApplicationMetadataActions.getApplicationMetadataFulfilled({
+          applicationMetadata: {
+            ...applicationMetadata,
+            ...metadata,
+          },
+        }),
+      );
+    },
   });
-}
+};

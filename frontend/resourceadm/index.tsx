@@ -42,5 +42,5 @@ root.render(
     <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
       <App />
     </ServicesContextProvider>
-  </BrowserRouter>
+  </BrowserRouter>,
 );

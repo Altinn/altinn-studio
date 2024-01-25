@@ -70,13 +70,13 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
     org,
     app,
     prevSelectedLayoutNameRef.current,
-    selectedLayoutSet
+    selectedLayoutSet,
   );
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(
     org,
     app,
     prevSelectedLayoutNameRef.current,
-    selectedLayoutSet
+    selectedLayoutSet,
   );
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
         setFormId(updatedContainer.id);
       }
     },
-    [updateFormContainer]
+    [updateFormContainer],
   );
 
   const handleComponentSave = useCallback(
@@ -107,13 +107,13 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
         setFormId(updatedComponent.id);
       }
     },
-    [updateFormComponent]
+    [updateFormComponent],
   );
 
   const handleSave = useCallback(
     async (
       id: string = formIdRef.current,
-      updatedForm: FormContainer | FormComponent = formRef.current
+      updatedForm: FormContainer | FormComponent = formRef.current,
     ): Promise<void> => {
       clearTimeout(autoSaveTimeoutRef.current);
       if (updatedForm) {
@@ -124,7 +124,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
         }
       }
     },
-    [handleComponentSave, handleContainerSave]
+    [handleComponentSave, handleContainerSave],
   );
 
   const handleEdit = useCallback(
@@ -133,7 +133,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
       setFormId(updatedForm?.id);
       setForm(updatedForm);
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleDiscard = useCallback((): void => {
@@ -148,7 +148,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
         await handleSave(id, updatedForm);
       }, AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     },
-    [handleSave]
+    [handleSave],
   );
 
   useEffect(() => {
@@ -177,7 +177,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
       handleSave,
       debounceSave,
     }),
-    [formId, form, handleDiscard, handleEdit, handleSave, debounceSave]
+    [formId, form, handleDiscard, handleEdit, handleSave, debounceSave],
   );
 
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;

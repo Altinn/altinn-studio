@@ -58,50 +58,34 @@
           "type": "string",
           "title": "Group",
           "description": "The repeating group to base options on.",
-          "examples": [
-            "model.some.group"
-          ]
+          "examples": ["model.some.group"]
         },
         "label": {
           "type": "string",
           "title": "Label",
           "description": "Reference to a text resource to be used as the option label.",
-          "examples": [
-            "some.text.key"
-          ]
+          "examples": ["some.text.key"]
         },
         "value": {
           "type": "string",
           "title": "Label",
           "description": "Field in the group that should be used as value",
-          "examples": [
-            "model.some.group[{0}].someField"
-          ]
+          "examples": ["model.some.group[{0}].someField"]
         },
         "description": {
           "type": "string",
           "title": "Description",
           "description": "A description of the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
-          "examples": [
-            "some.text.key",
-            "My Description"
-          ]
+          "examples": ["some.text.key", "My Description"]
         },
         "helpText": {
           "type": "string",
           "title": "Help Text",
           "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
-          "examples": [
-            "some.text.key",
-            "My Help Text"
-          ]
+          "examples": ["some.text.key", "My Help Text"]
         }
       },
-      "required": [
-        "group",
-        "label",
-        "value"
-      ]
+      "required": ["group", "label", "value"]
     },
     "mapping": {
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/mapping",
@@ -137,9 +121,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type"
-  ],
+  "required": ["id", "type"],
   "additionalProperties": false
 }

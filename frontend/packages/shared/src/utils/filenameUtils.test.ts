@@ -1,4 +1,9 @@
-import { extractFilename, isXsdFile, removeExtension, removeSchemaExtension } from 'app-shared/utils/filenameUtils';
+import {
+  extractFilename,
+  isXsdFile,
+  removeExtension,
+  removeSchemaExtension,
+} from 'app-shared/utils/filenameUtils';
 
 describe('filenameUtils', () => {
   describe('removeExtension', () => {

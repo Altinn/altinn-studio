@@ -204,28 +204,26 @@ describe('TextEditor', () => {
       await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });
     };
 
-    const getInputs = (name: RegExp) => screen.getAllByRole('textbox', { name });
-
     const makeChangesToTextIds = async (onTextIdChange = jest.fn()) => {
       renderTextEditor({
         updateTextId: onTextIdChange,
       });
 
       const editKeyButton = await screen.getAllByRole('button', {
-        name: 'toggle-textkey-edit',
+        name: textMock('text_editor.toggle_edit_mode'),
       })[0];
       await act(() => user.click(editKeyButton));
 
-      const textIdInputs = getInputs(/tekst key edit/i);
-      expect(textIdInputs).toHaveLength(1);
-      await user.tripleClick(textIdInputs[0]); // select all text
+      const textIdInput = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
+
+      await user.tripleClick(textIdInput);
       await act(() => user.keyboard('new-key{TAB}')); // type new text and blur
 
       await expect(onTextIdChange).toHaveBeenCalledWith({
         oldId: nb[0].id,
         newId: 'new-key',
       });
-      return textIdInputs;
+      return textIdInput;
     };
     const setupError = () => {
       const error = jest.spyOn(console, 'error').mockImplementation();
@@ -251,8 +249,9 @@ describe('TextEditor', () => {
       expect(textIdRefsAfter1).toHaveLength(1);
 
       const textIdRefsAfter2 = screen.queryAllByText(/new-key/i);
+      const textIdInput = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
       expect(textIdRefsAfter2).toHaveLength(0);
-      expect(getInputs(/tekst key edit/i)).toEqual(original);
+      expect(textIdInput).toEqual(original);
     });
 
     it('reverts to the previous IDs if an entry could not be deleted', async () => {

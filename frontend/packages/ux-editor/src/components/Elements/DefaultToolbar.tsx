@@ -57,9 +57,14 @@ export function DefaultToolbar() {
     <>
       {Object.values(CollapsableMenus).map((key: CollapsableMenus) => {
         return (
-          <Accordion key={key} color="subtle">
-            <Accordion.Item defaultOpen={key === CollapsableMenus.Components} className={classes.accordionItem}>
-              <Accordion.Header className={classes.accordionHeader}>{getCollapsableMenuTitleByType(key, t)}</Accordion.Header>
+          <Accordion key={key} color='subtle'>
+            <Accordion.Item
+              defaultOpen={key === CollapsableMenus.Components}
+              className={classes.accordionItem}
+            >
+              <Accordion.Header className={classes.accordionHeader}>
+                {getCollapsableMenuTitleByType(key, t)}
+              </Accordion.Header>
               <Accordion.Content className={classes.accordionContent}>
                 {allComponentLists[key].map((component: IToolbarElement) => (
                   <ToolbarItem

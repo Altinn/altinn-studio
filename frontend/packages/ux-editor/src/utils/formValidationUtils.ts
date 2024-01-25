@@ -32,7 +32,7 @@ export const isPropertyRequired = (schema: any, propertyPath: string): boolean =
   if (!schema || !propertyPath) return false;
   const parent = getPropertyByPath(
     schema,
-    propertyPath.substring(0, propertyPath.lastIndexOf('/properties'))
+    propertyPath.substring(0, propertyPath.lastIndexOf('/properties')),
   );
   return parent?.required?.includes(propertyPath.split('/').pop());
 };

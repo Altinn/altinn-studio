@@ -13,6 +13,6 @@ export const useRuleConfigMutation = (org: string, app: string, layoutSetName: s
     },
     onSuccess: (savedRuleConfig) => {
       client.setQueryData([QueryKey.RuleConfig, org, app, layoutSetName], savedRuleConfig);
-    }
-  })
-}
+    },
+  });
+};

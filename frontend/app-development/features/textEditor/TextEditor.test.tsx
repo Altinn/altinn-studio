@@ -92,10 +92,12 @@ describe('TextEditor', () => {
 
     await render();
 
-    const editButton = screen.getByRole('button', { name: 'toggle-textkey-edit' });
+    const editButton = screen.getByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode'),
+    });
     await act(() => editButton.click());
 
-    const textarea = screen.getByRole('textbox', { name: 'tekst key edit' });
+    const textarea = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
     await act(() => user.clear(textarea));
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());

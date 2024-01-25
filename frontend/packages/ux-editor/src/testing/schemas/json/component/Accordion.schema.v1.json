@@ -49,10 +49,6 @@
       "$ref": "#/definitions/IPageBreak"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "children"
-  ],
+  "required": ["id", "type", "children"],
   "additionalProperties": false
 }

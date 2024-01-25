@@ -1,1 +1,1 @@
-export { RemoveChangesModal } from './RemoveChangesModal'
+export { RemoveChangesModal } from './RemoveChangesModal';

@@ -1,1 +1,1 @@
-export { ResourceTable } from './ResourceTable'
+export { ResourceTable } from './ResourceTable';

@@ -1,1 +1,1 @@
-export { ResourceNarrowingList } from './ResourceNarrowingList'
+export { ResourceNarrowingList } from './ResourceNarrowingList';

@@ -53,11 +53,7 @@ export function RuleModal(props: IRuleModalProps) {
 
   function renderRuleConnections(): JSX.Element {
     if (!ruleConnection || Object.getOwnPropertyNames(ruleConnection).length === 0) {
-      return (
-        <Typography variant='caption'>
-          {t('right_menu.rules_empty')}
-        </Typography>
-      );
+      return <Typography variant='caption'>{t('right_menu.rules_empty')}</Typography>;
     }
     return (
       <>

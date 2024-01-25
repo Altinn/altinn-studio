@@ -16,7 +16,7 @@ describe('copyNodePointer', () => {
     const mutatedNodes = copyNodePointer(
       uiSchemaNodes,
       makePointerFromArray([Properties, 'email']),
-      makePointerFromArray([Properties, 'copiedEmail'])
+      makePointerFromArray([Properties, 'copiedEmail']),
     );
     expect(mutatedNodes).toHaveLength(3);
     expect(getRootNode(mutatedNodes).children).toHaveLength(2);

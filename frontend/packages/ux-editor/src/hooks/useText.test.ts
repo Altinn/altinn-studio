@@ -15,20 +15,12 @@ jest.mock('react-i18next', () => ({
 }));
 
 describe('useText', () => {
-  it(
-    'Returns text corresponding to given key',
-    () => expect(renderAndRun(textKey)).toBe(text)
-  );
-  it(
-    'Returns key if it is not present in the store',
-    () => expect(renderAndRun(notExistingKey)).toBe(notExistingKey)
-  );
+  it('Returns text corresponding to given key', () => expect(renderAndRun(textKey)).toBe(text));
+  it('Returns key if it is not present in the store', () =>
+    expect(renderAndRun(notExistingKey)).toBe(notExistingKey));
 });
 
 const renderAndRun = (key: string) => {
   const appData: IAppDataState = { ...appDataMock };
-  return renderHookWithMockStore({ appData })(() => useText())
-    .renderHookResult
-    .result
-    .current(key);
-}
+  return renderHookWithMockStore({ appData })(() => useText()).renderHookResult.result.current(key);
+};

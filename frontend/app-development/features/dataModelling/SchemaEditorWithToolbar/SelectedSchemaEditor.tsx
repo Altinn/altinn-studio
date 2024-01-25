@@ -73,10 +73,16 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
     saveFunction();
   });
 
-  return <SchemaEditorApp jsonSchema={model} save={saveSchema} name={extractModelNameFromPath(modelPath)} />;
+  return (
+    <SchemaEditorApp
+      jsonSchema={model}
+      save={saveSchema}
+      name={extractModelNameFromPath(modelPath)}
+    />
+  );
 };
 
 const extractModelNameFromPath = (path: string): string => {
   const filename = extractFilename(path);
   return removeSchemaExtension(filename);
-}
+};

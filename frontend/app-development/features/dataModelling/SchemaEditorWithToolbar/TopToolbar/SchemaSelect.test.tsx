@@ -2,7 +2,10 @@ import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
 import type { ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';
-import { jsonMetadata1Mock, jsonMetadata2Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+import {
+  jsonMetadata1Mock,
+  jsonMetadata2Mock,
+} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import userEvent from '@testing-library/user-event';

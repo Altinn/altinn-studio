@@ -404,8 +404,8 @@ export const getAllComponentPropertiesThatCanHaveExpressions = (
   }
   const generalComponentPropertiesThatCanHaveExpressions: ExpressionProperty[] = Object.keys(
     form,
-  ).filter(
-    (property) => expressionProperties?.includes(property as ExpressionProperty),
+  ).filter((property) =>
+    expressionProperties?.includes(property as ExpressionProperty),
   ) as ExpressionProperty[];
   return generalComponentPropertiesThatCanHaveExpressions.concat(editPropertiesForGroup);
 };

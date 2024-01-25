@@ -162,7 +162,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                       <React.Fragment key={paramName}>
                         <label className={classes.label} htmlFor={paramName}>
                           {this.props.t(
-                            'ux_editor.modal_configure_rules_configure_input_param_helper'
+                            'ux_editor.modal_configure_rules_configure_input_param_helper',
                           )}
                         </label>
                         <div className={classes.configureInputParamsContainer} key={paramName}>
@@ -186,7 +186,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                         </div>
                       </React.Fragment>
                     );
-                  }
+                  },
                 )}
               </div>
               <div>

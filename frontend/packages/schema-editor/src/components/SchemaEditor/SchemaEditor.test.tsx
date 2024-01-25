@@ -253,9 +253,16 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
     const dataModelName = 'TestDatamodelName';
     renderEditor({
-      appContextProps: { schemaModel, selectedTypePointer, setSelectedTypePointer, name: dataModelName },
+      appContextProps: {
+        schemaModel,
+        selectedTypePointer,
+        setSelectedTypePointer,
+        name: dataModelName,
+      },
     });
-    const backButton = screen.getByRole('button', { name: textMock('schema_editor.back_to_datamodel') });
+    const backButton = screen.getByRole('button', {
+      name: textMock('schema_editor.back_to_datamodel'),
+    });
     await act(() => user.click(backButton));
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
