@@ -80,7 +80,7 @@ export function App() {
   }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
 
   if (
-    appVersion?.frontendVersion.startsWith('4') &&
+    appVersion?.frontendVersion?.startsWith('4') &&
     !shouldDisplayFeature('shouldOverrideAppFrontendCheck')
   ) {
     return (
