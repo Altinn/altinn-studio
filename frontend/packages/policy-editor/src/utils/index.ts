@@ -66,26 +66,6 @@ export const mapResourceFromBackendToResource = (resource: string): PolicyRuleRe
 };
 
 /**
- * Maps the list of policy action strings from backend (the id) to the
- * title of the Action which should be displayed
- *
- * @param actionOptions the possible actions to select from
- * @param actionIds the list of IDs of the already selected actions
- *
- * @returns a mapped string[] with action titles
- */
-export const mapPolicyActionsToActionTitle = (
-  actionOptions: PolicyAction[],
-  actionIds: string[],
-): string[] => {
-  return actionIds.map(
-    (actionId) =>
-      actionOptions.find((actionOption) => actionId === actionOption.actionId)?.actionTitle ||
-      actionId,
-  );
-};
-
-/**
  * Maps the policy rules object from backend to an object of the type used to
  * display data on the policy cards on the policy editor.
  *
@@ -107,12 +87,11 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
       resource.map((resource) => mapResourceFromBackendToResource(resource)),
     );
 
-    const actionTitles = mapPolicyActionsToActionTitle(actionOptions, r.actions);
     const subjectTitles = mapPolicySubjectToSubjectTitle(subjectOptions, r.subject);
 
     return {
       ruleId: id,
-      actions: actionTitles,
+      actions: r.actions,
       description: r.description,
       subject: subjectTitles,
       resources: mappedResources,
@@ -137,21 +116,6 @@ export const mapSubjectTitleToSubjectString = (
     (s) => s.subjectTitle.toLowerCase() === subjectTitle.toLowerCase(),
   );
   return `urn:${subject.subjectSource}:${subject.subjectId}`;
-};
-
-/**
- * Maps a Action title to the action id
- *
- * @param actionOptions the possible actions to select from
- * @param actionTitle the title of the action
- *
- * @returns a string of the correct format to send
- */
-export const mapActionTitleToActionId = (
-  actionOptions: PolicyAction[],
-  actionTitle: string,
-): string => {
-  return actionOptions.find((a) => a.actionTitle === actionTitle).actionId;
 };
 
 /**
@@ -180,15 +144,12 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
   const subject: string[] = policyRule.subject.map((s) =>
     mapSubjectTitleToSubjectString(subjectOptions, s),
   );
-  const actions: string[] = policyRule.actions.map((a) =>
-    mapActionTitleToActionId(actionOptions, a),
-  );
 
   return {
     ruleId,
     description: policyRule.description,
     subject: subject,
-    actions: actions,
+    actions: policyRule.actions,
     resources: resources,
   };
 };

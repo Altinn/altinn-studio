@@ -4,6 +4,16 @@
   flex: var(--preview-width-fraction);
 }
 
+.openPreviewButton {
+  writing-mode: vertical-lr;
+  text-transform: uppercase;
+  border-radius: 0;
+}
+
+.closePreviewButton {
+  position: absolute;
+}
+
 .iframeContainer {
   display: flex;
   justify-content: center;
