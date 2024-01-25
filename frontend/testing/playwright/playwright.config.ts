@@ -88,5 +88,17 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.DASHBOARD_APP,
       },
     },
+    {
+      name: 'logout-and-invalid-login-only',
+      dependencies: ['setup'],
+      testDir: './tests/logout-and-invalid-login-only/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        headless: true,
+      },
+    },
   ],
 });
