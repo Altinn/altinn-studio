@@ -8,6 +8,7 @@ import {
   mockActionId1,
   mockActionId2,
   mockActionId3,
+  mockActionId4,
   mockActions,
   mockPolicyRuleCard1,
   mockPolicyRuleCard2,
@@ -82,18 +83,19 @@ describe('ExpandablePolicyCardUtils', () => {
     it('should return all action options if none are included in the policy rule', () => {
       const actionOptions = getActionOptions(mockActions, mockPolicyRuleCard2);
 
-      expect(actionOptions.length).toBe(3);
+      expect(actionOptions.length).toBe(4);
       expect(actionOptions.map((a) => a.value)).toEqual([
         mockActionId1,
         mockActionId2,
         mockActionId3,
+        mockActionId4,
       ]);
     });
 
     it('should return an empty array if all actions are included in the policy rule', () => {
       const actionOptions = getActionOptions(mockActions, {
         ...mockPolicyRuleCard1,
-        actions: [mockActionId1, mockActionId2, mockActionId3],
+        actions: [mockActionId1, mockActionId2, mockActionId3, mockActionId4],
       });
 
       expect(actionOptions.length).toBe(0);

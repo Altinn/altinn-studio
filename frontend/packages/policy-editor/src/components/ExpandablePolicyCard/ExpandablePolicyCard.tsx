@@ -28,6 +28,16 @@ import {
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 
+const allowedActionsId: string[] = [
+  'complete',
+  'confirm',
+  'delete',
+  'instantiate',
+  'read',
+  'sign',
+  'write',
+];
+
 export type ExpandablePolicyCardProps = {
   policyRule: PolicyRuleCard;
   actions: PolicyAction[];
@@ -197,7 +207,7 @@ export const ExpandablePolicyCard = ({
   };
 
   const getTranslationByActionId = (actionId: string): string | null => {
-    return t(`policy_editor.action_${actionId}`) || actionId;
+    return allowedActionsId.includes(actionId) ? t(`policy_editor.action_${actionId}`) : actionId;
   };
 
   const displayActions = policyRule.actions.map((actionId, i) => {

@@ -10,6 +10,7 @@ import {
   mockActionId1,
   mockActionId2,
   mockActionId3,
+  mockActionId4,
   mockActions,
   mockPolicyRuleCard1,
   mockPolicyRuleCards,
@@ -26,6 +27,7 @@ const mockUsageType: PolicyEditorUsage = 'app';
 const mockActionOption1: string = textMock(`policy_editor.action_${mockActionId1}`);
 const mockActionOption2: string = textMock(`policy_editor.action_${mockActionId2}`);
 const mockActionOption3: string = textMock(`policy_editor.action_${mockActionId3}`);
+const mockActionOption4: string = mockActionId4;
 
 describe('ExpandablePolicyCard', () => {
   afterEach(jest.clearAllMocks);
@@ -112,9 +114,13 @@ describe('ExpandablePolicyCard', () => {
     const selectedAction3 = screen.queryByLabelText(
       `${textMock('general.delete')} ${mockActionOption3}`,
     );
+    const selectedAction4 = screen.getByLabelText(
+      `${textMock('general.delete')} ${mockActionOption4}`,
+    );
     expect(selectedAction1).toBeInTheDocument();
     expect(selectedAction2).toBeInTheDocument();
     expect(selectedAction3).not.toBeInTheDocument(); // 3 is not in the resource
+    expect(selectedAction4).toBeInTheDocument();
 
     // Open the select
     const [actionSelect] = screen.getAllByLabelText(
@@ -126,10 +132,12 @@ describe('ExpandablePolicyCard', () => {
     const optionAction1 = screen.queryByRole('option', { name: mockActionOption1 });
     const optionAction2 = screen.queryByRole('option', { name: mockActionOption2 });
     const optionAction3 = screen.getByRole('option', { name: mockActionOption3 });
+    const optionAction4 = screen.queryByRole('option', { name: mockActionOption4 });
 
     expect(optionAction1).not.toBeInTheDocument();
     expect(optionAction2).not.toBeInTheDocument();
     expect(optionAction3).toBeInTheDocument(); // 3 is in the resource
+    expect(optionAction4).not.toBeInTheDocument();
 
     // Click the final action
     await act(() => user.click(screen.getByRole('option', { name: mockActionOption3 })));

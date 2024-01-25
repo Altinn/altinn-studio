@@ -15,6 +15,7 @@ import {
   mockAction1,
   mockAction2,
   mockAction3,
+  mockAction4,
   mockActions,
   mockPolicyResourceBackendString1,
   mockPolicyRule1,
@@ -110,11 +111,12 @@ describe('PolicyEditorUtils', () => {
         [mockAction3],
       );
 
-      expect(mergedActions).toHaveLength(3);
+      expect(mergedActions).toHaveLength(4);
       expect(mergedActions.map((action) => action.actionId)).toEqual([
         mockAction3.actionId,
         mockAction1.actionId,
         mockAction2.actionId,
+        mockAction4.actionId,
       ]);
     });
   });

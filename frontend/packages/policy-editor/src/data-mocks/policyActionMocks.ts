@@ -1,12 +1,14 @@
 import type { PolicyAction } from '../types';
 
-export const mockActionId1: string = 'a1';
-export const mockActionId2: string = 'a2';
-export const mockActionId3: string = 'a3';
+export const mockActionId1: string = 'read';
+export const mockActionId2: string = 'write';
+export const mockActionId3: string = 'sign';
+export const mockActionId4: string = 'a4';
 
 const mockActionTitle1: string = 'Action 1';
 const mockActionTitle2: string = 'Action 2';
 const mockActionTitle3: string = 'Action 3';
+const mockActionTitle4: string = 'Action 4';
 
 export const mockAction1: PolicyAction = {
   actionId: mockActionId1,
@@ -23,4 +25,9 @@ export const mockAction3: PolicyAction = {
   actionTitle: mockActionTitle3,
   actionDescription: null,
 };
-export const mockActions: PolicyAction[] = [mockAction1, mockAction2, mockAction3];
+export const mockAction4: PolicyAction = {
+  actionId: mockActionId4,
+  actionTitle: mockActionTitle4,
+  actionDescription: null,
+};
+export const mockActions: PolicyAction[] = [mockAction1, mockAction2, mockAction3, mockAction4];
