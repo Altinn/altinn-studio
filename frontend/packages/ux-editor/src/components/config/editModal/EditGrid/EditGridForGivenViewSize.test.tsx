@@ -4,7 +4,7 @@ import { renderWithMockStore, renderHookWithMockStore } from '../../../../testin
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { GridSizes } from './types/GridSizes';
+import type { GridSizes } from './types/GridSizes';
 import { ViewSize } from './types/ViewSize';
 
 const waitForData = async () => {

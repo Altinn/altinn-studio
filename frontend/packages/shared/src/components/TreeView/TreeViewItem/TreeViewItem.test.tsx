@@ -1,8 +1,10 @@
 import React from 'react';
 import type { TreeViewItemProps } from './TreeViewItem';
-import { act, ByRoleOptions, render as renderRtl, screen } from '@testing-library/react';
+import type { ByRoleOptions } from '@testing-library/react';
+import { act, render as renderRtl, screen } from '@testing-library/react';
 import { TreeViewItem } from './TreeViewItem';
-import { TreeViewRootContext, TreeViewRootContextProps } from '../TreeViewRoot';
+import type { TreeViewRootContextProps } from '../TreeViewRoot';
+import { TreeViewRootContext } from '../TreeViewRoot';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();

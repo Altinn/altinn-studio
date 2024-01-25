@@ -7,7 +7,7 @@ import { isNodeValidParent, isReference } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
 import { AddPropertyMenu } from './AddPropertyMenu';
 import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
-import { SavableSchemaModel } from '../../../../classes/SavableSchemaModel';
+import type { SavableSchemaModel } from '../../../../classes/SavableSchemaModel';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface ActionButtonsProps {

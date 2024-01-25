@@ -1,18 +1,11 @@
 import React from 'react';
 import { act, screen, within } from '@testing-library/react';
-import { ItemFieldsTable, ItemFieldsTableProps } from './ItemFieldsTable';
-import {
-  extractNameFromPointer,
-  FieldNode,
-  FieldType,
-  ObjectKind,
-  SchemaModel,
-  UiSchemaNodes,
-} from '@altinn/schema-model';
-import {
-  renderWithProviders,
-  RenderWithProvidersData,
-} from '../../../../../test/renderWithProviders';
+import type { ItemFieldsTableProps } from './ItemFieldsTable';
+import { ItemFieldsTable } from './ItemFieldsTable';
+import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
+import { extractNameFromPointer, FieldType, ObjectKind, SchemaModel } from '@altinn/schema-model';
+import type { RenderWithProvidersData } from '../../../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../../../test/mocks/uiSchemaMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -70,7 +63,9 @@ describe('ItemFieldsTable', () => {
   it('render inputs and delete buttons correctly for all fields', async () => {
     const user = userEvent.setup();
     renderItemFieldsTab();
-    const textboxes = screen.getAllByRole('textbox', { name: textMock('schema_editor.field_name') });
+    const textboxes = screen.getAllByRole('textbox', {
+      name: textMock('schema_editor.field_name'),
+    });
     const children = model.getChildNodes(selectedItemPointer);
     expect(textboxes).toHaveLength(children.length);
     textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(expectedNameInTextField(i)));
@@ -89,7 +84,9 @@ describe('ItemFieldsTable', () => {
     const user = userEvent.setup();
     renderItemFieldsTab();
 
-    const [firstTextBox] = screen.getAllByRole('textbox', { name: textMock('schema_editor.field_name') });
+    const [firstTextBox] = screen.getAllByRole('textbox', {
+      name: textMock('schema_editor.field_name'),
+    });
     expect(firstTextBox).toHaveValue(expectedNameInTextField(0));
 
     await act(() => user.type(firstTextBox, 'a'));

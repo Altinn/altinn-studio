@@ -1,4 +1,4 @@
-import { IInternalLayout } from '../../types/global';
+import type { IInternalLayout } from '../../types/global';
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';

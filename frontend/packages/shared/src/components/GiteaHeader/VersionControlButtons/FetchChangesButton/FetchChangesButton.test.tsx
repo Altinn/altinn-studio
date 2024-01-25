@@ -1,5 +1,6 @@
 import React from 'react';
-import { FetchChangesButton, IFetchChangesButtonProps } from './FetchChangesButton';
+import type { IFetchChangesButtonProps } from './FetchChangesButton';
+import { FetchChangesButton } from './FetchChangesButton';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';

@@ -16,7 +16,7 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test('Allows to adda datamodel, include an object with custom name and fields in it, generate a C# model from it, and then delete it', async ({
+test('Allows to add a datamodel, include an object with custom name and fields in it, generate a C# model from it, and then delete it', async ({
   page,
   testAppName,
 }): Promise<void> => {

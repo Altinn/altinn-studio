@@ -1,5 +1,6 @@
 import React from 'react';
-import { FormLayout, FormLayoutProps } from './FormLayout';
+import type { FormLayoutProps } from './FormLayout';
+import { FormLayout } from './FormLayout';
 import { layoutMock } from '../../testing/layoutMock';
 import { screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../testing/mocks';

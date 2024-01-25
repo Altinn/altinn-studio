@@ -2,8 +2,8 @@ import type { UiSchemaNode, UiSchemaNodes } from '../types';
 import { isFieldOrCombination, isReference } from './utils';
 import { ROOT_POINTER } from './constants';
 import { SchemaModel } from './SchemaModel';
-import { CombinationNode } from '../types/CombinationNode';
-import { FieldNode } from '../types/FieldNode';
+import type { CombinationNode } from '../types/CombinationNode';
+import type { FieldNode } from '../types/FieldNode';
 
 export const getRootNode = (uiSchemaNodes: UiSchemaNodes): FieldNode =>
   getNodeByPointer(uiSchemaNodes, ROOT_POINTER) as FieldNode;

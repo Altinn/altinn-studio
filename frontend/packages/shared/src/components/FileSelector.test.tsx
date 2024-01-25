@@ -49,7 +49,9 @@ describe('FileSelector', () => {
 
   it('Should show text on the button by default', async () => {
     render();
-    expect(screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') }),
+    ).toBeInTheDocument();
   });
 
   it('Should show custom button', async () => {

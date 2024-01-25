@@ -19,7 +19,7 @@ import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import {
   GavelSoundBlockIcon,
   InformationSquareIcon,

@@ -4,8 +4,8 @@ import {
   internalLayoutWithMultiPageGroup,
 } from '../../testing/layoutWithMultiPageGroupMocks';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
-import { ExternalFormLayout } from 'app-shared/types/api';
-import { IInternalLayout } from '../../types/global';
+import type { ExternalFormLayout } from 'app-shared/types/api';
+import type { IInternalLayout } from '../../types/global';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
 describe('externalLayoutToInternal', () => {

@@ -1,11 +1,10 @@
 import React from 'react';
+import type { Expression, SubExpression } from '../../../../../types/Expressions';
 import {
   DataSource,
-  Expression,
   expressionDataSourceTexts,
   expressionFunctionTexts,
   Operator,
-  SubExpression,
 } from '../../../../../types/Expressions';
 import { ArrowRightIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../../../hooks';

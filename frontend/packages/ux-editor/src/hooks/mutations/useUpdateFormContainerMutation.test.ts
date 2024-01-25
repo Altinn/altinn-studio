@@ -3,11 +3,9 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
-import {
-  UpdateFormContainerMutationArgs,
-  useUpdateFormContainerMutation,
-} from './useUpdateFormContainerMutation';
-import { FormContainer } from '../../types/FormContainer';
+import type { UpdateFormContainerMutationArgs } from './useUpdateFormContainerMutation';
+import { useUpdateFormContainerMutation } from './useUpdateFormContainerMutation';
+import type { FormContainer } from '../../types/FormContainer';
 import {
   container1IdMock,
   externalLayoutsMock,
@@ -15,8 +13,8 @@ import {
   layout1NameMock,
 } from '../../testing/layoutMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import { FormLayoutsResponse } from 'app-shared/types/api';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
 
 // Test data:
 const org = 'org';

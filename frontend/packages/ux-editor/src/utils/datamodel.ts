@@ -1,9 +1,9 @@
-import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 
 /* UTIL METHODS FOR HANDLING DATA MODEL */
 export function filterDataModelForIntellisense(
   dataModelElements: DatamodelFieldElement[],
-  filterText: string
+  filterText: string,
 ): DatamodelFieldElement[] {
   if (!dataModelElements) {
     return [];
@@ -25,7 +25,7 @@ export function filterDataModelForIntellisense(
         (element.type === 'Field' || element.type === 'Group') &&
         element.parentElement &&
         element.parentElement.toLowerCase() === parentElement &&
-        element.name.toLowerCase().startsWith(currentElement)
+        element.name.toLowerCase().startsWith(currentElement),
     );
   }
 
@@ -33,23 +33,23 @@ export function filterDataModelForIntellisense(
     (element: DatamodelFieldElement) =>
       (element.type === 'Field' || element.type === 'Group') &&
       element.parentElement &&
-      element.parentElement.toLowerCase() === parentElement
+      element.parentElement.toLowerCase() === parentElement,
   );
 }
 
 export const getMinOccursFromDataModel = (
   dataBindingName: string,
-  dataModel: DatamodelFieldElement[]
+  dataModel: DatamodelFieldElement[],
 ): number => {
   const element: DatamodelFieldElement = dataModel.find(
-    (e: DatamodelFieldElement) => e.dataBindingName === dataBindingName
+    (e: DatamodelFieldElement) => e.dataBindingName === dataBindingName,
   );
   return element?.minOccurs;
 };
 
 export const getXsdDataTypeFromDataModel = (
   dataBindingName: string,
-  dataModel: DatamodelFieldElement[]
+  dataModel: DatamodelFieldElement[],
 ): string => {
   const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
     return e.dataBindingName === dataBindingName;

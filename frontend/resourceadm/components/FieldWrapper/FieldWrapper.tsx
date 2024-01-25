@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { Label, Paragraph } from '@digdir/design-system-react';
 
 interface FieldWrapperProps {

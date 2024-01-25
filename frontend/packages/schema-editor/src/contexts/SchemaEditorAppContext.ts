@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { SchemaModel } from '@altinn/schema-model';
+import type { SchemaModel } from '@altinn/schema-model';
 
 export interface SchemaEditorAppContextProps {
   schemaModel: SchemaModel;
@@ -8,6 +8,7 @@ export interface SchemaEditorAppContextProps {
   setSelectedTypePointer: (pointer: string) => void;
   selectedNodePointer?: string;
   setSelectedNodePointer: (pointer?: string) => void;
+  name: string;
 }
 
 /**

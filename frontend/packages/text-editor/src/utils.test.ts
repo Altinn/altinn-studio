@@ -1,5 +1,5 @@
 import { filterFunction, getLangName, getRandNumber, mapResourceFilesToTableRows } from './utils';
-import { ITextResources } from 'app-shared/types/global';
+import type { ITextResources } from 'app-shared/types/global';
 
 describe('getLangName', () => {
   it('should return empty string when language code is undefined', () => {

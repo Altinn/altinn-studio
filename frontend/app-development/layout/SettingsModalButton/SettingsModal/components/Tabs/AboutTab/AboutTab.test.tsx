@@ -5,19 +5,21 @@ import {
   screen,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
-import { AboutTab, AboutTabProps } from './AboutTab';
+import type { AboutTabProps } from './AboutTab';
+import { AboutTab } from './AboutTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { AppConfig } from 'app-shared/types/AppConfig';
+import type { AppConfig } from 'app-shared/types/AppConfig';
 import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
-import { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { mockRepository1, mockRepository2 } from '../../../mocks/repositoryMock';
 import { mockAppConfig } from '../../../mocks/appConfigMock';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
-import { Commit, CommitAuthor } from 'app-shared/types/Commit';
+import type { Commit, CommitAuthor } from 'app-shared/types/Commit';
 import { MemoryRouter } from 'react-router-dom';
 
 const mockApp: string = 'app';

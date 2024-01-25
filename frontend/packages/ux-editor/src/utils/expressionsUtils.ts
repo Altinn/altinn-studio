@@ -1,21 +1,24 @@
-import {
-  DataSource,
+import type {
   Expression,
-  ExpressionFunction,
   ExpressionProperty,
   ExpressionPropertyBase,
+  SubExpression,
+} from '../types/Expressions';
+import {
+  DataSource,
+  ExpressionFunction,
   ExpressionPropertyForGroup,
   getExpressionPropertiesBasedOnComponentType,
   Operator,
-  SubExpression,
 } from '../types/Expressions';
 import { deepCopy } from 'app-shared/pure';
-import { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { IFormLayouts, LayoutItemType } from '../types/global';
-import { FormComponent } from '../types/FormComponent';
-import { LegacySingleSelectOption } from '@digdir/design-system-react';
-import { FormContainer } from '../types/FormContainer';
-import { UseText } from '../hooks';
+import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import type { IFormLayouts } from '../types/global';
+import { LayoutItemType } from '../types/global';
+import type { FormComponent } from '../types/FormComponent';
+import type { LegacySingleSelectOption } from '@digdir/design-system-react';
+import type { FormContainer } from '../types/FormContainer';
+import type { UseText } from '../hooks';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
@@ -401,8 +404,8 @@ export const getAllComponentPropertiesThatCanHaveExpressions = (
   }
   const generalComponentPropertiesThatCanHaveExpressions: ExpressionProperty[] = Object.keys(
     form,
-  ).filter(
-    (property) => expressionProperties?.includes(property as ExpressionProperty),
+  ).filter((property) =>
+    expressionProperties?.includes(property as ExpressionProperty),
   ) as ExpressionProperty[];
   return generalComponentPropertiesThatCanHaveExpressions.concat(editPropertiesForGroup);
 };

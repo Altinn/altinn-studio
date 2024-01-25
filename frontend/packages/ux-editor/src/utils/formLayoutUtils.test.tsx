@@ -19,11 +19,11 @@ import {
   validateDepth,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { IInternalLayout } from '../types/global';
+import type { IInternalLayout } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
 import type { FormComponent } from '../types/FormComponent';
-import { FormContainer } from '../types/FormContainer';
+import type { FormContainer } from '../types/FormContainer';
 import { deepCopy } from 'app-shared/pure';
 import {
   internalLayoutWithMultiPageGroup,

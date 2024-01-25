@@ -1,5 +1,6 @@
 import React from 'react';
-import { configComponents, EditSettings, IGenericEditComponent } from './componentConfig';
+import type { EditSettings, IGenericEditComponent } from './componentConfig';
+import { configComponents } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { Switch, Fieldset, Heading } from '@digdir/design-system-react';

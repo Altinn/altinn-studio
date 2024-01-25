@@ -1,9 +1,11 @@
 import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { SetupTab, SetupTabProps } from './SetupTab';
+import type { SetupTabProps } from './SetupTab';
+import { SetupTab } from './SetupTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

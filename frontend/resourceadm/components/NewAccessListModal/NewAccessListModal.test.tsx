@@ -1,12 +1,15 @@
 import React, { useRef } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent, { UserEvent } from '@testing-library/user-event';
+import type { UserEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { NewAccessListModal, NewAccessListModalProps } from './NewAccessListModal';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { NewAccessListModalProps } from './NewAccessListModal';
+import { NewAccessListModal } from './NewAccessListModal';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 

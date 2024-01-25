@@ -1,13 +1,10 @@
-import {
-  CombinationKind,
+import type {
   CombinationNode,
   FieldNode,
-  FieldType,
-  ObjectKind,
-  ROOT_POINTER,
   ReferenceNode,
   UiSchemaNodes,
 } from '@altinn/schema-model';
+import { CombinationKind, FieldType, ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 
 const combinationNodePointer = '#/properties/test';
 const fieldNode1Pointer = '#/properties/test/anyOf/0';
@@ -18,6 +15,7 @@ const objectNodePointer = '#/properties/parent2';
 const objectChildPointer = '#/properties/parent2/properties/someNode';
 const definitionNodePointer = '#/$defs/def1';
 const childOfDefinitionNodePointer = '#/$defs/def1/properties/childOfDef1';
+const stringDefinitionNodePointer = '#/$defs/def2';
 const nodeWithSameNameAsObjectChildPointer = '#/properties/someNode';
 const referenceNodePointer = '#/properties/referenceNode';
 const referredNodePointer = '#/$defs/referredNode';
@@ -58,6 +56,7 @@ export const rootNodeMock: FieldNode = {
     nodeWithCustomPropsPointer,
     objectNodePointer,
     definitionNodePointer,
+    stringDefinitionNodePointer,
     nodeWithSameNameAsObjectChildPointer,
     referenceNodePointer,
     referredNodePointer,
@@ -120,6 +119,12 @@ export const childOfDefinitionNodeMock: FieldNode = {
   pointer: childOfDefinitionNodePointer,
 };
 
+export const stringDefinitionNodeMock: FieldNode = {
+  ...nodeMockBase,
+  pointer: stringDefinitionNodePointer,
+  fieldType: FieldType.String,
+};
+
 export const nodeWithSameNameAsObjectChildMock: FieldNode = {
   ...nodeMockBase,
   pointer: nodeWithSameNameAsObjectChildPointer,
@@ -138,5 +143,6 @@ export const uiSchemaNodesMock: UiSchemaNodes = [
   objectChildMock,
   definitionNodeMock,
   childOfDefinitionNodeMock,
+  stringDefinitionNodeMock,
   nodeWithSameNameAsObjectChildMock,
 ];

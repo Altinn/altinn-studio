@@ -30,21 +30,14 @@
           "description": "The text displayed in the panel body"
         }
       },
-      "required": [
-        "title",
-        "body"
-      ],
+      "required": ["title", "body"],
       "additionalProperties": true
     },
     "variant": {
       "title": "Panel variant",
       "description": "Change the look of the panel.",
       "type": "string",
-      "enum": [
-        "info",
-        "warning",
-        "success"
-      ],
+      "enum": ["info", "warning", "success"],
       "default": "info"
     },
     "showIcon": {
@@ -80,9 +73,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type"
-  ],
+  "required": ["id", "type"],
   "additionalProperties": false
 }

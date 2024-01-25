@@ -1,8 +1,9 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 
 /**
  * Query to get the metadata of an app.

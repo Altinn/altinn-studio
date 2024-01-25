@@ -1,13 +1,14 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
-import { AddLayoutMutationArgs, useAddLayoutMutation } from './useAddLayoutMutation';
+import type { AddLayoutMutationArgs } from './useAddLayoutMutation';
+import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { externalLayoutsMock } from '../../testing/layoutMock';
-import { FormLayoutsResponse } from 'app-shared/types/api';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { ILayoutSettings } from 'app-shared/types/global';
 
 // Test data:
 const org = 'org';

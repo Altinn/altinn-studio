@@ -1,6 +1,6 @@
 import { findGenericKeywordsOnNode, genericKeywords } from './generic';
 import { Keyword, IntRestrictionKey } from '../../types';
-import {  } from '../restrictions';
+import {} from '../restrictions';
 
 test('should return just keywords', () => {
   const generics = findGenericKeywordsOnNode({

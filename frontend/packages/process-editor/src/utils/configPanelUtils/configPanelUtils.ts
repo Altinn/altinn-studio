@@ -1,4 +1,4 @@
-import { BpmnTaskType } from '../../types/BpmnTaskType';
+import type { BpmnTaskType } from '../../types/BpmnTaskType';
 
 /**
  * Returns the title to show in the config panel when a task is selected.

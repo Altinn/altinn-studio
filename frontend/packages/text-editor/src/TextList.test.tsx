@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event';
 import type { TextListProps } from './TextList';
 import { TextList } from './TextList';
 import { screen, render as rtlRender, act } from '@testing-library/react';
-import { TextTableRow } from './types';
+import { textMock } from '../../../testing/mocks/i18nMock';
+import type { TextTableRow } from './types';
 
 const renderTextList = (props: Partial<TextListProps> = {}) => {
   const resourceRows: TextTableRow[] = [
@@ -59,44 +60,64 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
 };
 
 describe('TextList', () => {
-  test('updateEntryId should be called when id has been changed', async () => {
+  it('should call updateEntryId when the ID is changed in the edit mode', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
     const { rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
-    const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
-    await act(() => user.click(toggleEditButton[0]));
-    const idInputs = screen.getAllByRole('textbox', {
-      name: 'tekst key edit',
+
+    const toggleEditButton = screen.getAllByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode'),
     });
-    await act(() => user.dblClick(idInputs[0]));
+    await act(() => user.click(toggleEditButton[0]));
+    const idInput = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
+
+    await act(() => user.dblClick(idInput));
     await act(() => user.keyboard('a-updated{TAB}'));
     expect(updateEntryId).toHaveBeenCalledWith({ newId: 'a-updated', oldId: 'a' });
   });
 
-  test('that the user is warned when an id already exists', async () => {
+  it('should display warnings for existing, empty, or space-containing IDs', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
+    const [firstErrorMessage, secondErrorMessage, thirdErrorMessage]: string[] = [
+      textMock('text_editor.key.error_duplicate'),
+      textMock('text_editor.key.error_invalid'),
+      textMock('text_editor.key.error_empty'),
+    ];
     const { rerender, initPros } = renderTextList({ updateEntryId });
     rerender(<TextList {...initPros} />);
-    const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
-    await act(() => user.click(toggleEditButton[0]));
-    const idInputs = screen.getAllByRole('textbox', {
-      name: 'tekst key edit',
+
+    const toggleEditButton = screen.getAllByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode'),
     });
-    const errorMsg = 'Denne IDen finnes allerede';
-    await act(() => user.dblClick(idInputs[0]));
+    await act(() => user.click(toggleEditButton[0]));
+
+    const idInput = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
+    await act(() => user.dblClick(idInput));
+
     await act(() => user.keyboard('b'));
-    const error = screen.getByRole('alertdialog');
-    expect(error).toBeInTheDocument();
-    expect(screen.getByText(errorMsg)).not.toBeNull();
+    expect(screen.getByText(firstErrorMessage)).not.toBeNull();
+
     await act(() => user.keyboard('2'));
-    expect(screen.queryByText(errorMsg)).toBeNull();
-    await act(() => user.keyboard('{BACKSPACE}'));
-    expect(screen.getByText(errorMsg)).toBeInTheDocument();
+    expect(screen.queryByText(firstErrorMessage)).toBeNull();
+
+    await act(() => user.keyboard(' '));
+    expect(screen.getByText(secondErrorMessage)).not.toBeNull();
+
+    await act(() => user.clear(idInput));
+    expect(screen.getByText(thirdErrorMessage)).not.toBeNull();
+
     await act(() => user.keyboard('{TAB}'));
     expect(updateEntryId).not.toHaveBeenCalled();
-    await act(() => user.keyboard('{SHIFT>}{TAB}{/SHIFT}{END}2{TAB}'));
-    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'b2' });
+
+    //Back to the original value, no error should be displayed
+    await act(() => user.type(idInput, 'a'));
+    expect(screen.queryByText(firstErrorMessage)).toBeNull();
+    expect(screen.queryByText(secondErrorMessage)).toBeNull();
+    expect(screen.queryByText(thirdErrorMessage)).toBeNull();
+
+    await act(() => user.keyboard('2{TAB}'));
+    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'a2' });
   });
 });

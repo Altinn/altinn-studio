@@ -1,4 +1,4 @@
-import { IFormLayouts, IInternalLayout } from '../types/global';
+import type { IFormLayouts, IInternalLayout } from '../types/global';
 import {
   addNavigationButtons,
   createEmptyLayout,
@@ -9,7 +9,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from './generateId';
 import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
+import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { ArrayUtils } from '@studio/pure-functions';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';
 

@@ -132,7 +132,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Get's the version of the app-lib used in repo
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <returns>A <see cref="System.Version"/> holding the version of the app-lib used in app.</returns>
+        /// <returns>A <see cref="NuGet.Versioning.SemanticVersion"/> holding the version of the app-lib used in app.</returns>
         public NuGet.Versioning.SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext);
+
+
+        /// <summary>
+        /// Try to pull the frontend version from the repo and return it.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="version">Version of the frontend used in app.</param>
+        /// <returns>A <see cref="bool"/> representing if frontend version if successfully found.</returns>
+        public bool TryGetFrontendVersion(AltinnRepoEditingContext altinnRepoEditingContext, out string version);
     }
 }

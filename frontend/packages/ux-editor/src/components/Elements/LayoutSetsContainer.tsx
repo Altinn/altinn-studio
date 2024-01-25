@@ -14,7 +14,7 @@ export function LayoutSetsContainer() {
   const { selectedLayoutSet, setSelectedLayoutSet } = useAppContext();
 
   const onLayoutSetClick = (set: string) => {
-    if (selectedLayoutSet !== set){
+    if (selectedLayoutSet !== set) {
       setSelectedLayoutSet(set);
     }
   };

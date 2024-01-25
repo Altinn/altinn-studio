@@ -21,23 +21,14 @@
           "type": "string"
         }
       },
-      "required": [
-        "title"
-      ],
+      "required": ["title"],
       "additionalProperties": true
     },
     "size": {
       "title": "Header size",
       "description": "'L'=<h2>, 'M'=<h3>, 'S'=<h4>",
       "type": "string",
-      "enum": [
-        "L",
-        "M",
-        "S",
-        "h2",
-        "h3",
-        "h4"
-      ]
+      "enum": ["L", "M", "S", "h2", "h3", "h4"]
     },
     "renderAsSummary": {
       "title": "Render as summary",
@@ -66,10 +57,5 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "textResourceBindings",
-    "size"
-  ]
+  "required": ["id", "type", "textResourceBindings", "size"]
 }

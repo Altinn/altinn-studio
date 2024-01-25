@@ -1,16 +1,16 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
-import { TFunction } from 'i18next';
+import type { TFunction } from 'i18next';
 import { LegacyToggleButtonGroup, LegacySelect } from '@digdir/design-system-react';
-import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
+import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
-import { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
+import type { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
 import { useLayoutSetsQuery } from '../../../../packages/ux-editor/src/hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
-import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { StudioButton } from '@studio/components';
 

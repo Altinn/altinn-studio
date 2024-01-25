@@ -1,6 +1,8 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { TabContent, TabContentProps } from './TabContent';
+import type { TabContentProps } from './TabContent';
+import { TabContent } from './TabContent';
 
 const mockChildrenText: string = 'Test content';
 const mockChildren: ReactNode = <div>{mockChildrenText}</div>;

@@ -2,9 +2,9 @@ import classes from './SchemaEditorWithToolbar.module.css';
 import { TopToolbar } from './TopToolbar';
 import { LandingPagePanel } from './LandingPagePanel';
 import React, { useState } from 'react';
-import { MetadataOption } from '../../../types/MetadataOption';
+import type { MetadataOption } from '../../../types/MetadataOption';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 
 export interface SchemaEditorWithToolbarProps {

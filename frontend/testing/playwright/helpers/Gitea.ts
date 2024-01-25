@@ -1,4 +1,5 @@
-﻿import { StudioEnvironment, Environment } from './StudioEnvironment';
+﻿import type { Environment } from './StudioEnvironment';
+import { StudioEnvironment } from './StudioEnvironment';
 
 export class Gitea extends StudioEnvironment {
   public giteaAccessToken: string = process.env.GITEA_ACCESS_TOKEN;

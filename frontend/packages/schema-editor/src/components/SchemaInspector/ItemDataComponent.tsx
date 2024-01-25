@@ -2,12 +2,17 @@ import type { ChangeEvent } from 'react';
 import React, { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import { Fieldset, LegacyTextArea, Textfield, Switch, LegacySelect } from '@digdir/design-system-react';
+import {
+  Fieldset,
+  LegacyTextArea,
+  Textfield,
+  Switch,
+  LegacySelect,
+} from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
+import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
 import {
-  CombinationKind,
-  UiSchemaNode,
   addCombinationItem,
   deleteNode,
   pointerIsDefinition,
@@ -24,6 +29,7 @@ import {
   extractNameFromPointer,
   FieldType,
   combinationIsNullable,
+  ROOT_POINTER,
 } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
@@ -38,14 +44,9 @@ export type IItemDataComponentProps = {
 };
 
 export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
-  const {
-    pointer,
-    title = '',
-    description = '',
-    isArray,
-    custom,
-  } = schemaNode;
-  const { schemaModel, save, setSelectedTypePointer, setSelectedNodePointer } = useSchemaEditorAppContext();
+  const { pointer, title = '', description = '', isArray, custom } = schemaNode;
+  const { schemaModel, save, setSelectedTypePointer, setSelectedNodePointer } =
+    useSchemaEditorAppContext();
   const { t } = useTranslation();
   const typeOptions = useTypeOptions();
 
@@ -56,8 +57,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const getChildNodes = () =>
     pointer && pointer.endsWith(nodeName) ? schemaModel.getChildNodes(pointer) : [];
 
-  const onChangeRef = (path: string, ref: string) =>
-    save(setRef(schemaModel, { path, ref }));
+  const onChangeRef = (path: string, ref: string) => save(setRef(schemaModel, { path, ref }));
 
   const onChangeFieldType = (type: FieldType) =>
     save(setType(schemaModel, { path: pointer, type }));
@@ -82,8 +82,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     });
   };
 
-  const onChangeTitle = () =>
-    save(setTitle(schemaModel, { path: pointer, title: itemTitle }));
+  const onChangeTitle = () => save(setTitle(schemaModel, { path: pointer, title: itemTitle }));
 
   const onChangeDescription = () =>
     save(setDescription(schemaModel, { path: pointer, description: itemDescription }));
@@ -97,8 +96,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const onChangeCombinationType = (value: CombinationKind) =>
     save(setCombinationType(schemaModel, { path: pointer, type: value }));
 
-  const handleArrayPropertyToggle = () =>
-    save(toggleArrayField(schemaModel, pointer));
+  const handleArrayPropertyToggle = () => save(toggleArrayField(schemaModel, pointer));
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
@@ -122,70 +120,74 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
   return (
     <div className={classes.root}>
-      {!schemaModel.isChildOfCombination(pointer) && (
-        <NameField
-          id='selectedItemName'
-          label={t('schema_editor.name')}
-          handleSave={handleChangeNodeName}
-          pointer={pointer}
-          size='small'
-        />
-      )}
-      {isField(schemaNode) && (
-        <LegacySelect
-          label={t('schema_editor.type')}
-          onChange={(type: FieldType) => onChangeFieldType(type)}
-          options={typeOptions}
-          value={schemaNode.fieldType as string}
-        />
-      )}
-      {isReference(schemaNode) && (
-        <ReferenceSelectionComponent
-          buttonText={t('schema_editor.go_to_type')}
-          label={t('schema_editor.reference_to')}
-          onChangeRef={onChangeRef}
-          onGoToDefButtonClick={onGoToDefButtonClick}
-          selectedNode={schemaNode}
-        />
-      )}
-      {!isCombination(schemaNode) && !pointerIsDefinition(pointer) && (
-        <Switch
-          className={classes.switch}
-          size='small'
-          checked={isArray}
-          onChange={handleArrayPropertyToggle}
-        >
-          {t('schema_editor.multiple_answers')}
-        </Switch>
-      )}
-      {isCombination(schemaNode) && (
-        <LegacySelect
-          label={t('schema_editor.type')}
-          onChange={(combination: string) =>
-            onChangeCombinationType(combination as CombinationKind)
-          }
-          options={getCombinationOptions(t)}
-          value={schemaNode.combinationType}
-        />
-      )}
-      {isCombination(schemaNode) && (
-        <Switch
-          className={classes.switch}
-          size='small'
-          checked={combinationIsNullable(getChildNodes())}
-          onChange={onChangeNullable}
-        >
-          {t('schema_editor.nullable')}
-        </Switch>
-      )}
-      <ItemRestrictions schemaNode={schemaNode}/>
-      {hasCustomProps && (
+      {pointer !== ROOT_POINTER && (
         <>
-          <Divider marginless/>
-          <CustomProperties path={pointer}/>
+          {!schemaModel.isChildOfCombination(pointer) && (
+            <NameField
+              id='selectedItemName'
+              label={t('schema_editor.name')}
+              handleSave={handleChangeNodeName}
+              pointer={pointer}
+              size='small'
+            />
+          )}
+          {isField(schemaNode) && (
+            <LegacySelect
+              label={t('schema_editor.type')}
+              onChange={(type: FieldType) => onChangeFieldType(type)}
+              options={typeOptions}
+              value={schemaNode.fieldType as string}
+            />
+          )}
+          {isReference(schemaNode) && (
+            <ReferenceSelectionComponent
+              buttonText={t('schema_editor.go_to_type')}
+              label={t('schema_editor.reference_to')}
+              onChangeRef={onChangeRef}
+              onGoToDefButtonClick={onGoToDefButtonClick}
+              selectedNode={schemaNode}
+            />
+          )}
+          {!isCombination(schemaNode) && !pointerIsDefinition(pointer) && (
+            <Switch
+              className={classes.switch}
+              size='small'
+              checked={isArray}
+              onChange={handleArrayPropertyToggle}
+            >
+              {t('schema_editor.multiple_answers')}
+            </Switch>
+          )}
+          {isCombination(schemaNode) && (
+            <LegacySelect
+              label={t('schema_editor.type')}
+              onChange={(combination: string) =>
+                onChangeCombinationType(combination as CombinationKind)
+              }
+              options={getCombinationOptions(t)}
+              value={schemaNode.combinationType}
+            />
+          )}
+          {isCombination(schemaNode) && (
+            <Switch
+              className={classes.switch}
+              size='small'
+              checked={combinationIsNullable(getChildNodes())}
+              onChange={onChangeNullable}
+            >
+              {t('schema_editor.nullable')}
+            </Switch>
+          )}
+          <ItemRestrictions schemaNode={schemaNode} />
+          <Divider marginless />
         </>
       )}
-      <Divider marginless/>
+      {hasCustomProps && (
+        <>
+          <CustomProperties path={pointer} />
+          <Divider marginless />
+        </>
+      )}
       <Fieldset legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
           <Textfield
