@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { APIRequestContext, Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
@@ -12,16 +12,23 @@ test.describe.configure({ mode: 'serial' });
 
 // Before the tests starts, we need to create the dashboard app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
-  // Create a new app
-  const designerApi = new DesignerApi({ app: testAppName });
-  const response = await designerApi.createApp(request, storageState as StorageState);
-  expect(response.ok()).toBeTruthy();
+  // Create 2 apps
+  const testAppName2: string = `${testAppName}2`;
+  const firstApp = await createApp(testAppName, request, storageState as StorageState);
+  const secondApp = await createApp(testAppName2, request, storageState as StorageState);
 
-  // Create another new app
-  const designerApi1 = new DesignerApi({ app: `${testAppName}2` });
-  const response1 = await designerApi1.createApp(request, storageState as StorageState);
-  expect(response1.ok()).toBeTruthy();
+  expect(firstApp.ok()).toBeTruthy();
+  expect(secondApp.ok()).toBeTruthy();
 });
+
+const createApp = async (
+  appName: string,
+  request: APIRequestContext,
+  storageState: StorageState,
+) => {
+  const designerApi = new DesignerApi({ app: appName });
+  return await designerApi.createApp(request, storageState);
+};
 
 const setupAndVerifyDashboardPage = async (
   page: Page,
@@ -84,7 +91,7 @@ test('It is possible to open Gitea repository of an app from the dashboard', asy
   const dashboardPage = await setupAndVerifyDashboardPage(page, testAppName);
 
   await dashboardPage.clickOnTestAppGiteaButton(testAppName);
-  await dashboardPage.verifyGiteaPage(testAppName);
+  await dashboardPage.verifyGiteaPage();
 });
 
 test('It is possible to open an application from the dashboard', async ({ page, testAppName }) => {

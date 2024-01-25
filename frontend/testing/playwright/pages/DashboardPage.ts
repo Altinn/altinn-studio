@@ -16,25 +16,35 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnCreateAppLink(): Promise<void> {
-    await this.getLinkByTextKey('dashboard.new_service').click();
+    await this.page.getByRole('link', { name: this.textMock('dashboard.new_service') }).click();
   }
 
   public async checkThatThereIsNoFavouriteAppInList(appName: string): Promise<void> {
     // The .first() is added becuase the key is used two places; one in favourite list, and one in all applications list
-    await this.getMenuItemByTextKey('dashboard.unstar', { appName }).first().isHidden();
+    await this.page
+      .getByRole('menuitem', { name: this.textMock('dashboard.unstar', { appName }), exact: true })
+      .first()
+      .isHidden();
   }
 
   public async clickOnFavouriteApplication(appName: string): Promise<void> {
-    await this.getMenuItemByTextKey('dashboard.star', { appName }).click();
+    await this.page
+      .getByRole('menuitem', { name: this.textMock('dashboard.star', { appName }), exact: true })
+      .click();
   }
 
   public async checkThatThereIsFavouriteAppInList(appName: string): Promise<void> {
-    await this.getMenuItemByTextKey('dashboard.star', { appName }).isVisible();
+    await this.page
+      .getByRole('menuitem', { name: this.textMock('dashboard.star', { appName }), exact: true })
+      .isVisible();
   }
 
   public async clickOnUnFavouriteApplicatin(appName: string): Promise<void> {
     // The .first() is added becuase the key is used two places; one in favourite list, and one in all applications list
-    await this.getMenuItemByTextKey('dashboard.unstar', { appName }).first().click();
+    await this.page
+      .getByRole('menuitem', { name: this.textMock('dashboard.unstar', { appName }), exact: true })
+      .first()
+      .click();
   }
 
   public async clickOnHeaderAvatar(): Promise<void> {
@@ -42,21 +52,28 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnAllApplications(): Promise<void> {
-    await this.getMenuItemByTextKey('shared.header_all').click();
+    await this.page
+      .getByRole('menuitem', { name: this.textMock('shared.header_all'), exact: true })
+      .click();
   }
 
   public async checkThatAllApplicationsHeaderIsVisible(): Promise<void> {
-    await this.getHeadingByTextKeyAndLevel('dashboard.all_apps', 2).isVisible();
+    await this.page
+      .getByRole('heading', { name: this.textMock('dashboard.all_apps'), level: 2 })
+      .isVisible();
   }
 
   public async clickOnOrgApplications(): Promise<void> {
-    await this.getMenuItemByName(this.org).click();
+    await this.page.getByRole('menuitem', { name: this.org }).click();
   }
 
   public async checkThatAllOrgApplicationsHeaderIsVisible(): Promise<void> {
-    await this.getHeadingByTextKeyAndLevel('dashboard.org_apps', 2, {
-      orgName: this.org,
-    }).isVisible();
+    await this.page
+      .getByRole('heading', {
+        name: this.textMock('dashboard.org_apps', { orgName: this.org }),
+        level: 2,
+      })
+      .isVisible();
   }
 
   public async checkThatAppIsVisible(appName: string): Promise<void> {
@@ -72,14 +89,24 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnTestAppGiteaButton(appName: string): Promise<void> {
-    await this.getMenuItemByTextKey('dashboard.repository_in_list', { appName }).click();
+    await this.page
+      .getByRole('menuitem', {
+        name: this.textMock('dashboard.repository_in_list', { appName }),
+        exact: true,
+      })
+      .click();
   }
 
-  public async verifyGiteaPage(appName: string): Promise<void> {
-    await this.page.waitForURL(this.getGiteaRoute(appName));
+  public async verifyGiteaPage(): Promise<void> {
+    await this.page.waitForURL(this.getRoute('gitea'));
   }
 
   public async clickOnTestAppEditButton(appName: string): Promise<void> {
-    await this.getMenuItemByTextKey('dashboard.edit_app', { appName }).click();
+    await this.page
+      .getByRole('menuitem', {
+        name: this.textMock('dashboard.edit_app', { appName }),
+        exact: true,
+      })
+      .click();
   }
 }
