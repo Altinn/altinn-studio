@@ -33,7 +33,7 @@ context('Overview', () => {
       Cypress.env('accessToken'),
     );
   });
-
+  /*
   it('loads the overview page when navigating to app owned by a private person', () => {
     cy.visit('/editor/' + designerAppId);
     cy.findByText(Cypress.env('designerAppName')).should('be.visible');
@@ -93,5 +93,5 @@ context('Overview', () => {
       .should('be.visible')
       .click();
     cy.findByText(texts['process_editor.configuration_panel_no_task']).should('be.visible');
-  });
+  });*/
 });

@@ -37,7 +37,13 @@ test('That it is possible to navigate from overview to the app builder page and 
   testAppName,
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
-  const uiEditorPage = new UiEditorPage(page);
+  const uiEditorPage = new UiEditorPage(page, { app: testAppName });
+
+  await overviewPage.clickOnNavigateToPageInTopMenuHeader('create');
+  await uiEditorPage.verifyUiEditorPage();
+
+  await uiEditorPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await overviewPage.verifyOverviewPage();
 });
 
 test('That it is possible to navigate from overview to the datamodel page and back again', async ({
@@ -45,7 +51,13 @@ test('That it is possible to navigate from overview to the datamodel page and ba
   testAppName,
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
-  const dataModelPage = new DataModelPage(page);
+  const dataModelPage = new DataModelPage(page, { app: testAppName });
+
+  await overviewPage.clickOnNavigateToPageInTopMenuHeader('datamodel');
+  await dataModelPage.verifyDataModelPage();
+
+  await dataModelPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await overviewPage.verifyOverviewPage();
 });
 
 test('That it is possible to navigate from overview to the text editor page and back again', async ({
@@ -53,7 +65,13 @@ test('That it is possible to navigate from overview to the text editor page and 
   testAppName,
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
-  const textEditorPage = new TextEditorPage(page);
+  const textEditorPage = new TextEditorPage(page, { app: testAppName });
+
+  await overviewPage.clickOnNavigateToPageInTopMenuHeader('texts');
+  await textEditorPage.verifyTextEditorPage();
+
+  await textEditorPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await overviewPage.verifyOverviewPage();
 });
 
 test('That it is possible to navigate from overview to the process editor page and back again', async ({
@@ -61,7 +79,13 @@ test('That it is possible to navigate from overview to the process editor page a
   testAppName,
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
-  const processEditorPage = new ProcessEditorPage(page);
+  const processEditorPage = new ProcessEditorPage(page, { app: testAppName });
+
+  await overviewPage.clickOnNavigateToPageInTopMenuHeader('process-editor');
+  await processEditorPage.verifyProcessEditorPage();
+
+  await processEditorPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await overviewPage.verifyOverviewPage();
 });
 
 test('That it is possible to navigate from overview to the dashboard page by clicking the Altinn logo', async ({
@@ -69,7 +93,10 @@ test('That it is possible to navigate from overview to the dashboard page by cli
   testAppName,
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
-  const dashboardPage = new DashboardPage(page);
+  const dashboardPage = new DashboardPage(page, { app: testAppName });
+
+  await overviewPage.clickOnNavigateToPageInTopMenuHeader('dashboard');
+  await dashboardPage.verifyDashboardPage();
 });
 
 /*
