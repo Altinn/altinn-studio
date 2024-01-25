@@ -28,7 +28,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 
-const allowedActionsId: string[] = [
+const wellKnownActionsIds: string[] = [
   'complete',
   'confirm',
   'delete',
@@ -207,7 +207,9 @@ export const ExpandablePolicyCard = ({
   };
 
   const getTranslationByActionId = (actionId: string): string => {
-    return allowedActionsId.includes(actionId) ? t(`policy_editor.action_${actionId}`) : actionId;
+    return wellKnownActionsIds.includes(actionId)
+      ? t(`policy_editor.action_${actionId}`)
+      : actionId;
   };
 
   const displayActions = policyRule.actions.map((actionId, i) => {
