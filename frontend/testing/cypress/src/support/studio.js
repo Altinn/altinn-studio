@@ -89,7 +89,7 @@ Cypress.Commands.add('searchAndOpenApp', (appName) => {
   dashboard.getSearchReposField().type(appName);
   dashboard
     .getLinksCellForSearchResultApp(appName)
-    .findByRole('menuitem', { name: texts[('dashboard.edit_app', { appName })] })
+    .findByRole('menuitem', { name: texts['dashboard.edit_app'].replace('{{appName}}', appName) })
     .click();
 });
 
