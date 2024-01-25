@@ -26,20 +26,14 @@
           "type": "string"
         }
       },
-      "required": [
-        "title"
-      ],
+      "required": ["title"],
       "additionalProperties": true
     },
     "style": {
       "type": "string",
       "title": "Style",
       "description": "The style of the button",
-      "enum": [
-        "primary",
-        "secondary",
-        "link"
-      ]
+      "enum": ["primary", "secondary", "link"]
     },
     "openInNewTab": {
       "type": "boolean",
@@ -73,10 +67,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "style"
-  ],
+  "required": ["id", "type", "style"],
   "additionalProperties": false
 }

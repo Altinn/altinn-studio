@@ -4,7 +4,7 @@ import {
   addRuleConnection,
   deleteConditionalRenderingConnection,
   deleteRuleConnection,
-  switchSelectedFieldId
+  switchSelectedFieldId,
 } from './ruleConfigUtils';
 import {
   conditionalRendering,
@@ -20,7 +20,7 @@ import {
   ruleConnection1,
   ruleConnection1Id,
   ruleConnection2,
-  ruleConnection2Id
+  ruleConnection2Id,
 } from '../testing/ruleConfigMock';
 
 describe('ruleConfigUtils', () => {
@@ -28,7 +28,7 @@ describe('ruleConfigUtils', () => {
     const newConnection: RuleConnection = {
       selectedFunction: 'selectedFunction3',
       inputParams: { inputParam1: 'inputParamValue' },
-      outParams: { outParam1: 'outParamValue' }
+      outParams: { outParam1: 'outParamValue' },
     };
     const newId = 'id3';
     const newRuleConfig = addRuleConnection(ruleConfig, newId, newConnection);
@@ -50,21 +50,33 @@ describe('ruleConfigUtils', () => {
       selectedFields: { selectedField1: 'selectedFieldValue' },
       selectedAction: 'selectedAction3',
       selectedFunction: 'selectedFunction3',
-      inputParams: { inputParam1: 'inputParamValue' }
+      inputParams: { inputParam1: 'inputParamValue' },
     };
     const newId = 'id3';
     const newRuleConfig = addConditionalRenderingConnection(ruleConfig, newId, newConnection); // eslint-disable-line testing-library/render-result-naming-convention
     expect(newRuleConfig.data.ruleConnection).toEqual(ruleConnection);
-    expect(newRuleConfig.data.conditionalRendering[conditionalRenderingConnection1Id]).toEqual(conditionalRenderingConnection1);
-    expect(newRuleConfig.data.conditionalRendering[conditionalRenderingConnection2Id]).toEqual(conditionalRenderingConnection2);
+    expect(newRuleConfig.data.conditionalRendering[conditionalRenderingConnection1Id]).toEqual(
+      conditionalRenderingConnection1,
+    );
+    expect(newRuleConfig.data.conditionalRendering[conditionalRenderingConnection2Id]).toEqual(
+      conditionalRenderingConnection2,
+    );
     expect(newRuleConfig.data.conditionalRendering[newId]).toEqual(newConnection);
   });
 
   test('deleteConditionalRenderingConnection', () => {
-    const newRuleConfig = deleteConditionalRenderingConnection(ruleConfig, conditionalRenderingConnection1Id); // eslint-disable-line testing-library/render-result-naming-convention
+    // eslint-disable-next-line testing-library/render-result-naming-convention
+    const newRuleConfig = deleteConditionalRenderingConnection(
+      ruleConfig,
+      conditionalRenderingConnection1Id,
+    );
     expect(newRuleConfig.data.ruleConnection).toEqual(ruleConnection);
-    expect(newRuleConfig.data.conditionalRendering[conditionalRenderingConnection1Id]).toBeUndefined();
-    expect(newRuleConfig.data.conditionalRendering[conditionalRenderingConnection2Id]).toEqual(conditionalRenderingConnection2);
+    expect(
+      newRuleConfig.data.conditionalRendering[conditionalRenderingConnection1Id],
+    ).toBeUndefined();
+    expect(newRuleConfig.data.conditionalRendering[conditionalRenderingConnection2Id]).toEqual(
+      conditionalRenderingConnection2,
+    );
   });
 
   describe('switchSelectedFieldId', () => {
@@ -77,7 +89,12 @@ describe('ruleConfigUtils', () => {
     it('Calls the callback function with the updated rule config when a selected field id is changed', () => {
       const callback = jest.fn();
       const newId = 'newId';
-      switchSelectedFieldId(ruleConfig, conditionalRenderingConnection1SelectedField2Value, newId, callback);
+      switchSelectedFieldId(
+        ruleConfig,
+        conditionalRenderingConnection1SelectedField2Value,
+        newId,
+        callback,
+      );
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith({
         data: {
@@ -87,12 +104,12 @@ describe('ruleConfigUtils', () => {
               ...conditionalRenderingConnection1,
               selectedFields: {
                 ...conditionalRenderingConnection1SelectedFields,
-                [conditionalRenderingConnection1SelectedField2Id]: newId
-              }
+                [conditionalRenderingConnection1SelectedField2Id]: newId,
+              },
             },
-            [conditionalRenderingConnection2Id]: conditionalRenderingConnection2
-          }
-        }
+            [conditionalRenderingConnection2Id]: conditionalRenderingConnection2,
+          },
+        },
       });
     });
   });

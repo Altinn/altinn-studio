@@ -4,9 +4,10 @@ import { test } from '../../extenders/testExtend';
 
 test('Delete the test app', async ({ request, testAppName }) => {
   const gitea = new Gitea();
-  const response = await request.delete(gitea.getDeleteAppEndpoint({ app: testAppName }));
-  expect(response.ok()).toBeTruthy();
+  const appsToDelete: string[] = [testAppName, `${testAppName}2`];
 
-  const response2 = await request.delete(gitea.getDeleteAppEndpoint({ app: `${testAppName}2` }));
-  expect(response2.ok()).toBeTruthy();
+  for (const app of appsToDelete) {
+    const response = await request.delete(gitea.getDeleteAppEndpoint({ app }));
+    expect(response.ok()).toBeTruthy();
+  }
 });

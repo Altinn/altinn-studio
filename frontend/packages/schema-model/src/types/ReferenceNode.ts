@@ -13,4 +13,4 @@ export type ReferenceNode = {
   title?: string;
   restrictions: KeyValuePairs;
   implicitType: boolean;
-}
+};

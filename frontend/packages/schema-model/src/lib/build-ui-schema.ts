@@ -3,7 +3,8 @@ import { JsonSchemaType, Keyword, ObjectKind } from '../types';
 import {
   createNodeBase,
   getCombinationKind,
-  getObjectKind, isFieldOrCombination,
+  getObjectKind,
+  isFieldOrCombination,
   schemaTypeIsNillable,
 } from './utils';
 import { findCustomAttributes } from './mappers/custom-properties';

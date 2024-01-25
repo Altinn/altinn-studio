@@ -9,7 +9,8 @@ type SupportedRoutes =
   | 'editorDatamodel'
   | 'editorProcess'
   | 'editorText'
-  | 'editorUi';
+  | 'editorUi'
+  | 'gitea';
 
 type RouterRoutes = Record<SupportedRoutes, string>;
 
@@ -22,6 +23,7 @@ const routerRoutes: RouterRoutes = {
   editorProcess: `/editor/{{org}}/{{app}}/process-editor`,
   editorText: `/editor/{{org}}/{{app}}/text-editor`,
   editorUi: `/editor/{{org}}/{{app}}/ui-editor`,
+  gitea: `/repos/{{org}}/{{app}}`,
 };
 
 export class RouterRoute extends StudioEnvironment {
@@ -37,10 +39,6 @@ export class RouterRoute extends StudioEnvironment {
     }
 
     return routerRoute;
-  }
-
-  public getGiteaRoute(appName: string): string {
-    return `/repos/${this.org}/${appName}`;
   }
 
   private replaceOrgAndMap(route: string): string {

@@ -96,15 +96,15 @@ const createTextRows = (rows: Map<any, any>, resource: ITextResource, lang: stri
   });
 };
 
-export const validateTextId = (textIdToValidate: string): string => {
+export const validateTextId = (textIdToValidate: string): string | null => {
   const isIllegalId = (textIdToCheck: string) => Boolean(textIdToCheck.toLowerCase().match(' ')); // TODO: create matcher
   if (!textIdToValidate) {
-    return 'TextId kan ikke være tom';
+    return 'text_editor.key.error_empty';
   }
 
   if (isIllegalId(textIdToValidate)) {
-    return 'Det er ikke tillat med mellomrom i en textId';
+    return 'text_editor.key.error_invalid';
   }
 
-  return '';
+  return null;
 };

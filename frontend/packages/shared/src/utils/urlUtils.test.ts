@@ -11,7 +11,7 @@ describe('urlUtils', () => {
       const params: KeyValuePairs<string | number> = {
         [param1]: value1,
         [param2]: value2,
-      }
+      };
       expect(buildQueryParams(params)).toBe(`?${param1}=${value1}&${param2}=${value2}`);
     });
 

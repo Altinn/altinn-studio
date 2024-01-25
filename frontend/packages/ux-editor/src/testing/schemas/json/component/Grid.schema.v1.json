@@ -23,9 +23,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "title"
-      ],
+      "required": ["title"],
       "additionalProperties": true
     },
     "rows": {
@@ -52,10 +50,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "rows"
-  ],
+  "required": ["id", "type", "rows"],
   "additionalProperties": false
 }

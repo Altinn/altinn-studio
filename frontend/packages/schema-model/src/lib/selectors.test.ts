@@ -14,7 +14,6 @@ import { makePointerFromArray } from './pointerUtils';
 const testSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
 
 describe('selectors', () => {
-
   test('getParentNodeByPointer', () => {
     const uiSchemaNodes = buildUiSchema(testSchema);
     uiSchemaNodes.forEach((uiNode) => {

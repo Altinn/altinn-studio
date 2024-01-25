@@ -6,4 +6,4 @@ describe('compareFunctions', () => {
     expect(alphabeticalCompareFunction('bcd', 'abc')).toBeGreaterThan(0);
     expect(alphabeticalCompareFunction('abc', 'abc')).toEqual(0);
   });
-})
+});

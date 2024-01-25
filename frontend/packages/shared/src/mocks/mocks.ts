@@ -152,7 +152,8 @@ export const validation: Validation = {
 };
 
 export const appLibVersion: AppLibVersion = {
-  version: '',
+  backendVersion: '',
+  frontendVersion: '',
 };
 
 export const repository: Repository = {

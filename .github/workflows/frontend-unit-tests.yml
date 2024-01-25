@@ -65,6 +65,9 @@ jobs:
       - name: 'Running Eslint'
         run: yarn lint
 
+      - name: 'Checking code style'
+        run: yarn run codestyle:check
+
   test:
     name: 'Testing'
     runs-on: ubuntu-latest

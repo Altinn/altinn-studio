@@ -27,7 +27,7 @@ const createPointerBase = (parentNode: FieldNode | CombinationNode): string => {
         ? makePointerFromArray([parentNode.pointer, Keyword.Items, parentNode.combinationType])
         : makePointerFromArray([parentNode.pointer, parentNode.combinationType]);
   }
-}
+};
 
 export const makePointerFromArray = (array: string[]): string => {
   if (!array[0].startsWith(ROOT_POINTER)) {
@@ -39,11 +39,11 @@ export const makePointerFromArray = (array: string[]): string => {
 export const extractNameFromPointer = (pointer: string): string => {
   const parts = pointer.split('/');
   return parts.pop();
-}
+};
 
 export const changeNameInPointer = (pointer: string, newName: string): string => {
   const parts = pointer.split('/');
   parts.pop();
   parts.push(newName);
   return parts.join('/');
-}
+};

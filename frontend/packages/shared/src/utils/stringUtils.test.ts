@@ -1,9 +1,10 @@
 import {
   removeEnd,
   removeStart,
-  replaceEnd, replaceStart,
+  replaceEnd,
+  replaceStart,
   substringAfterLast,
-  substringBeforeLast
+  substringBeforeLast,
 } from 'app-shared/utils/stringUtils';
 
 describe('stringUtils', () => {

@@ -50,9 +50,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "title"
-      ],
+      "required": ["title"],
       "additionalProperties": true
     },
     "maxFileSizeInMB": {
@@ -77,10 +75,7 @@
       "title": "Display mode",
       "description": "Sets the display mode for the file upload component.",
       "type": "string",
-      "enum": [
-        "simple",
-        "list"
-      ]
+      "enum": ["simple", "list"]
     },
     "hasCustomFileEndings": {
       "title": "Has custom file endings",
@@ -90,15 +85,7 @@
     "validFileEndings": {
       "title": "Valid file endings",
       "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
-      "examples": [
-        ".csv",
-        ".doc",
-        ".docx",
-        ".gif",
-        ".jpeg",
-        ".pdf",
-        ".txt"
-      ],
+      "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
       "anyOf": [
         {
           "type": "string"

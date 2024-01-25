@@ -33,7 +33,8 @@ const texts = {
 };
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
@@ -50,10 +51,7 @@ const render = async (props: Partial<IGenericEditComponent> = {}) => {
 };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('ImageComponent', () => {
   it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', async () => {

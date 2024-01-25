@@ -1,6 +1,11 @@
 import { valueExists } from '@altinn/schema-editor/utils/value';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { ArrRestrictionKey, IntRestrictionKey, ObjRestrictionKey, StrRestrictionKey } from '../types';
+import {
+  ArrRestrictionKey,
+  IntRestrictionKey,
+  ObjRestrictionKey,
+  StrRestrictionKey,
+} from '../types';
 
 export const AllRestrictions = {
   ...ArrRestrictionKey,

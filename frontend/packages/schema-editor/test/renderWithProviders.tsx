@@ -7,40 +7,19 @@ import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
 import { SchemaModel } from '../../schema-model';
 
 export interface RenderWithProvidersData {
-  appContextProps?: Partial<SchemaEditorAppContextProps>,
+  appContextProps?: Partial<SchemaEditorAppContextProps>;
 }
 
-export const renderWithProviders = ({
-  appContextProps = {},
-}: RenderWithProvidersData = {
-  appContextProps: {},
-}) => (element: ReactNode) => {
+export const renderWithProviders =
+  (
+    { appContextProps = {} }: RenderWithProvidersData = {
+      appContextProps: {},
+    },
+  ) =>
+  (element: ReactNode) => {
+    const name = 'Test';
 
-  const name = 'Test';
-
-  const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
-    schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
-    save: jest.fn(),
-    selectedNodePointer: null,
-    setSelectedNodePointer: jest.fn(),
-    selectedTypePointer: null,
-    setSelectedTypePointer: jest.fn(),
-    name,
-    ...appContextProps,
-  };
-
-  const result = render(
-    <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
-      {element}
-    </SchemaEditorAppContext.Provider>
-  );
-
-  const rerender = ({
-    appContextProps: rerenderAppContextProps = {},
-  }: RenderWithProvidersData = {
-    appContextProps: {},
-  }) => {
-    const newAppContextProps: SchemaEditorAppContextProps = {
+    const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
       schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
       save: jest.fn(),
       selectedNodePointer: null,
@@ -48,15 +27,38 @@ export const renderWithProviders = ({
       selectedTypePointer: null,
       setSelectedTypePointer: jest.fn(),
       name,
-      ...rerenderAppContextProps,
+      ...appContextProps,
     };
 
-    return (rerenderElement: ReactNode) => result.rerender(
-      <SchemaEditorAppContext.Provider value={newAppContextProps}>
-        {rerenderElement}
-      </SchemaEditorAppContext.Provider>
+    const result = render(
+      <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
+        {element}
+      </SchemaEditorAppContext.Provider>,
     );
-  };
 
-  return { ...result, rerender };
-};
+    const rerender = (
+      { appContextProps: rerenderAppContextProps = {} }: RenderWithProvidersData = {
+        appContextProps: {},
+      },
+    ) => {
+      const newAppContextProps: SchemaEditorAppContextProps = {
+        schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
+        save: jest.fn(),
+        selectedNodePointer: null,
+        setSelectedNodePointer: jest.fn(),
+        selectedTypePointer: null,
+        setSelectedTypePointer: jest.fn(),
+        name,
+        ...rerenderAppContextProps,
+      };
+
+      return (rerenderElement: ReactNode) =>
+        result.rerender(
+          <SchemaEditorAppContext.Provider value={newAppContextProps}>
+            {rerenderElement}
+          </SchemaEditorAppContext.Provider>,
+        );
+    };
+
+    return { ...result, rerender };
+  };
