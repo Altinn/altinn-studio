@@ -519,12 +519,20 @@ namespace Altinn.Studio.Designer.Controllers
             }
         }
 
-        [HttpGet("app-lib-version")]
-        public VersionResponse GetVersionOfTheAppLib(string org, string app)
+        [HttpGet("app-version")]
+        public VersionResponse GetAppVersion(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var version = _appDevelopmentService.GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
-            return new VersionResponse { Version = version };
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            var backendVersion = _appDevelopmentService.GetAppLibVersion(editingContext);
+            _appDevelopmentService.TryGetFrontendVersion(editingContext, out string frontendVersion);
+
+            return new VersionResponse
+            {
+                BackendVersion = backendVersion,
+                FrontendVersion = frontendVersion
+            };
         }
     }
 }
