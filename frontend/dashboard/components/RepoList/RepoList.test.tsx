@@ -95,7 +95,9 @@ describe('RepoList', () => {
       ],
       isServerSort: true,
     });
-    const unstar = await screen.findByRole('menuitem', { name: textMock('dashboard.unstar') });
+    const unstar = await screen.findByRole('menuitem', {
+      name: textMock('dashboard.unstar', { appName: repository.name }),
+    });
     const gridActionsCellItem = within(unstar).getByRole('img');
     expect(gridActionsCellItem).toBeInTheDocument();
   });
