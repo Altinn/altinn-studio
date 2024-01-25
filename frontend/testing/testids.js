@@ -8,7 +8,6 @@ export const fileSelectorInput = 'file-selector-input';
 export const orgMenuItem = (orgUserName) =>
   orgUserName ? `menu-org-${orgUserName}` : 'menu-org-no-org-user-name';
 export const resetRepoContainer = 'reset-repo-container';
-export const searchReposField = 'repos-search-field';
 export const typeItem = (pointer) => `type-item-${pointer}`;
 export const userMenuItem = 'user-menu-item';
 export const versionControlHeader = 'version-control-header';
