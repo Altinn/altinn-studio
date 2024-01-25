@@ -60,5 +60,6 @@ if (process.env.CI) {
   config.reporters.push('github-actions');
   config.collectCoverage = true;
   config.coverageReporters = ['lcov'];
+  config.coveragePathIgnorePatterns = ['**/mocks.tsx'];
 }
 module.exports = config;
