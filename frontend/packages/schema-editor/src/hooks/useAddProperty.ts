@@ -6,7 +6,7 @@ import { useSavableSchemaModel } from '../hooks/useSavableSchemaModel';
 type AddProperty = (
   objectKind: ObjectKind,
   fieldType?: FieldType,
-  parentPointer?: string
+  parentPointer?: string,
 ) => string | undefined;
 
 export const useAddProperty = (): AddProperty => {
@@ -16,7 +16,7 @@ export const useAddProperty = (): AddProperty => {
   const addProperty: AddProperty = (
     objectKind: ObjectKind,
     fieldType?: FieldType,
-    parentPointer: string = ROOT_POINTER
+    parentPointer: string = ROOT_POINTER,
   ): string | undefined => {
     const target: NodePosition = { parentPointer, index: -1 };
     const name = savableModel.generateUniqueChildName(parentPointer, 'name');
@@ -53,4 +53,4 @@ export const useAddProperty = (): AddProperty => {
   };
 
   return addProperty;
-}
+};

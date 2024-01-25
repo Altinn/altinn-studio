@@ -13,7 +13,7 @@ export interface IAltinnMenuItemProps {
 }
 
 function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElement>) {
-  const { text, icon:IconComponent, onClick, disabled, id, className, testId } = props;
+  const { text, icon: IconComponent, onClick, disabled, id, className, testId } = props;
   return (
     <MenuItem
       data-testid={testId}
@@ -25,7 +25,7 @@ function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElemen
       classes={{ root: classes.menu }}
     >
       <ListItemIcon classes={{ root: classes.icon }}>
-        {IconComponent && <IconComponent />}  
+        {IconComponent && <IconComponent />}
       </ListItemIcon>
       <ListItemText disableTypography={true}>
         <Typography variant='caption'>{text}</Typography>

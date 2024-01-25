@@ -34,9 +34,6 @@
       "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     }
   },
-  "required": [
-    "id",
-    "type"
-  ],
+  "required": ["id", "type"],
   "additionalProperties": false
 }

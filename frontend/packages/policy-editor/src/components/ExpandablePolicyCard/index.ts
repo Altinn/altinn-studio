@@ -1,1 +1,1 @@
-export { ExpandablePolicyCard } from './ExpandablePolicyCard'
+export { ExpandablePolicyCard } from './ExpandablePolicyCard';

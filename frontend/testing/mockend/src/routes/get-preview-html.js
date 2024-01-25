@@ -10,7 +10,7 @@ const filepath = path.resolve(
   'wwwroot',
   'designer',
   'html',
-  'preview.html'
+  'preview.html',
 );
 const indexHtml = fs.readFileSync(filepath, 'utf-8');
 

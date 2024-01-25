@@ -6,4 +6,4 @@ export const useTextResourcesSelector = <T>(selector: TextResourcesSelector<T>):
   const { org, app } = useStudioUrlParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
   return selector(textResources);
-}
+};

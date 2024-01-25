@@ -4,7 +4,11 @@ import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorApp
 import { NodePanel } from './';
 import type { NodePanelProps } from './';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
-import { definitionNodeMock, stringDefinitionNodeMock, uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
+import {
+  definitionNodeMock,
+  stringDefinitionNodeMock,
+  uiSchemaNodesMock,
+} from '../../../test/mocks/uiSchemaMock';
 import type { DragAndDropTreeProviderProps } from 'app-shared/components/DragAndDropTree/DragAndDropTreeProvider';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { act, screen } from '@testing-library/react';

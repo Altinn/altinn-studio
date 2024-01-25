@@ -31,14 +31,16 @@ const simpleArrayItemsPointer = '#/properties/simpleArray/items/properties/simpl
 
 const defNodeWithChildrenPointer = '#/$defs/parentDef';
 const defNodeWithChildrenChildPointer = '#/$defs/parentDef/properties/child';
-const defNodeWithChildrenGrandchildPointer = '#/$defs/parentDef/properties/child/properties/grandchild';
+const defNodeWithChildrenGrandchildPointer =
+  '#/$defs/parentDef/properties/child/properties/grandchild';
 const referenceToObjectNodePointer = '#/properties/referenceToParent';
 
 const unusedDefinitionPointer = '#/$defs/unusedDef';
 const unusedDefinitionWithSameNameAsExistingObjectPointer = '#/$defs/test';
 const referenceDefinitionPointer = '#/$defs/referenceDef';
 
-const combinationNodeWithMultipleChildrenPointer = '#/properties/combinationNodeWithMultipleChildren';
+const combinationNodeWithMultipleChildrenPointer =
+  '#/properties/combinationNodeWithMultipleChildren';
 const combinationNodeChild1Pointer = '#/properties/combinationNodeWithMultipleChildren/anyOf/0';
 const combinationNodeChild2Pointer = '#/properties/combinationNodeWithMultipleChildren/anyOf/1';
 const combinationNodeChild3Pointer = '#/properties/combinationNodeWithMultipleChildren/anyOf/2';

@@ -7,7 +7,7 @@ import { deepCopy } from 'app-shared/pure';
 export const renameNodePointer = (
   uiSchemaNodes: UiSchemaNodes,
   oldPointer: string,
-  newPointer: string
+  newPointer: string,
 ) => {
   if (oldPointer === newPointer) {
     throw new Error('Old and new name are equal');
@@ -34,11 +34,12 @@ export const renameNodePointer = (
       nodeCopy.reference = nodeCopy.reference.replace(oldPointer, newPointer);
     }
     if (isFieldOrCombination(nodeCopy) && isFieldOrCombination(uiNode)) {
-      nodeCopy.children = uiNode.children?.map((childPointer) =>
-        pointerIsInBranch(childPointer, oldPointer)
-          ? childPointer.replace(oldPointer, newPointer)
-          : childPointer
-      ) ?? [];
+      nodeCopy.children =
+        uiNode.children?.map((childPointer) =>
+          pointerIsInBranch(childPointer, oldPointer)
+            ? childPointer.replace(oldPointer, newPointer)
+            : childPointer,
+        ) ?? [];
     }
     mutatedNodeArray.push(nodeCopy);
   });
