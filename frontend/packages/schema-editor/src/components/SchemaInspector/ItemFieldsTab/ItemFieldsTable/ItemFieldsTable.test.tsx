@@ -1,18 +1,16 @@
 import React from 'react';
 import { act, screen, within } from '@testing-library/react';
-import { ItemFieldsTable, ItemFieldsTableProps } from './ItemFieldsTable';
+import type { ItemFieldsTableProps } from './ItemFieldsTable';
+import { ItemFieldsTable } from './ItemFieldsTable';
+import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   extractNameFromPointer,
-  FieldNode,
   FieldType,
   ObjectKind,
-  SchemaModel,
-  UiSchemaNodes,
+  SchemaModel
 } from '@altinn/schema-model';
-import {
-  renderWithProviders,
-  RenderWithProvidersData,
-} from '../../../../../test/renderWithProviders';
+import type { RenderWithProvidersData } from '../../../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../../../test/mocks/uiSchemaMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';

@@ -2,10 +2,8 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import {
-  UpdateFormComponentMutationArgs,
-  useUpdateFormComponentMutation,
-} from './useUpdateFormComponentMutation';
+import type { UpdateFormComponentMutationArgs } from './useUpdateFormComponentMutation';
+import { useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import { component1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import type {
   FormCheckboxesComponent,
@@ -13,7 +11,7 @@ import type {
   FormFileUploaderComponent,
   FormRadioButtonsComponent,
 } from '../../types/FormComponent';
-import { IDataModelBindings } from '../../types/global';
+import type { IDataModelBindings } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';

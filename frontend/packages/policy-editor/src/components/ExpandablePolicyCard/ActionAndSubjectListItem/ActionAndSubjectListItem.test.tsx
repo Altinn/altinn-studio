@@ -1,9 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import {
-  ActionAndSubjectListItem,
-  ActionAndSubjectListItemProps,
-} from './ActionAndSubjectListItem';
+import type { ActionAndSubjectListItemProps } from './ActionAndSubjectListItem';
+import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { CreateDatamodelPayload } from 'app-shared/types/api';
+import type { CreateDatamodelPayload } from 'app-shared/types/api';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 

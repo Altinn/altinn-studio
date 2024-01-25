@@ -1,19 +1,15 @@
-import {
-  extractNameFromPointer,
-  isReference,
-  ReferenceNode,
-  SchemaModel,
-} from '@altinn/schema-model';
+import type { ReferenceNode } from '@altinn/schema-model';
+import { extractNameFromPointer, isReference, SchemaModel } from '@altinn/schema-model';
 import {
   definitionNodeMock,
   combinationNodeMock,
-  uiSchemaNodesMock
+  uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
-import { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
+import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
 import { renderHookWithProviders } from '../../../../test/renderHookWithProviders';
-import { HandleAdd, ItemPosition } from 'app-shared/types/dndTypes';
+import type { HandleAdd, ItemPosition } from 'app-shared/types/dndTypes';
 import { useAddReference } from './useAddReference';
-import { SavableSchemaModel } from '../../../classes/SavableSchemaModel';
+import type { SavableSchemaModel } from '../../../classes/SavableSchemaModel';
 
 describe('useAddReference', () => {
   const setup = () => {

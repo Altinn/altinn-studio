@@ -91,7 +91,7 @@ For more information, consult the README.md in the mock solution.
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/Altinn/altinn-studio/blob/master/docs/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://github.com/Altinn/altinn-studio/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
 

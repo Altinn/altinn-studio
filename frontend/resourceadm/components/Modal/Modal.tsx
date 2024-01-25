@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './Modal.module.css';
 import cn from 'classnames';
 import { Heading } from '@digdir/design-system-react';
@@ -42,7 +43,7 @@ export const Modal = ({
       onClose={onClose}
       title={
         <div className={classes.headingWrapper}>
-          <Heading size='xsmall' spacing level={1}>
+          <Heading size='xsmall' level={1}>
             {title}
           </Heading>
         </div>

@@ -1,4 +1,4 @@
-import { TextResourcesSelector } from '../types/global';
+import type { TextResourcesSelector } from '../types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 

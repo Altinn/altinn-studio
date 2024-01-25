@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { IGenericEditComponent } from '../componentConfig';
+import type { IGenericEditComponent } from '../componentConfig';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
-import { TranslationKey } from 'language/type';
+import type { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
 import { LegacySelect } from '@digdir/design-system-react';
 

@@ -1,7 +1,9 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { StudioModal, StudioModalProps } from './StudioModal';
+import type { StudioModalProps } from './StudioModal';
+import { StudioModal } from './StudioModal';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 const mockTitle: ReactNode = (

@@ -4,7 +4,7 @@ import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-librar
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
 import * as testids from '../../../testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

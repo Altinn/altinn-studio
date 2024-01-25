@@ -1,7 +1,8 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { TabContent, TabContentProps } from './TabContent';
-import { TabAction } from 'app-shared/types/LeftNavigationTab';
+import type { TabContentProps } from './TabContent';
+import { TabContent } from './TabContent';
+import type { TabAction } from 'app-shared/types/LeftNavigationTab';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';

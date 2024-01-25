@@ -2,10 +2,8 @@ import React, { useContext } from 'react';
 import { Alert } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { useText } from '../../../hooks';
-import {
-  getExpressionPropertiesBasedOnComponentType,
-  ExpressionProperty,
-} from '../../../types/Expressions';
+import type { ExpressionProperty } from '../../../types/Expressions';
+import { getExpressionPropertiesBasedOnComponentType } from '../../../types/Expressions';
 import {
   addPropertyForExpression,
   getAllComponentPropertiesThatCanHaveExpressions,
@@ -13,7 +11,7 @@ import {
   getPropertiesWithExistingExpression,
 } from '../../../utils/expressionsUtils';
 import classes from './Expressions.module.css';
-import { LayoutItemType } from '../../../types/global';
+import type { LayoutItemType } from '../../../types/global';
 import { FormContext } from '../../../containers/FormContext';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { Trans } from 'react-i18next';

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getAppLibVersion } from 'app-shared/api/queries';
-import { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import type { AppLibVersion } from 'app-shared/types/AppLibVersion';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 /**

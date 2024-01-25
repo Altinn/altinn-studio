@@ -1,6 +1,6 @@
-import { FieldNode } from './FieldNode';
-import { ReferenceNode } from './ReferenceNode';
-import { CombinationNode } from './CombinationNode';
+import type { FieldNode } from './FieldNode';
+import type { ReferenceNode } from './ReferenceNode';
+import type { CombinationNode } from './CombinationNode';
 
 export type UiSchemaNode =
   | FieldNode

@@ -1,13 +1,11 @@
-import {
-  CombinationKind,
+import type {
   CombinationNode,
   FieldNode,
-  FieldType,
-  ObjectKind,
   ReferenceNode,
   UiSchemaNode,
   UiSchemaNodes,
 } from '../src';
+import { CombinationKind, FieldType, ObjectKind } from '../src';
 import { defaultReferenceNode } from '../src/config/default-nodes';
 
 const rootNodePointer = '#';
@@ -261,7 +259,6 @@ export const combinationNodeChild1Mock: FieldNode = {
   pointer: combinationNodeChild1Pointer,
   title: 'Child 1',
 };
-
 
 export const combinationNodeChild2Mock: FieldNode = {
   ...nodeMockBase,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { SchemaNode } from './SchemaNode';
-import { SavableSchemaModel } from '../../classes/SavableSchemaModel';
+import type { SavableSchemaModel } from '../../classes/SavableSchemaModel';
 
 export const renderSchemaNodeList = (schema: SavableSchemaModel, parentPointer?: string) => {
   const properties = parentPointer ? schema.getChildNodes(parentPointer) : schema.getRootProperties();

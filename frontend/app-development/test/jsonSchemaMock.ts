@@ -1,4 +1,4 @@
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 // Basic example from https://json-schema.org/learn/miscellaneous-examples.html
 export const jsonSchemaMock: JsonSchema = {

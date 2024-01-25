@@ -1,7 +1,7 @@
-import { ComponentType } from './ComponentType';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { MapLayer } from 'app-shared/types/MapLayer';
-import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import type { ComponentType } from './ComponentType';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { MapLayer } from 'app-shared/types/MapLayer';
+import type { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 
 type Option<T = any> = {
   label: string;

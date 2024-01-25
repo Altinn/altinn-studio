@@ -1,10 +1,11 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { LeftNavigationTab, TabAction } from 'app-shared/types/LeftNavigationTab';
+import type { LeftNavigationTab, TabAction } from 'app-shared/types/LeftNavigationTab';
 import { act } from 'react-dom/test-utils';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
-import { Tab, TabProps } from './Tab';
+import type { TabProps } from './Tab';
+import { Tab } from './Tab';
 import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 

@@ -4,7 +4,7 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
 import { textMock } from '../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
 

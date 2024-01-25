@@ -1,4 +1,5 @@
-import React, { ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
+import React, { useState } from 'react';
 import { StudioButton } from '@studio/components';
 import { CogIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';

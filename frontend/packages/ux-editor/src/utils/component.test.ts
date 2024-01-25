@@ -1,4 +1,4 @@
-import { IOption } from '../types/global';
+import type { IOption } from '../types/global';
 import {
   addOptionToComponent,
   changeComponentOptionLabel,
@@ -9,7 +9,7 @@ import {
   setComponentProperty,
 } from './component';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
+import type { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
 
 describe('Component utils', () => {
   describe('changeTextResourceBinding', () => {

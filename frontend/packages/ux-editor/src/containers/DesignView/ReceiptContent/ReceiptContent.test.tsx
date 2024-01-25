@@ -1,16 +1,17 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
-import { ReceiptContent, ReceiptContentProps } from './ReceiptContent';
+import type { ReceiptContentProps } from './ReceiptContent';
+import { ReceiptContent } from './ReceiptContent';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { FormLayoutPage } from '../../../types/FormLayoutPage';
+import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import {
   component1Mock,
   component2Mock,
   layout1NameMock,
   layout2NameMock,
 } from '../../../testing/layoutMock';
-import { IInternalLayout } from '../../../types/global';
+import type { IInternalLayout } from '../../../types/global';
 import {
   formLayoutSettingsMock,
   renderHookWithMockStore,

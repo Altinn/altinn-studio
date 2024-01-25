@@ -1,15 +1,12 @@
 import React from 'react';
-import {
-  AppDeploymentComponent,
-  AppDeploymentComponentProps,
-  ImageOption,
-} from './appDeploymentComponent';
+import type { AppDeploymentComponentProps, ImageOption } from './appDeploymentComponent';
+import { AppDeploymentComponent } from './appDeploymentComponent';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import { IDeployment } from 'app-development/sharedResources/appDeployment/types';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { IDeployment } from 'app-development/sharedResources/appDeployment/types';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const render = (
   props?: Partial<AppDeploymentComponentProps>,

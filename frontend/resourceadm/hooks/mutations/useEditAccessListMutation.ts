@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { JsonPatch } from 'app-shared/types/ResourceAdm';
+import type { JsonPatch } from 'app-shared/types/ResourceAdm';
 
 /**
  * Mutation to edit metadata of a access list

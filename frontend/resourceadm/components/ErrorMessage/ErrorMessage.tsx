@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './errorMessage.module.css';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';

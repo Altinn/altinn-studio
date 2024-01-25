@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './TabContent.module.css';
 
 export type TabContentProps = {
