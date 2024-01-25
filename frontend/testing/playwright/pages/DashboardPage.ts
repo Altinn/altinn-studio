@@ -64,13 +64,13 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnOrgApplications(): Promise<void> {
-    await this.page.getByRole('menuitem', { name: this.org }).click();
+    await this.page.getByRole('menuitem', { name: 'Testdepartementet' }).click();
   }
 
-  public async checkThatAllOrgApplicationsHeaderIsVisible(): Promise<void> {
+  public async checkThatTTDApplicationsHeaderIsVisible(): Promise<void> {
     await this.page
       .getByRole('heading', {
-        name: this.textMock('dashboard.org_apps', { orgName: this.org }),
+        name: this.textMock('dashboard.org_apps', { orgName: 'Testdepartementet' }),
         level: 2,
       })
       .isVisible();

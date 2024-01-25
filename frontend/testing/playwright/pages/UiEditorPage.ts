@@ -11,8 +11,13 @@ export class UiEditorPage extends BasePage {
     await this.page.goto(this.getRoute('editorUi'));
   }
 
-  public async verifyUiEditorPage(): Promise<void> {
-    console.log('this.getRoute("editorUi"', this.getRoute('editorUi'));
-    await this.page.waitForURL(this.getRoute('editorUi'));
+  public async verifyUiEditorPage(layout?: string | null): Promise<void> {
+    const baseRoute = this.getRoute('editorUi');
+    if (layout === null || typeof layout === 'string') {
+      const layoutString = `?layout=${layout}`;
+      await this.page.waitForURL(`${baseRoute}${layoutString}`);
+    } else {
+      await this.page.waitForURL(baseRoute);
+    }
   }
 }

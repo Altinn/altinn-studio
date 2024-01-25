@@ -9,6 +9,8 @@ import { DataModelPage } from 'testing/playwright/pages/DataModelPage';
 import { TextEditorPage } from 'testing/playwright/pages/TextEditorPage';
 import { ProcessEditorPage } from 'testing/playwright/pages/ProcessEditorPage';
 import { DashboardPage } from 'testing/playwright/pages/DashboardPage';
+import { PreviewPage } from 'testing/playwright/pages/PreviewPage';
+import { DeployPage } from 'testing/playwright/pages/DeployPage';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -99,20 +101,52 @@ test('That it is possible to navigate from overview to the dashboard page by cli
   await dashboardPage.verifyDashboardPage();
 });
 
-/*
 test('That it is possible to navigate from overview to the preview page and back again', async ({
   page,
   testAppName,
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
-  const appBuilderPage = new UiEditorPage(page);
+  const previewPage = new PreviewPage(page, { app: testAppName });
+  const uiEditor = new UiEditorPage(page, { app: testAppName });
+
+  await overviewPage.clickOnNavigateToPageInTopMenuHeader('preview');
+  await previewPage.verifyPreviewPage();
+
+  await previewPage.clickOnNavigateToPageInTopMenuHeader('preview_back_to_editing');
+  await uiEditor.verifyUiEditorPage(null);
 });
 
 test('That it is possible to navigate from overview to the deploy page and back again', async ({
   page,
   testAppName,
+  request,
+  storageState,
 }) => {
-  const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
-  const appBuilderPage = new UiEditorPage(page);
+  const designerApi = new DesignerApi({ app: testAppName });
+  const response = await designerApi.createApp(request, storageState as StorageState, 'ttd');
+  expect(response.ok()).toBeTruthy();
+
+  // const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
+  const dashboardPage = new DashboardPage(page, { app: testAppName });
+  const overviewPage = new OverviewPage(page, { app: testAppName });
+  const deployPage = new DeployPage(page, { app: testAppName });
+
+  await dashboardPage.loadDashboardPage();
+  await dashboardPage.verifyDashboardPage();
+
+  // Change to TTD
+  await dashboardPage.clickOnHeaderAvatar();
+  await dashboardPage.clickOnOrgApplications();
+  await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
+  await dashboardPage.clickOnTestAppEditButton(testAppName);
+
+  const useTtdAsOrg: boolean = true;
+  await overviewPage.verifyOverviewPage(useTtdAsOrg);
+
+  // Check Navigation
+  await overviewPage.clickOnNavigateToPageInTopMenuHeader('deploy');
+  await deployPage.verifyDeployPage(useTtdAsOrg);
+
+  await deployPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await overviewPage.verifyOverviewPage(useTtdAsOrg);
 });
-*/

@@ -52,8 +52,4 @@ export class BasePage extends RouterRoute {
       .first()
       .click();
   }
-
-  public async clickOnNavigateBackToDashboard(): Promise<void> {
-    await this.page.getByRole('link');
-  }
 }
