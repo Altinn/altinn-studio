@@ -71,6 +71,14 @@ export class DashboardPage extends BasePage {
     await this.page
       .getByRole('heading', {
         name: this.textMock('dashboard.org_apps', { orgName: 'Testdepartementet' }),
+      })
+      .click();
+  }
+
+  public async checkThatAllOrgApplicationsHeaderIsVisible(): Promise<void> {
+    await this.page
+      .getByRole('heading', {
+        name: this.textMock('dashboard.org_apps', { orgName: this.org }),
         level: 2,
       })
       .isVisible();
