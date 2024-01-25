@@ -206,7 +206,7 @@ export const ExpandablePolicyCard = ({
     savePolicy(updatedRules);
   };
 
-  const getTranslationByActionId = (actionId: string): string | null => {
+  const getTranslationByActionId = (actionId: string): string => {
     return allowedActionsId.includes(actionId) ? t(`policy_editor.action_${actionId}`) : actionId;
   };
 
