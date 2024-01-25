@@ -109,6 +109,7 @@ export function en() {
     general: {
       action: 'Action',
       accessibility: 'Accessibility',
+      accessibility_url: 'https://info.altinn.no/en/about-altinn/tilgjengelighet/',
       add_connection: 'Add connection',
       add_new: 'Add new',
       add: 'Add',

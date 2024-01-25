@@ -111,6 +111,7 @@ export function nb(): FixedLanguageList {
     general: {
       action: 'Handling',
       accessibility: 'Tilgjengelighet',
+      accessibility_url: 'https://info.altinn.no/om-altinn/tilgjengelighet/',
       add_connection: 'Legg til tilkobling',
       add_new: 'Legg til ny',
       add: 'Legg til',
