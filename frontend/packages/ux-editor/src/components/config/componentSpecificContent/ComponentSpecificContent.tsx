@@ -54,21 +54,11 @@ export function ComponentSpecificContent({
     }
 
     case ComponentType.Panel: {
-      return (
-        <PanelComponent
-          component={component}
-          handleComponentChange={handleComponentChange}
-        />
-      );
+      return <PanelComponent component={component} handleComponentChange={handleComponentChange} />;
     }
 
     case ComponentType.Map: {
-      return (
-        <MapComponent
-          component={component}
-          handleComponentChange={handleComponentChange}
-        />
-      );
+      return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
     }
     default: {
       return null;

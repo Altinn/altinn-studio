@@ -4,9 +4,7 @@ import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import { useText } from '../../hooks';
-import {
-  selectedLayoutNameSelector,
-} from '../../selectors/formLayoutSelectors';
+import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
 import { LayoutSetsContainer } from './LayoutSetsContainer';

@@ -32,7 +32,7 @@ describe('build', () => {
           expect(node.fieldType).toBeDefined();
         }
       });
-    }
+    },
   );
 
   test.each(getGeneralJsonSchemasForTest())(
@@ -43,7 +43,7 @@ describe('build', () => {
       validateTestUiSchema(uiSchemaNodes);
       const jsonSchema = buildJsonSchema(uiSchemaNodes);
       expect(jsonSchema).toEqual(testSchema);
-    }
+    },
   );
 
   test('That we can convert old schemas too', () => {

@@ -13,10 +13,7 @@ const defaultProps: TextResourceOptionProps = { textResource };
 const noTextText = 'Ingen tekst';
 const texts = { 'ux_editor.no_text': noTextText };
 
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('TextResourceOption', () => {
   it('Renders id and value', () => {

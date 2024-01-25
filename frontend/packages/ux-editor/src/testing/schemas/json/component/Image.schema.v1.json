@@ -25,9 +25,7 @@
           "description": "Alternate text is read aloud to someone using assistive technology, but is hidden from a sighted user."
         }
       },
-      "required": [
-        "altTextImg"
-      ],
+      "required": ["altTextImg"],
       "additionalProperties": true
     },
     "image": {
@@ -58,9 +56,7 @@
         "width": {
           "type": "string",
           "title": "Image width",
-          "examples": [
-            "100%"
-          ]
+          "examples": ["100%"]
         },
         "align": {
           "type": "string",
@@ -75,11 +71,7 @@
           ]
         }
       },
-      "required": [
-        "src",
-        "width",
-        "align"
-      ]
+      "required": ["src", "width", "align"]
     },
     "renderAsSummary": {
       "title": "Render as summary",
@@ -108,12 +100,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "src",
-    "width",
-    "align"
-  ],
+  "required": ["id", "type", "src", "width", "align"],
   "additionalProperties": false
 }

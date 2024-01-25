@@ -478,7 +478,7 @@ describe('SchemaModel', () => {
         });
 
         it('Keeps the model valid', () => {
-          validateTestUiSchema(model.asArray())
+          validateTestUiSchema(model.asArray());
         });
       });
 
@@ -514,8 +514,7 @@ describe('SchemaModel', () => {
 
           it('Keeps the model valid', () => {
             setup();
-            validateTestUiSchema(
-            model.asArray())
+            validateTestUiSchema(model.asArray());
           });
         },
       );
@@ -551,7 +550,7 @@ describe('SchemaModel', () => {
       });
 
       it('Keeps the model valid', () => {
-        validateTestUiSchema(model.asArray())
+        validateTestUiSchema(model.asArray());
       });
     });
 

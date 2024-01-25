@@ -11,9 +11,7 @@ import {
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type {
-  CombinationKind,
-  UiSchemaNode } from '@altinn/schema-model';
+import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
 import {
   addCombinationItem,
   deleteNode,

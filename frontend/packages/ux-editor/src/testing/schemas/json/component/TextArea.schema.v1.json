@@ -113,9 +113,5 @@
       "type": "number"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "dataModelBindings"
-  ]
+  "required": ["id", "type", "dataModelBindings"]
 }

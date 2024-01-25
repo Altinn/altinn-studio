@@ -62,7 +62,10 @@ describe('ItemPropertiesTab', () => {
     validateTestUiSchema(nodes);
 
     const schemaModel = SchemaModel.fromArray(nodes);
-    const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, selectedNodePointer };
+    const appContextProps: Partial<SchemaEditorAppContextProps> = {
+      schemaModel,
+      selectedNodePointer,
+    };
     renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={selectedNode} />);
 
     expect(
@@ -79,7 +82,10 @@ describe('ItemPropertiesTab', () => {
     validateTestUiSchema(nodes);
 
     const schemaModel = SchemaModel.fromArray(nodes);
-    const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, selectedNodePointer: null };
+    const appContextProps: Partial<SchemaEditorAppContextProps> = {
+      schemaModel,
+      selectedNodePointer: null,
+    };
     renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={rootNodeMock} />);
 
     const name = textMock('schema_editor.name');

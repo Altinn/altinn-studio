@@ -19,7 +19,7 @@ describe('GoBackButton', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <GoBackButton {...defaultProps} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const backButton = screen.getByRole('link', { name: mockBackButtonText });

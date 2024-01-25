@@ -21,9 +21,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "title"
-      ],
+      "required": ["title"],
       "additionalProperties": true
     },
     "dataTypeIds": {
@@ -33,12 +31,7 @@
       },
       "title": "Data type IDs",
       "description": "List of data type IDs for the attachment list to show.",
-      "examples": [
-        [
-          "SomeDataType",
-          "SomeOtherDataType"
-        ]
-      ]
+      "examples": [["SomeDataType", "SomeOtherDataType"]]
     },
     "includePDF": {
       "type": "boolean",
@@ -73,9 +66,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type"
-  ],
+  "required": ["id", "type"],
   "additionalProperties": false
 }

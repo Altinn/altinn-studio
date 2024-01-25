@@ -12,17 +12,17 @@ export const useFormLayouts = (): IFormLayouts => {
   const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data } = formLayoutsQuery;
   return data;
-}
+};
 
 export const useFormLayout = (layoutName: string): IInternalLayout => {
   const data = useFormLayouts();
   return data?.[layoutName] || createEmptyLayout();
-}
+};
 
 export const useSelectedFormLayout = (): IInternalLayout => {
   const layoutName = useSelector(selectedLayoutNameSelector);
   return useFormLayout(layoutName);
-}
+};
 
 export const useSelectedFormLayoutWithName = (): IInternalLayoutWithName => {
   const layout = useSelectedFormLayout();
@@ -31,4 +31,4 @@ export const useSelectedFormLayoutWithName = (): IInternalLayoutWithName => {
     layout,
     layoutName,
   };
-}
+};

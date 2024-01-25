@@ -21,7 +21,13 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
 
   return useMutation({
-    mutationFn: ({ container, positionAfterId, addToId, callback, destinationIndex }: AddFormContainerMutationArgs) => {
+    mutationFn: ({
+      container,
+      positionAfterId,
+      addToId,
+      callback,
+      destinationIndex,
+    }: AddFormContainerMutationArgs) => {
       const layouts = formLayoutsQuery.data;
       const id = generateComponentId(ComponentType.Group, layouts);
       let baseContainerId;
@@ -39,8 +45,8 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
         },
         order: {
           ...layout.order,
-          [id]: []
-        }
+          [id]: [],
+        },
       };
 
       if (baseContainerId) {
@@ -54,7 +60,7 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
             updatedLayout.order[baseContainerId].splice(
               updatedLayout.order[baseContainerId].indexOf(positionAfterId) + 1,
               0,
-              id
+              id,
             );
           }
         } else if (!destinationIndex === false || destinationIndex === 0) {
@@ -65,6 +71,6 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
       }
 
       return formLayoutsMutation.mutateAsync(updatedLayout);
-    }
+    },
   });
 };

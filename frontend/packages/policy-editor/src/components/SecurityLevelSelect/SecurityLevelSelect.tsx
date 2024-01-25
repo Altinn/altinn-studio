@@ -1,7 +1,14 @@
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
 import classes from './SecurityLevelSelect.module.css';
-import { Heading, Label, Paragraph, HelpText, Link, LegacySelect } from '@digdir/design-system-react';
+import {
+  Heading,
+  Label,
+  Paragraph,
+  HelpText,
+  Link,
+  LegacySelect,
+} from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import type { RequiredAuthLevel } from '../../types';
 

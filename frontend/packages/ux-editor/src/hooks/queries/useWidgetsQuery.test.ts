@@ -27,7 +27,7 @@ jest.mock('app-shared/utils/networking', () => ({
       case widgetUrl2:
         return widget2;
     }
-  }
+  },
 }));
 
 describe('useWidgetsQuery', () => {
@@ -44,7 +44,10 @@ describe('useWidgetsQuery', () => {
 });
 
 const render = async () => {
-  const { renderHookResult } = renderHookWithMockStore({}, { getWidgetSettings })(() => useWidgetsQuery(org, app));
+  const { renderHookResult } = renderHookWithMockStore(
+    {},
+    { getWidgetSettings },
+  )(() => useWidgetsQuery(org, app));
   await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
   return renderHookResult;
 };
