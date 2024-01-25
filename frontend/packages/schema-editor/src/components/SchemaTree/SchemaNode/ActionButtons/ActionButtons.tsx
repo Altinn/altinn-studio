@@ -56,11 +56,8 @@ const useDeleteNode = (pointer: string, savableModel: SavableSchemaModel) => {
     if (confirm(t('schema_editor.datamodel_field_deletion_text'))) {
       setSelectedNodePointer(null);
 
-      // Close the types panel when deleting the selected type,
-      // unless it's only a child node being deleted
-      if (pointer === selectedTypePointer) {
-        setSelectedTypePointer(null);
-      }
+      const pointsToSelectedType = pointer === selectedTypePointer;
+      if (pointsToSelectedType) setSelectedTypePointer(null);
 
       savableModel.deleteNode(pointer);
     }

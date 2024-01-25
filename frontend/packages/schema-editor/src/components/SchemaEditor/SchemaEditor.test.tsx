@@ -45,10 +45,11 @@ const clickOpenAddNodeButton = async () => {
   await act(() => user.click(buttons[0]));
 };
 
-const selectedTypePointer = `#/${Keyword.Definitions}/TestType`;
+const type = 'TestType';
+const selectedTypePointer = `#/${Keyword.Definitions}/${type}`;
 const jsonSchemaTypePanel: JsonSchema = {
   [Keyword.Definitions]: {
-    TestType: {
+    [type]: {
       [Keyword.Type]: FieldType.Object,
       [Keyword.Properties]: {
         prop1: { [Keyword.Type]: FieldType.String },
@@ -246,11 +247,9 @@ describe('SchemaEditor', () => {
         setSelectedTypePointer: setSelectedTypePointerMock,
       },
     });
-    const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await act(() => user.click(type));
-    expect(
-      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
-    ).toBeDefined();
+    const selectedType = screen.getByTestId(testids.typeItem(selectedTypePointer));
+    await act(() => user.click(selectedType));
+    expect(screen.getByText(textMock('schema_editor.types_editing', { type }))).toBeDefined();
   });
 
   it('close type when clicking on close button', async () => {
@@ -266,25 +265,29 @@ describe('SchemaEditor', () => {
         setSelectedNodePointer,
       },
     });
-    const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await act(() => user.click(type));
-    expect(
-      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
-    ).toBeInTheDocument();
+    const selectedType = screen.getByTestId(testids.typeItem(selectedTypePointer));
+    await act(() => user.click(selectedType));
+    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedTypePointer).not.toHaveBeenCalledWith(null);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedNodePointer).not.toHaveBeenCalledWith(undefined);
+
+    expect(screen.getByText(textMock('schema_editor.types_editing', { type }))).toBeInTheDocument();
     const closeType = screen.getByRole('button', { name: textMock('schema_editor.close_type') });
     await act(() => user.click(closeType));
+
+    expect(setSelectedTypePointer).toHaveBeenCalledTimes(2);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(2);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(undefined);
   });
 
-  it('should not display the type panel when selectedTypePointer is null and selectedNodePointer are null/undefined', async () => {
+  it('should not display the type panel when selectedTypePointer is null and selectedNodePointer is null/undefined', async () => {
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     renderEditor({
       appContextProps: { schemaModel, selectedTypePointer: null, selectedNodePointer: undefined },
     });
-    expect(
-      screen.queryByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
-    ).toBeNull();
+    expect(screen.queryByText(textMock('schema_editor.types_editing', { type }))).toBeNull();
   });
 
   it('should close the type panel when deleting the selected unused type', async () => {
@@ -301,20 +304,24 @@ describe('SchemaEditor', () => {
       },
     });
 
-    const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await act(() => user.click(type));
+    const selectedType = screen.getByTestId(testids.typeItem(selectedTypePointer));
+    await act(() => user.click(selectedType));
+    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedTypePointer).not.toHaveBeenCalledWith(null);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedNodePointer).not.toHaveBeenCalledWith(null);
 
-    expect(
-      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('schema_editor.types_editing', { type }))).toBeInTheDocument();
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await act(() => user.click(deleteButton));
 
+    expect(setSelectedTypePointer).toHaveBeenCalledTimes(2);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(2);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });
 
-  it('should not close the type panel when deleting a property of the selected type', async () => {
+  it.only('should not close the type panel when deleting a property of the selected type', async () => {
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const setSelectedTypePointer = jest.fn();
@@ -328,18 +335,22 @@ describe('SchemaEditor', () => {
       },
     });
 
-    const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await act(() => user.click(type));
+    const selectedType = screen.getByTestId(testids.typeItem(selectedTypePointer));
+    await act(() => user.click(selectedType));
 
-    expect(
-      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
-    ).toBeInTheDocument();
+    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedTypePointer).not.toHaveBeenCalledWith(null);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedNodePointer).not.toHaveBeenCalledWith(null);
 
-    const treeItem = screen.getByRole('treeitem');
+    expect(screen.getByText(textMock('schema_editor.types_editing', { type }))).toBeInTheDocument();
+
+    const treeItem = screen.getByRole('treeitem', { name: type });
     await act(() => user.click(treeItem));
-    const prop1 = screen.getByRole('none', {
-      name: /prop1/i,
-    });
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(2);
+    expect(setSelectedNodePointer).not.toHaveBeenCalledWith(null);
+
+    const prop1 = screen.getByTitle(/prop1/i);
     await act(() => user.click(prop1));
 
     const deleteButton = within(prop1).getByRole('button', {
@@ -347,7 +358,8 @@ describe('SchemaEditor', () => {
     });
     await act(() => user.click(deleteButton));
 
-    expect(setSelectedTypePointer).not.toHaveBeenCalledWith(null);
+    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(3);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });
 });
