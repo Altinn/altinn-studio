@@ -29,7 +29,6 @@
 }
 
 .container > * {
-  min-width: 240px;
   padding: 0;
   overflow-y: auto;
   max-height: calc(100vh - var(--header-height));

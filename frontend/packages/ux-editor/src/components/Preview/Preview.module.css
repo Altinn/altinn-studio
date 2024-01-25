@@ -4,6 +4,22 @@
   flex: var(--preview-width-fraction);
 }
 
+.hiddenPreviewRoot {
+  display: flex;
+  flex-direction: row;
+  width: min-content;
+}
+
+.openPreviewButton {
+  writing-mode: vertical-lr;
+  text-transform: uppercase;
+  border-radius: 0;
+}
+
+.closePreviewButton {
+  position: absolute;
+}
+
 .iframeContainer {
   display: flex;
   justify-content: center;
