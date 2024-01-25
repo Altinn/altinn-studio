@@ -321,7 +321,7 @@ describe('SchemaEditor', () => {
     expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });
 
-  it.only('should not close the type panel when deleting a property of the selected type', async () => {
+  it('should not close the type panel when deleting a property of the selected type', async () => {
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const setSelectedTypePointer = jest.fn();
