@@ -1,11 +1,13 @@
 import React from 'react';
 import { render, screen, act, waitForElementToBeRemoved } from '@testing-library/react';
-import { ServiceContent, ServiceContentProps } from './ServiceContent';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import type { ServiceContentProps } from './ServiceContent';
+import { ServiceContent } from './ServiceContent';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 

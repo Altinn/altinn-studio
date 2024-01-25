@@ -48,11 +48,7 @@
       "type": "string",
       "title": "Date format",
       "description": "Long date format used when displaying the date to the user. The user date format from the locale will be prioritized over this setting.",
-      "examples": [
-        "DD/MM/YYYY",
-        "MM/DD/YYYY",
-        "YYYY-MM-DD"
-      ],
+      "examples": ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"],
       "default": "DD.MM.YYYY"
     },
     "renderAsSummary": {
@@ -82,9 +78,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type"
-  ],
+  "required": ["id", "type"],
   "additionalProperties": false
 }

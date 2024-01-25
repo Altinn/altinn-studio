@@ -1,20 +1,19 @@
 import React from 'react';
-import { dataMock } from '../../mockData';
-import { act, screen } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
 import {
   FieldType,
   Keyword,
   buildUiSchema,
-  UiSchemaNodes,
   makePointerFromArray,
   SchemaModel,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
+import type { RenderWithProvidersData } from '../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import * as testids from '../../../../../testing/testids';
 import { uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
 
@@ -26,7 +25,7 @@ const save = jest.fn();
 const renderEditor = (data: Partial<RenderWithProvidersData> = {}) => {
   return renderWithProviders({
     appContextProps: {
-      schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
+      schemaModel: SchemaModel.fromArray(uiSchemaNodesMock).deepClone(),
       save,
       ...data.appContextProps,
     },
@@ -38,10 +37,16 @@ const clickMenuItem = async (name: string) => {
   await act(() => user.click(item));
 };
 
+const addNodeButtonTitle = textMock('schema_editor.add_node_of_type');
+
 const clickOpenAddNodeButton = async () => {
-  const buttons = screen.getAllByRole('button', {
-    name: textMock('schema_editor.add_node_of_type'),
-  });
+  const buttons = screen.getAllByRole('button', { name: addNodeButtonTitle });
+  await act(() => user.click(buttons[0]));
+};
+
+const clickOpenAddNodeButtonInTree = async () => {
+  const tree = screen.getByRole('tree');
+  const buttons = within(tree).getAllByRole('button', { name: addNodeButtonTitle });
   await act(() => user.click(buttons[0]));
 };
 
@@ -49,24 +54,13 @@ describe('SchemaEditor', () => {
   afterEach(jest.clearAllMocks);
 
   test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
-    const uiSchema: UiSchemaNodes = buildUiSchema(dataMock);
-    const schemaModel = SchemaModel.fromArray(uiSchema);
+    const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     renderEditor({ appContextProps: { schemaModel } });
-    await clickMenuItem(textMock('schema_editor.field'));
+    await clickOpenAddNodeButton();
+    await clickMenuItem(textMock('schema_editor.string'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
-    expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
-  });
-
-  test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
-    const uiSchema = buildUiSchema(dataMock);
-    const schemaModel = SchemaModel.fromArray(uiSchema);
-    renderEditor({ appContextProps: { schemaModel } });
-    jest.spyOn(window, 'prompt').mockImplementation(() => 'Tekst');
-    await clickMenuItem(textMock('schema_editor.reference'));
-    expect(save).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(save);
-    expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
+    expect(updatedModel.asArray().length).toBe(uiSchemaNodesMock.length + 1);
   });
 
   test('should show context menu and trigger correct dispatch when adding field on a specific node', async () => {
@@ -77,7 +71,7 @@ describe('SchemaEditor', () => {
     const uiSchema = buildUiSchema(jsonSchema);
     const schemaModel = SchemaModel.fromArray(uiSchema);
     renderEditor({ appContextProps: { schemaModel } });
-    await clickOpenAddNodeButton();
+    await clickOpenAddNodeButtonInTree();
     await clickMenuItem(textMock('schema_editor.add_field'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
@@ -94,7 +88,7 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(uiSchema);
     renderEditor({ appContextProps: { schemaModel } });
     jest.spyOn(window, 'prompt').mockImplementation(() => definitionName);
-    await clickOpenAddNodeButton();
+    await clickOpenAddNodeButtonInTree();
     await clickMenuItem(textMock('schema_editor.add_reference'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
@@ -103,10 +97,11 @@ describe('SchemaEditor', () => {
 
   test('should trigger correct dispatch when deleting a specific node', async () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
+    const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     const numberOfRootNodes = schemaModel.getRootChildren().length;
     renderEditor({ appContextProps: { schemaModel } });
-    const deleteButtons = screen.getAllByRole('button', {
+    const tree = screen.getByRole('tree');
+    const deleteButtons = within(tree).getAllByRole('button', {
       name: textMock('general.delete'),
     });
     const firstDeleteButton = deleteButtons[0];
@@ -119,9 +114,10 @@ describe('SchemaEditor', () => {
 
   test('should close the dialog and not delete the node when the user just cancels deletion dialog', async () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => false);
-    const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
+    const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     renderEditor({ appContextProps: { schemaModel } });
-    const deleteButtons = screen.getAllByRole('button', {
+    const tree = screen.getByRole('tree');
+    const deleteButtons = within(tree).getAllByRole('button', {
       name: textMock('general.delete'),
     });
     const firstDeleteButton = deleteButtons[0];
@@ -142,28 +138,10 @@ describe('SchemaEditor', () => {
     };
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
     renderEditor({ appContextProps: { schemaModel } });
+    const tree = screen.getByRole('tree');
     const buttonName = textMock('schema_editor.add_node_of_type');
-    const addButton = screen.queryByRole('button', { name: buttonName });
+    const addButton = within(tree).queryByRole('button', { name: buttonName });
     expect(addButton).not.toBeInTheDocument();
-  });
-
-  it('Should not add a reference when an invalid reference name is given', async () => {
-    const uiSchema = buildUiSchema(dataMock);
-    const schemaModel = SchemaModel.fromArray(uiSchema);
-    renderEditor({ appContextProps: { schemaModel } });
-    jest.spyOn(window, 'prompt').mockImplementation(() => 'Noe som ikke finnes');
-    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
-    await clickMenuItem(textMock('schema_editor.reference'));
-    expect(save).not.toHaveBeenCalled();
-  });
-
-  it('Should not add a reference when the prompt is cancelled', async () => {
-    const uiSchema = buildUiSchema(dataMock);
-    const schemaModel = SchemaModel.fromArray(uiSchema);
-    renderEditor({ appContextProps: { schemaModel } });
-    jest.spyOn(window, 'prompt').mockImplementation(() => null);
-    await clickMenuItem(textMock('schema_editor.reference'));
-    expect(save).not.toHaveBeenCalled();
   });
 
   test('should not show add node buttons on a field that is not an object', async () => {
@@ -179,34 +157,31 @@ describe('SchemaEditor', () => {
     };
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
     renderEditor({ appContextProps: { schemaModel } });
+    const tree = screen.getByRole('tree');
     const buttonName = textMock('schema_editor.add_node_of_type');
-    const addButton = screen.queryByRole('button', { name: buttonName });
+    const addButton = within(tree).queryByRole('button', { name: buttonName });
     expect(addButton).not.toBeInTheDocument();
   });
 
-  test('should show menu with option field, reference, and combination when pressing add', async () => {
-    const schemaModel = SchemaModel.fromArray(buildUiSchema(dataMock));
+  test('should show menu with options string, integer, number, boolean and combination when pressing add', async () => {
+    const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
 
     renderEditor({ appContextProps: { schemaModel } });
-    expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.field') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.reference') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.combination') }),
-    ).toBeInTheDocument();
+    await clickOpenAddNodeButton();
+    ['string', 'integer', 'number', 'boolean', 'combination'].forEach((type) => {
+      const name = textMock(`schema_editor.${type}`);
+      expect(screen.getByRole('menuitem', { name })).toBeInTheDocument();
+    });
   });
 
   test('should trigger correct dispatch when adding combination to root', async () => {
-    const uiSchema = buildUiSchema(dataMock);
-    const schemaModel = SchemaModel.fromArray(uiSchema);
+    const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
     renderEditor({ appContextProps: { schemaModel } });
+    await clickOpenAddNodeButton();
     await clickMenuItem(textMock('schema_editor.combination'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
-    expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
+    expect(updatedModel.asArray().length).toBe(uiSchemaNodesMock.length + 1);
   });
 
   test('should show context menu and trigger correct dispatch when adding a combination on a specific node', async () => {
@@ -217,7 +192,7 @@ describe('SchemaEditor', () => {
     const uiSchema = buildUiSchema(jsonSchema);
     const schemaModel = SchemaModel.fromArray(uiSchema);
     renderEditor({ appContextProps: { schemaModel } });
-    await clickOpenAddNodeButton();
+    await clickOpenAddNodeButtonInTree();
     await clickMenuItem(textMock('schema_editor.add_combination'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
@@ -225,7 +200,8 @@ describe('SchemaEditor', () => {
   });
 
   test('when a type is selected, the type edit panel should be rendered', async () => {
-    const selectedTypePointer = `#/${Keyword.Definitions}/TestType`;
+    const name = 'TestType';
+    const selectedTypePointer = `#/${Keyword.Definitions}/${name}`;
     const jsonSchema: JsonSchema = {
       [Keyword.Properties]: {
         someProp: { [Keyword.Type]: FieldType.String },
@@ -252,13 +228,13 @@ describe('SchemaEditor', () => {
     });
     const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
     await act(() => user.click(type));
-    expect(
-      screen.getByText(textMock('schema_editor.types_editing', { type: 'TestType' })),
-    ).toBeDefined();
+    expect(screen.getByRole('heading', { name, level: 1 })).toBeInTheDocument();
   });
 
-  test('close type when clicking on close button', async () => {
-    const selectedTypePointer = `#/${Keyword.Definitions}/TestType`;
+  it('Navigates back to the datamodel when clicking the "back to datamodel" link', async () => {
+    const name = 'TestType';
+    const selectedTypePointer = `#/${Keyword.Definitions}/${name}`;
+    const setSelectedTypePointer = jest.fn();
     const jsonSchema: JsonSchema = {
       [Keyword.Properties]: {
         someProp: { [Keyword.Type]: FieldType.String },
@@ -275,13 +251,20 @@ describe('SchemaEditor', () => {
       },
     };
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+    const dataModelName = 'TestDatamodelName';
     renderEditor({
-      appContextProps: { schemaModel, selectedTypePointer, setSelectedTypePointer: jest.fn() },
+      appContextProps: {
+        schemaModel,
+        selectedTypePointer,
+        setSelectedTypePointer,
+        name: dataModelName,
+      },
     });
-    const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await act(() => user.click(type));
-    const closeType = screen.getByRole('button', { name: textMock('schema_editor.close_type') });
-    await act(() => user.click(closeType));
-    expect(screen.queryByText(textMock('schema_editor.types_editing'))).toBeNull();
+    const backButton = screen.getByRole('button', {
+      name: textMock('schema_editor.back_to_datamodel'),
+    });
+    await act(() => user.click(backButton));
+    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
   });
 });

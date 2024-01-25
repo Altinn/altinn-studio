@@ -2,9 +2,9 @@ import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { SchemaNode } from './SchemaNode';
 import { userEvent } from '@testing-library/user-event';
+import type { FieldNode } from '@altinn/schema-model';
 import {
   extractNameFromPointer,
-  FieldNode,
   ObjectKind,
   ROOT_POINTER,
   SchemaModel,

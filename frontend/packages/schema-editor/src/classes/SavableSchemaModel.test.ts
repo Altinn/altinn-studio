@@ -1,9 +1,14 @@
 import { SavableSchemaModel } from './SavableSchemaModel';
-import { extractNameFromPointer, NodePosition, ROOT_POINTER, SchemaModel } from '../../../schema-model';
-import { uiSchemaNodesMock, definitionNodeMock, fieldNode1Mock, combinationNodeMock } from '../../test/mocks/uiSchemaMock';
+import type { NodePosition } from '../../../schema-model';
+import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '../../../schema-model';
+import {
+  uiSchemaNodesMock,
+  definitionNodeMock,
+  fieldNode1Mock,
+  combinationNodeMock,
+} from '../../test/mocks/uiSchemaMock';
 
 describe('SavableSchemaModel', () => {
-
   const save = jest.fn();
   const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   const setupSchema = (): SavableSchemaModel => {
@@ -53,7 +58,7 @@ describe('SavableSchemaModel', () => {
       const name = 'testdef';
       const definitionNode = savableSchema.addFieldType(name);
       expect(savableSchema.hasDefinition(name)).toBe(true);
-      expect(savableSchema.getDefinition(name)).toBe(definitionNode)
+      expect(savableSchema.getDefinition(name)).toBe(definitionNode);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
     });

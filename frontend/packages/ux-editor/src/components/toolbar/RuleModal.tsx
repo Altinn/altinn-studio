@@ -5,7 +5,7 @@ import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
 import { useTranslation } from 'react-i18next';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
-import { RuleConnection } from 'app-shared/types/RuleConfig';
+import type { RuleConnection } from 'app-shared/types/RuleConfig';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
@@ -53,11 +53,7 @@ export function RuleModal(props: IRuleModalProps) {
 
   function renderRuleConnections(): JSX.Element {
     if (!ruleConnection || Object.getOwnPropertyNames(ruleConnection).length === 0) {
-      return (
-        <Typography variant='caption'>
-          {t('right_menu.rules_empty')}
-        </Typography>
-      );
+      return <Typography variant='caption'>{t('right_menu.rules_empty')}</Typography>;
     }
     return (
       <>

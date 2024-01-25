@@ -1,10 +1,12 @@
 import React from 'react';
 import { render as rtlRender, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SettingsModalButton, SettingsModalButtonProps } from './SettingsModalButton';
+import type { SettingsModalButtonProps } from './SettingsModalButton';
+import { SettingsModalButton } from './SettingsModalButton';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { QueryClient } from '@tanstack/react-query';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';

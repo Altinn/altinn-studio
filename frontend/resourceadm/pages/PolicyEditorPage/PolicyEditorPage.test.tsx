@@ -1,12 +1,14 @@
 import React from 'react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { PolicyEditorPage, PolicyEditorPageProps } from './PolicyEditorPage';
+import type { PolicyEditorPageProps } from './PolicyEditorPage';
+import { PolicyEditorPage } from './PolicyEditorPage';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
-import { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
+import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
 
 const mockResourceId: string = 'r1';
 const mockSelectedContext: string = 'test';

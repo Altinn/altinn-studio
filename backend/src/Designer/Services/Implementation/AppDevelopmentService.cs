@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,95 +30,125 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, JsonNode>> GetFormLayouts(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
+        public async Task<Dictionary<string, JsonNode>> GetFormLayouts(
+            AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
+                throw new BadHttpRequestException(
+                    "This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSetName, cancellationToken);
+            Dictionary<string, JsonNode> formLayouts =
+                await altinnAppGitRepository.GetFormLayouts(layoutSetName, cancellationToken);
             return formLayouts;
         }
 
         /// <inheritdoc />
-        public async Task SaveFormLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, string layoutName, JsonNode formLayout, CancellationToken cancellationToken = default)
+        public async Task SaveFormLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,
+            string layoutName, JsonNode formLayout, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string layoutFileName = $"{layoutName}.json";
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
+                throw new BadHttpRequestException(
+                    "This app uses layout sets, but no layout set name was provided for this request");
             }
 
             await altinnAppGitRepository.SaveLayout(layoutSetName, layoutFileName, formLayout, cancellationToken);
         }
 
         /// <inheritdoc />
-        public void DeleteFormLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, string layoutName)
+        public void DeleteFormLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,
+            string layoutName)
         {
             string layoutFileName = $"{layoutName}.json";
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
+                throw new BadHttpRequestException(
+                    "This app uses layout sets, but no layout set name was provided for this request");
             }
 
             altinnAppGitRepository.DeleteLayout(layoutSetName, layoutFileName);
         }
 
         /// <inheritdoc />
-        public void UpdateFormLayoutName(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, string layoutName, string newName)
+        public void UpdateFormLayoutName(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,
+            string layoutName, string newName)
         {
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
+                throw new BadHttpRequestException(
+                    "This app uses layout sets, but no layout set name was provided for this request");
             }
 
             altinnAppGitRepository.UpdateFormLayoutName(layoutSetName, $"{layoutName}.json", $"{newName}.json");
         }
 
         /// <inheritdoc />
-        public async Task<JsonNode> GetLayoutSettings(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
+        public async Task<JsonNode> GetLayoutSettings(AltinnRepoEditingContext altinnRepoEditingContext,
+            string layoutSetName, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
+                throw new BadHttpRequestException(
+                    "This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            var layoutSettings = await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetName, cancellationToken);
+            var layoutSettings =
+                await altinnAppGitRepository.GetLayoutSettingsAndCreateNewIfNotFound(layoutSetName, cancellationToken);
             return layoutSettings;
         }
 
         /// <inheritdoc />
-        public async Task SaveLayoutSettings(AltinnRepoEditingContext altinnRepoEditingContext, JsonNode layoutSettings, string layoutSetName, CancellationToken cancellationToken = default)
+        public async Task SaveLayoutSettings(AltinnRepoEditingContext altinnRepoEditingContext, JsonNode layoutSettings,
+            string layoutSetName, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
                 await altinnAppGitRepository.SaveLayoutSettings(layoutSetName, layoutSettings);
                 return;
             }
+
             await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
         }
 
-        public async Task<LayoutSets> GetLayoutSets(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
+        public async Task<LayoutSets> GetLayoutSets(AltinnRepoEditingContext altinnRepoEditingContext,
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
@@ -130,10 +160,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        public async Task<LayoutSets> ConfigureLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
+        public async Task<LayoutSets> ConfigureLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext,
+            string layoutSetName, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
@@ -146,10 +179,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSets;
         }
 
-        public async Task AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet, CancellationToken cancellationToken = default)
+        public async Task AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet,
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets)
             {
@@ -163,13 +199,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<string> GetRuleHandler(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
+        public async Task<string> GetRuleHandler(AltinnRepoEditingContext altinnRepoEditingContext,
+            string layoutSetName, CancellationToken cancellationToken = default)
         {
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
+                throw new BadHttpRequestException(
+                    "This app uses layout sets, but no layout set name was provided for this request");
             }
 
             string ruleHandler = await altinnAppGitRepository.GetRuleHandler(layoutSetName, cancellationToken);
@@ -177,62 +217,103 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task SaveRuleHandler(AltinnRepoEditingContext altinnRepoEditingContext, string ruleHandler, string layoutSetName, CancellationToken cancellationToken = default)
+        public async Task SaveRuleHandler(AltinnRepoEditingContext altinnRepoEditingContext, string ruleHandler,
+            string layoutSetName, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
+                throw new BadHttpRequestException(
+                    "This app uses layout sets, but no layout set name was provided for this request");
             }
+
             await altinnAppGitRepository.SaveRuleHandler(layoutSetName, ruleHandler);
         }
 
         /// <inheritdoc />
-        public async Task<string> GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
+        public async Task<string> GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(
+            AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
+                throw new BadHttpRequestException(
+                    "This app uses layout sets, but no layout set name was provided for this request");
             }
 
-            string ruleConfig = await altinnAppGitRepository.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(layoutSetName, cancellationToken);
+            string ruleConfig =
+                await altinnAppGitRepository.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(layoutSetName,
+                    cancellationToken);
             return ruleConfig;
         }
 
         /// <inheritdoc />
-        public async Task SaveRuleConfig(AltinnRepoEditingContext altinnRepoEditingContext, JsonNode ruleConfig, string layoutSetName, CancellationToken cancellationToken = default)
+        public async Task SaveRuleConfig(AltinnRepoEditingContext altinnRepoEditingContext, JsonNode ruleConfig,
+            string layoutSetName, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
             if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
             {
-                throw new BadHttpRequestException("This app uses layout sets, but no layout set name was provided for this request");
+                throw new BadHttpRequestException(
+                    "This app uses layout sets, but no layout set name was provided for this request");
             }
+
             await altinnAppGitRepository.SaveRuleConfiguration(layoutSetName, ruleConfig, cancellationToken);
         }
 
         /// <inheritdoc />
         public SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext)
         {
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
             var csprojFiles = altinnAppGitRepository.FindFiles(new[] { "*.csproj" });
 
             foreach (string csprojFile in csprojFiles)
             {
-                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api", out SemanticVersion version))
+                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api",
+                        out SemanticVersion version))
                 {
                     return version;
                 }
             }
 
             throw new FileNotFoundException("Unable to extract the version of the app-lib from csproj files.");
+        }
+
+        public bool TryGetFrontendVersion(AltinnRepoEditingContext altinnRepoEditingContext, out string version)
+        {
+            version = null;
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+
+            string indexFilePath;
+
+            try
+            {
+                indexFilePath = altinnAppGitRepository.FindFiles(new[] { "App/Views/Home/Index.cshtml" }).FirstOrDefault();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return false;
+            }
+
+
+            return indexFilePath is not null && AppFrontendVersionHelper.TryGetFrontendVersionFromIndexFile(indexFilePath, out version);
         }
     }
 }

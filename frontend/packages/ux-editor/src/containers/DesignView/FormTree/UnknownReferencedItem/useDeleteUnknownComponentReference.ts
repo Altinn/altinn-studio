@@ -3,7 +3,7 @@ import { useAppContext } from '../../../../hooks/useAppContext';
 import { useSelectedFormLayoutWithName } from '../../../../hooks';
 import { useFormLayoutMutation } from '../../../../hooks/mutations/useFormLayoutMutation';
 import { removeComponent } from '../../../../utils/formLayoutUtils';
-import { IInternalLayout } from '../../../../types/global';
+import type { IInternalLayout } from '../../../../types/global';
 
 export const useDeleteUnknownComponentReference = () => {
   const { org, app } = useStudioUrlParams();

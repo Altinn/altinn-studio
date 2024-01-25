@@ -6,7 +6,10 @@ import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/m
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
+import type {
+  FormCheckboxesComponent,
+  FormRadioButtonsComponent,
+} from '../../../types/FormComponent';
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())

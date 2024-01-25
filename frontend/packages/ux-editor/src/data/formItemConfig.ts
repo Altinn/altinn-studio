@@ -1,7 +1,8 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormItem } from '../types/FormItem';
+import type { FormItem } from '../types/FormItem';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
-import React, { RefAttributes, SVGProps } from 'react';
+import type { RefAttributes, SVGProps } from 'react';
+import type React from 'react';
 import ActionButtonSchema from '../testing/schemas/json/component/ActionButton.schema.v1.json';
 import {
   Accordion,

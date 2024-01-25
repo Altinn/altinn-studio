@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PolicyResourceFields, PolicyResourceFieldsProps } from './PolicyResourceFields';
+import type { PolicyResourceFieldsProps } from './PolicyResourceFields';
+import { PolicyResourceFields } from './PolicyResourceFields';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 

@@ -1,8 +1,16 @@
-import React, { ReactNode, useMemo } from 'react';
+import type { ReactNode } from 'react';
+import React, { useMemo } from 'react';
 import classes from './SecurityLevelSelect.module.css';
-import { Heading, Label, Paragraph, HelpText, Link, LegacySelect } from '@digdir/design-system-react';
+import {
+  Heading,
+  Label,
+  Paragraph,
+  HelpText,
+  Link,
+  LegacySelect,
+} from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { RequiredAuthLevel } from '../../types';
+import type { RequiredAuthLevel } from '../../types';
 
 const SELECT_AUTH_LEVEL_ID: string = 'select-auth-level';
 const URL_TO_SECURITY_LEVEL_PAGE: string =

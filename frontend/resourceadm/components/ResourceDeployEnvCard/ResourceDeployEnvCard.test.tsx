@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { ResourceDeployEnvCard, ResourceDeployEnvCardProps } from './ResourceDeployEnvCard';
+import type { ResourceDeployEnvCardProps } from './ResourceDeployEnvCard';
+import { ResourceDeployEnvCard } from './ResourceDeployEnvCard';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';

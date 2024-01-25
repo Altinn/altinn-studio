@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Expression, SubExpression, ExpressionProperty } from '../../../../types/Expressions';
+import type { Expression, SubExpression, ExpressionProperty } from '../../../../types/Expressions';
 import {
   convertExternalExpressionToInternal,
   convertAndAddExpressionToComponent,
@@ -7,8 +7,8 @@ import {
   deleteExpressionFromPropertyOnComponent,
   getExternalExpressionOnComponentProperty,
 } from '../../../../utils/expressionsUtils';
-import { FormComponent } from '../../../../types/FormComponent';
-import { FormContainer } from '../../../../types/FormContainer';
+import type { FormComponent } from '../../../../types/FormComponent';
+import type { FormContainer } from '../../../../types/FormContainer';
 import { FormContext } from '../../../../containers/FormContext';
 import { ExpressionPreview } from './ExpressionPreview';
 import { ExpressionEditMode } from './ExpressionEditMode';

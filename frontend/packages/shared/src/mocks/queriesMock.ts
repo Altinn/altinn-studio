@@ -1,18 +1,21 @@
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import { AppConfig } from 'app-shared/types/AppConfig';
-import { AppLibVersion } from 'app-shared/types/AppLibVersion';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { BranchStatus } from 'app-shared/types/BranchStatus';
-import { Commit } from 'app-shared/types/Commit';
-import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
-import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
-import { Organization } from 'app-shared/types/Organization';
-import { OrgsState } from 'app-shared/types/OrgsState';
-import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { Repository } from 'app-shared/types/Repository';
-import {
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { Commit } from 'app-shared/types/Commit';
+import type {
+  DatamodelMetadataJson,
+  DatamodelMetadataXsd,
+} from 'app-shared/types/DatamodelMetadata';
+import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { Organization } from 'app-shared/types/Organization';
+import type { OrgsState } from 'app-shared/types/OrgsState';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import type { Repository } from 'app-shared/types/Repository';
+import type {
   AccessList,
   AccessListResourceLink,
   BrregPartySearchResult,
@@ -22,9 +25,9 @@ import {
   ResourceVersionStatus,
   Validation,
 } from 'app-shared/types/ResourceAdm';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
-import { User } from 'app-shared/types/Repository';
-import {
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { User } from 'app-shared/types/Repository';
+import type {
   AppDeploymentsResponse,
   AppReleasesResponse,
   CreateRepoCommitPayload,
@@ -32,16 +35,16 @@ import {
   FormLayoutsResponse,
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
-import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { NewsList } from 'app-shared/types/api/NewsList';
-import {
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { NewsList } from 'app-shared/types/api/NewsList';
+import type {
   IFrontEndSettings,
   ILayoutSettings,
   ITextResourcesObjectFormat,
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
-import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
-import { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
+import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
+import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
   appDeploymentsResponse,

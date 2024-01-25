@@ -5,7 +5,8 @@ import {
   isNodeValidParent,
   replaceLastPointerSegment,
 } from './utils';
-import { FieldType, Keyword, UiSchemaNode } from '../types';
+import type { UiSchemaNode } from '../types';
+import { FieldType, Keyword } from '../types';
 import { expect } from '@jest/globals';
 import { buildUiSchema } from './build-ui-schema';
 import { selectorsTestSchema } from '../../test/testUtils';
@@ -17,9 +18,9 @@ import {
   referenceNodeMock,
   simpleArrayMock,
   simpleParentNodeMock,
-  stringNodeMock
+  stringNodeMock,
 } from '../../test/uiSchemaMock';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 describe('utils', () => {
   test('creatNodeBase', () => {
@@ -41,18 +42,18 @@ describe('utils', () => {
 
   test('getUniqueNodePath', () => {
     const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
-    expect(getUniqueNodePath(uiSchemaNodes, makePointerFromArray([Keyword.Properties, 'hello']))).toBe(
-      makePointerFromArray([Keyword.Properties, 'hello0'])
-    );
+    expect(
+      getUniqueNodePath(uiSchemaNodes, makePointerFromArray([Keyword.Properties, 'hello'])),
+    ).toBe(makePointerFromArray([Keyword.Properties, 'hello0']));
   });
 
   test('replaceLastPointerSegment', () => {
-    expect(replaceLastPointerSegment(makePointerFromArray(['some', 'thing', 'cozy']), 'scary')).toBe(
-      makePointerFromArray(['some', 'thing', 'scary'])
-    );
-    expect(replaceLastPointerSegment(makePointerFromArray(['trying', 'to', 'fool']), 'to/fool')).toBe(
-      makePointerFromArray(['trying', 'to', 'to', 'fool'])
-    );
+    expect(
+      replaceLastPointerSegment(makePointerFromArray(['some', 'thing', 'cozy']), 'scary'),
+    ).toBe(makePointerFromArray(['some', 'thing', 'scary']));
+    expect(
+      replaceLastPointerSegment(makePointerFromArray(['trying', 'to', 'fool']), 'to/fool'),
+    ).toBe(makePointerFromArray(['trying', 'to', 'to', 'fool']));
   });
 
   describe('isNodeValidParent', () => {

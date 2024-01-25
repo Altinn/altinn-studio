@@ -1,23 +1,17 @@
-import React, { createContext, useContext, ReactNode, useState } from 'react';
-import {
-  MutationCache,
-  MutationMeta,
-  QueryCache,
-  QueryClient,
-  QueryClientConfig,
-  QueryClientProvider,
-  QueryMeta,
-} from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import type { MutationMeta, QueryClientConfig, QueryMeta } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type * as queries from '../api/queries';
 import type * as mutations from '../api/mutations';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ToastContainer, Slide, toast } from 'react-toastify';
 import { ErrorBoundary } from 'react-error-boundary';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import type { i18n } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
 import { ErrorBoundaryFallback } from '../components/ErrorBoundaryFallback';
-import { ApiError } from 'app-shared/types/api/ApiError';
+import type { ApiError } from 'app-shared/types/api/ApiError';
 
 import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';

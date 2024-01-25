@@ -1,10 +1,13 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { IInternalLayout } from '../types/global';
-import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { FormComponent } from '../types/FormComponent';
-import { ExternalFormLayout, FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
+import type { IInternalLayout } from '../types/global';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { FormComponent } from '../types/FormComponent';
+import type {
+  ExternalFormLayout,
+  FormLayoutsResponse,
+} from 'app-shared/types/api/FormLayoutsResponse';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';

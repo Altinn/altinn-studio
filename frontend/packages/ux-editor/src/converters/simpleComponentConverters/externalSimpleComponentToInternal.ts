@@ -1,6 +1,6 @@
-import { FormComponent } from '../../types/FormComponent';
+import type { FormComponent } from '../../types/FormComponent';
 import { formItemConfigs } from '../../data/formItemConfig';
-import { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
+import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 
 export const externalSimpleComponentToInternal = (
   externalComponent: ExternalSimpleComponent,

@@ -1,5 +1,5 @@
 import { RepositoryType } from 'app-shared/types/global';
-import { AppPreviewMenuItem } from './AppPreviewBarConfig';
+import type { AppPreviewMenuItem } from './AppPreviewBarConfig';
 import { mockUseTranslation, textMock } from '../../../../testing/mocks/i18nMock';
 import { getTopBarAppPreviewMenu, menu } from './AppPreviewBarConfig';
 import React from 'react';
@@ -10,14 +10,14 @@ describe('getTopBarAppPreviewMenu', () => {
   const { t } = mockUseTranslation();
   it('should return all items when provided repository type is "App"', () => {
     expect(getTopBarAppPreviewMenu('test-org', 'test-app', RepositoryType.App, t)).toHaveLength(
-      menu.length
+      menu.length,
     );
   });
 
   it('should return empty list when provided repo type is "Unknown"', () => {
     const expected: AppPreviewMenuItem[] = [];
     expect(getTopBarAppPreviewMenu('test-org', 'test-app', RepositoryType.Unknown, t)).toEqual(
-      expected
+      expected,
     );
   });
 

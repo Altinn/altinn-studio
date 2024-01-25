@@ -1,14 +1,15 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { SetupTabContent, SetupTabContentProps } from './SetupTabContent';
+import type { SetupTabContentProps } from './SetupTabContent';
+import { SetupTabContent } from './SetupTabContent';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { UseMutationResult } from '@tanstack/react-query';
+import type { UseMutationResult } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';

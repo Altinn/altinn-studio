@@ -1,1 +1,1 @@
-export { MigrationStep } from './MigrationStep'
+export { MigrationStep } from './MigrationStep';

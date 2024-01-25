@@ -33,10 +33,6 @@
       "enum": ["success", "warning", "danger", "info"]
     }
   },
-  "required": [
-    "id",
-    "type",
-    "severity"
-  ],
+  "required": ["id", "type", "severity"],
   "additionalProperties": false
 }

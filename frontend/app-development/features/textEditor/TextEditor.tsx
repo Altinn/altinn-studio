@@ -4,7 +4,7 @@ import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-edit
 import { StudioPageSpinner } from '@studio/components';
 import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { useSearchParams } from 'react-router-dom';
-import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
+import type { TextResourceIdMutation } from '@altinn/text-editor/src/types';
 import { useLanguagesQuery, useTextResourcesQuery } from '../../hooks/queries';
 import {
   useAddLanguageMutation,

@@ -1,7 +1,8 @@
 import React from 'react';
 import { render as rtlRender, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CanvasActionMenu, CanvasActionMenuProps } from './CanvasActionMenu';
+import type { CanvasActionMenuProps } from './CanvasActionMenu';
+import { CanvasActionMenu } from './CanvasActionMenu';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { BpmnContextProvider } from '../../../contexts/BpmnContext';
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { LegacySelect, LegacySingleSelectOption, Paragraph } from '@digdir/design-system-react';
+import type { LegacySingleSelectOption } from '@digdir/design-system-react';
+import { LegacySelect, Paragraph } from '@digdir/design-system-react';
 import {
   MagnifyingGlassIcon,
   PencilIcon,
