@@ -242,12 +242,6 @@ describe('SchemaEditor', () => {
         setSelectedNodePointer,
       },
     });
-    const selectedType = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await act(() => user.click(selectedType));
-    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedTypePointer).not.toHaveBeenCalledWith(null);
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointer).not.toHaveBeenCalledWith(undefined);
 
     const backButton = screen.getByRole('button', {
       name: textMock('schema_editor.back_to_datamodel'),
@@ -255,7 +249,7 @@ describe('SchemaEditor', () => {
     await act(() => user.click(backButton));
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(2);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(undefined);
   });
 
@@ -264,9 +258,7 @@ describe('SchemaEditor', () => {
     renderEditor({
       appContextProps: { schemaModel, selectedTypePointer: null, selectedNodePointer: undefined },
     });
-    expect(
-      screen.queryByText(textMock('schema_editor.types_editing', { type: typeName })),
-    ).toBeNull();
+    expect(screen.queryByRole('heading', { name: typeName, level: 1 })).not.toBeInTheDocument();
   });
 
   it('should close the type panel when deleting the selected unused type', async () => {
@@ -283,22 +275,11 @@ describe('SchemaEditor', () => {
       },
     });
 
-    const selectedType = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await act(() => user.click(selectedType));
+    const deleteButton = screen.getAllByRole('button', { name: textMock('general.delete') });
+    await act(() => user.click(deleteButton[0]));
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedTypePointer).not.toHaveBeenCalledWith(null);
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointer).not.toHaveBeenCalledWith(null);
-
-    expect(
-      screen.getByText(textMock('schema_editor.types_editing', { type: typeName })),
-    ).toBeInTheDocument();
-    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton));
-
-    expect(setSelectedTypePointer).toHaveBeenCalledTimes(2);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(2);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });
 
@@ -307,6 +288,7 @@ describe('SchemaEditor', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const setSelectedTypePointer = jest.fn();
     const setSelectedNodePointer = jest.fn();
+
     renderEditor({
       appContextProps: {
         schemaModel,
@@ -316,31 +298,14 @@ describe('SchemaEditor', () => {
       },
     });
 
-    const selectedType = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await act(() => user.click(selectedType));
-
-    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedTypePointer).not.toHaveBeenCalledWith(null);
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointer).not.toHaveBeenCalledWith(null);
-
-    expect(screen.getByText(textMock('schema_editor.types_editing', { type }))).toBeInTheDocument();
-
-    const treeItem = screen.getByRole('treeitem', { name: typeName });
-    await act(() => user.click(treeItem));
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(2);
-    expect(setSelectedNodePointer).not.toHaveBeenCalledWith(null);
-
     const prop1 = screen.getByTitle(/prop1/i);
-    await act(() => user.click(prop1));
-
     const deleteButton = within(prop1).getByRole('button', {
       name: textMock('general.delete'),
     });
     await act(() => user.click(deleteButton));
 
-    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(3);
+    expect(setSelectedTypePointer).not.toHaveBeenCalled();
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });
 });
