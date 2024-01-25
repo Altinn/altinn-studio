@@ -70,7 +70,7 @@ describe('TextList', () => {
       name: textMock('text_editor.toggle_edit_mode'),
     });
     await act(() => user.click(toggleEditButton[0]));
-    const idInput = screen.getByRole('textbox', { name: 'text key edit' });
+    const idInput = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
 
     await act(() => user.dblClick(idInput));
     await act(() => user.keyboard('a-updated{TAB}'));
@@ -93,7 +93,7 @@ describe('TextList', () => {
     });
     await act(() => user.click(toggleEditButton[0]));
 
-    const idInput = screen.getByRole('textbox', { name: 'text key edit' });
+    const idInput = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
     await act(() => user.dblClick(idInput));
 
     await act(() => user.keyboard('b'));

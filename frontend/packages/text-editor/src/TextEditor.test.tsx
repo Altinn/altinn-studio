@@ -214,7 +214,7 @@ describe('TextEditor', () => {
       })[0];
       await act(() => user.click(editKeyButton));
 
-      const textIdInput = screen.getByRole('textbox', { name: /text key edit/i });
+      const textIdInput = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
 
       await user.tripleClick(textIdInput);
       await act(() => user.keyboard('new-key{TAB}')); // type new text and blur
@@ -249,7 +249,7 @@ describe('TextEditor', () => {
       expect(textIdRefsAfter1).toHaveLength(1);
 
       const textIdRefsAfter2 = screen.queryAllByText(/new-key/i);
-      const textIdInput = screen.getByRole('textbox', { name: /text key edit/i });
+      const textIdInput = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
       expect(textIdRefsAfter2).toHaveLength(0);
       expect(textIdInput).toEqual(original);
     });

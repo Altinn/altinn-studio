@@ -123,7 +123,7 @@ export const TextRow = ({
           {textIdEditOpen ? (
             <Textfield
               value={textIdValue}
-              aria-label={'text key edit'}
+              aria-label={t('text_editor.key.edit')}
               error={keyError}
               onBlur={keyError ? undefined : handleTextIdBlur}
               onChange={(e) => handleTextIdChange(e.target.value)}
