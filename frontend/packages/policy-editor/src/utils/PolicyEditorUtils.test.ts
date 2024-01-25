@@ -3,10 +3,8 @@ import {
   mapResourceFromBackendToResource,
   mapPolicyRulesBackendObjectToPolicyRuleCard,
   mapSubjectTitleToSubjectString,
-  mapActionTitleToActionId,
   mapPolicyRuleToPolicyRuleBackendObject,
   createNewPolicyResource,
-  mapPolicyActionsToActionTitle,
   mergeActionsFromPolicyWithActionOptions,
   mergeSubjectsFromPolicyWithSubjectOptions,
   convertSubjectStringToSubjectId,
@@ -17,8 +15,7 @@ import {
   mockAction1,
   mockAction2,
   mockAction3,
-  mockActionTitle1,
-  mockActionTitle2,
+  mockAction4,
   mockActions,
   mockPolicyResourceBackendString1,
   mockPolicyRule1,
@@ -61,15 +58,6 @@ describe('PolicyEditorUtils', () => {
     });
   });
 
-  describe('mapPolicyActionsToActionTitle', () => {
-    it('should map policy actions to action titles', () => {
-      const mockBackendPolicyActions: string[] = [mockAction1.actionId, mockAction2.actionId];
-      const result = mapPolicyActionsToActionTitle(mockActions, mockBackendPolicyActions);
-
-      expect(result).toEqual([mockActionTitle1, mockActionTitle2]);
-    });
-  });
-
   describe('mapPolicyRulesBackendObjectToPolicyRuleCard', () => {
     it('should map policy rules from backend to policy rule cards', () => {
       const result = mapPolicyRulesBackendObjectToPolicyRuleCard(
@@ -86,14 +74,6 @@ describe('PolicyEditorUtils', () => {
       const result = mapSubjectTitleToSubjectString(mockSubjects, mockSubjectTitle1);
 
       expect(result).toBe(mockSubjectBackendString1);
-    });
-  });
-
-  describe('mapActionTitleToActionId', () => {
-    it('should map an action title to an action id', () => {
-      const result = mapActionTitleToActionId(mockActions, mockActionTitle1);
-
-      expect(result).toBe(mockAction1.actionId);
     });
   });
 
@@ -131,11 +111,12 @@ describe('PolicyEditorUtils', () => {
         [mockAction3],
       );
 
-      expect(mergedActions).toHaveLength(3);
+      expect(mergedActions).toHaveLength(4);
       expect(mergedActions.map((action) => action.actionId)).toEqual([
         mockAction3.actionId,
         mockAction1.actionId,
         mockAction2.actionId,
+        mockAction4.actionId,
       ]);
     });
   });

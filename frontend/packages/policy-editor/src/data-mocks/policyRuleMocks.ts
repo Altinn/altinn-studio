@@ -1,5 +1,5 @@
 import type { PolicyRule, PolicyRuleCard } from '../types';
-import { mockAction1, mockAction2, mockActionTitle1, mockActionTitle2 } from './policyActionMocks';
+import { mockAction1, mockAction2, mockAction4 } from './policyActionMocks';
 import { mockPolicyResources, mockPolicyRuleResources } from './policySubResourceMocks';
 import {
   mockSubjectBackendString1,
@@ -15,7 +15,7 @@ export const mockPolicyRuleCard1: PolicyRuleCard = {
   ruleId: mockRuleId1,
   description: '',
   subject: [mockSubjectTitle1, mockSubjectTitle3],
-  actions: [mockActionTitle1, mockActionTitle2],
+  actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
   resources: mockPolicyRuleResources,
 };
 export const mockPolicyRuleCard2: PolicyRuleCard = {
@@ -31,7 +31,7 @@ export const mockPolicyRule1: PolicyRule = {
   ruleId: mockRuleId1,
   description: '',
   subject: [mockSubjectBackendString1, mockSubjectBackendString3],
-  actions: [mockAction1.actionId, mockAction2.actionId],
+  actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
   resources: mockPolicyResources,
 };
 export const mockPolicyRule2: PolicyRule = {
