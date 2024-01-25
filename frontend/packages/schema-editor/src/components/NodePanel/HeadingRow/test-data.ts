@@ -201,4 +201,3 @@ export const schemaNodesMock: UiSchemaNodes = [
   unusedBooleanDefinitionMock,
   unusedCombinationDefinitionMock,
 ];
-

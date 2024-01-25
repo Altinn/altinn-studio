@@ -21,7 +21,7 @@ const render = (props: Partial<ICloneModalProps> = {}) => {
   return rtlRender(
     <ServicesContextProvider {...queries}>
       <CloneModal {...allProps} />
-    </ServicesContextProvider>
+    </ServicesContextProvider>,
   );
 };
 
@@ -35,7 +35,7 @@ describe('cloneModal', () => {
     expect(
       screen.getByRole('button', {
         name: textMock('sync_header.clone_https_button'),
-      })
+      }),
     ).toBeInTheDocument();
   });
 
@@ -48,7 +48,7 @@ describe('cloneModal', () => {
     expect(
       screen.queryByRole('button', {
         name: textMock('sync_header.clone_https_button'),
-      })
+      }),
     ).not.toBeInTheDocument();
   });
 });

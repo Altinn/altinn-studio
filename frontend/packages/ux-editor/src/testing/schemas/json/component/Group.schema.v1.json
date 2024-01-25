@@ -25,9 +25,7 @@
           "description": "Data model binding for repeating group connection to a group in the data model"
         }
       },
-      "required": [
-        "group"
-      ],
+      "required": ["group"],
       "additionalProperties": false
     },
     "textResourceBindings": {
@@ -201,9 +199,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type"
-  ],
+  "required": ["id", "type"],
   "additionalProperties": false
 }

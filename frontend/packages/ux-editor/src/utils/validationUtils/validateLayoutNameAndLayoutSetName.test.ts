@@ -1,6 +1,6 @@
 import { validateLayoutNameAndLayoutSetName } from './validateLayoutNameAndLayoutSetName';
 
-const validNames = ['validName','validname', 'validName1', 'valid-name' ];
+const validNames = ['validName', 'validname', 'validName1', 'valid-name'];
 const invalidNames = ['invalidName;', '&)(/&%$#', 'invalid name'];
 
 test('that regex validates a valid name', () => {

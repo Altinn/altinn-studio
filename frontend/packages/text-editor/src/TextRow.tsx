@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { UpsertTextResourceMutation } from './types';
-import { TrashIcon, PencilIcon } from '@navikt/aksel-icons';
-import { ErrorMessage, TableCell, TableRow, LegacyTextField } from '@digdir/design-system-react';
+import { TrashIcon, PencilIcon } from '@studio/icons';
+import { TableCell, TableRow, Textfield } from '@digdir/design-system-react';
+
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
 import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
@@ -42,22 +43,27 @@ export const TextRow = ({
   const { t } = useTranslation();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
-  const handleTextIdChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const newTextId = event.currentTarget.value;
-    if (newTextId !== textId) {
-      if (idExists(newTextId)) {
-        setKeyError('Denne IDen finnes allerede');
-      } else {
-        setKeyError(validateTextId(newTextId));
-      }
-      setTextIdValue(newTextId);
+  const handleTextIdChange = (newTextId: string): void => {
+    const error = validateNewTextId(newTextId);
+
+    setKeyError(error || '');
+    setTextIdValue(newTextId);
+  };
+
+  const validateNewTextId = (newTextId: string): string | null => {
+    if (newTextId === textId) {
+      return null;
     }
+
+    if (idExists(newTextId)) {
+      return t('text_editor.key.error_duplicate');
+    }
+    const textIdValidationResult = validateTextId(newTextId);
+    return textIdValidationResult ? t(textIdValidationResult) : null;
   };
 
   const handleTextIdBlur = () => {
-    if (!keyError && textId !== textIdValue) {
-      updateEntryId({ oldId: textId, newId: textIdValue });
-    }
+    updateEntryId({ oldId: textId, newId: textIdValue });
   };
 
   const handleDeleteClick = () => {
@@ -99,7 +105,10 @@ export const TextRow = ({
           };
         }
         return (
-          <TableCell key={translation.lang + '-' + textId} className={classes.textAreaCell}>
+          <TableCell
+            key={translation.lang + '-' + textId}
+            className={`${classes.textAreaCell} ${classes.cellContent}`}
+          >
             <TextEntry
               {...translation}
               upsertTextResource={upsertTextResource}
@@ -109,20 +118,17 @@ export const TextRow = ({
           </TableCell>
         );
       })}
-      <TableCell>
-        <ButtonContainer>
+      <TableCell className={classes.cellContent}>
+        <ButtonContainer className={classes.textIdContainer}>
           {textIdEditOpen ? (
-            <div>
-              <LegacyTextField
-                aria-label={'tekst key edit'}
-                isValid={!keyError}
-                value={textIdValue}
-                type='text'
-                onBlur={handleTextIdBlur}
-                onChange={handleTextIdChange}
-              />
-              {keyError ? <ErrorMessage role='alertdialog'>{keyError}</ErrorMessage> : null}
-            </div>
+            <Textfield
+              value={textIdValue}
+              aria-label={t('text_editor.key.edit')}
+              error={keyError}
+              onBlur={keyError ? undefined : handleTextIdBlur}
+              onChange={(e) => handleTextIdChange(e.target.value)}
+              size='small'
+            />
           ) : (
             <div role='text' aria-readonly className={classes.textId}>
               <span>{textIdValue}</span>
@@ -130,8 +136,8 @@ export const TextRow = ({
           )}
           {showButton && (
             <StudioButton
-              aria-label={'toggle-textkey-edit'}
-              icon={<PencilIcon className={classes.smallIcon} />}
+              aria-label={t('text_editor.toggle_edit_mode')}
+              icon={<PencilIcon />}
               variant='tertiary'
               size='small'
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}

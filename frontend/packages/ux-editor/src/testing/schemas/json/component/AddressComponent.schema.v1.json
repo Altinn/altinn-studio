@@ -45,11 +45,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "address",
-        "zipCode",
-        "postPlace"
-      ]
+      "required": ["address", "zipCode", "postPlace"]
     },
     "required": {
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/required"
@@ -84,10 +80,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "dataModelBindings"
-  ],
+  "required": ["id", "type", "dataModelBindings"],
   "additionalProperties": false
 }

@@ -6,6 +6,6 @@ export const useUpsertTextResourceMutation = (owner, app) => {
   const { mutateAsync: upsertTextResources } = useUpsertTextResourcesMutation(owner, app);
   return useMutation({
     mutationFn: ({ textId, language, translation }: UpsertTextResourceMutation) =>
-      upsertTextResources({ language, textResources: [{ id: textId, value: translation }] })
+      upsertTextResources({ language, textResources: [{ id: textId, value: translation }] }),
   });
 };

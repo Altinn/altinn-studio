@@ -10,6 +10,7 @@ the language files and might also have to create some special rules when we are 
 this makes sense. Also just copying the dist-folder directly should be the rule.
 
 ## Sorting
+
 We require the text files to be sorted alphabetically by key in order to make it easier to find the text one is looking
 for, and to avoid merge conflicts. To sort the files, run the following command from this directory:
 

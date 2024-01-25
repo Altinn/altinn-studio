@@ -57,10 +57,13 @@ export const replaceLastPointerSegment = (pointer: string, newLastSegment: strin
 };
 
 export const pointerIsDefinition = (pointer: string) =>
-  pointer.startsWith(makePointerFromArray([Keyword.Definitions])) && !pointer.includes(Keyword.Properties);
+  pointer.startsWith(makePointerFromArray([Keyword.Definitions])) &&
+  !pointer.includes(Keyword.Properties);
 
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
-  childNodes.some((child) => child.objectKind === ObjectKind.Field && child.fieldType === FieldType.Null);
+  childNodes.some(
+    (child) => child.objectKind === ObjectKind.Field && child.fieldType === FieldType.Null,
+  );
 
 export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: string): string => {
   let newPointer = targetPointer;
@@ -75,11 +78,9 @@ export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: strin
 export const isField = (node: UiSchemaNode): node is FieldNode =>
   node.objectKind === ObjectKind.Field;
 
-export const isObject = (node: FieldNode): boolean =>
-  node.fieldType === FieldType.Object;
+export const isObject = (node: FieldNode): boolean => node.fieldType === FieldType.Object;
 
-export const isArray = (node: UiSchemaNode): boolean =>
-  node.isArray;
+export const isArray = (node: UiSchemaNode): boolean => node.isArray;
 
 export const isCombination = (node: UiSchemaNode): node is CombinationNode =>
   node.objectKind === ObjectKind.Combination;
@@ -98,8 +99,6 @@ export const isProperty = (node: UiSchemaNode): boolean => !isDefinition(node);
 export const isNodeValidParent = (node: UiSchemaNode): boolean =>
   isCombination(node) || (isField(node) && isObject(node));
 
-export const isTheRootNode = (node: UiSchemaNode): boolean =>
-  node.pointer === ROOT_POINTER;
+export const isTheRootNode = (node: UiSchemaNode): boolean => node.pointer === ROOT_POINTER;
 
-export const isNotTheRootNode = (node: UiSchemaNode): boolean =>
-  !isTheRootNode(node);
+export const isNotTheRootNode = (node: UiSchemaNode): boolean => !isTheRootNode(node);

@@ -37,7 +37,7 @@ export const useMoveProperty = (): HandleMove => {
       } else {
         const movedNode = savableModel.moveNode(pointer, target);
         if (selectedNodePointer === pointer) {
-           setSelectedNodePointer(movedNode.pointer);
+          setSelectedNodePointer(movedNode.pointer);
         }
       }
     },
