@@ -142,7 +142,7 @@ export const ResourceAccessLists = ({
         })}
       </div>
       <StudioButton
-        variant='secondary'
+        variant='tertiary'
         size='small'
         icon={<PlusIcon />}
         iconPlacement='left'
