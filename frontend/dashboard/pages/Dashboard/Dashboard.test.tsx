@@ -30,7 +30,9 @@ describe('Dashboard', () => {
       getStarredRepos: () => Promise.resolve<Repository[]>([repository]),
     });
     expect(
-      await screen.findAllByRole('menuitem', { name: textMock('dashboard.unstar') }),
+      await screen.findAllByRole('menuitem', {
+        name: textMock('dashboard.unstar', { appName: repository.name }),
+      }),
     ).toHaveLength(1);
   });
 
@@ -43,7 +45,9 @@ describe('Dashboard', () => {
         }),
     });
     expect(
-      await screen.findAllByRole('menuitem', { name: textMock('dashboard.star') }),
+      await screen.findAllByRole('menuitem', {
+        name: textMock('dashboard.star', { appName: repository.name }),
+      }),
     ).toHaveLength(1);
   });
 });
