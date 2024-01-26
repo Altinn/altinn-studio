@@ -187,7 +187,7 @@ export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection> =>
 export const fetchLayoutSettings = (layoutSetId: string | undefined): Promise<ILayoutSettings> =>
   httpGet(getLayoutSettingsUrl(layoutSetId));
 
-export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[], any>> => httpGetRaw(url);
+export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 
 export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
 

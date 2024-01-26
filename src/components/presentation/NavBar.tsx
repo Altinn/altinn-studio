@@ -48,10 +48,13 @@ export const NavBar = ({ type }: INavBarProps) => {
     }
 
     if (queryParameterReturnUrl) {
-      httpGet(getRedirectUrl(queryParameterReturnUrl))
+      httpGet<string>(getRedirectUrl(queryParameterReturnUrl))
         .then((response) => response)
         .catch(() => messageBoxUrl)
         .then((returnUrl) => {
+          if (returnUrl == null) {
+            return;
+          }
           window.location.assign(returnUrl);
         });
     }

@@ -37,7 +37,7 @@ export const useGetOptionsQuery = (
     queryKey: ['fetchOptions', url],
     queryFn: async () => {
       const result = await fetchOptions(url);
-      return { ...result, data: castOptionsToStrings(result.data) };
+      return { ...result, data: castOptionsToStrings(result?.data) };
     },
     enabled: !!optionsId,
   });

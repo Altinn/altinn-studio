@@ -7,16 +7,22 @@ export enum HttpStatusCodes {
   Forbidden = 403,
 }
 
-export async function httpGet(url: string, options?: AxiosRequestConfig): Promise<any> {
+export async function httpGet<ResponseData = any>(
+  url: string,
+  options?: AxiosRequestConfig,
+): Promise<ResponseData | null> {
   const headers = options?.headers as RawAxiosRequestHeaders | undefined;
   const response: AxiosResponse = await axios.get(url, {
     ...options,
     headers: { ...headers, Pragma: 'no-cache' },
   });
-  return response.data ? response.data : null;
+  return response.data ?? null;
 }
 
-export async function httpGetRaw(url: string, options?: AxiosRequestConfig): Promise<any> {
+export async function httpGetRaw<ResponseData = any>(
+  url: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<ResponseData> | null> {
   const headers = options?.headers as RawAxiosRequestHeaders | undefined;
   const response: AxiosResponse = await axios.get(url, {
     ...options,
