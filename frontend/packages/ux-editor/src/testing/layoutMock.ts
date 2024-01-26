@@ -48,12 +48,14 @@ export const layoutMock: IInternalLayout = {
     [baseContainerIdMock]: {
       id: baseContainerIdMock,
       itemType: 'CONTAINER',
+      type: ComponentType.Group,
       index: 0,
       pageIndex: null,
     },
     [container1IdMock]: {
       id: container1IdMock,
       itemType: 'CONTAINER',
+      type: ComponentType.Group,
       pageIndex: null,
       propertyPath: 'definitions/groupComponent',
     },

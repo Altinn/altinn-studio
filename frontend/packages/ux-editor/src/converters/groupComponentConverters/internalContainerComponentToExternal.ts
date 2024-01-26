@@ -1,11 +1,10 @@
 import type { FormContainer } from '../../types/FormContainer';
-import type { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 
-export const internalGroupComponentToExternal = (
+export const internalContainerComponentToExternal = (
   internalGroupComponent: FormContainer,
   children: string[],
-): ExternalGroupComponent => {
+): ExternalContainerComponent => {
   const propertiesToKeep = { ...internalGroupComponent };
   delete propertiesToKeep.itemType;
   delete propertiesToKeep.propertyPath;
@@ -13,6 +12,6 @@ export const internalGroupComponentToExternal = (
   return {
     ...propertiesToKeep,
     children,
-    type: ComponentType.Group,
+    type: internalGroupComponent.type,
   };
 };

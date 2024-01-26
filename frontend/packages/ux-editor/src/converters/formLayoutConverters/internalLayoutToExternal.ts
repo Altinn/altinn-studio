@@ -1,8 +1,8 @@
 import type { IInternalLayout } from '../../types/global';
 import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
-import type { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
-import { internalGroupComponentToExternal } from '../groupComponentConverters';
+import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
+import { internalContainerComponentToExternal } from '../groupComponentConverters';
 import type { FormContainer } from '../../types/FormContainer';
 import { addPageIndexPrefix } from './pageIndexUtils';
 import { internalSimpleComponentToExternal } from '../simpleComponentConverters';
@@ -29,7 +29,7 @@ export const generateExternalComponents = (
   return allComponents.sort(compareComponentsByPosition(allComponentIdsInOrder));
 };
 
-const getGroupComponents = (internalLayout: IInternalLayout): ExternalGroupComponent[] => {
+const getGroupComponents = (internalLayout: IInternalLayout): ExternalContainerComponent[] => {
   const convert = (container) => convertContainer(internalLayout, container);
   return findRelevantContainers(internalLayout).map(convert);
 };
@@ -42,9 +42,9 @@ const findRelevantContainers = (internalLayout: IInternalLayout): FormContainer[
 const convertContainer = (
   internalLayout: IInternalLayout,
   container: FormContainer,
-): ExternalGroupComponent => {
+): ExternalContainerComponent => {
   const children = getGroupChildrenWithPageIndex(internalLayout, container);
-  return internalGroupComponentToExternal(container, children);
+  return internalContainerComponentToExternal(container, children);
 };
 
 const getGroupChildrenWithPageIndex = (

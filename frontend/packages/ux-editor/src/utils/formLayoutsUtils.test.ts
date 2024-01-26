@@ -69,7 +69,7 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER' } },
+          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER', type: ComponentType.Group } },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -133,7 +133,7 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER' } },
+          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER', type: ComponentType.Group } },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -161,7 +161,7 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER' } },
+          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER', type: ComponentType.Group } },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -195,7 +195,7 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER' } },
+          containers: { [BASE_CONTAINER_ID]: { id: BASE_CONTAINER_ID, itemType: 'CONTAINER', type: ComponentType.Group } },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},

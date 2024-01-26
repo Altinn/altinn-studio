@@ -57,7 +57,7 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.Accordion,
     defaultProperties: {
       id: '',
-      itemType: 'COMPONENT',
+      itemType: 'CONTAINER',
       type: ComponentType.Accordion,
       propertyPath: 'definitions/accordionComponent',
     },
@@ -67,7 +67,7 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.AccordionGroup,
     defaultProperties: {
       id: '',
-      itemType: 'COMPONENT',
+      itemType: 'CONTAINER',
       type: ComponentType.AccordionGroup,
       propertyPath: 'definitions/accordionGroupComponent',
     },
@@ -125,7 +125,7 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.ButtonGroup,
     defaultProperties: {
       id: '',
-      itemType: 'COMPONENT',
+      itemType: 'CONTAINER',
       type: ComponentType.ButtonGroup,
       propertyPath: 'definitions/buttonGroupComponent',
     },
@@ -230,6 +230,7 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {
       id: '',
       itemType: 'CONTAINER',
+      type: ComponentType.Group,
       propertyPath: 'definitions/groupComponent',
     },
     icon: Group,

@@ -1,4 +1,3 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
 import type {
   IFormDesignerComponents,
   IFormDesignerContainers,
@@ -10,10 +9,11 @@ import type {
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
 import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arrayUtils';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
 import type { FormItemConfigs } from '../data/formItemConfig';
-import type { FormContainer } from '../types/FormContainer';
+import {FormContainer, validContainerChildrenComponents} from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
@@ -264,6 +264,7 @@ export const createEmptyComponentStructure = (): InternalLayoutComponents => ({
       id: BASE_CONTAINER_ID,
       index: 0,
       itemType: 'CONTAINER',
+      type: undefined,
       pageIndex: null,
     },
   },
@@ -376,6 +377,12 @@ export const getDepth = (layout: IInternalLayout): number => {
  */
 export const validateDepth = (layout: IInternalLayout): boolean =>
   getDepth(layout) <= MAX_NESTED_GROUP_LEVEL;
+
+export const validateContainerChild = (layout: IInternalLayout, parentId: string, itemType: ComponentType): boolean => {
+  const parent = getItem(layout, parentId);
+  const validChildren = validContainerChildrenComponents[parent.type];
+  return parent.itemType === 'CONTAINER' ? validChildren?.includes(itemType) : true;
+}
 
 export const getChildIds = (layout: IInternalLayout, parentId: string): string[] =>
   layout.order?.[parentId] || [];

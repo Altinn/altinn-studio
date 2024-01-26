@@ -15,6 +15,7 @@ import {
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const org = 'org';
@@ -25,6 +26,7 @@ const maxCount = 2;
 const updatedContainer: FormContainer = {
   id: 'newId',
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
   maxCount,
 };
 const id = container1IdMock;

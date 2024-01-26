@@ -25,7 +25,7 @@ import {
   stringifyValueForDisplay,
   tryParseExpression,
 } from './expressionsUtils';
-import { component1Mock } from '../testing/layoutMock';
+import {component1Mock} from '../testing/layoutMock';
 import {
   baseInternalExpression,
   baseInternalSubExpression,
@@ -52,6 +52,7 @@ import {
 import { deepCopy } from 'app-shared/pure';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import type { FormContainer } from '../types/FormContainer';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 describe('expressionsUtils', () => {
   describe('convertSubExpression', () => {
@@ -391,6 +392,7 @@ describe('expressionsUtils', () => {
       const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer = {
         id: 'some-id',
         itemType: 'CONTAINER',
+        type: ComponentType.Group,
         hidden: parsableExternalExpression,
         required: parsableExternalExpression,
         readOnly: parsableExternalExpression,

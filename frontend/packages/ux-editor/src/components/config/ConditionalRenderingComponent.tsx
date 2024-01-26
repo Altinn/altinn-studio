@@ -213,7 +213,7 @@ class ConditionalRendering extends React.Component<
     );
   };
 
-  public renderCondtionalRenderingTargetContainerOptions = (
+  public renderConditionalRenderingTargetContainerOptions = (
     id: string,
     baseContainer?: boolean,
   ): JSX.Element[] => {
@@ -221,6 +221,7 @@ class ConditionalRendering extends React.Component<
     if (!this.props.order[id]) {
       return options;
     }
+    // CHECK OUT THIS
     if (!baseContainer) {
       const name = getComponentTitleByComponentType(ComponentType.Group, this.props.t);
       options.push(
@@ -235,7 +236,7 @@ class ConditionalRendering extends React.Component<
         options.push(option);
       } else {
         // A container can have components and sub-containers
-        const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key);
+        const containerOptions = this.renderConditionalRenderingTargetContainerOptions(key);
         containerOptions.forEach((option) => {
           options.push(option);
         });
@@ -249,7 +250,7 @@ class ConditionalRendering extends React.Component<
     Object.keys(this.props.order).forEach((key) => {
       const containerKey = Object.keys(this.props.order)[0];
       const isBaseContainer = containerKey === BASE_CONTAINER_ID;
-      const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(
+      const containerOptions = this.renderConditionalRenderingTargetContainerOptions(
         key,
         isBaseContainer,
       );

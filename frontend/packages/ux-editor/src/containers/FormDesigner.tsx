@@ -18,7 +18,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
-import { addItemOfType, getItem, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
+import {addItemOfType, getItem, moveLayoutItem, validateContainerChild, validateDepth} from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { useSearchParams } from 'react-router-dom';
@@ -105,21 +105,30 @@ export const FormDesigner = ({
 
   if (formLayoutIsReady) {
     const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
+    const triggerInvalidChildAlert = () => alert(t('schema_editor.invalid_child_error'));
     const layout = formLayouts[selectedLayout];
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
 
       const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
-      if (validateDepth(updatedLayout)) {
+      if (validateDepth(updatedLayout) && validateContainerChild(updatedLayout, parentId, type)) {
         addItemToLayout({ componentType: type, newId, parentId, index });
         handleEdit(getItem(updatedLayout, newId));
-      } else triggerDepthAlert();
+      } else {
+        if (!validateDepth(updatedLayout)) triggerDepthAlert();
+        if (!validateContainerChild(updatedLayout, parentId, type)) triggerInvalidChildAlert();
+      }
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
       const updatedLayout = moveLayoutItem(layout, id, parentId, index);
-      validateDepth(updatedLayout) ? updateFormLayout(updatedLayout) : triggerDepthAlert();
-    };
+      const type = getItem(layout, id).type;
+      if (validateDepth(updatedLayout) && validateContainerChild(updatedLayout, parentId, type)) updateFormLayout(updatedLayout);
+      else {
+        if (!validateDepth(updatedLayout)) triggerDepthAlert();
+        if (!validateContainerChild(updatedLayout, parentId, type)) triggerInvalidChildAlert();
+      }
+    }
 
     return (
       <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>

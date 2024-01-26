@@ -1,2 +1,2 @@
-export { externalGroupComponentToInternal } from './externalGroupComponentToInternal';
-export { internalGroupComponentToExternal } from './internalGroupComponentToExternal';
+export { externalContainerComponentToInternal } from './externalContainerComponentToInternal';
+export { internalContainerComponentToExternal } from './internalContainerComponentToExternal';

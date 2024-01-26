@@ -51,6 +51,9 @@ export const EditFormContainer = ({
 
   const items = layoutOrder[editFormId];
 
+  console.log('items: ', items);
+  console.log('container: ', container);
+
   const handleChangeRepeatingGroup = (isRepeating: boolean) => {
     if (isRepeating) {
       handleContainerUpdate({

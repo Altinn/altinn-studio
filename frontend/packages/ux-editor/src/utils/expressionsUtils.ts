@@ -427,9 +427,10 @@ export const getExternalExpressionOnComponentProperty = (
   property: ExpressionProperty,
 ): any => {
   let value = form[property];
+  // Should expressions like these apply to all container-components or only group?
   if (form.itemType === 'CONTAINER' && property.includes('edit')) {
-    const editPropertyForGroup = property.split('edit.')[1];
-    value = form['edit'][editPropertyForGroup];
+    const editPropertyForContainer = property.split('edit.')[1];
+    value = form['edit'][editPropertyForContainer];
   }
   return typeof value !== 'boolean' ? value : undefined;
 };

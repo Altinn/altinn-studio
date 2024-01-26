@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import {act, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
@@ -89,6 +89,7 @@ describe('Expressions', () => {
     const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer = {
       id: 'some-id',
       itemType: 'CONTAINER',
+      type: ComponentType.Group,
       hidden: parsableExternalExpression,
       required: parsableExternalExpression,
       readOnly: parsableExternalExpression,
@@ -162,6 +163,7 @@ describe('Expressions', () => {
     const component: FormContainer = {
       id: 'some-id',
       itemType: 'CONTAINER',
+      type: ComponentType.Group,
       edit: {
         multiPage: true,
       },

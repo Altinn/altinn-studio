@@ -24,7 +24,7 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
   if (!formItem) {
     return <UnknownReferencedItem id={id} layout={layout} />;
   }
-
+  
   const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
 
   const Icon = isUnknownInternalComponent

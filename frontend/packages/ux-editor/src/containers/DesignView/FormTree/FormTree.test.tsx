@@ -34,10 +34,12 @@ const rootComponent: FormComponent = {
 const rootContainerWithChildren: FormContainer = {
   id: 'rootContainer1',
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
 };
 const emptyRootContainer: FormContainer = {
   id: 'rootContainer2',
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
 };
 const subComponent: FormComponent = {
   id: 'subComponent',
@@ -47,6 +49,7 @@ const subComponent: FormComponent = {
 const subContainer: FormContainer = {
   id: 'subContainer',
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
 };
 const subSubComponent: FormComponent = {
   id: 'subSubComponent',

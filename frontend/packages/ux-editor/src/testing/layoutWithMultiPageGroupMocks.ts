@@ -47,6 +47,7 @@ const externalComponent3: ExternalComponent = {
 const internalComponent3: FormContainer = {
   id: component3Id,
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
   pageIndex: null,
   propertyPath: 'definitions/groupComponent',
 };
@@ -66,6 +67,7 @@ const internalComponent3_1: FormContainer = {
   edit: { multiPage: true },
   id: component3_1Id,
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
   pageIndex: null,
   propertyPath: 'definitions/groupComponent',
 };
@@ -88,6 +90,7 @@ const externalComponent3_1_2: ExternalComponent = {
 const internalComponent3_1_2: FormContainer = {
   id: component3_1_2Id,
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
   pageIndex: 0,
   propertyPath: 'definitions/groupComponent',
 };
@@ -100,6 +103,7 @@ const externalComponent3_1_3: ExternalComponent = {
 const internalComponent3_1_3: FormContainer = {
   id: component3_1_3Id,
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
   pageIndex: 1,
   propertyPath: 'definitions/groupComponent',
 };
@@ -149,6 +153,7 @@ const baseContainer: FormContainer = {
   id: BASE_CONTAINER_ID,
   index: 0,
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
   pageIndex: null,
 };
 

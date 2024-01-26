@@ -29,8 +29,8 @@ const newLayout: IInternalLayout = {
     },
   },
   containers: {
-    [baseContaierId]: { id: baseContaierId, itemType: 'CONTAINER', pageIndex: null },
-    [containerId]: { id: containerId, itemType: 'CONTAINER', pageIndex: null },
+    [baseContaierId]: { id: baseContaierId, itemType: 'CONTAINER', pageIndex: null, type: ComponentType.Group },
+    [containerId]: { id: containerId, itemType: 'CONTAINER', pageIndex: null, type: ComponentType.Group },
   },
   order: {
     [baseContaierId]: [containerId],
