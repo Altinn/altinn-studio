@@ -5,5 +5,5 @@
  * @returns the string formatted
  */
 export const formatIdString = (s: string): string => {
-  return s.replace(/[^A-Za-z0-9-_.!~*'()%]+/g, '-');
+  return s.replace(/[^A-Za-z0-9-_.!~*'()%]+/g, '-').toLowerCase();
 };
