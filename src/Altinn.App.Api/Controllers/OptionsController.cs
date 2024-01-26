@@ -49,7 +49,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound();
             }
 
-            HttpContext.Response.Headers.Add("Altinn-DownstreamParameters", appOptions.Parameters.ToNameValueString(','));
+            HttpContext.Response.Headers.Append("Altinn-DownstreamParameters", appOptions.Parameters.ToUrlEncodedNameValueString(','));
 
             return Ok(appOptions.Options);
         }
@@ -90,7 +90,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound();
             }
 
-            HttpContext.Response.Headers.Add("Altinn-DownstreamParameters", appOptions.Parameters.ToNameValueString(','));
+            HttpContext.Response.Headers.Append("Altinn-DownstreamParameters", appOptions.Parameters.ToUrlEncodedNameValueString(','));
 
             return Ok(appOptions.Options);
         }

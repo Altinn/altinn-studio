@@ -5,6 +5,7 @@ using Xunit;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using FluentAssertions;
+using Moq;
 
 namespace Altinn.App.Api.Tests.Controllers
 {
@@ -70,8 +71,7 @@ namespace Altinn.App.Api.Tests.Controllers
                 Parameters = new Dictionary<string, string>()
                 {
                     { "lang", language }
-                },
-
+                }
             };
 
             return Task.FromResult(appOptions);

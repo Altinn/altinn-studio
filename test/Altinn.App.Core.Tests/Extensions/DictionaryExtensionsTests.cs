@@ -21,7 +21,7 @@ namespace Altinn.App.Core.Tests.Extensions
 
             IHeaderDictionary headers = new HeaderDictionary
             {
-                { "Altinn-DownstreamParameters", options.Parameters.ToNameValueString(',') }
+                { "Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(',') }
             };
 
             Assert.Equal("lang=nb,level=1", headers["Altinn-DownstreamParameters"]);
@@ -37,7 +37,7 @@ namespace Altinn.App.Core.Tests.Extensions
 
             IHeaderDictionary headers = new HeaderDictionary
             {
-                { "Altinn-DownstreamParameters", options.Parameters.ToNameValueString(',') }
+                { "Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(',') }
             };
 
             Assert.Equal(string.Empty, headers["Altinn-DownstreamParameters"]);
@@ -48,15 +48,35 @@ namespace Altinn.App.Core.Tests.Extensions
         {
             var options = new AppOptions
             {
-                Parameters = null
+                Parameters = null!
             };
 
             IHeaderDictionary headers = new HeaderDictionary
             {
-                { "Altinn-DownstreamParameters", options.Parameters.ToNameValueString(',') }
+                { "Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(',') }
             };
 
             Assert.Equal(string.Empty, headers["Altinn-DownstreamParameters"]);
+        }
+
+        [Fact]
+        public void ToNameValueString_OptionParametersWithSpecialCharaters_IsValidAsHeaders()
+        {
+            var options = new AppOptions
+            {
+                Parameters = new Dictionary<string, string>
+                {
+                    { "lang", "nb" },
+                    { "level", "1" },
+                    { "name", "ÆØÅ" },
+                    { "variant", "Småvilt1" }
+                },
+            };
+
+            IHeaderDictionary headers = new HeaderDictionary();
+            headers.Add("Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(','));
+
+            Assert.Equal("lang=nb,level=1,name=%C3%86%C3%98%C3%85,variant=Sm%C3%A5vilt1", headers["Altinn-DownstreamParameters"]);
         }
     }
 }
