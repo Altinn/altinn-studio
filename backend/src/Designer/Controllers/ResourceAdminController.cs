@@ -187,10 +187,11 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpPost]
         [Route("designer/api/{org}/resources/importresource/{serviceCode}/{serviceEdition}/{environment}")]
-        public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition, string environment)
+        public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition, string environment, [FromBody] string resourceId)
         {
             string repository = string.Format("{0}-resources", org);
             ServiceResource resource = await _altinn2MetadataClient.GetServiceResourceFromService(serviceCode, serviceEdition, environment);
+            resource.Identifier = resourceId;
             _repository.AddServiceResource(org, resource);
             XacmlPolicy policy = await _altinn2MetadataClient.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment);
             await _repository.SavePolicy(org, repository, resource.Identifier, policy);
@@ -330,7 +331,7 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.rightDescription", "resourceerror.missingrightdescription");
             }
 
-            if (resource.AvailableForType == null || resource.AvailableForType.Count == 0)
+            if (resource.ResourceType != ResourceType.MaskinportenSchema && (resource.AvailableForType == null || resource.AvailableForType.Count == 0))
             {
                 ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
             }
