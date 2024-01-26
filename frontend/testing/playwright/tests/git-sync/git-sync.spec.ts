@@ -1,9 +1,12 @@
 import { expect } from '@playwright/test';
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
-import { OverviewPage } from 'testing/playwright/pages/OverviewPage';
+import { OverviewPage } from '../../pages/OverviewPage';
+import { Header } from '../../components/Header';
+import { UiEditorPage } from '../../pages/UiEditorPage';
+import { GiteaPage } from '../../pages/GiteaPage';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -20,20 +23,36 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
 const setupAndVerifyOverviewPage = async (
   page: Page,
   testAppName: string,
-): Promise<OverviewPage> => {
-  const overviewPage = new OverviewPage(page, { app: testAppName });
-  await overviewPage.loadOverviewPage();
-  await overviewPage.verifyOverviewPage();
-  return overviewPage;
+): Promise<UiEditorPage> => {
+  const uiEditorPage = new UiEditorPage(page, { app: testAppName });
+  await uiEditorPage.loadUiEditorPage();
+  await uiEditorPage.verifyUiEditorPage();
+  return uiEditorPage;
 };
 
 test('1', async ({ page, testAppName }) => {
-  const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
+  const uiEditorPage = await setupAndVerifyOverviewPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
 
   // Make changes
-  await overviewPage.clickOnOpenSettingsModalButton(); // Maybe change to header.
-  await overviewPage.changeAlternativeIdOnApp('a'); // Maybe change to settingsModal.
-  await overviewPage.clickOnCloseModalButton();
+  await header.clickOnOpenSettingsModalButton(); // Maybe change to header.
+  await uiEditorPage.clickOnAddNewPage();
+  await uiEditorPage.verifyThatNewPageIsVisible();
+
+  await header.clickOnThreeDotsMenu();
+  await header.clickOnGoToGiteaRepository();
+
+  // Verify that there is no page
+  await giteaPage.verifyGiteaPage();
+  await giteaPage.clickOnAppFiles();
+  await giteaPage.clickOnUiFiles();
+  await giteaPage.clickOnLayoutsFiles();
+  await giteaPage.verifyThatTheNewPageIsNotPresent();
+
+  // Click push
+
+  // Verify page is there
 
   //
 });
