@@ -60,6 +60,6 @@ if (process.env.CI) {
   config.reporters.push('github-actions');
   config.collectCoverage = true;
   config.coverageReporters = ['lcov'];
-  config.coveragePathIgnorePatterns = ['frontend/packages/ux-editor/testing/'];
+  config.coveragePathIgnorePatterns = ['frontend/packages/ux-editor/src/testing/'];
 }
 module.exports = config;
