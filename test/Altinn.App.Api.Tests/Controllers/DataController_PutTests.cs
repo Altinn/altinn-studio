@@ -74,8 +74,8 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
         readDataElementResponseParsed.Melding.Name.Should().Be("Ola Olsen");
 
-        _dataProcessor.Verify(p => p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>()), Times.Exactly(1));
-        _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.IsAny<Skjema?>()), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
+        _dataProcessor.Verify(p => p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), null), Times.Exactly(1));
+        _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.IsAny<Skjema?>(), null), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
         _dataProcessor.VerifyNoOtherCalls();
     }
 
@@ -83,8 +83,8 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
     public async Task PutDataElement_TestMultiPartUpdateWithCustomDataProcessor_ReturnsOk()
     {
         // Run the previous test with a custom data processor
-        _dataProcessor.Setup(d => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<object?>()))
-            .Returns((Instance instance, Guid dataGuid, object data, object previousData) =>
+        _dataProcessor.Setup(d => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid dataGuid, object data, object previousData, string? language) =>
             {
                 if (data is Skjema skjema)
                 {
@@ -146,8 +146,8 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         readDataElementResponseParsed.Melding.Name.Should().Be("Ola Olsen");
         readDataElementResponseParsed.Melding.Toggle.Should().BeTrue();
 
-        _dataProcessor.Verify(p=>p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>()), Times.Exactly(2));
-        _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.IsAny<Skjema?>()), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
+        _dataProcessor.Verify(p=>p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), null), Times.Exactly(2));
+        _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.IsAny<Skjema?>(), null), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
         _dataProcessor.VerifyNoOtherCalls();
         
     }

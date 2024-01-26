@@ -72,6 +72,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="dataType">The data type id</param>
         /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
+        /// <param name="language">Currently selected language by the user (if available)</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [Authorize]
         [HttpGet]
@@ -83,7 +84,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string org,
             [FromRoute] string app,
             [FromQuery] string dataType,
-            [FromHeader(Name = "party")] string partyFromHeader)
+            [FromHeader(Name = "party")] string partyFromHeader,
+            [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -116,12 +118,12 @@ namespace Altinn.App.Api.Controllers
             await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
             Instance virtualInstance = new Instance() { InstanceOwner = owner };
-            await ProcessAllDataRead(virtualInstance, appModel);
+            await ProcessAllDataRead(virtualInstance, appModel, language);
 
             return Ok(appModel);
         }
 
-        private async Task ProcessAllDataRead(Instance virtualInstance, object appModel)
+        private async Task ProcessAllDataRead(Instance virtualInstance, object appModel, string? language)
         {
             foreach (var dataProcessor in _dataProcessors)
             {
@@ -129,7 +131,7 @@ namespace Altinn.App.Api.Controllers
                     "ProcessDataRead for {modelType} using {dataProcesor}", 
                     appModel.GetType().Name,
                     dataProcessor.GetType().Name);
-                await dataProcessor.ProcessDataRead(virtualInstance, null, appModel);
+                await dataProcessor.ProcessDataRead(virtualInstance, null, appModel, language);
             }
         }
 
@@ -137,6 +139,7 @@ namespace Altinn.App.Api.Controllers
         /// Create a new data object of the defined data type
         /// </summary>
         /// <param name="dataType">The data type id</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [AllowAnonymous]
         [HttpGet]
@@ -145,7 +148,9 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(typeof(DataElement), 200)]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [Route("anonymous")]
-        public async Task<ActionResult> GetAnonymous([FromQuery] string dataType)
+        public async Task<ActionResult> GetAnonymous(
+            [FromQuery] string dataType,
+            [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -161,7 +166,7 @@ namespace Altinn.App.Api.Controllers
 
             object appModel = _appModel.Create(classRef);
             var virtualInstance = new Instance();
-            await ProcessAllDataRead(virtualInstance, appModel);
+            await ProcessAllDataRead(virtualInstance, appModel, language);
 
             return Ok(appModel);
         }
@@ -169,10 +174,11 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Create a new data object of the defined data type
         /// </summary>
-        /// <param name="org">unique identfier of the organisation responsible for the app</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="dataType">The data type id</param>
         /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [Authorize]
         [HttpPost]
@@ -184,7 +190,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string org,
             [FromRoute] string app,
             [FromQuery] string dataType,
-            [FromHeader(Name = "party")] string partyFromHeader)
+            [FromHeader(Name = "party")] string partyFromHeader,
+            [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -224,11 +231,7 @@ namespace Altinn.App.Api.Controllers
             await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
             Instance virtualInstance = new Instance() { InstanceOwner = owner };
-            foreach (var dataProcessor in _dataProcessors)
-            {
-                _logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", appModel.GetType().Name, dataProcessor.GetType().Name);
-                await dataProcessor.ProcessDataRead(virtualInstance, null, appModel);
-            }
+            await ProcessAllDataRead(virtualInstance, appModel, language);
 
             return Ok(appModel);
         }
@@ -237,6 +240,7 @@ namespace Altinn.App.Api.Controllers
         /// Create a new data object of the defined data type
         /// </summary>
         /// <param name="dataType">The data type id</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [AllowAnonymous]
         [HttpPost]
@@ -245,7 +249,9 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(typeof(DataElement), 200)]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [Route("anonymous")]
-        public async Task<ActionResult> PostAnonymous([FromQuery] string dataType)
+        public async Task<ActionResult> PostAnonymous(
+            [FromQuery] string dataType,
+            [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -268,11 +274,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             Instance virtualInstance = new Instance();
-            foreach (var dataProcessor in _dataProcessors)
-            {
-                _logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", appModel.GetType().Name, dataProcessor.GetType().Name);
-                await dataProcessor.ProcessDataRead(virtualInstance, null, appModel);
-            }
+            await ProcessAllDataRead(virtualInstance, appModel, language);
 
             return Ok(appModel);
         }

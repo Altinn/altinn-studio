@@ -16,7 +16,7 @@ namespace Altinn.App.Core.Helpers
         /// <summary>
         /// Run DataProcessWrite returning the dictionary of the changed fields.
         /// </summary>
-        public static async Task<Dictionary<string, object?>?> ProcessDataWriteWithDiff(Instance instance, Guid dataGuid, object serviceModel, IEnumerable<IDataProcessor> dataProcessors, ILogger logger)
+        public static async Task<Dictionary<string, object?>?> ProcessDataWriteWithDiff(Instance instance, Guid dataGuid, object serviceModel, string? language, IEnumerable<IDataProcessor> dataProcessors, ILogger logger)
         {
             if (!dataProcessors.Any())
             {
@@ -27,7 +27,7 @@ namespace Altinn.App.Core.Helpers
             foreach (var dataProcessor in dataProcessors)
             {
                 logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", serviceModel.GetType().Name, dataProcessor.GetType().Name);
-                await dataProcessor.ProcessDataWrite(instance, dataGuid, serviceModel, null);
+                await dataProcessor.ProcessDataWrite(instance, dataGuid, serviceModel, null, language);
             }
 
             string updatedServiceModelString = System.Text.Json.JsonSerializer.Serialize(serviceModel);

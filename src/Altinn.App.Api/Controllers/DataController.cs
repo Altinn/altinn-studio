@@ -1,8 +1,6 @@
 #nullable enable
 
-using System.Collections;
 using System.Net;
-using System.Reflection;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -256,6 +254,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to get</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>The data element is returned in the body of the response</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{dataGuid:guid}")]
@@ -264,7 +263,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromRoute] Guid dataGuid)
+            [FromRoute] Guid dataGuid,
+            [FromQuery] string? language = null)
         {
             try
             {
@@ -291,7 +291,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 else if (dataType.AppLogic?.ClassRef is not null)
                 {
-                    return await GetFormData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataType, instance);
+                    return await GetFormData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataType, language, instance);
                 }
 
                 return await GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataElement);
@@ -310,6 +310,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to update</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>The updated data element, including the changed fields in the event of a calculation that changed data.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{dataGuid:guid}")]
@@ -322,7 +323,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromRoute] Guid dataGuid)
+            [FromRoute] Guid dataGuid,
+            [FromQuery] string? language = null)
         {
             try
             {
@@ -349,7 +351,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 else if (dataType.AppLogic?.ClassRef is not null)
                 {
-                    return await PutFormData(org, app, instance, dataGuid, dataType);
+                    return await PutFormData(org, app, instance, dataGuid, dataType, language);
                 }
 
                 (bool validationRestrictionSuccess, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataType);
@@ -375,6 +377,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to update</param>
         /// <param name="dataPatchRequest">Container object for the <see cref="JsonPatch" /> and list of ignored validators</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>A response object with the new full model and validation issues from all the groups that run</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPatch("{dataGuid:guid}")]
@@ -387,7 +390,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid,
-            [FromBody] DataPatchRequest dataPatchRequest)
+            [FromBody] DataPatchRequest dataPatchRequest,
+            [FromQuery] string? language = null)
         {
             try
             {
@@ -424,7 +428,7 @@ namespace Altinn.App.Api.Controllers
                     await _dataClient.GetFormData(instanceGuid, modelType, org, app, instanceOwnerPartyId, dataGuid);
 
                 var (response, problemDetails) =
-                    await PatchFormDataImplementation(dataType, dataElement, dataPatchRequest, oldModel, instance);
+                    await PatchFormDataImplementation(dataType, dataElement, dataPatchRequest, oldModel, language, instance);
 
                 if (problemDetails is not null)
                 {
@@ -459,9 +463,10 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataElement">The data element</param>
         /// <param name="dataPatchRequest">Container object for the <see cref="JsonPatch" /> and list of ignored validators</param>
         /// <param name="oldModel">The old state of the form data</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <param name="instance">The instance</param>
         /// <returns>DataPatchResponse after this patch operation</returns>
-        internal async Task<(DataPatchResponse Response, ProblemDetails? Error)> PatchFormDataImplementation(DataType dataType, DataElement dataElement, DataPatchRequest dataPatchRequest, object oldModel, Instance instance)
+        internal async Task<(DataPatchResponse Response, ProblemDetails? Error)> PatchFormDataImplementation(DataType dataType, DataElement dataElement, DataPatchRequest dataPatchRequest, object oldModel, string? language, Instance instance)
         {
             var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
             var patchResult = dataPatchRequest.Patch.Apply(oldModelNode);
@@ -496,7 +501,7 @@ namespace Altinn.App.Api.Controllers
 
             foreach (var dataProcessor in _dataProcessors)
             {
-                await dataProcessor.ProcessDataWrite(instance, Guid.Parse(dataElement.Id), model, oldModel);
+                await dataProcessor.ProcessDataWrite(instance, Guid.Parse(dataElement.Id), model, oldModel, language);
             }
 
             // Ensure that all lists are changed from null to empty list.
@@ -730,6 +735,7 @@ namespace Altinn.App.Api.Controllers
             Guid instanceGuid,
             Guid dataGuid,
             DataType dataType,
+            string? language,
             Instance instance)
         {
             // Get Form Data from data service. Assumes that the data element is form data.
@@ -749,7 +755,7 @@ namespace Altinn.App.Api.Controllers
             foreach (var dataProcessor in _dataProcessors)
             {
                 _logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", appModel.GetType().Name, dataProcessor.GetType().Name);
-                await dataProcessor.ProcessDataRead(instance, dataGuid, appModel);
+                await dataProcessor.ProcessDataRead(instance, dataGuid, appModel, language);
             }
 
             string? userOrgClaim = User.GetOrg();
@@ -776,7 +782,7 @@ namespace Altinn.App.Api.Controllers
             return BadRequest("Invalid data provided. Error:  The request must include a Content-Disposition header");
         }
 
-        private async Task<ActionResult> PutFormData(string org, string app, Instance instance, Guid dataGuid, DataType dataType)
+        private async Task<ActionResult> PutFormData(string org, string app, Instance instance, Guid dataGuid, DataType dataType, string? language)
         {
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
@@ -796,7 +802,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("No data found in content");
             }
 
-            Dictionary<string, object?>? changedFields = await JsonHelper.ProcessDataWriteWithDiff(instance, dataGuid, serviceModel, _dataProcessors, _logger);
+            Dictionary<string, object?>? changedFields = await JsonHelper.ProcessDataWriteWithDiff(instance, dataGuid, serviceModel, language, _dataProcessors, _logger);
 
             await UpdatePresentationTextsOnInstance(instance, dataType.Id, serviceModel);
             await UpdateDataValuesOnInstance(instance, dataType.Id, serviceModel);

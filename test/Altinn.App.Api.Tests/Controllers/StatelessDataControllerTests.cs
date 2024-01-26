@@ -345,7 +345,7 @@ public class StatelessDataControllerTests
         pdpMock.Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()));
         appModelMock.Verify(a => a.Create(classRef), Times.Once);
         prefillMock.Verify(p => p.PrefillDataModel("12345", dataType, It.IsAny<DummyModel>(), null));
-        dataProcessorMock.Verify(a => a.ProcessDataRead(It.IsAny<Instance>(), null, It.IsAny<DummyModel>()));
+        dataProcessorMock.Verify(a => a.ProcessDataRead(It.IsAny<Instance>(), null, It.IsAny<DummyModel>(), null));
         registerMock.Verify(r=>r.GetParty(12345));
         appResourcesMock.VerifyNoOtherCalls();
         pdpMock.VerifyNoOtherCalls();

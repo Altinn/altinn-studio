@@ -62,9 +62,14 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     // Helper method to call the API
-    private async Task<(HttpResponseMessage response, string responseString, TResponse parsedResponse)> CallPatchApi<TResponse>(JsonPatch patch, List<string>? ignoredValidators, HttpStatusCode expectedStatus)
+    private async Task<(HttpResponseMessage response, string responseString, TResponse parsedResponse)> CallPatchApi<TResponse>(JsonPatch patch, List<string>? ignoredValidators, HttpStatusCode expectedStatus, string? language = null)
     {
-        _outputHelper.WriteLine($"Calling PATCH /{Org}/{App}/instances/{InstanceId}/data/{DataGuid}");
+        var url = $"/{Org}/{App}/instances/{InstanceId}/data/{DataGuid}";
+        if (language is not null)
+        {
+            url += $"?language={language}";
+        }
+        _outputHelper.WriteLine($"Calling PATCH {url}");
         using var httpClient = GetRootedClient(Org, App);
         string token = PrincipalUtil.GetToken(1337, null);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -76,7 +81,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         _outputHelper.WriteLine(serializedPatch);
         using var updateDataElementContent =
             new StringContent(serializedPatch, System.Text.Encoding.UTF8, "application/json");
-        var response =  await httpClient.PatchAsync($"/{Org}/{App}/instances/{InstanceId}/data/{DataGuid}", updateDataElementContent);
+        var response = await httpClient.PatchAsync(url, updateDataElementContent);
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
         _outputHelper.WriteLine("\nResponse:");
@@ -102,7 +107,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var newModel = newModelElement.Deserialize<Skjema>()!;
         newModel.Melding.Name.Should().Be("Ola Olsen");
 
-        _dataProcessorMock.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == DataGuid), It.IsAny<Skjema>(), It.IsAny<Skjema?>()), Times.Exactly(1));
+        _dataProcessorMock.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == DataGuid), It.IsAny<Skjema>(), It.IsAny<Skjema?>(), null), Times.Exactly(1));
         _dataProcessorMock.VerifyNoOtherCalls();
     }
 
@@ -125,7 +130,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var newModel = newModelElement.Deserialize<Skjema>()!;
         newModel.Melding.Name.Should().BeNull();
 
-        _dataProcessorMock.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == DataGuid), It.IsAny<Skjema>(), It.IsAny<Skjema?>()), Times.Exactly(1));
+        _dataProcessorMock.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == DataGuid), It.IsAny<Skjema>(), It.IsAny<Skjema?>(), null), Times.Exactly(1));
         _dataProcessorMock.VerifyNoOtherCalls();
     }
 
@@ -199,7 +204,8 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                 It.IsAny<Instance>(),
                 It.Is<Guid>(dataId => dataId == DataGuid),
                 It.Is<Skjema>(s=>s.Melding.NestedList.Count == 1),
-                It.Is<Skjema?>(s=> s!.Melding.NestedList.Count == 0)
+                It.Is<Skjema?>(s => s!.Melding.NestedList.Count == 0),
+                null
                 ), Times.Exactly(1));
         _dataProcessorMock.VerifyNoOtherCalls();
     }
@@ -330,6 +336,19 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var secondData = secondResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
         var secondValue = secondData.GetProperty("melding").GetProperty("name");
         secondValue.ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Fact]
+    public async Task VerifyLanguageIsPassedToDataProcessor()
+    {
+        // Update data element with language set to "es"
+        var patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\"")));
+
+        await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK, language: "es");
+
+        _dataProcessorMock.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == DataGuid), It.IsAny<Skjema>(), It.IsAny<Skjema?>(), "es"), Times.Exactly(1));
+        _dataProcessorMock.VerifyNoOtherCalls();
     }
 
     [Fact]
