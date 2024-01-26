@@ -36,18 +36,19 @@ test('1', async ({ page, testAppName }) => {
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   // Make changes
-  await header.clickOnOpenSettingsModalButton(); // Maybe change to header.
+  const newPageName: string = 'Side2';
+  await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
   await uiEditorPage.clickOnAddNewPage();
-  await uiEditorPage.verifyThatNewPageIsVisible();
+  await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
 
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 
   // Verify that there is no page
   await giteaPage.verifyGiteaPage();
-  await giteaPage.clickOnAppFiles();
-  await giteaPage.clickOnUiFiles();
-  await giteaPage.clickOnLayoutsFiles();
+  await giteaPage.clickOnAppFilesButton();
+  await giteaPage.clickOnUiFilesButton();
+  await giteaPage.clickOnLayoutsFilesButton();
   await giteaPage.verifyThatTheNewPageIsNotPresent();
 
   // Click push

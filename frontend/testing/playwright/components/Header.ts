@@ -24,4 +24,14 @@ export class Header extends BasePage {
       .first()
       .click();
   }
+
+  public async clickOnThreeDotsMenu(): Promise<void> {
+    await this.page.getByRole('button', { name: this.textMock('sync_header.gitea_menu') }).click();
+  }
+
+  public async clickOnGoToGiteaRepository(): Promise<void> {
+    await this.page.getByRole('link', { name: this.textMock('sync_header.repository') }).click();
+  }
+
+  public async a(): Promise<void> {}
 }

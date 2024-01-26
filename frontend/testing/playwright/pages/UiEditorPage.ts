@@ -20,4 +20,16 @@ export class UiEditorPage extends BasePage {
       await this.page.waitForURL(baseRoute);
     }
   }
+
+  public async verifyThatNewPageIsHidden(pageName: string): Promise<void> {
+    await this.page.getByRole('button', { name: pageName }).isHidden();
+  }
+
+  public async clickOnAddNewPage(): Promise<void> {
+    await this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') }).click();
+  }
+
+  public async verifyThatNewPageIsVisible(pageName: string): Promise<void> {
+    await this.page.getByRole('button', { name: pageName }).isVisible();
+  }
 }
