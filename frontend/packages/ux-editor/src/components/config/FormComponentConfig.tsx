@@ -227,7 +227,7 @@ export const FormComponentConfig = ({
         }
         if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
           return (
-            <div key={propertyKey}>
+            <React.Fragment key={propertyKey}>
               <Heading level={3} size='xxsmall'>
                 {getComponentPropertyLabel(propertyKey, t)}
               </Heading>
@@ -247,7 +247,7 @@ export const FormComponentConfig = ({
                 editFormId={editFormId}
                 hideUnsupported
               />
-            </div>
+            </React.Fragment>
           );
         }
         return null;
