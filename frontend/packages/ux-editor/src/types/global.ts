@@ -1,11 +1,11 @@
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { ITextResource, ITextResources } from 'app-shared/types/global';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { FormComponent } from './FormComponent';
-import { FormContainer } from './FormContainer';
-import React from 'react';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { FormComponent } from './FormComponent';
+import type { FormContainer } from './FormContainer';
+import type React from 'react';
 
 export interface IFormDesignerNameSpace<T1, T2> {
   formDesigner: T1;

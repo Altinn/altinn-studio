@@ -74,10 +74,6 @@
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "tagName"
-  ],
+  "required": ["id", "type", "tagName"],
   "additionalProperties": true
 }

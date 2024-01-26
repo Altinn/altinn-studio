@@ -3,13 +3,10 @@ import { act, screen } from '@testing-library/react';
 import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
-import {
-  FieldType,
-  ObjectKind,
-  SchemaModel,
-} from '@altinn/schema-model';
+import { FieldType, ObjectKind, SchemaModel } from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../../test/renderWithProviders';
+import type { RenderWithProvidersData } from '../../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import { validateTestUiSchema } from '../../../../../schema-model';
 import { nodeMockBase, rootNodeMock } from '../../../../test/mocks/uiSchemaMock';

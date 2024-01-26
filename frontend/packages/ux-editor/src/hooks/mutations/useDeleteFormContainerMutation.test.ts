@@ -4,7 +4,7 @@ import { waitFor } from '@testing-library/react';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
 import { container1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
-import { FormLayoutsResponse } from 'app-shared/types/api';
+import type { FormLayoutsResponse } from 'app-shared/types/api';
 
 // Test data:
 const org = 'org';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { IGenericEditComponent } from '../../componentConfig';
+import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { AddressComponent } from './AddressComponent';

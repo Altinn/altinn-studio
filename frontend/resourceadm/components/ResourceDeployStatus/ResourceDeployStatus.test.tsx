@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { ResourceDeployStatus, ResourceDeployStatusProps } from './ResourceDeployStatus';
+import type { ResourceDeployStatusProps } from './ResourceDeployStatus';
+import { ResourceDeployStatus } from './ResourceDeployStatus';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
-import { DeployError } from '../../types/DeployError';
+import type { DeployError } from '../../types/DeployError';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
 const mockDeployError1: DeployError = {

@@ -4,14 +4,15 @@ import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ResourceListItem } from 'app-shared/types/ResourceAdm';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { Organization } from 'app-shared/types/Organization';
+import type { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
 
 const mockResourceListItem1: ResourceListItem = {

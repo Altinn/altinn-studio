@@ -1,13 +1,14 @@
 import React from 'react';
-import { TopToolbar, TopToolbarProps } from './TopToolbar';
+import type { TopToolbarProps } from './TopToolbar';
+import { TopToolbar } from './TopToolbar';
 import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { uiSchemaNodesMock } from '../../../../../packages/schema-editor/test/mocks/uiSchemaMock';
-import { MetadataOption } from '../../../../types/MetadataOption';
+import type { MetadataOption } from '../../../../types/MetadataOption';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { buildJsonSchema } from '@altinn/schema-model';
 import { renderWithMockStore } from '../../../../test/mocks';

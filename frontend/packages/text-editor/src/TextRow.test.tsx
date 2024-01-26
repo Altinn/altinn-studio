@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
 import { screen, render as rtlRender, waitFor, act } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { TextTableRowEntry } from './types';
+import type { TextTableRowEntry } from './types';
 import { Table, TableBody } from '@digdir/design-system-react';
 
 describe('TextRow', () => {
@@ -57,13 +57,13 @@ describe('TextRow', () => {
 
   test('renders a Button component with a PencilIcon when showButton is true', () => {
     renderTextRow({ showButton: true });
-    const button = screen.getByRole('button', { name: 'toggle-textkey-edit' });
+    const button = screen.getByRole('button', { name: textMock('text_editor.toggle_edit_mode') });
     expect(button).toBeInTheDocument();
   });
 
   test('Hide a Button component with a PencilIcon when showButton is false', () => {
     renderTextRow({ showButton: false });
-    const button = screen.queryByRole('button', { name: 'toggle-textkey-edit' });
+    const button = screen.queryByRole('button', { name: textMock('text_editor.toggle_edit_mode') });
     expect(button).not.toBeInTheDocument();
   });
 
@@ -72,19 +72,17 @@ describe('TextRow', () => {
     const updateEntryId = jest.fn();
     renderTextRow({ updateEntryId });
     const toggleKeyEditButton = screen.getByRole('button', {
-      name: 'toggle-textkey-edit',
+      name: textMock('text_editor.toggle_edit_mode'),
     });
     await act(() => user.click(toggleKeyEditButton));
 
     const idInput = screen.getByRole('textbox', {
-      name: 'tekst key edit',
+      name: textMock('text_editor.key.edit'),
     });
-    const emptyMsg = 'TextId kan ikke være tom';
-    const illegalCharMsg = 'Det er ikke tillat med mellomrom i en textId';
+    const emptyMsg = textMock('text_editor.key.error_empty');
+    const illegalCharMsg = textMock('text_editor.key.error_invalid');
     await act(() => user.dblClick(idInput));
     await act(() => user.keyboard('{BACKSPACE}'));
-    const error = screen.getByRole('alertdialog');
-    expect(error).toBeInTheDocument();
     expect(screen.getByText(emptyMsg)).not.toBeNull();
     await act(() => user.keyboard('2'));
     expect(screen.queryByText(emptyMsg)).toBeNull();

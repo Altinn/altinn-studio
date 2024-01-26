@@ -4,9 +4,9 @@ import { formLayoutSettingsMock, renderWithMockStore } from './testing/mocks';
 import { App } from './App';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appStateMock } from './testing/stateMocks';
-import { AppContextProps } from './AppContext';
+import type { AppContextProps } from './AppContext';
 import ruleHandlerMock from './testing/ruleHandlerMock';
 import { layoutSetsMock } from './testing/layoutMock';
 

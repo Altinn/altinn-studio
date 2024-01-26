@@ -5,7 +5,6 @@ import {
   promoteProperty,
   setCombinationType,
   setCustomProperties,
-  SetCustomPropertiesArgs,
   setDescription,
   setPropertyName,
   setRef,
@@ -27,6 +26,7 @@ import type {
   SetRestrictionsArgs,
   SetTitleArgs,
   SetTypeArgs,
+  SetCustomPropertiesArgs,
 } from './ui-schema-reducers';
 import {
   allOfNodeMock,
@@ -48,12 +48,12 @@ import { CombinationKind, FieldType, Keyword, ObjectKind, StrRestrictionKey } fr
 import { ROOT_POINTER } from '../constants';
 import { getPointers } from '../mappers/getPointers';
 import { substringAfterLast, substringBeforeLast } from 'app-shared/utils/stringUtils';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
 import { SchemaModel } from '../SchemaModel';
-import { FieldNode } from '../../types/FieldNode';
-import { ReferenceNode } from '../../types/ReferenceNode';
-import { CombinationNode } from '../../types/CombinationNode';
+import type { FieldNode } from '../../types/FieldNode';
+import type { ReferenceNode } from '../../types/ReferenceNode';
+import type { CombinationNode } from '../../types/CombinationNode';
 
 describe('ui-schema-reducers', () => {
   let result: SchemaModel;

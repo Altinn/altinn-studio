@@ -1,8 +1,8 @@
 import { calculateNewPosition, getDragCursorPosition } from './dndUtils';
 import type { ExistingDndItem, NewDndItem } from 'app-shared/types/dndTypes';
 import { DragCursorPosition } from 'app-shared/types/dndTypes';
-import { DropTargetMonitor, XYCoord } from 'react-dnd';
-import { RefObject } from 'react';
+import type { DropTargetMonitor, XYCoord } from 'react-dnd';
+import type { RefObject } from 'react';
 
 // Test data
 const targetElementTop = 100;
@@ -165,7 +165,7 @@ describe('dndUtils', () => {
         },
       };
       expect(getDragCursorPosition(monitor, dragItemFromRightBelow, dropItem, dropRef)).toEqual(
-        DragCursorPosition.Self
+        DragCursorPosition.Self,
       );
     });
 
@@ -183,28 +183,34 @@ describe('dndUtils', () => {
         },
       };
       expect(getDragCursorPosition(monitor, dragItemFromRightAbove, dropItem, dropRef)).toEqual(
-        DragCursorPosition.Self
+        DragCursorPosition.Self,
       );
     });
 
     it('Returns Outside if disabledDrop is true', () => {
       expect(
-        getDragCursorPosition(dropTargetMonitor, newDragItem, dropItem, dropRef, true)
+        getDragCursorPosition(dropTargetMonitor, newDragItem, dropItem, dropRef, true),
       ).toEqual(DragCursorPosition.Outside);
       expect(
-        getDragCursorPosition(dropTargetMonitor, dragItemFromBelow, dropItem, dropRef, true)
+        getDragCursorPosition(dropTargetMonitor, dragItemFromBelow, dropItem, dropRef, true),
       ).toEqual(DragCursorPosition.Outside);
       expect(
-        getDragCursorPosition(dropTargetMonitor, dragItemFromAbove, dropItem, dropRef, true)
+        getDragCursorPosition(dropTargetMonitor, dragItemFromAbove, dropItem, dropRef, true),
       ).toEqual(DragCursorPosition.Outside);
       expect(
-        getDragCursorPosition(dropTargetMonitor, dragItemFromAnotherParent, dropItem, dropRef, true)
+        getDragCursorPosition(
+          dropTargetMonitor,
+          dragItemFromAnotherParent,
+          dropItem,
+          dropRef,
+          true,
+        ),
       ).toEqual(DragCursorPosition.Outside);
     });
 
     it('Returns Idle if monitor is null', () => {
       expect(getDragCursorPosition(null, newDragItem, dropItem, dropRef)).toEqual(
-        DragCursorPosition.Idle
+        DragCursorPosition.Idle,
       );
     });
   });
@@ -224,7 +230,7 @@ describe('dndUtils', () => {
 
         const res4 = calculateNewPosition(dragItemFromAnotherParent, dropItem, dragCursorPosition);
         expect(res4).toBeUndefined();
-      }
+      },
     );
 
     it('Returns index of drop item if dragCursorPosition is UpperHalf and the dragged item is new', () => {
@@ -261,7 +267,7 @@ describe('dndUtils', () => {
       const res = calculateNewPosition(
         dragItemFromAnotherParent,
         dropItem,
-        DragCursorPosition.UpperHalf
+        DragCursorPosition.UpperHalf,
       );
       expect(res.index).toEqual(dropItemIndex);
     });
@@ -270,7 +276,7 @@ describe('dndUtils', () => {
       const res = calculateNewPosition(
         dragItemFromAnotherParent,
         dropItem,
-        DragCursorPosition.LowerHalf
+        DragCursorPosition.LowerHalf,
       );
       expect(res.index).toEqual(dropItemIndex + 1);
     });
@@ -290,10 +296,10 @@ describe('dndUtils', () => {
         const result4 = calculateNewPosition(
           dragItemFromAnotherParent,
           dropItem,
-          dragCursorPosition
+          dragCursorPosition,
         );
         expect(result4.parentId).toEqual(parent1Id);
-      }
+      },
     );
   });
 });

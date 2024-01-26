@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LegacySelect, Textfield } from '@digdir/design-system-react';
-import { IGenericEditComponent } from '../componentConfig';
+import type { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
 import { StudioButton, StudioSpinner } from '@studio/components';

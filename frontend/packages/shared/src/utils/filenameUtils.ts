@@ -24,3 +24,8 @@ export const removeSchemaExtension = (filename: string): string =>
  * @returns true if filename has an XSD extension, otherwise false.
  */
 export const isXsdFile = (filename: string): boolean => filename.toLowerCase().endsWith('.xsd');
+
+export const extractFilename = (path: string): string => {
+  const indexOfLastSlash = path.lastIndexOf('/');
+  return indexOfLastSlash < 0 ? path : path.substring(indexOfLastSlash + 1);
+};

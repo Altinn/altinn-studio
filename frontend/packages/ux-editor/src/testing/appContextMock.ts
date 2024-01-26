@@ -1,8 +1,8 @@
-import { AppContextProps } from '../AppContext';
-import { RefObject } from 'react';
+import type { AppContextProps } from '../AppContext';
+import type { RefObject } from 'react';
 
 const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
-  current: null
+  current: null,
 };
 
 export const appContextMock: AppContextProps = {

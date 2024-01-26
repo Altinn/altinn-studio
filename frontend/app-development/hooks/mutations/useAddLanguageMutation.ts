@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
+import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 
 export const useAddLanguageMutation = (owner, app) => {
   const q = useQueryClient();

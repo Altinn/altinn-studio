@@ -1,6 +1,7 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './SetupTabContent.module.css';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useTranslation } from 'react-i18next';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { Paragraph, Switch } from '@digdir/design-system-react';

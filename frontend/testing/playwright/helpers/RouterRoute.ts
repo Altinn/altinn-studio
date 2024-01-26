@@ -1,11 +1,13 @@
-﻿import { Environment, StudioEnvironment } from './StudioEnvironment';
+﻿import type { Environment } from './StudioEnvironment';
+import { StudioEnvironment } from './StudioEnvironment';
 
 type SupportedRoutes =
   | 'altinnLoginPage'
   | 'dashboard'
   | 'dashboardCreateApp'
   | 'editorOverview'
-  | 'editorDatamodel';
+  | 'editorDatamodel'
+  | 'gitea';
 
 type RouterRoutes = Record<SupportedRoutes, string>;
 
@@ -15,6 +17,7 @@ const routerRoutes: RouterRoutes = {
   dashboardCreateApp: '/dashboard/self/new',
   editorOverview: `/editor/{{org}}/{{app}}/overview`,
   editorDatamodel: `/editor/{{org}}/{{app}}/datamodel`,
+  gitea: `/repos/{{org}}/{{app}}`,
 };
 
 export class RouterRoute extends StudioEnvironment {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderWithMockStore } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
-import { FormComponent } from '../../../../../types/FormComponent';
+import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { screen } from '@testing-library/react';

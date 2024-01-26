@@ -1,10 +1,11 @@
-import React, { ReactNode, useCallback } from 'react';
+import type { ReactNode } from 'react';
+import React, { useCallback } from 'react';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import classes from './FormItemTitle.module.css';
-import { FormComponent } from '../../../../../types/FormComponent';
-import { FormContainer } from '../../../../../types/FormContainer';
+import type { FormComponent } from '../../../../../types/FormComponent';
+import type { FormContainer } from '../../../../../types/FormContainer';
 import { useDeleteItem } from './useDeleteItem';
 
 export interface FormItemTitleProps {

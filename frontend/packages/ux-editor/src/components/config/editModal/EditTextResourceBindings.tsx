@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { IGenericEditComponent } from '../componentConfig';
+import type { IGenericEditComponent } from '../componentConfig';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
-import { TranslationKey } from 'language/type';
+import type { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
 import { LegacySelect } from '@digdir/design-system-react';
 
@@ -19,11 +19,12 @@ export const EditTextResourceBindings = ({
 }: EditTextResourceBindingsProps) => {
   const { t } = useTranslation();
 
-  const [keysSet, setKeysSet] = React.useState(
-    Object.keys(component.textResourceBindings || {}),
-  );
+  const [keysSet, setKeysSet] = React.useState(Object.keys(component.textResourceBindings || {}));
 
-  const keysToAdd = useMemo(() => textResourceBindingKeys.filter((key) => !keysSet.includes(key)), [keysSet, textResourceBindingKeys]);
+  const keysToAdd = useMemo(
+    () => textResourceBindingKeys.filter((key) => !keysSet.includes(key)),
+    [keysSet, textResourceBindingKeys],
+  );
 
   const handleAddKey = (key: string) => {
     setKeysSet([...keysSet, key]);
@@ -38,7 +39,7 @@ export const EditTextResourceBindings = ({
 
   const handleRemoveKey = (key: string) => {
     setKeysSet((prevKeysSet) => prevKeysSet.filter((k) => k !== key));
-  }
+  };
 
   return (
     <div className={classes.container}>
@@ -50,19 +51,23 @@ export const EditTextResourceBindings = ({
           removeTextResourceBinding={() => handleRemoveKey(key)}
           textKey={key}
           labelKey={`ux_editor.modal_properties_textResourceBindings_${key}` as TranslationKey}
-          placeholderKey={`ux_editor.modal_properties_textResourceBindings_${key}_add` as TranslationKey}
+          placeholderKey={
+            `ux_editor.modal_properties_textResourceBindings_${key}_add` as TranslationKey
+          }
         />
       ))}
-      {keysToAdd.length > 0 && <div className={classes.addContainer}>
-        <LegacySelect
-          options={keysToAdd.map((key) => ({
-            label: t(`ux_editor.modal_properties_textResourceBindings_${key}`),
-            value: key,
-          }))}
-          onChange={(value) => handleAddKey(value)}
-          label={t('ux_editor.text_resource_bindings.add_label')}
-        />
-      </div>}
+      {keysToAdd.length > 0 && (
+        <div className={classes.addContainer}>
+          <LegacySelect
+            options={keysToAdd.map((key) => ({
+              label: t(`ux_editor.modal_properties_textResourceBindings_${key}`),
+              value: key,
+            }))}
+            onChange={(value) => handleAddKey(value)}
+            label={t('ux_editor.text_resource_bindings.add_label')}
+          />
+        </div>
+      )}
     </div>
   );
 };

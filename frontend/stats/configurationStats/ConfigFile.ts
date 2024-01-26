@@ -1,5 +1,5 @@
-import { JsonSchema } from 'app-shared/types/JsonSchema';
-import { ConfigurableItem } from './ConfigurableItem';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { ConfigurableItem } from './ConfigurableItem';
 
 export interface IConfigFile {
   schema: any;

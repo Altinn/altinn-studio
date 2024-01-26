@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
-import { AltinnTextField, AltinnTextFieldProps } from 'app-shared/components/AltinnTextField/AltinnTextField';
+import type { AltinnTextFieldProps } from 'app-shared/components/AltinnTextField/AltinnTextField';
+import { AltinnTextField } from 'app-shared/components/AltinnTextField/AltinnTextField';
 
 jest.mock('./AltinnTextField.module.css', () => ({
   withAsterisk: 'withAsterisk',
@@ -24,10 +25,13 @@ describe('AltinnTextField', () => {
     expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
   });
 
-  it.each([false, undefined])('Renders without withAsterisk class when "withAsterisk" is %s', (withAsterisk) => {
-    const { container } = render({ withAsterisk });
-    expect(container.firstChild).not.toHaveClass('withAsterisk'); // eslint-disable-line testing-library/no-node-access
-  });
+  it.each([false, undefined])(
+    'Renders without withAsterisk class when "withAsterisk" is %s',
+    (withAsterisk) => {
+      const { container } = render({ withAsterisk });
+      expect(container.firstChild).not.toHaveClass('withAsterisk'); // eslint-disable-line testing-library/no-node-access
+    },
+  );
 
   it('Renders with withAsterisk class when "withAsterisk" is true', () => {
     const { container } = render({ withAsterisk: true });
@@ -37,4 +41,3 @@ describe('AltinnTextField', () => {
 
 const render = (props: Partial<AltinnTextFieldProps> = {}) =>
   renderRtl(<AltinnTextField {...props} />);
-

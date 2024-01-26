@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './AccessListDetail.module.css';
-import { AccessList } from 'app-shared/types/ResourceAdm';
+import type { AccessList } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
 import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { config } from 'dotenv';
-import { ExtendedTestOptions } from './extenders/testExtend';
+import type { ExtendedTestOptions } from './extenders/testExtend';
 import { AppNames } from './enum/AppNames';
 
 config();
@@ -63,6 +63,29 @@ export default defineConfig<ExtendedTestOptions>({
       use: {
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         testAppName: AppNames.DATA_MODEL_APP,
+      },
+    },
+    {
+      name: 'dashboard',
+      dependencies: ['setup'],
+      testDir: './tests/dashboard/',
+      testMatch: '*.spec.ts',
+      teardown: 'teardown-dashboard',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.DASHBOARD_APP,
+        headless: true,
+      },
+    },
+    {
+      name: 'teardown-dashboard',
+      testDir: './tests/dashboard/',
+      testMatch: '*dashboard.teardown.ts',
+      use: {
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        testAppName: AppNames.DASHBOARD_APP,
       },
     },
   ],

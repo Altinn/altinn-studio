@@ -8,10 +8,7 @@ import type { IAppDataState } from './features/appData/appDataReducers';
 import type { IFormDesignerState } from './features/formDesigner/formDesignerReducer';
 
 export interface IReducers
-  extends IFormDesignerNameSpace<
-      Reducer<IFormDesignerState>,
-      Reducer<IAppDataState>
-    >,
+  extends IFormDesignerNameSpace<Reducer<IFormDesignerState>, Reducer<IAppDataState>>,
     ReducersMapObject {}
 
 const reducers: IReducers = {

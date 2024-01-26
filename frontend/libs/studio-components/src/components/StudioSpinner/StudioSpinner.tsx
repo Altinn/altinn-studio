@@ -1,4 +1,5 @@
-import React, { HTMLAttributes, forwardRef, useId } from 'react';
+import type { HTMLAttributes } from 'react';
+import React, { forwardRef, useId } from 'react';
 import { Paragraph, Spinner } from '@digdir/design-system-react';
 import type { SpinnerProps } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
 import { Fieldset, Radio, Textfield } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
-import { IGenericEditComponent } from '../componentConfig';
+import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
 import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
 import { TextResource } from '../../TextResource';

@@ -10,7 +10,7 @@ import type {
 export const moduleName = 'formDesigner';
 export const actions = {
   addApplicationMetadata: createAction<IAddApplicationMetadataAction>(
-    `${moduleName}/addApplicationMetadata`
+    `${moduleName}/addApplicationMetadata`,
   ),
   addApplicationMetadataFulfilled: createAction(`${moduleName}/addApplicationMetadataFulfilled`),
   addFormComponents: createAction<IAddFormComponentsAction>(`${moduleName}/addFormComponents`),

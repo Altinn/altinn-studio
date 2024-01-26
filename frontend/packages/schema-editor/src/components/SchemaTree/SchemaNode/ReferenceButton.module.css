@@ -1,10 +1,11 @@
 .root {
-  opacity: .6;
+  opacity: 0.6;
   height: var(--fds-sizing-6);
-  font-size: .6rem;
+  font-size: 0.6rem;
   padding: var(--fds-spacing-1);
 }
 
-.root:hover, .root:focus {
+.root:hover,
+.root:focus {
   opacity: 1;
 }

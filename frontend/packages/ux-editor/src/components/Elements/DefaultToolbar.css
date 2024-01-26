@@ -11,6 +11,6 @@
   border: 1px solid #ddd;
 }
 
-.a-item+.a-item-clone {
+.a-item + .a-item-clone {
   display: none !important;
 }

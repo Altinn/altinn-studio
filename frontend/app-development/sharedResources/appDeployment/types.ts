@@ -1,10 +1,10 @@
 import type { AxiosError } from 'axios';
-import { DeploymentStatus } from "../../features/appPublish/components/appDeploymentComponent";
+import type { DeploymentStatus } from '../../features/appPublish/components/appDeploymentComponent';
 
 export interface IBuild {
   id: string;
   status: string | number;
-  result: DeploymentStatus| string | number;
+  result: DeploymentStatus | string | number;
   started: string;
   finished: string;
 }

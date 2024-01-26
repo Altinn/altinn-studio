@@ -1,5 +1,5 @@
-import { FormContainer } from '../../types/FormContainer';
-import { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
+import type { FormContainer } from '../../types/FormContainer';
+import type { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 export const internalGroupComponentToExternal = (

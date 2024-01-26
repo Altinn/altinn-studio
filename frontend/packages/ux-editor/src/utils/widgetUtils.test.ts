@@ -1,5 +1,8 @@
-import { extractLanguagesFromWidgetTexts, extractTextsFromWidgetTextsByLanguage } from './widgetUtils';
-import { IWidgetTexts } from '../types/global';
+import {
+  extractLanguagesFromWidgetTexts,
+  extractTextsFromWidgetTextsByLanguage,
+} from './widgetUtils';
+import type { IWidgetTexts } from '../types/global';
 
 describe('widgetUtils', () => {
   describe('extractLanguagesFromWidgetTexts', () => {
@@ -9,35 +12,39 @@ describe('widgetUtils', () => {
 
     it('Returns an array with the language of the text if only one text is provided', () => {
       const language = 'nb';
-      expect(extractLanguagesFromWidgetTexts([{  language, resources: [] }])).toEqual([language]);
+      expect(extractLanguagesFromWidgetTexts([{ language, resources: [] }])).toEqual([language]);
     });
 
     it('Returns an array with the languages of the texts if multiple languages are provided', () => {
       const language1 = 'nb';
       const language2 = 'en';
-      expect(extractLanguagesFromWidgetTexts([
-        { language: language1, resources: [] },
-        { language: language2, resources: [] },
-      ])).toEqual([language1, language2]);
+      expect(
+        extractLanguagesFromWidgetTexts([
+          { language: language1, resources: [] },
+          { language: language2, resources: [] },
+        ]),
+      ).toEqual([language1, language2]);
     });
 
     it('Pushes each language only once', () => {
       const language1 = 'nb';
       const language2 = 'en';
-      expect(extractLanguagesFromWidgetTexts([
-        { language: language1, resources: [] },
-        { language: language2, resources: [] },
-        { language: language1, resources: [] },
-      ])).toEqual([language1, language2]);
+      expect(
+        extractLanguagesFromWidgetTexts([
+          { language: language1, resources: [] },
+          { language: language2, resources: [] },
+          { language: language1, resources: [] },
+        ]),
+      ).toEqual([language1, language2]);
     });
   });
 
   describe('extractTextsFromWidgetTextsByLanguage', () => {
     it('Returns an empty array if no texts with the given language exist', () => {
       const language = 'nb';
-      expect(extractTextsFromWidgetTextsByLanguage([
-        { language: 'en', resources: [] },
-      ], language)).toEqual([]);
+      expect(
+        extractTextsFromWidgetTextsByLanguage([{ language: 'en', resources: [] }], language),
+      ).toEqual([]);
     });
 
     it('Returns an array with the text resources of the text with the given language', () => {
@@ -60,10 +67,12 @@ describe('widgetUtils', () => {
         { language: otherLanguage, resources: otherTextResources },
         { language, resources: additionalTextResources },
       ];
-      expect(extractTextsFromWidgetTextsByLanguage(widgetTexts, language))
-        .toEqual(textResources.concat(additionalTextResources));
-      expect(extractTextsFromWidgetTextsByLanguage(widgetTexts, otherLanguage))
-        .toEqual(otherTextResources);
+      expect(extractTextsFromWidgetTextsByLanguage(widgetTexts, language)).toEqual(
+        textResources.concat(additionalTextResources),
+      );
+      expect(extractTextsFromWidgetTextsByLanguage(widgetTexts, otherLanguage)).toEqual(
+        otherTextResources,
+      );
     });
   });
 });

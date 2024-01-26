@@ -1,5 +1,5 @@
-import { ExternalComponent, ExternalData, ExternalFormLayout } from 'app-shared/types/api';
-import {
+import type { ExternalComponent, ExternalData, ExternalFormLayout } from 'app-shared/types/api';
+import type {
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
@@ -9,12 +9,12 @@ import {
 } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { externalSimpleComponentToInternal } from '../simpleComponentConverters';
-import { FormComponent } from '../../types/FormComponent';
-import { FormContainer } from '../../types/FormContainer';
+import type { FormComponent } from '../../types/FormComponent';
+import type { FormContainer } from '../../types/FormContainer';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { mapByProperty } from 'app-shared/utils/objectUtils';
-import { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
-import { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
+import type { ExternalGroupComponent } from '../../types/ExternalGroupComponent';
+import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 import { externalGroupComponentToInternal } from '../groupComponentConverters';
 import { findPageIndexInChildList, removePageIndexPrefix } from './pageIndexUtils';
 import {

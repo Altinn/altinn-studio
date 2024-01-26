@@ -1,7 +1,8 @@
-import { MutableRefObject, useRef, useEffect } from 'react';
-import BpmnModeler from 'bpmn-js/lib/Modeler';
+import type { MutableRefObject } from 'react';
+import { useRef, useEffect } from 'react';
+import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
-import Modeler from 'bpmn-js/lib/Modeler';
+import type Modeler from 'bpmn-js/lib/Modeler';
 import { useBpmnModeler } from './useBpmnModeler';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 

@@ -10,11 +10,19 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 export const SubApp = () => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { app } = useStudioUrlParams();
-  const [selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet] = useReactiveLocalStorage('layoutSet/' + app, null);
+  const [selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet] =
+    useReactiveLocalStorage('layoutSet/' + app, null);
 
   return (
     <Provider store={store}>
-      <AppContext.Provider value={{ previewIframeRef, selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet }}>
+      <AppContext.Provider
+        value={{
+          previewIframeRef,
+          selectedLayoutSet,
+          setSelectedLayoutSet,
+          removeSelectedLayoutSet,
+        }}
+      >
         <App />
       </AppContext.Provider>
     </Provider>

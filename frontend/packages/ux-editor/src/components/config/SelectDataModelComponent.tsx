@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { LegacySelect } from '@digdir/design-system-react';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import { FormField } from '../FormField';
-import { Option } from 'packages/text-editor/src/types';
+import type { Option } from 'packages/text-editor/src/types';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface ISelectDataModelProps {

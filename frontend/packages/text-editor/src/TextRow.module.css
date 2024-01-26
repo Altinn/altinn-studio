@@ -8,17 +8,25 @@
 }
 
 .textId {
-  max-width: 160px;
   overflow: scroll;
   overflow-wrap: break-word;
 }
 
 .textAreaCell {
-  min-width: 350px;
+  min-width: 450px;
   vertical-align: top;
 }
 
 .textEntryComponent textArea {
   margin: 10px 0px 0px 0;
   min-width: 340px;
+}
+
+.textIdContainer {
+  justify-content: space-between;
+  max-width: 300px;
+}
+
+.cellContent {
+  padding: 0px 15px;
 }
