@@ -3,14 +3,15 @@ import type { Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
-import { OverviewPage } from 'testing/playwright/pages/OverviewPage';
-import { UiEditorPage } from 'testing/playwright/pages/UiEditorPage';
-import { DataModelPage } from 'testing/playwright/pages/DataModelPage';
-import { TextEditorPage } from 'testing/playwright/pages/TextEditorPage';
-import { ProcessEditorPage } from 'testing/playwright/pages/ProcessEditorPage';
-import { DashboardPage } from 'testing/playwright/pages/DashboardPage';
-import { PreviewPage } from 'testing/playwright/pages/PreviewPage';
-import { DeployPage } from 'testing/playwright/pages/DeployPage';
+import { OverviewPage } from '../../pages/OverviewPage';
+import { UiEditorPage } from '../../pages/UiEditorPage';
+import { DataModelPage } from '../../pages/DataModelPage';
+import { TextEditorPage } from '../../pages/TextEditorPage';
+import { ProcessEditorPage } from '../../pages/ProcessEditorPage';
+import { DashboardPage } from '../../pages/DashboardPage';
+import { PreviewPage } from '../../pages/PreviewPage';
+import { DeployPage } from '../../pages/DeployPage';
+import { Header } from '../../components/Header';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -40,11 +41,12 @@ test('That it is possible to navigate from overview to the app builder page and 
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
+  const header = new Header(page, { app: testAppName });
 
-  await overviewPage.clickOnNavigateToPageInTopMenuHeader('create');
+  await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
 
-  await uiEditorPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage();
 });
 
@@ -54,11 +56,12 @@ test('That it is possible to navigate from overview to the datamodel page and ba
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
   const dataModelPage = new DataModelPage(page, { app: testAppName });
+  const header = new Header(page, { app: testAppName });
 
-  await overviewPage.clickOnNavigateToPageInTopMenuHeader('datamodel');
+  await header.clickOnNavigateToPageInTopMenuHeader('datamodel');
   await dataModelPage.verifyDataModelPage();
 
-  await dataModelPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage();
 });
 
@@ -68,11 +71,12 @@ test('That it is possible to navigate from overview to the text editor page and 
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
   const textEditorPage = new TextEditorPage(page, { app: testAppName });
+  const header = new Header(page, { app: testAppName });
 
-  await overviewPage.clickOnNavigateToPageInTopMenuHeader('texts');
+  await header.clickOnNavigateToPageInTopMenuHeader('texts');
   await textEditorPage.verifyTextEditorPage();
 
-  await textEditorPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage();
 });
 
@@ -82,11 +86,12 @@ test('That it is possible to navigate from overview to the process editor page a
 }) => {
   const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
   const processEditorPage = new ProcessEditorPage(page, { app: testAppName });
+  const header = new Header(page, { app: testAppName });
 
-  await overviewPage.clickOnNavigateToPageInTopMenuHeader('process-editor');
+  await header.clickOnNavigateToPageInTopMenuHeader('process-editor');
   await processEditorPage.verifyProcessEditorPage();
 
-  await processEditorPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage();
 });
 
@@ -94,10 +99,11 @@ test('That it is possible to navigate from overview to the dashboard page by cli
   page,
   testAppName,
 }) => {
-  const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
+  await setupAndVerifyOverviewPage(page, testAppName);
   const dashboardPage = new DashboardPage(page, { app: testAppName });
+  const header = new Header(page, { app: testAppName });
 
-  await overviewPage.clickOnNavigateToPageInTopMenuHeader('dashboard');
+  await header.clickOnNavigateToPageInTopMenuHeader('dashboard');
   await dashboardPage.verifyDashboardPage();
 });
 
@@ -105,14 +111,15 @@ test('That it is possible to navigate from overview to the preview page and back
   page,
   testAppName,
 }) => {
-  const overviewPage = await setupAndVerifyOverviewPage(page, testAppName);
+  await setupAndVerifyOverviewPage(page, testAppName);
   const previewPage = new PreviewPage(page, { app: testAppName });
   const uiEditor = new UiEditorPage(page, { app: testAppName });
+  const header = new Header(page, { app: testAppName });
 
-  await overviewPage.clickOnNavigateToPageInTopMenuHeader('preview');
+  await header.clickOnNavigateToPageInTopMenuHeader('preview');
   await previewPage.verifyPreviewPage();
 
-  await previewPage.clickOnNavigateToPageInTopMenuHeader('preview_back_to_editing');
+  await header.clickOnNavigateToPageInTopMenuHeader('preview_back_to_editing');
   await uiEditor.verifyUiEditorPage(null);
 });
 
@@ -129,6 +136,7 @@ test('That it is possible to navigate from overview to the deploy page and back 
   const dashboardPage = new DashboardPage(page, { app: testAppName });
   const overviewPage = new OverviewPage(page, { app: testAppName });
   const deployPage = new DeployPage(page, { app: testAppName });
+  const header = new Header(page, { app: testAppName });
 
   await dashboardPage.loadDashboardPage();
   await dashboardPage.verifyDashboardPage();
@@ -143,9 +151,9 @@ test('That it is possible to navigate from overview to the deploy page and back 
   await overviewPage.verifyOverviewPage(useTtdAsOrg);
 
   // Check Navigation
-  await overviewPage.clickOnNavigateToPageInTopMenuHeader('deploy');
+  await header.clickOnNavigateToPageInTopMenuHeader('deploy');
   await deployPage.verifyDeployPage(useTtdAsOrg);
 
-  await deployPage.clickOnNavigateToPageInTopMenuHeader('about');
+  await header.clickOnNavigateToPageInTopMenuHeader('about');
   await overviewPage.verifyOverviewPage(useTtdAsOrg);
 });

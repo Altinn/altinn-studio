@@ -14,17 +14,6 @@ const localeTextMap: Record<Locale, typeof nbTexts | typeof enTexts> = {
 
 type TextMockParams = Record<string, string>;
 
-type TopMenuNames =
-  | 'about'
-  | 'create'
-  | 'dashboard'
-  | 'datamodel'
-  | 'deploy'
-  | 'preview'
-  | 'preview_back_to_editing'
-  | 'process-editor'
-  | 'texts';
-
 export class BasePage extends RouterRoute {
   public readonly page: Page;
 
@@ -44,12 +33,5 @@ export class BasePage extends RouterRoute {
     }
 
     return text;
-  }
-
-  public async clickOnNavigateToPageInTopMenuHeader(page: TopMenuNames): Promise<void> {
-    await this.page
-      .getByRole('link', { name: this.textMock(`top_menu.${page}`), exact: true })
-      .first()
-      .click();
   }
 }
