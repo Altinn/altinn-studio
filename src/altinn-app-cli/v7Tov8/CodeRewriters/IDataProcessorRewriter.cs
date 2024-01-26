@@ -52,20 +52,26 @@ namespace altinn_app_cli.v7Tov8.CodeRewriters
             if (processDataWrite.ParameterList.Parameters.Count == 3 &&
                 processDataWrite.ReturnType.ToString() == "Task<bool>")
             {
-                processDataWrite = AddParameter_ChangedFields(processDataWrite);
+                processDataWrite = AddParameterToProcessDataWrite(processDataWrite);
                 processDataWrite = ChangeReturnType_FromTaskBool_ToTask(processDataWrite);
             }
 
             return processDataWrite;
         }
 
-        private MethodDeclarationSyntax AddParameter_ChangedFields(MethodDeclarationSyntax method)
+        private MethodDeclarationSyntax AddParameterToProcessDataWrite(MethodDeclarationSyntax method)
         {
             return method.ReplaceNode(method.ParameterList,
-                method.ParameterList.AddParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("previousData"))
-                    .WithLeadingTrivia(SyntaxFactory.Space)
-                    .WithType(SyntaxFactory.ParseTypeName("object?"))
-                    .WithLeadingTrivia(SyntaxFactory.Space)));
+                method.ParameterList.AddParameters(
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("previousData"))
+                        .WithLeadingTrivia(SyntaxFactory.Space)
+                        .WithType(SyntaxFactory.ParseTypeName("object?"))
+                        .WithLeadingTrivia(SyntaxFactory.Space),
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("language"))
+                        .WithLeadingTrivia(SyntaxFactory.Space)
+                        .WithType(SyntaxFactory.ParseTypeName("string?"))
+                        .WithLeadingTrivia(SyntaxFactory.Space)
+                    ));
         }
 
         private MethodDeclarationSyntax ChangeReturnType_FromTaskBool_ToTask(MethodDeclarationSyntax method)
