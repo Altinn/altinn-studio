@@ -88,5 +88,28 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.DASHBOARD_APP,
       },
     },
+    {
+      name: 'git-sync',
+      dependencies: ['setup'],
+      testDir: './tests/git-sync/',
+      testMatch: '*.spec.ts',
+      teardown: 'teardown-git-sync',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.GIT_SYNC_APP,
+        headless: true,
+      },
+    },
+    {
+      name: 'teardown-git-sync',
+      testDir: './tests/git-sync/',
+      testMatch: '*git-sync.teardown.ts',
+      use: {
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        testAppName: AppNames.GIT_SYNC_APP,
+      },
+    },
   ],
 });
