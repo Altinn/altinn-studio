@@ -1,8 +1,8 @@
 import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { useTreeViewRootContext } from './useTreeViewRootContext';
-import { TreeViewRootContext } from '../TreeViewRoot';
-import type { TreeViewRootContextProps } from '../TreeViewRoot';
+import { StudioTreeViewRootContext } from '../StudioTreeViewRoot';
+import type { TreeViewRootContextProps } from '../StudioTreeViewRoot';
 
 describe('useTreeViewRootContext', () => {
   it('Accesses the TreeViewRootContext from the provider', () => {
@@ -22,7 +22,9 @@ describe('useTreeViewRootContext', () => {
     };
     const { result } = renderHook(useTreeViewRootContext, {
       wrapper: ({ children }) => (
-        <TreeViewRootContext.Provider value={props}>{children}</TreeViewRootContext.Provider>
+        <StudioTreeViewRootContext.Provider value={props}>
+          {children}
+        </StudioTreeViewRootContext.Provider>
       ),
     });
     expect(result.current).toBe(props);
@@ -32,7 +34,7 @@ describe('useTreeViewRootContext', () => {
   it('Throws an error if used outside of a TreeViewRootContext provider', () => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const renderFn = () => renderHook(useTreeViewRootContext);
-    expect(renderFn).toThrowError(
+    expect(renderFn).toThrow(
       'useTreeViewRootContext must be used within the TreeViewRoot component.',
     );
   });

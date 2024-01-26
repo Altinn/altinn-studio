@@ -6,17 +6,21 @@
   gap: var(--gap);
 }
 
-.root.selected .headingButton {
-  background-color: var(--fds-semantic-surface-action-first-no_fill-active);
-}
-
 .heading {
   display: contents;
 }
 
 .heading .headingButton {
   border-bottom-left-radius: 0;
+  border-left-color: transparent;
+  border-left-style: solid;
+  border-left-width: var(--studio-treeitem-vertical-line-width);
   border-top-left-radius: 0;
   font: var(--fds-typography-paragraph-short-large);
   min-height: var(--fds-sizing-12);
+}
+
+.root.selected .headingButton {
+  background-color: var(--studio-treeitem-selected-background-colour);
+  border-left-color: var(--studio-treeitem-vertical-line-colour-root);
 }
