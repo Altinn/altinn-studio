@@ -1,4 +1,4 @@
-import { FormComponent, FormComponentBase } from '../types/FormComponent';
+import type { FormComponent, FormComponentBase } from '../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 

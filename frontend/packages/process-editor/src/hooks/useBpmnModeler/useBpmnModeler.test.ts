@@ -1,6 +1,6 @@
 ﻿import { renderHook } from '@testing-library/react';
 import { useBpmnModeler } from './useBpmnModeler';
-import Modeler from 'bpmn-js/lib/Modeler';
+import type Modeler from 'bpmn-js/lib/Modeler';
 
 type ModelerMock = Modeler & { container: { container: HTMLDivElement } };
 

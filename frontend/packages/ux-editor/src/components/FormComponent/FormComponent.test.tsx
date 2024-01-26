@@ -13,10 +13,10 @@ import {
 import { component1IdMock, component1Mock } from '../../testing/layoutMock';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { ITextResource } from 'app-shared/types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
-import { UseMutationResult } from '@tanstack/react-query';
-import { IInternalLayout } from '../../types/global';
+import type { UseMutationResult } from '@tanstack/react-query';
+import type { IInternalLayout } from '../../types/global';
 
 const user = userEvent.setup();
 

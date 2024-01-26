@@ -1,7 +1,8 @@
 import React from 'react';
 import { renderWithMockStore } from '../../../test/mocks';
-import { SelectedSchemaEditor, SelectedSchemaEditorProps } from './SelectedSchemaEditor';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { SelectedSchemaEditorProps } from './SelectedSchemaEditor';
+import { SelectedSchemaEditor } from './SelectedSchemaEditor';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -9,7 +10,7 @@ import { datamodelNameMock } from 'app-shared/mocks/datamodelMetadataMocks';
 import userEvent from '@testing-library/user-event';
 import { dataMock } from '@altinn/schema-editor/mockData';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { SchemaEditorAppProps } from '@altinn/schema-editor/SchemaEditorApp';
+import type { SchemaEditorAppProps } from '@altinn/schema-editor/SchemaEditorApp';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 

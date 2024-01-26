@@ -1,7 +1,8 @@
-import React, { MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import React from 'react';
 import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';

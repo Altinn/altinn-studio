@@ -7,7 +7,9 @@ const templatePath = getTemplatePath('schema.template.json');
 const template = fs.readFileSync(templatePath, 'utf-8');
 
 const getModel = (modelname) => {
-  return template.replaceAll('__modelname__', modelname).replaceAll('__datamodelid__', crypto.randomUUID());
+  return template
+    .replaceAll('__modelname__', modelname)
+    .replaceAll('__datamodelid__', crypto.randomUUID());
 };
 
 module.exports = (req, res) => {

@@ -1,11 +1,10 @@
+import type { Expression, SubExpression } from '../types/Expressions';
 import {
   DataSource,
-  Expression,
   ExpressionFunction,
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
   Operator,
-  SubExpression,
 } from '../types/Expressions';
 import {
   addDataSourceToSubExpression,
@@ -52,7 +51,7 @@ import {
 } from '../testing/expressionMocks';
 import { deepCopy } from 'app-shared/pure';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import { FormContainer } from '../types/FormContainer';
+import type { FormContainer } from '../types/FormContainer';
 
 describe('expressionsUtils', () => {
   describe('convertSubExpression', () => {

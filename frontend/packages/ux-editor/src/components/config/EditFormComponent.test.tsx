@@ -2,13 +2,13 @@ import React from 'react';
 import { EditFormComponent } from './EditFormComponent';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FormComponent } from '../../types/FormComponent';
+import type { FormComponent } from '../../types/FormComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
-import { DatamodelMetadataResponse } from 'app-shared/types/api';
+import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 
 const user = userEvent.setup();
 

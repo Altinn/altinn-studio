@@ -66,9 +66,7 @@
           "description": "The text shown in column title when component is used in repeating group (optional). If it is not specified, 'title' text is used."
         }
       },
-      "required": [
-        "title"
-      ],
+      "required": ["title"],
       "additionalProperties": true
     },
     "basicDataModelBindings": {
@@ -82,9 +80,7 @@
           "description": "Data model binding for components connection to a single field in the data model"
         }
       },
-      "required": [
-        "simpleBinding"
-      ],
+      "required": ["simpleBinding"],
       "additionalProperties": false
     },
     "gridProps": {
@@ -149,9 +145,7 @@
       "type": "integer",
       "maximum": 12,
       "minimum": 1,
-      "examples": [
-        12
-      ]
+      "examples": [12]
     },
     "labelSettings": {
       "type": "object",
@@ -173,22 +167,14 @@
           "title": "Page break before",
           "type": "string",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "enum": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "enum": ["auto", "always", "avoid"],
           "default": "auto"
         },
         "breakAfter": {
           "title": "Page break after",
           "type": "string",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "enum": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "enum": ["auto", "always", "avoid"],
           "default": "auto"
         }
       }
@@ -312,10 +298,7 @@
           "description": "The option value."
         }
       },
-      "required": [
-        "label",
-        "value"
-      ]
+      "required": ["label", "value"]
     },
     "gridRow": {
       "properties": {
@@ -354,9 +337,7 @@
           }
         }
       },
-      "required": [
-        "cells"
-      ]
+      "required": ["cells"]
     },
     "gridCellText": {
       "properties": {
@@ -367,9 +348,7 @@
         }
       },
       "$ref": "#/definitions/tableColumnOptions",
-      "required": [
-        "text"
-      ]
+      "required": ["text"]
     },
     "gridCellComponent": {
       "properties": {
@@ -380,9 +359,7 @@
         }
       },
       "$ref": "#/definitions/tableColumnOptions",
-      "required": [
-        "component"
-      ]
+      "required": ["component"]
     },
     "groupEditOptions": {
       "properties": {
@@ -390,13 +367,7 @@
           "title": "Edit mode",
           "description": "Mode for how repeating group table is displayed in edit mode",
           "type": "string",
-          "enum": [
-            "hideTable",
-            "likert",
-            "showAll",
-            "showTable",
-            "onlyTable"
-          ]
+          "enum": ["hideTable", "likert", "showAll", "showTable", "onlyTable"]
         },
         "filter": {
           "title": "Filter",
@@ -451,10 +422,7 @@
             },
             {
               "type": "string",
-              "enum": [
-                "first",
-                "last"
-              ]
+              "enum": ["first", "last"]
             }
           ]
         },
@@ -471,11 +439,7 @@
           "title": "Panel variant",
           "description": "Change the look of the panel.",
           "type": "string",
-          "enum": [
-            "info",
-            "warning",
-            "success"
-          ],
+          "enum": ["info", "warning", "success"],
           "default": "info"
         },
         "showIcon": {
@@ -488,10 +452,7 @@
           "title": "Icon url",
           "description": "Url of the icon to be shown in panel. Can be relative if hosted by app or full if referencing a cdn or other hosting.",
           "type": "string",
-          "examples": [
-            "fancyIcon.svg",
-            "https://cdn.example.com/fancyIcon.svg"
-          ]
+          "examples": ["fancyIcon.svg", "https://cdn.example.com/fancyIcon.svg"]
         },
         "iconAlt": {
           "title": "Icon alt",
@@ -507,10 +468,7 @@
               "type": "string",
               "title": "Group",
               "description": "Group reference. Can be either the group id or the group data model binding.",
-              "examples": [
-                "the-group-id",
-                "some.model.theGroup"
-              ]
+              "examples": ["the-group-id", "some.model.theGroup"]
             }
           }
         }
@@ -547,10 +505,7 @@
           "description": "The pagination size that is set to default."
         }
       },
-      "required": [
-        "alternatives",
-        "default"
-      ]
+      "required": ["alternatives", "default"]
     },
     "tableColumnOptions": {
       "title": "Column options",
@@ -579,11 +534,7 @@
           "title": "Align Text",
           "description": "Choose text alignment between 'left', 'center', or 'right' for text in table cells. Defaults to 'left' for text and 'right' for numbers.",
           "type": "string",
-          "enum": [
-            "left",
-            "center",
-            "right"
-          ]
+          "enum": ["left", "center", "right"]
         },
         "textOverflow": {
           "title": "Text Overflow",

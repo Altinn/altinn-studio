@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { BrregSearchResult, BrregSubPartySearchResult } from 'app-shared/types/ResourceAdm';
-import { AxiosError } from 'axios';
+import type { BrregSearchResult, BrregSubPartySearchResult } from 'app-shared/types/ResourceAdm';
+import type { AxiosError } from 'axios';
 
 export const useSubPartiesRegistryQuery = (searchUrl: string) => {
   const { getSubParties } = useServicesContext();

@@ -5,21 +5,22 @@ import {
   internalExpressionWithMultipleSubExpressions,
   parsableExternalExpression,
 } from '../../../../testing/expressionMocks';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { formDesignerMock } from '../../../../testing/stateMocks';
-import { IFormLayouts } from '../../../../types/global';
+import type { IFormLayouts } from '../../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
-import { ExpressionContent, ExpressionContentProps } from './ExpressionContent';
+import type { ExpressionContentProps } from './ExpressionContent';
+import { ExpressionContent } from './ExpressionContent';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ExpressionPropertyBase } from '../../../../types/Expressions';
 import { FormContext } from '../../../../containers/FormContext';
 import { formContextProviderMock } from '../../../../testing/formContextMocks';
-import { FormComponent } from '../../../../types/FormComponent';
+import type { FormComponent } from '../../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormContainer } from '../../../../types/FormContainer';
+import type { FormContainer } from '../../../../types/FormContainer';
 
 const org = 'org';
 const app = 'app';

@@ -1,11 +1,7 @@
-import React, { ReactElement, ReactNode } from 'react';
-import {
-  extractNameFromPointer,
-  isNodeValidParent,
-  isReference,
-  SchemaModel,
-  UiSchemaNode,
-} from '@altinn/schema-model';
+import type { ReactElement, ReactNode } from 'react';
+import React from 'react';
+import type { SchemaModel, UiSchemaNode } from '@altinn/schema-model';
+import { extractNameFromPointer, isNodeValidParent, isReference } from '@altinn/schema-model';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { renderSchemaNodeList } from '../renderSchemaNodeList';
 import { renderIcon } from './renderIcon';

@@ -1,10 +1,11 @@
-import React, { MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import React from 'react';
 import classes from './ToolbarItemComponent.module.css';
 import { StudioButton } from '@studio/components';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface IToolbarItemProvidedProps {
   componentType: ComponentType;

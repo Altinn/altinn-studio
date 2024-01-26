@@ -1,4 +1,4 @@
-import { UiSchemaNodes } from '../../types';
+import type { UiSchemaNodes } from '../../types';
 import { nodeMockBase } from '../../../test/uiSchemaMock';
 import { getPointers } from './getPointers';
 

@@ -33,7 +33,7 @@ describe('useTreeViewRootContext', () => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const renderFn = () => renderHook(useTreeViewRootContext);
     expect(renderFn).toThrowError(
-      'useTreeViewRootContext must be used within the TreeViewRoot component.'
+      'useTreeViewRootContext must be used within the TreeViewRoot component.',
     );
   });
 });

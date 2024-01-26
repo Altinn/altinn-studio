@@ -42,4 +42,33 @@ describe('Preview', () => {
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
     expect(previewLimitationsAlert).toBeInTheDocument();
   });
+
+  it('should not display open preview button if preview is open', () => {
+    const previewIframeRef = createRef<HTMLIFrameElement>();
+    renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview />);
+
+    const showPreviewButton = screen.queryByRole('button', {
+      name: textMock('ux_editor.open_preview'),
+    });
+
+    expect(showPreviewButton).not.toBeInTheDocument();
+  });
+
+  it('should be possible to toggle preview window', async () => {
+    const user = userEvent.setup();
+    const previewIframeRef = createRef<HTMLIFrameElement>();
+    renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview />);
+
+    const hidePreviewButton = screen.getByRole('button', {
+      name: textMock('ux_editor.close_preview'),
+    });
+    await act(() => user.click(hidePreviewButton));
+    expect(hidePreviewButton).not.toBeInTheDocument();
+
+    const showPreviewButton = screen.getByRole('button', {
+      name: textMock('ux_editor.open_preview'),
+    });
+    await act(() => user.click(showPreviewButton));
+    expect(showPreviewButton).not.toBeInTheDocument();
+  });
 });

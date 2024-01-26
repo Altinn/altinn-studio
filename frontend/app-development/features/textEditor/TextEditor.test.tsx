@@ -4,7 +4,7 @@ import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-librar
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
 import * as testids from '../../../testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -92,10 +92,12 @@ describe('TextEditor', () => {
 
     await render();
 
-    const editButton = screen.getByRole('button', { name: 'toggle-textkey-edit' });
+    const editButton = screen.getByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode'),
+    });
     await act(() => editButton.click());
 
-    const textarea = screen.getByRole('textbox', { name: 'tekst key edit' });
+    const textarea = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
     await act(() => user.clear(textarea));
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());

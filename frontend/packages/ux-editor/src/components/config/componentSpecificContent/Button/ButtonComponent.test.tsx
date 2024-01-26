@@ -5,7 +5,7 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { ButtonComponent } from './ButtonComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
-import { IGenericEditComponent } from '../../componentConfig';
+import type { IGenericEditComponent } from '../../componentConfig';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
@@ -25,7 +25,9 @@ const defaultProps: IGenericEditComponent = {
 describe('ButtonComponent', () => {
   it('should render title text resource bindings for Button component', async () => {
     await render();
-    expect(screen.getByText(textMock('ux_editor.modal_properties_textResourceBindings_title'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_textResourceBindings_title')),
+    ).toBeInTheDocument();
   });
 
   it('should render next and back text resource bindings for NavigationButtons component', async () => {
@@ -35,8 +37,12 @@ describe('ButtonComponent', () => {
         type: ComponentType.NavigationButtons,
       },
     });
-    expect(screen.getByText(textMock('ux_editor.modal_properties_textResourceBindings_next'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('ux_editor.modal_properties_textResourceBindings_back'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_textResourceBindings_next')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_textResourceBindings_back')),
+    ).toBeInTheDocument();
   });
 });
 

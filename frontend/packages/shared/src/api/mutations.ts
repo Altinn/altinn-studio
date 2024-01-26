@@ -36,25 +36,25 @@ import {
   accessListMemberPath,
   resourceAccessListPath,
 } from 'app-shared/api/paths';
-import { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
-import { AddRepoParams } from 'app-shared/types/api';
-import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
-import { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
-import { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
-import { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
-import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
-import { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
-import { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
+import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
+import type { AddRepoParams } from 'app-shared/types/api';
+import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
+import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
+import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
+import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
+import type { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
 import type { Policy } from '@altinn/policy-editor';
 import type { NewResource, AccessList, Resource, JsonPatch } from 'app-shared/types/ResourceAdm';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { AppConfig } from 'app-shared/types/AppConfig';
-import { Repository } from 'app-shared/types/Repository';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { Repository } from 'app-shared/types/Repository';
 
 const headers = {
   Accept: 'application/json',

@@ -1,6 +1,6 @@
 import classes from './AltinnSubMenu.module.css';
 import React from 'react';
-import { AltinnHeaderVariant } from '../altinnHeader/types';
+import type { AltinnHeaderVariant } from '../altinnHeader/types';
 import classnames from 'classnames';
 
 export interface AltinnSubMenuProps {

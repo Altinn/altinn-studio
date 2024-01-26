@@ -1,11 +1,11 @@
 ### Default
 
 ```jsx
-<AltinnContentLoader/>
+<AltinnContentLoader />
 ```
 
 ### height=125
 
 ```jsx
-<AltinnContentLoader height={125}/>
+<AltinnContentLoader height={125} />
 ```

@@ -6,14 +6,14 @@ import { BASE_CONTAINER_ID, DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ITextResources } from 'app-shared/types/global';
+import type { ITextResources } from 'app-shared/types/global';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormContext } from '../../FormContext';
-import { IInternalLayout } from '../../../types/global';
-import { FormComponent } from '../../../types/FormComponent';
-import { FormContainer } from '../../../types/FormContainer';
+import type { IInternalLayout } from '../../../types/global';
+import type { FormComponent } from '../../../types/FormComponent';
+import type { FormContainer } from '../../../types/FormContainer';
 
 const user = userEvent.setup();
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconProps } from '../types';
+import type { IconProps } from '../types';
 import { SvgTemplate } from './SvgTemplate';
 
 export const Group = (props: IconProps): JSX.Element => {

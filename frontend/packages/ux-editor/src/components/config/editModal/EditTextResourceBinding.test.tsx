@@ -1,5 +1,6 @@
 import React from 'react';
-import { EditTextResourceBinding, EditTextResourceBindingProps } from './EditTextResourceBinding';
+import type { EditTextResourceBindingProps } from './EditTextResourceBinding';
+import { EditTextResourceBinding } from './EditTextResourceBinding';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -11,7 +12,7 @@ import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuer
 import type { ITextResource } from 'app-shared/types/global';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
 

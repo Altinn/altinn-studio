@@ -174,5 +174,4 @@ context('Resourceadm', () => {
     cy.url().should('include', '/about');
   });
   */
-
 });

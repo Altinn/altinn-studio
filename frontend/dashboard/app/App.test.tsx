@@ -4,7 +4,7 @@ import { MockServicesContextWrapper } from '../dashboardTestUtils';
 
 import { App } from './App';
 import { textMock } from '../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const renderWithMockServices = (services: Partial<ServicesContextProps> = {}) => {
   render(

@@ -1,11 +1,12 @@
-import { QueryClient } from '@tanstack/react-query';
-import React, { ReactNode } from 'react';
+import type { QueryClient } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import {
+import type {
   ServicesContextProps,
-  ServicesContextProvider,
   ServicesContextProviderProps,
 } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientConfigMock, createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 

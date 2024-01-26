@@ -1,5 +1,5 @@
-import { IDataModelBindings, ITextResourceBindings } from './global';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { IDataModelBindings, ITextResourceBindings } from './global';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export interface FormContainer {
   dataModelBindings?: IDataModelBindings;

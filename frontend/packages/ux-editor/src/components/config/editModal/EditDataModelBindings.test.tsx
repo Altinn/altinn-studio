@@ -2,12 +2,12 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
-import { IAppDataState } from '../../../features/appData/appDataReducers';
+import type { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import { DatamodelMetadataResponse } from 'app-shared/types/api';
+import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 
 const datamodelMetadata: DatamodelMetadataResponse = {
   elements: {

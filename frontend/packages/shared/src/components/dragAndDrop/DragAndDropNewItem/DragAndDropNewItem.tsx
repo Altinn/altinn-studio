@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { useDrag } from 'react-dnd';
 import type { NewDndItem } from 'app-shared/types/dndTypes';
 import { DraggableEditorItemType } from 'app-shared/types/dndTypes';

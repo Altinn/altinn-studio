@@ -1,5 +1,5 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { Organization } from 'app-shared/types/Organization';
+import type { Organization } from 'app-shared/types/Organization';
 
 type GetUidFilter = {
   userId: number;

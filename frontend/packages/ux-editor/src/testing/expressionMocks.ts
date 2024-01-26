@@ -1,10 +1,9 @@
+import type { Expression, SubExpression } from '../types/Expressions';
 import {
   DataSource,
-  Expression,
   ExpressionFunction,
   ExpressionPropertyBase,
   Operator,
-  SubExpression,
 } from '../types/Expressions';
 import { component1Mock } from './layoutMock';
 

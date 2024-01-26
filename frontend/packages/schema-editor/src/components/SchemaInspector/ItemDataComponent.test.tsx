@@ -1,5 +1,6 @@
 import { ItemDataComponent } from './ItemDataComponent';
-import { SchemaModel, UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -20,9 +21,7 @@ const user = userEvent.setup();
 const saveDatamodel = jest.fn();
 const defaultNode: UiSchemaNode = combinationNodeMock;
 
-const renderItemDataComponent = (
-  schemaNode: UiSchemaNode = defaultNode,
-) => {
+const renderItemDataComponent = (schemaNode: UiSchemaNode = defaultNode) => {
   const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   return renderWithProviders({
     appContextProps: {
@@ -30,7 +29,7 @@ const renderItemDataComponent = (
       save: saveDatamodel,
       selectedNodePointer: schemaNode.pointer,
     },
-  })(<ItemDataComponent schemaNode={schemaNode}/>);
+  })(<ItemDataComponent schemaNode={schemaNode} />);
 };
 
 describe('ItemDataComponent', () => {
@@ -44,7 +43,7 @@ describe('ItemDataComponent', () => {
   test('"Multiple answers" checkbox should not appear if selected item is combination', async () => {
     renderItemDataComponent();
     await screen.findByLabelText(textMock('schema_editor.name'));
-    expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull()
+    expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull();
   });
 
   test('Model is saved when "multiple answers" checkbox is checked', async () => {

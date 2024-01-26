@@ -1,9 +1,12 @@
 import { Keyword, ObjectKind } from '../../types';
-import { createNodeBase, getUniqueNodePath, isFieldOrCombination, isReference, pointerIsDefinition } from '../utils';
 import {
-  getNodeIndexByPointer,
-  getParentNodeByPointer,
-} from '../selectors';
+  createNodeBase,
+  getUniqueNodePath,
+  isFieldOrCombination,
+  isReference,
+  pointerIsDefinition,
+} from '../utils';
+import { getNodeIndexByPointer, getParentNodeByPointer } from '../selectors';
 import { renameNodePointer } from './rename-node';
 import { insertSchemaNode } from './create-node';
 import { ROOT_POINTER } from '../constants';
@@ -21,7 +24,7 @@ export const convertPropToType = (model: SchemaModel, pointer: string): SchemaMo
 
   const promotedNodePointer = getUniqueNodePath(
     model.asArray(),
-    makePointerFromArray([Keyword.Definitions, pointer.split('/').pop()])
+    makePointerFromArray([Keyword.Definitions, pointer.split('/').pop()]),
   );
 
   const updatedUiSchemaNodes = renameNodePointer(model.asArray(), pointer, promotedNodePointer);
@@ -57,7 +60,7 @@ export const convertPropToType = (model: SchemaModel, pointer: string): SchemaMo
       children,
       isRequired: false,
       isArray: false,
-    })
+    }),
   );
   return SchemaModel.fromArray(finalNodes);
 };

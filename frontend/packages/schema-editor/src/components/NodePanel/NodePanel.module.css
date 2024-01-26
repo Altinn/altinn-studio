@@ -1,0 +1,14 @@
+.top {
+  box-shadow: var(--fds-shadow-small);
+}
+
+.backButton {
+  background-color: var(--fds-semantic-surface-action-subtle);
+  border: none;
+  height: var(--fds-sizing-6);
+  width: 100%;
+}
+
+.backButton:hover {
+  background-color: var(--fds-semantic-surface-action-subtle-hover);
+}
