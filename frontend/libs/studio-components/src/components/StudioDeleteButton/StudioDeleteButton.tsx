@@ -1,9 +1,10 @@
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';
-import { OverridableComponent } from '../../types/OverridableComponent';
+import type { OverridableComponent } from '../../types/OverridableComponent';
 import { forwardRef } from 'react';
 import { TrashIcon } from '@studio/icons';
-import React, { MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import React from 'react';
 
 export interface StudioDeleteButtonProps extends StudioButtonProps {
   onDelete: () => void;

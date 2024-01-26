@@ -5,8 +5,8 @@ import type { IRuleModelFieldElement } from '../../types/global';
 import { withTranslation } from 'react-i18next';
 import classes from './RuleComponent.module.css';
 import Modal from 'react-modal';
-import { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
-import i18next from 'i18next';
+import type { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
+import type i18next from 'i18next';
 import { Buldings2Icon } from '@navikt/aksel-icons';
 
 export interface IRuleComponentProps {
@@ -162,7 +162,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                       <React.Fragment key={paramName}>
                         <label className={classes.label} htmlFor={paramName}>
                           {this.props.t(
-                            'ux_editor.modal_configure_rules_configure_input_param_helper'
+                            'ux_editor.modal_configure_rules_configure_input_param_helper',
                           )}
                         </label>
                         <div className={classes.configureInputParamsContainer} key={paramName}>
@@ -186,7 +186,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                         </div>
                       </React.Fragment>
                     );
-                  }
+                  },
                 )}
               </div>
               <div>

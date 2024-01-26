@@ -3,7 +3,7 @@ import { ErrorMessage, Textfield, LegacyPopover } from '@digdir/design-system-re
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { StudioButton } from '@studio/components';
 
 export interface CreateNewWrapperProps {

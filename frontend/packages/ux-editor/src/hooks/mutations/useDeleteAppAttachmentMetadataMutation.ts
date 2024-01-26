@@ -16,6 +16,6 @@ export const useDeleteAppAttachmentMetadataMutation = (org: string, app: string)
     onSuccess: (id: string) => {
       delete applicationMetadata[id];
       dispatch(ApplicationMetadataActions.getApplicationMetadataFulfilled({ applicationMetadata }));
-    }
+    },
   });
-}
+};

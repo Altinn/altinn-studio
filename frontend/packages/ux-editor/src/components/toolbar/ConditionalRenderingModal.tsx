@@ -8,16 +8,19 @@ import { useTranslation } from 'react-i18next';
 import {
   getAllLayoutContainers,
   getAllLayoutComponents,
-  getFullLayoutOrder
+  getFullLayoutOrder,
 } from '../../selectors/formLayoutSelectors';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
-import { ConditionalRenderingConnection } from 'app-shared/types/RuleConfig';
-import { addConditionalRenderingConnection, deleteConditionalRenderingConnection } from '../../utils/ruleConfigUtils';
+import type { ConditionalRenderingConnection } from 'app-shared/types/RuleConfig';
+import {
+  addConditionalRenderingConnection,
+  deleteConditionalRenderingConnection,
+} from '../../utils/ruleConfigUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
-import { useAppContext } from "../../hooks/useAppContext";
+import { useAppContext } from '../../hooks/useAppContext';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -38,7 +41,9 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
   const layoutOrder = getFullLayoutOrder(formLayouts);
   const { t } = useTranslation();
 
-  const conditionRules = ruleModel?.filter(({ type }: IRuleModelFieldElement) => type === 'condition');
+  const conditionRules = ruleModel?.filter(
+    ({ type }: IRuleModelFieldElement) => type === 'condition',
+  );
   const { conditionalRendering } = ruleConfig?.data ?? {};
 
   function selectConnection(newSelectedConnectionId: string) {
@@ -65,11 +70,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
 
   function renderConditionRuleConnections(): JSX.Element {
     if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
-      return (
-        <Typography variant='caption'>
-          {t('right_menu.rules_empty')}
-        </Typography>
-      );
+      return <Typography variant='caption'>{t('right_menu.rules_empty')}</Typography>;
     }
     return (
       <>

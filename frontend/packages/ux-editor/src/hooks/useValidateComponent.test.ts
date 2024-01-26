@@ -1,6 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ErrorCode, useValidateComponent } from './useValidateComponent';
-import {
+import type {
   FormCheckboxesComponent,
   FormComponent,
   FormRadioButtonsComponent,

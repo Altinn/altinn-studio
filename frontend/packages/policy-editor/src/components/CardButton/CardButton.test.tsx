@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { CardButton, CardButtonProps } from './CardButton';
+import type { CardButtonProps } from './CardButton';
+import { CardButton } from './CardButton';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';

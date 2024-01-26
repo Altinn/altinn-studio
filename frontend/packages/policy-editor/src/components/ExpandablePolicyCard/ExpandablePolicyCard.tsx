@@ -28,6 +28,16 @@ import {
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 
+const wellKnownActionsIds: string[] = [
+  'complete',
+  'confirm',
+  'delete',
+  'instantiate',
+  'read',
+  'sign',
+  'write',
+];
+
 export type ExpandablePolicyCardProps = {
   policyRule: PolicyRuleCard;
   actions: PolicyAction[];
@@ -196,16 +206,22 @@ export const ExpandablePolicyCard = ({
     savePolicy(updatedRules);
   };
 
-  /**
-   * Displays the actions
-   */
-  const displayActions = policyRule.actions.map((a, i) => {
-    return <ActionAndSubjectListItem key={i} title={a} onRemove={() => handleRemoveAction(i, a)} />;
+  const getTranslationByActionId = (actionId: string): string => {
+    return wellKnownActionsIds.includes(actionId)
+      ? t(`policy_editor.action_${actionId}`)
+      : actionId;
+  };
+
+  const displayActions = policyRule.actions.map((actionId, i) => {
+    return (
+      <ActionAndSubjectListItem
+        key={actionId}
+        title={getTranslationByActionId(actionId)}
+        onRemove={() => handleRemoveAction(i, actionId)}
+      />
+    );
   });
 
-  /**
-   * Handles the removal of actions
-   */
   const handleRemoveAction = (index: number, actionTitle: string) => {
     // Remove from selected list
     const updatedActions = [...policyRule.actions];
@@ -447,7 +463,10 @@ export const ExpandablePolicyCard = ({
         </Paragraph>
         <div className={classes.dropdownWrapper}>
           <LegacySelect
-            options={actionOptions}
+            options={actionOptions.map((option) => ({
+              ...option,
+              label: getTranslationByActionId(option.label),
+            }))}
             onChange={(value: string) => value !== null && handleClickActionInList(value)}
             disabled={actionOptions.length === 0}
             error={showErrors && hasRightsError}

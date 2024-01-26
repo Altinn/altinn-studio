@@ -2,14 +2,11 @@ import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
-import {
-  renderWithMockStore,
-  renderHookWithMockStore,
-} from '../../../../testing/mocks';
+import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { appDataMock } from '../../../../testing/stateMocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
-import { IGenericEditComponent } from '../../componentConfig';
+import type { IGenericEditComponent } from '../../componentConfig';
 
 const texts: Record<string, string> = {
   'validation_errors.required': 'Feltet er påkrevd!',

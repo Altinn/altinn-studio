@@ -1,4 +1,5 @@
-import React, { createRef, RefObject } from 'react';
+import type { RefObject } from 'react';
+import React, { createRef } from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { StudioDeleteButton } from './StudioDeleteButton';
 import type { StudioDeleteButtonProps } from './StudioDeleteButton';
@@ -45,7 +46,11 @@ describe('StudioDeleteButton', () => {
   });
 
   it('Supports polymorphism', () => {
-    render(<StudioButton as='a' href='/'>{buttonLabel}</StudioButton>);
+    render(
+      <StudioButton as='a' href='/'>
+        {buttonLabel}
+      </StudioButton>,
+    );
     expect(screen.getByRole('link')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });

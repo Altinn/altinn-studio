@@ -47,7 +47,7 @@ export const AnimateHeight = ({
         }, transitionDurationInMilliseconds);
       }
     },
-    [open, openOrClosed, prevOpen, shouldAnimate]
+    [open, openOrClosed, prevOpen, shouldAnimate],
   );
 
   const transition =

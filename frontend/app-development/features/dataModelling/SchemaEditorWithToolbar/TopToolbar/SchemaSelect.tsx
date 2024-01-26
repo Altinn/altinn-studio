@@ -4,10 +4,10 @@ import {
   findMetadataOptionByRelativeUrl,
   groupMetadataOptions,
 } from '../../../../utils/metadataUtils';
-import { MetadataOption } from '../../../../types/MetadataOption';
+import type { MetadataOption } from '../../../../types/MetadataOption';
 import { NativeSelect } from '@digdir/design-system-react';
 import classes from './SchemaSelect.module.css';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { useTranslation } from 'react-i18next';
 
 export interface ISchemaSelectProps {

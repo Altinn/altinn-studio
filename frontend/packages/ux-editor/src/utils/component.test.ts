@@ -1,4 +1,4 @@
-import { IOption } from '../types/global';
+import type { IOption } from '../types/global';
 import {
   addOptionToComponent,
   changeComponentOptionLabel,
@@ -9,7 +9,11 @@ import {
   setComponentProperty,
 } from './component';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
+import type {
+  FormCheckboxesComponent,
+  FormComponent,
+  FormRadioButtonsComponent,
+} from '../types/FormComponent';
 
 describe('Component utils', () => {
   describe('changeTextResourceBinding', () => {
@@ -34,7 +38,7 @@ describe('Component utils', () => {
         textResourceBindings: {
           [bindingKeyToKeep]: resourceKeyToKeep,
           [bindingKeyToChange]: newResourceKey,
-        }
+        },
       });
     });
   });
@@ -53,9 +57,7 @@ describe('Component utils', () => {
         dataModelBindings: {},
       };
       expect(
-        changeTextResourceBinding(component, 'title', newResourceKey)
-          .textResourceBindings
-          .title
+        changeTextResourceBinding(component, 'title', newResourceKey).textResourceBindings.title,
       ).toEqual(newResourceKey);
     });
   });
@@ -74,81 +76,76 @@ describe('Component utils', () => {
         dataModelBindings: {},
       };
       expect(
-        changeTextResourceBinding(component, 'description', newResourceKey)
-          .textResourceBindings
-          .description
+        changeTextResourceBinding(component, 'description', newResourceKey).textResourceBindings
+          .description,
       ).toEqual(newResourceKey);
     });
   });
 
   describe('addOptionToComponent', () => {
-    it.each([
-      ComponentType.Checkboxes,
-      ComponentType.RadioButtons
-    ] as (ComponentType.Checkboxes | ComponentType.RadioButtons)[])(
-      'Adds option to %s component',
-      (componentType) => {
-        const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
-          id: 'test',
-          type: componentType,
-          options: [
-            {
-              label: 'testLabel',
-              value: 'testValue',
-            }
-          ],
-          optionsId: null,
-          itemType: 'COMPONENT',
-          dataModelBindings: {},
-        };
-        const newOption: IOption = {
-          label: 'newTestLabel',
-          value: 'newTestValue',
-        };
-        expect(addOptionToComponent(component, newOption)).toEqual({
-          ...component,
-          options: [...component.options, newOption],
-        });
-      }
-    );
+    it.each([ComponentType.Checkboxes, ComponentType.RadioButtons] as (
+      | ComponentType.Checkboxes
+      | ComponentType.RadioButtons
+    )[])('Adds option to %s component', (componentType) => {
+      const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
+        id: 'test',
+        type: componentType,
+        options: [
+          {
+            label: 'testLabel',
+            value: 'testValue',
+          },
+        ],
+        optionsId: null,
+        itemType: 'COMPONENT',
+        dataModelBindings: {},
+      };
+      const newOption: IOption = {
+        label: 'newTestLabel',
+        value: 'newTestValue',
+      };
+      expect(addOptionToComponent(component, newOption)).toEqual({
+        ...component,
+        options: [...component.options, newOption],
+      });
+    });
   });
 
   describe('changeComponentOptionLabel', () => {
-    it.each([
-      ComponentType.Checkboxes,
-      ComponentType.RadioButtons
-    ] as (ComponentType.Checkboxes | ComponentType.RadioButtons)[])(
-      'Changes label of option with given value on %s component',
-      (componentType) => {
-        const valueOfWhichLabelShouldChange = 'testValue2';
-        const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
-          id: 'test',
-          type: componentType,
-          options: [
-            {
-              label: 'testLabel',
-              value: 'testValue',
-            },
-            {
-              label: 'testLabel2',
-              value: valueOfWhichLabelShouldChange,
-            },
-          ],
-          optionsId: null,
-          itemType: 'COMPONENT',
-          dataModelBindings: {},
-        };
-        const newLabel = 'newTestLabel';
-        expect(changeComponentOptionLabel(
-          component,
-          valueOfWhichLabelShouldChange,
-          newLabel
-        ).options).toEqual(expect.arrayContaining([{
-          label: newLabel,
-          value: valueOfWhichLabelShouldChange,
-        }]));
-      }
-    );
+    it.each([ComponentType.Checkboxes, ComponentType.RadioButtons] as (
+      | ComponentType.Checkboxes
+      | ComponentType.RadioButtons
+    )[])('Changes label of option with given value on %s component', (componentType) => {
+      const valueOfWhichLabelShouldChange = 'testValue2';
+      const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
+        id: 'test',
+        type: componentType,
+        options: [
+          {
+            label: 'testLabel',
+            value: 'testValue',
+          },
+          {
+            label: 'testLabel2',
+            value: valueOfWhichLabelShouldChange,
+          },
+        ],
+        optionsId: null,
+        itemType: 'COMPONENT',
+        dataModelBindings: {},
+      };
+      const newLabel = 'newTestLabel';
+      expect(
+        changeComponentOptionLabel(component, valueOfWhichLabelShouldChange, newLabel).options,
+      ).toEqual(
+        expect.arrayContaining([
+          {
+            label: newLabel,
+            value: valueOfWhichLabelShouldChange,
+          },
+        ]),
+      );
+    });
   });
 
   describe('generateFormItem', () => {
@@ -157,19 +154,23 @@ describe('Component utils', () => {
       (componentType) => {
         const id = 'testId';
         const component = generateFormItem(componentType, id);
-        expect(component).toEqual(expect.objectContaining({
-          id,
-          type: componentType,
-          itemType: 'COMPONENT',
-        }));
-      }
+        expect(component).toEqual(
+          expect.objectContaining({
+            id,
+            type: componentType,
+            itemType: 'COMPONENT',
+          }),
+        );
+      },
     );
 
     it('Generates container when type is Group', () => {
       const component = generateFormItem(ComponentType.Group, 'testId');
-      expect(component).toEqual(expect.objectContaining({
-        itemType: 'CONTAINER',
-      }));
+      expect(component).toEqual(
+        expect.objectContaining({
+          itemType: 'CONTAINER',
+        }),
+      );
     });
   });
 
@@ -193,62 +194,55 @@ describe('Component utils', () => {
   describe('getUnsupportedPropertyTypes', () => {
     it('Returns empty array when only properties are provided', () => {
       const properties = {
-        'testProperty1': {
+        testProperty1: {
           type: 'string',
         },
-        'testProperty2': {
+        testProperty2: {
           type: 'number',
         },
-        'testProperty3': {
+        testProperty3: {
           type: 'array',
           items: {
             type: 'string',
           },
         },
-        'testProperty4': {
+        testProperty4: {
           $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
         },
-        'testProperty5': {
+        testProperty5: {
           type: 'integer',
         },
-        'testProperty6': {
+        testProperty6: {
           type: 'object',
         },
-        'testProperty7': {
+        testProperty7: {
           type: 'boolean',
         },
       };
-      expect(getUnsupportedPropertyTypes(
-        properties,
-      )).toEqual([]);
+      expect(getUnsupportedPropertyTypes(properties)).toEqual([]);
     });
     it('Returns empty array when no properties are provided', () => {
       const properties = {};
-      expect(getUnsupportedPropertyTypes(
-        properties,
-      )).toEqual([]);
+      expect(getUnsupportedPropertyTypes(properties)).toEqual([]);
     });
     it('Returns array of unsupported property keys when known unsupported property keys are provided', () => {
       const properties = {
-        'children': 'testValue',
+        children: 'testValue',
       };
-      expect(getUnsupportedPropertyTypes(
-        properties,
-        ['children'],
-      )).toEqual(['children']);
+      expect(getUnsupportedPropertyTypes(properties, ['children'])).toEqual(['children']);
     });
     it('Returns array of unsupported property keys when unsupported property keys are given', () => {
       const properties = {
-        'testProperty1': {
+        testProperty1: {
           $ref: 'testRef',
         },
-        'testProperty2': {
+        testProperty2: {
           type: 'array',
           items: {
             type: 'object',
           },
         },
-        'testProperty3': {
+        testProperty3: {
           type: 'string',
         },
       };
@@ -262,7 +256,7 @@ describe('Component utils', () => {
       expect(
         isPropertyTypeSupported({
           type: 'string',
-        })
+        }),
       ).toBe(true);
     });
 
@@ -270,7 +264,7 @@ describe('Component utils', () => {
       expect(
         isPropertyTypeSupported({
           $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
-        })
+        }),
       ).toBe(true);
     });
     it('should return true for property of array type with items that are type string', () => {
@@ -280,31 +274,29 @@ describe('Component utils', () => {
           items: {
             type: 'string',
           },
-        })
+        }),
       ).toBe(true);
     });
     it('should return true for property type object', () => {
       expect(
         isPropertyTypeSupported({
           type: 'object',
-        })
+        }),
       ).toBe(true);
     });
     it('should return false if property ref is not supported', () => {
       expect(
         isPropertyTypeSupported({
           $ref: 'test',
-        })
+        }),
       ).toBe(false);
     });
 
     it('should return true if property type is supported and propertyKey is undefined', () => {
       expect(
-        isPropertyTypeSupported(
-          {
-            type: 'string',
-          },
-        )
+        isPropertyTypeSupported({
+          type: 'string',
+        }),
       ).toBe(true);
     });
   });

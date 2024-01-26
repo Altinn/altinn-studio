@@ -10,9 +10,10 @@ import {
   SchemaModel,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders, RenderWithProvidersData } from '../../../test/renderWithProviders';
+import type { RenderWithProvidersData } from '../../../test/renderWithProviders';
+import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import * as testids from '../../../../../testing/testids';
 import { uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
 
@@ -47,6 +48,19 @@ const clickOpenAddNodeButtonInTree = async () => {
   const tree = screen.getByRole('tree');
   const buttons = within(tree).getAllByRole('button', { name: addNodeButtonTitle });
   await act(() => user.click(buttons[0]));
+};
+
+const typeName = 'TestType';
+const selectedTypePointer = `#/${Keyword.Definitions}/${typeName}`;
+const jsonSchemaTypePanel: JsonSchema = {
+  [Keyword.Definitions]: {
+    [typeName]: {
+      [Keyword.Type]: FieldType.Object,
+      [Keyword.Properties]: {
+        prop1: { [Keyword.Type]: FieldType.String },
+      },
+    },
+  },
 };
 
 describe('SchemaEditor', () => {
@@ -198,26 +212,9 @@ describe('SchemaEditor', () => {
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
 
-  test('when a type is selected, the type edit panel should be rendered', async () => {
-    const name = 'TestType';
-    const selectedTypePointer = `#/${Keyword.Definitions}/${name}`;
-    const jsonSchema: JsonSchema = {
-      [Keyword.Properties]: {
-        someProp: { [Keyword.Type]: FieldType.String },
-        testProp: { [Keyword.Reference]: selectedTypePointer },
-      },
-      [Keyword.Definitions]: {
-        TestType: {
-          [Keyword.Type]: FieldType.Object,
-          [Keyword.Properties]: {
-            prop1: { [Keyword.Type]: FieldType.String },
-            prop2: { [Keyword.Type]: FieldType.String },
-          },
-        },
-      },
-    };
-    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+  it('when a type is selected, the type edit panel should be rendered', async () => {
     const setSelectedTypePointerMock = jest.fn();
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     renderEditor({
       appContextProps: {
         schemaModel,
@@ -227,36 +224,88 @@ describe('SchemaEditor', () => {
     });
     const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
     await act(() => user.click(type));
-    expect(screen.getByRole('heading', { name, level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: typeName, level: 1 })).toBeInTheDocument();
   });
 
   it('Navigates back to the datamodel when clicking the "back to datamodel" link', async () => {
-    const name = 'TestType';
-    const selectedTypePointer = `#/${Keyword.Definitions}/${name}`;
     const setSelectedTypePointer = jest.fn();
-    const jsonSchema: JsonSchema = {
-      [Keyword.Properties]: {
-        someProp: { [Keyword.Type]: FieldType.String },
-        testProp: { [Keyword.Reference]: selectedTypePointer },
-      },
-      [Keyword.Definitions]: {
-        TestType: {
-          [Keyword.Type]: FieldType.Object,
-          [Keyword.Properties]: {
-            prop1: { [Keyword.Type]: FieldType.String },
-            prop2: { [Keyword.Type]: FieldType.String },
-          },
-        },
-      },
-    };
-    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+    const setSelectedNodePointer = jest.fn();
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     const dataModelName = 'TestDatamodelName';
+
     renderEditor({
-      appContextProps: { schemaModel, selectedTypePointer, setSelectedTypePointer, name: dataModelName },
+      appContextProps: {
+        schemaModel,
+        selectedTypePointer,
+        setSelectedTypePointer,
+        name: dataModelName,
+        setSelectedNodePointer,
+      },
     });
-    const backButton = screen.getByRole('button', { name: textMock('schema_editor.back_to_datamodel') });
+
+    const backButton = screen.getByRole('button', {
+      name: textMock('schema_editor.back_to_datamodel'),
+    });
     await act(() => user.click(backButton));
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedNodePointer).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should not display the type panel when selectedTypePointer is null and selectedNodePointer is null/undefined', async () => {
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
+    renderEditor({
+      appContextProps: { schemaModel, selectedTypePointer: null, selectedNodePointer: undefined },
+    });
+    expect(screen.queryByRole('heading', { name: typeName, level: 1 })).not.toBeInTheDocument();
+  });
+
+  it('should close the type panel when deleting the selected unused type', async () => {
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const setSelectedTypePointer = jest.fn();
+    const setSelectedNodePointer = jest.fn();
+    renderEditor({
+      appContextProps: {
+        schemaModel,
+        selectedTypePointer,
+        setSelectedTypePointer,
+        setSelectedNodePointer,
+      },
+    });
+
+    const deleteButton = screen.getAllByRole('button', { name: textMock('general.delete') });
+    await act(() => user.click(deleteButton[0]));
+    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
+  });
+
+  it('should not close the type panel when deleting a property of the selected type', async () => {
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const setSelectedTypePointer = jest.fn();
+    const setSelectedNodePointer = jest.fn();
+
+    renderEditor({
+      appContextProps: {
+        schemaModel,
+        selectedTypePointer,
+        setSelectedTypePointer,
+        setSelectedNodePointer,
+      },
+    });
+
+    const prop1 = screen.getByTitle(/prop1/i);
+    const deleteButton = within(prop1).getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await act(() => user.click(deleteButton));
+
+    expect(setSelectedTypePointer).not.toHaveBeenCalled();
+    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });
 });

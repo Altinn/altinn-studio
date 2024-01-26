@@ -4,9 +4,10 @@ import {
   internalParsableComplexExpression,
   internalUnParsableComplexExpression,
 } from '../../../../../testing/expressionMocks';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../testing/mocks';
-import { ComplexExpression, ComplexExpressionProps } from './ComplexExpression';
+import type { ComplexExpressionProps } from './ComplexExpression';
+import { ComplexExpression } from './ComplexExpression';
 import { stringifyData } from '../../../../../utils/jsonUtils';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 

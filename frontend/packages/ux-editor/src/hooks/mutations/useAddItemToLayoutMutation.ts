@@ -23,18 +23,26 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
 
   return useMutation({
     mutationFn: ({ componentType, newId, parentId, index }: AddFormItemMutationArgs) => {
-
       const updatedLayout = addItemOfType(layout, componentType, newId, parentId, index);
 
       if (!layout) return;
 
       return formLayoutsMutation.mutateAsync(updatedLayout).then(() => {
-        if (componentType === ComponentType.FileUpload || componentType === ComponentType.FileUploadWithTag) {
-          const taskId = layoutSets ? layoutSets?.sets.find(set => set.id === layoutSetName)?.tasks[0] : TASKID_FOR_STATELESS_APPS;
+        if (
+          componentType === ComponentType.FileUpload ||
+          componentType === ComponentType.FileUploadWithTag
+        ) {
+          const taskId = layoutSets
+            ? layoutSets?.sets.find((set) => set.id === layoutSetName)?.tasks[0]
+            : TASKID_FOR_STATELESS_APPS;
           const fileUploadComponent = updatedLayout.components[newId];
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.
-          const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
-            fileUploadComponent as FormFileUploaderComponent;
+          const {
+            maxNumberOfAttachments,
+            minNumberOfAttachments,
+            maxFileSizeInMB,
+            validFileEndings,
+          } = fileUploadComponent as FormFileUploaderComponent;
           appAttachmentMetadataMutation.mutate({
             id: newId,
             taskId: taskId,
@@ -46,6 +54,6 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
         }
         return newId; // Returns created id
       });
-    }
-  })
-}
+    },
+  });
+};

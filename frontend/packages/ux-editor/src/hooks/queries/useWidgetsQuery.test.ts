@@ -1,8 +1,8 @@
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useWidgetsQuery } from './useWidgetsQuery';
-import { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
-import { IWidget } from '../../types/global';
+import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
+import type { IWidget } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
@@ -27,7 +27,7 @@ jest.mock('app-shared/utils/networking', () => ({
       case widgetUrl2:
         return widget2;
     }
-  }
+  },
 }));
 
 describe('useWidgetsQuery', () => {
@@ -44,7 +44,10 @@ describe('useWidgetsQuery', () => {
 });
 
 const render = async () => {
-  const { renderHookResult } = renderHookWithMockStore({}, { getWidgetSettings })(() => useWidgetsQuery(org, app));
+  const { renderHookResult } = renderHookWithMockStore(
+    {},
+    { getWidgetSettings },
+  )(() => useWidgetsQuery(org, app));
   await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
   return renderHookResult;
 };

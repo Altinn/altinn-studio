@@ -8,10 +8,11 @@ import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import 'app-shared/design-tokens';
-import { LoggerConfig, LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
+import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
+import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import 'app-shared/design-tokens';
 import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
-import { QueryClientConfig } from '@tanstack/react-query';
+import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 
 const store = setupStore();

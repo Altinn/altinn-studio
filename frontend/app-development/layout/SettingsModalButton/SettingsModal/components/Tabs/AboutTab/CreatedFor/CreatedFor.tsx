@@ -1,9 +1,10 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './CreatedFor.module.css';
 import { Label, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { RepositoryType } from 'app-shared/types/global';
-import { Repository } from 'app-shared/types/Repository';
+import type { Repository } from 'app-shared/types/Repository';
 import { PersonCircleIcon } from '@navikt/aksel-icons';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 

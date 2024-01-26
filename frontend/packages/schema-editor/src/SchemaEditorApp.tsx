@@ -2,11 +2,9 @@ import React, { useMemo, useState } from 'react';
 import './App.css';
 
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
-import {
-  SchemaEditorAppContext,
-  SchemaEditorAppContextProps
-} from './contexts/SchemaEditorAppContext';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { SchemaEditorAppContextProps } from './contexts/SchemaEditorAppContext';
+import { SchemaEditorAppContext } from './contexts/SchemaEditorAppContext';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
 import { SchemaEditor } from './components/SchemaEditor';
 
@@ -16,11 +14,7 @@ export type SchemaEditorAppProps = {
   save: (model: JsonSchema) => void;
 };
 
-export function SchemaEditorApp({
-  jsonSchema,
-  name,
-  save,
-}: SchemaEditorAppProps) {
+export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps) {
   const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
   const [selectedNodePointer, setSelectedNodePointer] = useState<string>(null);
 
@@ -34,12 +28,12 @@ export function SchemaEditorApp({
       setSelectedNodePointer,
       name,
     }),
-    [jsonSchema, save, selectedTypePointer, selectedNodePointer, name]
+    [jsonSchema, save, selectedTypePointer, selectedNodePointer, name],
   );
 
   return (
     <SchemaEditorAppContext.Provider value={value}>
-      <SchemaEditor/>
+      <SchemaEditor />
     </SchemaEditorAppContext.Provider>
   );
 }

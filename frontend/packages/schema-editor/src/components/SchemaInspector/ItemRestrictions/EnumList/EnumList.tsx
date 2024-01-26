@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './EnumList.module.css';
-import { FieldNode } from '@altinn/schema-model';
+import type { FieldNode } from '@altinn/schema-model';
 import { deepCopy } from 'app-shared/pure';
 import { EnumField } from './EnumField';
 import { ErrorMessage, Fieldset } from '@digdir/design-system-react';

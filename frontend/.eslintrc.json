@@ -16,6 +16,7 @@
     "react/jsx-filename-extension": ["warn", { "extensions": [".tsx"] }],
     "prefer-const": "error",
     "object-curly-spacing": ["error", "always"],
+    "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-explicit-any": "off"
   },

@@ -1,4 +1,8 @@
-import { ITextResource, ITextResources, ITextResourcesObjectFormat } from 'app-shared/types/global';
+import type {
+  ITextResource,
+  ITextResources,
+  ITextResourcesObjectFormat,
+} from 'app-shared/types/global';
 
 /**
  * Converts an array of text resources in the ITextResource format to an object with id as key and value as value.

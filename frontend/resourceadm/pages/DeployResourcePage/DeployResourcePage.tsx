@@ -25,7 +25,8 @@ import { usePublishResourceMutation } from '../../hooks/mutations';
 import { toast } from 'react-toastify';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import { EnvId, EnvType, getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import type { EnvId, EnvType } from '../../utils/resourceUtils/resourceUtils';
+import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;

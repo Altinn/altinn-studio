@@ -9,7 +9,7 @@ import nb from '../language/src/nb.json';
 import en from '../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
-import { QueryClientConfig } from '@tanstack/react-query';
+import type { QueryClientConfig } from '@tanstack/react-query';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
@@ -42,5 +42,5 @@ root.render(
     <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
       <App />
     </ServicesContextProvider>
-  </BrowserRouter>
+  </BrowserRouter>,
 );

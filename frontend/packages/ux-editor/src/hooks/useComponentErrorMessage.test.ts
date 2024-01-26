@@ -1,6 +1,6 @@
 import { renderHookWithMockStore } from '../testing/mocks';
 import { useComponentErrorMessage } from './useComponentErrorMessage';
-import { FormComponent } from '../types/FormComponent';
+import type { FormComponent } from '../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 

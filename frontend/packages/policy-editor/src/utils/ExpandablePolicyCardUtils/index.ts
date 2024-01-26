@@ -18,7 +18,7 @@ import type { PolicyAction, PolicyRuleCard, PolicySubject } from '../../types';
 export const getUpdatedRules = (
   updatedRule: PolicyRuleCard,
   policyRuleId: string,
-  currentRules: PolicyRuleCard[]
+  currentRules: PolicyRuleCard[],
 ): PolicyRuleCard[] => {
   const updatedRules = [...currentRules];
   const ruleIndex = currentRules.findIndex((rule) => rule.ruleId === policyRuleId);
@@ -52,8 +52,8 @@ export const getSubjectOptions = (subjects: PolicySubject[], policyRule: PolicyR
  */
 export const getActionOptions = (actions: PolicyAction[], policyRule: PolicyRuleCard) => {
   return actions
-    .filter((a) => !policyRule.actions.includes(a.actionTitle))
-    .map((a) => ({ value: a.actionTitle, label: a.actionTitle }));
+    .filter((a) => !policyRule.actions.includes(a.actionId))
+    .map((a) => ({ value: a.actionId, label: a.actionId }));
 };
 
 /**

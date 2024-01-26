@@ -2,8 +2,8 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import type { IGenericEditComponent } from '../componentConfig';
 import { TextResource } from '../../TextResource';
-import { TranslationKey } from 'language/type';
-import { IAppState } from '../../../types/global';
+import type { TranslationKey } from 'language/type';
+import type { IAppState } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
 
 export interface EditTextResourceBindingProps extends IGenericEditComponent {
@@ -25,7 +25,7 @@ export const EditTextResourceBinding = ({
 }: EditTextResourceBindingProps) => {
   const { t } = useTranslation();
   const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner?.layout?.selectedLayout
+    (state: IAppState) => state.formDesigner?.layout?.selectedLayout,
   );
 
   const handleTextResourceChange = (value: string) =>
@@ -42,7 +42,7 @@ export const EditTextResourceBinding = ({
     delete componentCopy.textResourceBindings?.[textKey];
     handleComponentChange(componentCopy);
     removeTextResourceBinding?.();
-  }
+  };
   return (
     <TextResource
       handleIdChange={handleTextResourceChange}

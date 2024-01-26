@@ -108,7 +108,7 @@
   font-size: 1rem;
   padding: 8px 30px;
   background-color: var(--success-color);
-  border: 2px solid var(--success-color);;
+  border: 2px solid var(--success-color);
 }
 
 .cancelButton {

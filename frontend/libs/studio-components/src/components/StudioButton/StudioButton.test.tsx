@@ -1,7 +1,9 @@
-import React, { createRef, RefObject } from 'react';
-import { StudioButton, StudioButtonProps } from './StudioButton';
+import type { RefObject } from 'react';
+import React, { createRef } from 'react';
+import type { StudioButtonProps } from './StudioButton';
+import { StudioButton } from './StudioButton';
 import { render, screen } from '@testing-library/react';
-import { IconPlacement } from '../../types/IconPlacement';
+import type { IconPlacement } from '../../types/IconPlacement';
 
 // Mocks:
 jest.mock('./StudioButton.module.css', () => ({

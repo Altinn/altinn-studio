@@ -1,4 +1,4 @@
-import { User } from 'app-shared/types/Repository';
+import type { User } from 'app-shared/types/Repository';
 
 export const userMock: User = {
   id: 1,

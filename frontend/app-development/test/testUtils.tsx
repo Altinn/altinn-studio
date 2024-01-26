@@ -7,9 +7,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { AppStore, RootState } from '../store';
 import { setupStore } from '../store';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
-import { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {

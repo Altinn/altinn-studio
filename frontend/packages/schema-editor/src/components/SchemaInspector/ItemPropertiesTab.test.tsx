@@ -12,7 +12,7 @@ import {
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';
-import { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
+import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
 
 describe('ItemPropertiesTab', () => {
   it('Renders combinations', async () => {
@@ -62,7 +62,10 @@ describe('ItemPropertiesTab', () => {
     validateTestUiSchema(nodes);
 
     const schemaModel = SchemaModel.fromArray(nodes);
-    const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, selectedNodePointer };
+    const appContextProps: Partial<SchemaEditorAppContextProps> = {
+      schemaModel,
+      selectedNodePointer,
+    };
     renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={selectedNode} />);
 
     expect(
@@ -79,7 +82,10 @@ describe('ItemPropertiesTab', () => {
     validateTestUiSchema(nodes);
 
     const schemaModel = SchemaModel.fromArray(nodes);
-    const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, selectedNodePointer: null };
+    const appContextProps: Partial<SchemaEditorAppContextProps> = {
+      schemaModel,
+      selectedNodePointer: null,
+    };
     renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={rootNodeMock} />);
 
     const name = textMock('schema_editor.name');

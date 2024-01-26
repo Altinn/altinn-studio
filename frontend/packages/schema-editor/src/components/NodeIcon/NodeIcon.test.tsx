@@ -1,14 +1,9 @@
-import {
-  CombinationKind,
-  CombinationNode,
-  FieldType,
-  ObjectKind,
-  ReferenceNode,
-  UiSchemaNode
-} from '@altinn/schema-model';
+import type { CombinationNode, ReferenceNode, UiSchemaNode } from '@altinn/schema-model';
+import { CombinationKind, FieldType, ObjectKind } from '@altinn/schema-model';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { NodeIcon, NodeIconProps } from './';
+import type { NodeIconProps } from './';
+import { NodeIcon } from './';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
 
 jest.mock('./NodeIcon.module.css', () => ({
@@ -62,7 +57,7 @@ describe('NodeIcon', () => {
   });
 
   it('Does not have the isArray class when the node is not an array', () => {
-    renderNodeIcon({ node: nodeMockBase, });
+    renderNodeIcon({ node: nodeMockBase });
     expect(screen.getByRole('img')).not.toHaveClass('isArray');
   });
 

@@ -25,9 +25,7 @@
           "description": "Data model binding for components connection to a single field in the data model"
         }
       },
-      "required": [
-        "simpleBinding"
-      ],
+      "required": ["simpleBinding"],
       "additionalProperties": false
     },
     "required": {
@@ -63,9 +61,7 @@
           "description": "The help text for the component"
         }
       },
-      "required": [
-        "title"
-      ],
+      "required": ["title"],
       "additionalProperties": true
     },
     "triggers": {
@@ -307,20 +303,13 @@
           "type": "string",
           "title": "Position of the currency/unit symbol (only when using currency or unit options)",
           "description": "Display the unit as prefix or suffix. Default is prefix",
-          "enum": [
-            "prefix",
-            "suffix"
-          ]
+          "enum": ["prefix", "suffix"]
         },
         "align": {
           "type": "string",
           "title": "Align input",
           "description": "The alignment for Input field (eg. right aligning a series of numbers).",
-          "enum": [
-            "left",
-            "center",
-            "right"
-          ]
+          "enum": ["left", "center", "right"]
         }
       }
     },
@@ -341,10 +330,7 @@
       "type": "string",
       "title": "Input Variant",
       "description": "An enum to choose if the inputfield it is a normal textfield or a searchbar",
-      "enum": [
-        "text",
-        "search"
-      ]
+      "enum": ["text", "search"]
     },
     "autocomplete": {
       "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/autocomplete"
@@ -355,9 +341,5 @@
       "type": "number"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "dataModelBindings"
-  ]
+  "required": ["id", "type", "dataModelBindings"]
 }
