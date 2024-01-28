@@ -10,6 +10,7 @@
 
 .helpText {
   padding-bottom: 4px;
+  position: relative;
 }
 
 .errorMessageText {
