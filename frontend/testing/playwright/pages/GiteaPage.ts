@@ -7,7 +7,6 @@ const giteaPageTexts: Record<string, string> = {
   app: 'App',
   ui: 'ui',
   layouts: 'layouts',
-  page2FileName: 'Side2.json',
 };
 
 export class GiteaPage extends BasePage {
@@ -24,7 +23,7 @@ export class GiteaPage extends BasePage {
   }
 
   public async clickOnAppFilesButton(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['app'] }).click();
+    await this.page.getByRole('link', { name: giteaPageTexts['app'], exact: true }).click();
   }
 
   public async clickOnUiFilesButton(): Promise<void> {
@@ -35,11 +34,17 @@ export class GiteaPage extends BasePage {
     await this.page.getByRole('link', { name: giteaPageTexts['layouts'] }).click();
   }
 
-  public async verifyThatTheNewPageIsNotPresent(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['page2FileName'] }).isHidden();
+  public async verifyThatTheNewPageIsNotPresent(pageName: string): Promise<void> {
+    await this.page.getByRole('link', { name: `${pageName}.json` }).isHidden();
   }
 
-  public async verifyThatTheNewPageIsPresent(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['page2FileName'] }).isVisible();
+  public async verifyThatTheNewPageIsPresent(pageName: string): Promise<void> {
+    await this.page.getByRole('link', { name: `${pageName}.json` }).isVisible();
+  }
+
+  public async goBackNPages(nPages: number): Promise<void> {
+    for (let i = 0; i < nPages; i++) {
+      await this.page.goBack();
+    }
   }
 }

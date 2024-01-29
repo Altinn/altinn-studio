@@ -455,6 +455,8 @@
   "left_menu.pages_error_format": "Must consist of letters (a-z), numbers, or \"-\", \"_\" and \".\"",
   "left_menu.pages_error_length": "Can not be more than 30 characters",
   "left_menu.pages_error_unique": "Must be unique",
+  "local_changes.modal_download_only_changed_button": "Download zip-file with only locally changed files.",
+  "local_changes_modal.download_all_button": "Download zip-file of the entire repo.",
   "merge_conflict.body1": "There are breaking changes in the application that blocks further work.",
   "merge_conflict.body2": "You can fix these by either download the application as a zip-file and delete the changes, or just blast the application directly.",
   "merge_conflict.download": "Download",

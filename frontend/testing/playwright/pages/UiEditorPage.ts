@@ -30,6 +30,6 @@ export class UiEditorPage extends BasePage {
   }
 
   public async verifyThatNewPageIsVisible(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName }).isVisible();
+    await this.page.getByText(pageName).isVisible();
   }
 }

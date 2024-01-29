@@ -62,13 +62,13 @@ export const ThreeDotsMenu = ({
               <span>{t('sync_header.repository')}</span>
             </a>
           </li>
-          <li onClick={() => setLocalChangesModalIsOpen(true)}>
-            <div className={classes.link}>
+          <li>
+            <button onClick={() => setLocalChangesModalIsOpen(true)} className={classes.link}>
               <span className={classes.iconWrapper}>
                 <MonitorIcon className={classes.icon} />
               </span>
               <span>{t('sync_header.local_changes')}</span>
-            </div>
+            </button>
           </li>
           {localChangesModalIsOpen && (
             <LocalChangesModal

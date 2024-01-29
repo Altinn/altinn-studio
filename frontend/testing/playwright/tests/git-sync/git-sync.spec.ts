@@ -1,10 +1,10 @@
 import { expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Download, Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
-import { OverviewPage } from '../../pages/OverviewPage';
 import { Header } from '../../components/Header';
+import { LocalChangesModal } from '../../components/LocalChangesModal';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 
@@ -20,7 +20,7 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-const setupAndVerifyOverviewPage = async (
+const setupAndVerifyUiEditorPage = async (
   page: Page,
   testAppName: string,
 ): Promise<UiEditorPage> => {
@@ -30,33 +30,86 @@ const setupAndVerifyOverviewPage = async (
   return uiEditorPage;
 };
 
-test('1', async ({ page, testAppName }) => {
-  const uiEditorPage = await setupAndVerifyOverviewPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
-  const giteaPage = new GiteaPage(page, { app: testAppName });
-
-  // Make changes
-  const newPageName: string = 'Side2';
+const makeChangesOnUiEditorPage = async (uiEditorPage: UiEditorPage, newPageName: string) => {
   await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
   await uiEditorPage.clickOnAddNewPage();
   await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
+};
 
+const goToGiteaAndNavigateToUiLayoutFiles = async (header: Header, giteaPage: GiteaPage) => {
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 
-  // Verify that there is no page
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnUiFilesButton();
   await giteaPage.clickOnLayoutsFilesButton();
-  await giteaPage.verifyThatTheNewPageIsNotPresent();
+};
+
+test('That new changes are pushed to gitea and are visible on Gitea after they have been pushed', async ({
+  page,
+  testAppName,
+}) => {
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
+
+  const newPageName: string = 'Side2';
+  await makeChangesOnUiEditorPage(uiEditorPage, newPageName);
+
+  await goToGiteaAndNavigateToUiLayoutFiles(header, giteaPage);
+  await giteaPage.verifyThatTheNewPageIsNotPresent(newPageName);
 
   // Click push
+  const nPagesInGitea: number = 4; // Gitea -> App -> ui -> layouts
+  await giteaPage.goBackNPages(nPagesInGitea);
+  await uiEditorPage.verifyUiEditorPage(newPageName);
+  await header.clickOnUploadLocalChangesButton();
+  await header.clickOnValidateChanges();
+  await header.checkThatUploadSuccessMessageIsVisible();
+  await header.closeSuccessMessageBox();
 
-  // Verify page is there
-
+  await goToGiteaAndNavigateToUiLayoutFiles(header, giteaPage);
+  await giteaPage.verifyThatTheNewPageIsPresent(newPageName);
   //
 });
+
+test('That it is possible to delete local changes', async ({ page, testAppName }) => {
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const localChangesModal = new LocalChangesModal(page, { app: testAppName });
+
+  const newPageName: string = 'Side2';
+  await makeChangesOnUiEditorPage(uiEditorPage, newPageName);
+
+  await header.clickOnThreeDotsMenu();
+  await header.clickOnLocalChangesButton();
+
+  await localChangesModal.clickOnDeleteLocalChangesButton();
+  await localChangesModal.writeAppNameInConfirmTextfield(testAppName);
+  await localChangesModal.clickOnDeleteMyChangesButton();
+  await localChangesModal.verifyThatDeleteLocalChangesSuccessMessageIsVisible();
+});
+
+test('That it is possible to download repo zip', async ({ page, testAppName }) => {
+  const localChangesModal = new LocalChangesModal(page, { app: testAppName });
+  await makeUiEditorChangesAndOpenLocalChangesModal(page, testAppName);
+
+  const downloadPromise: Promise<Download> = localChangesModal.getDownloadPromise();
+  await localChangesModal.clickOnDownloadRepoZipButton();
+  await downloadPromise; // Verify that the download promise resolves
+});
+
+test('That it is possible to download local changes zip', async ({ page, testAppName }) => {
+  const localChangesModal = new LocalChangesModal(page, { app: testAppName });
+  await makeUiEditorChangesAndOpenLocalChangesModal(page, testAppName);
+
+  const downloadPromise: Promise<Download> = localChangesModal.getDownloadPromise();
+  await localChangesModal.clickOnDownloadOnlyLocalChangesZipButton();
+  await downloadPromise; // Verify that the download promise resolves
+});
+
+// test('That it is possible to pull local changes', async ({ page, testAppName }) => {});
 
 // PULL
 
@@ -66,3 +119,17 @@ test('1', async ({ page, testAppName }) => {
 // DELETE LOCAL CHANGES
 
 //
+const makeUiEditorChangesAndOpenLocalChangesModal = async (
+  page: Page,
+  testAppName: string,
+): Promise<Header> => {
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+
+  const newPageName: string = 'Side2';
+  await makeChangesOnUiEditorPage(uiEditorPage, newPageName);
+
+  await header.clickOnThreeDotsMenu();
+  await header.clickOnLocalChangesButton();
+  return header;
+};

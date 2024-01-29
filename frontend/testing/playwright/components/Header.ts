@@ -33,5 +33,36 @@ export class Header extends BasePage {
     await this.page.getByRole('link', { name: this.textMock('sync_header.repository') }).click();
   }
 
-  public async a(): Promise<void> {}
+  public async clickOnUploadLocalChangesButton(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: this.textMock('sync_header.no_changes_to_share') })
+      .click();
+  }
+
+  public async clickOnValidateChanges(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('sync_header.describe_and_validate_btnText'),
+      })
+      .click();
+  }
+
+  public async checkThatUploadSuccessMessageIsVisible(): Promise<void> {
+    await this.page
+      .getByRole('heading', {
+        name: this.textMock('sync_header.sharing_changes_completed'),
+        level: 3,
+      })
+      .isVisible();
+  }
+
+  public async closeSuccessMessageBox(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+  }
+
+  public async clickOnLocalChangesButton(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: this.textMock('sync_header.local_changes') })
+      .click();
+  }
 }
