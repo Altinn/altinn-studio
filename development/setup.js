@@ -71,8 +71,8 @@ class SetupEnvironment extends ContainerTool {
     throw new Error('Please use Podman or Docker as container manager tool');
   }
 
-  createUser(username, password, admin) {
-    runCommand(
+  async createUser(username, password, admin) {
+    return runCommand(
       [
         `${this.containerManager} exec studio-repositories gitea admin user create`,
         `--username ${username}`,
@@ -84,8 +84,8 @@ class SetupEnvironment extends ContainerTool {
     );
   }
 
-  ensureUserPassword(username, password) {
-    runCommand(
+  async ensureUserPassword(username, password) {
+    return runCommand(
       [
         `${this.containerManager} exec studio-repositories gitea admin user change-password`,
         `--username ${username}`,
@@ -119,7 +119,7 @@ class SetupEnvironment extends ContainerTool {
     });
 
     for (const team of allTeams) {
-      const existing = existingTeams.find((t) => t.name === team.name);
+      const existing = existingTeams?.find((t) => t.name === team.name);
       if (!existing) {
         await giteaApi({
           path: `/repos/api/v1/orgs/${this.env.GITEA_ORG_USER}/teams`,
