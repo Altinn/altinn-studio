@@ -9,16 +9,40 @@ import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
-import { StudioCenter } from '@studio/components';
-import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
+import { StudioButton, StudioCenter } from '@studio/components';
+import type { SupportedView } from './ViewToggler/ViewToggler';
+import { ViewToggler } from './ViewToggler/ViewToggler';
+import { ArrowRightIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
 export const Preview = () => {
+  const { t } = useTranslation();
+  const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
   const layoutName = useSelector(selectedLayoutNameSelector);
   const noPageSelected = layoutName === 'default' || layoutName === undefined;
 
-  return (
+  const togglePreview = (): void => {
+    setIsPreviewHidden((prev: boolean) => !prev);
+  };
+
+  return isPreviewHidden ? (
+    <StudioButton
+      size='small'
+      variant='secondary'
+      className={classes.openPreviewButton}
+      onClick={togglePreview}
+    >
+      {t('ux_editor.open_preview')}
+    </StudioButton>
+  ) : (
     <div className={classes.root}>
+      <StudioButton
+        variant='tertiary'
+        icon={<ArrowRightIcon aria-hidden />}
+        title={t('ux_editor.close_preview')}
+        className={classes.closePreviewButton}
+        onClick={togglePreview}
+      />
       {noPageSelected ? <NoSelectedPageMessage /> : <PreviewFrame />}
     </div>
   );

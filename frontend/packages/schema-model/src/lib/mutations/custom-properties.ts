@@ -1,4 +1,4 @@
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { CustomPropertyType } from '../../types';
 
 /**
@@ -11,7 +11,7 @@ export const deleteProperty = (properties: KeyValuePairs, key: string): KeyValue
   const newProperties = { ...properties };
   delete newProperties[key];
   return newProperties;
-}
+};
 
 /**
  * Get the type of a property.
@@ -31,7 +31,7 @@ export const propertyType = (properties: KeyValuePairs, key: string): CustomProp
     default:
       return CustomPropertyType.Unsupported;
   }
-}
+};
 
 /**
  * Set a property to a value.
@@ -40,7 +40,11 @@ export const propertyType = (properties: KeyValuePairs, key: string): CustomProp
  * @param value The value to set the property to.
  * @returns A new object with the property set to its new value.
  */
-export const setProperty = <T>(properties: KeyValuePairs, key: string, value: T): KeyValuePairs => ({
+export const setProperty = <T>(
+  properties: KeyValuePairs,
+  key: string,
+  value: T,
+): KeyValuePairs => ({
   ...properties,
   [key]: value,
 });

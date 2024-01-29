@@ -21,27 +21,20 @@
           "type": "string"
         }
       },
-      "required": [
-        "title"
-      ],
+      "required": ["title"],
       "additionalProperties": true
     },
     "action": {
       "type": "string",
       "title": "Action",
       "description": "The action to be triggered when the button is clicked.",
-      "examples": [
-        "sign, confirm, reject"
-      ]
+      "examples": ["sign, confirm, reject"]
     },
     "buttonStyle": {
       "type": "string",
       "title": "Button style",
       "description": "The style of the button.",
-      "enum": [
-        "primary",
-        "secondary"
-      ]
+      "enum": ["primary", "secondary"]
     },
     "hidden": {
       "title": "Hidden",
@@ -50,10 +43,6 @@
       "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "action"
-  ],
+  "required": ["id", "type", "action"],
   "additionalProperties": false
 }

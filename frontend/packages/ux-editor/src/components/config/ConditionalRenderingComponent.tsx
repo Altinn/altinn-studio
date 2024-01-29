@@ -13,8 +13,11 @@ import classes from './ConditionalRenderingComponent.module.css';
 import { withTranslation } from 'react-i18next';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ConditionalRenderingConnection, ConditionalRenderingConnections } from 'app-shared/types/RuleConfig';
-import i18next from 'i18next';
+import type {
+  ConditionalRenderingConnection,
+  ConditionalRenderingConnections,
+} from 'app-shared/types/RuleConfig';
+import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
 import { Buldings2Icon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 
@@ -212,7 +215,7 @@ class ConditionalRendering extends React.Component<
 
   public renderCondtionalRenderingTargetContainerOptions = (
     id: string,
-    baseContainer?: boolean
+    baseContainer?: boolean,
   ): JSX.Element[] => {
     const options: JSX.Element[] = [];
     if (!this.props.order[id]) {
@@ -223,7 +226,7 @@ class ConditionalRendering extends React.Component<
       options.push(
         <option key={id} value={id}>
           {`${name} (${id})`}
-        </option>
+        </option>,
       );
     }
     this.props.order[id].forEach((key) => {
@@ -248,7 +251,7 @@ class ConditionalRendering extends React.Component<
       const isBaseContainer = containerKey === BASE_CONTAINER_ID;
       const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(
         key,
-        isBaseContainer
+        isBaseContainer,
       );
       containerOptions.forEach((option) => {
         options.push(option);
@@ -269,7 +272,7 @@ class ConditionalRendering extends React.Component<
         overlayClassName={classes.reactModalOverlay}
       >
         <div className={classes.modalHeader}>
-          <Buldings2Icon  className={classes.configConditionalIcon}/>
+          <Buldings2Icon className={classes.configConditionalIcon} />
           <h1 className={classes.modalHeaderTitle}>
             {this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
           </h1>
@@ -303,7 +306,7 @@ class ConditionalRendering extends React.Component<
               <div>
                 <h2 className={classes.subTitle}>
                   {this.props.t(
-                    'ux_editor.modal_configure_conditional_rendering_configure_input_header'
+                    'ux_editor.modal_configure_conditional_rendering_configure_input_header',
                   )}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
@@ -313,7 +316,7 @@ class ConditionalRendering extends React.Component<
                       <>
                         <label className={classes.label} htmlFor={paramName}>
                           {this.props.t(
-                            'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper'
+                            'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper',
                           )}
                         </label>
                         <div className={classes.configureInputParamsContainer} key={key}>
@@ -340,19 +343,19 @@ class ConditionalRendering extends React.Component<
                         </div>
                       </>
                     );
-                  }
+                  },
                 )}
               </div>
               <div>
                 <h2 className={classes.subTitle}>
                   {this.props.t(
-                    'ux_editor.modal_configure_conditional_rendering_configure_output_header'
+                    'ux_editor.modal_configure_conditional_rendering_configure_output_header',
                   )}
                 </h2>
                 <div className={classes.selectActionContainer}>
                   <label className={classes.label} htmlFor='select_action'>
                     {this.props.t(
-                      'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper'
+                      'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper',
                     )}
                   </label>
                   <select
@@ -374,7 +377,7 @@ class ConditionalRendering extends React.Component<
                 </div>
                 <p>
                   {this.props.t(
-                    'ux_editor.modal_configure_conditional_rendering_configure_output_field_helper'
+                    'ux_editor.modal_configure_conditional_rendering_configure_output_field_helper',
                   )}
                 </p>
                 {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
@@ -396,14 +399,14 @@ class ConditionalRendering extends React.Component<
                         className={classes.deleteFieldButton}
                         onClick={this.removeFieldMapping.bind(null, key)}
                       >
-                        <XMarkOctagonFillIcon className={classes.exitIcon}/>
+                        <XMarkOctagonFillIcon className={classes.exitIcon} />
                       </button>
                     </div>
                   );
                 })}
                 <button type='button' className={classes.addFieldButton} onClick={this.addNewField}>
                   {this.props.t(
-                    'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping'
+                    'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping',
                   )}
                 </button>
               </div>

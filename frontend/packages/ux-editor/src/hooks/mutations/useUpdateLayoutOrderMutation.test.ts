@@ -2,10 +2,8 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
-import {
-  UpdateLayoutOrderMutationArgs,
-  useUpdateLayoutOrderMutation,
-} from './useUpdateLayoutOrderMutation';
+import type { UpdateLayoutOrderMutationArgs } from './useUpdateLayoutOrderMutation';
+import { useUpdateLayoutOrderMutation } from './useUpdateLayoutOrderMutation';
 import { layout1NameMock, layout2NameMock } from '../../testing/layoutMock';
 
 // Test data:

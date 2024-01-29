@@ -8,5 +8,5 @@ export const deploy = {
       default:
         return;
     }
-  }
+  },
 };

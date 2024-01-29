@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { NavigationModal, NavigationModalProps } from './NavigationModal';
+import type { NavigationModalProps } from './NavigationModal';
+import { NavigationModal } from './NavigationModal';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
 

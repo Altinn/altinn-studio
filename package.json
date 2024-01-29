@@ -89,7 +89,9 @@
     "build": "yarn workspaces foreach -A -p run build",
     "lint": "eslint \"frontend/**/*.ts*\"",
     "lint:fix": "yarn run lint --fix",
-    "setup": "husky install && node development/setup.js",
+    "codestyle:check": "prettier frontend --check",
+    "codestyle:fix": "prettier frontend --write",
+    "setup": "husky install && node development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start",
     "start-app-preview": "yarn workspace app-preview start",
@@ -101,7 +103,9 @@
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
     "typecheck": "yarn workspaces foreach -A run typecheck",
-    "playwright:test:all": "yarn workspace playwright-studio test:all"
+    "playwright:test:all": "yarn workspace playwright-studio test:all",
+    "playwright:test:ui": "yarn workspace playwright-studio test:ui",
+    "git:ignore-revs": "git config blame.ignoreRevsFile .git-blame-ignore-revs"
   },
   "syncpack": {
     "semverRange": ""

@@ -1,4 +1,4 @@
-import { removeEnd } from 'app-shared/utils/stringUtils';
+import { StringUtils } from '@studio/pure-functions';
 
 /**
  * Remove extension from filename.
@@ -16,7 +16,7 @@ export const removeExtension = (filename: string): string => {
  * @returns filename without extension if the extension is ".schema.json" or ".xsd", otherwise the filename is returned unchanged.
  */
 export const removeSchemaExtension = (filename: string): string =>
-  removeEnd(filename, '.schema.json', '.xsd');
+  StringUtils.removeEnd(filename, '.schema.json', '.xsd');
 
 /**
  * Check if filename has an XSD extension.
@@ -24,3 +24,8 @@ export const removeSchemaExtension = (filename: string): string =>
  * @returns true if filename has an XSD extension, otherwise false.
  */
 export const isXsdFile = (filename: string): boolean => filename.toLowerCase().endsWith('.xsd');
+
+export const extractFilename = (path: string): string => {
+  const indexOfLastSlash = path.lastIndexOf('/');
+  return indexOfLastSlash < 0 ? path : path.substring(indexOfLastSlash + 1);
+};

@@ -5,16 +5,17 @@ import {
   internalUnParsableComplexExpression,
   simpleInternalExpression,
 } from '../../../../../testing/expressionMocks';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../testing/mocks';
 import { formDesignerMock } from '../../../../../testing/stateMocks';
-import { IFormLayouts } from '../../../../../types/global';
+import type { IFormLayouts } from '../../../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../../../testing/layoutMock';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentId } from '../../../../../testing/expressionMocks';
-import { ExpressionPreview, ExpressionPreviewProps } from './ExpressionPreview';
+import type { ExpressionPreviewProps } from './ExpressionPreview';
+import { ExpressionPreview } from './ExpressionPreview';
 
 const org = 'org';
 const app = 'app';

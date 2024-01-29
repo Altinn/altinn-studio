@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ITextResource } from 'app-shared/types/global';
-import { TextResourceOption, TextResourceOptionProps } from './TextResource';
+import type { TextResourceOptionProps } from './TextResource';
+import { TextResourceOption } from './TextResource';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
@@ -12,10 +13,7 @@ const defaultProps: TextResourceOptionProps = { textResource };
 const noTextText = 'Ingen tekst';
 const texts = { 'ux_editor.no_text': noTextText };
 
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('TextResourceOption', () => {
   it('Renders id and value', () => {

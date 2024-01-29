@@ -1,7 +1,7 @@
 import { stringifyData } from './jsonUtils';
 
 describe('jsonUtils', () => {
-  describe('stringifyData', () =>  {
+  describe('stringifyData', () => {
     it('Formats an object as Json when possible', () => {
       const data = { test: 'test' };
       const result = stringifyData(data);

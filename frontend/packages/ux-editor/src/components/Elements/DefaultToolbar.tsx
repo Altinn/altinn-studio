@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { IToolbarElement } from '../../types/global';
 import { CollapsableMenus } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
@@ -8,7 +8,7 @@ import './DefaultToolbar.css';
 import classes from './DefaultToolbar.module.css';
 import { useTranslation } from 'react-i18next';
 import { schemaComponents, textComponents, advancedItems } from '../../data/formItemConfig';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { Accordion } from '@digdir/design-system-react';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
 import { ToolbarItem } from './ToolbarItem';
@@ -57,9 +57,14 @@ export function DefaultToolbar() {
     <>
       {Object.values(CollapsableMenus).map((key: CollapsableMenus) => {
         return (
-          <Accordion key={key} color="subtle">
-            <Accordion.Item defaultOpen={key === CollapsableMenus.Components} className={classes.accordionItem}>
-              <Accordion.Header className={classes.accordionHeader}>{getCollapsableMenuTitleByType(key, t)}</Accordion.Header>
+          <Accordion key={key} color='subtle'>
+            <Accordion.Item
+              defaultOpen={key === CollapsableMenus.Components}
+              className={classes.accordionItem}
+            >
+              <Accordion.Header className={classes.accordionHeader}>
+                {getCollapsableMenuTitleByType(key, t)}
+              </Accordion.Header>
               <Accordion.Content className={classes.accordionContent}>
                 {allComponentLists[key].map((component: IToolbarElement) => (
                   <ToolbarItem

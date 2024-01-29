@@ -1,6 +1,8 @@
-import React, { RefObject } from 'react';
+import type { RefObject } from 'react';
+import React from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
-import { StudioDecimalInput, StudioDecimalInputProps } from './StudioDecimalInput';
+import type { StudioDecimalInputProps } from './StudioDecimalInput';
+import { StudioDecimalInput } from './StudioDecimalInput';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 

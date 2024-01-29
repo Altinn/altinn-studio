@@ -2,7 +2,8 @@ import React, { useRef } from 'react';
 import { DropdownMenu } from '@digdir/design-system-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
-import { ExpressionProperty, expressionPropertyTexts } from '../../../types/Expressions';
+import type { ExpressionProperty } from '../../../types/Expressions';
+import { expressionPropertyTexts } from '../../../types/Expressions';
 import { StudioButton } from '@studio/components';
 
 import classes from './NewExpressionButton.module.css';

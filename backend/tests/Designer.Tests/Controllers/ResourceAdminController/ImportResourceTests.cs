@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Models;
@@ -24,6 +26,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"designer/api/ttd/resources/importresource/4485/4444/at23";
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri))
             {
+                httpRequestMessage.Content = new StringContent("new-resource-id", Encoding.UTF8, MediaTypeNames.Application.Json);
                 ServiceResource serviceResource = new ServiceResource()
                 {
                     Identifier = "234",

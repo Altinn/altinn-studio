@@ -1,4 +1,5 @@
-import React, { ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
+import React, { useState } from 'react';
 import classes from './SettingsModal.module.css';
 import { Heading } from '@digdir/design-system-react';
 import {
@@ -9,9 +10,9 @@ import {
   SidebarBothIcon,
 } from '@navikt/aksel-icons';
 import { StudioModal } from '@studio/components';
-import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
+import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
 import { createNavigationTab } from './utils';
 import { useTranslation } from 'react-i18next';
 import { PolicyTab } from './components/Tabs/PolicyTab';

@@ -1,4 +1,4 @@
-import { IDeployment } from 'app-development/sharedResources/appDeployment/types';
+import type { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 
 const deploymentsString = `
 {

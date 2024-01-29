@@ -1,6 +1,7 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { AppRelease } from 'app-shared/types/AppRelease';
+import type { AppRelease } from 'app-shared/types/AppRelease';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useAppReleasesQuery = (owner, app): UseQueryResult<AppRelease[]> => {

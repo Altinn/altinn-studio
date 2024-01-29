@@ -1,7 +1,7 @@
 import React from 'react';
 import { getChildIds } from '../../../utils/formLayoutUtils';
 import { FormItem } from './FormItem';
-import { IInternalLayout } from '../../../types/global';
+import type { IInternalLayout } from '../../../types/global';
 
 export const renderItemList = (layout: IInternalLayout, parentId: string) => {
   const childIds = getChildIds(layout, parentId);

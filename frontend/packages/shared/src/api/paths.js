@@ -8,6 +8,9 @@ const basePath = '/designer/api';
 export const appMetadataPath = (org, app) => `${basePath}/${org}/${app}/metadata`; // Get, Put, Post
 export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
 
+// App version
+export const appVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`; // Get
+
 // Config
 export const serviceConfigPath = (org, app) => `${basePath}/${org}/${app}/config`; // Get, Post
 
@@ -142,4 +145,4 @@ export const resourceAccessListPath = (org, resourceId, listId, env) => `${baseP
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;
-export const appLibVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-lib-version`;
+export const appLibVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`;

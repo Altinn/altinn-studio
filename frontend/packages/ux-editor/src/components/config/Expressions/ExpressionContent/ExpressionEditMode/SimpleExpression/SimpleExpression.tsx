@@ -1,5 +1,6 @@
 import React from 'react';
-import { Expression, Operator, SubExpression } from '../../../../../../types/Expressions';
+import type { Expression, SubExpression } from '../../../../../../types/Expressions';
+import { Operator } from '../../../../../../types/Expressions';
 import { SubExpressionContent } from './SubExpressionContent';
 import { LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import { useText } from '../../../../../../hooks';

@@ -1,4 +1,4 @@
-import { UseText } from '../hooks';
+import type { UseText } from '../hooks';
 import { LayoutItemType } from './global';
 
 export interface Expression {

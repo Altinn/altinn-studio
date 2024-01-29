@@ -1,6 +1,7 @@
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
-import { useRuleModelQuery, WindowWithRuleModel } from './useRuleModelQuery';
+import type { WindowWithRuleModel } from './useRuleModelQuery';
+import { useRuleModelQuery } from './useRuleModelQuery';
 import ruleHandlerMock, {
   condition1Input1Label,
   condition1Input1Name,
@@ -23,7 +24,7 @@ import ruleHandlerMock, {
   rule2Name,
 } from '../../testing/ruleHandlerMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 // Test data:
 const org = 'org';

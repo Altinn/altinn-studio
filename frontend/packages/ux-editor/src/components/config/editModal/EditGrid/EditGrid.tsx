@@ -1,13 +1,14 @@
-import React, { useState, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { Tabs } from '@digdir/design-system-react';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
-import { FormComponent } from '../../../../types/FormComponent';
+import type { FormComponent } from '../../../../types/FormComponent';
 import { deepCopy } from 'app-shared/pure';
 import { ViewSize } from './types/ViewSize';
-import { GridSizes } from './types/GridSizes';
+import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
 
 const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => {

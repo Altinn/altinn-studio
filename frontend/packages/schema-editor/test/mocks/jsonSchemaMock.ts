@@ -1,4 +1,4 @@
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 // Example from https://json-schema.org/learn/miscellaneous-examples.html
 export const jsonSchemaMock: JsonSchema = {
@@ -42,4 +42,3 @@ export const jsonSchemaMock: JsonSchema = {
   },
   required: ['name', 'age'],
 };
-

@@ -20,7 +20,7 @@ export const PageLayout = () => {
       organizations &&
       !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })
     ) {
-      navigate("/");
+      navigate('/');
     }
   }, [organizations, selectedContext, user.login, navigate]);
 
@@ -29,7 +29,7 @@ export const PageLayout = () => {
       selectableOrgs: organizations,
       user,
     }),
-    [organizations, user]
+    [organizations, user],
   );
 
   return (

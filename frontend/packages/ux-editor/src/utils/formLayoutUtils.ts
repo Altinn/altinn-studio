@@ -10,11 +10,11 @@ import type {
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
 import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arrayUtils';
-import { FormComponent } from '../types/FormComponent';
+import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
-import { FormItemConfigs } from '../data/formItemConfig';
-import { FormContainer } from '../types/FormContainer';
-import { FormItem } from '../types/FormItem';
+import type { FormItemConfigs } from '../data/formItemConfig';
+import type { FormContainer } from '../types/FormContainer';
+import type { FormItem } from '../types/FormItem';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],

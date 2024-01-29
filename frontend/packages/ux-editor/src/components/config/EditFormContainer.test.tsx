@@ -13,8 +13,8 @@ import {
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { container1IdMock, externalLayoutsMock, layoutMock } from '../../testing/layoutMock';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { FormLayoutsResponse } from 'app-shared/types/api';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { ILayoutSettings } from 'app-shared/types/global';
 
 const user = userEvent.setup();
 

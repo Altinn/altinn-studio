@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { HandleDrop } from 'app-shared/types/dndTypes';
+import type { HandleDrop } from 'app-shared/types/dndTypes';
 
 export interface DragAndDropRootContextProps<T> {
   gap: string;

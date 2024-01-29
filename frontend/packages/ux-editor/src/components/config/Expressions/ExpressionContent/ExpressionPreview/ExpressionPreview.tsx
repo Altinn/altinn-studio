@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from '../ExpressionContent.module.css';
-import { Expression, expressionInPreviewPropertyTextKeys } from '../../../../../types/Expressions';
+import type { Expression } from '../../../../../types/Expressions';
+import { expressionInPreviewPropertyTextKeys } from '../../../../../types/Expressions';
 import { complexExpressionIsSet } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';

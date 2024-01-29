@@ -1,4 +1,5 @@
-import React, { ReactNode, useCallback } from 'react';
+import type { ReactNode } from 'react';
+import React, { useCallback } from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { Accordion } from '@digdir/design-system-react';
@@ -11,8 +12,8 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../../hooks/useAppContext';
 import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
-import { useDeleteLayout } from './useDeleteLayout';
 import { StudioButton } from '@studio/components';
+import { useDeleteLayout } from './useDeleteLayout';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -51,12 +52,11 @@ export const PageAccordion = ({
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const layoutOrder = formLayoutSettings?.pages.order;
 
-  const deleteLayout = useDeleteLayout();
+  const { mutate: deleteLayout, isPending } = useDeleteLayout();
 
   const handleConfirmDelete = useCallback(() => {
     if (confirm(t('ux_editor.page_delete_text'))) {
       deleteLayout(pageName);
-
       if (selectedLayout === pageName) {
         const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
         setSearchParams({ layout: layoutToSelect });
@@ -82,6 +82,7 @@ export const PageAccordion = ({
             title={t('general.delete_item', { item: pageName })}
             variant='tertiary'
             size='small'
+            disabled={isPending}
           />
         </div>
       </div>

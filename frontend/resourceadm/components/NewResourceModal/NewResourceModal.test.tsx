@@ -1,12 +1,14 @@
 import React, { useRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { NewResourceModal, NewResourceModalProps } from './NewResourceModal';
+import type { NewResourceModalProps } from './NewResourceModal';
+import { NewResourceModal } from './NewResourceModal';
 import { act } from 'react-dom/test-utils'; // Import act if needed
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { MemoryRouter } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 

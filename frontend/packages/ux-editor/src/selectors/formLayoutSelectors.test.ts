@@ -1,4 +1,4 @@
-import { IAppState, IFormLayouts } from '../types/global';
+import type { IAppState, IFormLayouts } from '../types/global';
 import { appStateMock, formDesignerMock } from '../testing/stateMocks';
 import {
   getAllLayoutComponents,
