@@ -134,5 +134,28 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.GIT_SYNC_APP,
       },
     },
+    {
+      name: 'settings-modal',
+      dependencies: ['setup'],
+      testDir: './tests/settings-modal/',
+      testMatch: '*.spec.ts',
+      teardown: 'teardown-settings-modal',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.SETTINGS_MODAL_APP,
+        headless: true,
+      },
+    },
+    {
+      name: 'teardown-settings-modal',
+      testDir: './tests/settings-modal/',
+      testMatch: '*settings-modal.teardown.ts',
+      use: {
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        testAppName: AppNames.SETTINGS_MODAL_APP,
+      },
+    },
   ],
 });

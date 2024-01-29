@@ -1,13 +1,13 @@
 import { expect } from '@playwright/test';
-import type { Download, Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { Header } from '../../components/Header';
-import { LocalChangesModal } from '../../components/LocalChangesModal';
 import { UiEditorPage } from '../../pages/UiEditorPage';
-import { GiteaPage } from '../../pages/GiteaPage';
 import { SettingsModal } from '../../components/SettingsModal';
+import type { SettingsModalTab } from '../../components/SettingsModal';
+import { PolicyEditor } from '../../components/PolicyEditor';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -21,19 +21,16 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-const setupAndVerifyUiEditorPage = async (
-  page: Page,
-  testAppName: string,
-): Promise<UiEditorPage> => {
+const setupAndVerifyUiEditorPage = async (page: Page, testAppName: string): Promise<void> => {
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   await uiEditorPage.loadUiEditorPage();
   await uiEditorPage.verifyUiEditorPage();
-  return uiEditorPage;
 };
 
 const setUpAndOpenSettingsModal = async (
   page: Page,
   testAppName: string,
+  tabToStartAt: SettingsModalTab = 'about',
 ): Promise<SettingsModal> => {
   const settingsModal = new SettingsModal(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
@@ -42,38 +39,79 @@ const setUpAndOpenSettingsModal = async (
 
   await header.clickOnOpenSettingsModalButton();
   await settingsModal.verifyThatSettingsModalIsOpen();
+
+  if (tabToStartAt !== 'about') {
+    settingsModal.navigateToTab(tabToStartAt);
+  }
+
   return settingsModal;
 };
 
-test('That it is possible to see and edit information about "About app" tab', async ({
+test('That it is possible to change tab from "About app" tab to "Setup" tab', async ({
   page,
   testAppName,
 }) => {
   const settingsModal = await setUpAndOpenSettingsModal(page, testAppName);
+
+  await settingsModal.verifyThatTabIsVisible('about');
+  await settingsModal.verifyThatTabIsHidden('setup');
+
+  await settingsModal.navigateToTab('setup');
+
+  await settingsModal.verifyThatTabIsHidden('about');
+  await settingsModal.verifyThatTabIsVisible('setup');
 });
 
-test('That it is possible to change tab to "Setup" tab', async ({ page, testAppName }) => {
-  const settingsModal = await setUpAndOpenSettingsModal(page, testAppName);
-});
-
-test('That it is possible to toggle settings on app "Setup" tab', async ({ page, testAppName }) => {
-  const settingsModal = await setUpAndOpenSettingsModal(page, testAppName);
-});
-
-// Policy editor should have its own tests
 test('That it is possible to change tab to "Policy editor" tab', async ({ page, testAppName }) => {
-  const settingsModal = await setUpAndOpenSettingsModal(page, testAppName);
+  const settingsModal = await setUpAndOpenSettingsModal(page, testAppName, 'setup');
+
+  await settingsModal.verifyThatTabIsVisible('setup');
+  await settingsModal.verifyThatTabIsHidden('policy');
+
+  await settingsModal.navigateToTab('policy');
+
+  await settingsModal.verifyThatTabIsHidden('setup');
+  await settingsModal.verifyThatTabIsVisible('policy');
+});
+
+test('That it is possible to edit security level on "Policy editor" tab, and that changes are saved', async ({
+  page,
+  testAppName,
+}) => {
+  const settingsModal = await setUpAndOpenSettingsModal(page, testAppName, 'policy');
+  await settingsModal.verifyThatTabIsVisible('policy');
+
+  const policyEditor = new PolicyEditor(page, { app: testAppName });
+
+  const securityLevel2 = 2;
+  const securityLevel2Text = policyEditor.getSecurityLevelByTextByLevel(securityLevel2);
+  expect(await policyEditor.getSelectedSecurityLevel()).toEqual(securityLevel2Text);
+
+  await policyEditor.clickOnSecurityLevelSelect();
+  await policyEditor.clickOnSecurityLevelSelectOption(3);
+
+  const securityLevel3 = 3;
+  const securityLevel3Text = policyEditor.getSecurityLevelByTextByLevel(securityLevel3);
+  expect(await policyEditor.getSelectedSecurityLevel()).toEqual(securityLevel3Text);
+
+  await settingsModal.navigateToTab('about');
+  await settingsModal.verifyThatTabIsVisible('about');
+  await settingsModal.verifyThatTabIsHidden('policy');
+
+  await settingsModal.navigateToTab('policy');
+  expect(await policyEditor.getSelectedSecurityLevel()).toEqual(securityLevel3Text);
 });
 
 test('That it is possible to change tab to "Access control" tab', async ({ page, testAppName }) => {
-  const settingsModal = await setUpAndOpenSettingsModal(page, testAppName);
-});
+  const settingsModal = await setUpAndOpenSettingsModal(page, testAppName, 'policy');
 
-test('That it is possible to update the settings on "Access control" tab', async ({
-  page,
-  testAppName,
-}) => {
-  const settingsModal = await setUpAndOpenSettingsModal(page, testAppName);
+  await settingsModal.verifyThatTabIsVisible('policy');
+  await settingsModal.verifyThatTabIsHidden('access_control');
+
+  await settingsModal.navigateToTab('accessControl');
+
+  await settingsModal.verifyThatTabIsHidden('policy');
+  await settingsModal.verifyThatTabIsVisible('access_control');
 });
 
 test('That it is possible to close the settings modal', async ({ page, testAppName }) => {
