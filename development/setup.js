@@ -13,6 +13,7 @@ class SetupEnvironment extends ContainerTool {
   host = 'studio.localhost';
 
   constructor() {
+    super();
     this.env = ensureDotEnv();
   }
 
