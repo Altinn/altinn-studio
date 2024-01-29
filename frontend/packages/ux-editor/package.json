@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "jest": "29.7.0",
-    "redux-devtools-extension": "2.13.9"
+    "@redux-devtools/extension": "3.0.0"
   },
   "license": "3-Clause BSD",
   "main": "index.js",

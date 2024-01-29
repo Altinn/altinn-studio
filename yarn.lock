@@ -3601,6 +3601,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@redux-devtools/extension@npm:3.0.0":
+  version: 3.0.0
+  resolution: "@redux-devtools/extension@npm:3.0.0"
+  peerDependencies:
+    redux: ^3.1.0 || ^4.0.0
+  checksum: 577e3d3f2e1c94e9452a513d1643237ada49bd23eeb53a7003281b4b2b68aebf865aafcfcc74aab2226b5449e272764aa86f9ca6f2fe200f190574437e696d4f
+  languageName: node
+  linkType: hard
+
 "@redux-saga/core@npm:^1.3.0":
   version: 1.3.0
   resolution: "@redux-saga/core@npm:1.3.0"
@@ -13964,15 +13973,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux-devtools-extension@npm:2.13.9":
-  version: 2.13.9
-  resolution: "redux-devtools-extension@npm:2.13.9"
-  peerDependencies:
-    redux: ^3.1.0 || ^4.0.0
-  checksum: 8d979c95031dee495e62d90cc12cd9923546227a177f6d3fba973a0d022d819854e47eceea7d0c68254cd410632a5eac2eaf84e17644d2fcecf94a1e246fed88
-  languageName: node
-  linkType: hard
-
 "redux-mock-store@npm:1.5.4":
   version: 1.5.4
   resolution: "redux-mock-store@npm:1.5.4"
@@ -16326,6 +16326,7 @@ __metadata:
   resolution: "ux-editor@workspace:frontend/packages/ux-editor"
   dependencies:
     "@mui/material": "npm:5.15.5"
+    "@redux-devtools/extension": "npm:3.0.0"
     "@reduxjs/toolkit": "npm:1.9.7"
     "@studio/icons": "workspace:^"
     axios: "npm:1.6.5"
@@ -16339,7 +16340,6 @@ __metadata:
     react-redux: "npm:8.1.3"
     react-select: "npm:5.8.0"
     redux: "npm:4.2.1"
-    redux-devtools-extension: "npm:2.13.9"
     reselect: "npm:4.1.8"
     typescript: "npm:5.3.3"
     uuid: "npm:9.0.1"
