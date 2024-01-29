@@ -33,12 +33,6 @@
       "description": "List of data type IDs for the attachment list to show.",
       "examples": [["SomeDataType", "SomeOtherDataType"]]
     },
-    "includePDF": {
-      "type": "boolean",
-      "title": "Include PDF as attachments",
-      "description": "Set the flag if the list of attachments should include PDF of answers.",
-      "default": false
-    },
     "renderAsSummary": {
       "title": "Render as summary",
       "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
