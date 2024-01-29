@@ -4051,15 +4051,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/jest@npm:0.2.30":
-  version: 0.2.30
-  resolution: "@swc/jest@npm:0.2.30"
+"@swc/jest@npm:0.2.31":
+  version: 0.2.31
+  resolution: "@swc/jest@npm:0.2.31"
   dependencies:
     "@jest/create-cache-key-function": "npm:^29.7.0"
     jsonc-parser: "npm:^3.2.0"
   peerDependencies:
     "@swc/core": "*"
-  checksum: 716042abc92f7ffe580f9288311cbc8750d0b6003aae05c4ab7adcaed2c2ce694861597c3e9d21c3069ef8971dfc05e8009623d38c24039e750311bb47d71fab
+  checksum: cbd5a2c4919bc1abd8be29d6a027a800bd6781ff655c6d2f6eceb9b1969ee5b3ffa030c99aae53a1bfd0e43a98bc801f648a630df5e0470810df3e9a706c5c5a
   languageName: node
   linkType: hard
 
@@ -5467,7 +5467,7 @@ __metadata:
     "@redux-saga/symbols": "npm:1.1.3"
     "@svgr/webpack": "npm:8.1.0"
     "@swc/core": "npm:1.3.104"
-    "@swc/jest": "npm:0.2.30"
+    "@swc/jest": "npm:0.2.31"
     "@tanstack/react-query": "npm:5.17.15"
     "@tanstack/react-query-devtools": "npm:5.17.18"
     "@testing-library/dom": "npm:9.3.4"
