@@ -16,7 +16,7 @@ const layoutName = 'layoutName';
 const selectedLayoutSet = 'test-layout-set';
 const componentId = 'component1';
 const componentType = ComponentType.TextArea;
-const baseContaierId = baseContainerIdMock;
+const baseContainerId = baseContainerIdMock;
 const containerId = 'container1';
 const newLayout: IInternalLayout = {
   components: {
@@ -29,11 +29,21 @@ const newLayout: IInternalLayout = {
     },
   },
   containers: {
-    [baseContaierId]: { id: baseContaierId, itemType: 'CONTAINER', pageIndex: null, type: ComponentType.Group },
-    [containerId]: { id: containerId, itemType: 'CONTAINER', pageIndex: null, type: ComponentType.Group },
+    [baseContainerId]: {
+      id: baseContainerId,
+      itemType: 'CONTAINER',
+      pageIndex: null,
+      type: undefined,
+    },
+    [containerId]: {
+      id: containerId,
+      itemType: 'CONTAINER',
+      pageIndex: null,
+      type: ComponentType.Group,
+    },
   },
   order: {
-    [baseContaierId]: [containerId],
+    [baseContainerId]: [containerId],
     [containerId]: [componentId],
   },
   customDataProperties: {},

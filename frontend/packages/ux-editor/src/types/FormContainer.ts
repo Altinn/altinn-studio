@@ -1,6 +1,6 @@
-import type {IDataModelBindings, ITextResourceBindings} from './global';
-import type {KeyValuePairs} from 'app-shared/types/KeyValuePairs';
-import {ComponentType} from "app-shared/types/ComponentType";
+import type { IDataModelBindings, ITextResourceBindings } from './global';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface FormContainer {
   dataModelBindings?: IDataModelBindings;
@@ -17,13 +17,17 @@ export interface FormContainer {
   [id: string]: any;
 }
 
-export type ContainerComponent = ComponentType.Accordion | ComponentType.AccordionGroup | ComponentType.ButtonGroup | ComponentType.Group;
+export type ContainerComponent =
+  | ComponentType.Accordion
+  | ComponentType.AccordionGroup
+  | ComponentType.ButtonGroup
+  | ComponentType.Group;
 
-export const validContainerChildrenComponents: Record<
-    ContainerComponent,
-    ComponentType[]
+export const containerComponentsWithValidChildrenMapping: Record<
+  ContainerComponent,
+  ComponentType[]
 > = {
-  [ComponentType.Accordion]: Object.values(ComponentType),
+  [ComponentType.Accordion]: [ComponentType.Paragraph],
   [ComponentType.AccordionGroup]: [ComponentType.Accordion],
   [ComponentType.ButtonGroup]: [ComponentType.Button],
   [ComponentType.Group]: Object.values(ComponentType),

@@ -21,6 +21,7 @@ describe('externalGroupComponentToInternal', () => {
       expect(result).toEqual({
         id,
         itemType: 'CONTAINER',
+        type: ComponentType.Group,
         pageIndex,
         propertyPath: 'definitions/groupComponent',
         customProperty,

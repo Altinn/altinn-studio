@@ -18,7 +18,13 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
-import {addItemOfType, getItem, moveLayoutItem, validateContainerChild, validateDepth} from '../utils/formLayoutUtils';
+import {
+  addItemOfType,
+  getItem,
+  moveLayoutItem,
+  validateContainerChild,
+  validateDepth,
+} from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { useSearchParams } from 'react-router-dom';
@@ -123,12 +129,13 @@ export const FormDesigner = ({
     const moveItem: HandleMove = (id, { parentId, index }) => {
       const updatedLayout = moveLayoutItem(layout, id, parentId, index);
       const type = getItem(layout, id).type;
-      if (validateDepth(updatedLayout) && validateContainerChild(updatedLayout, parentId, type)) updateFormLayout(updatedLayout);
+      if (validateDepth(updatedLayout) && validateContainerChild(updatedLayout, parentId, type))
+        updateFormLayout(updatedLayout);
       else {
         if (!validateDepth(updatedLayout)) triggerDepthAlert();
         if (!validateContainerChild(updatedLayout, parentId, type)) triggerInvalidChildAlert();
       }
-    }
+    };
 
     return (
       <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>

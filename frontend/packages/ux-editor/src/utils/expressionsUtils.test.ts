@@ -25,7 +25,7 @@ import {
   stringifyValueForDisplay,
   tryParseExpression,
 } from './expressionsUtils';
-import {component1Mock} from '../testing/layoutMock';
+import { component1Mock } from '../testing/layoutMock';
 import {
   baseInternalExpression,
   baseInternalSubExpression,

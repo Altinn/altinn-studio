@@ -48,7 +48,7 @@ export const layoutMock: IInternalLayout = {
     [baseContainerIdMock]: {
       id: baseContainerIdMock,
       itemType: 'CONTAINER',
-      type: ComponentType.Group,
+      type: undefined,
       index: 0,
       pageIndex: null,
     },

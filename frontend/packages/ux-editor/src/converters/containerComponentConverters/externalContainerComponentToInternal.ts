@@ -2,7 +2,6 @@ import { formItemConfigs } from '../../data/formItemConfig';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 import type { FormContainer } from '../../types/FormContainer';
 
-// Check where this is used
 export const externalContainerComponentToInternal = (
   externalComponent: ExternalContainerComponent,
   pageIndex: number | null,

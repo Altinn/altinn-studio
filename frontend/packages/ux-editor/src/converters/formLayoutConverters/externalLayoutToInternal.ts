@@ -9,12 +9,13 @@ import type {
 } from '../../types/global';
 import { externalSimpleComponentToInternal } from '../simpleComponentConverters';
 import type { FormComponent } from '../../types/FormComponent';
-import { FormContainer, validContainerChildrenComponents } from '../../types/FormContainer';
+import type { FormContainer } from '../../types/FormContainer';
+import { containerComponentsWithValidChildrenMapping } from '../../types/FormContainer';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { mapByProperty } from 'app-shared/utils/objectUtils';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
-import { externalContainerComponentToInternal } from '../groupComponentConverters';
+import { externalContainerComponentToInternal } from '../containerComponentConverters';
 import { findPageIndexInChildList, removePageIndexPrefix } from './pageIndexUtils';
 import {
   createEmptyComponentStructure,
@@ -101,12 +102,19 @@ const getOrderOfComponents = (externalComponents: ExternalComponent[]): IFormLay
 
 const findSimpleComponents = (externalComponents: ExternalComponent[]): ExternalSimpleComponent[] =>
   externalComponents.filter(
-    (component) => !Object.keys(validContainerChildrenComponents).find(comp => comp === component.type),
+    (component) =>
+      !Object.keys(containerComponentsWithValidChildrenMapping).find(
+        (comp) => comp === component.type,
+      ),
   ) as ExternalSimpleComponent[];
 
-const findContainerComponents = (externalComponents: ExternalComponent[]): ExternalContainerComponent[] =>
-  externalComponents.filter(
-      (component) => Object.keys(validContainerChildrenComponents).find(comp => comp === component.type),
+const findContainerComponents = (
+  externalComponents: ExternalComponent[],
+): ExternalContainerComponent[] =>
+  externalComponents.filter((component) =>
+    Object.keys(containerComponentsWithValidChildrenMapping).find(
+      (comp) => comp === component.type,
+    ),
   ) as ExternalContainerComponent[];
 
 const findTopLevelComponentIds = (externalComponents: ExternalComponent[]) =>
@@ -117,10 +125,9 @@ const findTopLevelComponentIds = (externalComponents: ExternalComponent[]) =>
 const getChildrenIdsOfAllContainers = (
   externalComponents: ExternalComponent[],
 ): IFormLayoutOrder => {
-  const entries: [string, string[]][] = findContainerComponents(externalComponents).map((container) => [
-    container.id,
-    getChildIds(container),
-  ]);
+  const entries: [string, string[]][] = findContainerComponents(externalComponents).map(
+    (container) => [container.id, getChildIds(container)],
+  );
   return Object.fromEntries(entries);
 };
 
@@ -144,7 +151,7 @@ const findParent = (
   externalComponents: ExternalComponent[],
   id: string,
 ): ExternalContainerComponent | null =>
-    findContainerComponents(externalComponents).find((container) =>
+  findContainerComponents(externalComponents).find((container) =>
     getChildIds(container).includes(id),
   ) ?? null;
 

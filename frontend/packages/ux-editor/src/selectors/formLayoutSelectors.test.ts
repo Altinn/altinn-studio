@@ -6,7 +6,7 @@ import {
   getFullLayoutOrder,
   selectedLayoutNameSelector,
 } from './formLayoutSelectors';
-import {ComponentType} from 'app-shared/types/ComponentType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const layout1Name = 'Side1';

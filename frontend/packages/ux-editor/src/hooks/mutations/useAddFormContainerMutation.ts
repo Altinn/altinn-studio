@@ -1,6 +1,5 @@
 import { generateComponentId } from '../../utils/generateId';
 import type { IInternalLayout } from '../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';

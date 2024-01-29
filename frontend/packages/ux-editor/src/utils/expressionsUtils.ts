@@ -19,6 +19,7 @@ import type { FormComponent } from '../types/FormComponent';
 import type { LegacySingleSelectOption } from '@digdir/design-system-react';
 import type { FormContainer } from '../types/FormContainer';
 import type { UseText } from '../hooks';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
@@ -427,10 +428,9 @@ export const getExternalExpressionOnComponentProperty = (
   property: ExpressionProperty,
 ): any => {
   let value = form[property];
-  // Should expressions like these apply to all container-components or only group?
-  if (form.itemType === 'CONTAINER' && property.includes('edit')) {
-    const editPropertyForContainer = property.split('edit.')[1];
-    value = form['edit'][editPropertyForContainer];
+  if (form.type === ComponentType.Group && property.includes('edit')) {
+    const editPropertyForGroup = property.split('edit.')[1];
+    value = form['edit'][editPropertyForGroup];
   }
   return typeof value !== 'boolean' ? value : undefined;
 };

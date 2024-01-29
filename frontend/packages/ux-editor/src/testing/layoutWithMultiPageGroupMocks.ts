@@ -85,27 +85,27 @@ const internalComponent3_1_1: FormComponent = {
 
 const externalComponent3_1_2: ExternalComponent = {
   id: component3_1_2Id,
-  type: ComponentType.Group,
+  type: ComponentType.ButtonGroup,
 };
 const internalComponent3_1_2: FormContainer = {
   id: component3_1_2Id,
   itemType: 'CONTAINER',
-  type: ComponentType.Group,
+  type: ComponentType.ButtonGroup,
   pageIndex: 0,
-  propertyPath: 'definitions/groupComponent',
+  propertyPath: 'definitions/buttonGroupComponent',
 };
 
 const externalComponent3_1_3: ExternalComponent = {
   id: component3_1_3Id,
-  type: ComponentType.Group,
+  type: ComponentType.Accordion,
   children: [],
 };
 const internalComponent3_1_3: FormContainer = {
   id: component3_1_3Id,
   itemType: 'CONTAINER',
-  type: ComponentType.Group,
+  type: ComponentType.Accordion,
   pageIndex: 1,
-  propertyPath: 'definitions/groupComponent',
+  propertyPath: 'definitions/accordionComponent',
 };
 
 const externalComponent3_1_4: ExternalComponent = {
@@ -153,7 +153,7 @@ const baseContainer: FormContainer = {
   id: BASE_CONTAINER_ID,
   index: 0,
   itemType: 'CONTAINER',
-  type: ComponentType.Group,
+  type: undefined,
   pageIndex: null,
 };
 
