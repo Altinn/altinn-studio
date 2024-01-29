@@ -12,14 +12,14 @@ import {
   makeDomGroupId,
   makeDomTreeItemId,
 } from '../utils/domUtils';
-import { AnimateHeight } from 'app-shared/components/AnimateHeight';
-import { TreeViewItemContext } from './TreeViewItemContext';
+import { StudioAnimateHeight } from '../../StudioAnimateHeight';
+import { StudioTreeViewItemContext } from './StudioTreeViewItemContext';
 import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
-import classes from './TreeViewItem.module.css';
+import { StudioButton } from '../../StudioButton';
+import classes from './StudioTreeViewItem.module.css';
 import cn from 'classnames';
 
-export type TreeViewItemProps = {
+export type StudioTreeViewItemProps = {
   as?: ElementType;
   children?: ReactNode;
   className?: string;
@@ -29,7 +29,7 @@ export type TreeViewItemProps = {
   nodeId: string;
 } & HTMLAttributes<HTMLDivElement>;
 
-export const TreeViewItem = ({
+export const StudioTreeViewItem = ({
   as = 'li',
   className,
   children,
@@ -38,7 +38,7 @@ export const TreeViewItem = ({
   labelWrapper = (lab) => lab,
   nodeId,
   ...rest
-}: TreeViewItemProps) => {
+}: StudioTreeViewItemProps) => {
   const [open, setOpen] = useState(false);
   const { selectedId, setSelectedId, rootId, focusedId, setFocusedId, focusableId } =
     useTreeViewRootContext();
@@ -123,18 +123,18 @@ export const TreeViewItem = ({
   const Component = as;
 
   return (
-    <TreeViewItemContext.Provider value={{ level: level + 1 }}>
+    <StudioTreeViewItemContext.Provider value={{ level: level + 1 }}>
       <Component role='none' {...rest} className={cn(classes.listItem, className)}>
         {labelWrapper(renderLabel())}
         {hasChildren && (
-          <AnimateHeight open={open}>
+          <StudioAnimateHeight open={open}>
             <ul role='group' id={listId} aria-hidden={!open} className={classes.childItemList}>
               {children}
             </ul>
-          </AnimateHeight>
+          </StudioAnimateHeight>
         )}
       </Component>
-    </TreeViewItemContext.Provider>
+    </StudioTreeViewItemContext.Provider>
   );
 };
 
