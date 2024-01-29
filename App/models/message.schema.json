@@ -28,9 +28,6 @@
         "IsSomeValue": {
           "type": "boolean"
         },
-        "ShowValidations": {
-          "type": "boolean"
-        },
         "SomeNumberValue": {
           "type": "integer"
         }
