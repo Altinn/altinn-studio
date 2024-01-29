@@ -9,4 +9,4 @@ export interface TreeViewRootContextProps {
   setSelectedId: (id?: string) => void;
 }
 
-export const TreeViewRootContext = createContext<TreeViewRootContextProps>(null);
+export const StudioTreeViewRootContext = createContext<TreeViewRootContextProps>(null);
