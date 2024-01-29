@@ -171,7 +171,7 @@ class SetupEnvironment extends ContainerTool {
       [
         `${this.containerManager} exec -i studio-db psql`,
         `-U designer_admin designerdb`,
-        `< db/data.sql`,
+        `< development/db/data.sql`,
       ].join(' '),
     );
   }

@@ -5,7 +5,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { AxiosError } from 'axios';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
-import { removeStart } from 'app-shared/utils/stringUtils';
+import { StringUtils } from '@studio/pure-functions';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 
@@ -18,7 +18,7 @@ export const useSchemaQuery = (
     queryKey: [QueryKey.JsonSchema, org, app, modelPath],
     queryFn: async (): Promise<JsonSchema> =>
       isXsdFile(modelPath)
-        ? addXsdFromRepo(org, app, removeStart(modelPath, '/'))
+        ? addXsdFromRepo(org, app, StringUtils.removeStart(modelPath, '/'))
         : getDatamodel(org, app, modelPath),
   });
 };

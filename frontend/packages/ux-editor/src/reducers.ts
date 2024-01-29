@@ -11,9 +11,9 @@ export interface IReducers
   extends IFormDesignerNameSpace<Reducer<IFormDesignerState>, Reducer<IAppDataState>>,
     ReducersMapObject {}
 
-const reducers: IReducers = {
+export const rootReducer: IReducers = {
   formDesigner: formDesignerReducer,
   appData: appDataReducer,
 };
 
-export default combineReducers(reducers);
+export default combineReducers(rootReducer);
