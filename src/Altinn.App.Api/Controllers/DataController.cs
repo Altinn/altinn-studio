@@ -752,10 +752,19 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Did not find form data for data element {dataGuid}");
             }
 
+            // we need to save the changes if dataProcessRead changes the model
+            byte[] beforeProcessDataRead = JsonSerializer.SerializeToUtf8Bytes(appModel);
+
             foreach (var dataProcessor in _dataProcessors)
             {
                 _logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", appModel.GetType().Name, dataProcessor.GetType().Name);
                 await dataProcessor.ProcessDataRead(instance, dataGuid, appModel, language);
+            }
+
+            if (!beforeProcessDataRead.SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(appModel)))
+            {
+                // Save back teh changes if dataProcessRead has changed the model
+                await _dataClient.UpdateData(appModel, instanceGuid, appModel.GetType(), org, app, instanceOwnerId, dataGuid);
             }
 
             string? userOrgClaim = User.GetOrg();

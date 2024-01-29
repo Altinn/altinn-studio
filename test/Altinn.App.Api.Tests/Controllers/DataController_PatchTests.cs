@@ -34,8 +34,8 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     private static readonly Guid DataGuid = new("fc121812-0336-45fb-a75c-490df3ad5109");
 
     // Define mocks
-    private readonly Mock<IDataProcessor> _dataProcessorMock = new();
-    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new();
+    private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
+    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new ()
     {
@@ -95,6 +95,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task ValidName_ReturnsOk()
     {
+        _dataProcessorMock.Setup(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) => Task.CompletedTask);
+
         // Update data element
         var patch = new JsonPatch(
             PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\"")));
@@ -114,6 +117,8 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task NullName_ReturnsOkAndValidationError()
     {
+        _dataProcessorMock.Setup(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) => Task.CompletedTask);
         // Update data element
         var patch = new JsonPatch(
             PatchOperation.Test(JsonPointer.Create("melding", "name"), JsonNode.Parse("null")),
@@ -183,6 +188,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task TestEmptyListAndInsertElement_ReturnsNewModel()
     {
+        _dataProcessorMock.Setup(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) => Task.CompletedTask);
+
         // Update data element
         var pointer = JsonPointer.Create("melding", "nested_list");
         var patch = new JsonPatch(
@@ -245,6 +253,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task UpdateContainerWithListProperty_ReturnsCorrectDataModel()
     {
+        _dataProcessorMock.Setup(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) => Task.CompletedTask);
+
         var pointer = JsonPointer.Create("melding", "nested_list");
         var createFirstElementPatch = new JsonPatch(
             PatchOperation.Test(pointer, JsonNode.Parse("[]")),
@@ -268,6 +279,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task RemoveStringProperty_ReturnsCorrectDataModel()
     {
+        _dataProcessorMock.Setup(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) => Task.CompletedTask);
+
         var pointer = JsonPointer.Create("melding", "name");
         var createFirstElementPatch = new JsonPatch(
             PatchOperation.Test(pointer, JsonNode.Parse("null")),
@@ -293,6 +307,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task SetStringPropertyToEmtpy_ReturnsCorrectDataModel()
     {
+        _dataProcessorMock.Setup(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) => Task.CompletedTask);
+
         var pointer = JsonPointer.Create("melding", "name");
         var createFirstElementPatch = new JsonPatch(
             PatchOperation.Test(pointer, JsonNode.Parse("null")),
@@ -317,6 +334,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task SetAttributeTagPropertyToEmtpy_ReturnsCorrectDataModel()
     {
+        _dataProcessorMock.Setup(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) => Task.CompletedTask);
+
         var pointer = JsonPointer.Create("melding", "tag-with-attribute");
         var createFirstElementPatch = new JsonPatch(
             PatchOperation.Test(pointer, JsonNode.Parse("null")),
@@ -338,9 +358,59 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         secondValue.ValueKind.Should().Be(JsonValueKind.Null);
     }
 
+
+    [Fact]
+    public async Task DataReadChanges_IsPreservedWhenCallingPatch()
+    {
+        _dataProcessorMock
+            .Setup(p => p.ProcessDataRead(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<Skjema>(), "nn"))
+            .Returns((Instance instance, Guid dataGuid, Skjema skjema, string language) =>
+            {
+                skjema.Melding.Random = "randomFromDataRead";
+                return Task.CompletedTask;
+            })
+            .Verifiable(Times.Exactly(1));
+        _dataProcessorMock
+            .Setup(p=>p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid? dataGuid, object data, object? previousData, string language) => Task.CompletedTask)
+            .Verifiable(Times.Exactly(1));
+
+        // call Read to get the data with changes to Melding.Random from ProcessDataRead
+        var url = $"/{Org}/{App}/instances/{InstanceId}/data/{DataGuid}?language=nn";
+        _outputHelper.WriteLine($"Calling GET {url}");
+        using var httpClient = GetRootedClient(Org, App);
+        string token = PrincipalUtil.GetToken(1337, null);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await httpClient.GetAsync(url);
+        var responseString = await response.Content.ReadAsStringAsync();
+        using var responseParsedRaw = JsonDocument.Parse(responseString);
+        _outputHelper.WriteLine("\nResponse:");
+        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, JsonSerializerOptions));
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+        var responseObject = JsonSerializer.Deserialize<Skjema>(responseString, JsonSerializerOptions)!;
+
+        responseObject.Melding.Random.Should().Be("randomFromDataRead");
+
+        // Run a patch operation
+        var patch = new JsonPatch(
+            PatchOperation.Test(JsonPointer.Create("melding", "name"), JsonNode.Parse("null")),
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\"")));
+        var (_, _, parsedResponsePatch) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
+
+        // Verify that the patch operation preserves the changes made by ProcessDataRead
+        var newModelElement = parsedResponsePatch.NewDataModel.Should().BeOfType<JsonElement>().Which;
+        var newModel = newModelElement.Deserialize<Skjema>()!;
+        newModel.Melding.Random.Should().Be("randomFromDataRead");
+
+        _dataProcessorMock.Verify();
+    }
+
     [Fact]
     public async Task VerifyLanguageIsPassedToDataProcessor()
     {
+        _dataProcessorMock.Setup(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), "es"))
+            .Returns((Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) => Task.CompletedTask);
+
         // Update data element with language set to "es"
         var patch = new JsonPatch(
             PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\"")));
@@ -354,6 +424,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task ValidationIssueSeverity_IsSerializedNumeric()
     {
+        _dataProcessorMock.Setup(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Returns((Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) => Task.CompletedTask);
+
         var patch = new JsonPatch();
         var (_, responseString, _) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
 
