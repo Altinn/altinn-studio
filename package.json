@@ -104,6 +104,7 @@
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
     "typecheck": "yarn workspaces foreach -A run typecheck",
     "playwright:test:all": "yarn workspace playwright-studio test:all",
+    "playwright:test:ui": "yarn workspace playwright-studio test:ui",
     "git:ignore-revs": "git config blame.ignoreRevsFile .git-blame-ignore-revs"
   },
   "syncpack": {
