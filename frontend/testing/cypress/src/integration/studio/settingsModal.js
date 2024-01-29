@@ -25,15 +25,6 @@ context('SettingsModal', () => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
-  it('is possible to open the settings modal', () => {
-    cy.findByRole('heading', { name: texts['settings_modal.heading'] }).should('be.visible');
-  });
-
-  it('is possible to close the settings modal', () => {
-    cy.findByRole('button', { name: texts['modal.close_icon'] }).click();
-    cy.findByRole('heading', { name: texts['settings_modal.heading'] }).should('not.exist');
-  });
-
   it('is possible to see and edit information on About App tab', () => {
     administrationTab.getHeader().should('be.visible');
     administrationTab.getAppNameField().clear().type('New app name');

@@ -65,4 +65,8 @@ export class Header extends BasePage {
       .getByRole('button', { name: this.textMock('sync_header.local_changes') })
       .click();
   }
+
+  public async clickOnOpenSettingsModalButton(): Promise<void> {
+    await this.page.getByRole('button', { name: this.textMock('sync_header.settings') }).click();
+  }
 }
