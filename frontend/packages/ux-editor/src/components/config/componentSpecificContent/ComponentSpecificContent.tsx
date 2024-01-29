@@ -7,6 +7,7 @@ import { FileUploadComponent } from './FileUpload';
 import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
+import { AttachmentListComponent } from './AttachmentList';
 
 export function ComponentSpecificContent({
   component,
@@ -60,6 +61,15 @@ export function ComponentSpecificContent({
     case ComponentType.Map: {
       return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
     }
+    case ComponentType.AttachmentList: {
+      return (
+        <AttachmentListComponent
+          component={component}
+          handleComponentChange={handleComponentChange}
+        />
+      );
+    }
+
     default: {
       return null;
     }
