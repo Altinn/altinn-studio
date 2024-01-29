@@ -41,6 +41,7 @@ services:
       - studio_repositories
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+      - 'host.podman.internal:host-gateway'
     volumes:
       - ./frontend/language/src:/www-root/designer/frontend/lang:ro
       - ./development/load-balancer:/etc/nginx/templates/:ro
@@ -85,6 +86,7 @@ services:
       context: .
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+      - 'host.podman.internal:host-gateway'
 
   studio_repositories:
     container_name: studio-repositories
@@ -123,6 +125,7 @@ services:
       context: ./gitea/
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+      - 'host.podman.internal:host-gateway'
 
   studio_db:
     container_name: studio-db

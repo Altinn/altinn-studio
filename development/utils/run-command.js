@@ -7,7 +7,6 @@ module.exports = (command) => {
       cwd: path.resolve(__dirname, '..'),
     });
   } catch (e) {
-    console.error('     Command failed, run with --verbose to get the error message');
-    //console.error(`Error: ${e.stdout}`);
+    console.error('Command failed, run with --verbose to get the error message', e);
   }
 };
