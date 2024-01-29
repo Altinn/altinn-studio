@@ -30,22 +30,6 @@ const setupAndVerifyUiEditorPage = async (
   return uiEditorPage;
 };
 
-const makeChangesOnUiEditorPage = async (uiEditorPage: UiEditorPage, newPageName: string) => {
-  await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
-  await uiEditorPage.clickOnAddNewPage();
-  await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
-};
-
-const goToGiteaAndNavigateToUiLayoutFiles = async (header: Header, giteaPage: GiteaPage) => {
-  await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
-  await giteaPage.verifyGiteaPage();
-  await giteaPage.clickOnAppFilesButton();
-  await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutsFilesButton();
-};
-
 test('That new changes are pushed to gitea and are visible on Gitea after they have been pushed', async ({
   page,
   testAppName,
@@ -60,8 +44,7 @@ test('That new changes are pushed to gitea and are visible on Gitea after they h
   await goToGiteaAndNavigateToUiLayoutFiles(header, giteaPage);
   await giteaPage.verifyThatTheNewPageIsNotPresent(newPageName);
 
-  // Click push
-  const nPagesInGitea: number = 4; // Gitea -> App -> ui -> layouts
+  const nPagesInGitea: number = 4; // 4 because of: Gitea -> App -> ui -> layouts
   await giteaPage.goBackNPages(nPagesInGitea);
   await uiEditorPage.verifyUiEditorPage(newPageName);
   await header.clickOnUploadLocalChangesButton();
@@ -71,7 +54,6 @@ test('That new changes are pushed to gitea and are visible on Gitea after they h
 
   await goToGiteaAndNavigateToUiLayoutFiles(header, giteaPage);
   await giteaPage.verifyThatTheNewPageIsPresent(newPageName);
-  //
 });
 
 test('That it is possible to delete local changes', async ({ page, testAppName }) => {
@@ -109,16 +91,23 @@ test('That it is possible to download local changes zip', async ({ page, testApp
   await downloadPromise; // Verify that the download promise resolves
 });
 
-// test('That it is possible to pull local changes', async ({ page, testAppName }) => {});
+// Below are helper functions for "duplicate" code where the process is the same
+const makeChangesOnUiEditorPage = async (uiEditorPage: UiEditorPage, newPageName: string) => {
+  await uiEditorPage.verifyThatNewPageIsHidden(newPageName);
+  await uiEditorPage.clickOnAddNewPage();
+  await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
+};
 
-// PULL
+const goToGiteaAndNavigateToUiLayoutFiles = async (header: Header, giteaPage: GiteaPage) => {
+  await header.clickOnThreeDotsMenu();
+  await header.clickOnGoToGiteaRepository();
 
-// PUSH
-// - Navigate to Gitea, view the changes
+  await giteaPage.verifyGiteaPage();
+  await giteaPage.clickOnAppFilesButton();
+  await giteaPage.clickOnUiFilesButton();
+  await giteaPage.clickOnLayoutsFilesButton();
+};
 
-// DELETE LOCAL CHANGES
-
-//
 const makeUiEditorChangesAndOpenLocalChangesModal = async (
   page: Page,
   testAppName: string,
