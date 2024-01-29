@@ -1,5 +1,6 @@
 .root {
   list-style-type: none;
+  transform: translate(0);
 }
 
 .wrapper {
