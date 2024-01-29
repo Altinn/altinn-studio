@@ -229,6 +229,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
     }
 
+    services.AddSingleton<IResourceAccessListService, ResourceAccessListService>();
     services.AddLocalization(options => options.ResourcesPath = "Resources");
 
     services.ConfigureLocalization();

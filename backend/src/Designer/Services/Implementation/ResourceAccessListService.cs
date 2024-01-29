@@ -22,65 +22,46 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public ListMemberIdentifier Identifiers { get; set; }
     }
 
-    public class ListMembersResponse
+    public class ApiListResponse
     {
+        public string Identifier { get; set; }
+        public string Name { get; set; }
+        public string? Description { get; set; }
         public IEnumerable<ListMember> Data { get; set; }
     }
 
     public class ResourceAccessListService : IResourceAccessListService
     {
         private readonly HttpClient _httpClient;
-        private readonly PlatformSettings _platformSettings;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
-        private readonly List<AccessList> _accessListMockData = new()
+        private static List<ApiListResponse> _accessListMockData = new()
         {
             new() {
                 Identifier = "godkjente-banker",
-                Name = "Godkjente banker"
+                Name = "Godkjente banker",
+                Data = new List<ListMember>()
+                {
+                    new()
+                    {
+                        Id = "urn:altinn:Access:72439f71-2280-499c-bbf4-d00140053e08",
+                        Identifiers = new() { OrganizationNumber = "991825827" }
+                    },
+                    new()
+                    {
+                        Id = "urn:altinn:Access:db8942da-6367-487c-af6b-44af672081d9",
+                        Identifiers = new() { OrganizationNumber = "997532422" }
+                    },
+                    new()
+                    {
+                        Id = "urn:altinn:Access:81ba70dc-d6be-4e21-af41-a878283ac2a7",
+                        Identifiers = new() { OrganizationNumber = "891611862" }
+                    }
+                }
             },
             new()
             {
-                Identifier = "rike-skattebetalere",
-                Name = "Rike skattebetalere"
-            },
-            new()
-            {
-                Identifier = "kakespisere",
-                Name = "Kakespisere"
-            }
-        };
-
-        public ResourceAccessListService() { }
-
-        public ResourceAccessListService(HttpClient httpClient, PlatformSettings platformSettings)
-        {
-            _httpClient = httpClient;
-            _platformSettings = platformSettings;
-        }
-
-        public async Task<ActionResult<AccessList>> CreateAccessList(
-            string org,
-            string env,
-            AccessList accessList
-        )
-        {
-            return _accessListMockData.ElementAt(0);
-        }
-
-        public async Task<ActionResult<AccessList>> GetAccessList(
-            string org,
-            string identifier,
-            string env
-        )
-        {
-            AccessList accessList = _accessListMockData.Find(x => x.Identifier == identifier);
-            if (accessList == null)
-            {
-                return new ObjectResult("List identifier not found") { StatusCode = 404 };
-            }
-
-            ListMembersResponse mockDataResponse = new()
-            {
+                Identifier = "sentral-godkjenning",
+                Name = "Sentral godkjenning",
                 Data = new List<ListMember>()
                 {
                     new()
@@ -104,7 +85,68 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         Identifiers = new() { OrganizationNumber = "111611111" }
                     }
                 }
+            },
+            new()
+            {
+                Identifier = "salgsmelding",
+                Name = "Salgsmelding",
+                Data = new List<ListMember>()
+                {
+                    new()
+                    {
+                        Id = "urn:altinn:Access:72439f71-2280-499c-bbf4-d00140053e08",
+                        Identifiers = new() { OrganizationNumber = "991825827" }
+                    },
+                    new()
+                    {
+                        Id = "urn:altinn:Access:81ba70dc-d6be-4e21-af41-a878283ac2a7",
+                        Identifiers = new() { OrganizationNumber = "891611862" }
+                    }
+                }
+            }
+        };
+
+        public ResourceAccessListService() { }
+
+        public ResourceAccessListService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
+        public async Task<ActionResult<AccessList>> CreateAccessList(
+            string org,
+            string env,
+            AccessList accessList
+        )
+        {
+            _accessListMockData.Add(new()
+            {
+                Name = accessList.Name,
+                Description = accessList.Description,
+                Identifier = accessList.Identifier,
+                Data = new List<ListMember>(),
+            });
+            return accessList;
+        }
+
+        public async Task<ActionResult<AccessList>> GetAccessList(
+            string org,
+            string identifier,
+            string env
+        )
+        {
+            ApiListResponse mockDataResponse = _accessListMockData.Find(x => x.Identifier == identifier);
+            if (mockDataResponse == null)
+            {
+                return new ObjectResult("List identifier not found") { StatusCode = 404 };
+            }
+            AccessList accessList = new()
+            {
+                Name = mockDataResponse.Name,
+                Description = mockDataResponse.Description,
+                Identifier = mockDataResponse.Identifier,
             };
+
             IEnumerable<string> orgnrs = mockDataResponse
                 .Data
                 .Select(x => x.Identifiers.OrganizationNumber);
@@ -159,7 +201,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string env
         )
         {
-            return _accessListMockData;
+            IEnumerable <AccessList> lists = _accessListMockData.Select(list => new AccessList()
+            {
+                Name = list.Name,
+                Description = list.Description,
+                Identifier = list.Identifier,
+            });
+            return lists.ToList();
         }
 
         public async Task<ActionResult<IEnumerable<ResourceAccessList>>> GetResourceAccessLists(
