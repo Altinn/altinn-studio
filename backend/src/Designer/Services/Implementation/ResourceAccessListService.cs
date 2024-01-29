@@ -201,7 +201,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string env
         )
         {
-            IEnumerable <AccessList> lists = _accessListMockData.Select(list => new AccessList()
+            IEnumerable<AccessList> lists = _accessListMockData.Select(list => new AccessList()
             {
                 Name = list.Name,
                 Description = list.Description,
