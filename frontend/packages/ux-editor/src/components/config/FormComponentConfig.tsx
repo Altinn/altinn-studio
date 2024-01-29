@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditComponentId } from './editModal/EditComponentId';
-import { Accordion, Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
@@ -227,29 +227,27 @@ export const FormComponentConfig = ({
         }
         if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
           return (
-            <Accordion key={propertyKey}>
-              <Accordion.Item>
-                <Accordion.Header>{getComponentPropertyLabel(propertyKey, t)}</Accordion.Header>
-                <Accordion.Content>
-                  {rest[propertyKey]?.description && (
-                    <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
-                  )}
-                  <FormComponentConfig
-                    key={propertyKey}
-                    schema={rest[propertyKey]}
-                    component={component[propertyKey] || {}}
-                    handleComponentUpdate={(updatedComponent: FormComponent) => {
-                      handleComponentUpdate({
-                        ...component,
-                        [propertyKey]: updatedComponent,
-                      });
-                    }}
-                    editFormId={editFormId}
-                    hideUnsupported
-                  />
-                </Accordion.Content>
-              </Accordion.Item>
-            </Accordion>
+            <React.Fragment key={propertyKey}>
+              <Heading level={3} size='xxsmall'>
+                {getComponentPropertyLabel(propertyKey, t)}
+              </Heading>
+              {rest[propertyKey]?.description && (
+                <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
+              )}
+              <FormComponentConfig
+                key={propertyKey}
+                schema={rest[propertyKey]}
+                component={component[propertyKey] || {}}
+                handleComponentUpdate={(updatedComponent: FormComponent) => {
+                  handleComponentUpdate({
+                    ...component,
+                    [propertyKey]: updatedComponent,
+                  });
+                }}
+                editFormId={editFormId}
+                hideUnsupported
+              />
+            </React.Fragment>
           );
         }
         return null;
