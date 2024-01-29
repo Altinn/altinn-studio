@@ -4,11 +4,11 @@ import { act } from 'react-dom/test-utils';
 
 import * as useMediaQuery from '../../hooks/useMediaQuery';
 
-import type { AnimateHeightProps } from './AnimateHeight';
-import { AnimateHeight } from './AnimateHeight';
+import type { StudioAnimateHeightProps } from './StudioAnimateHeight';
+import { StudioAnimateHeight } from './StudioAnimateHeight';
 
 // Test data:
-const defaultProps: AnimateHeightProps = {
+const defaultProps: StudioAnimateHeightProps = {
   open: false,
 };
 
@@ -25,7 +25,7 @@ jest.mock('./AnimateHeight.module.css', () => ({
 }));
 
 /* eslint-disable testing-library/no-node-access */
-describe('AnimateHeight', () => {
+describe('StudioAnimateHeight', () => {
   beforeEach(() => {
     jest.spyOn(useMediaQuery, 'useMediaQuery').mockReturnValue(false); // Set prefers-reduced-motion to false
   });
@@ -69,7 +69,7 @@ describe('AnimateHeight', () => {
 
   it('Sets class to "openingOrClosing" when opening and "open" when timer has run', async () => {
     const { container, rerender } = render({ open: false });
-    rerender(<AnimateHeight open />);
+    rerender(<StudioAnimateHeight open />);
     expect(container.firstChild).toHaveClass('openingOrClosing');
     await act(jest.runAllTimers);
     await waitFor(() => {
@@ -80,7 +80,7 @@ describe('AnimateHeight', () => {
 
   it('Sets class to "openingOrClosing" when closing and "closed" when timer has run', async () => {
     const { container, rerender } = render({ open: true });
-    rerender(<AnimateHeight open={false} />);
+    rerender(<StudioAnimateHeight open={false} />);
     expect(container.firstChild).toHaveClass('openingOrClosing');
     await act(jest.runAllTimers);
     await waitFor(() => {
@@ -92,7 +92,7 @@ describe('AnimateHeight', () => {
   it('Sets class to "open" immediately when opening and "prefers-reduced-motion" is set', () => {
     jest.spyOn(useMediaQuery, 'useMediaQuery').mockReturnValue(true);
     const { container, rerender } = render({ open: false });
-    rerender(<AnimateHeight open />);
+    rerender(<StudioAnimateHeight open />);
     expect(container.firstChild).toHaveClass('open');
     expect(container.firstChild).not.toHaveClass('openingOrClosing');
   });
@@ -100,11 +100,11 @@ describe('AnimateHeight', () => {
   it('Sets class to "closed" immediately when closing and "prefers-reduced-motion" is set', () => {
     jest.spyOn(useMediaQuery, 'useMediaQuery').mockReturnValue(true);
     const { container, rerender } = render({ open: true });
-    rerender(<AnimateHeight open={false} />);
+    rerender(<StudioAnimateHeight open={false} />);
     expect(container.firstChild).toHaveClass('closed');
     expect(container.firstChild).not.toHaveClass('openingOrClosing');
   });
 });
 
-const render = (props: Partial<AnimateHeightProps> = {}) =>
-  renderRtl(<AnimateHeight {...defaultProps} {...props} />);
+const render = (props: Partial<StudioAnimateHeightProps> = {}) =>
+  renderRtl(<StudioAnimateHeight {...defaultProps} {...props} />);

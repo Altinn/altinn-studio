@@ -4,6 +4,6 @@ export interface TreeViewItemContextProps {
   level: number;
 }
 
-export const TreeViewItemContext = createContext<TreeViewItemContextProps>({
+export const StudioTreeViewItemContext = createContext<TreeViewItemContextProps>({
   level: 1,
 });
