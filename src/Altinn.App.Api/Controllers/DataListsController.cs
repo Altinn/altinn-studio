@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿#nullable enable
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers
@@ -30,15 +27,15 @@ namespace Altinn.App.Api.Controllers
         /// Api that exposes app related datalists
         /// </summary>
         /// <param name="id">The listId</param>
-        /// <param name="language">The language selected by the user.</param>
         /// <param name="queryParams">Query parameteres supplied</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>The data list</returns>
         [HttpGet]
         [Route("/{org}/{app}/api/datalists/{id}")]
         public async Task<IActionResult> Get(
             [FromRoute] string id,
-            [FromQuery] string language,
-            [FromQuery] Dictionary<string, string> queryParams)
+            [FromQuery] Dictionary<string, string> queryParams,
+            [FromQuery] string? language = null)
         {
             DataList dataLists = await _dataListsService.GetDataListAsync(id, language, queryParams);
             if (dataLists.ListItems == null)
@@ -55,8 +52,8 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="id">The datalistId</param>
-        /// <param name="language">The language selected by the user.</param>
         /// <param name="queryParams">Query parameteres supplied</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -67,8 +64,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] string id,
-            [FromQuery] string language,
-            [FromQuery] Dictionary<string, string> queryParams)
+            [FromQuery] Dictionary<string, string> queryParams,
+            [FromQuery] string? language = null)
         {
             var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 

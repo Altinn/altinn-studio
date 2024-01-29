@@ -71,7 +71,7 @@ public class PdfOptionsMapping : IPdfOptionsMapping
         }
     }
 
-    private async Task<AppOptions> GetOptions(bool isSecure, InstanceIdentifier instanceIdentifier, string optionsId, string language, Dictionary<string, string> mappings)
+    private async Task<AppOptions> GetOptions(bool isSecure, InstanceIdentifier instanceIdentifier, string optionsId, string? language, Dictionary<string, string> mappings)
     {
         if (isSecure)
         {

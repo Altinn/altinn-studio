@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Extensions
         /// <summary>
         /// Converts a dictionary to a name value string on the form key1=value1,key2=value2 url encoding both key and value.
         /// </summary>
-        public static string ToUrlEncodedNameValueString(this Dictionary<string, string>? parameters, char separator)
+        public static string ToUrlEncodedNameValueString(this Dictionary<string, string?>? parameters, char separator)
         {
             if (parameters == null)
             {

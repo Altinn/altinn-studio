@@ -21,6 +21,6 @@ namespace Altinn.App.Core.Features
         /// <param name="keyValuePairs">Key/value pairs to control what options to get.
         /// When called from the options controller this will be the querystring key/value pairs.</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
-        Task<AppOptions> GetInstanceAppOptionsAsync(InstanceIdentifier instanceIdentifier, string language, Dictionary<string, string> keyValuePairs);
+        Task<AppOptions> GetInstanceAppOptionsAsync(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs);
     }
 }

@@ -18,7 +18,7 @@ namespace Altinn.App.Core.Features.DataLists
         public string Id => string.Empty;
 
         /// <inheritdoc/>
-        public Task<DataList> GetDataListAsync(string language, Dictionary<string, string> keyValuePairs)
+        public Task<DataList> GetDataListAsync(string? language, Dictionary<string, string> keyValuePairs)
         {
             return Task.FromResult(new DataList() { ListItems = null });
         }
