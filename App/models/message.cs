@@ -35,5 +35,20 @@ namespace Altinn.App.Models
     [JsonPropertyName("Sender")]
     public string Sender { get; set; }
 
+    [XmlElement("ShowValidations")]
+    [JsonProperty("ShowValidations")]
+    [JsonPropertyName("ShowValidations")]
+    public bool ShowValidations { get; set; }
+    
+    [XmlElement("IsSomeValue")]
+    [JsonProperty("IsSomeValue")]
+    [JsonPropertyName("IsSomeValue")]
+    public bool? IsSomeValue { get; set; }
+    
+    [XmlElement("SomeNumberValue")]
+    [JsonProperty("SomeNumberValue")]
+    [JsonPropertyName("SomeNumberValue")]
+    public int? SomeNumberValue { get; set; }
+
   }
 }
