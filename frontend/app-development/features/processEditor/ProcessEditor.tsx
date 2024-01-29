@@ -4,9 +4,9 @@ import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
 import React from 'react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { toast } from 'react-toastify';
-import { useAppLibVersionQuery } from 'app-development/hooks/queries';
 import { Spinner } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { useAppVersionQuery } from 'app-shared/hooks/queries';
 
 export const ProcessEditor = () => {
   const { t } = useTranslation();
@@ -14,7 +14,7 @@ export const ProcessEditor = () => {
   const { org, app } = useStudioUrlParams();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
 
-  const { data: appLibData, isLoading: appLibDataLoading } = useAppLibVersionQuery(org, app);
+  const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
 
   const bpmnMutation = useBpmnMutation(org, app);
 

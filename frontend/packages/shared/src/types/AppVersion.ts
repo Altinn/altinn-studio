@@ -1,4 +1,4 @@
-export interface AppLibVersion {
+export interface AppVersion {
   backendVersion: string;
   frontendVersion: string;
 }
