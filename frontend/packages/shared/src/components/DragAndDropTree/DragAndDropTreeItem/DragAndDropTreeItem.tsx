@@ -1,5 +1,5 @@
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
-import { TreeView } from 'app-shared/components/TreeView';
+import { StudioTreeView } from '@studio/components';
 import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
 import { DragAndDropTreeRootContext } from '../DragAndDropTreeRoot';
@@ -45,7 +45,7 @@ export const DragAndDropTreeItem = ({
       onDragOver={handleDragOver}
       renderItem={(dragHandleRef) => (
         <DragAndDropTreeItemContext.Provider value={{ nodeId }}>
-          <TreeView.Item
+          <StudioTreeView.Item
             as='div'
             className={cn(classes.item, hasHoveredItemClass)}
             nodeId={nodeId}
@@ -59,7 +59,7 @@ export const DragAndDropTreeItem = ({
             title={title}
           >
             {isExpandable && renderChildren(children, emptyMessage)}
-          </TreeView.Item>
+          </StudioTreeView.Item>
         </DragAndDropTreeItemContext.Provider>
       )}
     />
