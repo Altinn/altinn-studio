@@ -79,7 +79,7 @@
     "core-js": "^3.29.1",
     "cross-env": "7.0.3",
     "css-loader": "6.8.1",
-    "cypress": "13.6.0",
+    "cypress": "13.6.3",
     "cypress-axe": "1.5.0",
     "cypress-network-idle": "^1.14.2",
     "cypress-plugin-tab": "1.0.5",

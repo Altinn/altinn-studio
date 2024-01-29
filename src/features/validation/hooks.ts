@@ -76,7 +76,7 @@ export function useOnHierarchyChange(
 }
 
 /**
- * Provides a callback function with a list of nodes whoes data has changed
+ * Provides a callback function with a list of nodes whose data has changed
  */
 export function useOnNodeDataChange(onChange: (changedNodes: LayoutNode[]) => void) {
   const onChangeEvent = useEffectEvent(onChange);

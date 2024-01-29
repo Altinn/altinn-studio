@@ -271,7 +271,7 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
       if (key === 'list') {
         formDataObj[key] = data ?? [];
       } else if (key === 'simpleBinding') {
-        formDataObj[key] = data ? String(data) : '';
+        formDataObj[key] = data != null ? String(data) : '';
       } else {
         formDataObj[key] = data;
       }

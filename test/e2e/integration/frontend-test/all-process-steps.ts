@@ -218,7 +218,6 @@ function testInstanceData() {
                 knownModel,
               );
             }
-
             expect(dataModel).to.deep.equal(knownModel);
           });
         }
@@ -255,7 +254,15 @@ function replaceVariableData(input: any) {
 }
 
 const knownDataModels: { [key: string]: any } = {
-  message: { ProcessTask: null, Title: null, Body: null, Reference: null, Sender: null },
+  message: {
+    ProcessTask: null,
+    Title: null,
+    Body: null,
+    Reference: null,
+    Sender: null,
+    SomeNumberValue: null,
+    IsSomeValue: null,
+  },
   'ServiceModel-test': {
     skjemanummer: 1533,
     spesifikasjonsnummer: 11172,

@@ -90,6 +90,11 @@ a[href$='.pdf']::after {
   display: inline !important;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
   background-color: #efefef;
