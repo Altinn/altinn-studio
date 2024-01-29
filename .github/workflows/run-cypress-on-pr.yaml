@@ -63,8 +63,15 @@ jobs:
           working-directory: frontend/testing/cypress
           env: environment=local
           spec: src/integration/**/*.js
-          record: false
+          record: true
           parallel: false
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: frontend/testing/cypress/screenshots
 
       - name: Stop compose file
         if: always()
