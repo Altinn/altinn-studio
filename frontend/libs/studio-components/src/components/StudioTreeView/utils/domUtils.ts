@@ -1,14 +1,14 @@
-import { removeEnd, removeStart } from 'app-shared/utils/stringUtils';
+import { StringUtils } from '@studio/pure-functions';
 
 export const makeDomTreeItemId = (rootId: string, id: string) => `${rootId}-${id}-treeitem`;
 
 export const extractIdFromTreeItem = (rootId: string, id?: string) =>
-  id ? removeEnd(removeStart(id, rootId + '-'), '-treeitem') : undefined;
+  id ? StringUtils.removeEnd(StringUtils.removeStart(id, rootId + '-'), '-treeitem') : undefined;
 
 export const makeDomGroupId = (rootId: string, id: string) => `${rootId}-${id}-group`;
 
 export const extractIdFromGroup = (rootId: string, id?: string) =>
-  id ? removeEnd(removeStart(id, rootId + '-'), '-group') : undefined;
+  id ? StringUtils.removeEnd(StringUtils.removeStart(id, rootId + '-'), '-group') : undefined;
 
 export const findTreeItem = (rootId: string, id: string) =>
   document.getElementById(makeDomTreeItemId(rootId, id));

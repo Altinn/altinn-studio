@@ -1,10 +1,10 @@
 import React from 'react';
-import type { TreeViewItemProps } from './TreeViewItem';
+import type { StudioTreeViewItemProps } from './StudioTreeViewItem';
 import type { ByRoleOptions } from '@testing-library/react';
-import { act, render as renderRtl, screen } from '@testing-library/react';
-import { TreeViewItem } from './TreeViewItem';
-import type { TreeViewRootContextProps } from '../TreeViewRoot';
-import { TreeViewRootContext } from '../TreeViewRoot';
+import { act, render, screen } from '@testing-library/react';
+import { StudioTreeViewItem } from './StudioTreeViewItem';
+import type { TreeViewRootContextProps } from '../StudioTreeViewRoot';
+import { StudioTreeViewRootContext } from '../StudioTreeViewRoot';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -12,7 +12,7 @@ const user = userEvent.setup();
 // Test data:
 const label = 'label';
 const nodeId = 'nodeId';
-const defaultProps: TreeViewItemProps = {
+const defaultProps: StudioTreeViewItemProps = {
   label,
   nodeId,
 };
@@ -27,61 +27,61 @@ const defaultRootContextProps: TreeViewRootContextProps = {
   focusableId,
 };
 
-const render = (
-  props: Partial<TreeViewItemProps> = {},
+const renderItem = (
+  props: Partial<StudioTreeViewItemProps> = {},
   rootContextProps: Partial<TreeViewRootContextProps> = {},
 ) =>
-  renderRtl(
-    <TreeViewRootContext.Provider value={{ ...defaultRootContextProps, ...rootContextProps }}>
-      <TreeViewItem {...defaultProps} {...props} />
-    </TreeViewRootContext.Provider>,
+  render(
+    <StudioTreeViewRootContext.Provider value={{ ...defaultRootContextProps, ...rootContextProps }}>
+      <StudioTreeViewItem {...defaultProps} {...props} />
+    </StudioTreeViewRootContext.Provider>,
   );
 
-describe('TreeViewItem', () => {
+describe('StudioTreeViewItem', () => {
   afterEach(jest.clearAllMocks);
 
   it('Renders a treeitem component with the given label', () => {
-    render({ label });
+    renderItem({ label });
     expect(getTreeItem({ name: label })).toBeInTheDocument();
   });
 
   it('Does not have focus and is not focusable by default', () => {
-    render({ label });
+    renderItem({ label });
     expect(getTreeItem({ name: label })).not.toHaveFocus();
   });
 
   it('Focuses the treeitem when focusedId matches nodeId', () => {
-    render({ label }, { focusedId: nodeId });
+    renderItem({ label }, { focusedId: nodeId });
     expect(getTreeItem({ name: label })).toHaveFocus();
   });
 
   it('Is not selected by default', () => {
-    render({ label });
+    renderItem({ label });
     expect(getTreeItem({ name: label, selected: false })).toBeInTheDocument();
   });
 
   it('Is selected when selectedId matches nodeId', () => {
-    render({ label }, { selectedId: nodeId });
+    renderItem({ label }, { selectedId: nodeId });
     expect(getTreeItem({ name: label, selected: true })).toBeInTheDocument();
   });
 
   it('Has level 1 by default', () => {
-    render({ label });
+    renderItem({ label });
     expect(getTreeItem({ name: label })).toHaveAttribute('aria-level', '1');
   });
 
   it('Has no `aria-expanded` attribute if it has no children', () => {
-    render({ label });
+    renderItem({ label });
     expect(getTreeItem({ name: label })).not.toHaveAttribute('aria-expanded');
   });
 
   it('Does not render a group component if no children are provided', () => {
-    render({ label });
+    renderItem({ label });
     expect(screen.queryByRole('group', { hidden: true })).not.toBeInTheDocument();
   });
 
   it('Renders a hidden group component owned by the tree item if children are provided', () => {
-    render({ label, children: <TreeViewItem nodeId='child' label='Test' /> });
+    renderItem({ label, children: <StudioTreeViewItem nodeId='child' label='Test' /> });
     const group = screen.getByRole('group', { hidden: true });
     expect(group).toBeInTheDocument();
     expect(getTreeItem({ name: label })).toHaveAttribute('aria-owns', group.id);
@@ -89,7 +89,7 @@ describe('TreeViewItem', () => {
   });
 
   it('Expands the tree item when it is clicked and closes it again when it is clicked again', async () => {
-    render({ label, children: <TreeViewItem nodeId='child' label='Test' /> });
+    renderItem({ label, children: <StudioTreeViewItem nodeId='child' label='Test' /> });
     expect(getTreeItem({ name: label, expanded: false })).toBeInTheDocument();
     await act(() => user.click(getTreeItem()));
     expect(getTreeItem({ name: label, expanded: true })).toBeInTheDocument();
@@ -102,12 +102,12 @@ describe('TreeViewItem', () => {
   it('Increases the `aria-level` attribute of its children by one', () => {
     const level2Label = 'Test';
     const level3Label = 'Subtest';
-    render({
+    renderItem({
       label,
       children: (
-        <TreeViewItem nodeId='child' label={level2Label}>
-          <TreeViewItem nodeId='grandchild' label={level3Label} />
-        </TreeViewItem>
+        <StudioTreeViewItem nodeId='child' label={level2Label}>
+          <StudioTreeViewItem nodeId='grandchild' label={level3Label} />
+        </StudioTreeViewItem>
       ),
     });
     expect(getTreeItem({ name: level2Label, hidden: true })).toHaveAttribute('aria-level', '2');
@@ -115,7 +115,7 @@ describe('TreeViewItem', () => {
   });
 
   it('Calls the `setSelectedId` and `setFocusedId` callbacks with the `nodeId` when clicked', async () => {
-    render({ label });
+    renderItem({ label });
     await act(() => user.click(getTreeItem({ name: label })));
     expect(setSelectedId).toHaveBeenCalledTimes(1);
     expect(setSelectedId).toHaveBeenCalledWith(nodeId);
@@ -124,25 +124,25 @@ describe('TreeViewItem', () => {
   });
 
   it('Calls the `setFocusedId` callback with the `nodeId` when focused', () => {
-    render({ label });
+    renderItem({ label });
     getTreeItem({ name: label }).focus();
     expect(setFocusedId).toHaveBeenCalledTimes(1);
     expect(setFocusedId).toHaveBeenCalledWith(nodeId);
   });
 
   it('Renders as a `li` element by default', () => {
-    const { container } = render();
+    const { container } = renderItem();
     expect(container.firstChild).toBe(container.querySelector('li')); // eslint-disable-line testing-library/no-node-access, testing-library/no-container
   });
 
   it('Supports polymorphism', () => {
-    const { container } = render({ as: 'div' });
+    const { container } = renderItem({ as: 'div' });
     expect(container.firstChild).toBe(container.querySelector('div')); // eslint-disable-line testing-library/no-node-access, testing-library/no-container
   });
 
   it('Renders with the treeitem button inside the given label wrapper', () => {
     const labelWrapperTestId = 'label-wrapper';
-    render({
+    renderItem({
       label,
       labelWrapper: (children) => <div data-testid={labelWrapperTestId}>{children}</div>,
     });

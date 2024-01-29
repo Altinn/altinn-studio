@@ -1,11 +1,10 @@
 import React, { useCallback, useRef, useState } from 'react';
 import cn from 'classnames';
 
-import classes from './AnimateHeight.module.css';
-import { usePrevious } from '../../hooks/usePrevious';
-import { useMediaQuery } from '../../hooks/useMediaQuery';
+import classes from './StudioAnimateHeight.module.css';
+import { useMediaQuery, usePrevious } from '../../hooks/';
 
-export type AnimateHeightProps = {
+export type StudioAnimateHeightProps = {
   open: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
@@ -16,13 +15,13 @@ const transitionDurationInMilliseconds = 250;
 /**
  * AnimateHeight is a component that animates its height when the `open` prop changes.
  */
-export const AnimateHeight = ({
+export const StudioAnimateHeight = ({
   children,
   className, // eslint-disable-line react/prop-types
   open = false,
   style, // eslint-disable-line react/prop-types
   ...rest
-}: AnimateHeightProps) => {
+}: StudioAnimateHeightProps) => {
   const [height, setHeight] = useState<number>(0);
   const prevOpen = usePrevious(open);
   const openOrClosed: InternalState = open ? 'open' : 'closed';

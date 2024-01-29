@@ -6,10 +6,10 @@ import { SchemaSelect } from './SchemaSelect';
 import { DeleteWrapper } from './DeleteWrapper';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
 import type { CreateDatamodelMutationArgs } from '../../../../hooks/mutations/useCreateDatamodelMutation';
-import { useCreateDatamodelMutation } from '../../../../hooks/mutations/useCreateDatamodelMutation';
+import { useCreateDatamodelMutation } from '../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
-import { usePrevious } from 'app-shared/hooks/usePrevious';
+import { usePrevious } from '@studio/components';
 import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export interface TopToolbarProps {

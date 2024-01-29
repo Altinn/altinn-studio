@@ -1,6 +1,6 @@
 import React from 'react';
-import type { TreeViewRootProps } from './';
-import { TreeView } from './';
+import type { StudioTreeViewRootProps } from './';
+import { StudioTreeView } from './';
 import type { ByRoleOptions } from '@testing-library/react';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -21,34 +21,34 @@ const rootNodeLabel2 = 'Test 2';
 const subNodeId2_1 = '2.1';
 const subNodeLabel2_1 = 'Test 2.1';
 
-type TestComponentProps = Omit<TreeViewRootProps, 'children'>;
+type TestComponentProps = Omit<StudioTreeViewRootProps, 'children'>;
 
 const onSelect = jest.fn();
 const defaultProps: TestComponentProps = { onSelect };
 
 const simpleComposition = (testProps: Partial<TestComponentProps> = {}) => (
-  <TreeView.Root {...defaultProps} {...testProps}>
-    <TreeView.Item nodeId={rootNodeId1} label={rootNodeLabel1}>
-      <TreeView.Item nodeId={subNodeId1_1} label={subNodeLabel1_1} />
-      <TreeView.Item nodeId={subNodeId1_2} label={subNodeLabel1_2}>
-        <TreeView.Item nodeId={subSubNodeId1_1_1} label={subSubNodeLabel1_1_1} />
-      </TreeView.Item>
-    </TreeView.Item>
-    <TreeView.Item nodeId={rootNodeId2} label={rootNodeLabel2}>
-      <TreeView.Item nodeId={subNodeId2_1} label={subNodeLabel2_1} />
-    </TreeView.Item>
-  </TreeView.Root>
+  <StudioTreeView.Root {...defaultProps} {...testProps}>
+    <StudioTreeView.Item nodeId={rootNodeId1} label={rootNodeLabel1}>
+      <StudioTreeView.Item nodeId={subNodeId1_1} label={subNodeLabel1_1} />
+      <StudioTreeView.Item nodeId={subNodeId1_2} label={subNodeLabel1_2}>
+        <StudioTreeView.Item nodeId={subSubNodeId1_1_1} label={subSubNodeLabel1_1_1} />
+      </StudioTreeView.Item>
+    </StudioTreeView.Item>
+    <StudioTreeView.Item nodeId={rootNodeId2} label={rootNodeLabel2}>
+      <StudioTreeView.Item nodeId={subNodeId2_1} label={subNodeLabel2_1} />
+    </StudioTreeView.Item>
+  </StudioTreeView.Root>
 );
 
 const complexComposition = (testProps: Partial<TestComponentProps> = {}) => (
-  <TreeView.Root {...defaultProps} {...testProps}>
-    <TreeView.Item nodeId={rootNodeId1} label={rootNodeLabel1}>
+  <StudioTreeView.Root {...defaultProps} {...testProps}>
+    <StudioTreeView.Item nodeId={rootNodeId1} label={rootNodeLabel1}>
       <li>
-        <TreeView.Item as='div' nodeId={subNodeId1_1} label={subNodeLabel1_1} />
+        <StudioTreeView.Item as='div' nodeId={subNodeId1_1} label={subNodeLabel1_1} />
       </li>
       <li>Something in between</li>
       <li>
-        <TreeView.Item
+        <StudioTreeView.Item
           as='div'
           nodeId={subNodeId1_2}
           label={subNodeLabel1_2}
@@ -59,16 +59,16 @@ const complexComposition = (testProps: Partial<TestComponentProps> = {}) => (
             </div>
           )}
         >
-          <TreeView.Item nodeId={subSubNodeId1_1_1} label={subSubNodeLabel1_1_1} />
-        </TreeView.Item>
+          <StudioTreeView.Item nodeId={subSubNodeId1_1_1} label={subSubNodeLabel1_1_1} />
+        </StudioTreeView.Item>
       </li>
-    </TreeView.Item>
-    <TreeView.Item nodeId={rootNodeId2} label={rootNodeLabel2}>
+    </StudioTreeView.Item>
+    <StudioTreeView.Item nodeId={rootNodeId2} label={rootNodeLabel2}>
       <div>Something</div>
-      <TreeView.Item nodeId={subNodeId2_1} label={subNodeLabel2_1} />
+      <StudioTreeView.Item nodeId={subNodeId2_1} label={subNodeLabel2_1} />
       <div>Something</div>
-    </TreeView.Item>
-  </TreeView.Root>
+    </StudioTreeView.Item>
+  </StudioTreeView.Root>
 );
 
 type SimpleOrComplex = 'simple' | 'complex';
@@ -83,7 +83,7 @@ const createRenderFunction =
     return { ...renderResult, rerender: rerenderTestComponent };
   };
 
-describe('TreeView', () => {
+describe('StudioTreeView', () => {
   afterEach(jest.clearAllMocks);
 
   describe.each(['simple', 'complex'])('%s composition', (simpleOrComplex: SimpleOrComplex) => {
