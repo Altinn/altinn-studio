@@ -2,7 +2,6 @@ import './gitea-api';
 import './studio';
 import './custom';
 import 'cypress-plugin-tab';
-import './wcag';
 import 'cypress-axe';
 
 before(() => {
