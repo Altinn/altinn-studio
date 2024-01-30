@@ -62,11 +62,7 @@ class SetupEnvironment extends ContainerTool {
     // Podman does not support "--remove-orphans", hence this container manager check
     // Open Issue: https://github.com/containers/podman-compose/issues/815
     if (this.containerManager === 'podman') {
-      // Remove old images, containers, and prune volumes
-      runCommand(
-        `podman stop --all && podman rm --all -f && podman rmi --all -f && podman volume prune -f`,
-      );
-
+      runCommand('podman compose down');
       // Podman doesn't auto-detect .env files, like Docker do. Use "--env-file" to specify .env file.
       runCommand(`podman compose --env-file ${path.resolve(__dirname, '../.env')} up -d`);
       return;
