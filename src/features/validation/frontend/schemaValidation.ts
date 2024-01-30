@@ -49,6 +49,8 @@ export function createValidator(schema: any, dataType: IDataType): ISchemaValida
     strictTuples: false,
     unicodeRegExp: false,
     code: { es5: true },
+    // Gives access to the data property
+    verbose: true,
   };
 
   const ajv = schema.$schema?.includes('2020-12') ? new Ajv2020(ajvOptions) : new Ajv(ajvOptions);
@@ -173,6 +175,14 @@ export const errorMessageKeys = {
 };
 
 /**
+ * Schema validation should ignore empty values, as these are handled by the required validation.
+ * Should return false for undefined, null, empty string.
+ */
+function isNullOrEmpty(value: any): boolean {
+  return value == null || value === '';
+}
+
+/**
  * Validates the form data against the schema and returns a list of schema validation errors.
  * @see ISchemaValidationError
  */
@@ -202,14 +212,15 @@ export function getSchemaValidationErrors({
   const validationErrors: ISchemaValidationError[] = [];
 
   for (const error of validator.errors || []) {
-    // Required fields are handled separately
-    if (error.keyword === 'required') {
+    // Skip schema validation for empty fields and ignore required errors. Let required validation handle these.
+    if (isNullOrEmpty(error.data) || error.keyword === 'required') {
       continue;
     }
 
     if (isOneOfError(error)) {
       continue;
     }
+
     const invalidDataType = error.keyword === 'type' || error.keyword === 'format';
 
     let errorParams = error.params[errorMessageKeys[error.keyword]?.paramKey];

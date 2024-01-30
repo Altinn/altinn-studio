@@ -103,6 +103,9 @@ describe('schemaValidation', () => {
           { value: '2020-01-01', expected: true },
           { value: '1985-04-12T23:20:50.52Z', expected: false },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -111,6 +114,9 @@ describe('schemaValidation', () => {
           { value: '2020-01-01', expected: false },
           { value: '1985-04-12T23:20:50.52Z', expected: true },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -120,6 +126,9 @@ describe('schemaValidation', () => {
           { value: '2020-01-01', expected: false },
           { value: '1985-04-12T23:20:50.52Z', expected: false },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -129,6 +138,9 @@ describe('schemaValidation', () => {
           { value: 'P23DT23H', expected: true },
           { value: 'P3Y6M4DT12H30M5', expected: false },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -137,6 +149,9 @@ describe('schemaValidation', () => {
           { value: 'test@gmail.com', expected: true },
           { value: 'æøå@gmail.com', expected: false },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -145,6 +160,9 @@ describe('schemaValidation', () => {
           { value: 'test@gmail.com', expected: true },
           { value: 'æøå@gmail.com', expected: true },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -153,6 +171,9 @@ describe('schemaValidation', () => {
           { value: 'altinn.no', expected: true },
           { value: 'altinnæøå.no.', expected: false },
           { value: 'altinn/studio', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -161,6 +182,9 @@ describe('schemaValidation', () => {
           { value: 'altinn.no', expected: true },
           { value: 'altinnæøå.no.', expected: true },
           { value: 'altinn/studio', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -169,6 +193,9 @@ describe('schemaValidation', () => {
           { value: '192.168.10.101', expected: true },
           { value: '192.168.10.999', expected: false },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -178,6 +205,9 @@ describe('schemaValidation', () => {
           { value: '2001:0db8:85a3::8a2e:0370:7334', expected: true },
           { value: '2001:0db8:85a3::8a2e:0370:733m', expected: false },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -186,6 +216,9 @@ describe('schemaValidation', () => {
           { value: '123e4567-e89b-12d3-a456-426614174000', expected: true },
           { value: '123e4567-e89b-12d3-a456-42661417400g', expected: false },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -195,6 +228,9 @@ describe('schemaValidation', () => {
           { value: 'http://altinn.no/æøå', expected: false },
           { value: '#/hei', expected: false },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -204,6 +240,9 @@ describe('schemaValidation', () => {
           { value: '#/hei', expected: true },
           { value: '%%', expected: false },
           { value: '#/æøå', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -211,6 +250,9 @@ describe('schemaValidation', () => {
         tests: [
           { value: 'http://altinn.no/æøå', expected: true },
           { value: 'asdfasdf', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -219,6 +261,9 @@ describe('schemaValidation', () => {
           { value: 'http://altinn.no/æøå', expected: true },
           { value: '#/æøå', expected: true },
           { value: 'javascript:;', expected: false }, // It was hard to find an invalid case, not sure why this is invalid
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -227,6 +272,9 @@ describe('schemaValidation', () => {
           { value: 'http://{org}.apps.altinn.no/{org}/{app}', expected: true },
           { value: 'http://altinn.no/', expected: true },
           { value: 'htt%p://altinn.no', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -235,6 +283,9 @@ describe('schemaValidation', () => {
           { value: '/foo/bar', expected: true },
           { value: '0', expected: false },
           { value: '1/a~1b', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -243,6 +294,9 @@ describe('schemaValidation', () => {
           { value: '/foo/bar', expected: false },
           { value: '0', expected: true },
           { value: '1/a~1b', expected: true },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
       {
@@ -250,6 +304,9 @@ describe('schemaValidation', () => {
         tests: [
           { value: '^\\d{4}-\\d{2}-\\d{2}$', expected: true },
           { value: '^\\d{4}-\\d{2}-(\\d{2}$', expected: false },
+          { value: '', expected: true },
+          { value: null, expected: true },
+          { value: undefined, expected: true },
         ],
       },
     ];
