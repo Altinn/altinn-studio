@@ -90,24 +90,6 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
-      // Add ALL other test names here to make sure that the log out test is the last test to be executed
-      dependencies: [
-        TestNames.SETUP,
-        TestNames.CREATE_APP_ONLY,
-        TestNames.DASHBOARD,
-        TestNames.DATA_MODEL,
-      ],
-      testDir: './tests/logout-and-invalid-login-only/',
-      testMatch: '*.spec.ts',
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        storageState: '.playwright/auth/user.json',
-        headless: true,
-      },
-    },
-    {
       name: TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
       dependencies: ['setup'],
       testDir: './tests/main-navigation-between-sub-apps/',
@@ -131,7 +113,7 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: 'ui-editor',
+      name: TestNames.UI_EDITOR,
       dependencies: ['setup'],
       testDir: './tests/ui-editor/',
       testMatch: '*.spec.ts',
@@ -151,6 +133,26 @@ export default defineConfig<ExtendedTestOptions>({
       use: {
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         testAppName: AppNames.UI_EDITOR_APP,
+      },
+    },
+    {
+      name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
+      // Add ALL other test names here to make sure that the log out test is the last test to be executed
+      dependencies: [
+        TestNames.SETUP,
+        TestNames.CREATE_APP_ONLY,
+        TestNames.DASHBOARD,
+        TestNames.DATA_MODEL,
+        TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
+        TestNames.UI_EDITOR,
+      ],
+      testDir: './tests/logout-and-invalid-login-only/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        headless: true,
       },
     },
   ],
