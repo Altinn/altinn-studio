@@ -116,7 +116,7 @@ export const AboutResourcePage = ({
             showAllErrors && !Object.keys(resourceTypeMap).includes(resourceData.resourceType)
           }
           onFocus={() => setTranslationType('none')}
-          onBlur={(selected: ResourceTypeOption) =>
+          onChange={(selected: ResourceTypeOption) =>
             handleSave({ ...resourceData, resourceType: selected })
           }
           errorText={t('resourceadm.about_resource_resource_type_error')}
@@ -161,7 +161,7 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_delegable_text')}
           value={resourceData.delegable ?? true}
           onFocus={() => setTranslationType('none')}
-          onBlur={(isChecked: boolean) => handleSave({ ...resourceData, delegable: isChecked })}
+          onChange={(isChecked: boolean) => handleSave({ ...resourceData, delegable: isChecked })}
           id='isDelegableSwitch'
           descriptionId='isDelegableSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_delegable_show_text'
@@ -201,7 +201,7 @@ export const AboutResourcePage = ({
           options={statusOptions}
           hasError={showAllErrors && !Object.keys(resourceStatusMap).includes(resourceData.status)}
           onFocus={() => setTranslationType('none')}
-          onBlur={(selected: ResourceStatusOption) =>
+          onChange={(selected: ResourceStatusOption) =>
             handleSave({ ...resourceData, status: selected })
           }
           errorText={t('resourceadm.about_resource_status_error')}
@@ -212,7 +212,7 @@ export const AboutResourcePage = ({
             description={t('resourceadm.about_resource_self_identified_text')}
             value={resourceData.selfIdentifiedUserEnabled ?? false}
             onFocus={() => setTranslationType('none')}
-            onBlur={(isChecked: boolean) =>
+            onChange={(isChecked: boolean) =>
               handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
             }
             id='selfIdentifiedUsersEnabledSwitch'
@@ -226,7 +226,7 @@ export const AboutResourcePage = ({
             description={t('resourceadm.about_resource_enterprise_text')}
             value={resourceData.enterpriseUserEnabled ?? false}
             onFocus={() => setTranslationType('none')}
-            onBlur={(isChecked: boolean) =>
+            onChange={(isChecked: boolean) =>
               handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
             }
             id='enterpriseUserEnabledSwitch'
@@ -270,7 +270,7 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_visible_text')}
           value={resourceData.visible ?? false}
           onFocus={() => setTranslationType('none')}
-          onBlur={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
+          onChange={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
           id='isVisibleSwitch'
           descriptionId='isVisibleSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
@@ -282,7 +282,7 @@ export const AboutResourcePage = ({
               description={t('resourceadm.about_resource_limited_by_rrr_description')}
               value={resourceData.limitedByRRR ?? false}
               onFocus={() => setTranslationType('none')}
-              onBlur={(isChecked: boolean) =>
+              onChange={(isChecked: boolean) =>
                 handleSave({ ...resourceData, limitedByRRR: isChecked })
               }
               id='limitedByRRRSwitch'

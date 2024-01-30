@@ -145,7 +145,8 @@ test('That it is possible to navigate from overview to the deploy page and back 
 
   // Change org to TTD
   await dashboardPage.clickOnHeaderAvatar();
-  await dashboardPage.clickOnOrgApplications(testDepartmentOrg);
+  await dashboardPage.clickOnOrgApplications();
+  dashboardPage.updateOrgNameEnv(testDepartmentOrg);
   await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
   await dashboardPage.clickOnTestAppEditButton(testAppName);
 

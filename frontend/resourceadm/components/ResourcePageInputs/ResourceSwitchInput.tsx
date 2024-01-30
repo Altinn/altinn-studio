@@ -22,11 +22,11 @@ type ResourceSwitchInputProps = {
    */
   onFocus: () => void;
   /**
-   * Function to be executed on blur
+   * Function to be executed on change
    * @param isChecked the value used in the switch
    * @returns void
    */
-  onBlur: (isChecked: boolean) => void;
+  onChange: (isChecked: boolean) => void;
   /**
    * The id of the field
    */
@@ -49,7 +49,7 @@ type ResourceSwitchInputProps = {
  * @property {string}[description] - The description of the switch
  * @property {string}[value] - The value in the switch
  * @property {function}[onFocus] - unction to be executed when the field is focused
- * @property {function}[onBlur] - Function to be executed on blur
+ * @property {function}[onChange] - Function to be executed on change
  * @property {string}[id] - The id of the field
  * @property {string}[descriptionId] - The id of the description of the field
  * @property {string}[toggleTextTranslationKey] - The translation key to be put inside the translation function
@@ -61,7 +61,7 @@ export const ResourceSwitchInput = ({
   description,
   value,
   onFocus,
-  onBlur,
+  onChange,
   id,
   descriptionId,
   toggleTextTranslationKey,
@@ -82,9 +82,12 @@ export const ResourceSwitchInput = ({
         </Paragraph>
         <Switch
           checked={isChecked}
-          onChange={() => setIsChecked((b: boolean) => !b)}
+          onChange={(event) => {
+            const newValue = event.target.checked;
+            setIsChecked(newValue);
+            onChange(newValue);
+          }}
           onFocus={onFocus}
-          onBlur={() => onBlur(isChecked)}
           id={id}
           aria-describedby={descriptionId}
           size='small'
