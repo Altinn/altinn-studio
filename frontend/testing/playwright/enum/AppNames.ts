@@ -3,4 +3,5 @@ export enum AppNames {
   DATA_MODEL_APP = 'data-model-app-test',
   DASHBOARD_APP = 'dashboard-app-test',
   MAIN_NAVIGATION_APP = 'navigation-app-test',
+  UI_EDITOR_APP = 'ui-editor-app-test',
 }

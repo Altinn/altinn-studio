@@ -111,5 +111,28 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.MAIN_NAVIGATION_APP,
       },
     },
+    {
+      name: 'ui-editor',
+      dependencies: ['setup'],
+      testDir: './tests/ui-editor/',
+      testMatch: '*.spec.ts',
+      teardown: 'teardown-ui-editor',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.UI_EDITOR_APP,
+        headless: true,
+      },
+    },
+    {
+      name: 'teardown-ui-editor',
+      testDir: './tests/ui-editor/',
+      testMatch: '*ui-editor.ts',
+      use: {
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        testAppName: AppNames.UI_EDITOR_APP,
+      },
+    },
   ],
 });
