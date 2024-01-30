@@ -27,18 +27,19 @@ export const AttachmentListComponent = ({
   const tasks: string[] = getTasks(layoutSets, selectedLayoutSet, onlyCurrentTask);
   const dataTypes: string[] = getDataTypes(appMetadata, tasks);
 
+  //* TODO: Should the elements be set to small size?
   return (
     <>
       <Switch onChange={() => setOnlyCurrentTask(!onlyCurrentTask)}>
         {t('ux_editor.component_properties.current_task')}
       </Switch>
-      <Combobox multiple>
+      <Combobox multiple label={t('ux_editor.component_properties.select_attachments')}>
         {dataTypes.map((dataType) => {
           return (
             <Combobox.Option
               key={dataType}
               value={dataType}
-              description={dataType === 'ref-data-as-pdf' ? 'PDF' : dataType}
+              description={dataType === 'ref-data-as-pdf' ? 'Generert PDF' : dataType}
               displayValue={dataType}
             />
           );
@@ -67,9 +68,12 @@ const getTasks = (layoutSets: LayoutSets, selectedLayoutSet: string, onlyCurrent
 };
 
 const getDataTypes = (appMetadata: ApplicationMetadata, tasks: string[]) => {
+  //Todo: ["include-all"] = Alle vedlegg, and [] or Undefined = Alle vedlegg (uten generert PDF)
+  console.log(appMetadata);
   const filteredDataTypes = appMetadata?.dataTypes.filter(
     (dataType: DataTypeElement) =>
-      !dataType.appLogic && tasks.some((task) => dataType.taskId === task),
+      !dataType.appLogic &&
+      (tasks.some((task) => dataType.taskId === task) || dataType.id === 'ref-data-as-pdf'),
   );
 
   const mappedDataTypes = filteredDataTypes?.map((dataType: DataTypeElement) => dataType.id) ?? [];
