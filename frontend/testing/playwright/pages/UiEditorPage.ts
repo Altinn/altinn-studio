@@ -51,8 +51,24 @@ export class UiEditorPage extends BasePage {
       .click();
   }
 
-  public async verifyThatPageEmptyMessageIsGone(): Promise<void> {
+  public async clickOnAddNewPage(): Promise<void> {
+    await this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') }).click();
+  }
+
+  public async verifyThatNewPageIsVisible(pageName: string): Promise<void> {
+    await this.page.getByText(pageName).isVisible();
+  }
+
+  public async verifyThatPageEmptyMessageIsHidden(): Promise<void> {
     await this.page.getByText(this.textMock('ux_editor.container_empty')).isHidden();
+  }
+
+  public async verifyThatNavigationButtonsAreAddedToPage(): Promise<void> {
+    await this.page
+      .getByRole('treeitem', {
+        name: this.textMock('ux_editor.component_title.NavigationButtons'),
+      })
+      .isVisible();
   }
 
   private getToolbarItems(): Locator {

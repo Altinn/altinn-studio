@@ -36,14 +36,38 @@ test('That it is possible to add and delete form components', async ({
   const page1: string = 'Side1';
   await uiEditorPage.clickOnPageAccordion(page1);
   await uiEditorPage.verifyThatPageIsEmpty();
-  await uiEditorPage.verifyUiEditorPage('Side1'); // When clicking the page, the url is updated to include the layout
+  await uiEditorPage.verifyUiEditorPage(page1); // When clicking the page, the url is updated to include the layout
 
   await uiEditorPage.dragTitleInputComponentInToDroppableList();
   await uiEditorPage.verifyThatInputComponentTreeItemIsVisibleInDroppableList();
-  await uiEditorPage.verifyThatPageEmptyMessageIsGone();
+  await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.clickOnDeleteInputComponentButton();
 
   await uiEditorPage.verifyThatPageIsEmpty();
 });
 
-//test('', async ({ page, testAppName }): Promise<void> => {});
+test('That when adding more than one page, navigation buttons are added to the pages', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
+
+  const page1: string = 'Side1';
+  const page2: string = 'Side2';
+
+  await uiEditorPage.clickOnPageAccordion(page1);
+  await uiEditorPage.verifyThatPageIsEmpty();
+  await uiEditorPage.verifyUiEditorPage(page1);
+
+  await uiEditorPage.clickOnAddNewPage();
+  await uiEditorPage.verifyThatNewPageIsVisible(page2);
+  await uiEditorPage.verifyUiEditorPage(page2);
+
+  await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
+  await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
+
+  await uiEditorPage.clickOnPageAccordion(page1);
+  await uiEditorPage.verifyUiEditorPage(page1);
+  await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
+  await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
+});
