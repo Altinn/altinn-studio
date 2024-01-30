@@ -117,4 +117,8 @@ export class DashboardPage extends BasePage {
       })
       .click();
   }
+
+  public async clickOnLogOutButton(): Promise<void> {
+    await this.page.getByRole('menuitem', { name: this.textMock('dashboard.logout') }).click();
+  }
 }
