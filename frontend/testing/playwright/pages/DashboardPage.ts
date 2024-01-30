@@ -63,8 +63,7 @@ export class DashboardPage extends BasePage {
       .isVisible();
   }
 
-  public async clickOnOrgApplications(newOrgName: string): Promise<void> {
-    this.updateOrgNameEnv(newOrgName);
+  public async clickOnOrgApplications(): Promise<void> {
     await this.page.getByRole('menuitem', { name: 'Testdepartementet' }).click();
   }
 
