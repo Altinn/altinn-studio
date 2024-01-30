@@ -51,6 +51,40 @@
         }
       },
       {
+        "id": "falsyRadioButton",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Radiobutton with falsy value" 
+        },
+        "dataModelBindings": {
+          "simpleBinding": "IsSomeValue"
+        },
+        "required": true,
+        "options": [
+          {
+            "label": "True",
+            "value": true
+          },
+          {
+            "label": "False",
+            "value": false
+          }
+        ],
+        "hidden": true
+      },
+      {
+        "id": "falsyInput",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Input with falsy value" 
+        },
+        "dataModelBindings": {
+          "simpleBinding": "SomeNumberValue"
+        },
+        "required": true,
+        "hidden": true
+      },
+      {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {
