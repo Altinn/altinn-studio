@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { config } from 'dotenv';
 import type { ExtendedTestOptions } from './extenders/testExtend';
 import { AppNames } from './enum/AppNames';
+import { TestNames } from './enum/TestNames';
 
 config();
 
@@ -18,10 +19,10 @@ export default defineConfig<ExtendedTestOptions>({
   },
 
   projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
     {
-      name: 'create-app-only',
-      dependencies: ['setup'],
+      name: TestNames.CREATE_APP_ONLY,
+      dependencies: [TestNames.SETUP],
       testDir: './tests/create-app-only/',
       testMatch: '*.spec.ts',
       teardown: 'teardown-create-app-only',
@@ -43,8 +44,8 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: 'data-model',
-      dependencies: ['setup'],
+      name: TestNames.DATA_MODEL,
+      dependencies: [TestNames.SETUP],
       testDir: './tests/data-model/',
       testMatch: '*.spec.ts',
       teardown: 'teardown-data-model',
@@ -66,8 +67,8 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: 'dashboard',
-      dependencies: ['setup'],
+      name: TestNames.DASHBOARD,
+      dependencies: [TestNames.SETUP],
       testDir: './tests/dashboard/',
       testMatch: '*.spec.ts',
       teardown: 'teardown-dashboard',
@@ -89,8 +90,13 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: 'logout-and-invalid-login-only',
-      dependencies: ['setup'],
+      name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
+      dependencies: [
+        TestNames.SETUP,
+        TestNames.CREATE_APP_ONLY,
+        TestNames.DASHBOARD,
+        TestNames.DATA_MODEL,
+      ],
       testDir: './tests/logout-and-invalid-login-only/',
       testMatch: '*.spec.ts',
       use: {
