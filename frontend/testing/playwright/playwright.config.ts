@@ -91,6 +91,7 @@ export default defineConfig<ExtendedTestOptions>({
     },
     {
       name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
+      // Add ALL other test names here to make sure that the log out test is the last test to be executed
       dependencies: [
         TestNames.SETUP,
         TestNames.CREATE_APP_ONLY,
