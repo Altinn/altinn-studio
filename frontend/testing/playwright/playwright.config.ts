@@ -107,5 +107,28 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
+    {
+      name: TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
+      dependencies: ['setup'],
+      testDir: './tests/main-navigation-between-sub-apps/',
+      testMatch: '*.spec.ts',
+      teardown: 'teardown-main-navigation-between-sub-apps',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.MAIN_NAVIGATION_APP,
+        headless: true,
+      },
+    },
+    {
+      name: 'teardown-main-navigation-between-sub-apps',
+      testDir: './tests/main-navigation-between-sub-apps/',
+      testMatch: '*main-navigation-between-sub-apps.teardown.ts',
+      use: {
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        testAppName: AppNames.MAIN_NAVIGATION_APP,
+      },
+    },
   ],
 });
