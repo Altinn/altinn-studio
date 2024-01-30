@@ -5,7 +5,7 @@ import type { RenderWithProvidersData } from './renderWithProviders';
 import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
-import { SchemaModel } from '../../schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 
 export const renderHookWithProviders =
   (
