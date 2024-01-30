@@ -11,7 +11,7 @@ export class DeployPage extends BasePage {
     await this.page.goto(this.getRoute('deploy'));
   }
 
-  public async verifyDeployPage(useTTD: boolean = false): Promise<void> {
-    await this.page.waitForURL(this.getRoute('deploy', useTTD));
+  public async verifyDeployPage(): Promise<void> {
+    await this.page.waitForURL(this.getRoute('deploy'));
   }
 }

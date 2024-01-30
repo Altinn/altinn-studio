@@ -134,9 +134,6 @@ test('That it is possible to navigate from overview to the deploy page and back 
   expect(response.ok()).toBeTruthy();
 
   const dashboardPage = new DashboardPage(page, { app: testAppName });
-  const overviewPage = new OverviewPage(page, { app: testAppName });
-  const deployPage = new DeployPage(page, { app: testAppName });
-  const header = new Header(page, { app: testAppName });
 
   await dashboardPage.loadDashboardPage();
   await dashboardPage.verifyDashboardPage();
@@ -147,13 +144,18 @@ test('That it is possible to navigate from overview to the deploy page and back 
   await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
   await dashboardPage.clickOnTestAppEditButton(testAppName);
 
-  const useTtdAsOrg: boolean = true;
-  await overviewPage.verifyOverviewPage(useTtdAsOrg);
+  // As we have changed env.org to 'ttd', we need to update the org of the new classes to make sure it works.
+  const testDepartmentOrg: string = 'ttd';
+  const overviewPage = new OverviewPage(page, { app: testAppName, org: testDepartmentOrg });
+  const deployPage = new DeployPage(page, { app: testAppName, org: testDepartmentOrg });
+  const header = new Header(page, { app: testAppName, org: testDepartmentOrg });
+
+  await overviewPage.verifyOverviewPage();
 
   // Check Navigation
   await header.clickOnNavigateToPageInTopMenuHeader('deploy');
-  await deployPage.verifyDeployPage(useTtdAsOrg);
+  await deployPage.verifyDeployPage();
 
   await header.clickOnNavigateToPageInTopMenuHeader('about');
-  await overviewPage.verifyOverviewPage(useTtdAsOrg);
+  await overviewPage.verifyOverviewPage();
 });
