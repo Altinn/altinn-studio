@@ -1,0 +1,11 @@
+.componentId {
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.KeyVerticalIcon {
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.pencilIcon {
+  margin-left: auto;
+}
