@@ -6,7 +6,7 @@ import type { NameFieldProps } from './NameField';
 import { NameField } from './NameField';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { combinationNodeMock, uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
-import { SchemaModel } from '../../../../schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 
 const user = userEvent.setup();
 
