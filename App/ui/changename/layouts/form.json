@@ -455,7 +455,7 @@
       },
       {
         "id": "adresse",
-        "type": "AddressComponent",
+        "type": "Address",
         "textResourceBindings": {
           "title": "Adresse"
         },
@@ -675,7 +675,7 @@
       },
       {
         "id": "adresseSummary",
-        "type": "AddressComponent",
+        "type": "Address",
         "dataModelBindings": {
           "address": "Adresse.Gateadresse_æøå",
           "zipCode": "Adresse.Postnr",
