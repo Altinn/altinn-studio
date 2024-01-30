@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Reflection;
+using altinn_app_cli.fev3tov4.FrontendUpgrade;
 using altinn_app_cli.v7Tov8.AppSettingsRewriter;
 using altinn_app_cli.v7Tov8.CodeRewriters;
 using altinn_app_cli.v7Tov8.DockerfileRewriters;
@@ -30,6 +31,7 @@ class Program
         var skipProcessUpgradeOption = new Option<bool>(name: "--skip-process-upgrade", description: "Skip process file upgrade", getDefaultValue: () => false);
         var skipAppSettingsUpgradeOption = new Option<bool>(name: "--skip-appsettings-upgrade", description: "Skip appsettings file upgrade", getDefaultValue: () => false);
         var rootCommand = new RootCommand("Command line interface for working with Altinn 3 Applications");
+        rootCommand.AddCommand(FrontendUpgrade.GetUpgradeCommand());
         var upgradeCommand = new Command("upgrade", "Upgrade an app from v7 to v8")
         {
             projectFolderOption,
@@ -108,12 +110,12 @@ class Program
                 {
                     returnCode = await UpgradeCode(projectFile);
                 }
-                
+
                 if (!skipCsprojUpgrade && returnCode == 0)
                 {
                     returnCode = await UpgradeProjectFile(projectFile, targetVersion, targetFramework);
                 }
-                
+
                 if (!skipDockerUpgrade && returnCode == 0)
                 {
                     returnCode = await UpgradeDockerfile(Path.Combine(projectFolder, "Dockerfile"), targetFramework);
