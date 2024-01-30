@@ -128,7 +128,7 @@ export default defineConfig<ExtendedTestOptions>({
     {
       name: 'teardown-ui-editor',
       testDir: './tests/ui-editor/',
-      testMatch: '*ui-editor.ts',
+      testMatch: '*ui-editor.teardown.ts',
       use: {
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         testAppName: AppNames.UI_EDITOR_APP,

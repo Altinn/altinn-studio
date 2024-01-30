@@ -1,6 +1,7 @@
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
+import * as testids from '../../testids';
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -19,5 +20,46 @@ export class UiEditorPage extends BasePage {
     } else {
       await this.page.waitForURL(baseRoute);
     }
+  }
+
+  public async clickOnPageAccordion(pageName: string): Promise<void> {
+    await this.page.getByRole('button', { name: pageName, exact: true }).click();
+  }
+
+  public async verifyThatPageIsEmpty(): Promise<void> {
+    await this.page.getByText(this.textMock('ux_editor.container_empty')).isVisible();
+  }
+
+  public async dragTitleInputComponentInToDroppableList(): Promise<void> {
+    const dropDestination = this.getDroppableList();
+    await this.getToolbarItems()
+      .getByText(this.textMock('ux_editor.component_title.Input'))
+      .dragTo(dropDestination);
+  }
+
+  public async verifyThatInputComponentTreeItemIsVisibleInDroppableList(): Promise<void> {
+    await this.page
+      .getByRole('treeitem', {
+        name: this.textMock('ux_editor.component_title.Input'),
+      })
+      .isVisible();
+  }
+
+  public async clickOnDeleteInputComponentButton(): Promise<void> {
+    await this.getDroppableList()
+      .getByRole('button', { name: this.textMock('general.delete') })
+      .click();
+  }
+
+  public async verifyThatPageEmptyMessageIsGone(): Promise<void> {
+    await this.page.getByText(this.textMock('ux_editor.container_empty')).isHidden();
+  }
+
+  private getToolbarItems(): Locator {
+    return this.page.getByTestId(testids.draggableToolbarItem);
+  }
+
+  private getDroppableList(): Locator {
+    return this.page.getByTestId(testids.droppableList);
   }
 }

@@ -22,27 +22,6 @@ context('Designer', () => {
     cy.deleteAllApps(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 
-  it('is possible to add and delete form components', () => {
-    cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
-    cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
-
-    // Navigate to designerApp
-    cy.goToApp(Cypress.env('autoTestUser'), Cypress.env('designerAppName'));
-    header.getCreateLink().click();
-    cy.ensureCreatePageIsLoaded();
-
-    designer.getPageHeaderButton(initialPageName).should('be.visible');
-    designer.getPageHeaderButton(initialPageName).click();
-
-    // Add an input component
-    designer.getToolbarItemByText(texts['ux_editor.component_title.Input']).trigger('dragstart');
-    designer.getDroppableList().trigger('drop');
-    cy.wait(500);
-    designer
-      .getPageAccordionByName(initialPageName)
-      .findByRole('treeitem', { name: texts['ux_editor.component_title.Input'] });
-  });
-
   it('should add navigation buttons when adding more than one page', () => {
     cy.intercept('GET', '**/app-development/layout-settings?**').as('getLayoutSettings');
     cy.intercept('POST', '**/app-development/layout-settings?**').as('postLayoutSettings');
