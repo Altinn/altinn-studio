@@ -90,24 +90,6 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
-      // Add ALL other test names here to make sure that the log out test is the last test to be executed
-      dependencies: [
-        TestNames.SETUP,
-        TestNames.CREATE_APP_ONLY,
-        TestNames.DASHBOARD,
-        TestNames.DATA_MODEL,
-      ],
-      testDir: './tests/logout-and-invalid-login-only/',
-      testMatch: '*.spec.ts',
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        storageState: '.playwright/auth/user.json',
-        headless: true,
-      },
-    },
-    {
       name: TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
       dependencies: ['setup'],
       testDir: './tests/main-navigation-between-sub-apps/',
@@ -131,7 +113,7 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: 'git-sync',
+      name: TestNames.GIT_SYNC,
       dependencies: ['setup'],
       testDir: './tests/git-sync/',
       testMatch: '*.spec.ts',
@@ -151,6 +133,26 @@ export default defineConfig<ExtendedTestOptions>({
       use: {
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         testAppName: AppNames.GIT_SYNC_APP,
+      },
+    },
+    {
+      name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
+      // Add ALL other test names here to make sure that the log out test is the last test to be executed
+      dependencies: [
+        TestNames.SETUP,
+        TestNames.CREATE_APP_ONLY,
+        TestNames.DASHBOARD,
+        TestNames.DATA_MODEL,
+        TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
+        TestNames.GIT_SYNC,
+      ],
+      testDir: './tests/logout-and-invalid-login-only/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        headless: true,
       },
     },
   ],
