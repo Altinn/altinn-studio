@@ -20,6 +20,10 @@ class SetupEnvironment extends ContainerTool {
   async setup() {
     this.containerManager = await this.detectContainerTool();
 
+    if (this.containerManager === 'unknown') {
+      throw new Error('Please use Podman or Docker as container manager tool');
+    }
+
     await dnsIsOk(this.host);
     if (!(this.env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
       await dnsIsOk(`host.${this.containerManager}.internal`);
@@ -67,8 +71,6 @@ class SetupEnvironment extends ContainerTool {
       runCommand(`podman compose --env-file ${path.resolve(__dirname, '../.env')} up -d`);
       return;
     }
-
-    throw new Error('Please use Podman or Docker as container manager tool');
   }
 
   async createUser(username, password, admin) {
