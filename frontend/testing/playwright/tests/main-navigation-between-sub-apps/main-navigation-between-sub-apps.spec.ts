@@ -141,19 +141,26 @@ test('That it is possible to navigate from overview to the deploy page and back 
   await dashboardPage.loadDashboardPage();
   await dashboardPage.verifyDashboardPage();
 
+  const testDepartmentOrg: string = 'ttd';
+
   // Change org to TTD
   await dashboardPage.clickOnHeaderAvatar();
   await dashboardPage.clickOnOrgApplications();
+  dashboardPage.updateOrgNameEnv(testDepartmentOrg);
   await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
   await dashboardPage.clickOnTestAppEditButton(testAppName);
 
-  const useTtdAsOrg: boolean = true;
-  await overviewPage.verifyOverviewPage(useTtdAsOrg);
+  // As we have changed env.org to 'ttd', we need to update the org of the new classes to make sure it works.
+  overviewPage.updateOrgNameEnv(testDepartmentOrg);
+  deployPage.updateOrgNameEnv(testDepartmentOrg);
+  header.updateOrgNameEnv(testDepartmentOrg);
+
+  await overviewPage.verifyOverviewPage();
 
   // Check Navigation
   await header.clickOnNavigateToPageInTopMenuHeader('deploy');
-  await deployPage.verifyDeployPage(useTtdAsOrg);
+  await deployPage.verifyDeployPage();
 
   await header.clickOnNavigateToPageInTopMenuHeader('about');
-  await overviewPage.verifyOverviewPage(useTtdAsOrg);
+  await overviewPage.verifyOverviewPage();
 });
