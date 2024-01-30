@@ -140,7 +140,7 @@ describe('ImportResourceModal', () => {
     );
     await act(() => user.type(idField, '?/test'));
 
-    expect(idField).toHaveValue(`${mockAltinn2LinkService.serviceName}--test`);
+    expect(idField).toHaveValue(`${mockAltinn2LinkService.serviceName.toLowerCase()}--test`);
   });
 
   it('displays conflict message if identifier is in use', async () => {

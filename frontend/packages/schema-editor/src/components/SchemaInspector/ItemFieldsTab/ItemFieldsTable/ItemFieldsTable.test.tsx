@@ -9,7 +9,7 @@ import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../../../test/mocks/uiSchemaMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { validateTestUiSchema } from '../../../../../../schema-model';
+import { validateTestUiSchema } from '@altinn/schema-model';
 
 const selectedItemPointer = '#/properties/test';
 const selectedItemChildPointer = '#/properties/test/properties/testProperty';

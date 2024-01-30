@@ -11,4 +11,3 @@ export { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
 export { useAppPolicyQuery } from './useAppPolicyQuery';
 export { useAppConfigQuery } from './useAppConfigQuery';
 export { useAppMetadataQuery } from './useAppMetadataQuery';
-export { useAppLibVersionQuery } from './useAppLibVersionQuery';
