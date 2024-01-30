@@ -11,10 +11,11 @@ export class DesignerApi extends StudioEnvironment {
   public async createApp(
     request: APIRequestContext,
     storageState: StorageState,
+    org = this.org,
   ): Promise<APIResponse> {
     const xsrfToken: string = this.getXsrfTokenFromStorageState(storageState);
     const response = await request.post(
-      `/designer/api/repos/create-app?org=${this.org}&repository=${this.app}&datamodellingPreference=1`,
+      `/designer/api/repos/create-app?org=${org}&repository=${this.app}&datamodellingPreference=1`,
       {
         // The following header is needed to be able to do API requestes
         headers: {

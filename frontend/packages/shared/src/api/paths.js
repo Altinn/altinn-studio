@@ -8,6 +8,9 @@ const basePath = '/designer/api';
 export const appMetadataPath = (org, app) => `${basePath}/${org}/${app}/metadata`; // Get, Put, Post
 export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
 
+// App version
+export const appVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`; // Get
+
 // Config
 export const serviceConfigPath = (org, app) => `${basePath}/${org}/${app}/config`; // Get, Post
 
@@ -62,7 +65,7 @@ export const orgsListPath = () => `${basePath}/orgs`; // Get
 
 // Preview
 export const instanceIdForPreviewPath = (org, app) => `${basePath}/${org}/${app}/mock-instance-id`; // Get
-export const previewPage = (org, app, selectedLayoutSet) => `/designer/html/preview.html?${s({ org, app, selectedLayoutSet })}`;
+export const previewPage = (org, app, selectedLayoutSet) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}`;
 
 // Preview - SignalR Hub
 export const previewSignalRHubSubPath = () => `/previewHub`;

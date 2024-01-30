@@ -1,3 +1,4 @@
+export { useAppVersionQuery } from './useAppVersionQuery';
 export { useDatamodelsJsonQuery } from './useDatamodelsJsonQuery';
 export { useDatamodelsXsdQuery } from './useDatamodelsXsdQuery';
 export { useInstanceIdQuery } from './useInstanceIdQuery';
