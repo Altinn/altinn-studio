@@ -28,6 +28,7 @@ export const AttachmentListComponent = ({
   const dataTypes: string[] = getDataTypes(appMetadata, tasks);
 
   //* TODO: Should the elements be set to small size?
+  //* TODO: Find out in designsystem if Combobox does have any sort method
   return (
     <>
       <Switch onChange={() => setOnlyCurrentTask(!onlyCurrentTask)}>
@@ -39,7 +40,7 @@ export const AttachmentListComponent = ({
             <Combobox.Option
               key={dataType}
               value={dataType}
-              description={dataType === 'ref-data-as-pdf' ? 'Generert PDF' : dataType}
+              description={getDescription(dataType)}
               displayValue={dataType}
             />
           );
@@ -68,8 +69,6 @@ const getTasks = (layoutSets: LayoutSets, selectedLayoutSet: string, onlyCurrent
 };
 
 const getDataTypes = (appMetadata: ApplicationMetadata, tasks: string[]) => {
-  //Todo: ["include-all"] = Alle vedlegg, and [] or Undefined = Alle vedlegg (uten generert PDF)
-  console.log(appMetadata);
   const filteredDataTypes = appMetadata?.dataTypes.filter(
     (dataType: DataTypeElement) =>
       !dataType.appLogic &&
@@ -77,6 +76,21 @@ const getDataTypes = (appMetadata: ApplicationMetadata, tasks: string[]) => {
   );
 
   const mappedDataTypes = filteredDataTypes?.map((dataType: DataTypeElement) => dataType.id) ?? [];
+  const sortedDataTypes = mappedDataTypes.sort((a, b) => a.localeCompare(b));
 
+  sortedDataTypes.length !== 0 && mappedDataTypes.unshift('include-all', undefined);
   return mappedDataTypes;
+};
+
+const getDescription = (dataType: string) => {
+  switch (dataType) {
+    case 'ref-data-as-pdf':
+      return 'Generert PDF';
+    case 'include-all':
+      return 'Alle vedlegg (inkl. PDF)';
+    case undefined:
+      return 'Alle vedlegg (eksl. PDF)';
+    default:
+      return dataType;
+  }
 };
