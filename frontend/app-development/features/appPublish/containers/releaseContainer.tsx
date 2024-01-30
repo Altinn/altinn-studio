@@ -8,7 +8,7 @@ import { CreateReleaseComponent } from '../components/createAppReleaseComponent'
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { useMediaQuery } from 'app-shared/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
