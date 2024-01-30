@@ -1,9 +1,21 @@
-import reducers from './reducers';
-import type { IAppState } from './types/global';
-import type { Store } from 'redux';
-import { configureStore } from '@reduxjs/toolkit';
+import { rootReducer } from './reducers';
+import type { PreloadedState } from 'redux';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
 
-export const store: Store<IAppState> = configureStore({
-  reducer: reducers,
-  devTools: process.env.NODE_ENV !== 'production',
+const reducer = combineReducers({
+  ...rootReducer,
 });
+
+export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
+  const store = configureStore({
+    reducer,
+    devTools: process.env.NODE_ENV !== 'production',
+    preloadedState,
+  });
+
+  return store;
+};
+
+export type RootState = ReturnType<typeof reducer>;
+export type AppStore = ReturnType<typeof setupStore>;
+export type AppDispatch = AppStore['dispatch'];
