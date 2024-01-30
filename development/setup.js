@@ -18,18 +18,19 @@ class SetupEnvironment extends ContainerTool {
   }
 
   async setup() {
+    // Get container manager to avoid the needs for setting alias to Podman.
     this.containerManager = await this.detectContainerTool();
 
     if (this.containerManager === 'unknown') {
       throw new Error('Please use Podman or Docker as container manager tool');
     }
 
-    await dnsIsOk(this.host);
-    if (!(this.env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
-      await dnsIsOk(`host.${this.containerManager}.internal`);
-    }
-    await this.runCompose();
-    await waitFor(`http://${this.host}/repos/`);
+    // await dnsIsOk(this.host);
+    // if (!(this.env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
+    //   await dnsIsOk(`host.${this.containerManager}.internal`);
+    // }
+    // await this.runCompose();
+    // await waitFor(`http://${this.host}/repos/`);
     await this.createGiteaAdminUser();
     await this.createCypressUser();
 
