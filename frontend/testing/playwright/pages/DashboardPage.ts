@@ -64,6 +64,7 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnOrgApplications(): Promise<void> {
+    this.updateOrgNameEnv('ttd');
     await this.page.getByRole('menuitem', { name: 'Testdepartementet' }).click();
   }
 
