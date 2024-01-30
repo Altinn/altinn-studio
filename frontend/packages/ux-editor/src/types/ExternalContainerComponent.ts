@@ -1,4 +1,4 @@
 import type { ExternalComponent } from 'app-shared/types/api';
-import type { ContainerComponent } from './FormContainer';
+import type { ContainerComponentType } from './ContainerComponent';
 
-export type ExternalContainerComponent = ExternalComponent<ContainerComponent>;
+export type ExternalContainerComponent = ExternalComponent<ContainerComponentType>;

@@ -14,8 +14,8 @@ import type {
   FormComponent,
   FormRadioButtonsComponent,
 } from '../types/FormComponent';
-import type { ContainerComponent } from '../types/FormContainer';
-import { containerComponentsWithValidChildrenMapping } from '../types/FormContainer';
+import type { ContainerComponentType } from '../types/ContainerComponent';
+import { containerComponentTypes } from '../data/containerComponentTypes';
 
 describe('Component utils', () => {
   describe('changeTextResourceBinding', () => {
@@ -151,25 +151,24 @@ describe('Component utils', () => {
   });
 
   describe('generateFormItem', () => {
-    it.each(
-      Object.values(ComponentType).filter(
-        (v) => !Object.keys(containerComponentsWithValidChildrenMapping).includes(v),
-      ),
-    )('Generates component of type %s with given ID', (componentType) => {
-      const id = 'testId';
-      const component = generateFormItem(componentType, id);
-      expect(component).toEqual(
-        expect.objectContaining({
-          id,
-          type: componentType,
-          itemType: 'COMPONENT',
-        }),
-      );
-    });
+    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
+      'Generates component of type %s with given ID',
+      (componentType) => {
+        const id = 'testId';
+        const component = generateFormItem(componentType, id);
+        expect(component).toEqual(
+          expect.objectContaining({
+            id,
+            type: componentType,
+            itemType: 'COMPONENT',
+          }),
+        );
+      },
+    );
 
-    it.each(Object.keys(containerComponentsWithValidChildrenMapping))(
+    it.each(containerComponentTypes)(
       'Generates container of type %s with given ID',
-      (componentType: ContainerComponent) => {
+      (componentType: ContainerComponentType) => {
         const id = 'testId';
         const component = generateFormItem(componentType, id);
         expect(component).toEqual(

@@ -31,13 +31,14 @@ import {
   TasklistIcon,
   Title,
 } from '@studio/icons';
+import type { ContainerComponentType } from '../types/ContainerComponent';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
   defaultProperties: FormItem<T>;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
-};
+} & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
 export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
 
@@ -62,6 +63,7 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/accordionComponent',
     },
     icon: Accordion,
+    validChildTypes: [ComponentType.Paragraph],
   },
   [ComponentType.AccordionGroup]: {
     name: ComponentType.AccordionGroup,
@@ -72,6 +74,7 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/accordionGroupComponent',
     },
     icon: ChevronDownDoubleIcon,
+    validChildTypes: [ComponentType.Accordion],
   },
   [ComponentType.ActionButton]: {
     name: ComponentType.ActionButton,
@@ -130,6 +133,7 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/buttonGroupComponent',
     },
     icon: FingerButtonIcon,
+    validChildTypes: [ComponentType.Button],
   },
   [ComponentType.Checkboxes]: {
     name: ComponentType.Checkboxes,
@@ -234,6 +238,7 @@ export const formItemConfigs: FormItemConfigs = {
       propertyPath: 'definitions/groupComponent',
     },
     icon: Group,
+    validChildTypes: Object.values(ComponentType),
   },
   [ComponentType.Header]: {
     name: ComponentType.Header,

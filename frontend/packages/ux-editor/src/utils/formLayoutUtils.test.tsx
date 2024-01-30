@@ -24,8 +24,8 @@ import type { IInternalLayout } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
 import type { FormComponent } from '../types/FormComponent';
-import type { ContainerComponent, FormContainer } from '../types/FormContainer';
-import { containerComponentsWithValidChildrenMapping } from '../types/FormContainer';
+import type { FormContainer } from '../types/FormContainer';
+import type { ContainerComponentType } from '../types/ContainerComponent';
 import { deepCopy } from 'app-shared/pure';
 import {
   component3_1_1Id,
@@ -34,6 +34,7 @@ import {
   component3Id,
   internalLayoutWithMultiPageGroup,
 } from '../testing/layoutWithMultiPageGroupMocks';
+import { containerComponentTypes } from '../data/containerComponentTypes';
 
 // Test data:
 const baseContainer: FormContainer = {
@@ -378,20 +379,19 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    it.each(
-      Object.values(ComponentType).filter(
-        (v) => !Object.keys(containerComponentsWithValidChildrenMapping).includes(v),
-      ),
-    )('Adds a new component to the layout when the given type is %s', (componentType) => {
-      const id = 'newItemId';
-      const layout = addItemOfType(mockInternal, componentType, id);
-      expect(layout.components[id].itemType).toEqual('COMPONENT');
-      expect(layout.components[id].type).toEqual(componentType);
-    });
+    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
+      'Adds a new component to the layout when the given type is %s',
+      (componentType) => {
+        const id = 'newItemId';
+        const layout = addItemOfType(mockInternal, componentType, id);
+        expect(layout.components[id].itemType).toEqual('COMPONENT');
+        expect(layout.components[id].type).toEqual(componentType);
+      },
+    );
 
-    it.each(Object.keys(containerComponentsWithValidChildrenMapping))(
+    it.each(containerComponentTypes)(
       'Adds a new container to the layout when the given type is %s',
-      (componentType: ContainerComponent) => {
+      (componentType: ContainerComponentType) => {
         const id = 'newItemId';
         const layout = addItemOfType(mockInternal, componentType, id);
         expect(layout.containers[id].itemType).toEqual('CONTAINER');

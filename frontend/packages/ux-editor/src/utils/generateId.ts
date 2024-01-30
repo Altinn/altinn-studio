@@ -1,8 +1,8 @@
 import type { IFormLayouts } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import type { ContainerComponent } from '../types/FormContainer';
-import { containerComponentsWithValidChildrenMapping } from '../types/FormContainer';
+import type { ContainerComponentType } from '../types/ContainerComponent';
+import { containerComponentTypes } from '../data/containerComponentTypes';
 
 export const generateTextResourceId = (
   layoutName: string,
@@ -22,11 +22,7 @@ export const generateComponentId = (componentType: ComponentType, layouts: IForm
     componentId = `${componentType}-${generateRandomId(6)}`;
     layoutNames.forEach((layoutName) => {
       const layout = layouts[layoutName];
-      if (
-        Object.keys(containerComponentsWithValidChildrenMapping).includes(
-          componentType as ContainerComponent,
-        )
-      ) {
+      if (containerComponentTypes.includes(componentType as ContainerComponentType)) {
         existsInLayout = !!layout.containers[componentId];
       } else if (layout.components) {
         existsInLayout = !!layout.components[componentId];

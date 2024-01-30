@@ -10,7 +10,6 @@ import type {
 import { externalSimpleComponentToInternal } from '../simpleComponentConverters';
 import type { FormComponent } from '../../types/FormComponent';
 import type { FormContainer } from '../../types/FormContainer';
-import { containerComponentsWithValidChildrenMapping } from '../../types/FormContainer';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { mapByProperty } from 'app-shared/utils/objectUtils';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
@@ -22,6 +21,7 @@ import {
   createEmptyLayout,
   createEmptyLayoutData,
 } from '../../utils/formLayoutUtils';
+import { containerComponentTypes } from '../../data/containerComponentTypes';
 
 export const externalLayoutToInternal = (
   externalLayout: ExternalFormLayout | null,
@@ -70,7 +70,8 @@ const convertExternalComponentList = (
 const getInternalComponents = (
   externalComponents: ExternalComponent[],
 ): IFormDesignerComponents => {
-  const convert = (component) => convertSimpleComponent(externalComponents, component);
+  const convert = (component: ExternalSimpleComponent) =>
+    convertSimpleComponent(externalComponents, component);
   const components: FormComponent[] = findSimpleComponents(externalComponents).map(convert);
   return mapByProperty(components, 'id');
 };
@@ -100,22 +101,18 @@ const getOrderOfComponents = (externalComponents: ExternalComponent[]): IFormLay
   ...getChildrenIdsOfAllContainers(externalComponents),
 });
 
-const findSimpleComponents = (externalComponents: ExternalComponent[]): ExternalSimpleComponent[] =>
-  externalComponents.filter(
-    (component) =>
-      !Object.keys(containerComponentsWithValidChildrenMapping).find(
-        (comp) => comp === component.type,
-      ),
-  ) as ExternalSimpleComponent[];
-
 const findContainerComponents = (
   externalComponents: ExternalComponent[],
-): ExternalContainerComponent[] =>
-  externalComponents.filter((component) =>
-    Object.keys(containerComponentsWithValidChildrenMapping).find(
-      (comp) => comp === component.type,
-    ),
-  ) as ExternalContainerComponent[];
+): ExternalContainerComponent[] => externalComponents.filter(isContainer);
+
+const isContainer = (component: ExternalComponent): component is ExternalContainerComponent =>
+  containerComponentTypes.includes(component.type);
+
+const findSimpleComponents = (externalComponents: ExternalComponent[]): ExternalSimpleComponent[] =>
+  externalComponents.filter(isSimpleComponent);
+
+const isSimpleComponent = (component: ExternalComponent): component is ExternalSimpleComponent =>
+  !isContainer(component);
 
 const findTopLevelComponentIds = (externalComponents: ExternalComponent[]) =>
   externalComponents
