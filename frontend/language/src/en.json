@@ -932,6 +932,7 @@
   "testing.testing_in_testenv_title": "Testing in test environment",
   "top_menu.about": "About",
   "top_menu.create": "Create",
+  "top_menu.dashboard": "Dashboard",
   "top_menu.datamodel": "Data model",
   "top_menu.deploy": "Deploy",
   "top_menu.policy-editor": "Policy",
