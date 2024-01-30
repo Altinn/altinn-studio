@@ -11,9 +11,9 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 describe('FormComponentConfig', () => {
   it('should render expected components', async () => {
     render({});
-    expect(
-      screen.getByText(textMock('ux_editor.modal_properties_component_change_id')),
-    ).toBeInTheDocument();
+    const testIdButton = screen.getByRole('button', { name: 'ID: test' });
+    expect(testIdButton).toBeInTheDocument();
+
     ['title', 'description', 'help'].forEach(async (key) => {
       expect(
         screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_${key}`)),
