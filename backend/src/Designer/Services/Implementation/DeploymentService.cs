@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 try
                 {
                     IList<Deployment> kubernetesDeploymentsInEnv =
-                        await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, env);
+                        await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, env, $"?labelSelector=release={org}-{app}");
 
                     var dbDeploymentEntitiesInEnv = deploymentEntities
                         .Where(deployment => deployment.EnvName == env.Name)
@@ -103,9 +103,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     foreach (var deployment in dbDeploymentEntitiesInEnv)
                     {
-                        deployment.DeployedInEnv = kubernetesDeploymentsInEnv.Any(kubernetesDeployment =>
+                        Deployment kubernetesDeployment = kubernetesDeploymentsInEnv.FirstOrDefault(kubernetesDeployment =>
                             kubernetesDeployment.Release == $"{deployment.Org}-{deployment.App}" &&
                             kubernetesDeployment.Version == deployment.TagName);
+                        deployment.DeployedInEnv = kubernetesDeployment != null;
+                        deployment.Status = kubernetesDeployment.Status;
+                        deployment.AvailabilityPercentage = kubernetesDeployment.AvailabilityPercentage;
                     }
                 }
                 catch (KubernetesWrapperResponseException)

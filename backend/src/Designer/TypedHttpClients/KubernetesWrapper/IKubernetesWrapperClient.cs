@@ -7,5 +7,5 @@ namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
 public interface IKubernetesWrapperClient
 {
-    Task<IList<Deployment>> GetDeploymentsInEnvAsync(string org, EnvironmentModel env);
+    Task<IList<Deployment>> GetDeploymentsInEnvAsync(string org, EnvironmentModel env, string queryParams);
 }

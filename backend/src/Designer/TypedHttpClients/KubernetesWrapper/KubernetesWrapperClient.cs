@@ -17,7 +17,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         _client = httpClient;
     }
 
-    public async Task<IList<Deployment>> GetDeploymentsInEnvAsync(string org, EnvironmentModel env)
+    public async Task<IList<Deployment>> GetDeploymentsInEnvAsync(string org, EnvironmentModel env, string queryParams)
     {
         // @todo We doesn't have a good way to mock this service locally. Unfortunately subdomains is not supported.
         // The issue have been discussed but we have not been able to find an agreement on how this should be solved. :-/
@@ -25,7 +25,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
             ? "http://host.docker.internal:6161"
             : $"https://{org}.{env.AppPrefix}.{env.Hostname}";
 
-        string pathToAzureEnv = baseUrl + $"{PATH_TO_AZURE_ENV}";
+        string pathToAzureEnv = baseUrl + $"{PATH_TO_AZURE_ENV}{queryParams}";
         try
         {
             using HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
