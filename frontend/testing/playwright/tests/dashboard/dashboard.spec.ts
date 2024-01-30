@@ -69,7 +69,7 @@ test('It is possible to change context and view only Testdepartementet apps', as
 
   await dashboardPage.clickOnHeaderAvatar();
   await dashboardPage.clickOnOrgApplications();
-  await dashboardPage.checkThatAllOrgApplicationsHeaderIsVisible();
+  await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
 });
 
 test('It is possible to search an app by name', async ({ page, testAppName }) => {

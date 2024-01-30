@@ -47,8 +47,8 @@ export const ImportResourceModal = ({
 
   const navigate = useNavigate();
 
-  const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
-  const [selectedService, setSelectedService] = useState<Altinn2LinkService>();
+  const [selectedEnv, setSelectedEnv] = useState<EnvironmentType | undefined>(undefined);
+  const [selectedService, setSelectedService] = useState<Altinn2LinkService | undefined>(undefined);
   const [id, setId] = useState('');
   const [resourceIdExists, setResourceIdExists] = useState(false);
 
@@ -61,6 +61,8 @@ export const ImportResourceModal = ({
   const handleClose = () => {
     onClose();
     setSelectedEnv(undefined);
+    setSelectedService(undefined);
+    setId('');
   };
 
   /**
@@ -98,7 +100,11 @@ export const ImportResourceModal = ({
         <Combobox
           value={selectedEnv ? [selectedEnv] : undefined}
           label={t('resourceadm.dashboard_import_modal_select_env')}
-          onValueChange={(newValue: EnvironmentType[]) => setSelectedEnv(newValue[0])}
+          onValueChange={(newValue: EnvironmentType[]) => {
+            setSelectedEnv(newValue[0]);
+            setSelectedService(undefined);
+            setId('');
+          }}
         >
           {environmentOptions.map((env) => (
             <Combobox.Option key={env} value={env}>
