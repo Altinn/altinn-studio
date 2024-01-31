@@ -13,8 +13,10 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
 import type { FormItemConfigs } from '../data/formItemConfig';
+import { formItemConfigs } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
+import * as formItemUtils from './formItemUtils';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],
@@ -383,8 +385,11 @@ export const validateContainerChild = (
   parentId: string,
   itemType: ComponentType,
 ): boolean => {
+  if (parentId === BASE_CONTAINER_ID) return true;
   const parent = getItem(layout, parentId);
-  return parent.id !== BASE_CONTAINER_ID ? parent.validChildTypes?.includes(itemType) : true;
+  if (!formItemUtils.isContainer(parent)) return false;
+  const parentTypeConfig = formItemConfigs[parent.type];
+  return parentTypeConfig.validChildTypes?.includes(itemType);
 };
 
 export const getChildIds = (layout: IInternalLayout, parentId: string): string[] =>
