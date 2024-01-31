@@ -94,6 +94,13 @@ public class BackendUpgrade
                     appSettingsFolder = Path.Combine(projectFolder, appSettingsFolder);
                 }
 
+                if (!File.Exists(projectFile))
+                {
+                    Console.WriteLine($"Project file {projectFile} does not exist. Please supply location of project with --project [path/to/project.csproj]");
+                    Environment.Exit(1);
+                    return;
+                }
+
                 var projectChecks = new ProjectChecks.ProjectChecks(projectFile);
                 if (!projectChecks.SupportedSourceVersion())
                 {
@@ -145,12 +152,6 @@ public class BackendUpgrade
     
     static async Task<int> UpgradeProjectFile(string projectFile, string targetVersion, string targetFramework)
     {
-        if (!File.Exists(projectFile))
-        {
-            Console.WriteLine($"Project file {projectFile} does not exist. Please supply location of project with --project [path/to/project.csproj]");
-            return 1;
-        }
-
         Console.WriteLine("Trying to upgrade nuget versions in project file");
         var rewriter = new ProjectFileRewriter(projectFile, targetVersion, targetFramework);
         await rewriter.Upgrade();
@@ -174,12 +175,6 @@ public class BackendUpgrade
 
     static async Task<int> UpgradeCode(string projectFile)
     {
-        if (!File.Exists(projectFile))
-        {
-            Console.WriteLine($"Project file {projectFile} does not exist. Please supply location of project with --project [path/to/project.csproj]");
-            return 1;
-        }
-
         Console.WriteLine("Trying to upgrade references and using in code");
 
         MSBuildLocator.RegisterDefaults();
