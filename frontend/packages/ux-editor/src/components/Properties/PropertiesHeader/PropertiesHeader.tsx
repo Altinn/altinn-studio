@@ -8,12 +8,14 @@ import type { FormContainer } from '../../../types/FormContainer';
 import { useItemTitle } from '../../../hooks/useItemTitle';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
+import { EditDataModelBindings } from '../../config/editModal/EditDataModelBindings';
 
 type PropertiesHeaderProps = {
   form: FormContainer | FormComponent;
+  schema: any;
 };
 
-export const PropertiesHeader = ({ form }: PropertiesHeaderProps): React.JSX.Element => {
+export const PropertiesHeader = ({ form, schema }: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
   const itemTitle = useItemTitle();
 
@@ -21,6 +23,8 @@ export const PropertiesHeader = ({ form }: PropertiesHeaderProps): React.JSX.Ele
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
     : formItemConfigs[form.type]?.icon;
+
+  const { dataModelBindings } = schema.properties;
 
   return (
     <div className={classes.wrapper}>
@@ -40,7 +44,30 @@ export const PropertiesHeader = ({ form }: PropertiesHeaderProps): React.JSX.Ele
         <div className={classes.contentRow}>
           <p>icon</p>
         </div>
-        <div className={classes.contentRow}></div>
+        <div className={classes.contentRow}>
+          {dataModelBindings?.properties && (
+            <>
+              <Heading level={3} size='xxsmall'>
+                {t('top_menu.datamodel')}
+              </Heading>
+              {Object.keys(dataModelBindings?.properties).map((propertyKey: any) => {
+                return (
+                  <EditDataModelBindings
+                    key={`${component.id}-datamodel-${propertyKey}`}
+                    component={component}
+                    handleComponentChange={handleComponentUpdate}
+                    editFormId={editFormId}
+                    helpText={dataModelBindings?.properties[propertyKey]?.description}
+                    renderOptions={{
+                      key: propertyKey,
+                      label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
+                    }}
+                  />
+                );
+              })}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
