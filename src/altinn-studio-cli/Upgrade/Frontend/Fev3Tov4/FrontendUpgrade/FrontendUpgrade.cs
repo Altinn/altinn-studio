@@ -91,10 +91,10 @@ class FrontendUpgrade
                 {
                     projectFolder = Path.Combine(Directory.GetCurrentDirectory(), projectFolder);
                 }
-                if (File.Exists(projectFolder))
+                if (!Directory.Exists(projectFolder))
                 {
-                    PrintError($"Project folder {projectFolder} does not exist. Please supply location of project with --folder [path/to/project]");
-                    returnCode = 1;
+                    PrintError($"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]");
+                    Environment.Exit(1);
                     return;
                 }
 

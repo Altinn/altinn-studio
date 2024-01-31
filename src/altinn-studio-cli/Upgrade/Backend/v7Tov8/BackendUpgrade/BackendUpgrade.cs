@@ -66,9 +66,9 @@ public class BackendUpgrade
                     projectFolder = Directory.GetCurrentDirectory();
                 }
 
-                if (File.Exists(projectFolder))
+                if (!Directory.Exists(projectFolder))
                 {
-                    Console.WriteLine($"Project folder {projectFolder} does not exist. Please supply location of project with --folder [path/to/project]");
+                    Console.WriteLine($"{projectFolder} does not exist. Please supply location of project with --folder [path/to/project]");
                     Environment.Exit(1);
                     return;
                 }
