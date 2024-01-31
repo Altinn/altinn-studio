@@ -55,4 +55,18 @@ describe('EditComponentId', () => {
     await act(() => user.click(document.body));
     expect(textField).not.toBeInTheDocument();
   });
+
+  it('when user in edit mode and changes the textfield value, fieldProps.onChange should be called', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdate = jest.fn();
+    await studioRender({ handleComponentUpdate });
+    const testIdButton = screen.getByRole('button', { name: 'ID: test' });
+    await act(() => user.click(testIdButton));
+    const textField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+    await act(() => user.type(textField, 'newTestId'));
+    await act(() => user.click(document.body));
+    expect(handleComponentUpdate).toHaveBeenCalled();
+  });
 });
