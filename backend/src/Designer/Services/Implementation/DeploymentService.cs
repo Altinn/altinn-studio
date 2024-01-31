@@ -107,8 +107,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             kubernetesDeployment.Release == $"{deployment.Org}-{deployment.App}" &&
                             kubernetesDeployment.Version == deployment.TagName);
                         deployment.DeployedInEnv = kubernetesDeployment != null;
-                        deployment.Status = kubernetesDeployment.Status;
-                        deployment.AvailabilityPercentage = kubernetesDeployment.AvailabilityPercentage;
+                        deployment.Status = kubernetesDeployment?.Status;
+                        deployment.AvailabilityPercentage = kubernetesDeployment?.AvailabilityPercentage ?? 0;
                     }
                 }
                 catch (KubernetesWrapperResponseException)
