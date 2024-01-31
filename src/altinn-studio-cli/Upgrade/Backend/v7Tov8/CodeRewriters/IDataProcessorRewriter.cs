@@ -38,6 +38,7 @@ namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.CodeRewriters
             if (processDataRead.ParameterList.Parameters.Count == 3 &&
                 processDataRead.ReturnType.ToString() == "Task<bool>")
             {
+                processDataRead = AddParameterToProcessDataRead(processDataRead);
                 processDataRead = ChangeReturnType_FromTaskBool_ToTask(processDataRead);
             }
 
@@ -69,6 +70,17 @@ namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.CodeRewriters
                         .WithType(SyntaxFactory.ParseTypeName("string?"))
                         .WithLeadingTrivia(SyntaxFactory.Space)
                     ));
+        }
+        
+        private MethodDeclarationSyntax AddParameterToProcessDataRead(MethodDeclarationSyntax method)
+        {
+            return method.ReplaceNode(method.ParameterList,
+                method.ParameterList.AddParameters(
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier("language"))
+                    .WithLeadingTrivia(SyntaxFactory.Space)
+                    .WithType(SyntaxFactory.ParseTypeName("string?"))
+                    .WithLeadingTrivia(SyntaxFactory.Space)
+            ));
         }
 
         private MethodDeclarationSyntax ChangeReturnType_FromTaskBool_ToTask(MethodDeclarationSyntax method)
