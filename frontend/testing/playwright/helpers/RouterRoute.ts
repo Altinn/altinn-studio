@@ -5,9 +5,14 @@ type SupportedRoutes =
   | 'altinnLoginPage'
   | 'dashboard'
   | 'dashboardCreateApp'
+  | 'deploy'
   | 'editorOverview'
   | 'editorDatamodel'
-  | 'gitea';
+  | 'editorProcess'
+  | 'editorText'
+  | 'editorUi'
+  | 'gitea'
+  | 'preview';
 
 type RouterRoutes = Record<SupportedRoutes, string>;
 
@@ -15,9 +20,14 @@ const routerRoutes: RouterRoutes = {
   altinnLoginPage: '/',
   dashboard: '/dashboard',
   dashboardCreateApp: '/dashboard/self/new',
+  deploy: '/editor/{{org}}/{{app}}/deploy',
   editorOverview: `/editor/{{org}}/{{app}}/overview`,
   editorDatamodel: `/editor/{{org}}/{{app}}/datamodel`,
+  editorProcess: `/editor/{{org}}/{{app}}/process-editor`,
+  editorText: `/editor/{{org}}/{{app}}/text-editor`,
+  editorUi: `/editor/{{org}}/{{app}}/ui-editor`,
   gitea: `/repos/{{org}}/{{app}}`,
+  preview: `/preview/{{org}}/{{app}}`,
 };
 
 export class RouterRoute extends StudioEnvironment {

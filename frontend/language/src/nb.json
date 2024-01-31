@@ -1289,6 +1289,7 @@
   "text_editor.variables_editing_not_supported": "Det, er ikke lagt til støtte for redigering av variabler i Studio.",
   "top_menu.about": "Oversikt",
   "top_menu.create": "Lage",
+  "top_menu.dashboard": "Dashboard",
   "top_menu.datamodel": "Datamodell",
   "top_menu.deploy": "Publiser",
   "top_menu.preview": "Forhåndsvis",
