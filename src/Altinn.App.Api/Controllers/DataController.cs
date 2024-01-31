@@ -317,7 +317,7 @@ namespace Altinn.App.Api.Controllers
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 201)]
-        [ProducesResponseType(typeof(CalculationResult), 303)]
+        [ProducesResponseType(typeof(CalculationResult), 200)]
         public async Task<ActionResult> Put(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -835,7 +835,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     ChangedFields = changedFields
                 };
-                return StatusCode((int)HttpStatusCode.SeeOther, calculationResult);
+                return Ok(calculationResult);
             }
 
             return Created(dataUrl, updatedDataElement);

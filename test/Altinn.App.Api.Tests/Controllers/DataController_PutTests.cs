@@ -135,7 +135,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         using var updateDataElementContent =
             new StringContent("""{"melding":{"name": "Ola Olsen"}}""", System.Text.Encoding.UTF8, "application/json");
         var response = await client.PutAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}", updateDataElementContent);
-        response.StatusCode.Should().Be(HttpStatusCode.SeeOther);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
 
         // Verify stored data
