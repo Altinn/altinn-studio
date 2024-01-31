@@ -6,6 +6,7 @@ import { Accordion } from '@digdir/design-system-react';
 import { useFormContext } from '../../containers/FormContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
+import { PropertiesHeader } from './PropertiesHeader';
 
 export const Properties = () => {
   const { t } = useTranslation();
@@ -31,6 +32,7 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
+      <PropertiesHeader />
       <Accordion color='subtle'>
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
