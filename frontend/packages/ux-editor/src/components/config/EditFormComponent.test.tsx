@@ -89,16 +89,13 @@ describe('EditFormComponent', () => {
     });
 
     const labels = {
-      'ux_editor.modal_properties_component_change_id': 'textbox',
+      'ID: test': 'button',
       'ux_editor.modal_properties_data_model_helper': 'combobox',
       'ux_editor.modal_configure_read_only': 'checkbox',
     };
 
     const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
     await act(() => user.click(linkIcon));
-
-    const testIdButton = screen.getByRole('button', { name: 'ID: test' });
-    expect(testIdButton).toBeInTheDocument();
 
     await waitFor(() => {
       Object.keys(labels).map(async (label) =>
