@@ -1,27 +1,12 @@
 name: Playwright Tests in Dev
 
 on:
-  #push:
-  #  branches:
-  #    - main
-  #  paths:
-  #    - 'frontend/**'
-  #    - '.github/workflows/playwright.yml'
-  #workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
     paths:
       - 'frontend/**'
-      - '!frontend/stats/**'
-      - 'backend/**'
-      - '.github/workflows/run-playwright-on-pr.yaml'
-      - 'docker-compose.yml'
-      - 'Dockerfile'
-      - 'gitea/**'
-      - 'package.json'
-      - 'development/**'
-  workflow_dispatch:
+      - '.github/workflows/playwright.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
