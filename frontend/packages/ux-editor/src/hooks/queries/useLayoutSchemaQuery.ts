@@ -1,7 +1,7 @@
 // import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { addSchemas } from '../../utils/formValidationUtils';
+import { addSchemas } from 'app-shared/utils/formValidationUtils';
 
 import expressionSchema from '../../testing/schemas/json/layout/expression.schema.v1.json';
 import numberFormatSchema from '../../testing/schemas/json/layout/number-format.schema.v1.json';
