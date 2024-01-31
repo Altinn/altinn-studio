@@ -63,8 +63,6 @@ function compareAny(props: CompareProps<any>) {
     return compareObjects(props);
   }
   if (Array.isArray(prev) && Array.isArray(next)) {
-    // TODO: Do something when both next and current are arrays, but prev is undefined/missing? In that case we should
-    // at least compare the arrays.
     return compareArrays(props);
   }
   compareValues(props);

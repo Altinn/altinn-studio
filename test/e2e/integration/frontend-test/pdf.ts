@@ -34,8 +34,7 @@ describe('PDF', () => {
     cy.findByRole('textbox', { name: /gateadresse/i }).type('Økern 1');
     cy.findByRole('textbox', { name: /postnr/i }).type('0101');
 
-    // TODO: Comment back in when Address component works again
-    // cy.findByRole('textbox', { name: /poststed/i }).should('have.value', 'OSLO');
+    cy.findByRole('textbox', { name: /poststed/i }).should('have.value', 'OSLO');
 
     cy.testPdf(() => {
       cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');

@@ -235,7 +235,7 @@ const common = {
 
         // Options are converted to strings when working on them internally, but externally we can handle
         // receiving them as any primitive type
-        new CG.union(new CG.str(), new CG.num(), new CG.bool()),
+        new CG.union(new CG.str(), new CG.num(), new CG.bool(), CG.null),
       ),
       new CG.prop('description', new CG.str().optional()),
       new CG.prop('helpText', new CG.str().optional()),

@@ -26,7 +26,7 @@ const countries: IRawOption[] = [
   },
 ];
 
-interface Props extends Partial<Omit<RenderGenericComponentTestProps<'Dropdown'>, 'renderer' | 'type' | 'queries'>> {
+interface Props extends Partial<Omit<RenderGenericComponentTestProps<'Dropdown'>, 'renderer' | 'type'>> {
   options?: IRawOption[];
 }
 
@@ -64,6 +64,7 @@ const render = async ({ component, genericProps, options, ...rest }: Props = {})
       isValid: true,
       ...genericProps,
     },
+    ...rest,
     queries: {
       fetchFormData: async () => ({
         ...getFormDataMockForRepGroup(),
@@ -75,8 +76,8 @@ const render = async ({ component, genericProps, options, ...rest }: Props = {})
               data: options,
               headers: {},
             } as AxiosResponse<IRawOption[], any>),
+      ...rest.queries,
     },
-    ...rest,
   });
 
   return { ...utils, fetchOptions };
@@ -248,5 +249,46 @@ describe('DropdownComponent', () => {
     expect(options[0]).toHaveValue('sweden');
     expect(options[1]).toHaveValue('norway');
     expect(options[2]).toHaveValue('denmark');
+  });
+
+  it.each([
+    ['truthy', true],
+    ['falsy', false],
+    ['numeric', 123],
+    ['nullable', null],
+  ])('should be possible to use a %s option value', async (label, value) => {
+    const options: IRawOption[] = [{ label, value }];
+    jest.useFakeTimers();
+    const user = userEvent.setup({ delay: null });
+    const { mutations } = await render({
+      component: {
+        optionsId: 'countries',
+      },
+      options,
+      queries: {
+        fetchDataModelSchema: async () => ({
+          type: 'object',
+          properties: {
+            myDropdown: { anyOf: [{ type: 'boolean' }, { type: 'number' }, { type: 'null' }] },
+          },
+        }),
+      },
+    });
+
+    await user.click(await screen.findByRole('combobox'));
+    await user.click(screen.getByText(label));
+
+    expect(await screen.findByText(label)).toBeInTheDocument();
+    jest.advanceTimersByTime(1000);
+
+    await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
+    expect(mutations.doPatchFormData.mock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        patch: [{ op: 'add', path: '/myDropdown', value }],
+      }),
+    );
+
+    jest.useRealTimers();
   });
 });

@@ -16,14 +16,6 @@ async function getComponentList() {
   for (const file of files) {
     const stat = await fs.stat(path.join('src/layout', file));
     if (stat.isDirectory()) {
-      if (file === 'Address') {
-        // Address is a special case, because we once named it 'AddressComponent', without any over the other components
-        // having that suffix. We need to keep this for backwards compatibility, but our folder structure uses the name
-        // without the suffix.
-        out[file] = 'AddressComponent';
-        continue;
-      }
-
       out[file] = file;
     }
   }

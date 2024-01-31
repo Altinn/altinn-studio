@@ -513,6 +513,10 @@ describe('Validation', () => {
       }
     });
 
+    // Go back to the first page and then here again to reset the repeating group after the change above
+    cy.gotoNavPage('prefill');
+    cy.gotoNavPage('repeating');
+
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.group.editContainer).should('not.exist');
     cy.get(appFrontend.group.addNewItem).click();

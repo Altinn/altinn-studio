@@ -13,9 +13,11 @@ const __default__ = '';
  */
 export const usePostPlaceQuery = (zipCode: string | undefined, enabled: boolean) => {
   const { fetchPostPlace } = useAppQueries();
-  const _enabled = enabled && Boolean(zipCode?.length);
-  const { data, isFetching } = useQuery(['fetchPostPlace', zipCode], () => fetchPostPlace(zipCode!), {
+  const _enabled = enabled && Boolean(zipCode?.length) && zipCode !== __default__ && zipCode !== '0';
+  const { data, isFetching } = useQuery({
     enabled: _enabled,
+    queryKey: ['fetchPostPlace', zipCode],
+    queryFn: () => fetchPostPlace(zipCode!),
     onError: (error: HttpClientError) => {
       window.logError(`Fetching post place for zip code ${zipCode} failed:\n`, error);
     },

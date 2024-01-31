@@ -1,313 +1,406 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { createStore } from 'zustand';
+
 import { createContext } from 'src/core/contexts/context';
+import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAttachmentDeletionInRepGroups';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
 import { useOnDeleteGroupRow } from 'src/features/validation/validationContext';
-import { useAsRef, useAsRefObject } from 'src/hooks/useAsRef';
-import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { CompRepeatingGroupInternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
-interface RepeatingGroupContext {
-  node: BaseLayoutNode<CompRepeatingGroupInternal>;
+interface Store {
+  editingAll: boolean;
+  editingNone: boolean;
+  binding: string;
+  deletingIndexes: number[];
+  editingIndex: number | undefined;
 
   // If this is true, we're rendering the group for the first time in this context. This is used to
   // determine whether we should open the first/last row for editing when first displaying the group. If, however,
   // we run that effect every time the group is re-rendered, the user would be unable to close the row for editing.
   isFirstRender: boolean;
 
+  numVisibleRows: number;
+  visibleRowIndexes: number[];
+  hiddenRowIndexes: Set<number>;
+  editableRowIndexes: number[];
+  deletableRowIndexes: number[];
+  currentlyAddingRow: undefined | number;
+}
+
+interface ZustandHiddenMethods {
+  updateNode: (n: BaseLayoutNode<CompRepeatingGroupInternal>) => void;
+  startAddingRow: (idx: number) => void;
+  endAddingRow: (idx: number) => void;
+  startDeletingRow: (idx: number) => void;
+  endDeletingRow: (idx: number, successful: boolean) => void;
+}
+
+interface ExtendedMethods {
   // Methods for getting/setting state about which rows are in edit mode
   toggleEditing: (index: number) => void;
   openForEditing: (index: number) => void;
   openNextForEditing: () => void;
   closeForEditing: (index: number) => void;
-  isEditing: (index: number) => boolean;
-  isEditingAnyRow: boolean;
-  editingIndex: number | undefined;
-
-  addRow: () => Promise<void>;
-
-  deleteRow: (index: number) => Promise<boolean>;
-  isDeleting: (index: number) => boolean;
-
-  numVisibleRows: number;
-  visibleRowIndexes: number[];
-  hiddenRowIndexes: Set<number>;
-  moreVisibleRowsAfterEditIndex: boolean;
-  editableRowIndexes: number[];
-  deletableRowIndexes: number[];
 }
 
-const { Provider, useCtx } = createContext<RepeatingGroupContext>({
+interface ContextMethods extends ExtendedMethods {
+  addRow: () => Promise<void>;
+  deleteRow: (index: number) => Promise<boolean>;
+  isEditing: (index: number) => boolean;
+  isDeleting: (index: number) => boolean;
+}
+
+type ZustandState = Store & ZustandHiddenMethods & Omit<ExtendedMethods, 'toggleEditing'>;
+type ExtendedContext = ContextMethods & Props;
+
+const ZStore = createZustandContext({
+  name: 'RepeatingGroupZ',
+  required: true,
+  initialCreateStore: newStore,
+  onReRender: (store, { node }) => {
+    store.getState().updateNode(node);
+  },
+});
+
+const ExtendedStore = createContext<ExtendedContext>({
   name: 'RepeatingGroup',
   required: true,
 });
 
-function usePureStates(node: BaseLayoutNode<CompRepeatingGroupInternal>) {
-  const editingAll = node.item.edit?.mode === 'showAll';
-  const editingNone = node.item.edit?.mode === 'onlyTable';
-  const binding = node.item.dataModelBindings?.group;
+function newStore({ node }: Props) {
+  return createStore<ZustandState>((set) => {
+    function produceRowIndexes(n: BaseLayoutNode<CompRepeatingGroupInternal>) {
+      const hidden: number[] = [];
+      const visible: number[] = [];
+      const editable: number[] = [];
+      const deletable: number[] = [];
+      for (const row of n.item.rows) {
+        if (row.groupExpressions?.hiddenRow) {
+          hidden.push(row.index);
+        } else {
+          visible.push(row.index);
 
-  const [visibleRowIndexes, hiddenRowIndexes, editableRowIndexes, deletableRowIndexes] = useMemoDeepEqual(() => {
-    const hidden: number[] = [];
-    const visible: number[] = [];
-    const editable: number[] = [];
-    const deletable: number[] = [];
-    for (const row of node.item.rows) {
-      if (row.groupExpressions?.hiddenRow) {
-        hidden.push(row.index);
-      } else {
-        visible.push(row.index);
-
-        // Only the visible rows can be edited or deleted
-        if (row.groupExpressions?.edit?.editButton !== false) {
-          editable.push(row.index);
-        }
-        if (row.groupExpressions?.edit?.deleteButton !== false) {
-          deletable.push(row.index);
+          // Only the visible rows can be edited or deleted
+          if (row.groupExpressions?.edit?.editButton !== false) {
+            editable.push(row.index);
+          }
+          if (row.groupExpressions?.edit?.deleteButton !== false) {
+            deletable.push(row.index);
+          }
         }
       }
+
+      return [visible, new Set(hidden), editable, deletable] as const;
     }
 
-    return [visible, new Set(hidden), editable, deletable];
-  }, [node.item.rows]);
+    const [visibleRowIndexes, hiddenRowIndexes, editableRowIndexes, deletableRowIndexes] = produceRowIndexes(node);
 
-  const [isFirstRender, setIsFirstRender] = useState(true);
-  useEffect(() => {
-    setIsFirstRender(false);
-  }, []);
+    return {
+      editingAll: node.item.edit?.mode === 'showAll',
+      editingNone: node.item.edit?.mode === 'onlyTable',
+      binding: node.item.dataModelBindings.group,
+      isFirstRender: true,
+      editingIndex: undefined,
+      numVisibleRows: visibleRowIndexes.length,
+      deletingIndexes: [],
+      currentlyAddingRow: undefined,
 
-  const [editingIndex, setEditingIndex] = useState<number | undefined>(undefined);
-  const [deletingIndexes, setDeletingIndexes] = useState<number[]>([]);
+      visibleRowIndexes,
+      hiddenRowIndexes,
+      editableRowIndexes,
+      deletableRowIndexes,
 
-  return {
-    editingAll,
-    editingNone,
-    numVisibleRows: visibleRowIndexes.length,
-    hiddenRowIndexes,
-    visibleRowIndexes,
-    editableRowIndexes,
-    deletableRowIndexes,
-    isFirstRender,
-    editingIndex,
-    setEditingIndex,
-    deletingIndexes,
-    setDeletingIndexes,
-    binding,
-  };
+      closeForEditing: (idx) => {
+        set((state) => {
+          if (state.editingIndex === idx) {
+            return { editingIndex: undefined };
+          }
+          return state;
+        });
+      },
+
+      openForEditing: (idx) => {
+        set((state) => {
+          if (state.editingIndex === idx || state.editingAll || state.editingNone) {
+            return state;
+          }
+          if (!state.editableRowIndexes.includes(idx)) {
+            return state;
+          }
+          return { editingIndex: idx };
+        });
+      },
+
+      openNextForEditing: () => {
+        set((state) => {
+          if (state.editingAll || state.editingNone) {
+            return state;
+          }
+          if (state.editingIndex === undefined) {
+            return { editingIndex: state.editableRowIndexes[0] };
+          }
+          const isLast = state.editingIndex === state.editableRowIndexes[state.editableRowIndexes.length - 1];
+          if (isLast) {
+            return { editingIndex: undefined };
+          }
+          return { editingIndex: state.editableRowIndexes[state.editableRowIndexes.indexOf(state.editingIndex) + 1] };
+        });
+      },
+
+      startAddingRow: (idx) => {
+        set((state) => {
+          if (state.currentlyAddingRow !== undefined) {
+            return state;
+          }
+          return { currentlyAddingRow: idx, editingIndex: undefined };
+        });
+      },
+
+      endAddingRow: (idx) => {
+        set((state) => {
+          if (state.currentlyAddingRow !== idx) {
+            return state;
+          }
+          return { currentlyAddingRow: undefined };
+        });
+      },
+
+      startDeletingRow: (idx) => {
+        set((state) => {
+          if (state.deletingIndexes.includes(idx)) {
+            return state;
+          }
+          return { deletingIndexes: [...state.deletingIndexes, idx] };
+        });
+      },
+
+      endDeletingRow: (idx, successful) => {
+        set((state) => {
+          const isEditing = state.editingIndex === idx;
+          const i = state.deletingIndexes.indexOf(idx);
+          if (i === -1 && !isEditing) {
+            return state;
+          }
+          if (isEditing && successful) {
+            return { editingIndex: undefined };
+          }
+          return {
+            deletingIndexes: [...state.deletingIndexes.slice(0, i), ...state.deletingIndexes.slice(i + 1)],
+            editingIndex: isEditing && successful ? undefined : state.editingIndex,
+          };
+        });
+      },
+
+      updateNode: (n: BaseLayoutNode<CompRepeatingGroupInternal>) => {
+        const [visibleRowIndexes, hiddenRowIndexes, editableRowIndexes, deletableRowIndexes] = produceRowIndexes(n);
+        set((state) => {
+          const newState: Partial<ZustandState> = {
+            binding: n.item.dataModelBindings.group,
+            visibleRowIndexes,
+            hiddenRowIndexes,
+            editableRowIndexes,
+            deletableRowIndexes,
+          };
+          if (state.editingIndex !== undefined && !visibleRowIndexes.includes(state.editingIndex)) {
+            newState.editingIndex = undefined;
+          }
+          if (state.isFirstRender) {
+            newState.isFirstRender = false;
+          }
+          return newState;
+        });
+      },
+    };
+  });
 }
 
-function useRepeatingGroupState(node: BaseLayoutNode<CompRepeatingGroupInternal>): RepeatingGroupContext {
+function useExtendedRepeatingGroupState(node: BaseLayoutNode<CompRepeatingGroupInternal>): ExtendedContext {
+  const nodeRef = useAsRef(node);
+  const stateRef = useAsRef(ZStore.useSelector((state) => state));
+
   const appendToList = FD.useAppendToList();
   const removeIndexFromList = FD.useRemoveIndexFromList();
-  const { onBeforeRowDeletion } = useAttachmentDeletionInRepGroups(node);
+  const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(node);
   const onDeleteGroupRow = useOnDeleteGroupRow();
   const onGroupCloseValidation = useOnGroupCloseValidation();
-  const pureStates = usePureStates(node);
-  const setEditingIndex = pureStates.setEditingIndex;
-  const {
-    editingAll,
-    editingNone,
-    binding,
-    setDeletingIndexes,
-    deletingIndexes,
-    editableRowIndexes,
-    deletableRowIndexes,
-    editingIndex,
-  } = useAsRefObject(pureStates);
-  const nodeRef = useAsRef(node);
   const waitForNode = useWaitForState(nodeRef);
 
-  const validateOnSaveRow = nodeRef.current.item.validateOnSaveRow;
-
   const maybeValidateRow = useCallback(() => {
-    if (!validateOnSaveRow || editingAll.current || editingNone.current || editingIndex.current === undefined) {
+    const { editingAll, editingIndex, editingNone } = stateRef.current;
+    const validateOnSaveRow = nodeRef.current.item.validateOnSaveRow;
+    if (!validateOnSaveRow || editingAll || editingNone || editingIndex === undefined) {
       return Promise.resolve(false);
     }
-    return onGroupCloseValidation(nodeRef.current, editingIndex.current, validateOnSaveRow);
-  }, [editingAll, editingIndex, editingNone, nodeRef, onGroupCloseValidation, validateOnSaveRow]);
-
-  // Figure out if the row we were editing is now hidden, and in that case, reset the editing state
-  useEffect(() => {
-    if (pureStates.editingIndex !== undefined && pureStates.hiddenRowIndexes.has(pureStates.editingIndex)) {
-      setEditingIndex(undefined);
-    }
-  }, [pureStates.editingIndex, pureStates.hiddenRowIndexes, node, setEditingIndex]);
-
-  const toggleEditing = useCallback(
-    async (index: number) => {
-      if (editingAll.current || editingNone.current || !editableRowIndexes.current.includes(index)) {
-        return;
-      }
-      if (await maybeValidateRow()) {
-        return;
-      }
-      setEditingIndex((prev) => (prev === index ? undefined : index));
-    },
-    [editableRowIndexes, editingAll, editingNone, maybeValidateRow, setEditingIndex],
-  );
+    return onGroupCloseValidation(nodeRef.current, editingIndex, validateOnSaveRow);
+  }, [nodeRef, onGroupCloseValidation, stateRef]);
 
   const openForEditing = useCallback(
     async (index: number) => {
-      if (editingAll.current || editingNone.current || !editableRowIndexes.current.includes(index)) {
-        return;
-      }
       if (await maybeValidateRow()) {
         return;
       }
-      setEditingIndex(index);
+      stateRef.current.openForEditing(index);
     },
-    [editableRowIndexes, editingAll, editingNone, maybeValidateRow, setEditingIndex],
+    [maybeValidateRow, stateRef],
   );
 
   const openNextForEditing = useCallback(async () => {
-    if (editingAll.current || editingNone.current) {
-      return;
-    }
     if (await maybeValidateRow()) {
       return;
     }
-    setEditingIndex((prev) => {
-      if (prev === undefined) {
-        return editableRowIndexes.current[0];
-      }
-      const isLast = prev === editableRowIndexes.current[editableRowIndexes.current.length - 1];
-      if (isLast) {
-        return undefined;
-      }
-      return editableRowIndexes.current[editableRowIndexes.current.indexOf(prev) + 1];
-    });
-  }, [editableRowIndexes, editingAll, editingNone, maybeValidateRow, setEditingIndex]);
+    stateRef.current.openNextForEditing();
+  }, [maybeValidateRow, stateRef]);
 
   const closeForEditing = useCallback(
     async (index: number) => {
-      if (editingAll.current || editingNone.current) {
+      if (await maybeValidateRow()) {
         return;
       }
-      if (editingIndex.current === index && !(await maybeValidateRow())) {
-        setEditingIndex(undefined);
+      stateRef.current.closeForEditing(index);
+    },
+    [maybeValidateRow, stateRef],
+  );
+
+  const toggleEditing = useCallback(
+    async (index: number) => {
+      if (await maybeValidateRow()) {
+        return;
+      }
+      const { editingIndex, closeForEditing, openForEditing } = stateRef.current;
+      if (editingIndex === index) {
+        closeForEditing(index);
+      } else {
+        openForEditing(index);
       }
     },
-    [editingAll, editingIndex, editingNone, maybeValidateRow, setEditingIndex],
+    [maybeValidateRow, stateRef],
   );
 
   const isEditing = useCallback(
     (index: number) => {
-      if (editingAll.current) {
+      const { editingAll, editingIndex, editingNone } = stateRef.current;
+      if (editingAll) {
         return true;
       }
-      if (editingNone.current) {
+      if (editingNone) {
         return false;
       }
-      return editingIndex.current === index;
+      return editingIndex === index;
     },
-    [editingAll, editingIndex, editingNone],
+    [stateRef],
   );
 
-  const addingRowRef = useRef<number | false>(false);
   const addRow = useCallback(async () => {
-    if (binding.current && !(await maybeValidateRow()) && addingRowRef.current === false) {
+    const { binding, currentlyAddingRow, startAddingRow, endAddingRow } = stateRef.current;
+    if (binding && !currentlyAddingRow && !(await maybeValidateRow())) {
       const nextIndex = nodeRef.current.item.rows.length;
       const nextLength = nextIndex + 1;
-      addingRowRef.current = nextIndex;
+      startAddingRow(nextIndex);
       appendToList({
-        path: binding.current,
+        path: binding,
         newValue: {},
       });
       await waitForNode((node) => node.item.rows.length === nextLength);
       await openForEditing(nextIndex);
-      addingRowRef.current = false;
+      endAddingRow(nextIndex);
     }
-  }, [appendToList, binding, maybeValidateRow, nodeRef, openForEditing, waitForNode]);
+  }, [appendToList, maybeValidateRow, nodeRef, openForEditing, stateRef, waitForNode]);
 
   const deleteRow = useCallback(
     async (index: number) => {
-      if (!deletableRowIndexes.current.includes(index)) {
+      const { binding, deletableRowIndexes, startDeletingRow, endDeletingRow } = stateRef.current;
+      if (!deletableRowIndexes.includes(index)) {
         return false;
       }
 
-      setDeletingIndexes.current((prev) => {
-        if (prev.includes(index)) {
-          return prev;
-        }
-        return [...prev, index];
-      });
+      startDeletingRow(index);
       const attachmentDeletionSuccessful = await onBeforeRowDeletion(index);
-      if (attachmentDeletionSuccessful && binding.current) {
+      if (attachmentDeletionSuccessful && binding) {
         onDeleteGroupRow(nodeRef.current, index);
         removeIndexFromList({
-          path: binding.current,
+          path: binding,
           index,
         });
 
-        setEditingIndex((prev) => {
-          if (prev === index) {
-            return undefined;
-          }
-          return prev;
-        });
-        setDeletingIndexes.current((prev) => {
-          const idx = prev.indexOf(index);
-          if (idx === -1) {
-            return prev;
-          }
-          return [...prev.slice(0, idx), ...prev.slice(idx + 1)];
-        });
-
+        endDeletingRow(index, true);
         return true;
       }
 
+      endDeletingRow(index, false);
       return false;
     },
-    [
-      binding,
-      deletableRowIndexes,
-      nodeRef,
-      onBeforeRowDeletion,
-      onDeleteGroupRow,
-      removeIndexFromList,
-      setDeletingIndexes,
-      setEditingIndex,
-    ],
+    [nodeRef, onBeforeRowDeletion, onDeleteGroupRow, removeIndexFromList, stateRef],
   );
 
-  const isDeleting = useCallback((index: number) => deletingIndexes.current.includes(index), [deletingIndexes]);
-
-  const moreVisibleRowsAfterEditIndex = useMemo(() => {
-    if (pureStates.editingIndex === undefined) {
-      return false;
-    }
-    return pureStates.visibleRowIndexes.indexOf(pureStates.editingIndex) < pureStates.visibleRowIndexes.length - 1;
-  }, [pureStates.visibleRowIndexes, pureStates.editingIndex]);
+  const isDeleting = useCallback((index: number) => stateRef.current.deletingIndexes.includes(index), [stateRef]);
 
   return {
     node,
-    isFirstRender: pureStates.isFirstRender,
-    toggleEditing,
-    openForEditing,
-    openNextForEditing,
-    closeForEditing,
-    isEditing,
-    isEditingAnyRow: pureStates.editingAll
-      ? true
-      : pureStates.editingNone
-        ? false
-        : pureStates.editingIndex !== undefined,
-    editingIndex: pureStates.editingIndex,
-    numVisibleRows: pureStates.numVisibleRows,
-    visibleRowIndexes: pureStates.visibleRowIndexes,
-    hiddenRowIndexes: pureStates.hiddenRowIndexes,
-    editableRowIndexes: pureStates.editableRowIndexes,
-    deletableRowIndexes: pureStates.deletableRowIndexes,
-    moreVisibleRowsAfterEditIndex,
     addRow,
     deleteRow,
     isDeleting,
+    closeForEditing,
+    isEditing,
+    openForEditing,
+    openNextForEditing,
+    toggleEditing,
   };
+}
+
+function ProvideTheRest({ node, children }: PropsWithChildren<Props>) {
+  const extended = useExtendedRepeatingGroupState(node);
+  return <ExtendedStore.Provider value={extended}>{children}</ExtendedStore.Provider>;
+}
+
+function OpenByDefaultProvider({ node, children }: PropsWithChildren<Props>) {
+  const openByDefault = node.item.edit?.openByDefault;
+  const { addRow, openForEditing } = useRepeatingGroup();
+  const { editingIndex, isFirstRender, visibleRowIndexes } = useRepeatingGroupSelector((state) => ({
+    editingIndex: state.editingIndex,
+    isFirstRender: state.isFirstRender,
+    visibleRowIndexes: state.visibleRowIndexes,
+  }));
+
+  const numRows = visibleRowIndexes.length;
+  const firstIndex = visibleRowIndexes[0];
+  const lastIndex = visibleRowIndexes[numRows - 1];
+
+  // Making sure we don't add a row while we're already adding one
+  const working = useRef(false);
+
+  // Add new row if openByDefault is true and no rows exist. This also makes sure to add a row immediately after the
+  // last one has been deleted.
+  useEffect((): void => {
+    if (openByDefault && numRows === 0 && !working.current) {
+      working.current = true;
+      addRow().then(() => {
+        working.current = false;
+      });
+    }
+  }, [node, addRow, openByDefault, numRows]);
+
+  // Open the first or last row for editing, if openByDefault is set to 'first' or 'last'
+  useEffect((): void => {
+    if (
+      isFirstRender &&
+      openByDefault &&
+      typeof openByDefault === 'string' &&
+      ['first', 'last'].includes(openByDefault) &&
+      editingIndex === undefined
+    ) {
+      const index = openByDefault === 'last' ? lastIndex : firstIndex;
+      openForEditing(index);
+    }
+  }, [openByDefault, editingIndex, isFirstRender, firstIndex, lastIndex, openForEditing]);
+
+  return <>{children}</>;
 }
 
 interface Props {
@@ -315,8 +408,17 @@ interface Props {
 }
 
 export function RepeatingGroupProvider({ node, children }: PropsWithChildren<Props>) {
-  const state = useRepeatingGroupState(node);
-  return <Provider value={state}>{children}</Provider>;
+  return (
+    <ZStore.Provider node={node}>
+      <ProvideTheRest node={node}>
+        <OpenByDefaultProvider node={node}>{children}</OpenByDefaultProvider>
+      </ProvideTheRest>
+    </ZStore.Provider>
+  );
 }
 
-export const useRepeatingGroup = () => useCtx();
+export const useRepeatingGroup = () => ExtendedStore.useCtx();
+export const useRepeatingGroupNode = () => ExtendedStore.useCtx().node;
+export function useRepeatingGroupSelector<T>(selector: (state: Store) => T): T {
+  return ZStore.useMemoSelector(selector);
+}

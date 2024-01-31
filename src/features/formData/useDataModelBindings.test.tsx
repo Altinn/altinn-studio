@@ -115,9 +115,6 @@ describe('useDataModelBindings', () => {
 
     let expectedRenders = 1;
 
-    // TODO: Find out why every keystroke renders the component twice
-    const rendersPerLetter = 2;
-
     expect(screen.getByTestId('value-stringy')).toHaveTextContent('""');
     expect(screen.getByTestId('value-decimal')).toHaveTextContent('""');
     expect(screen.getByTestId('value-boolean')).toHaveTextContent('""');
@@ -136,7 +133,7 @@ describe('useDataModelBindings', () => {
       newValue: fooBar,
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(fooBar.length);
-    expectedRenders += fooBar.length * rendersPerLetter;
+    expectedRenders += fooBar.length;
     expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
     (formDataMethods.setLeafValue as jest.Mock).mockClear();
 
@@ -152,7 +149,7 @@ describe('useDataModelBindings', () => {
       newValue: '-',
     });
 
-    expectedRenders += rendersPerLetter;
+    expectedRenders += 1;
     expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
 
     // When we simulate a save to server, the invalid value should not be saved
@@ -183,7 +180,7 @@ describe('useDataModelBindings', () => {
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(fullDecimal.length);
 
-    expectedRenders += (fullDecimal.length - 1) * rendersPerLetter;
+    expectedRenders += fullDecimal.length - 1;
     expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
     (formDataMethods.setLeafValue as jest.Mock).mockClear();
 
@@ -233,7 +230,7 @@ describe('useDataModelBindings', () => {
 
     // When we typed the space, we sent a state update (as asserted above), but since the value update did not
     // actually change anything in the data model (but was valid), the component does not re-render.
-    expectedRenders += (fullInteger.length - 1) * rendersPerLetter;
+    expectedRenders += fullInteger.length - 1;
     expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
 
     (formDataMethods.setLeafValue as jest.Mock).mockClear();
@@ -253,7 +250,7 @@ describe('useDataModelBindings', () => {
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(4);
 
-    expectedRenders += 4 * rendersPerLetter;
+    expectedRenders += 4;
     expect(screen.getByTestId('render-count')).toHaveTextContent(String(expectedRenders));
 
     await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(3));

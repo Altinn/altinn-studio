@@ -1,9 +1,12 @@
+import { useCallback } from 'react';
+
 import {
   useAttachments,
   useAttachmentsAwaiter,
   useAttachmentsRemover,
 } from 'src/features/attachments/AttachmentsContext';
 import { isAttachmentUploaded } from 'src/features/attachments/index';
+import { useAsRef } from 'src/hooks/useAsRef';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type UploaderNode = LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
@@ -19,23 +22,24 @@ type UploaderNode = LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
  * attachments were successfully removed, or false if any of them failed to be removed.
  */
 export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGroup'>) {
-  const attachments = useAttachments();
-  const remove = useAttachmentsRemover();
-  const awaiter = useAttachmentsAwaiter();
+  const remove = useAsRef(useAttachmentsRemover());
+  const awaiter = useAsRef(useAttachmentsAwaiter());
+  const nodeRef = useAsRef(node);
+  const attachments = useAsRef(useAttachments());
 
-  return {
-    async onBeforeRowDeletion(index: number): Promise<boolean> {
-      const uploaders = node
+  return useCallback(
+    async (index: number): Promise<boolean> => {
+      const uploaders = nodeRef.current
         .flat(true, index)
         .filter((node) => node.item.type === 'FileUpload' || node.item.type === 'FileUploadWithTag') as UploaderNode[];
 
       // This code is intentionally not parallelized, as especially LocalTest can't handle parallel requests to
       // delete attachments. It might return a 500 if you try. To be safe, we do them one by one.
       for (const uploader of uploaders) {
-        const files = attachments[uploader.item.id] ?? [];
+        const files = attachments.current[uploader.item.id] ?? [];
         for (const file of files) {
           if (isAttachmentUploaded(file)) {
-            const result = await remove({
+            const result = await remove.current({
               attachment: file,
               node: uploader,
             });
@@ -43,9 +47,9 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
               return false;
             }
           } else {
-            const uploaded = await awaiter(file);
+            const uploaded = await awaiter.current(file);
             if (uploaded) {
-              const result = await remove({
+              const result = await remove.current({
                 attachment: {
                   uploaded: true,
                   deleting: false,
@@ -67,5 +71,6 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
 
       return true;
     },
-  };
+    [attachments, awaiter, remove, nodeRef],
+  );
 }

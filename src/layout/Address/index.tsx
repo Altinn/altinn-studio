@@ -14,16 +14,16 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Address extends AddressDef implements ValidateComponent {
-  render(props: PropsFromGenericComponent<'AddressComponent'>): JSX.Element | null {
+  render(props: PropsFromGenericComponent<'Address'>): JSX.Element | null {
     return <AddressComponent {...props} />;
   }
 
-  getDisplayData(node: LayoutNode<'AddressComponent'>): string {
+  getDisplayData(node: LayoutNode<'Address'>): string {
     const data = node.getFormData();
     return Object.values(data).join(' ');
   }
 
-  renderSummary({ targetNode }: SummaryRendererProps<'AddressComponent'>): JSX.Element | null {
+  renderSummary({ targetNode }: SummaryRendererProps<'Address'>): JSX.Element | null {
     const data = this.useDisplayData(targetNode);
     return <SummaryItemSimple formDataAsString={data} />;
   }
@@ -32,10 +32,7 @@ export class Address extends AddressDef implements ValidateComponent {
     return false;
   }
 
-  runComponentValidation(
-    node: LayoutNode<'AddressComponent'>,
-    { formData }: ValidationDataSources,
-  ): ComponentValidation[] {
+  runComponentValidation(node: LayoutNode<'Address'>, { formData }: ValidationDataSources): ComponentValidation[] {
     if (!node.item.dataModelBindings) {
       return [];
     }
@@ -76,7 +73,7 @@ export class Address extends AddressDef implements ValidateComponent {
     return validations;
   }
 
-  validateDataModelBindings(ctx: LayoutValidationCtx<'AddressComponent'>): string[] {
+  validateDataModelBindings(ctx: LayoutValidationCtx<'Address'>): string[] {
     const errors: string[] = [
       ...(this.validateDataModelBindingsAny(ctx, 'address', ['string'])[0] || []),
       ...(this.validateDataModelBindingsAny(ctx, 'zipCode', ['string', 'number', 'integer'])[0] || []),

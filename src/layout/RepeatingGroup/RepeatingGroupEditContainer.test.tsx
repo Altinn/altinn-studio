@@ -4,7 +4,11 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getMultiPageGroupMock } from 'src/__mocks__/getMultiPageGroupMock';
-import { RepeatingGroupProvider, useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import {
+  RepeatingGroupProvider,
+  useRepeatingGroup,
+  useRepeatingGroupSelector,
+} from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
@@ -126,7 +130,8 @@ describe('RepeatingGroupsEditContainer', () => {
 });
 
 function TestRenderer() {
-  const { editingIndex, openForEditing } = useRepeatingGroup();
+  const editingIndex = useRepeatingGroupSelector((state) => state.editingIndex);
+  const { openForEditing } = useRepeatingGroup();
 
   if (editingIndex === undefined) {
     return (

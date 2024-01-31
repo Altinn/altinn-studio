@@ -1,5 +1,5 @@
 {
-  "name": "Display value of AddressComponent",
+  "name": "Display value of Address",
   "expression": [
     "displayValue",
     "address"
@@ -16,7 +16,7 @@
         "layout": [
           {
             "id": "address",
-            "type": "AddressComponent",
+            "type": "Address",
             "dataModelBindings": {
               "address": "Skjema.Gate",
               "zipCode": "Skjema.Postnr",

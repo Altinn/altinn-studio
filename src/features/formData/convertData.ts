@@ -1,39 +1,87 @@
-import type { JSONSchema7 } from 'json-schema';
+import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
+
+interface ReturnType {
+  newValue: any;
+  error: boolean;
+}
+
+type Value = string | number | boolean | null;
+const AllValidTypes = ['string', 'number', 'integer', 'boolean', 'null'] as const;
+type ValidTypes = (typeof AllValidTypes)[number];
 
 /**
  * Converts a string to a value based on a schema.
  */
-export function convertData(
-  value: string | number | boolean,
-  schema: JSONSchema7 | undefined,
-): {
-  newValue: any;
-  error: boolean;
-} {
-  const sVal = String(value);
+export function convertData(value: Value, schema: JSONSchema7 | undefined): ReturnType {
   if (!schema) {
     // Assume it's a string if we don't have a binding. This is not likely to happen as long as components aren't
     // even rendered when their data model bindings fail.
+    return { newValue: String(value), error: false };
+  }
+
+  try {
+    return convertToType(value, schema);
+  } catch (e) {
+    window.logError(`Error converting data to schema (${JSON.stringify(schema)}) defined by data model:\n`, e);
+    return { newValue: undefined, error: true };
+  }
+}
+
+function convertToType(value: Value, schema: JSONSchema7 | JSONSchema7Definition): ReturnType {
+  if (typeof schema === 'object' && schema.anyOf) {
+    const results = schema.anyOf.map((subSchema) => convertToType(value, subSchema));
+    const validResult = results.find((result) => !result.error);
+    return validResult ?? { newValue: undefined, error: true };
+  }
+
+  if (typeof schema === 'object' && schema.oneOf) {
+    const results = schema.oneOf.map((subSchema) => convertToType(value, subSchema));
+    const validResults = results.filter((result) => !result.error);
+    if (validResults.length === 1) {
+      return validResults[0];
+    }
+    return { newValue: undefined, error: true };
+  }
+
+  if (
+    typeof schema === 'object' &&
+    schema.type &&
+    typeof schema.type === 'string' &&
+    AllValidTypes.includes(schema.type as any)
+  ) {
+    return convertToScalar(value, schema.type as ValidTypes);
+  }
+
+  throw new Error(`Unsupported schema: ${JSON.stringify(schema)}`);
+}
+
+function convertToScalar(value: Value, targetType: ValidTypes): ReturnType {
+  const sVal = String(value);
+  if (targetType === 'string') {
     return { newValue: sVal, error: false };
   }
 
-  if (schema.type === 'string') {
-    return { newValue: sVal, error: false };
-  }
-
-  if (schema.type === 'number') {
+  if (targetType === 'number') {
     const parsed = asDecimal(sVal);
     return isNaN(parsed) ? { newValue: undefined, error: true } : { newValue: parsed, error: false };
-  } else if (schema.type === 'integer') {
+  }
+
+  if (targetType === 'integer') {
     const parsed = asInt32(sVal);
     return isNaN(parsed) ? { newValue: undefined, error: true } : { newValue: parsed, error: false };
-  } else if (schema.type === 'boolean') {
+  }
+
+  if (targetType === 'boolean') {
     return sVal === 'true' || sVal === 'false'
       ? { newValue: sVal === 'true', error: false }
       : { newValue: undefined, error: true };
   }
 
-  throw new Error(`Unsupported schema type: ${schema.type}`);
+  // Nothing else matched, target type is null
+  if (sVal === 'null') {
+    return { newValue: null, error: false };
+  }
+  return { newValue: undefined, error: true };
 }
 
 /**

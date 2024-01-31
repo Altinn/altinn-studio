@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { LegacyTextField } from '@digdir/design-system-react';
 
 import { Label } from 'src/components/form/Label';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
@@ -14,9 +15,9 @@ import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import classes from 'src/layout/Address/AddressComponent.module.css';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export type IAddressComponentProps = PropsFromGenericComponent<'AddressComponent'>;
+export type IAddressProps = PropsFromGenericComponent<'Address'>;
 
-export function AddressComponent({ node }: IAddressComponentProps) {
+export function AddressComponent({ node }: IAddressProps) {
   const { id, required, readOnly, labelSettings, simplified, saveWhileTyping } = node.item;
 
   const bindingValidations = useBindingValidationsForNode(node);
@@ -30,7 +31,10 @@ export function AddressComponent({ node }: IAddressComponentProps) {
       setValue('postPlace', newPostPlace);
     }
   });
-  const postPlaceQueryData = usePostPlaceQuery(zipCode, !hasValidationErrors(bindingValidations?.zipCode));
+
+  const zipCodeDebounced = FD.useDebouncedPick(node.item.dataModelBindings.zipCode);
+  const slowZip = typeof zipCodeDebounced === 'string' ? zipCodeDebounced : undefined;
+  const postPlaceQueryData = usePostPlaceQuery(slowZip, !hasValidationErrors(bindingValidations?.zipCode));
   useEffect(() => updatePostPlace(postPlaceQueryData), [postPlaceQueryData, updatePostPlace]);
 
   return (

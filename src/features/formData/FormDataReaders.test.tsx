@@ -16,7 +16,7 @@ interface TestProps {
   ids: string[];
   textResources: IRawTextResource[];
   dataModels: {
-    [typeName: string]: object;
+    [typeName: string]: object | Promise<object> | Error;
   };
   defaultDataModel: string;
 }
@@ -176,7 +176,11 @@ describe('FormDataReaders', () => {
   });
 
   it('advanced, should fetch data from multiple models, handle failures', async () => {
+    jest.useFakeTimers();
     const missingError = new Error('This should fail when fetching');
+    const model2Promise = new Promise((resolve) => {
+      setTimeout(() => resolve({ name: 'Universe' }), 100);
+    });
     const { queries, urlFor } = await render({
       ids: ['test1', 'test2', 'test3', 'testDefault', 'testMissing', 'testMissingWithDefault'],
       textResources: [
@@ -258,9 +262,7 @@ describe('FormDataReaders', () => {
         model1: {
           name: 'World',
         },
-        model2: {
-          name: 'Universe',
-        },
+        model2: model2Promise,
         modelMissing: missingError,
       },
       defaultDataModel: 'model1',
@@ -273,6 +275,8 @@ describe('FormDataReaders', () => {
     // While other models will be loaded in the background after being accessed
     expect(screen.getByTestId('test2')).toHaveTextContent('Hello ...');
     expect(screen.getByTestId('test3')).toHaveTextContent('You are ... year(s) old');
+
+    jest.runAllTimers();
 
     await waitFor(() => expect(screen.getByTestId('test1')).toHaveTextContent('Hello World'));
     await waitFor(() => expect(screen.getByTestId('test2')).toHaveTextContent('Hello Universe'));

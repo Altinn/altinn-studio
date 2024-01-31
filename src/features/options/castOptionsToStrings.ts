@@ -20,7 +20,7 @@ export function castOptionsToStrings<T extends IRawOption[] | undefined>(options
   for (const option of options) {
     newOptions.push({
       ...option,
-      value: option.value.toString(),
+      value: option.value === null ? 'null' : option.value === undefined ? '' : option.value.toString(),
     });
   }
   return newOptions as ReplaceWithStrings<T>;

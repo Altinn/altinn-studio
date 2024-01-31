@@ -282,6 +282,15 @@ export const FD = {
   },
 
   /**
+   * This will pick a value from the form data, and return it. The path is expected to be a dot-separated path, and
+   * the value will be returned as-is. If the value is not found, undefined is returned. Null may also be returned if
+   * the value is explicitly set to null.
+   */
+  useDebouncedPick(path: string): FDValue {
+    return useSelector((v) => dot.pick(path, v.debouncedCurrentData));
+  },
+
+  /**
    * This returns multiple values, as picked from the form data. The values in the input object is expected to be
    * dot-separated paths, and the return value will be an object with the same keys, but with the values picked
    * from the form data. If a value is not found, undefined is returned. Null may also be returned if the value

@@ -246,13 +246,13 @@ describe('FormData', () => {
 
       const initialRenders = { ...renderCounts };
       expect(initialRenders).toEqual({
-        ReaderObj1Prop1: 2,
-        ReaderObj1Prop2: 2,
-        ReaderObj2Prop1: 2,
+        ReaderObj1Prop1: 1,
+        ReaderObj1Prop2: 1,
+        ReaderObj2Prop1: 1,
 
-        WriterObj1Prop1: 2,
-        WriterObj1Prop2: 2,
-        WriterObj2Prop1: 2,
+        WriterObj1Prop1: 1,
+        WriterObj1Prop2: 1,
+        WriterObj2Prop1: 1,
       });
 
       // Change a value
@@ -265,8 +265,8 @@ describe('FormData', () => {
 
       expect(renderCounts).toEqual({
         ...initialRenders,
-        ReaderObj1Prop1: 4, // TODO: These re-render twice for some reason, find out why and fix them
-        WriterObj1Prop1: 4,
+        ReaderObj1Prop1: 2,
+        WriterObj1Prop1: 2,
       });
     });
   });

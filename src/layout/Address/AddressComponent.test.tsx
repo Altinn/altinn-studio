@@ -1,19 +1,15 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const render = async ({
-  component,
-  genericProps,
-  ...rest
-}: Partial<RenderGenericComponentTestProps<'AddressComponent'>> = {}) =>
+const render = async ({ component, genericProps, ...rest }: Partial<RenderGenericComponentTestProps<'Address'>> = {}) =>
   await renderGenericComponentTest({
-    type: 'AddressComponent',
+    type: 'Address',
     renderer: (props) => <AddressComponent {...props} />,
     component: {
       simplified: true,
@@ -33,11 +29,19 @@ const render = async ({
       isValid: true,
       ...genericProps,
     },
+    ...rest,
     queries: {
-      fetchPostPlace: () => Promise.resolve({ valid: true, result: 'OSLO' }),
+      fetchPostPlace: async (input) => {
+        if (input === '0001') {
+          return { valid: true, result: 'OSLO' };
+        }
+        if (input === '0002') {
+          return { valid: true, result: 'BERGEN' };
+        }
+        return { valid: false, result: '' };
+      },
       ...rest.queries,
     },
-    ...rest,
   });
 
 describe('AddressComponent', () => {
@@ -166,7 +170,7 @@ describe('AddressComponent', () => {
   });
 
   it('should call dispatch for post place when zip code is cleared', async () => {
-    const { formDataMethods } = await render({
+    const { formDataMethods, queries } = await render({
       queries: {
         fetchFormData: async () => ({ address: 'a', zipCode: '0001', postPlace: 'Oslo' }),
       },
@@ -186,6 +190,24 @@ describe('AddressComponent', () => {
       path: 'postPlace',
       newValue: '',
     });
+
+    expect(queries.fetchPostPlace).toHaveBeenCalledTimes(1);
+  });
+
+  it('should only call fetchPostPlace once at the end, when debouncing', async () => {
+    const { queries } = await render({
+      queries: {
+        fetchFormData: async () => ({ address: 'a', zipCode: '', postPlace: '' }),
+      },
+    });
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Postnr' }), '0001{backspace}2');
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Poststed' })).toHaveDisplayValue('BERGEN'), {
+      timeout: 15000,
+    });
+
+    expect(queries.fetchPostPlace).toHaveBeenCalledTimes(1);
+    expect(queries.fetchPostPlace).toHaveBeenCalledWith('0002');
   });
 
   it('should display no extra markings when required is false, and labelSettings.optionalIndicator is not true', async () => {

@@ -98,8 +98,8 @@ export function RepeatingGroupTableRow({
     ...expressionsForRow?.textResourceBindings,
   } as CompRepeatingGroupInternal['textResourceBindings'];
 
-  const rowValdiations = useDeepValidationsForNode(node, true, index);
-  const rowHasErrors = hasValidationErrors(rowValdiations);
+  const rowValidations = useDeepValidationsForNode(node, true, index);
+  const rowHasErrors = hasValidationErrors(rowValidations);
 
   const alertOnDelete = useAlertOnChange(Boolean(edit?.alertOnDelete), deleteRow);
 

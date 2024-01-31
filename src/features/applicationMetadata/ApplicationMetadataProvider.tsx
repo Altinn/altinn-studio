@@ -7,6 +7,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { OldVersionError } from 'src/features/applicationMetadata/OldVersionError';
+import { isAtLeastVersion } from 'src/utils/versionCompare';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export const MINIMUM_APPLICATION_VERSION = {
@@ -35,24 +36,7 @@ const { Provider, useCtx, useLaxCtx, useHasProvider } = delayedContext(() =>
 
 function VerifyMinimumVersion({ children }: PropsWithChildren) {
   const { altinnNugetVersion } = useApplicationMetadata();
-
-  if (!altinnNugetVersion) {
-    return <OldVersionError minVer={MINIMUM_APPLICATION_VERSION.name} />;
-  }
-
-  let isMinimumVersion = false;
-  const parts = altinnNugetVersion.split('.');
-  const expectedParts = MINIMUM_APPLICATION_VERSION.build.split('.');
-  for (const i in expectedParts) {
-    const part = parseInt(parts[i], 10);
-    const expectedPart = parseInt(expectedParts[i], 10);
-    if (part >= expectedPart) {
-      isMinimumVersion = true;
-      break;
-    }
-  }
-
-  if (!isMinimumVersion) {
+  if (!altinnNugetVersion || !isAtLeastVersion(altinnNugetVersion, MINIMUM_APPLICATION_VERSION.build)) {
     return <OldVersionError minVer={MINIMUM_APPLICATION_VERSION.name} />;
   }
 
