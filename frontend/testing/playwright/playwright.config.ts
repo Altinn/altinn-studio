@@ -7,7 +7,7 @@ import { TestNames } from './enum/TestNames';
 config();
 
 export default defineConfig<ExtendedTestOptions>({
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
