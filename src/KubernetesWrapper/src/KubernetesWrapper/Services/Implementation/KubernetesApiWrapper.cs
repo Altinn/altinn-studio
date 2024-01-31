@@ -50,11 +50,11 @@ namespace KubernetesWrapper.Services.Implementation
             switch (resourceType)
             {
                 case ResourceType.Deployment:
-                    V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
+                    V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
                     mappedResources = MapDeployments(deployments.Items);
                     break;
                 case ResourceType.DaemonSet:
-                    V1DaemonSetList deamonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
+                    V1DaemonSetList deamonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, null, timeoutSeconds, watch, pretty);
                     mappedResources = MapDaemonSets(deamonSets.Items);
                     break;
             }
