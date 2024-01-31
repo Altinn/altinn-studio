@@ -8,15 +8,6 @@ namespace Altinn.App.Core.Internal.Pdf
     public interface IPdfService
     {
         /// <summary>
-        /// Generates the PDF based on the current data and stores it
-        /// </summary>
-        /// <param name="instance">The instance the PDF is based on.</param>
-        /// <param name="taskId">The task id matching the </param>
-        /// <param name="dataElement">Reference to the data element.</param>
-        /// <param name="dataElementModelType">Type of data referenced</param>
-        Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType);
-
-        /// <summary>
         /// Generate a PDF of what the user can currently see from the given instance of an app. Saves the PDF
         /// to storage as a new binary file associated with the predefined PDF data type in most apps.
         /// </summary>

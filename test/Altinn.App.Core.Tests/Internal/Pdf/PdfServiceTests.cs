@@ -25,15 +25,11 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
     {
         private const string HostName = "at22.altinn.cloud";
 
-        private readonly Mock<IPDF> _pdf = new();
         private readonly Mock<IAppResources> _appResources = new();
-        private readonly Mock<IPdfOptionsMapping> _pdfOptionsMapping = new();
         private readonly Mock<IDataClient> _dataClient = new();
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new();
         private readonly Mock<IPdfGeneratorClient> _pdfGeneratorClient = new();
         private readonly Mock<IProfileClient> _profile = new();
-        private readonly Mock<IAltinnPartyClient> _register = new();
-        private readonly Mock<IPdfFormatter> pdfFormatter = new();
         private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Microsoft.Extensions.Options.Options.Create<PdfGeneratorSettings>(new() { });
 
         private readonly IOptions<GeneralSettings> _generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(new()
@@ -101,14 +97,10 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
             _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
             var target = new PdfService(
-                _pdf.Object,
                 _appResources.Object,
-                _pdfOptionsMapping.Object,
                 _dataClient.Object,
                 _httpContextAccessor.Object,
                 _profile.Object,
-                _register.Object,
-                pdfFormatter.Object,
                 _pdfGeneratorClient.Object,
                 _pdfGeneratorSettingsOptions,
                 _generalSettingsOptions);
@@ -154,14 +146,10 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
             _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
             var target = new PdfService(
-                _pdf.Object,
                 _appResources.Object,
-                _pdfOptionsMapping.Object,
                 _dataClient.Object,
                 _httpContextAccessor.Object,
                 _profile.Object,
-                _register.Object,
-                pdfFormatter.Object,
                 _pdfGeneratorClient.Object,
                 _pdfGeneratorSettingsOptions,
                 _generalSettingsOptions);

@@ -22,7 +22,9 @@ namespace Altinn.App.Api.Controllers
     public class PdfController : ControllerBase
     {
         private readonly IInstanceClient _instanceClient;
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly IPdfFormatter _pdfFormatter;
+#pragma warning restore CS0618 // Type or member is obsolete
         private readonly IAppResources _resources;
         private readonly IAppModel _appModel;
         private readonly IDataClient _dataClient;
@@ -37,7 +39,9 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataClient">The data client</param>
         public PdfController(
             IInstanceClient instanceClient,
+#pragma warning disable CS0618 // Type or member is obsolete
             IPdfFormatter pdfFormatter,
+#pragma warning restore CS0618 // Type or member is obsolete
             IAppResources resources,
             IAppModel appModel,
             IDataClient dataClient)

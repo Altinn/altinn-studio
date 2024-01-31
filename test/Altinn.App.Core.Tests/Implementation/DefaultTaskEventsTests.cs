@@ -35,7 +35,6 @@ public class DefaultTaskEventsTests: IDisposable
     private IEnumerable<IProcessTaskEnd> _taskEnds;
     private IEnumerable<IProcessTaskAbandon> _taskAbandons;
     private readonly Mock<IPdfService> _pdfMock;
-    private readonly Mock<IFeatureManager> _featureManagerMock;
     private readonly LayoutEvaluatorStateInitializer _layoutStateInitializer;
 
     public DefaultTaskEventsTests()
@@ -53,7 +52,6 @@ public class DefaultTaskEventsTests: IDisposable
         _taskEnds = new List<IProcessTaskEnd>();
         _taskAbandons = new List<IProcessTaskAbandon>();
         _pdfMock = new Mock<IPdfService>();
-        _featureManagerMock = new Mock<IFeatureManager>();
         _layoutStateInitializer = new LayoutEvaluatorStateInitializer(_resMock.Object, Microsoft.Extensions.Options.Options.Create(new Core.Configuration.FrontEndSettings()));
     }
 
@@ -74,7 +72,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
         await te.OnAbandonProcessTask("Task_1", new Instance());
     }
@@ -99,7 +96,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
         var instance = new Instance();
         await te.OnAbandonProcessTask("Task_1", instance);
@@ -130,7 +126,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
         var instance = new Instance()
         {
@@ -190,7 +185,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
 
         await te.OnEndProcessTask("Task_1", instance);
@@ -245,7 +239,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
 
         await te.OnEndProcessTask("Task_1", instance);
@@ -300,7 +293,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
 
         await Assert.ThrowsAsync<System.Exception>(async () => await te.OnEndProcessTask("Task_1", instance));
@@ -329,7 +321,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
         var instance = new Instance()
         {
@@ -369,7 +360,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
         var instance = new Instance()
         {
@@ -408,7 +398,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
         var instance = new Instance()
         {
@@ -470,7 +459,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
         var instance = new Instance()
         {
@@ -509,7 +497,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
         var instance = new Instance()
         {
@@ -545,7 +532,6 @@ public class DefaultTaskEventsTests: IDisposable
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object,
-            _featureManagerMock.Object,
             _layoutStateInitializer);
         var instance = new Instance()
         {

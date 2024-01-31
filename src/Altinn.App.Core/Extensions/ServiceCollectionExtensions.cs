@@ -84,7 +84,6 @@ namespace Altinn.App.Core.Extensions
             services.AddHttpClient<IInstanceClient, InstanceClient>();
             services.AddHttpClient<IInstanceEventClient, InstanceEventClient>();
             services.AddHttpClient<IEventsClient, EventsClient>();
-            services.AddHttpClient<IPDF, PDFClient>();
             services.AddHttpClient<IProfileClient, ProfileClient>();
             services.Decorate<IProfileClient, ProfileClientCachingDecorator>();
             services.AddHttpClient<IAltinnPartyClient, AltinnPartyClient>();
@@ -152,7 +151,6 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<InstanceDataListsFactory>();
             services.TryAddTransient<IDataListsService, DataListsService>();
             services.TryAddTransient<LayoutEvaluatorStateInitializer>();
-            services.TryAddTransient<IPdfGeneratorClient, PdfGeneratorClient>();
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
@@ -230,16 +228,11 @@ namespace Altinn.App.Core.Extensions
 
         private static void AddPdfServices(IServiceCollection services)
         {
-            services.TryAddTransient<IPdfOptionsMapping, PdfOptionsMapping>();
+            services.TryAddTransient<IPdfGeneratorClient, PdfGeneratorClient>();
             services.TryAddTransient<IPdfService, PdfService>();
-
-            // In old versions of the app the PdfHandler did not have an interface and
-            // was new'ed up in the app. We now have an interface to customize the pdf
-            // formatting and this registration is done to ensure we always have a pdf
-            // handler registered.
-            // If someone wants to customize pdf formatting the PdfHandler class in the
-            // app should be used and registered in the DI container.
+#pragma warning disable CS0618 // Type or member is obsolete
             services.TryAddTransient<IPdfFormatter, NullPdfFormatter>();
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private static void AddAppOptions(IServiceCollection services)
