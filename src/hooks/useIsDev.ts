@@ -7,5 +7,5 @@ const devHostNames = [
 ];
 
 export function useIsDev(): boolean {
-  return devHostNames.some((host) => host.test(window.location.host));
+  return devHostNames.some((host) => host.test(window.location.hostname));
 }
