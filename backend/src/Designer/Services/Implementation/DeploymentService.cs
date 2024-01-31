@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 try
                 {
                     IList<Deployment> kubernetesDeploymentsInEnv =
-                        await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, env, $"?labelSelector=release={org}-{app}");
+                        await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, app, env);
 
                     var dbDeploymentEntitiesInEnv = deploymentEntities
                         .Where(deployment => deployment.EnvName == env.Name)
