@@ -10,7 +10,7 @@ import { PropertiesHeader } from './PropertiesHeader';
 
 export const Properties = () => {
   const { t } = useTranslation();
-  const { formId } = useFormContext();
+  const { formId, form } = useFormContext();
   const formIdRef = React.useRef(formId);
 
   const [openList, setOpenList] = React.useState<string[]>([]);
@@ -32,7 +32,7 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
-      <PropertiesHeader />
+      {form && <PropertiesHeader form={form} />}
       <Accordion color='subtle'>
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
