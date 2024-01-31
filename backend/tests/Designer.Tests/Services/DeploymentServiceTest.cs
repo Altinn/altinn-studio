@@ -50,7 +50,7 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
             _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>()))
+            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<string>(), It.IsAny<EnvironmentModel>()))
                 .ReturnsAsync(new List<Deployment>());
         }
 
@@ -123,7 +123,7 @@ namespace Designer.Tests.Services
                 Release = $"{deployment.Org}-{deployment.App}",
                 Version = deployment.TagName,
             }).ToList();
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>()))
+            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<string>(), It.IsAny<EnvironmentModel>()))
                 .ReturnsAsync(kubernetesDeployments);
             _environementsService.Setup(e => e.GetOrganizationEnvironments("ttd")).ReturnsAsync(GetEnvironments("environments.json"));
 
