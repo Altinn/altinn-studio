@@ -6,8 +6,11 @@ on:
       - main
     paths:
       - 'frontend/**'
-      - '.github/workflow/playwright.yml'
-  workflow_dispatch:
+      - '.github/workflows/playwright.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
