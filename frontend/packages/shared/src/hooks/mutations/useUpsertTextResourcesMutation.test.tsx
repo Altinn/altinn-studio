@@ -1,10 +1,11 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../../../ux-editor/src/testing/mocks';
-import { waitFor } from '@testing-library/react';
-import { useTextResourcesQuery } from '../../../../../app-development/hooks/queries';
+import { renderHook } from '@testing-library/react';
 import type { UpsertTextResourcesMutationArgs } from './useUpsertTextResourcesMutation';
 import { useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';
 import type { ITextResource } from 'app-shared/types/global';
+import { createQueryClientMock } from '../../mocks/queryClientMock';
+import React from 'react';
+import { ServicesContextProvider } from '../../contexts/ServicesContext';
 
 // Test data:
 const org = 'org';
@@ -17,7 +18,7 @@ const args: UpsertTextResourcesMutationArgs = { language, textResources };
 
 describe('useUpsertTextResourcesMutation', () => {
   test('Calls upsertTextResources with correct parameters', async () => {
-    const { result: upsertTextResources } = await renderUpsertTextResourcesMutation();
+    const { result: upsertTextResources } = renderUpsertTextResourcesMutation();
     await upsertTextResources.current.mutateAsync(args);
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
     expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, language, {
@@ -26,10 +27,13 @@ describe('useUpsertTextResourcesMutation', () => {
   });
 });
 
-const renderUpsertTextResourcesMutation = async () => {
-  const { result: texts } = renderHookWithMockStore()(() =>
-    useTextResourcesQuery(org, app),
-  ).renderHookResult;
-  await waitFor(() => expect(texts.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useUpsertTextResourcesMutation(org, app)).renderHookResult;
+const renderUpsertTextResourcesMutation = () => {
+  const client = createQueryClientMock();
+  return renderHook(() => useUpsertTextResourcesMutation(org, app), {
+    wrapper: ({ children }) => (
+      <ServicesContextProvider {...queriesMock} client={client}>
+        {children}
+      </ServicesContextProvider>
+    ),
+  });
 };

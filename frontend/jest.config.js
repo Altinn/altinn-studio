@@ -32,7 +32,7 @@ const config = {
   },
   transformIgnorePatterns: [
     `node_modules(\\\\|/)(?!${packagesToTransform})`,
-    'frontend/packages/ux-editor/src/testing/schemas/',
+    '\\.schema\\.v1\\.json$',
   ],
   reporters: ['default', 'jest-junit'],
   moduleNameMapper: {

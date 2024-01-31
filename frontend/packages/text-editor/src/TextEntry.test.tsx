@@ -1,8 +1,7 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, screen, render as renderRtl } from '@testing-library/react';
 import type { TextEntryProps } from './TextEntry';
 import { TextEntry } from './TextEntry';
-import { renderWithMockStore } from '../../ux-editor/src/testing/mocks';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
@@ -66,5 +65,5 @@ const render = async (props: Partial<TextEntryProps> = {}) => {
     ...props,
   };
 
-  return renderWithMockStore()(<TextEntry {...allProps} />);
+  return renderRtl(<TextEntry {...allProps} />);
 };
