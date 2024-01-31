@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
-        private static List<ApiListResponse> _accessListMockData = new()
+        private readonly static List<ApiListResponse> _accessListMockData = new()
         {
             new() {
                 Identifier = "godkjente-banker",
