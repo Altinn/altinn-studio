@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.0.0-rc1/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
       {
@@ -9,7 +9,28 @@
           "simpleBinding": "some.notRepeating"
         },
         "options": [
-          { "label": "Vis gruppe", "value": "showGroup" }
+          {
+            "label": "",
+            "value": null
+          },
+          {
+            "label": "Vis gruppe",
+            "value": "showGroup"
+          },
+          {
+            "label": "Skjul gruppe",
+            "value": "hideGroup"
+          },
+          {
+            "label": "tall",
+            "value": 12
+          },
+          {
+            "label": "boolean",
+            "value": true,
+            "description": "boolean description",
+            "helpText": "boolean help text"
+          }
         ]
       },
       {
