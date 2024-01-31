@@ -32,9 +32,11 @@ import {
   Title,
 } from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
+import { LayoutItemType } from '../types/global';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
+  itemType: LayoutItemType;
   defaultProperties: FormItem<T>;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
@@ -45,6 +47,7 @@ export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
     name: ComponentType.Alert,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -56,6 +59,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Accordion]: {
     name: ComponentType.Accordion,
+    itemType: LayoutItemType.Container,
     defaultProperties: {
       id: '',
       itemType: 'CONTAINER',
@@ -67,6 +71,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.AccordionGroup]: {
     name: ComponentType.AccordionGroup,
+    itemType: LayoutItemType.Container,
     defaultProperties: {
       id: '',
       itemType: 'CONTAINER',
@@ -78,6 +83,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.ActionButton]: {
     name: ComponentType.ActionButton,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -91,6 +97,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.AddressComponent]: {
     name: ComponentType.AddressComponent,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -103,6 +110,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.AttachmentList]: {
     name: ComponentType.AttachmentList,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -115,6 +123,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Button]: {
     name: ComponentType.Button,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -126,6 +135,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.ButtonGroup]: {
     name: ComponentType.ButtonGroup,
+    itemType: LayoutItemType.Container,
     defaultProperties: {
       id: '',
       itemType: 'CONTAINER',
@@ -137,6 +147,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Checkboxes]: {
     name: ComponentType.Checkboxes,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -149,6 +160,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Custom]: {
     name: ComponentType.Custom,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -159,6 +171,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Datepicker]: {
     name: ComponentType.Datepicker,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -174,6 +187,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Dropdown]: {
     name: ComponentType.Dropdown,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -187,6 +201,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.FileUpload]: {
     name: ComponentType.FileUpload,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -203,6 +218,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.FileUploadWithTag]: {
     name: ComponentType.FileUploadWithTag,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -220,6 +236,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Grid]: {
     name: ComponentType.Grid,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -231,6 +248,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Group]: {
     name: ComponentType.Group,
+    itemType: LayoutItemType.Container,
     defaultProperties: {
       id: '',
       itemType: 'CONTAINER',
@@ -242,6 +260,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Header]: {
     name: ComponentType.Header,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -253,6 +272,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.IFrame]: {
     name: ComponentType.IFrame,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -263,6 +283,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Image]: {
     name: ComponentType.Image,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -278,6 +299,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Input]: {
     name: ComponentType.Input,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -290,6 +312,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.InstanceInformation]: {
     name: ComponentType.InstanceInformation,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -300,6 +323,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.InstantiationButton]: {
     name: ComponentType.InstantiationButton,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -309,6 +333,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Likert]: {
     name: ComponentType.Likert,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -320,6 +345,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Link]: {
     name: ComponentType.Link,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -329,6 +355,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.List]: {
     name: ComponentType.List,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -339,6 +366,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Map]: {
     name: ComponentType.Map,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -356,6 +384,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.MultipleSelect]: {
     name: ComponentType.MultipleSelect,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -369,6 +398,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -379,6 +409,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.NavigationButtons]: {
     name: ComponentType.NavigationButtons,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -390,6 +421,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Panel]: {
     name: ComponentType.Panel,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -402,6 +434,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Paragraph]: {
     name: ComponentType.Paragraph,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -411,6 +444,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -420,6 +454,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.RadioButtons]: {
     name: ComponentType.RadioButtons,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -432,6 +467,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
@@ -442,6 +478,7 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
+    itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',

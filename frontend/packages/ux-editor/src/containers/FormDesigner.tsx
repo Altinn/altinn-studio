@@ -22,7 +22,7 @@ import {
   addItemOfType,
   getItem,
   moveLayoutItem,
-  validateContainerChild,
+  isComponentTypeValidChild,
   validateDepth,
 } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
@@ -117,24 +117,30 @@ export const FormDesigner = ({
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
 
-      const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
-      if (validateDepth(updatedLayout) && validateContainerChild(updatedLayout, parentId, type)) {
-        addItemToLayout({ componentType: type, newId, parentId, index });
-        handleEdit(getItem(updatedLayout, newId));
-      } else {
-        if (!validateDepth(updatedLayout)) triggerDepthAlert();
-        if (!validateContainerChild(updatedLayout, parentId, type)) triggerInvalidChildAlert();
+      if (!isComponentTypeValidChild(layout, parentId, type)) {
+        triggerInvalidChildAlert();
+        return;
       }
+      const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
+      if (!validateDepth(updatedLayout)) {
+        triggerDepthAlert();
+        return;
+      }
+      addItemToLayout({ componentType: type, newId, parentId, index });
+      handleEdit(getItem(updatedLayout, newId));
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
-      const updatedLayout = moveLayoutItem(layout, id, parentId, index);
       const type = getItem(layout, id).type;
-      if (validateDepth(updatedLayout) && validateContainerChild(updatedLayout, parentId, type))
-        updateFormLayout(updatedLayout);
-      else {
-        if (!validateDepth(updatedLayout)) triggerDepthAlert();
-        if (!validateContainerChild(updatedLayout, parentId, type)) triggerInvalidChildAlert();
+      if (!isComponentTypeValidChild(layout, parentId, type)) {
+        triggerInvalidChildAlert();
+        return;
       }
+      const updatedLayout = moveLayoutItem(layout, id, parentId, index);
+      if (!validateDepth(updatedLayout)) {
+        triggerDepthAlert();
+        return;
+      }
+      updateFormLayout(updatedLayout);
     };
 
     return (

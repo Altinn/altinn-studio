@@ -16,7 +16,7 @@ import {
   removeComponent,
   removeComponentsByType,
   updateContainer,
-  validateContainerChild,
+  isComponentTypeValidChild,
   validateDepth,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -497,19 +497,21 @@ describe('formLayoutUtils', () => {
     });
   });
 
-  describe('validateContainerChild', () => {
+  describe('isComponentTypeValidChild', () => {
     it('Returns true if the child is valid to given container', () => {
-      expect(validateContainerChild(mockInternal, buttonGroupId, ComponentType.Button)).toBe(true);
+      expect(isComponentTypeValidChild(mockInternal, buttonGroupId, ComponentType.Button)).toBe(
+        true,
+      );
     });
 
     it('Returns true if the component is not dropped inside a container', () => {
       expect(
-        validateContainerChild(mockInternal, BASE_CONTAINER_ID, ComponentType.ButtonGroup),
+        isComponentTypeValidChild(mockInternal, BASE_CONTAINER_ID, ComponentType.ButtonGroup),
       ).toBe(true);
     });
 
     it('Returns false if the child is invalid for the given container', () => {
-      expect(validateContainerChild(mockInternal, buttonGroupId, ComponentType.Paragraph)).toBe(
+      expect(isComponentTypeValidChild(mockInternal, buttonGroupId, ComponentType.Paragraph)).toBe(
         false,
       );
     });
