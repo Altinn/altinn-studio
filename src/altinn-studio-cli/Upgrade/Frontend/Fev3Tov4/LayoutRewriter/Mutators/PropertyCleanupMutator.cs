@@ -23,8 +23,7 @@ class PropertyCleanupMutator : ILayoutMutator
             return new ErrorResult() { Message = "Unable to parse component type" };
         }
 
-        // TODO: Change AddressComponent to Address
-        var formComponentTypes = new List<string>() {"AddressComponent", "CheckBoxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Input", "Likert", "List", "Map", "MultipleSelect", "RadioButtons", "TextArea"};
+        var formComponentTypes = new List<string>() {"Address", "CheckBoxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Input", "Likert", "List", "Map", "MultipleSelect", "RadioButtons", "TextArea"};
 
         if (component.ContainsKey("componentType"))
         {
