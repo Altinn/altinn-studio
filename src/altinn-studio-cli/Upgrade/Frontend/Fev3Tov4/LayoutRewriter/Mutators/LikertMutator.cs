@@ -24,7 +24,15 @@ class LikertMutator : ILayoutMutator
         }
 
         // Delete old likert component
-        if (type == "Likert")
+        if (
+            type == "Likert"
+            && (
+                !component.TryGetPropertyValue("dataModelBindings", out var oldLikertDmbNode)
+                || oldLikertDmbNode is not JsonObject oldLikertDmbObject
+                || !oldLikertDmbObject.ContainsKey(("questions"))
+                    && !oldLikertDmbObject.ContainsKey(("answer"))
+            )
+        )
         {
             return new DeleteResult();
         }
