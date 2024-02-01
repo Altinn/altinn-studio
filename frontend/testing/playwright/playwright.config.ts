@@ -82,15 +82,29 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
+      name: TestNames.UI_EDITOR,
+      dependencies: ['setup'],
+      testDir: './tests/ui-editor/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.UI_EDITOR_APP,
+        headless: true,
+      },
+    },
+    {
       name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
       // Add ALL other test names here to make sure that the log out test is the last test to be executed
       dependencies: [
         TestNames.SETUP,
         TestNames.CREATE_APP_ONLY,
-        TestNames.DASHBOARD,
         TestNames.DATA_MODEL,
+        TestNames.DASHBOARD,
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
         TestNames.GIT_SYNC,
+        TestNames.UI_EDITOR,
       ],
       testDir: './tests/logout-and-invalid-login-only/',
       testMatch: '*.spec.ts',

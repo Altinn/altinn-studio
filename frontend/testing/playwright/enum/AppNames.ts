@@ -4,4 +4,5 @@ export enum AppNames {
   DASHBOARD_APP = 'dashboard-app-test',
   GIT_SYNC_APP = 'git-sync-app-test',
   MAIN_NAVIGATION_APP = 'navigation-app-test',
+  UI_EDITOR_APP = 'ui-editor-app-test',
 }
