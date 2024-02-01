@@ -25,12 +25,12 @@ class SetupEnvironment extends ContainerTool {
       throw new Error('Please use Podman or Docker as container manager tool');
     }
 
-    // await dnsIsOk(this.host);
-    // if (!(this.env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
-    //   await dnsIsOk(`host.${this.containerManager}.internal`);
-    // }
-    // await this.runCompose();
-    // await waitFor(`http://${this.host}/repos/`);
+    await dnsIsOk(this.host);
+    if (!(this.env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
+      await dnsIsOk(`host.${this.containerManager}.internal`);
+    }
+    await this.runCompose();
+    await waitFor(`http://${this.host}/repos/`);
     await this.createGiteaAdminUser();
     await this.createCypressUser();
 
@@ -60,13 +60,11 @@ class SetupEnvironment extends ContainerTool {
       return;
     }
 
-    // Podman does not support "--remove-orphans", hence this container manager check
+    // Podman does not support "--remove-orphans", and doesn't auto-detect .env files, like Docker do. Use "--env-file" to specify .env file.
     // Open Issue: https://github.com/containers/podman-compose/issues/815
     if (this.containerManager === 'podman') {
       runCommand('podman compose down');
-      // Podman doesn't auto-detect .env files, like Docker do. Use "--env-file" to specify .env file.
       runCommand(`podman compose --env-file ${path.resolve(__dirname, '../.env')} up -d`);
-      return;
     }
   }
 
@@ -158,9 +156,6 @@ class SetupEnvironment extends ContainerTool {
 
     for (const teamName of teamNames) {
       await addMemberToTeam(teamName, this.env.GITEA_ADMIN_USER);
-    }
-
-    for (const teamName of teamNames) {
       await addMemberToTeam(teamName, this.env.GITEA_CYPRESS_USER);
     }
   }
