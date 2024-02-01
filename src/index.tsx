@@ -4,7 +4,7 @@ import 'core-js';
 
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createHashRouter, RouterProvider } from 'react-router-dom';
+import { createHashRouter, RouterProvider, ScrollRestoration } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
 
 import 'src/features/toggles';
@@ -94,6 +94,7 @@ function Root() {
                               transition={Slide}
                               draggable={false}
                             />
+                            <ScrollRestoration />
                           </WindowTitleProvider>
                         </KeepAliveProvider>
                       </TextResourcesProvider>
