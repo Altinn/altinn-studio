@@ -7,6 +7,7 @@ import { Header } from '../../components/Header';
 import { LocalChangesModal } from '../../components/LocalChangesModal';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { GiteaPage } from '../../pages/GiteaPage';
+import { Gitea } from '../../helpers/Gitea';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -17,6 +18,12 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
   // Create a new app
   const designerApi = new DesignerApi({ app: testAppName });
   const response = await designerApi.createApp(request, storageState as StorageState);
+  expect(response.ok()).toBeTruthy();
+});
+
+test.afterAll(async ({ request, testAppName }) => {
+  const gitea = new Gitea();
+  const response = await request.delete(gitea.getDeleteAppEndpoint({ app: testAppName }));
   expect(response.ok()).toBeTruthy();
 });
 

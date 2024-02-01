@@ -26,7 +26,7 @@ export type PageAccordionProps = {
 /**
  * @component
  *    Displays an accordion for a page, as well as a menu button where the user can
- *    move accordions, edit the name on them and delete them
+ *    move accordions, edit the name on them and delete them.
  *
  * @property {string}[pageName] - The name of the page
  * @property {ReactNode}[children] - The children of the component

@@ -47,7 +47,6 @@ module.exports = (middlewares, devServer) => {
   app.put(datamodelsPath(':org', ':app'), require('./routes/put-datamodel'));
 
   app.get('/designer/api/:org/:app/preview-status', require('./routes/preview-get'));
-  app.get('/designer/html/preview.html', require('./routes/get-preview-html'));
 
   app.get('/designer/api/:org/:app/deployments', fixtureRoute('Deployments'));
   app.get('/designer/api/:org/:app/deployments/permissions', fixtureRoute('permissions'));

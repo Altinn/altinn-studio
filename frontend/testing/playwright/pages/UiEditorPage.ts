@@ -22,7 +22,7 @@ export class UiEditorPage extends BasePage {
   }
 
   public async verifyThatNewPageIsHidden(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName }).isHidden();
+    await this.page.getByRole('button', { name: pageName, exact: true }).isHidden();
   }
 
   public async clickOnAddNewPage(): Promise<void> {
@@ -30,6 +30,6 @@ export class UiEditorPage extends BasePage {
   }
 
   public async verifyThatNewPageIsVisible(pageName: string): Promise<void> {
-    await this.page.getByText(pageName).isVisible();
+    await this.page.getByRole('heading', { name: pageName, level: 3, exact: true }).isVisible();
   }
 }
