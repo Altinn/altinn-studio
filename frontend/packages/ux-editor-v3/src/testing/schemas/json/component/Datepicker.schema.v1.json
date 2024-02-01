@@ -1,0 +1,83 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Datepicker.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Datepicker component",
+  "description": "Schema that describes the layout configuration for a Datepicker component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Datepicker"
+    },
+    "textResourceBindings": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicTextResources"
+    },
+    "dataModelBindings": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicDataModelBindings"
+    },
+    "required": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/required"
+    },
+    "readOnly": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/readOnly"
+    },
+    "minDate": {
+      "type": "string",
+      "title": "Minimum allowed date",
+      "description": "Sets the minimum allowed date. Can also use keyword 'today' to disable all past dates dynamically based on the current date. Defaults to 1900-01-01T12:00:00.000Z.",
+      "default": "1900-01-01T12:00:00.000Z"
+    },
+    "maxDate": {
+      "type": "string",
+      "title": "Maximum allowed date",
+      "description": "Sets the maximum allowed date. Can also use keyword 'today' to disable all future dates dynamically based on the current date. Defaults to 2100-01-01T12:00:00.000Z.",
+      "default": "2100-01-01T12:00:00.000Z"
+    },
+    "timeStamp": {
+      "type": "boolean",
+      "title": "Time stamp",
+      "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to true.\n If true: 'YYYY-MM-DDThh:mm:ss.sssZ', if false 'YYYY-MM-DD';",
+      "default": true
+    },
+    "format": {
+      "type": "string",
+      "title": "Date format",
+      "description": "Long date format used when displaying the date to the user. The user date format from the locale will be prioritized over this setting.",
+      "examples": ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"],
+      "default": "DD.MM.YYYY"
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type"],
+  "additionalProperties": false
+}

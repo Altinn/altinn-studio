@@ -59,16 +59,16 @@ export const ThreeDotsMenu = ({
               <span className={classes.iconWrapper}>
                 <GiteaIcon className={classes.icon + ' ' + classes.giteaIcon} />
               </span>
-              <span>{t('dashboard.repository')}</span>
+              <span>{t('sync_header.repository')}</span>
             </a>
           </li>
-          <li onClick={() => setLocalChangesModalIsOpen(true)}>
-            <div className={classes.link}>
+          <li>
+            <button onClick={() => setLocalChangesModalIsOpen(true)} className={classes.link}>
               <span className={classes.iconWrapper}>
                 <MonitorIcon className={classes.icon} />
               </span>
               <span>{t('sync_header.local_changes')}</span>
-            </div>
+            </button>
           </li>
           {localChangesModalIsOpen && (
             <LocalChangesModal

@@ -1,0 +1,35 @@
+.navigationMenu {
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding-block: 12px;
+  margin-left: 10px;
+  background-color: var(--background-color);
+}
+
+.accordionHeader {
+  flex: 1;
+}
+
+.accordionHeader button {
+  border: none;
+  background-color: var(--background-color);
+}
+
+.accordionContent {
+  padding: 0;
+}
+
+.accordionItem {
+  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+.receiptItem {
+  border-top: none;
+  border-bottom: none;
+}
+
+.accordionHeaderRow {
+  display: flex;
+  background-color: var(--background-color);
+}
