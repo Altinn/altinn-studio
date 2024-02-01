@@ -82,6 +82,18 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
+      name: TestNames.UI_EDITOR,
+      dependencies: ['setup'],
+      testDir: './tests/ui-editor/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.UI_EDITOR_APP,
+        headless: true,
+      },
+    },
+    {
       name: TestNames.SETTINGS_MODAL,
       dependencies: ['setup'],
       testDir: './tests/settings-modal/',
@@ -99,10 +111,11 @@ export default defineConfig<ExtendedTestOptions>({
       dependencies: [
         TestNames.SETUP,
         TestNames.CREATE_APP_ONLY,
-        TestNames.DASHBOARD,
         TestNames.DATA_MODEL,
+        TestNames.DASHBOARD,
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
         TestNames.GIT_SYNC,
+        TestNames.UI_EDITOR,
         TestNames.SETTINGS_MODAL,
       ],
       testDir: './tests/logout-and-invalid-login-only/',
