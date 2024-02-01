@@ -1,15 +1,20 @@
 import React, { useMemo } from 'react';
-import type { IGenericEditComponent } from '../componentConfig';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
 import type { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
 import { LegacySelect } from '@digdir/design-system-react';
+import {FormContainer} from "../../../types/FormContainer";
+import {FormComponent} from "../../../types/FormComponent";
 
 export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
 
-export interface EditTextResourceBindingsProps extends IGenericEditComponent {
-  textResourceBindingKeys: string[];
+export interface EditTextResourceBindingsProps {
+  editFormId?: string;
+  component: FormComponent | FormContainer;
+  handleComponentChange: (component: FormComponent | FormContainer) => void;
+  textResourceBindingKeys?: string[];
+  layoutName?: string;
 }
 
 export const EditTextResourceBindings = ({
@@ -21,6 +26,7 @@ export const EditTextResourceBindings = ({
 
   const [keysSet, setKeysSet] = React.useState(Object.keys(component.textResourceBindings || {}));
 
+  debugger;
   const keysToAdd = useMemo(
     () => textResourceBindingKeys.filter((key) => !keysSet.includes(key)),
     [keysSet, textResourceBindingKeys],

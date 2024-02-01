@@ -7,8 +7,9 @@ import {EditTextResourceBindings} from "../config/editModal/EditTextResourceBind
 import {useLayoutSchemaQuery} from "../../hooks/queries/useLayoutSchemaQuery";
 import {useComponentSchemaQuery} from "../../hooks/queries/useComponentSchemaQuery";
 import {selectedLayoutNameSelector} from "../../selectors/formLayoutSelectors";
-import {LayoutItemType} from "../../types/global";
-import {TextResource} from "../TextResource";
+import { StudioSpinner } from '@studio/components';
+import {getCurrentEditId} from "../../selectors/textResourceSelectors";
+import {TextResourceEdit} from "../TextResourceEdit";
 
 export const Text = () => {
     const { formId, form, handleUpdate, debounceSave } = useFormContext();
@@ -17,12 +18,15 @@ export const Text = () => {
     useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
     const { data: schema, isPending } = useComponentSchemaQuery(form.type);
     const selectedLayout = useSelector(selectedLayoutNameSelector);
-    
+    const editId = useSelector(getCurrentEditId);
+
+    if (editId) return <TextResourceEdit />;
     if (!schema?.properties) return null;
 
     return (
         <>
-            {schema.properties.textResourceBindings?.properties && (
+            {isPending && <StudioSpinner spinnerText={t('general.loading')} />}
+            {schema.properties.textResourceBindings?.properties && !isPending && (
                 <>
                     <Heading level={3} size='xxsmall'>
                         {t('general.text')}
