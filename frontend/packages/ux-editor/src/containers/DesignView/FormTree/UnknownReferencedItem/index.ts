@@ -1,1 +1,1 @@
-﻿export { UnknownReferencedItem, UnknownReferencedItemProps } from './UnknownReferencedItem';
+﻿export { UnknownReferencedItem, type UnknownReferencedItemProps } from './UnknownReferencedItem';

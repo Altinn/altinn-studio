@@ -11,7 +11,6 @@ import type {
 } from '../../types/global';
 import classes from './ConditionalRenderingComponent.module.css';
 import { withTranslation } from 'react-i18next';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import type {
   ConditionalRenderingConnection,
@@ -20,6 +19,7 @@ import type {
 import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
 import { Buldings2Icon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
+import type { FormContainer } from '../../types/FormContainer';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: string;
@@ -182,7 +182,7 @@ class ConditionalRendering extends React.Component<
 
   /**
    * Methods that adds a new layout component to the GUI that will later be put in the pool of layout
-   * compoenents that will be affected by the conditional rendering rule.
+   * components that will be affected by the conditional rendering rule.
    * On init this field is empty and not mapped to a layout compoenent
    */
   public addNewField = () => {
@@ -213,7 +213,7 @@ class ConditionalRendering extends React.Component<
     );
   };
 
-  public renderCondtionalRenderingTargetContainerOptions = (
+  public renderConditionalRenderingTargetContainerOptions = (
     id: string,
     baseContainer?: boolean,
   ): JSX.Element[] => {
@@ -222,7 +222,8 @@ class ConditionalRendering extends React.Component<
       return options;
     }
     if (!baseContainer) {
-      const name = getComponentTitleByComponentType(ComponentType.Group, this.props.t);
+      const container: FormContainer = this.props.formLayoutContainers[id];
+      const name = getComponentTitleByComponentType(container.type, this.props.t);
       options.push(
         <option key={id} value={id}>
           {`${name} (${id})`}
@@ -235,7 +236,7 @@ class ConditionalRendering extends React.Component<
         options.push(option);
       } else {
         // A container can have components and sub-containers
-        const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key);
+        const containerOptions = this.renderConditionalRenderingTargetContainerOptions(key);
         containerOptions.forEach((option) => {
           options.push(option);
         });
@@ -244,12 +245,12 @@ class ConditionalRendering extends React.Component<
     return options;
   };
 
-  public renderCondtionalRenderingTargetOptions = (): JSX.Element[] => {
+  public renderConditionalRenderingTargetOptions = (): JSX.Element[] => {
     const options: JSX.Element[] = [];
     Object.keys(this.props.order).forEach((key) => {
       const containerKey = Object.keys(this.props.order)[0];
       const isBaseContainer = containerKey === BASE_CONTAINER_ID;
-      const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(
+      const containerOptions = this.renderConditionalRenderingTargetContainerOptions(
         key,
         isBaseContainer,
       );
@@ -391,7 +392,7 @@ class ConditionalRendering extends React.Component<
                         style={{ fontSize: '16px' }}
                       >
                         <option value=''>{this.props.t('general.select_component')}</option>
-                        {this.renderCondtionalRenderingTargetOptions()}
+                        {this.renderConditionalRenderingTargetOptions()}
                       </select>
 
                       <button

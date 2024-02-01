@@ -34,10 +34,12 @@ const rootComponent: FormComponent = {
 const rootContainerWithChildren: FormContainer = {
   id: 'rootContainer1',
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
 };
 const emptyRootContainer: FormContainer = {
   id: 'rootContainer2',
   itemType: 'CONTAINER',
+  type: ComponentType.ButtonGroup,
 };
 const subComponent: FormComponent = {
   id: 'subComponent',
@@ -47,6 +49,7 @@ const subComponent: FormComponent = {
 const subContainer: FormContainer = {
   id: 'subContainer',
   itemType: 'CONTAINER',
+  type: ComponentType.Accordion,
 };
 const subSubComponent: FormComponent = {
   id: 'subSubComponent',
@@ -76,13 +79,9 @@ const layoutMock: IInternalLayout = {
 const rootComponentName = textMock(`ux_editor.component_title.${rootComponent.type}`);
 const subComponentName = textMock(`ux_editor.component_title.${subComponent.type}`);
 const subSubComponentName = textMock(`ux_editor.component_title.${subSubComponent.type}`);
-const rootContainerName = textMock('ux_editor.component_group_header', {
-  id: rootContainerWithChildren.id,
-});
-const emptyRootContainerName = textMock('ux_editor.component_group_header', {
-  id: emptyRootContainer.id,
-});
-const subContainerName = textMock('ux_editor.component_group_header', { id: subContainer.id });
+const rootContainerName = textMock(`ux_editor.component_title.${rootContainerWithChildren.type}`);
+const emptyRootContainerName = textMock(`ux_editor.component_title.${emptyRootContainer.type}`);
+const subContainerName = textMock(`ux_editor.component_title.${subContainer.type}`);
 const handleEdit = jest.fn();
 const formContext: FormContext = {
   debounceSave: jest.fn(),

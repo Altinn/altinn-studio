@@ -29,8 +29,8 @@ describe('useItemTitle', () => {
 
   it('Returns the correct title when the item is a container', () => {
     const id = '1';
-    const expectedResult = textMock('ux_editor.component_group_header', { id });
-    const container: FormContainer = { id, itemType: 'CONTAINER' };
+    const container: FormContainer = { id, itemType: 'CONTAINER', type: ComponentType.Group };
+    const expectedResult = textMock(`ux_editor.component_title.${container.type}`);
     expect(result.current(container)).toBe(expectedResult);
   });
 
