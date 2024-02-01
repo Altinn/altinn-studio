@@ -8,7 +8,6 @@ const getSearchResults = () => getSearchResultsHeader().next();
 
 export const dashboard = {
   getAppOwnerField: () => cy.findByLabelText(texts['general.service_owner']),
-  getCancelLink: () => cy.findByRole('link', { name: texts['general.cancel'] }),
   getCreateAppButton: () =>
     cy.findByRole('button', { name: texts['dashboard.create_service_btn'] }),
   getLinksCellForSearchResultApp: (name) => getLinksCellForApp(getSearchResults(), name),

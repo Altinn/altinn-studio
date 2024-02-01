@@ -51,12 +51,16 @@ export class UiEditorPage extends BasePage {
       .click();
   }
 
+  public async verifyThatNewPageIsHidden(pageName: string): Promise<void> {
+    await this.page.getByRole('button', { name: pageName, exact: true }).isHidden();
+  }
+
   public async clickOnAddNewPage(): Promise<void> {
     await this.page.getByRole('button', { name: this.textMock('ux_editor.pages_add') }).click();
   }
 
   public async verifyThatNewPageIsVisible(pageName: string): Promise<void> {
-    await this.page.getByText(pageName).isVisible();
+    await this.page.getByRole('heading', { name: pageName, level: 3, exact: true }).isVisible();
   }
 
   public async verifyThatPageEmptyMessageIsHidden(): Promise<void> {
