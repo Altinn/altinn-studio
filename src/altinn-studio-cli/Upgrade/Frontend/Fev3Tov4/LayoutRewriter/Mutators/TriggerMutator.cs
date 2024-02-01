@@ -31,7 +31,7 @@ class TriggerMutator : ILayoutMutator
         }
 
         // TODO: Do we need to add standard validations to all components? Like options based components?
-        var formComponentTypes = new List<string>() {"Address", "CheckBoxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Input", "Likert", "List", "Map", "MultipleSelect", "RadioButtons", "TextArea"};
+        var formComponentTypes = new List<string>() {"Address", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Input", "Likert", "List", "Map", "MultipleSelect", "RadioButtons", "TextArea"};
 
         if (formComponentTypes.Contains(type))
         {
