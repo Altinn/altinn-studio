@@ -38,6 +38,7 @@ export const FormComponentConfig = ({
     required,
     readOnly,
     id,
+    textResourceBindings,
     type,
     options,
     optionsId,

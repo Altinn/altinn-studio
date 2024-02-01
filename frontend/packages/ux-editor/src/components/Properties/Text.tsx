@@ -16,17 +16,17 @@ export const Text = () => {
   const { t } = useTranslation();
 
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
-  const { data: schema, isPending } = useComponentSchemaQuery(form.type);
+  const { data: schema } = useComponentSchemaQuery(form.type);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const editId = useSelector(getCurrentEditId);
 
   if (editId) return <TextResourceEdit />;
   if (!schema?.properties) return null;
-
+  
   return (
     <>
-      {isPending && <StudioSpinner spinnerText={t('general.loading')} />}
-      {schema.properties.textResourceBindings?.properties && !isPending && (
+      {!schema && <StudioSpinner spinnerText={t('general.loading')} />}
+      {schema.properties.textResourceBindings?.properties && (
         <>
           <Heading level={3} size='xxsmall'>
             {t('general.text')}
