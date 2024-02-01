@@ -33,6 +33,8 @@ const config = {
   transformIgnorePatterns: [
     `node_modules(\\\\|/)(?!${packagesToTransform})`,
     '\\.schema\\.v1\\.json$',
+    'nb.json$',
+    'en.json$',
   ],
   reporters: ['default', 'jest-junit'],
   moduleNameMapper: {
@@ -44,6 +46,7 @@ const config = {
     '^@altinn/schema-editor/(.*)': path.join(__dirname, 'packages/schema-editor/src/$1'),
     '^@altinn/schema-model/(.*)': path.join(__dirname, 'packages/schema-model/src/$1'),
     '^@altinn/ux-editor/(.*)': path.join(__dirname, 'packages/ux-editor/src/$1'),
+    '^@altinn/ux-editor-v3/(.*)': path.join(__dirname, 'packages/ux-editor-v3/src/$1'),
     '^@altinn/process-editor/(.*)': path.join(__dirname, 'packages/process-editor/src/$1'),
     '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
     '^@studio/icons': path.join(__dirname, 'libs/studio-icons/src/$1'),
@@ -60,6 +63,9 @@ if (process.env.CI) {
   config.reporters.push('github-actions');
   config.collectCoverage = true;
   config.coverageReporters = ['lcov'];
-  config.coveragePathIgnorePatterns = ['frontend/packages/ux-editor/src/testing/'];
+  config.coveragePathIgnorePatterns = [
+    'frontend/packages/ux-editor/src/testing/',
+    'frontend/packages/ux-editor-v3/src/testing/',
+  ];
 }
 module.exports = config;
