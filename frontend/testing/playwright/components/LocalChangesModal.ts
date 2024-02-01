@@ -15,7 +15,9 @@ export class LocalChangesModal extends BasePage {
 
   public async writeAppNameInConfirmTextfield(appName: string): Promise<void> {
     await this.page
-      .getByLabel(this.textMock('local_changes.modal_delete_modal_textfield_label'))
+      .getByRole('textbox', {
+        name: this.textMock('local_changes.modal_delete_modal_textfield_label'),
+      })
       .fill(appName);
   }
 
