@@ -60,33 +60,6 @@ describe('ContentTab', () => {
       expect(formContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);
     });
   });
-
-  describe('when editing a component', () => {
-    const props = {
-      formId: component1IdMock,
-      form: { ...component1Mock, dataModelBindings: {} },
-    };
-
-    it('should render the component', async () => {
-      jest.spyOn(console, 'error').mockImplementation(); // Silence error from Select component
-      await render({ props });
-      expect(
-        screen.getByText(textMock('ux_editor.modal_properties_component_change_id')),
-      ).toBeInTheDocument();
-    });
-
-    it('should auto-save when updating a field', async () => {
-      await render({ props });
-
-      const idInput = screen.getByLabelText(
-        textMock('ux_editor.modal_properties_component_change_id'),
-      );
-      await act(() => user.type(idInput, 'test'));
-
-      expect(formContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
-      expect(formContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);
-    });
-  });
 });
 
 const waitForData = async () => {

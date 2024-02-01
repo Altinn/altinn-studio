@@ -10,7 +10,6 @@ import { isContainer } from '../../utils/formItemUtils';
 
 export const Content = () => {
   const { formId, form, handleUpdate, debounceSave } = useFormContext();
-
   const editId = useSelector(getCurrentEditId);
   const { t } = useTranslation();
 

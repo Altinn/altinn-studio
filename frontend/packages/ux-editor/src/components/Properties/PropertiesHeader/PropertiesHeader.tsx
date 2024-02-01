@@ -12,7 +12,7 @@ import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSche
 import { DataModelBindingRow } from './DataModelBindingRow';
 import { EditComponentIdRow } from './EditComponentIdRow';
 
-type PropertiesHeaderProps = {
+export type PropertiesHeaderProps = {
   form: FormComponent;
   formId: string;
   handleComponentUpdate: (component: FormComponent) => void;
