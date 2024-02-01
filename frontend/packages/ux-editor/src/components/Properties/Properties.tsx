@@ -18,7 +18,7 @@ export const Properties = () => {
   useEffect(() => {
     if (formIdRef.current !== formId) {
       formIdRef.current = formId;
-      if (formId && openList.length === 0) setOpenList(['content']);
+      if (formId && openList.length === 0) setOpenList(['text']);
     }
   }, [formId, openList.length]);
 
@@ -29,7 +29,7 @@ export const Properties = () => {
       setOpenList([...openList, id]);
     }
   };
-  
+
   return (
     <div className={classes.root}>
       <Accordion color='subtle'>
@@ -38,7 +38,7 @@ export const Properties = () => {
             {t('right_menu.text')}
           </Accordion.Header>
           <Accordion.Content>
-            {formId && <Text />}
+            {formId ? <Text /> : t('right_menu.content_empty')}
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('content')}>
@@ -46,7 +46,7 @@ export const Properties = () => {
             {t('right_menu.content')}
           </Accordion.Header>
           <Accordion.Content>
-            <Content />
+            {formId ? <Content /> : t('right_menu.content_empty')}
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('dynamics')}>
@@ -54,7 +54,7 @@ export const Properties = () => {
             {t('right_menu.dynamics')}
           </Accordion.Header>
           <Accordion.Content>
-            {formId && <Dynamics />}
+            {formId ? <Dynamics /> : t('right_menu.content_empty')}
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>

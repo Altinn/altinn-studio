@@ -4,10 +4,8 @@ import classes from './EditTextResourceBindings.module.css';
 import type { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
 import { LegacySelect } from '@digdir/design-system-react';
-import {FormContainer} from "../../../types/FormContainer";
-import {FormComponent} from "../../../types/FormComponent";
-
-export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
+import type { FormContainer } from '../../../types/FormContainer';
+import type { FormComponent } from '../../../types/FormComponent';
 
 export interface EditTextResourceBindingsProps {
   editFormId?: string;

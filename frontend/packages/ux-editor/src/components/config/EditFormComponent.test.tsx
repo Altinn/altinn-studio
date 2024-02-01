@@ -226,7 +226,6 @@ const waitForData = async () => {
     { getDatamodelMetadata },
   )(() => useDatamodelMetadataQuery('test-org', 'test-app')).renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async ({

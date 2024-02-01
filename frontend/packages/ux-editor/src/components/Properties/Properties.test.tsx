@@ -9,21 +9,27 @@ import { formContextProviderMock } from '../../testing/formContextMocks';
 const user = userEvent.setup();
 
 // Test data:
+const textText = 'Tekst';
 const contentText = 'Innhold';
 const dynamicsText = 'Dynamikk';
 const calculationsText = 'Beregninger';
 const texts = {
+  'right_menu.text': textText,
   'right_menu.content': contentText,
   'right_menu.dynamics': dynamicsText,
   'right_menu.calculations': calculationsText,
 };
 
+const textTestId = 'text';
 const contentTestId = 'content';
 const conditionalRenderingTestId = 'conditional-rendering';
 const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
 
 // Mocks:
+jest.mock('./Text', () => ({
+  Text: () => <div data-testid={textTestId} />,
+}));
 jest.mock('./Content', () => ({
   Content: () => <div data-testid={contentTestId} />,
 }));
@@ -109,9 +115,11 @@ describe('Properties', () => {
   it('Renders accordion', () => {
     const formIdMock = 'test-id';
     render({ formId: formIdMock });
+    expect(screen.getByText(textText)).toBeInTheDocument();
     expect(screen.getByText(contentText)).toBeInTheDocument();
     expect(screen.getByText(dynamicsText)).toBeInTheDocument();
     expect(screen.getByText(calculationsText)).toBeInTheDocument();
+    expect(screen.getByTestId(textTestId)).toBeInTheDocument();
     expect(screen.getByTestId(contentTestId)).toBeInTheDocument();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
     expect(screen.getByTestId(calculationsTestId)).toBeInTheDocument();

@@ -19,23 +19,8 @@ import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 
 const user = userEvent.setup();
 
-// Test data:
-const textResourceEditTestId = 'text-resource-edit';
-
-// Mocks:
-jest.mock('../TextResourceEdit', () => ({
-  TextResourceEdit: () => <div data-testid={textResourceEditTestId} />,
-}));
-
 describe('ContentTab', () => {
   afterEach(jest.clearAllMocks);
-
-  describe('when editing a text resource', () => {
-    it('should render the component', async () => {
-      await render({ props: {}, editId: 'test' });
-      expect(screen.getByTestId(textResourceEditTestId)).toBeInTheDocument();
-    });
-  });
 
   describe('when editing a container', () => {
     const props = {

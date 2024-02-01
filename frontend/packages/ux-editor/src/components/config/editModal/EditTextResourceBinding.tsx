@@ -4,7 +4,7 @@ import { TextResource } from '../../TextResource';
 import type { TranslationKey } from 'language/type';
 import type { IAppState } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
-import {EditTextResourceBindingsProps} from "./EditTextResourceBindings";
+import type { EditTextResourceBindingsProps } from './EditTextResourceBindings';
 
 export interface EditTextResourceBindingProps extends EditTextResourceBindingsProps {
   textKey: string;

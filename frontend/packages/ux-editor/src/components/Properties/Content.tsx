@@ -2,14 +2,10 @@ import React from 'react';
 import { EditFormComponent } from '../config/EditFormComponent';
 import { EditFormContainer } from '../config/EditFormContainer';
 import { useFormContext } from '../../containers/FormContext';
-import { useTranslation } from 'react-i18next';
 import { isContainer } from '../../utils/formItemUtils';
 
 export const Content = () => {
   const { formId, form, handleUpdate, debounceSave } = useFormContext();
-  const { t } = useTranslation();
-  
-  if (!formId || !form) return t('right_menu.content_empty');
 
   return isContainer(form) ? (
     <EditFormContainer
