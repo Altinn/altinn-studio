@@ -7,16 +7,17 @@ import { TestNames } from './enum/TestNames';
 config();
 
 export default defineConfig<ExtendedTestOptions>({
+  use: {
+    locale: 'nb-NO',
+    timezoneId: 'Europe/Oslo',
+    trace: 'on-first-retry',
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+  },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
-  use: {
-    locale: 'nb-NO',
-    timezoneId: 'Europe/Oslo',
-    trace: 'on-first-retry',
-  },
 
   projects: [
     { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
@@ -27,7 +28,6 @@ export default defineConfig<ExtendedTestOptions>({
       testMatch: '*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.CREATE_APP_ONLY,
         headless: true,
@@ -40,7 +40,6 @@ export default defineConfig<ExtendedTestOptions>({
       testMatch: '*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.DATA_MODEL_APP,
         headless: true,
@@ -53,7 +52,6 @@ export default defineConfig<ExtendedTestOptions>({
       testMatch: '*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.DASHBOARD_APP,
         headless: true,
@@ -66,7 +64,6 @@ export default defineConfig<ExtendedTestOptions>({
       testMatch: '*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.MAIN_NAVIGATION_APP,
         headless: true,
@@ -79,7 +76,6 @@ export default defineConfig<ExtendedTestOptions>({
       testMatch: '*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.GIT_SYNC_APP,
         headless: true,
@@ -114,7 +110,6 @@ export default defineConfig<ExtendedTestOptions>({
       testMatch: '*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         headless: true,
       },
