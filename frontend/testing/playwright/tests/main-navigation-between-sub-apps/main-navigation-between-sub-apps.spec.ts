@@ -12,6 +12,7 @@ import { DashboardPage } from '../../pages/DashboardPage';
 import { PreviewPage } from '../../pages/PreviewPage';
 import { DeployPage } from '../../pages/DeployPage';
 import { Header } from '../../components/Header';
+import { Gitea } from '../../helpers/Gitea';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -23,6 +24,17 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
   const designerApi = new DesignerApi({ app: testAppName });
   const response = await designerApi.createApp(request, storageState as StorageState);
   expect(response.ok()).toBeTruthy();
+});
+
+test.afterAll(async ({ request, testAppName }) => {
+  const gitea = new Gitea();
+  const response = await request.delete(gitea.getDeleteAppEndpoint({ app: testAppName }));
+  expect(response.ok()).toBeTruthy();
+
+  const responseTTD = await request.delete(
+    gitea.getDeleteAppEndpoint({ org: 'ttd', app: testAppName }),
+  );
+  expect(responseTTD.ok()).toBeTruthy();
 });
 
 const setupAndVerifyOverviewPage = async (
