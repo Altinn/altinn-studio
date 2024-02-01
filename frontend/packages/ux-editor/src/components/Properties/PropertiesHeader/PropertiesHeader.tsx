@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './PropertiesHeader.module.css';
 import { Divider, Heading, HelpText, Paragraph } from '@digdir/design-system-react';
 import { formItemConfigs } from '../../../data/formItemConfig';
@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
 import { DataModelBindingRow } from './DataModelBindingRow';
-import { KeyVerticalIcon } from '@studio/icons';
+import { EditableTextField } from './EditableTextField';
 
 type PropertiesHeaderProps = {
   form: FormComponent;
@@ -26,6 +26,8 @@ export const PropertiesHeader = ({
   const { t } = useTranslation();
   const itemTitle = useItemTitle();
 
+  const [id, setId] = useState<string>(formId);
+
   const isUnknownInternalComponent: boolean = !formItemConfigs[form.type];
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
@@ -33,6 +35,10 @@ export const PropertiesHeader = ({
 
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema } = useComponentSchemaQuery(form.type);
+
+  const handleLeaveIdField = (newId: string) => {
+    handleComponentUpdate({ ...form, id: newId });
+  };
 
   return (
     <div className={classes.wrapper}>
@@ -51,8 +57,11 @@ export const PropertiesHeader = ({
       <div className={classes.content}>
         <div className={classes.contentRow}>
           {/* TODO - FIX Textfield / tekst komponent */}
-          <KeyVerticalIcon />
-          <Paragraph size='xsmall'>ID: {formId}</Paragraph>
+          <EditableTextField
+            value={id}
+            onChange={(value: string) => setId(value)}
+            onLeaveTextField={() => handleLeaveIdField(id)}
+          />
         </div>
         <div className={classes.contentRow}>
           {schema && (

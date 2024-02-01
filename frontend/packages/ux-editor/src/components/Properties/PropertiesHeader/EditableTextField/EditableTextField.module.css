@@ -1,0 +1,34 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
+  height: var(--fds-spacing-8);
+  width: 100%;
+}
+
+.wrapper:hover {
+  background-color: var(--fds-semantic-surface-action-first-subtle-hover);
+}
+
+.iconAndIdWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
+}
+
+.textField {
+  width: 100%;
+}
+
+.valueWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background-color: transparent;
+  border: none;
+}
+
+.pencilIcon {
+  color: var(--fds-semantic-text-action-first-default);
+}
