@@ -1,6 +1,5 @@
 import { generateComponentId } from '../../utils/generateId';
 import type { IInternalLayout } from '../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
@@ -29,7 +28,7 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
       destinationIndex,
     }: AddFormContainerMutationArgs) => {
       const layouts = formLayoutsQuery.data;
-      const id = generateComponentId(ComponentType.Group, layouts);
+      const id = generateComponentId(container.type, layouts);
       let baseContainerId;
       if (Object.keys(layout.order) && Object.keys(layout.order).length > 0) {
         baseContainerId = Object.keys(layout.order)[0];

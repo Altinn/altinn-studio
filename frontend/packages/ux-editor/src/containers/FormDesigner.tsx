@@ -18,7 +18,13 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
-import { addItemOfType, getItem, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
+import {
+  addItemOfType,
+  getItem,
+  moveLayoutItem,
+  isComponentTypeValidChild,
+  validateDepth,
+} from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { useSearchParams } from 'react-router-dom';
@@ -105,20 +111,36 @@ export const FormDesigner = ({
 
   if (formLayoutIsReady) {
     const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
+    const triggerInvalidChildAlert = () => alert(t('schema_editor.invalid_child_error'));
     const layout = formLayouts[selectedLayout];
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
 
+      if (!isComponentTypeValidChild(layout, parentId, type)) {
+        triggerInvalidChildAlert();
+        return;
+      }
       const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
-      if (validateDepth(updatedLayout)) {
-        addItemToLayout({ componentType: type, newId, parentId, index });
-        handleEdit(getItem(updatedLayout, newId));
-      } else triggerDepthAlert();
+      if (!validateDepth(updatedLayout)) {
+        triggerDepthAlert();
+        return;
+      }
+      addItemToLayout({ componentType: type, newId, parentId, index });
+      handleEdit(getItem(updatedLayout, newId));
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
+      const type = getItem(layout, id).type;
+      if (!isComponentTypeValidChild(layout, parentId, type)) {
+        triggerInvalidChildAlert();
+        return;
+      }
       const updatedLayout = moveLayoutItem(layout, id, parentId, index);
-      validateDepth(updatedLayout) ? updateFormLayout(updatedLayout) : triggerDepthAlert();
+      if (!validateDepth(updatedLayout)) {
+        triggerDepthAlert();
+        return;
+      }
+      updateFormLayout(updatedLayout);
     };
 
     return (

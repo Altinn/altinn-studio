@@ -6,11 +6,11 @@ import {
   validate,
   validateProperty,
 } from './formValidationUtils';
-import expressionSchema from '../testing/schemas/json/layout/expression.schema.v1.json';
-import numberFormatSchema from '../testing/schemas/json/layout/number-format.schema.v1.json';
-import layoutSchema from '../testing/schemas/json/layout/layout.schema.v1.json';
-import inputSchema from '../testing/schemas/json/component/Input.schema.v1.json';
-import commonDefsSchema from '../testing/schemas/json/component/common-defs.schema.v1.json';
+import expressionSchema from './test-data/expression.schema.v1.json';
+import numberFormatSchema from './test-data/number-format.schema.v1.json';
+import layoutSchema from './test-data/layout.schema.v1.json';
+import inputSchema from './test-data/Input.schema.v1.json';
+import commonDefsSchema from './test-data/common-defs.schema.v1.json';
 
 describe('formValidationUtils', () => {
   beforeAll(() => {

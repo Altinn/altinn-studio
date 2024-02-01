@@ -10,6 +10,7 @@ describe('generateComponentId', () => {
           id: 'container1',
           index: 0,
           itemType: 'CONTAINER',
+          type: ComponentType.Group,
         },
       },
       components: {
@@ -32,6 +33,7 @@ describe('generateComponentId', () => {
           id: 'container2',
           index: 0,
           itemType: 'CONTAINER',
+          type: ComponentType.Group,
         },
       },
       components: {

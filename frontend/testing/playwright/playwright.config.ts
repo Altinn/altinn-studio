@@ -7,7 +7,7 @@ import { TestNames } from './enum/TestNames';
 config();
 
 export default defineConfig<ExtendedTestOptions>({
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
@@ -25,22 +25,12 @@ export default defineConfig<ExtendedTestOptions>({
       dependencies: [TestNames.SETUP],
       testDir: './tests/create-app-only/',
       testMatch: '*.spec.ts',
-      teardown: 'teardown-create-app-only',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.CREATE_APP_ONLY,
         headless: true,
-      },
-    },
-    {
-      name: 'teardown-create-app-only',
-      testDir: './tests/create-app-only/',
-      testMatch: '*create-app-only.teardown.ts',
-      use: {
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        testAppName: AppNames.CREATE_APP_ONLY,
       },
     },
     {
@@ -48,22 +38,12 @@ export default defineConfig<ExtendedTestOptions>({
       dependencies: [TestNames.SETUP],
       testDir: './tests/data-model/',
       testMatch: '*.spec.ts',
-      teardown: 'teardown-data-model',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.DATA_MODEL_APP,
         headless: true,
-      },
-    },
-    {
-      name: 'teardown-data-model',
-      testDir: './tests/data-model/',
-      testMatch: '*data-model.teardown.ts',
-      use: {
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        testAppName: AppNames.DATA_MODEL_APP,
       },
     },
     {
@@ -71,22 +51,12 @@ export default defineConfig<ExtendedTestOptions>({
       dependencies: [TestNames.SETUP],
       testDir: './tests/dashboard/',
       testMatch: '*.spec.ts',
-      teardown: 'teardown-dashboard',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.DASHBOARD_APP,
         headless: true,
-      },
-    },
-    {
-      name: 'teardown-dashboard',
-      testDir: './tests/dashboard/',
-      testMatch: '*dashboard.teardown.ts',
-      use: {
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        testAppName: AppNames.DASHBOARD_APP,
       },
     },
     {
@@ -94,7 +64,6 @@ export default defineConfig<ExtendedTestOptions>({
       dependencies: ['setup'],
       testDir: './tests/main-navigation-between-sub-apps/',
       testMatch: '*.spec.ts',
-      teardown: 'teardown-main-navigation-between-sub-apps',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
@@ -104,12 +73,16 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: 'teardown-main-navigation-between-sub-apps',
-      testDir: './tests/main-navigation-between-sub-apps/',
-      testMatch: '*main-navigation-between-sub-apps.teardown.ts',
+      name: TestNames.GIT_SYNC,
+      dependencies: ['setup'],
+      testDir: './tests/git-sync/',
+      testMatch: '*.spec.ts',
       use: {
+        ...devices['Desktop Chrome'],
         baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        testAppName: AppNames.MAIN_NAVIGATION_APP,
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.GIT_SYNC_APP,
+        headless: true,
       },
     },
     {
@@ -121,6 +94,7 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.DASHBOARD,
         TestNames.DATA_MODEL,
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
+        TestNames.GIT_SYNC,
       ],
       testDir: './tests/logout-and-invalid-login-only/',
       testMatch: '*.spec.ts',

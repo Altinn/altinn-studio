@@ -41,7 +41,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Attempt to wait for deploy to environment (12 minutes sleep)
-        run: sleep 12m
+        run: sleep 10m
         shell: bash
 
       - name: Playwright run

@@ -1,4 +1,3 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
 import type {
   IFormDesignerComponents,
   IFormDesignerContainers,
@@ -10,11 +9,14 @@ import type {
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
 import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arrayUtils';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
 import type { FormItemConfigs } from '../data/formItemConfig';
+import { formItemConfigs } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
+import * as formItemUtils from './formItemUtils';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],
@@ -264,6 +266,7 @@ export const createEmptyComponentStructure = (): InternalLayoutComponents => ({
       id: BASE_CONTAINER_ID,
       index: 0,
       itemType: 'CONTAINER',
+      type: undefined,
       pageIndex: null,
     },
   },
@@ -323,9 +326,9 @@ export const addItemOfType = <T extends ComponentType>(
   position: number = -1,
 ): IInternalLayout => {
   const newItem: FormItem<T> = generateFormItem<T>(componentType, id);
-  return newItem.itemType === 'COMPONENT'
-    ? addComponent(layout, newItem as FormComponent<T>, parentId, position)
-    : addContainer(layout, newItem, id, parentId, position);
+  return newItem.itemType === 'CONTAINER'
+    ? addContainer(layout, newItem, id, parentId, position)
+    : addComponent(layout, newItem, parentId, position);
 };
 
 /**
@@ -376,6 +379,18 @@ export const getDepth = (layout: IInternalLayout): number => {
  */
 export const validateDepth = (layout: IInternalLayout): boolean =>
   getDepth(layout) <= MAX_NESTED_GROUP_LEVEL;
+
+export const isComponentTypeValidChild = (
+  layout: IInternalLayout,
+  parentId: string,
+  componentType: ComponentType,
+): boolean => {
+  if (parentId === BASE_CONTAINER_ID) return true;
+  const parent = getItem(layout, parentId);
+  if (!formItemUtils.isContainer(parent)) return false;
+  const parentTypeConfig = formItemConfigs[parent.type];
+  return parentTypeConfig.validChildTypes?.includes(componentType);
+};
 
 export const getChildIds = (layout: IInternalLayout, parentId: string): string[] =>
   layout.order?.[parentId] || [];
