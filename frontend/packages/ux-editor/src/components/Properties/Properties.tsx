@@ -31,8 +31,6 @@ export const Properties = () => {
     }
   };
 
-  console.log('hei');
-
   return (
     <div className={classes.root}>
       {form && !isContainer(form) && (
