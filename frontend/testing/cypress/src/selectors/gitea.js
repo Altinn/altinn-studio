@@ -1,4 +1,5 @@
 export const gitea = {
+  getAltinnLogo: () => cy.findByAltText(/altinn(|-| )logo/i),
   getLoginButton: () => cy.findByRole('button', { name: /logg inn/i }),
   getLanguageMenu: () => cy.findByRole('menu'),
   getLanguageMenuItem: (language) => cy.findByRole('menuitem', { name: language }),
