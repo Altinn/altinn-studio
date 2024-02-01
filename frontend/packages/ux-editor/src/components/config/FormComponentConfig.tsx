@@ -1,5 +1,4 @@
 import React from 'react';
-import { EditComponentId } from './editModal/EditComponentId';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -59,13 +58,6 @@ export const FormComponentConfig = ({
   );
   return (
     <>
-      {id && (
-        <EditComponentId
-          component={component}
-          handleComponentUpdate={handleComponentUpdate}
-          helpText={id.description}
-        />
-      )}
       {textResourceBindings?.properties && (
         <>
           <Heading level={3} size='xxsmall'>

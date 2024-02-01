@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './PropertiesHeader.module.css';
-import { Divider, Heading, HelpText, Paragraph } from '@digdir/design-system-react';
+import { Divider, Heading, HelpText } from '@digdir/design-system-react';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import type { FormComponent } from '../../../types/FormComponent';
@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
 import { DataModelBindingRow } from './DataModelBindingRow';
-import { EditableTextField } from './EditableTextField';
+import { EditComponentIdRow } from './EditComponentIdRow';
 
 type PropertiesHeaderProps = {
   form: FormComponent;
@@ -26,8 +26,6 @@ export const PropertiesHeader = ({
   const { t } = useTranslation();
   const itemTitle = useItemTitle();
 
-  const [id, setId] = useState<string>(formId);
-
   const isUnknownInternalComponent: boolean = !formItemConfigs[form.type];
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
@@ -36,12 +34,8 @@ export const PropertiesHeader = ({
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema } = useComponentSchemaQuery(form.type);
 
-  const handleLeaveIdField = (newId: string) => {
-    handleComponentUpdate({ ...form, id: newId });
-  };
-
   return (
-    <div className={classes.wrapper}>
+    <>
       <div className={classes.header}>
         <div className={classes.iconAndTextWrapper}>
           {Icon && <Icon />}
@@ -56,16 +50,10 @@ export const PropertiesHeader = ({
       <Divider className={classes.divider} />
       <div className={classes.content}>
         <div className={classes.contentRow}>
-          {/* TODO - FIX Textfield / tekst komponent */}
-          <EditableTextField
-            value={id}
-            onChange={(value: string) => setId(value)}
-            onLeaveTextField={() => handleLeaveIdField(id)}
-          />
+          <EditComponentIdRow component={form} handleComponentUpdate={handleComponentUpdate} />
         </div>
         <div className={classes.contentRow}>
           {schema && (
-            // TODO - Change the design of the datamodel
             <DataModelBindingRow
               schema={schema}
               component={form}
@@ -75,6 +63,6 @@ export const PropertiesHeader = ({
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 };

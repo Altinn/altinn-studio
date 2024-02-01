@@ -1,7 +1,6 @@
 import React from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditCodeList } from './editModal/EditCodeList';
-import { EditDataModelBindings } from './editModal/EditDataModelBindings';
 import { EditHeaderSize } from './editModal/EditHeaderSize';
 import { EditOptions } from './editModal/EditOptions';
 import { EditPreselectedIndex } from './editModal/EditPreselectedIndex';
@@ -87,7 +86,6 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
 };
 
 export const configComponents: IConfigComponents = {
-  [EditSettings.DataModelBindings]: EditDataModelBindings,
   [EditSettings.Size]: EditHeaderSize,
   [EditSettings.Title]: ({ component, handleComponentChange }: IGenericEditComponent) => (
     <EditTextResourceBinding
