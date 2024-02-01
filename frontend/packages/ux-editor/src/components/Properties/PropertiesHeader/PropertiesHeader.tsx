@@ -1,21 +1,28 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
-import { Divider, Heading, HelpText } from '@digdir/design-system-react';
+import { Divider, Heading, HelpText, Paragraph } from '@digdir/design-system-react';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import type { FormComponent } from '../../../types/FormComponent';
-import type { FormContainer } from '../../../types/FormContainer';
 import { useItemTitle } from '../../../hooks/useItemTitle';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { EditDataModelBindings } from '../../config/editModal/EditDataModelBindings';
+import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
+import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
+import { DataModelBindingRow } from './DataModelBindingRow';
+import { KeyVerticalIcon } from '@studio/icons';
 
 type PropertiesHeaderProps = {
-  form: FormContainer | FormComponent;
-  schema: any;
+  form: FormComponent;
+  formId: string;
+  handleComponentUpdate: (component: FormComponent) => void;
 };
 
-export const PropertiesHeader = ({ form, schema }: PropertiesHeaderProps): React.JSX.Element => {
+export const PropertiesHeader = ({
+  form,
+  formId,
+  handleComponentUpdate,
+}: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
   const itemTitle = useItemTitle();
 
@@ -24,7 +31,8 @@ export const PropertiesHeader = ({ form, schema }: PropertiesHeaderProps): React
     ? QuestionmarkDiamondIcon
     : formItemConfigs[form.type]?.icon;
 
-  const { dataModelBindings } = schema.properties;
+  useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
+  const { data: schema } = useComponentSchemaQuery(form.type);
 
   return (
     <div className={classes.wrapper}>
@@ -42,30 +50,19 @@ export const PropertiesHeader = ({ form, schema }: PropertiesHeaderProps): React
       <Divider className={classes.divider} />
       <div className={classes.content}>
         <div className={classes.contentRow}>
-          <p>icon</p>
+          {/* TODO - FIX Textfield / tekst komponent */}
+          <KeyVerticalIcon />
+          <Paragraph size='xsmall'>ID: {formId}</Paragraph>
         </div>
         <div className={classes.contentRow}>
-          {dataModelBindings?.properties && (
-            <>
-              <Heading level={3} size='xxsmall'>
-                {t('top_menu.datamodel')}
-              </Heading>
-              {Object.keys(dataModelBindings?.properties).map((propertyKey: any) => {
-                return (
-                  <EditDataModelBindings
-                    key={`${component.id}-datamodel-${propertyKey}`}
-                    component={component}
-                    handleComponentChange={handleComponentUpdate}
-                    editFormId={editFormId}
-                    helpText={dataModelBindings?.properties[propertyKey]?.description}
-                    renderOptions={{
-                      key: propertyKey,
-                      label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
-                    }}
-                  />
-                );
-              })}
-            </>
+          {schema && (
+            // TODO - Change the design of the datamodel
+            <DataModelBindingRow
+              schema={schema}
+              component={form}
+              formId={formId}
+              handleComponentUpdate={handleComponentUpdate}
+            />
           )}
         </div>
       </div>

@@ -7,10 +7,11 @@ import { useFormContext } from '../../containers/FormContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
 import { PropertiesHeader } from './PropertiesHeader';
+import { isContainer } from '../../utils/formItemUtils';
 
 export const Properties = () => {
   const { t } = useTranslation();
-  const { formId, form } = useFormContext();
+  const { formId, form, handleUpdate, debounceSave } = useFormContext();
   const formIdRef = React.useRef(formId);
 
   const [openList, setOpenList] = React.useState<string[]>([]);
@@ -30,9 +31,20 @@ export const Properties = () => {
     }
   };
 
+  console.log('hei');
+
   return (
     <div className={classes.root}>
-      {form && <PropertiesHeader form={form} />}
+      {form && !isContainer(form) && (
+        <PropertiesHeader
+          form={form}
+          formId={formId}
+          handleComponentUpdate={async (updatedComponent) => {
+            handleUpdate(updatedComponent);
+            debounceSave(formId, updatedComponent);
+          }}
+        />
+      )}
       <Accordion color='subtle'>
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
