@@ -225,18 +225,19 @@ const getPlainTextFromNode = (node: ReactNode, langAsString: IUseLanguage['langA
   if (typeof node === 'string') {
     return node;
   }
-  if (isValidElement(node)) {
-    if (node.type === Lang) {
-      return langAsString(node.props.id, node.props.params);
-    }
+  let text = '';
+  for (const innerNode of Children.toArray(node)) {
+    if (isValidElement(innerNode)) {
+      if (innerNode.type === Lang) {
+        return langAsString(innerNode.props.id, innerNode.props.params);
+      }
 
-    let text = '';
-    Children.forEach(node.props.children, (child) => {
-      text += getPlainTextFromNode(child, langAsString);
-    });
-    return text;
+      Children.forEach(innerNode.props.children, (child) => {
+        text += getPlainTextFromNode(child, langAsString);
+      });
+    }
   }
-  return '';
+  return text;
 };
 
 export function getLanguageFromKey(key: string, language: ILanguage) {

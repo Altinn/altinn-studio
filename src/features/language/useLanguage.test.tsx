@@ -149,4 +149,41 @@ describe('useLanguage', () => {
       '<h1 class="fds-heading-heading fds-heading-large">This is my message</h1>',
     );
   });
+
+  it('langAsString() should work with complex lookups and arrays', async () => {
+    await renderWithoutInstanceAndLayout({
+      renderer: () => <TestSimple input={'complex'} />,
+      queries: {
+        fetchTextResources: async () => ({
+          language: 'nb',
+          resources: [
+            {
+              id: 'complex',
+              // This complex text resource becomes an array of string elements, and failed to render as string
+              // previously.
+              value: "Hvor mange {0} <p style='text-transform: lowercase;'>{1}<p> brukte gatekjøkkenet i {2}?",
+              variables: [
+                { key: 'firstValue', dataSource: 'applicationSettings' },
+                { key: 'secondValue', dataSource: 'applicationSettings' },
+                { key: 'thirdValue', dataSource: 'applicationSettings' },
+              ],
+            },
+          ],
+        }),
+        fetchApplicationSettings: async () => ({
+          firstValue: 'liter',
+          secondValue: 'FRITYROLJE',
+          thirdValue: '2019',
+        }),
+      },
+    });
+
+    // We don't exactly parse the HTML, but we do remove the tags.
+    expect(screen.getByTestId('as-string').innerHTML).toEqual(
+      'Hvor mange liter FRITYROLJE brukte gatekjøkkenet i 2019?',
+    );
+    expect(screen.getByTestId('as-element')).toHaveTextContent(
+      'Hvor mange liter FRITYROLJE brukte gatekjøkkenet i 2019?',
+    );
+  });
 });

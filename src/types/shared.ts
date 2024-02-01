@@ -240,7 +240,7 @@ export interface ITextResource {
 
 export interface IVariable {
   key: string;
-  dataSource: string;
+  dataSource: 'instanceContext' | 'applicationSettings' | 'dataModel.default' | `dataModel.${string}`;
   defaultValue?: string;
 }
 
