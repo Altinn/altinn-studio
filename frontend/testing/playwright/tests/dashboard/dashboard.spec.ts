@@ -5,6 +5,7 @@ import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { DashboardPage } from 'testing/playwright/pages/DashboardPage';
 import { OverviewPage } from 'testing/playwright/pages/OverviewPage';
+import { Gitea } from '../../helpers/Gitea';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -19,6 +20,16 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
 
   expect(firstApp.ok()).toBeTruthy();
   expect(secondApp.ok()).toBeTruthy();
+});
+
+test.afterAll(async ({ request, testAppName }) => {
+  const gitea = new Gitea();
+  const appsToDelete: string[] = [testAppName, `${testAppName}2`];
+
+  for (const app of appsToDelete) {
+    const response = await request.delete(gitea.getDeleteAppEndpoint({ app }));
+    expect(response.ok()).toBeTruthy();
+  }
 });
 
 const createApp = async (
