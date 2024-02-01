@@ -1264,6 +1264,7 @@
   "sync_header.no_changes_to_share": "Last opp dine endringer",
   "sync_header.nothing_to_push": "Du har delt dine siste endringer",
   "sync_header.repo_is_offline": "Repo er utilgjengelig",
+  "sync_header.repository": "Repository",
   "sync_header.service_updated_to_latest": "Appen din er oppdatert til siste versjon",
   "sync_header.service_updated_to_latest_submessage": "Hvis det er flere personer som jobber på samme app er det viktig å hente endringer ofte. På denne måten reduserer du sjansen for mergekonflikter.",
   "sync_header.settings": "Innstillinger",
