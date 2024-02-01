@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Calculations } from './Calculations';
 import { Content } from './Content';
+import { Text } from './Text';
 import { useTranslation } from 'react-i18next';
 import { Accordion } from '@digdir/design-system-react';
 import { useFormContext } from '../../containers/FormContext';
@@ -28,10 +29,18 @@ export const Properties = () => {
       setOpenList([...openList, id]);
     }
   };
-
+  
   return (
     <div className={classes.root}>
       <Accordion color='subtle'>
+        <Accordion.Item open={openList.includes('text')}>
+          <Accordion.Header onHeaderClick={() => toggleOpen('text')}>
+            {t('right_menu.text')}
+          </Accordion.Header>
+          <Accordion.Content>
+            {formId && <Text />}
+          </Accordion.Content>
+        </Accordion.Item>
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
             {t('right_menu.content')}
@@ -44,7 +53,9 @@ export const Properties = () => {
           <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>
             {t('right_menu.dynamics')}
           </Accordion.Header>
-          <Accordion.Content>{formId && <Dynamics />}</Accordion.Content>
+          <Accordion.Content>
+            {formId && <Dynamics />}
+          </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>
           <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>

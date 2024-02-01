@@ -1,0 +1,44 @@
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { useFormContext } from '../../containers/FormContext';
+import { useTranslation } from 'react-i18next';
+import { Heading } from '@digdir/design-system-react';
+import {EditTextResourceBindings} from "../config/editModal/EditTextResourceBindings";
+import {useLayoutSchemaQuery} from "../../hooks/queries/useLayoutSchemaQuery";
+import {useComponentSchemaQuery} from "../../hooks/queries/useComponentSchemaQuery";
+import {selectedLayoutNameSelector} from "../../selectors/formLayoutSelectors";
+import {LayoutItemType} from "../../types/global";
+import {TextResource} from "../TextResource";
+
+export const Text = () => {
+    const { formId, form, handleUpdate, debounceSave } = useFormContext();
+    const { t } = useTranslation();
+    
+    useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
+    const { data: schema, isPending } = useComponentSchemaQuery(form.type);
+    const selectedLayout = useSelector(selectedLayoutNameSelector);
+    
+    if (!schema?.properties) return null;
+
+    return (
+        <>
+            {schema.properties.textResourceBindings?.properties && (
+                <>
+                    <Heading level={3} size='xxsmall'>
+                        {t('general.text')}
+                    </Heading>
+                    <EditTextResourceBindings
+                        component={form}
+                        handleComponentChange={async (updatedComponent) => {
+                            handleUpdate(updatedComponent);
+                            debounceSave(formId, updatedComponent);
+                        }}
+                        textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
+                        editFormId={formId}
+                        layoutName={selectedLayout}
+                    />
+                </>
+            )}
+        </>
+    );
+};

@@ -65,6 +65,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'CONTAINER',
       type: ComponentType.Accordion,
       propertyPath: 'definitions/accordionComponent',
+      children: [],
     },
     icon: Accordion,
     validChildTypes: [ComponentType.Paragraph],

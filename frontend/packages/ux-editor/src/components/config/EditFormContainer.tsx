@@ -14,7 +14,6 @@ import {
   Paragraph,
 } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
-import { TextResource } from '../TextResource';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import { useText } from '../../hooks';
 import { useSelectedFormLayout, useTextResourcesSelector } from '../../hooks';
@@ -87,16 +86,6 @@ export const EditFormContainer = ({
     });
   };
 
-  const handleButtonTextChange = (id: string) => {
-    handleContainerUpdate({
-      ...container,
-      textResourceBindings: {
-        ...container.textResourceBindings,
-        add_button: id,
-      },
-    });
-  };
-
   const handleTableHeadersChange = (ids: string[]) => {
     const updatedContainer = { ...container };
     updatedContainer.tableHeaders = [...ids];
@@ -137,7 +126,7 @@ export const EditFormContainer = ({
       id,
     });
   };
-
+  
   return container.type === ComponentType.Group ? (
     <LegacyFieldSet className={classes.fieldset}>
       <FormField
@@ -203,12 +192,6 @@ export const EditFormContainer = ({
                 onChange={(e) => fieldProps.onChange(parseInt(e.target.value), e)}
               />
             )}
-          />
-          <TextResource
-            description={t('ux_editor.modal_properties_group_add_button_description')}
-            handleIdChange={handleButtonTextChange}
-            label={t('ux_editor.modal_properties_group_add_button')}
-            textResourceId={container.textResourceBindings?.add_button}
           />
           {items?.length > 0 && (
             <FormField
