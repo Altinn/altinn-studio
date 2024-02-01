@@ -57,7 +57,6 @@ test('That new changes are pushed to gitea and are visible on Gitea after they h
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
   await header.checkThatUploadSuccessMessageIsVisible();
-  await header.closeSuccessMessageBox();
 
   await goToGiteaAndNavigateToUiLayoutFiles(header, giteaPage);
   await giteaPage.verifyThatTheNewPageIsPresent(newPageName);

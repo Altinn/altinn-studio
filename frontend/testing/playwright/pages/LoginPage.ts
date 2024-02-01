@@ -40,7 +40,7 @@ export class LoginPage extends BasePage {
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {
-    return this.page.waitForURL(this.getRoute('dashboard'));
+    await this.page.waitForURL(this.getRoute('dashboard'));
   }
 
   public async checkThatErrorMessageIsVisible(): Promise<void> {

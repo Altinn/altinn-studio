@@ -1,0 +1,21 @@
+.button {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--fds-spacing-5);
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+}
+
+.wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid #d2d5d8;
+
+  --background-color: var(--fds-semantic-surface-neutral-subtle);
+  background-color: var(--background-color);
+}
+
+.accordionWrapper {
+  flex: 1;
+}

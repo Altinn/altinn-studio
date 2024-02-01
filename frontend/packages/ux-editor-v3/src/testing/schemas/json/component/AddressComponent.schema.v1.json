@@ -1,0 +1,85 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/AddressComponent.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Address component",
+  "description": "Schema that describes the layout configuration for a Address component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "AddressComponent"
+    },
+    "textResourceBindings": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicTextResources"
+    },
+    "simplified": {
+      "type": "boolean",
+      "title": "Simplified",
+      "description": "Boolean value indicating if the address component should be shown in simple mode.",
+      "default": false
+    },
+    "saveWhileTyping": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/saveWhileTyping"
+    },
+    "dataModelBindings": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "zipCode": {
+          "type": "string"
+        },
+        "postPlace": {
+          "type": "string"
+        },
+        "careOf": {
+          "type": "string"
+        },
+        "houseNumber": {
+          "type": "string"
+        }
+      },
+      "required": ["address", "zipCode", "postPlace"]
+    },
+    "required": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/required"
+    },
+    "readOnly": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/readOnly"
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type", "dataModelBindings"],
+  "additionalProperties": false
+}

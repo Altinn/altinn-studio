@@ -126,6 +126,7 @@
     "frontend/packages/shared",
     "frontend/packages/text-editor",
     "frontend/packages/ux-editor",
+    "frontend/packages/ux-editor-v3",
     "frontend/packages/process-editor",
     "frontend/packages/policy-editor",
     "frontend/libs/**"
