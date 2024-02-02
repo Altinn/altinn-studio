@@ -707,7 +707,7 @@ describe('SchemaModel', () => {
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
-    it('Should not throws an error if trying to delete a child node of a definition in use', () => {
+    it('Should not throw an error if trying to delete a child node of a definition in use', () => {
       const model = schemaModel.deepClone();
       expect(() => model.deleteNode(defNodeWithChildrenChildMock.pointer)).not.toThrowError();
       expect(model.asArray()).not.toEqual(schemaModel.asArray());
