@@ -11,7 +11,6 @@ import type { NodeMap } from '../types/NodeMap';
 import {
   isCombination,
   isDefinition,
-  isField,
   isFieldOrCombination,
   isNodeValidParent,
   isProperty,
