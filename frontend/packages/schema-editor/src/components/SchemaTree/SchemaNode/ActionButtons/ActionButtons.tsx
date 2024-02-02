@@ -3,7 +3,7 @@ import { ReferenceIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ActionButtons.module.css';
 import cn from 'classnames';
-import { isNodeValidParent, isReference } from '@altinn/schema-model';
+import { isNodeValidParent, isReference, ObjectKind } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
 import { AddPropertyMenu } from './AddPropertyMenu';
 import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
@@ -52,7 +52,10 @@ const useDeleteNode = (pointer: string, savableModel: SavableSchemaModel) => {
   const { setSelectedNodePointer } = useSchemaEditorAppContext();
 
   return useCallback(() => {
-    if (confirm(t('schema_editor.datamodel_field_deletion_text'))) {
+    const confirmMessage = savableModel.areDefinitionParentsInUse(pointer)
+      ? t('schema_editor.datamodel_definition_field_deletion_text')
+      : t('schema_editor.datamodel_field_deletion_text');
+    if (confirm(confirmMessage)) {
       setSelectedNodePointer(null);
       savableModel.deleteNode(pointer);
     }

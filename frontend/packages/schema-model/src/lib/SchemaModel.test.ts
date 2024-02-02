@@ -221,6 +221,18 @@ describe('SchemaModel', () => {
     });
   });
 
+  describe('areDefinitionParentsInUse', () => {
+    it('Returns false if definition parent not in use', () => {
+      const result = schemaModel.areDefinitionParentsInUse(unusedDefinitionMock.pointer);
+      expect(result).toBeFalsy();
+    });
+
+    it('Returns false if definition parent is in use', () => {
+      const result = schemaModel.areDefinitionParentsInUse(defNodeWithChildrenChildMock.pointer);
+      expect(result).toBeTruthy();
+    });
+  });
+
   describe('getFinalNode', () => {
     it('Returns the node itself when it is not a reference', () => {
       const result = schemaModel.getFinalNode(parentNodeMock.pointer);
@@ -696,18 +708,10 @@ describe('SchemaModel', () => {
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
-    it('Throws an error and keeps the model unchanged if trying to delete a definition node that is in use', () => {
+    it('Should not throws an error if trying to delete a child node of a definition in use', () => {
       const model = schemaModel.deepClone();
-      expect(() => model.deleteNode(defNodeMock.pointer)).toThrowError();
-      expect(() => model.deleteNode(defNodeWithChildrenMock.pointer)).toThrowError();
-      expect(model.asArray()).toEqual(schemaModel.asArray());
-    });
-
-    it('Throws an error and keeps the model unchanged if trying to delete a child node of a definition in use', () => {
-      const model = schemaModel.deepClone();
-      expect(() => model.deleteNode(defNodeWithChildrenChildMock.pointer)).toThrowError();
-      expect(() => model.deleteNode(defNodeWithChildrenGrandchildMock.pointer)).toThrowError();
-      expect(model.asArray()).toEqual(schemaModel.asArray());
+      expect(() => model.deleteNode(defNodeWithChildrenChildMock.pointer)).not.toThrowError();
+      expect(model.asArray()).not.toEqual(schemaModel.asArray());
     });
   });
 
