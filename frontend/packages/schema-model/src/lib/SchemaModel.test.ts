@@ -226,7 +226,7 @@ describe('SchemaModel', () => {
       expect(result).toBeFalsy();
     });
 
-    it('Returns false if definition parent is in use', () => {
+    it('Returns true if definition parent is in use', () => {
       const result = schemaModel.areDefinitionParentsInUse(defNodeWithChildrenChildMock.pointer);
       expect(result).toBeTruthy();
     });
