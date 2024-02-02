@@ -5,7 +5,14 @@ import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { Switch, Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
+import {
+  Alert,
+  Switch,
+  Checkbox,
+  LegacyFieldSet,
+  LegacyTextField,
+  Paragraph,
+} from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
@@ -20,6 +27,7 @@ import { FormField } from '../FormField';
 import type { FormContainer } from '../../types/FormContainer';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../hooks/useAppContext';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface IEditFormContainerProps {
   editFormId: string;
@@ -130,7 +138,7 @@ export const EditFormContainer = ({
     });
   };
 
-  return (
+  return container.type === ComponentType.Group ? (
     <LegacyFieldSet className={classes.fieldset}>
       <FormField
         id={container.id}
@@ -237,5 +245,9 @@ export const EditFormContainer = ({
         </>
       )}
     </LegacyFieldSet>
+  ) : (
+    <Alert severity='info'>
+      <Paragraph size='small'>{t('ux_editor.container_not_editable_info')}</Paragraph>
+    </Alert>
   );
 };
