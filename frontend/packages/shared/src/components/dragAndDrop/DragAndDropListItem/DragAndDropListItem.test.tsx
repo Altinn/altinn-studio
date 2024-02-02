@@ -22,7 +22,7 @@ const defaultlistItemProps: DragAndDropListItemProps = {
   itemId,
   renderItem,
 };
-const defaultlistItemContextProps: DragAndDropListItemContextProps = {
+const defaultListItemContextProps: DragAndDropListItemContextProps = {
   isDisabled: false,
   itemId: parentId,
 };
@@ -59,7 +59,7 @@ function render({
     <DndProvider backend={HTML5Backend}>
       <DragAndDropRootContext.Provider value={{ ...rootContextProps, ...defaultRootContextProps }}>
         <DragAndDropListItemContext.Provider
-          value={{ ...listItemContextProps, ...defaultlistItemContextProps }}
+          value={{ ...listItemContextProps, ...defaultListItemContextProps }}
         >
           <DragAndDropListItem<string> {...listItemProps} {...defaultlistItemProps} />
         </DragAndDropListItemContext.Provider>

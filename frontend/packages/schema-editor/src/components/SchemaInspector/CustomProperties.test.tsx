@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
-import { validateTestUiSchema } from '../../../../schema-model';
+import { validateTestUiSchema } from '@altinn/schema-model';
 
 const user = userEvent.setup();
 
