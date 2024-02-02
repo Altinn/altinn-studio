@@ -16,27 +16,23 @@ export const Content = () => {
   if (editId) return <TextResourceEdit />;
   if (!formId || !form) return t('right_menu.content_empty');
 
-  return (
-    <>
-      {isContainer(form) ? (
-        <EditFormContainer
-          editFormId={formId}
-          container={form}
-          handleContainerUpdate={async (updatedContainer) => {
-            handleUpdate(updatedContainer);
-            debounceSave(formId, updatedContainer);
-          }}
-        />
-      ) : (
-        <EditFormComponent
-          editFormId={formId}
-          component={form}
-          handleComponentUpdate={async (updatedComponent) => {
-            handleUpdate(updatedComponent);
-            debounceSave(formId, updatedComponent);
-          }}
-        />
-      )}
-    </>
+  return isContainer(form) ? (
+    <EditFormContainer
+      editFormId={formId}
+      container={form}
+      handleContainerUpdate={async (updatedContainer) => {
+        handleUpdate(updatedContainer);
+        debounceSave(formId, updatedContainer);
+      }}
+    />
+  ) : (
+    <EditFormComponent
+      editFormId={formId}
+      component={form}
+      handleComponentUpdate={async (updatedComponent) => {
+        handleUpdate(updatedComponent);
+        debounceSave(formId, updatedComponent);
+      }}
+    />
   );
 };

@@ -1473,6 +1473,7 @@
   "ux_editor.component_unknown": "Ukjent komponent",
   "ux_editor.conditional_rendering_connection_header": "Betingede renderingstilkoblinger",
   "ux_editor.container_empty": "Tomt, dra noe inn her...",
+  "ux_editor.container_not_editable_info": "Noen egenskaper for denne komponenten er ikke redigerbare for øyeblikket. Du kan legge til underkomponenter i kolonnen til venstre.",
   "ux_editor.edit_component.show_beta_func": "Vis ny konfigurasjon (BETA)",
   "ux_editor.edit_component.show_beta_func_help_text": "Vi jobber med å få på plass støtte for å redigere alle innstillinger. Ved å huke av her kan du ta i bruk den nye konfigurasjonsvisningen, som støtter flere innstillinger. Merk at denne visningen fortsatt er under utvikling, og vil kunne oppleves som noe ustabil.",
   "ux_editor.edit_component.unknown_component": "Komponenten {{componentName}} gjenkjennes ikke av Studio og kan derfor ikke konfigureres.",
