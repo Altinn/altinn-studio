@@ -17,5 +17,28 @@ module.exports = {
         ],
       },
     },
+    {
+      files: ['*.tsx'],
+      rules: {
+        '@typescript-eslint/naming-convention': [
+          'error',
+          {
+            selector: ['variable', 'function'],
+            modifiers: ['exported'],
+            format: ['PascalCase'],
+            custom: {
+              regex: '(\\w+Icon$)|(^SvgTemplate$)',
+              match: true,
+            },
+          },
+        ]
+      },
+    },
+    {
+      files: ['*.test.tsx'],
+      rules: {
+        '@typescript-eslint/naming-convention': 'off',
+      },
+    },
   ],
 };
