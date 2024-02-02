@@ -12,6 +12,7 @@ import type { NodeMap } from '../types/NodeMap';
 import {
   isCombination,
   isDefinition,
+  isField,
   isFieldOrCombination,
   isNodeValidParent,
   isProperty,
@@ -443,7 +444,7 @@ export class SchemaModel {
       throw new Error('It is not possible to delete the root node.');
     }
 
-    if (this.isDefinitionInUse(pointer) && !this.isDefinitionField(pointer)) {
+    if (this.isDefinitionInUse(pointer) && !this.isField(pointer)) {
       throw new Error('Cannot delete a definition that is in use.');
     }
 
@@ -464,9 +465,9 @@ export class SchemaModel {
     return this.hasReferringNodes(pointer) || this.areDefinitionParentsInUse(pointer);
   }
 
-  public isDefinitionField(pointer): boolean {
+  public isField(pointer): boolean {
     const node = this.getNode(pointer);
-    return node.objectKind === ObjectKind.Field;
+    return isField(node);
   }
 
   public hasReferringNodes(pointer: string): boolean {
