@@ -20,8 +20,10 @@ export const EditTextResourceBindings = ({
 }: EditTextResourceBindingsProps) => {
   const { t } = useTranslation();
 
-  const [keysSet, setKeysSet] = useState(Object.keys( textResourceBindingKeys || component.textResourceBindings || {}));
-  
+  const [keysSet, setKeysSet] = useState(
+    Object.keys(textResourceBindingKeys || component.textResourceBindings || {}),
+  );
+
   const keysToAdd = useMemo(
     () => textResourceBindingKeys.filter((key) => !keysSet.includes(key)),
     [keysSet, textResourceBindingKeys],
@@ -41,9 +43,7 @@ export const EditTextResourceBindings = ({
           removeTextResourceBinding={() => handleRemoveKey(key)}
           textKey={key}
           labelKey={t(`ux_editor.modal_properties_textResourceBindings_${key}`)}
-          placeholderKey={
-            t(`ux_editor.modal_properties_textResourceBindings_${key}_add`)
-          }
+          placeholderKey={t(`ux_editor.modal_properties_textResourceBindings_${key}_add`)}
         />
       ))}
     </div>

@@ -1,12 +1,12 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import type { IGenericEditComponent } from '../componentConfig';
 import { TextResource } from '../../TextResource';
 import type { TranslationKey } from 'language/type';
 import type { IAppState } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
+import type { EditTextResourceBindingsProps } from './EditTextResourceBindings';
 
-export interface EditTextResourceBindingProps extends IGenericEditComponent {
+export interface EditTextResourceBindingProps extends EditTextResourceBindingsProps {
   textKey: string;
   labelKey: TranslationKey;
   descriptionKey?: TranslationKey;

@@ -126,7 +126,7 @@ export const EditFormContainer = ({
       id,
     });
   };
-  
+
   return container.type === ComponentType.Group ? (
     <LegacyFieldSet className={classes.fieldset}>
       <FormField
