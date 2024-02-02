@@ -1,12 +1,9 @@
 .root {
   --frame-offset: 4px;
-  border-radius: 1rem;
-  padding: 1rem;
+  border-radius: 2px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 8px;
-  background-color: white;
+  gap: 1rem;
 }
 
 .root.isEditing {
@@ -38,7 +35,7 @@
 }
 
 .textResource {
-  align-items: center;
+  align-items: stretch;
   display: inline-flex;
 }
 

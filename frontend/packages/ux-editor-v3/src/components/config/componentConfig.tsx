@@ -114,8 +114,8 @@ export const configComponents: IConfigComponents = {
       component={component}
       handleComponentChange={handleComponentChange}
       textKey={EditSettings.TagTitle}
-      labelKey='ux_editor.modal_properties_textResourceBindings_tag'
-      placeholderKey='ux_editor.modal_properties_textResourceBindings_tag_add'
+      labelKey='ux_editor.modal_properties_textResourceBindings_tagTitle'
+      placeholderKey='ux_editor.modal_properties_textResourceBindings_tagTitle_add'
     />
   ),
   [EditSettings.Options]: EditOptions,

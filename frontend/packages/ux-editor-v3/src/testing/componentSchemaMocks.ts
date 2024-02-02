@@ -1,6 +1,6 @@
 import AlertSchema from './schemas/json/component/Alert.schema.v1.json';
 // TODO: Add schemas for the commented out components (https://github.com/Altinn/altinn-studio/issues/10868):
-import AccordionSchema from './schemas/json/component/Accordion.schema.v1.json';
+// import AccordionSchema from './schemas/json/component/Accordion.schema.v1.json';
 // import AccordionGroupSchema from './schemas/json/component/AccordionGroup.schema.v1.json';
 import ActionButtonSchema from './schemas/json/component/ActionButton.schema.v1.json';
 import AddressComponentSchema from './schemas/json/component/AddressComponent.schema.v1.json';
@@ -36,10 +36,9 @@ import SummarySchema from './schemas/json/component/Summary.schema.v1.json';
 import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 
 export const componentSchemaMocks = {
-  Accordion: AccordionSchema,
+  Alert: AlertSchema,
   ActionButton: ActionButtonSchema,
   AddressComponent: AddressComponentSchema,
-  Alert: AlertSchema,
   AttachmentList: AttachmentListSchema,
   Button: ButtonSchema,
   ButtonGroup: ButtonGroupSchema,

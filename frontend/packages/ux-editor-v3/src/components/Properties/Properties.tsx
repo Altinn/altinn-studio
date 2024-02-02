@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Calculations } from './Calculations';
 import { Content } from './Content';
-import { Text } from './Text';
 import { useTranslation } from 'react-i18next';
 import { Accordion } from '@digdir/design-system-react';
 import { useFormContext } from '../../containers/FormContext';
@@ -18,7 +17,7 @@ export const Properties = () => {
   useEffect(() => {
     if (formIdRef.current !== formId) {
       formIdRef.current = formId;
-      if (formId && openList.length === 0) setOpenList(['text']);
+      if (formId && openList.length === 0) setOpenList(['content']);
     }
   }, [formId, openList.length]);
 
@@ -33,27 +32,19 @@ export const Properties = () => {
   return (
     <div className={classes.root}>
       <Accordion color='subtle'>
-        <Accordion.Item open={openList.includes('text')}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('text')}>
-            {t('right_menu.text')}
-          </Accordion.Header>
-          <Accordion.Content>{formId ? <Text /> : t('right_menu.content_empty')}</Accordion.Content>
-        </Accordion.Item>
         <Accordion.Item open={openList.includes('content')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
             {t('right_menu.content')}
           </Accordion.Header>
           <Accordion.Content>
-            {formId ? <Content /> : t('right_menu.content_empty')}
+            <Content />
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('dynamics')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>
             {t('right_menu.dynamics')}
           </Accordion.Header>
-          <Accordion.Content>
-            {formId ? <Dynamics /> : t('right_menu.content_empty')}
-          </Accordion.Content>
+          <Accordion.Content>{formId && <Dynamics />}</Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>
           <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>

@@ -2,11 +2,14 @@ import React from 'react';
 import { EditComponentId } from './editModal/EditComponentId';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
+import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
+import { EditTextResourceBindings } from './editModal/EditTextResourceBindings';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
 import { EditOptions } from './editModal/EditOptions';
 import { EditStringValue } from './editModal/EditStringValue';
+import { useSelector } from 'react-redux';
 import { useText } from '../../hooks';
 import { getComponentPropertyLabel } from '../../utils/language';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
@@ -29,16 +32,17 @@ export const FormComponentConfig = ({
   handleComponentUpdate,
   hideUnsupported,
 }: FormComponentConfigProps) => {
+  const selectedLayout = useSelector(selectedLayoutNameSelector);
   const t = useText();
 
   if (!schema?.properties) return null;
 
   const {
+    textResourceBindings,
     dataModelBindings,
     required,
     readOnly,
     id,
-    textResourceBindings,
     type,
     options,
     optionsId,
@@ -62,6 +66,20 @@ export const FormComponentConfig = ({
           handleComponentUpdate={handleComponentUpdate}
           helpText={id.description}
         />
+      )}
+      {textResourceBindings?.properties && (
+        <>
+          <Heading level={3} size='xxsmall'>
+            {t('general.text')}
+          </Heading>
+          <EditTextResourceBindings
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            textResourceBindingKeys={Object.keys(textResourceBindings.properties)}
+            editFormId={editFormId}
+            layoutName={selectedLayout}
+          />
+        </>
       )}
       {dataModelBindings?.properties && (
         <>
