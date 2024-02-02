@@ -1,10 +1,9 @@
 import {
   CombinationKind,
   FieldType,
-  NodePosition,
-  ObjectKind,
-  UiSchemaNode,
-  UiSchemaNodes,
+  type NodePosition,
+  type UiSchemaNode,
+  type UiSchemaNodes,
 } from '../types';
 import type { FieldNode } from '../types/FieldNode';
 import type { CombinationNode } from '../types/CombinationNode';
