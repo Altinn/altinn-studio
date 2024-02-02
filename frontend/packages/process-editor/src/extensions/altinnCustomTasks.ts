@@ -1,6 +1,6 @@
 export const altinnCustomTasks = {
   name: 'AltinnTask',
-  uri: 'http://altinn.no',
+  uri: 'http://altinn.no/process',
   prefix: 'altinn',
   xml: {
     tagAlias: 'lowerCase',

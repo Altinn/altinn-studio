@@ -1,0 +1,345 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Input.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Input component",
+  "description": "Schema that describes the layout configuration for an input component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Input"
+    },
+    "dataModelBindings": {
+      "title": "Data model bindings",
+      "description": "Data model bindings for component",
+      "type": "object",
+      "properties": {
+        "simpleBinding": {
+          "type": "string",
+          "title": "Simple binding",
+          "description": "Data model binding for components connection to a single field in the data model"
+        }
+      },
+      "required": ["simpleBinding"],
+      "additionalProperties": false
+    },
+    "required": {
+      "title": "Required",
+      "description": "Boolean or expression indicating if the component is required when filling in the form. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "readOnly": {
+      "title": "Read only",
+      "description": "Boolean or expression indicating if the component should be presented as read only. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Label",
+          "description": "The title/label text for the component"
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "The description text for the component"
+        },
+        "help": {
+          "type": "string",
+          "title": "Help text",
+          "description": "The help text for the component"
+        }
+      },
+      "required": ["title"],
+      "additionalProperties": true
+    },
+    "triggers": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/triggers"
+    },
+    "grid": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings"
+    },
+    "labelSettings": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/labelSettings"
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "formatting": {
+      "title": "Input formatting",
+      "description": "Set of options for formatting input fields.",
+      "type": "object",
+      "properties": {
+        "currency": {
+          "type": "string",
+          "title": "Language-sensitive number formatting based on currency",
+          "description": "Enables currency along with thousand and decimal separators to be language sensitive based on selected app language. They are configured in number property. Note: parts that already exist in number property are not overridden by this prop.",
+          "enum": [
+            "AED",
+            "AFN",
+            "ALL",
+            "AMD",
+            "ANG",
+            "AOA",
+            "ARS",
+            "AUD",
+            "AWG",
+            "AZN",
+            "BAM",
+            "BBD",
+            "BDT",
+            "BGN",
+            "BHD",
+            "BIF",
+            "BMD",
+            "BND",
+            "BOB",
+            "BOV",
+            "BRL",
+            "BSD",
+            "BTN",
+            "BWP",
+            "BYN",
+            "BZD",
+            "CAD",
+            "CDF",
+            "CHE",
+            "CHF",
+            "CHW",
+            "CLF",
+            "CLP",
+            "CNY",
+            "COP",
+            "COU",
+            "CRC",
+            "CUC",
+            "CUP",
+            "CVE",
+            "CZK",
+            "DJF",
+            "DKK",
+            "DOP",
+            "DZD",
+            "EGP",
+            "ERN",
+            "ETB",
+            "EUR",
+            "FJD",
+            "FKP",
+            "GBP",
+            "GEL",
+            "GHS",
+            "GIP",
+            "GMD",
+            "GNF",
+            "GTQ",
+            "GYD",
+            "HKD",
+            "HNL",
+            "HTG",
+            "HUF",
+            "IDR",
+            "ILS",
+            "INR",
+            "IQD",
+            "IRR",
+            "ISK",
+            "JMD",
+            "JOD",
+            "JPY",
+            "KES",
+            "KGS",
+            "KHR",
+            "KMF",
+            "KPW",
+            "KRW",
+            "KWD",
+            "KYD",
+            "KZT",
+            "LAK",
+            "LBP",
+            "LKR",
+            "LRD",
+            "LSL",
+            "LYD",
+            "MAD",
+            "MDL",
+            "MGA",
+            "MKD",
+            "MMK",
+            "MNT",
+            "MOP",
+            "MRU",
+            "MUR",
+            "MVR",
+            "MWK",
+            "MXN",
+            "MXV",
+            "MYR",
+            "MZN",
+            "NAD",
+            "NGN",
+            "NIO",
+            "NOK",
+            "NPR",
+            "NZD",
+            "OMR",
+            "PAB",
+            "PEN",
+            "PGK",
+            "PHP",
+            "PKR",
+            "PLN",
+            "PYG",
+            "QAR",
+            "RON",
+            "RSD",
+            "RUB",
+            "RWF",
+            "SAR",
+            "SBD",
+            "SCR",
+            "SDG",
+            "SEK",
+            "SGD",
+            "SHP",
+            "SLE",
+            "SLL",
+            "SOS",
+            "SRD",
+            "SSP",
+            "STN",
+            "SVC",
+            "SYP",
+            "SZL",
+            "THB",
+            "TJS",
+            "TMT",
+            "TND",
+            "TOP",
+            "TRY",
+            "TTD",
+            "TWD",
+            "TZS",
+            "UAH",
+            "UGX",
+            "USD",
+            "USN",
+            "UYI",
+            "UYU",
+            "UYW",
+            "UZS",
+            "VED",
+            "VES",
+            "VND",
+            "VUV",
+            "WST",
+            "XAF",
+            "XCD",
+            "XDR",
+            "XOF",
+            "XPF",
+            "XSU",
+            "XUA",
+            "YER",
+            "ZAR",
+            "ZMW",
+            "ZWL"
+          ]
+        },
+        "unit": {
+          "title": "Language-sensitive number formatting based on unit",
+          "type": "string",
+          "description": "Enables unit along with thousand and decimal separators to be language sensitive based on selected app language. They are configured in number property. Note: parts that already exist in number property are not overridden by this prop.",
+          "enum": [
+            "celsius",
+            "centimeter",
+            "day",
+            "degree",
+            "foot",
+            "gram",
+            "hectare",
+            "hour",
+            "inch",
+            "kilogram",
+            "kilometer",
+            "liter",
+            "meter",
+            "milliliter",
+            "millimeter",
+            "millisecond",
+            "minute",
+            "month",
+            "percent",
+            "second",
+            "week",
+            "year"
+          ]
+        },
+        "position": {
+          "type": "string",
+          "title": "Position of the currency/unit symbol (only when using currency or unit options)",
+          "description": "Display the unit as prefix or suffix. Default is prefix",
+          "enum": ["prefix", "suffix"]
+        },
+        "align": {
+          "type": "string",
+          "title": "Align input",
+          "description": "The alignment for Input field (eg. right aligning a series of numbers).",
+          "enum": ["left", "center", "right"]
+        }
+      }
+    },
+    "saveWhileTyping": {
+      "title": "Automatic saving while typing",
+      "description": "Boolean or number. True = feature on (default), false = feature off (saves on focus blur), number = timeout in milliseconds (400 by default)",
+      "default": true,
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+    "variant": {
+      "type": "string",
+      "title": "Input Variant",
+      "description": "An enum to choose if the inputfield it is a normal textfield or a searchbar",
+      "enum": ["text", "search"]
+    },
+    "autocomplete": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/autocomplete"
+    },
+    "maxLength": {
+      "title": "Maximum length",
+      "description": "Maximum length of input field",
+      "type": "number"
+    }
+  },
+  "required": ["id", "type", "dataModelBindings"]
+}

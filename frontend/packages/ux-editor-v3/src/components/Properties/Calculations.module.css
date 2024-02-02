@@ -1,0 +1,13 @@
+.calculations {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
