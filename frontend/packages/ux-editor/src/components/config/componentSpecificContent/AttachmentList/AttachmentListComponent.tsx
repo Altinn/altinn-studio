@@ -1,15 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Combobox, Switch } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useLayoutSetsQuery } from '../../../../hooks/queries/useLayoutSetsQuery'; //Why is this path different from useAppMetadataQuery?
+import { useLayoutSetsQuery } from '../../../../hooks/queries/useLayoutSetsQuery';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import { useTranslation } from 'react-i18next';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import classes from './AttachmentListComponent.module.css';
-import { useFormContext } from '../../../../containers/FormContext';
 
 export const AttachmentListComponent = ({
   component,
@@ -19,61 +18,55 @@ export const AttachmentListComponent = ({
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-
-  const {
-    // status: appMetadataStatus, // TODO: find out if this is needed (pending status)
-    data: appMetadata,
-    // error: appMetadataError, // TODO: find out if this is needed
-  } = useAppMetadataQuery(org, app);
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
   const { selectedLayoutSet } = useAppContext();
   const tasks: string[] = getTasks(layoutSets, selectedLayoutSet, onlyCurrentTask);
   const dataTypes: string[] = getDataTypes(appMetadata, tasks);
 
   const handleValueChanges = (updateDataTypes: string[]) => {
-    const componentHasSpecialVariants =
-      component.dataTypeIds.includes('include-attachments') ||
-      component.dataTypeIds.includes('include-all');
-    const updateHasBothSpecialVariants =
-      updateDataTypes.includes('include-attachments') && updateDataTypes.includes('include-all');
-    const updateHasSpecialVariants =
-      updateDataTypes.includes('include-attachments') || updateDataTypes.includes('include-all');
-
-    if (updateHasBothSpecialVariants) {
-      updateDataTypes = updateDataTypes.filter((dataType) => dataType !== component.dataTypeIds[0]);
-    } else if (componentHasSpecialVariants && updateDataTypes.length > 1) {
-      updateDataTypes = updateDataTypes.filter(
-        (dataType) => dataType !== 'include-all' && dataType !== 'include-attachments',
-      );
-    } else if (updateHasSpecialVariants) {
-      updateDataTypes = updateDataTypes.filter(
-        (dataType) => dataType === 'include-all' || dataType === 'include-attachments',
-      );
+    const last = updateDataTypes[updateDataTypes.length - 1];
+    switch (last) {
+      case 'include-all':
+        updateDataTypes = ['include-all'];
+        break;
+      case 'include-attachments':
+        updateDataTypes = [];
+        break;
+      default:
+        updateDataTypes = updateDataTypes.filter(
+          (dataType) => dataType !== 'include-all' && dataType !== 'include-attachments',
+        );
+        break;
     }
     handleComponentChange({ ...component, dataTypeIds: updateDataTypes });
   };
 
-  const checkForAvailableDataTypes = () => {
+  const getCurrentDataTypes = () => {
+    let value: string[];
     if (onlyCurrentTask) {
-      const filteredDataTypes = component.dataTypeIds.filter((dataType: string) =>
+      const currentDataTypes = component.dataTypeIds.filter((dataType: string) =>
         dataTypes.includes(dataType),
       );
-      return filteredDataTypes;
+      value = currentDataTypes;
+    } else {
+      value = component.dataTypeIds ?? [];
     }
-    return component.dataTypeIds;
+
+    return value.length === 0 ? ['include-attachments'] : value;
   };
 
-  //* TODO: Find out in designsystem if Combobox does have any sort/filter method
   return (
     <>
       <Switch onChange={() => setOnlyCurrentTask(!onlyCurrentTask)} size='small'>
         {t('ux_editor.component_properties.current_task')}
       </Switch>
+
       <Combobox
         multiple
         label={t('ux_editor.component_properties.select_attachments')}
         className={classes.comboboxLabel}
         size='small'
-        value={checkForAvailableDataTypes()}
+        value={getCurrentDataTypes()}
         onValueChange={handleValueChanges}
       >
         {dataTypes.map((dataType) => {
@@ -93,7 +86,7 @@ export const AttachmentListComponent = ({
 
 const getTasks = (layoutSets: LayoutSets, selectedLayoutSet: string, onlyCurrentTask: boolean) => {
   const currentTask = () =>
-    layoutSets.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks ?? [];
+    layoutSets?.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks ?? [];
 
   const sampleTasks = () => {
     const tasks = [];
@@ -137,9 +130,6 @@ const getDescription = (dataType: string) => {
 };
 
 /* TODO 31.01.23 */
-// Save the selected dataTypes in the component
-// Should maybe Include all (without PDF) be the default such as the config is in team apps?
-// Take a better look at the sorting - is it needed? Is it used other places with a utility?
 // Go over the code and simplify it if possible (Can I make the multiple combobox more generic?)
 // Add unit tests
-// Let be used in beta
+// Let be used in beta + v4
