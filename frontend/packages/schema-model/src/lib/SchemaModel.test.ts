@@ -97,6 +97,18 @@ describe('SchemaModel', () => {
     });
   });
 
+  describe('isField', () => {
+    it('Returns true if the pointer "node" is "objectKind" field', () => {
+      const result = schemaModel.isField(rootNodeMock.pointer);
+      expect(result).toBeTruthy();
+    });
+
+    it('Returns false if the pointer "node" is not "objectKind" field', () => {
+      const result = schemaModel.isField(referenceDefinitionMock.pointer);
+      expect(result).toBeFalsy();
+    });
+  });
+
   describe('getRootNode', () => {
     it('Returns the root node', () => {
       expect(schemaModel.getRootNode()).toEqual(rootNodeMock);
