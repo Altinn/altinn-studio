@@ -32,6 +32,7 @@
   padding: 1rem;
   min-width: fit-content;
   overflow-y: auto;
+  box-sizing: border-box;
   max-height: 100%;
 }
 

@@ -22,12 +22,14 @@ export const DevNavigationButtons = () => {
   }
 
   function isHidden(page: string) {
-    return hidden.includes(page);
+    return hidden.includes(page) || !orderWithHidden.includes(page);
   }
 
   function hiddenText(page: string) {
-    if (isHidden(page)) {
+    if (hidden.includes(page)) {
       return 'Denne siden er skjult for brukeren (via dynamikk)';
+    } else if (!orderWithHidden.includes(page)) {
+      return 'Denne siden er ikke med i siderekkefølgen';
     }
     return '';
   }
@@ -66,6 +68,8 @@ export const DevNavigationButtons = () => {
               key={page}
               className={isHidden(page) ? classes.hiddenPage : undefined}
               title={hiddenText(page)}
+              // TODO(DevTools): Navigate to hidden pages is not working
+              disabled={isHidden(page)}
               onClick={() => handleChange(page)}
               selected={currentPageId == page}
             >

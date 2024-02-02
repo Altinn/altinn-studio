@@ -27,7 +27,10 @@ export const NodeInspector = () => {
   }, [setSelected, currentPageKey]);
 
   return (
-    <SplitView direction='row'>
+    <SplitView
+      direction='row'
+      sizes={[300]}
+    >
       <div className={reusedClasses.container}>
         <NodeHierarchy
           nodes={currentPage?.children()}

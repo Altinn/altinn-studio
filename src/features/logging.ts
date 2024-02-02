@@ -65,11 +65,11 @@ export function parseErrorArgs(args: any[]): string {
 
 ['Error', 'Warn', 'Info'].forEach((level) => {
   const levelLower = level.toLowerCase() as 'error' | 'warn' | 'info';
-  for (const suffix of ['', 'Once']) {
+  for (const suffix of ['', 'Once'] as const) {
     window[`log${level}${suffix}`] =
       window[`log${level}${suffix}`] ??
       ((...args: any[]) => {
-        postLog(levelLower, args);
+        postLog(levelLower, args, suffix === 'Once');
       });
   }
 });

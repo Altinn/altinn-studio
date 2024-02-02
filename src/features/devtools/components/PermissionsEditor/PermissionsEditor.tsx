@@ -3,32 +3,25 @@ import React from 'react';
 import { Checkbox } from '@digdir/design-system-react';
 
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
-import { useLaxProcessData, useSetProcessData } from 'src/features/instance/ProcessContext';
+import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import type { IProcess, ITask } from 'src/types/shared';
 
 export const PermissionsEditor = () => {
-  // TODO: Fix this editor, as the process data is in a context _inside_ the DevTools context, so we cannot reach it
-
+  const instanceId = useLaxInstanceData()?.id;
   const { write, actions } = useLaxProcessData()?.currentTask || {};
-  const setProcessData = useSetProcessData();
-  const processData = useLaxProcessData();
 
   function handleChange(mutator: (obj: ITask) => ITask) {
-    if (!processData) {
-      return;
+    if (instanceId) {
+      window.queryClient.setQueryData<IProcess>(['fetchProcessState', instanceId], (_queryData) => {
+        const queryData = structuredClone(_queryData);
+        if (!queryData?.currentTask) {
+          return _queryData;
+        }
+        queryData.currentTask = mutator(queryData.currentTask);
+        return queryData;
+      });
     }
-    const newProcessData: IProcess = { ...processData };
-    if (processData?.currentTask) {
-      newProcessData.currentTask = {
-        ...processData?.currentTask,
-        ...mutator(processData?.currentTask),
-      };
-    }
-    setProcessData?.(newProcessData);
-
-    // TODO: Fix this
-    alert('TODO: Fix this editor. We should update the layout data in the layout query at this point');
-    // dispatch(FormLayoutActions.updateLayouts({}));
   }
 
   return (
@@ -38,7 +31,6 @@ export const PermissionsEditor = () => {
     >
       <Checkbox
         size='small'
-        disabled={!setProcessData}
         checked={Boolean(write)}
         onChange={(e) =>
           handleChange((obj) => {
@@ -52,7 +44,6 @@ export const PermissionsEditor = () => {
       </Checkbox>
       <Checkbox
         size='small'
-        disabled={!setProcessData}
         checked={Boolean(actions?.confirm)}
         onChange={(e) =>
           handleChange((obj) => {
@@ -66,7 +57,6 @@ export const PermissionsEditor = () => {
       </Checkbox>
       <Checkbox
         size='small'
-        disabled={!setProcessData}
         checked={Boolean(actions?.sign)}
         onChange={(e) =>
           handleChange((obj) => {
@@ -80,7 +70,6 @@ export const PermissionsEditor = () => {
       </Checkbox>
       <Checkbox
         size='small'
-        disabled={!setProcessData}
         checked={Boolean(actions?.reject)}
         onChange={(e) =>
           handleChange((obj) => {

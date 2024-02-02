@@ -34,8 +34,10 @@ export const DownloadXMLButton = () => {
           throw error;
         }
       });
-      // TODO: Refresh form data
-      // dispatch(FormDataActions.fetch());
+      window.location.reload();
+      // TODO(DevTools): Find a better way to reload the form data from server
+      // The following will cause a fetch, but the data is not updated ↙
+      // await window.queryClient.invalidateQueries(['fetchFormData']);
     }
   };
   return (

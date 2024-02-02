@@ -9,7 +9,8 @@ import { DevNavigationButtons } from 'src/features/devtools/components/DevNaviga
 import { DevToolsLogs } from 'src/features/devtools/components/DevToolsLogs/DevToolsLogs';
 import { DownloadXMLButton } from 'src/features/devtools/components/DownloadXMLButton/DownloadXMLButton';
 import { ExpressionPlayground } from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground';
-import { FeatureToggles } from 'src/features/devtools/components/FeatureToggles/FeatureToggles';
+// There are no beta features at this time
+// import { FeatureToggles } from 'src/features/devtools/components/FeatureToggles/FeatureToggles';
 import { LayoutInspector } from 'src/features/devtools/components/LayoutInspector/LayoutInspector';
 import { NodeInspector } from 'src/features/devtools/components/NodeInspector/NodeInspector';
 import { PDFPreviewButton } from 'src/features/devtools/components/PDFPreviewButton/PDFPreviewButton';
@@ -36,7 +37,7 @@ export const DevToolsControls = () => {
         <Tabs.Tab value={DevToolsTab.Layout}>{DevToolsTab.Layout}</Tabs.Tab>
         <Tabs.Tab value={DevToolsTab.Components}>{DevToolsTab.Components}</Tabs.Tab>
         <Tabs.Tab value={DevToolsTab.Expressions}>{DevToolsTab.Expressions}</Tabs.Tab>
-        <Tabs.Tab value={DevToolsTab.FeatureToggles}>{DevToolsTab.FeatureToggles}</Tabs.Tab>
+        {/* <Tabs.Tab value={DevToolsTab.FeatureToggles}>{DevToolsTab.FeatureToggles}</Tabs.Tab> */}
       </Tabs.List>
       <Tabs.Content value={DevToolsTab.General}>
         <div className={classes.page}>
@@ -62,9 +63,11 @@ export const DevToolsControls = () => {
       <Tabs.Content value={DevToolsTab.Expressions}>
         <ExpressionPlayground />
       </Tabs.Content>
-      <Tabs.Content value={DevToolsTab.FeatureToggles}>
-        <FeatureToggles />
-      </Tabs.Content>
+      {
+        // <Tabs.Content value={DevToolsTab.FeatureToggles}>
+        //   <FeatureToggles />
+        // </Tabs.Content>
+      }
     </Tabs>
   );
 };

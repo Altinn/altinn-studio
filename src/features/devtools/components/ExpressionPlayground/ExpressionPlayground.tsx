@@ -143,7 +143,7 @@ export const ExpressionPlayground = () => {
       >
         <SplitView direction='column'>
           <textarea
-            className={cn(classes.textbox, classes.input)}
+            className={classes.textbox}
             value={input}
             onChange={(e) => setExpression(e.target.value)}
             placeholder={'Skriv inn et dynamisk uttrykk...\nEksempel: ["equals", ["component", "firstName"], "Ola"]'}

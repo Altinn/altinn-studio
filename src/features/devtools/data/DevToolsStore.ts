@@ -39,7 +39,7 @@ export const DevToolsStore = createStore<Store>((set) => ({
       set((state) => ({ exprPlayground: { ...state.exprPlayground, forPage, forComponentId } })),
     layoutInspectorSet: (selectedComponentId: string | undefined) => set({ layoutInspector: { selectedComponentId } }),
     nodeInspectorSet: (selectedNodeId: string | undefined) => set({ nodeInspector: { selectedNodeId } }),
-    postLogs: (logs: IDevToolsLog[]) => set({ logs }),
+    postLogs: (newLogs: IDevToolsLog[]) => set(({ logs }) => ({ logs: [...logs, ...newLogs] })),
     logsClear: () => set({ logs: [] }),
   },
 }));

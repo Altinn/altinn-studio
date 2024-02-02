@@ -10,10 +10,11 @@ import { SplitView } from 'src/features/devtools/components/SplitView/SplitView'
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useLayouts, useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
 import { useNodes } from 'src/utils/layout/NodesContext';
+import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 
 export const LayoutInspector = () => {
   const selectedComponent = useDevToolsStore((state) => state.layoutInspector.selectedComponentId);
@@ -22,6 +23,7 @@ export const LayoutInspector = () => {
   const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
   const currentView = useCurrentView();
   const layouts = useLayouts();
+  const currentLayoutSetId = useLayoutSetId();
   const [componentProperties, setComponentProperties] = useState<string | null>(null);
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
   const [error, setError] = useState<boolean>(false);
@@ -31,7 +33,9 @@ export const LayoutInspector = () => {
   useEffect(() => {
     if (textAreaRef.current) {
       textAreaRef.current.style.height = 'auto';
-      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+      const scrollBarHeight = textAreaRef.current.offsetHeight - textAreaRef.current.clientHeight;
+      const scrollHeight = textAreaRef.current.scrollHeight;
+      textAreaRef.current.style.height = `${scrollHeight + scrollBarHeight}px`;
     }
   }, [componentProperties]);
 
@@ -60,18 +64,18 @@ export const LayoutInspector = () => {
     if (selectedComponent) {
       try {
         const updatedComponent = JSON.parse(componentProperties ?? '');
-        const _updatedLayout = currentLayout?.map((component) => {
-          if (component.id === selectedComponent) {
-            return updatedComponent;
-          } else {
-            return component;
-          }
-        });
 
         if (currentView) {
-          // TODO: Fix this
-          alert('TODO: Update layout in tanstack query store');
-          // dispatch(FormLayoutActions.updateLayouts({ [currentView]: updatedLayout }));
+          window.queryClient.setQueryData<LayoutContextValue>(['formLayouts', currentLayoutSetId], (_queryData) => {
+            const queryData = structuredClone(_queryData);
+            if (!queryData?.layouts?.[currentView]) {
+              return _queryData;
+            }
+            queryData.layouts[currentView] = queryData.layouts[currentView]?.map((component) =>
+              component.id === selectedComponent ? updatedComponent : component,
+            );
+            return queryData;
+          });
         }
 
         setPropertiesHaveChanged(false);

@@ -59,15 +59,17 @@
 
 .tabList {
   overflow-x: auto;
+  flex-shrink: 0;
 }
 
-.tabs [class^='TabContent'] {
+.tabs [class*='tabcontent'] {
   min-height: 0;
   flex: 1;
   padding: 0;
 }
 
 .page {
+  box-sizing: border-box;
   overflow-y: auto;
   max-height: 100%;
   display: grid;
