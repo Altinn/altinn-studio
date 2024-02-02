@@ -15,6 +15,8 @@ import { container1IdMock, externalLayoutsMock, layoutMock } from '../../testing
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
+import type { FormContainer } from '../../types/FormContainer';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const user = userEvent.setup();
 
@@ -22,6 +24,28 @@ const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
+const accordionContainer: FormContainer = {
+  id: 'accordionContainerId',
+  itemType: 'CONTAINER',
+  type: ComponentType.Accordion,
+  pageIndex: 1,
+  propertyPath: 'definitions/accordionComponent',
+};
+const accordionGroupContainer: FormContainer = {
+  id: 'accordionGroupContainerId',
+  itemType: 'CONTAINER',
+  type: ComponentType.AccordionGroup,
+  pageIndex: 1,
+  propertyPath: 'definitions/accordionGroupComponent',
+};
+const buttonGroupContainer: FormContainer = {
+  id: 'buttonGroupContainerId',
+  itemType: 'CONTAINER',
+  type: ComponentType.ButtonGroup,
+  pageIndex: 1,
+  propertyPath: 'definitions/buttonGroupComponent',
+};
+const nonEditableContainers = [accordionContainer, accordionGroupContainer, buttonGroupContainer];
 
 const handleContainerUpdateMock = jest.fn();
 
@@ -35,6 +59,16 @@ describe('EditFormContainer', () => {
       screen.getByText(textMock('ux_editor.modal_properties_group_change_id')),
     ).toBeInTheDocument();
   });
+
+  it.each(nonEditableContainers)(
+    'should show info message when container is not group',
+    async (container) => {
+      await render({ container });
+      expect(
+        screen.getByText(textMock('ux_editor.container_not_editable_info')),
+      ).toBeInTheDocument();
+    },
+  );
 
   it('should update form when editing field', async () => {
     await render();
