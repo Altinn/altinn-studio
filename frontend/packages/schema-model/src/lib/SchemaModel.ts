@@ -443,10 +443,6 @@ export class SchemaModel {
       throw new Error('It is not possible to delete the root node.');
     }
 
-    if (this.isDefinitionInUse(pointer) && !this.isField(pointer)) {
-      throw new Error('Cannot delete a definition that is in use.');
-    }
-
     return this.deleteNodeWithChildrenRecursively(pointer);
   }
 
@@ -462,11 +458,6 @@ export class SchemaModel {
     if (!isDefinition(node)) return false;
 
     return this.hasReferringNodes(pointer) || this.areDefinitionParentsInUse(pointer);
-  }
-
-  public isField(pointer): boolean {
-    const node = this.getNode(pointer);
-    return isField(node);
   }
 
   public hasReferringNodes(pointer: string): boolean {
