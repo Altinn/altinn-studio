@@ -13,6 +13,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import * as testids from '../../../../../../testing/testids';
+import { toast } from 'react-toastify';
 
 const initialModalState = {
   header: '',
@@ -188,12 +189,9 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
 
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
-      setModalState({
-        ...initialModalState,
-        header: t('sync_header.sharing_changes_completed'),
-        descriptionText: [t('sync_header.sharing_changes_completed_submessage')],
-        shouldShowDoneIcon: true,
-      });
+      setModalState(initialModalState);
+      setSyncModalAnchorEl(null);
+      toast.success(t('sync_header.sharing_changes_completed'));
     } else if (
       result.repositoryStatus === 'MergeConflict' ||
       result.repositoryStatus === 'CheckoutConflict'
