@@ -1,6 +1,8 @@
 import React from 'react';
 import type { FormComponent } from '../../../types/FormComponent';
 import { StudioTextField } from '@studio/components/src/components/StudioTextField/StudioTextField';
+import { KeyVerticalIcon } from '@navikt/aksel-icons';
+import classes from './EditComponentId.module.css';
 
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponent) => void;
@@ -24,7 +26,6 @@ export const EditComponentId = ({
   // - helpText
   // - Validation/Error handling
   // - onBlur improvement
-  // - show key icon inside textfield
   // - Move "ID: " to text resource
   // - Add Test for all components
 
@@ -38,10 +39,12 @@ export const EditComponentId = ({
           style: { paddingLeft: 0, paddingRight: 0 },
         }}
         inputProps={{
+          prefix: <KeyVerticalIcon className={classes.prefixKeyIcon} />,
           icon: undefined,
           value: component.id,
           onChange: (e) => handleIdChange(e.target.value),
           label: 'ID',
+          size: 'small',
         }}
       />
     </div>

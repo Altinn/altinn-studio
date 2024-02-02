@@ -1,11 +1,4 @@
-.componentId {
+.prefixKeyIcon {
   color: var(--fds-semantic-text-neutral-default);
-}
-
-.KeyVerticalIcon {
-  color: var(--fds-semantic-text-neutral-default);
-}
-
-.pencilIcon {
-  margin-left: auto;
+  font-size: 18px;
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { type TextfieldProps, Textfield } from '@digdir/design-system-react';
-import classes from './StudioIconTextfield.module.css';
 
 export type StudioIconTextfieldProps = {
   icon: React.ReactNode;
@@ -8,8 +7,7 @@ export type StudioIconTextfieldProps = {
 
 export const StudioIconTextfield = ({ icon, ...rest }: StudioIconTextfieldProps) => {
   return (
-    <div className={classes.container}>
-      <div>{icon}</div>
+    <div>
       <Textfield {...rest} error={undefined} />
     </div>
   );
