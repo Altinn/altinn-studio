@@ -1,5 +1,10 @@
-import type { NodePosition, UiSchemaNode, UiSchemaNodes } from '../types';
-import { CombinationKind, FieldType } from '../types';
+import {
+  CombinationKind,
+  FieldType,
+  type NodePosition,
+  type UiSchemaNode,
+  type UiSchemaNodes,
+} from '../types';
 import type { FieldNode } from '../types/FieldNode';
 import type { CombinationNode } from '../types/CombinationNode';
 import type { NodeMap } from '../types/NodeMap';
@@ -417,6 +422,7 @@ export class SchemaModel {
         referringNodes.push(node);
       }
     }
+
     return referringNodes;
   }
 
@@ -432,9 +438,10 @@ export class SchemaModel {
   }
 
   public deleteNode(pointer: string): SchemaModel {
-    if (pointer === ROOT_POINTER) throw new Error('It is not possible to delete the root node.');
-    if (this.isDefinitionInUse(pointer))
-      throw new Error('Cannot delete a definition that is in use.');
+    if (pointer === ROOT_POINTER) {
+      throw new Error('It is not possible to delete the root node.');
+    }
+
     return this.deleteNodeWithChildrenRecursively(pointer);
   }
 
@@ -448,6 +455,7 @@ export class SchemaModel {
   private isDefinitionInUse(pointer: string): boolean {
     const node = this.getNode(pointer);
     if (!isDefinition(node)) return false;
+
     return this.hasReferringNodes(pointer) || this.areDefinitionParentsInUse(pointer);
   }
 
@@ -456,7 +464,7 @@ export class SchemaModel {
     return !!referringNodes.length;
   }
 
-  private areDefinitionParentsInUse(pointer: string): boolean {
+  public areDefinitionParentsInUse(pointer: string): boolean {
     const parent = this.getParentNode(pointer);
     return this.isDefinitionInUse(parent.pointer);
   }
