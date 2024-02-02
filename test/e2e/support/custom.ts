@@ -459,6 +459,7 @@ Cypress.Commands.add('getSummary', (label) => {
   cy.get(`[data-testid^=summary-]:has(span:contains(${label}))`);
 });
 
+const DEFAULT_COMMAND_TIMEOUT = Cypress.config().defaultCommandTimeout;
 Cypress.Commands.add('testPdf', (callback, returnToForm = false) => {
   cy.log('Testing PDF');
 
@@ -489,9 +490,17 @@ Cypress.Commands.add('testPdf', (callback, returnToForm = false) => {
   // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
   cy.get('#pdfView > #readyForPrint')
     .should('exist')
-    .then({ timeout: 0 }, () => {
+    .then(() => {
+      Cypress.config('defaultCommandTimeout', 0);
+
+      // Verify that generic elements that should be hidden are not present
+      cy.findAllByRole('button').should('not.exist');
       // Run tests from callback
       callback();
+
+      cy.then(() => {
+        Cypress.config('defaultCommandTimeout', DEFAULT_COMMAND_TIMEOUT);
+      });
     });
 
   if (returnToForm) {

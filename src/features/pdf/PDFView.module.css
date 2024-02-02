@@ -1,3 +1,13 @@
+.pdf-wrapper {
+  /* Hide interactive elements from PDF
+   * This makes testing easier as cypress does not support rendering in @media print mode
+   * @see https://github.com/cypress-io/cypress/issues/790
+   */
+  & button,
+  & [role='button'] {
+    display: none !important;
+  }
+}
 .pdf-wrapper h1 {
   margin-top: 0;
 }

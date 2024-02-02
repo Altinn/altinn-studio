@@ -1,3 +1,9 @@
 .helpTextContainer {
   padding: 2px 4px;
 }
+
+@media print {
+  .helpTextContainer {
+    display: none;
+  }
+}
