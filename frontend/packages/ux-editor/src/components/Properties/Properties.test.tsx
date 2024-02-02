@@ -1,12 +1,12 @@
 import React from 'react';
 import { Properties } from './Properties';
-import { render as rtlRender, act, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { FormContext } from '../../containers/FormContext';
 import userEvent from '@testing-library/user-event';
 import { formContextProviderMock } from '../../testing/formContextMocks';
-
-const user = userEvent.setup();
+import { component1Mock, component1IdMock } from '../../testing/layoutMock';
+import { renderWithProviders } from '../../testing/mocks';
 
 // Test data:
 const contentText = 'Innhold';
@@ -39,15 +39,44 @@ jest.mock('./Calculations', () => ({
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('Properties', () => {
+  describe('Default config', () => {
+    it('hides the properties header when the form is undefined', () => {
+      renderProperties({ form: undefined });
+
+      const heading = screen.queryByRole('heading', { level: 2 });
+      expect(heading).not.toBeInTheDocument();
+    });
+
+    it('saves the component when changes are made in the properties header', async () => {
+      const user = userEvent.setup();
+      renderProperties({ form: component1Mock, formId: component1IdMock });
+
+      const heading = screen.getByRole('heading', {
+        name: component1Mock.type,
+        level: 2,
+      });
+      expect(heading).toBeInTheDocument();
+
+      const textbox = screen.getByRole('textbox', {
+        name: 'ux_editor.modal_properties_component_change_id',
+      });
+
+      await act(() => user.type(textbox, '2'));
+      expect(formContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
+      expect(formContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Content', () => {
     it('Closes content on load', () => {
-      render();
+      renderProperties();
       const button = screen.queryByRole('button', { name: contentText });
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Toggles content when clicked', async () => {
-      render();
+      const user = userEvent.setup();
+      renderProperties();
       const button = screen.queryByRole('button', { name: contentText });
       await act(() => user.click(button));
       expect(button).toHaveAttribute('aria-expanded', 'true');
@@ -56,7 +85,7 @@ describe('Properties', () => {
     });
 
     it('Opens content when a component is selected', async () => {
-      const { rerender } = render();
+      const { rerender } = renderProperties();
       rerender(getComponent({ formId: 'test' }));
       const button = screen.queryByRole('button', { name: contentText });
       await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
@@ -65,13 +94,14 @@ describe('Properties', () => {
 
   describe('Dynamics', () => {
     it('Closes dynamics on load', () => {
-      render();
+      renderProperties();
       const button = screen.queryByRole('button', { name: dynamicsText });
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Toggles dynamics when clicked', async () => {
-      render();
+      const user = userEvent.setup();
+      renderProperties();
       const button = screen.queryByRole('button', { name: dynamicsText });
       await act(() => user.click(button));
       expect(button).toHaveAttribute('aria-expanded', 'true');
@@ -80,7 +110,8 @@ describe('Properties', () => {
     });
 
     it('Shows new dynamics by default', async () => {
-      const { rerender } = render();
+      const user = userEvent.setup();
+      const { rerender } = renderProperties();
       rerender(getComponent({ formId: 'test' }));
       const dynamicsButton = screen.queryByRole('button', { name: dynamicsText });
       await act(() => user.click(dynamicsButton));
@@ -91,13 +122,14 @@ describe('Properties', () => {
 
   describe('Calculations', () => {
     it('Closes calculations on load', () => {
-      render();
+      renderProperties();
       const button = screen.queryByRole('button', { name: calculationsText });
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Toggles calculations when clicked', async () => {
-      render();
+      const user = userEvent.setup();
+      renderProperties();
       const button = screen.queryByRole('button', { name: calculationsText });
       await act(() => user.click(button));
       expect(button).toHaveAttribute('aria-expanded', 'true');
@@ -108,7 +140,7 @@ describe('Properties', () => {
 
   it('Renders accordion', () => {
     const formIdMock = 'test-id';
-    render({ formId: formIdMock });
+    renderProperties({ formId: formIdMock });
     expect(screen.getByText(contentText)).toBeInTheDocument();
     expect(screen.getByText(dynamicsText)).toBeInTheDocument();
     expect(screen.getByText(calculationsText)).toBeInTheDocument();
@@ -129,5 +161,6 @@ const getComponent = (formContextProps: Partial<FormContext> = {}) => (
   </FormContext.Provider>
 );
 
-const render = (formContextProps: Partial<FormContext> = {}) =>
-  rtlRender(getComponent(formContextProps));
+const renderProperties = (formContextProps: Partial<FormContext> = {}) =>
+  renderWithProviders(getComponent(formContextProps));
+// render(getComponent(formContextProps));
