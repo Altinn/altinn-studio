@@ -6,7 +6,6 @@ import {
   combinationNodeWithMultipleChildrenMock,
   defNodeMock,
   defNodeWithChildrenChildMock,
-  defNodeWithChildrenGrandchildMock,
   defNodeWithChildrenMock,
   enumNodeMock,
   nodeWithSameNameAsStringNodeMock,
