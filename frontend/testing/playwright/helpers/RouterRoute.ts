@@ -35,18 +35,18 @@ export class RouterRoute extends StudioEnvironment {
     super(environment);
   }
 
-  public getRoute(route: SupportedRoutes): string {
+  public getRoute(route: SupportedRoutes, useTtdAsOrg: boolean = false): string {
     const routerRoute: string = routerRoutes[route];
 
     if (this.includesOrgAndApp(routerRoute)) {
-      return this.replaceOrgAndMap(routerRoute);
+      return this.replaceOrgAndMap(routerRoute, useTtdAsOrg);
     }
 
     return routerRoute;
   }
 
-  private replaceOrgAndMap(route: string): string {
-    return route.replace('{{org}}', this.org).replace('{{app}}', this.app);
+  private replaceOrgAndMap(route: string, useTtdAsOrg: boolean = false): string {
+    return route.replace('{{org}}', useTtdAsOrg ? 'ttd' : this.org).replace('{{app}}', this.app);
   }
 
   private includesOrgAndApp(route: string): boolean {
