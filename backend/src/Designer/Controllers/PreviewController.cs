@@ -73,6 +73,24 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Endpoint to fetch the cshtml to render app-frontend specific to what is defined in the app-repo
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The cshtml modified to ignore this route path added in the iframe.</returns>
+        [HttpGet]
+        [Route("/app-specific-preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
+        public async Task<IActionResult> AppFrontendSpecificPreview(string org, string app)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            var appFrontendCshtml = await altinnAppGitRepository.GetAppFrontendCshtml();
+            var modifiedContent = ReplaceIndexToFetchCorrectOrgAppInCshtml(appFrontendCshtml);
+
+            return Content(modifiedContent, "text/html");
+        }
+
+        /// <summary>
         /// Action for getting local app-images
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -801,7 +819,8 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (NotFoundException)
             {
-                return NoContent();
+                // Return empty list since app-frontend don't handle a null result
+                return Ok(new List<string>());
             }
         }
 
@@ -829,7 +848,8 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (NotFoundException)
             {
-                return NoContent();
+                // Return empty list since app-frontend don't handle a null result
+                return Ok(new List<string>());
             }
         }
 
@@ -874,6 +894,16 @@ namespace Altinn.Studio.Designer.Controllers
             string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
 
             return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
+        }
+
+        private string ReplaceIndexToFetchCorrectOrgAppInCshtml(string originalContent)
+        {
+            // Replace the array indexes in the script in the cshtml that retrieves the org and app name since
+            // /app-specific-preview/ is added when fetching the cshtml file from endpoint instead of designer wwwroot
+            string modifiedContent = originalContent.Replace("window.org = appId[1];", "window.org = appId[2];");
+            modifiedContent = modifiedContent.Replace("window.app = appId[2];", "window.app = appId[3];");
+
+            return modifiedContent;
         }
     }
 }

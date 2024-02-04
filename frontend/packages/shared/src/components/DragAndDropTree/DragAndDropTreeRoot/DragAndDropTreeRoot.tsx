@@ -1,6 +1,7 @@
-import React, { ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
+import React, { useState } from 'react';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
-import { TreeView } from 'app-shared/components/TreeView';
+import { StudioTreeView } from '@studio/components';
 import { DragAndDropTreeRootContext } from './DragAndDropTreeRootContext';
 import { EmptyList } from 'app-shared/components/DragAndDropTree/EmptyList';
 
@@ -22,13 +23,13 @@ export const DragAndDropTreeRoot = ({
   return (
     <DragAndDropTreeRootContext.Provider value={{ hoveredNodeParent, setHoveredNodeParent }}>
       <DragAndDrop.List>
-        <TreeView.Root
+        <StudioTreeView.Root
           onSelect={onSelect}
           onMouseOut={() => setHoveredNodeParent(null)}
           selectedId={selectedId}
         >
           {children || <EmptyList>{emptyMessage}</EmptyList>}
-        </TreeView.Root>
+        </StudioTreeView.Root>
       </DragAndDrop.List>
     </DragAndDropTreeRootContext.Provider>
   );

@@ -1,4 +1,4 @@
-﻿import { Page } from '@playwright/test';
+﻿import type { Page } from '@playwright/test';
 import { BasePage } from '../helpers/BasePage';
 
 // Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.
@@ -13,6 +13,10 @@ export class LoginPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
+  }
+
+  public async verifyLoginPage(): Promise<void> {
+    await this.page.waitForURL(this.getRoute('altinnLoginPage'));
   }
 
   public async goToAltinnLoginPage(): Promise<void> {
@@ -36,7 +40,11 @@ export class LoginPage extends BasePage {
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {
-    return this.page.waitForURL(this.getRoute('dashboard'));
+    await this.page.waitForURL(this.getRoute('dashboard'));
+  }
+
+  public async checkThatErrorMessageIsVisible(): Promise<void> {
+    await this.page.getByText(/ugyldig brukernavn eller passord./i).isVisible();
   }
 
   public async addSessionToSharableStorage() {

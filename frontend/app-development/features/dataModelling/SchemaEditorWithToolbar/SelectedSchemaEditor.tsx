@@ -6,13 +6,15 @@ import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useOnUnmount } from 'app-shared/hooks/useOnUnmount';
-import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import type { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { mergeJsonAndXsdData } from 'app-development/utils/metadataUtils';
+import { extractFilename, removeSchemaExtension } from 'app-shared/utils/filenameUtils';
+
 
 export interface SelectedSchemaEditorProps {
   modelPath: string;
@@ -93,5 +95,16 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
     if (datamodelExists) saveFunction();
   });
 
-  return <SchemaEditorApp jsonSchema={model} save={saveSchema} />;
+  return (
+    <SchemaEditorApp
+      jsonSchema={model}
+      save={saveSchema}
+      name={extractModelNameFromPath(modelPath)}
+    />
+  );
+};
+
+const extractModelNameFromPath = (path: string): string => {
+  const filename = extractFilename(path);
+  return removeSchemaExtension(filename);
 };

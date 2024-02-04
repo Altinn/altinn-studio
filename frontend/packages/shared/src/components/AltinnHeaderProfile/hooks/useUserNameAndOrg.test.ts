@@ -1,7 +1,7 @@
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { useUserNameAndOrg } from './useUserNameAndOrg';
-import { User } from 'app-shared/types/Repository';
-import { Repository } from 'app-shared/types/Repository';
+import type { User } from 'app-shared/types/Repository';
+import type { Repository } from 'app-shared/types/Repository';
 
 const mockOrg: string = 'org';
 

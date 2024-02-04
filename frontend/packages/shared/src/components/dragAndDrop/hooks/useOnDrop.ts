@@ -1,6 +1,6 @@
 import { DragAndDropRootContext } from 'app-shared/components/dragAndDrop/DragAndDropProvider';
 import { useContext } from 'react';
-import { HandleDrop } from 'app-shared/types/dndTypes';
+import type { HandleDrop } from 'app-shared/types/dndTypes';
 
 export function useOnDrop<T>(): HandleDrop<T> {
   const context = useContext(DragAndDropRootContext);

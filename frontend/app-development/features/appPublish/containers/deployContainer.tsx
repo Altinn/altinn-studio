@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import classes from './deployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
-import { AppDeploymentComponent, ImageOption } from '../components/appDeploymentComponent';
+import type { ImageOption } from '../components/appDeploymentComponent';
+import { AppDeploymentComponent } from '../components/appDeploymentComponent';
 import { BuildResult } from 'app-shared/types/Build';
 import { useAppSelector } from '../../../hooks';
 import {
@@ -11,12 +12,12 @@ import {
   useAppReleasesQuery,
   useAppDeploymentsQuery,
 } from '../../../hooks/queries';
-import {
+import type {
   ICreateAppDeploymentEnvObject,
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
-import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const DeployContainerComponent = () => {

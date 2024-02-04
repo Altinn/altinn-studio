@@ -34,11 +34,11 @@ type ResourceRadioGroupProps = {
    */
   onFocus: () => void;
   /**
-   * Function to be executed on blur
+   * Function to be executed on change
    * @param selected the value selected
    * @returns void
    */
-  onBlur: (selected: string) => void;
+  onChange: (selected: string) => void;
   /**
    * The error text to be shown
    */
@@ -56,7 +56,7 @@ type ResourceRadioGroupProps = {
  * @property {{value: string, lable: string}[]}[options] - List of the options in the dropdown
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {boolean}[hasError] - If the dropdown has an error
- * @property {function}[onBlur] - Function to be executed on blur
+ * @property {function}[onChange] - Function to be executed on change
  * @property {string}[errorText] - The error text to be shown
  *
  * @returns {React.JSX.Element} - The rendered component
@@ -69,14 +69,10 @@ export const ResourceRadioGroup = ({
   options,
   hasError = false,
   onFocus,
-  onBlur,
+  onChange,
   errorText,
 }: ResourceRadioGroupProps): React.JSX.Element => {
   const [selected, setSelected] = useState(value);
-
-  const handleChangeInput = (val: string) => {
-    setSelected(val);
-  };
 
   const error = hasError && (selected === null || selected === undefined);
 
@@ -86,13 +82,15 @@ export const ResourceRadioGroup = ({
       <div className={classes.inputWrapper}>
         <Radio.Group
           size='small'
-          onChange={handleChangeInput}
+          onChange={(val: string) => {
+            setSelected(val);
+            onChange(val);
+          }}
           value={selected}
           legend={label}
           description={description}
           onFocus={onFocus}
           error={error ? <InputFieldErrorMessage message={errorText} /> : undefined}
-          onBlur={() => onBlur(selected)}
         >
           {options.map((opt) => {
             return (

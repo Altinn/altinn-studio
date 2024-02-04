@@ -3,7 +3,7 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon } from '@navikt/aksel-icons';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
-import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 
 export const topBarMenuItem: TopBarMenuItem[] = [
   {

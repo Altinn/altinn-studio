@@ -5,13 +5,15 @@ import {
   screen,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
-import { PolicyTab, PolicyTabProps } from './PolicyTab';
+import type { PolicyTabProps } from './PolicyTab';
+import { PolicyTab } from './PolicyTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
+import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
 import userEvent from '@testing-library/user-event';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import { mockPolicy } from '../../../mocks/policyMock';

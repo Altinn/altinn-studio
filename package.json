@@ -25,7 +25,7 @@
     "@redux-saga/symbols": "1.1.3",
     "@svgr/webpack": "8.1.0",
     "@swc/core": "1.3.104",
-    "@swc/jest": "0.2.30",
+    "@swc/jest": "0.2.31",
     "@testing-library/dom": "9.3.4",
     "@testing-library/jest-dom": "6.2.0",
     "@testing-library/react": "14.1.2",
@@ -89,7 +89,9 @@
     "build": "yarn workspaces foreach -A -p run build",
     "lint": "eslint \"frontend/**/*.ts*\"",
     "lint:fix": "yarn run lint --fix",
-    "setup": "husky install && node development/setup.js",
+    "codestyle:check": "prettier frontend --check",
+    "codestyle:fix": "prettier frontend --write",
+    "setup": "husky install && node development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "start-app-development": "yarn workspace app-development start",
     "start-app-preview": "yarn workspace app-preview start",
@@ -101,7 +103,9 @@
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
     "typecheck": "yarn workspaces foreach -A run typecheck",
-    "playwright:test:all": "yarn workspace playwright-studio test:all"
+    "playwright:test:all": "yarn workspace playwright-studio test:all",
+    "playwright:test:ui": "yarn workspace playwright-studio test:ui",
+    "git:ignore-revs": "git config blame.ignoreRevsFile .git-blame-ignore-revs"
   },
   "syncpack": {
     "semverRange": ""
@@ -122,6 +126,7 @@
     "frontend/packages/shared",
     "frontend/packages/text-editor",
     "frontend/packages/ux-editor",
+    "frontend/packages/ux-editor-v3",
     "frontend/packages/process-editor",
     "frontend/packages/policy-editor",
     "frontend/libs/**"

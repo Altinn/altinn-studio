@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
-import { useText } from '../../../../ux-editor/src/hooks';
-import { ButtonProps } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
+import type { ButtonProps } from '@digdir/design-system-react';
 import classes from './InputActionWrapper.module.css';
 import cn from 'classnames';
 import { StudioButton } from '@studio/components';
@@ -37,7 +37,7 @@ export const InputActionWrapper = ({
   onSaveClick,
   ...rest
 }: InputActionWrapperProps): JSX.Element => {
-  const t = useText();
+  const { t } = useTranslation();
   const defaultActions = actionGroupMap[mode || 'standBy'];
   const [actions, setActions] = useState<AvailableAction[]>(defaultActions);
 

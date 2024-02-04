@@ -1,5 +1,6 @@
-import { APIRequestContext, APIResponse } from '@playwright/test';
-import { Environment, StudioEnvironment } from './StudioEnvironment';
+import type { APIRequestContext, APIResponse } from '@playwright/test';
+import type { Environment } from './StudioEnvironment';
+import { StudioEnvironment } from './StudioEnvironment';
 import type { Cookie, StorageState } from '../types/StorageState';
 
 export class DesignerApi extends StudioEnvironment {
@@ -10,10 +11,11 @@ export class DesignerApi extends StudioEnvironment {
   public async createApp(
     request: APIRequestContext,
     storageState: StorageState,
+    org = this.org,
   ): Promise<APIResponse> {
     const xsrfToken: string = this.getXsrfTokenFromStorageState(storageState);
     const response = await request.post(
-      `/designer/api/repos/create-app?org=${this.org}&repository=${this.app}&datamodellingPreference=1`,
+      `/designer/api/repos/create-app?org=${org}&repository=${this.app}&datamodellingPreference=1`,
       {
         // The following header is needed to be able to do API requestes
         headers: {

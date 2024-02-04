@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MakeCopyModal } from './MakeCopyModal';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const user = userEvent.setup();

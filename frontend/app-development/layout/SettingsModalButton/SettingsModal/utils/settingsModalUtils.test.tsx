@@ -1,8 +1,8 @@
 import React from 'react';
-import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
+import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
 import { createNavigationTab } from './index';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
-import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 
 const mockTabId1: SettingsModalTab = 'about';
 const mockTabId2: SettingsModalTab = 'policy';

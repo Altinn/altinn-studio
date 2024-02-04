@@ -6,11 +6,13 @@ import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './NumberRestrictions.module.css';
 import { ErrorMessage, LegacyTextField, Switch, Label } from '@digdir/design-system-react';
+import type {
+  NumberRestrictionsReducerAction,
+  NumberRestrictionsReducerState,
+} from './NumberRestrictionsReducer';
 import {
   numberRestrictionsReducer,
-  NumberRestrictionsReducerAction,
   NumberRestrictionsReducerActionType,
-  NumberRestrictionsReducerState,
 } from './NumberRestrictionsReducer';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
 import { valueExists } from '@altinn/schema-editor/utils/value';

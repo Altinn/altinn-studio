@@ -1,4 +1,5 @@
-import React, { SVGProps } from 'react';
+import type { SVGProps } from 'react';
+import React from 'react';
 
 export const GiteaIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg viewBox='0 0 640 640' x='0px' y='0px' {...props}>

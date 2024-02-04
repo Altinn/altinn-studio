@@ -1,0 +1,19 @@
+.subExpressionTop {
+  display: flex;
+  justify-content: space-between;
+}
+
+.subExpression {
+  display: flex;
+  flex-direction: column;
+  background-color: #e9eaec;
+  padding: 1rem;
+  gap: 0.5rem;
+  border: 1px solid #d1d1d1;
+  border-radius: 5px;
+}
+
+.expressionFunction {
+  text-align: center;
+  font-weight: bold;
+}

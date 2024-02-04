@@ -1,7 +1,7 @@
 import type { DropTargetMonitor } from 'react-dnd';
 import type { DndItem, ExistingDndItem, ItemPosition } from 'app-shared/types/dndTypes';
 import { DragCursorPosition } from 'app-shared/types/dndTypes';
-import { RefObject } from 'react';
+import type { RefObject } from 'react';
 import { areObjectsEqual } from 'app-shared/utils/objectUtils';
 
 /**
@@ -23,7 +23,7 @@ export const getDragCursorPosition = <T>(
   dragItem: DndItem<T>,
   dropItem: ExistingDndItem,
   dropRef: RefObject<HTMLDivElement>,
-  disabledDrop?: boolean
+  disabledDrop?: boolean,
 ): DragCursorPosition => {
   if (!monitor) return DragCursorPosition.Idle;
 
@@ -60,14 +60,14 @@ export const getDragCursorPosition = <T>(
 export const calculateNewPosition = <T>(
   dragItem: DndItem<T>,
   dropItem: ExistingDndItem,
-  dragCursorPosition: DragCursorPosition
+  dragCursorPosition: DragCursorPosition,
 ): ItemPosition | undefined => {
   const {
     position: { index: dropItemIndex, parentId: dropItemParent },
   } = dropItem;
   if (
     [DragCursorPosition.Self, DragCursorPosition.Outside, DragCursorPosition.Idle].includes(
-      dragCursorPosition
+      dragCursorPosition,
     )
   )
     return undefined;
@@ -92,7 +92,7 @@ export const calculateNewPosition = <T>(
  */
 const isFirstItemRightAboveSecondItem = (
   firstItem: ExistingDndItem,
-  secondItem: ExistingDndItem
+  secondItem: ExistingDndItem,
 ): boolean => {
   const {
     position: { index: firstItemIndex, parentId: firstItemParent },

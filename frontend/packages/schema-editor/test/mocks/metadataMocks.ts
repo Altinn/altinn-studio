@@ -1,4 +1,7 @@
-import { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import type {
+  DatamodelMetadataJson,
+  DatamodelMetadataXsd,
+} from 'app-shared/types/DatamodelMetadata';
 
 export const datamodel1NameMock = 'datamodel1';
 export const datamodel2NameMock = 'datamodel2';

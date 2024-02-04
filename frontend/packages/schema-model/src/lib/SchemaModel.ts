@@ -1,11 +1,16 @@
-import { CombinationKind, FieldType, NodePosition, UiSchemaNode, UiSchemaNodes } from '../types';
-import { FieldNode } from '../types/FieldNode';
-import { CombinationNode } from '../types/CombinationNode';
-import { NodeMap } from '../types/NodeMap';
+import {
+  CombinationKind,
+  FieldType,
+  type NodePosition,
+  type UiSchemaNode,
+  type UiSchemaNodes,
+} from '../types';
+import type { FieldNode } from '../types/FieldNode';
+import type { CombinationNode } from '../types/CombinationNode';
+import type { NodeMap } from '../types/NodeMap';
 import {
   isCombination,
   isDefinition,
-  isField,
   isFieldOrCombination,
   isNodeValidParent,
   isProperty,
@@ -19,7 +24,7 @@ import {
   replaceItemsByValue,
 } from 'app-shared/utils/arrayUtils';
 import { ROOT_POINTER } from './constants';
-import { ReferenceNode } from '../types/ReferenceNode';
+import type { ReferenceNode } from '../types/ReferenceNode';
 import { deepCopy } from 'app-shared/pure';
 import { replaceStart } from 'app-shared/utils/stringUtils';
 import {
@@ -64,9 +69,10 @@ export class SchemaModel {
     return this.nodeMap.size <= 1;
   }
 
-  public getRootNode(): FieldNode {
+  public getRootNode(): FieldNode | CombinationNode {
     const rootNode = this.getNode(ROOT_POINTER);
-    if (!isField(rootNode)) throw new Error('Root node is not a field.');
+    if (!isFieldOrCombination(rootNode))
+      throw new Error('Root node is not a field nor a combination.');
     return rootNode;
   }
 
@@ -416,6 +422,7 @@ export class SchemaModel {
         referringNodes.push(node);
       }
     }
+
     return referringNodes;
   }
 
@@ -431,9 +438,10 @@ export class SchemaModel {
   }
 
   public deleteNode(pointer: string): SchemaModel {
-    if (pointer === ROOT_POINTER) throw new Error('It is not possible to delete the root node.');
-    if (this.isDefinitionInUse(pointer))
-      throw new Error('Cannot delete a definition that is in use.');
+    if (pointer === ROOT_POINTER) {
+      throw new Error('It is not possible to delete the root node.');
+    }
+
     return this.deleteNodeWithChildrenRecursively(pointer);
   }
 
@@ -447,6 +455,7 @@ export class SchemaModel {
   private isDefinitionInUse(pointer: string): boolean {
     const node = this.getNode(pointer);
     if (!isDefinition(node)) return false;
+
     return this.hasReferringNodes(pointer) || this.areDefinitionParentsInUse(pointer);
   }
 
@@ -455,7 +464,7 @@ export class SchemaModel {
     return !!referringNodes.length;
   }
 
-  private areDefinitionParentsInUse(pointer: string): boolean {
+  public areDefinitionParentsInUse(pointer: string): boolean {
     const parent = this.getParentNode(pointer);
     return this.isDefinitionInUse(parent.pointer);
   }

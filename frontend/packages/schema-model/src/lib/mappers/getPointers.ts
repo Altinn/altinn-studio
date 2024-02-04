@@ -1,4 +1,4 @@
-import { UiSchemaNodes } from '../../types';
+import type { UiSchemaNodes } from '../../types';
 import { mapByKey } from 'app-shared/utils/arrayUtils';
 
 /**

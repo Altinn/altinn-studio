@@ -1,13 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import {
-  ResourceContactPointFieldsProps,
-  ResourceContactPointFields,
-} from './ResourceContactPointFields';
+import type { ResourceContactPointFieldsProps } from './ResourceContactPointFields';
+import { ResourceContactPointFields } from './ResourceContactPointFields';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
+import type { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
 
 const mockContactPoint1: ResourceContactPoint = {
   email: 'test',

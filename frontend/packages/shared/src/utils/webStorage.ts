@@ -8,7 +8,7 @@ export type TypedStorage = {
   removeItem: (key: string) => void;
 };
 
-type WebStorage = Pick<Storage, 'setItem' | 'getItem' | 'removeItem' >;
+type WebStorage = Pick<Storage, 'setItem' | 'getItem' | 'removeItem'>;
 
 const createWebStorage = (storage: WebStorage): TypedStorage => {
   if (!storage) {
@@ -27,7 +27,7 @@ const createWebStorage = (storage: WebStorage): TypedStorage => {
         return JSON.parse(storedItem) as T;
       } catch (error) {
         console.warn(
-          `Failed to parse stored item with key ${key}. Ensure that the item is a valid JSON string. Error: ${error}`
+          `Failed to parse stored item with key ${key}. Ensure that the item is a valid JSON string. Error: ${error}`,
         );
       }
     },

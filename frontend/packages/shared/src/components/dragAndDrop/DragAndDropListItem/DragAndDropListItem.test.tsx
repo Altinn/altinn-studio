@@ -1,13 +1,10 @@
 import React from 'react';
-import { DragAndDropListItem, DragAndDropListItemProps } from './DragAndDropListItem';
-import {
-  DragAndDropListItemContext,
-  DragAndDropListItemContextProps,
-} from './DragAndDropListItemContext';
-import {
-  DragAndDropRootContext,
-  DragAndDropRootContextProps,
-} from '../DragAndDropProvider/DragAndDropRootContext';
+import type { DragAndDropListItemProps } from './DragAndDropListItem';
+import { DragAndDropListItem } from './DragAndDropListItem';
+import type { DragAndDropListItemContextProps } from './DragAndDropListItemContext';
+import { DragAndDropListItemContext } from './DragAndDropListItemContext';
+import type { DragAndDropRootContextProps } from '../DragAndDropProvider/DragAndDropRootContext';
+import { DragAndDropRootContext } from '../DragAndDropProvider/DragAndDropRootContext';
 import { render as renderRtl } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -25,7 +22,7 @@ const defaultlistItemProps: DragAndDropListItemProps = {
   itemId,
   renderItem,
 };
-const defaultlistItemContextProps: DragAndDropListItemContextProps = {
+const defaultListItemContextProps: DragAndDropListItemContextProps = {
   isDisabled: false,
   itemId: parentId,
 };
@@ -62,7 +59,7 @@ function render({
     <DndProvider backend={HTML5Backend}>
       <DragAndDropRootContext.Provider value={{ ...rootContextProps, ...defaultRootContextProps }}>
         <DragAndDropListItemContext.Provider
-          value={{ ...listItemContextProps, ...defaultlistItemContextProps }}
+          value={{ ...listItemContextProps, ...defaultListItemContextProps }}
         >
           <DragAndDropListItem<string> {...listItemProps} {...defaultlistItemProps} />
         </DragAndDropListItemContext.Provider>

@@ -5,9 +5,10 @@ import {
   getPolicyRuleIdString,
 } from './index';
 import {
-  mockActionTitle1,
-  mockActionTitle2,
-  mockActionTitle3,
+  mockActionId1,
+  mockActionId2,
+  mockActionId3,
+  mockActionId4,
   mockActions,
   mockPolicyRuleCard1,
   mockPolicyRuleCard2,
@@ -26,7 +27,7 @@ describe('ExpandablePolicyCardUtils', () => {
       const updatedRules = getUpdatedRules(
         updatedRule,
         mockPolicyRuleCard1.ruleId,
-        mockPolicyRuleCards
+        mockPolicyRuleCards,
       );
 
       expect(updatedRules.length).toBe(2);
@@ -76,24 +77,25 @@ describe('ExpandablePolicyCardUtils', () => {
       const actionOptions = getActionOptions(mockActions, mockPolicyRuleCard1);
 
       expect(actionOptions.length).toBe(1); // Action 1 and action 2 are removed
-      expect(actionOptions.map((a) => a.value)).toEqual([mockActionTitle3]); // 3 not in the rule
+      expect(actionOptions.map((a) => a.value)).toEqual([mockActionId3]); // 3 not in the rule
     });
 
     it('should return all action options if none are included in the policy rule', () => {
       const actionOptions = getActionOptions(mockActions, mockPolicyRuleCard2);
 
-      expect(actionOptions.length).toBe(3);
+      expect(actionOptions.length).toBe(4);
       expect(actionOptions.map((a) => a.value)).toEqual([
-        mockActionTitle1,
-        mockActionTitle2,
-        mockActionTitle3,
+        mockActionId1,
+        mockActionId2,
+        mockActionId3,
+        mockActionId4,
       ]);
     });
 
     it('should return an empty array if all actions are included in the policy rule', () => {
       const actionOptions = getActionOptions(mockActions, {
         ...mockPolicyRuleCard1,
-        actions: [mockActionTitle1, mockActionTitle2, mockActionTitle3],
+        actions: [mockActionId1, mockActionId2, mockActionId3, mockActionId4],
       });
 
       expect(actionOptions.length).toBe(0);

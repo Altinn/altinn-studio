@@ -7,7 +7,7 @@ import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { StudioSpinner } from '@studio/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
-import { IDeployment } from 'app-development/sharedResources/appDeployment/types';
+import type { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 import { getReleaseBuildPipelineLink } from 'app-development/utils/urlHelper';
 import { publishPath } from 'app-shared/api/paths';
 
