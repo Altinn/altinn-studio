@@ -1,7 +1,7 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
-import { TextEntry, TextEntryProps } from './TextEntry';
-import { renderWithMockStore } from '../../ux-editor/src/testing/mocks';
+import { act, screen, render } from '@testing-library/react';
+import type { TextEntryProps } from './TextEntry';
+import { TextEntry } from './TextEntry';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
@@ -14,13 +14,13 @@ describe('TextEntry', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render the TextEntry component', () => {
-    render();
+    renderTextEntry();
     expect(screen.getByText('Hello')).toBeInTheDocument();
   });
 
   it("should not call upsertTextResource when textEntryValue is '' ", async () => {
     const user = userEvent.setup();
-    render();
+    renderTextEntry();
     const inputText1 = screen.getByRole('textbox', { name: 'nb translation' });
     await act(() => user.clear(inputText1));
     expect(mockUpsertTextResource).toHaveBeenCalledTimes(0);
@@ -28,7 +28,7 @@ describe('TextEntry', () => {
 
   it("should return nothing when textEntryValue is '' ", async () => {
     const user = userEvent.setup();
-    render();
+    renderTextEntry();
     const inputText2 = screen.getByRole('textbox', { name: 'nb translation' });
     await act(() => user.clear(inputText2));
     expect(textEntryValue).toEqual('');
@@ -36,7 +36,7 @@ describe('TextEntry', () => {
 
   it('should toggle validation error message when textEntryValue changes from empty to has value', async () => {
     const user = userEvent.setup();
-    render();
+    renderTextEntry();
     const inputText3 = screen.getByRole('textbox', { name: 'nb translation' });
     await act(() => user.clear(inputText3));
     expect(textId).toEqual(APP_NAME);
@@ -47,7 +47,7 @@ describe('TextEntry', () => {
 
   it('shouls not display validation error message when textId equal to APP_NAME but textEntryValue is not empty', async () => {
     const user = userEvent.setup();
-    render();
+    renderTextEntry();
     const inputText4 = screen.getByRole('textbox', { name: 'nb translation' });
     await act(() => user.type(inputText4, 'Hello'));
     expect(textId).toEqual(APP_NAME);
@@ -55,7 +55,7 @@ describe('TextEntry', () => {
   });
 });
 
-const render = async (props: Partial<TextEntryProps> = {}) => {
+const renderTextEntry = async (props: Partial<TextEntryProps> = {}) => {
   const allProps: TextEntryProps = {
     textId: 'appName',
     lang: 'nb',
@@ -65,5 +65,5 @@ const render = async (props: Partial<TextEntryProps> = {}) => {
     ...props,
   };
 
-  return renderWithMockStore()(<TextEntry {...allProps} />);
+  return render(<TextEntry {...allProps} />);
 };

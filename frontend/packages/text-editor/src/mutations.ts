@@ -9,7 +9,7 @@ export const removeTextEntry = (texts: TextResourceMap, entryId: string) => {
 export const generateTextResourceFile = (
   language: string,
   ids: string[],
-  entries: TextResourceMap
+  entries: TextResourceMap,
 ) => ({
   language,
   resources: ids.map((id) => ({
@@ -23,12 +23,12 @@ export const mapTextResources = (resources: TextResourceEntry[]) =>
       ...acc,
       [id]: rest,
     }),
-    {}
+    {},
   );
 
 export const upsertTextEntry = (
   resourceFile: TextResourceFile,
-  newEntry: TextResourceEntry
+  newEntry: TextResourceEntry,
 ): TextResourceFile => {
   const updatedFile = deepCopy(resourceFile);
   const existingEntryIndex = updatedFile.resources.findIndex((e) => e.id === newEntry.id);

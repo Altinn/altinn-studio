@@ -2,7 +2,7 @@ import { RepositoryType } from 'app-shared/types/global';
 import { getFilteredTopBarMenu, topBarMenuItem } from './appBarConfig';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
-import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { DatabaseIcon } from '@navikt/aksel-icons';
 

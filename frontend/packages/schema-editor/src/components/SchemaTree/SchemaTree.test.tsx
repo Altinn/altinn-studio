@@ -8,10 +8,7 @@ import {
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { SchemaTree } from './SchemaTree';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { act, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-
-const user = userEvent.setup();
+import { screen } from '@testing-library/react';
 
 const onAdd = jest.fn();
 const onMove = jest.fn();
@@ -26,21 +23,11 @@ describe('SchemaTree', () => {
     expect(screen.getAllByRole('treeitem')).toHaveLength(topLevelNodes.length);
   });
 
-  it('Renders a definition node when a pointer to a definition is provided', () => {
+  it("Renders the definition node's children when a pointer to a definition is provided", async () => {
     const { pointer } = definitionNodeMock;
-    const name = extractNameFromPointer(pointer);
-    render(pointer);
-    expect(screen.getByRole('treeitem', { name })).toBeInTheDocument();
-  });
-
-  it("Renders the definition node's children when a pointer to a definition is provided and the definition is expanded", async () => {
-    const { pointer } = definitionNodeMock;
-    const name = extractNameFromPointer(pointer);
     const childPointer = childOfDefinitionNodeMock.pointer;
     const childName = extractNameFromPointer(childPointer);
     render(pointer);
-    const parentItem = screen.getByRole('treeitem', { name });
-    await act(() => user.click(parentItem));
     expect(screen.getByRole('treeitem', { name: childName })).toBeInTheDocument();
   });
 });

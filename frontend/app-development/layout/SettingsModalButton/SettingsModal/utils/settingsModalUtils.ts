@@ -1,6 +1,6 @@
-import { SettingsModalTab } from 'app-development/types/SettingsModalTab';
-import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
-import { ReactNode } from 'react';
+import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
+import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import type { ReactNode } from 'react';
 
 /**
  * Creates a new Navigation tab of the LeftNavigationTab type

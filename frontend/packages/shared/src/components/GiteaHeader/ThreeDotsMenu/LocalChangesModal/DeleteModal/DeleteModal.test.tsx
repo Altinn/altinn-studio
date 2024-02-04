@@ -1,12 +1,14 @@
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
-import { DeleteModal, DeleteModalProps } from './DeleteModal';
+import type { DeleteModalProps } from './DeleteModal';
+import { DeleteModal } from './DeleteModal';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 
 const mockApp: string = 'TestApp';
 const mockOrg: string = 'TestOrg';

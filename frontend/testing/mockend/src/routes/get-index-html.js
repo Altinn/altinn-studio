@@ -7,7 +7,7 @@ const filepath = path.resolve(
   'frontend',
   'app-development',
   'public',
-  'index.html'
+  'index.html',
 );
 const indexHtml = fs.readFileSync(filepath, 'utf-8');
 

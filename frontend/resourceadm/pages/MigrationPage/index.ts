@@ -1,1 +1,1 @@
-export { MigrationPage } from './MigrationPage'
+export { MigrationPage } from './MigrationPage';

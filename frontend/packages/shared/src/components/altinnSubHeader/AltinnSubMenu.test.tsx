@@ -1,6 +1,7 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { AltinnSubMenu, AltinnSubMenuProps } from './AltinnSubMenu';
+import type { AltinnSubMenuProps } from './AltinnSubMenu';
+import { AltinnSubMenu } from './AltinnSubMenu';
 
 describe('AltinnSubMenu', () => {
   it('should render provided child components', () => {

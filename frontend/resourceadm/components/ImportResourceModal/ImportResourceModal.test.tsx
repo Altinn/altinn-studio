@@ -1,13 +1,15 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ImportResourceModal, ImportResourceModalProps } from './ImportResourceModal';
+import type { ImportResourceModalProps } from './ImportResourceModal';
+import { ImportResourceModal } from './ImportResourceModal';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
 import { MemoryRouter } from 'react-router-dom';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockAltinn2LinkService: Altinn2LinkService = {
@@ -64,6 +66,38 @@ describe('ImportResourceModal', () => {
 
     expect(serviceSelect).toHaveValue(mockOption);
     expect(screen.getByRole('button', { name: importButtonText })).not.toBeDisabled();
+  });
+
+  it('should clear service field when environment is changed', async () => {
+    const user = userEvent.setup();
+    renderImportResourceModal();
+
+    const environmentSelect = screen.getByLabelText(
+      textMock('resourceadm.dashboard_import_modal_select_env'),
+    );
+    await act(() => user.click(environmentSelect));
+    await act(() => user.click(screen.getByRole('option', { name: 'AT21' })));
+
+    // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
+    // (sometimes the spinner disappears) too quick and the test will fail
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(textMock('resourceadm.dashboard_import_modal_select_service')),
+      ).toBeInTheDocument();
+    });
+
+    const serviceSelect = screen.getByLabelText(
+      textMock('resourceadm.dashboard_import_modal_select_service'),
+    );
+    await act(() => user.click(serviceSelect));
+    await act(() => user.click(screen.getByRole('option', { name: mockOption })));
+    expect(serviceSelect).toHaveValue(mockOption);
+
+    await act(() => user.click(environmentSelect));
+    await act(() => user.click(screen.getByRole('option', { name: 'AT22' })));
+    expect(
+      screen.queryByLabelText(textMock('resourceadm.dashboard_resource_name_and_id_resource_id')),
+    ).not.toBeInTheDocument();
   });
 
   it('calls onClose function when close button is clicked', async () => {
@@ -138,7 +172,7 @@ describe('ImportResourceModal', () => {
     );
     await act(() => user.type(idField, '?/test'));
 
-    expect(idField).toHaveValue(`${mockAltinn2LinkService.serviceName}--test`);
+    expect(idField).toHaveValue(`${mockAltinn2LinkService.serviceName.toLowerCase()}--test`);
   });
 
   it('displays conflict message if identifier is in use', async () => {

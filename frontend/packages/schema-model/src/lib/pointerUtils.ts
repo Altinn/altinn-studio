@@ -1,7 +1,8 @@
-import { Keyword, ObjectKind, UiSchemaNode } from '../types';
+import type { UiSchemaNode } from '../types';
+import { Keyword, ObjectKind } from '../types';
 import { ROOT_POINTER } from './constants';
-import { FieldNode } from '../types/FieldNode';
-import { CombinationNode } from '../types/CombinationNode';
+import type { FieldNode } from '../types/FieldNode';
+import type { CombinationNode } from '../types/CombinationNode';
 import { isNodeValidParent } from './utils';
 
 export const createDefinitionPointer = (name: string): string =>
@@ -26,7 +27,7 @@ const createPointerBase = (parentNode: FieldNode | CombinationNode): string => {
         ? makePointerFromArray([parentNode.pointer, Keyword.Items, parentNode.combinationType])
         : makePointerFromArray([parentNode.pointer, parentNode.combinationType]);
   }
-}
+};
 
 export const makePointerFromArray = (array: string[]): string => {
   if (!array[0].startsWith(ROOT_POINTER)) {
@@ -38,11 +39,11 @@ export const makePointerFromArray = (array: string[]): string => {
 export const extractNameFromPointer = (pointer: string): string => {
   const parts = pointer.split('/');
   return parts.pop();
-}
+};
 
 export const changeNameInPointer = (pointer: string, newName: string): string => {
   const parts = pointer.split('/');
   parts.pop();
   parts.push(newName);
   return parts.join('/');
-}
+};

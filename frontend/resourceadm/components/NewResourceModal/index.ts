@@ -1,1 +1,1 @@
-export { NewResourceModal } from './NewResourceModal'
+export { NewResourceModal } from './NewResourceModal';

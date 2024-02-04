@@ -1,8 +1,10 @@
 import React from 'react';
 import { act, render as renderRtl, screen, waitFor } from '@testing-library/react';
-import { IVersionControlButtonsProps, VersionControlButtons } from './VersionControlButtons';
+import type { IVersionControlButtonsProps } from './VersionControlButtons';
+import { VersionControlButtons } from './VersionControlButtons';
 import { setWindowLocationForTests } from '../../../../../../testing/testUtils';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';

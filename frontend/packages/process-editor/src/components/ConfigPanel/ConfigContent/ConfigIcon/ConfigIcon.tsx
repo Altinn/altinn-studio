@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ConfigIcon.module.css';
-import { BpmnTaskType } from '../../../../types/BpmnTaskType';
+import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
 import { ConfirmationTask, DataTask, FeedbackTask, SignTask } from '@studio/icons';
 
 export type ConfigIconProps = {

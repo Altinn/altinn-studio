@@ -7,7 +7,7 @@ import { isNodeValidParent, isReference } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
 import { AddPropertyMenu } from './AddPropertyMenu';
 import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
-import { SavableSchemaModel } from '../../../../classes/SavableSchemaModel';
+import type { SavableSchemaModel } from '../../../../classes/SavableSchemaModel';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface ActionButtonsProps {
@@ -52,7 +52,10 @@ const useDeleteNode = (pointer: string, savableModel: SavableSchemaModel) => {
   const { setSelectedNodePointer } = useSchemaEditorAppContext();
 
   return useCallback(() => {
-    if (confirm(t('schema_editor.datamodel_field_deletion_text'))) {
+    const confirmMessage = savableModel.areDefinitionParentsInUse(pointer)
+      ? t('schema_editor.datamodel_definition_field_deletion_text')
+      : t('schema_editor.datamodel_field_deletion_text');
+    if (confirm(confirmMessage)) {
       setSelectedNodePointer(null);
       savableModel.deleteNode(pointer);
     }

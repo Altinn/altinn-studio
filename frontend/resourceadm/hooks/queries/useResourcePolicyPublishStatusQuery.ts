@@ -1,8 +1,9 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ResourceVersionStatus } from 'app-shared/types/ResourceAdm';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 
 /**
  * Query to get the status of the versions of a resource.

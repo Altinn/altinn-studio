@@ -1,10 +1,9 @@
 import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect } from 'react';
-import { FieldNode } from '@altinn/schema-model';
+import type { FieldNode } from '@altinn/schema-model';
 import { FieldType, isField, isReference, ObjectKind } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
-import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { StudioButton } from '@studio/components';
+import { StudioButton, usePrevious } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { ItemFieldsTable } from './ItemFieldsTable';

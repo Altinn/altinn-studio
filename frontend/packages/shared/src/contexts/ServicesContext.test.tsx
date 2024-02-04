@@ -1,11 +1,12 @@
 import React from 'react';
 import { render, renderHook, screen, waitFor } from '@testing-library/react';
-import { ServicesContextProps, ServicesContextProvider } from './ServicesContext';
+import type { ServicesContextProps } from './ServicesContext';
+import { ServicesContextProvider } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 const unknownErrorCode = 'unknownErrorCode';
 // Mocks:

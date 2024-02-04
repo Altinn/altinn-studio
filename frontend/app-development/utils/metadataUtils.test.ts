@@ -9,7 +9,7 @@ import {
   findNewMetadataItem,
   groupMetadataOptions,
   mergeJsonAndXsdData,
-  metadataItemExists
+  metadataItemExists,
 } from './metadataUtils';
 import {
   datamodel1NameMock,
@@ -17,10 +17,10 @@ import {
   jsonMetadata1Mock,
   jsonMetadata2Mock,
   xsdMetadata1Mock,
-  xsdMetadata2Mock
+  xsdMetadata2Mock,
 } from '../../packages/schema-editor/test/mocks/metadataMocks';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
-import { MetadataOption } from '../types/MetadataOption';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { MetadataOption } from '../types/MetadataOption';
 
 // Test data:
 const jsonMetadataOption1: MetadataOption = {
@@ -88,14 +88,19 @@ describe('metadataUtils', () => {
         {
           label: datamodel2NameMock,
           value: jsonMetadata2Mock,
-        }
+        },
       ]);
     });
   });
 
   describe('groupMetadataOptions', () => {
     it('Groups metadata options by file type', () => {
-      const list = [jsonMetadataOption1, jsonMetadataOption2, xsdMetadataOption1, xsdMetadataOption2];
+      const list = [
+        jsonMetadataOption1,
+        jsonMetadataOption2,
+        xsdMetadataOption1,
+        xsdMetadataOption2,
+      ];
       const result = groupMetadataOptions(list);
       expect(result).toEqual([
         {
@@ -209,26 +214,34 @@ describe('metadataUtils', () => {
       const newOption = convertMetadataToOption(jsonMetadata2Mock);
       const currentList = [jsonMetadata1Mock, jsonMetadata2Mock];
       const previousList = [jsonMetadata1Mock];
-      expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(newOption);
+      expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(
+        newOption,
+      );
       expect(computeSelectedOption(undefined, currentList, previousList)).toEqual(newOption);
     });
 
     it('Returns the first option if the current selected option is undefined', () => {
       const list = [jsonMetadata1Mock, jsonMetadata2Mock];
-      expect(computeSelectedOption(undefined, list, list)).toEqual(convertMetadataToOption(jsonMetadata1Mock));
+      expect(computeSelectedOption(undefined, list, list)).toEqual(
+        convertMetadataToOption(jsonMetadata1Mock),
+      );
     });
 
     it('Returns the first option if the current selected option is not in the list', () => {
       const currentList = [jsonMetadata1Mock];
       const previousList = [jsonMetadata1Mock, jsonMetadata2Mock];
       const currentSelectedOption = convertMetadataToOption(jsonMetadata2Mock);
-      expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(convertMetadataToOption(jsonMetadata1Mock));
+      expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(
+        convertMetadataToOption(jsonMetadata1Mock),
+      );
     });
 
     it('Returns the current option if there is no new metadata item and it exists in the list', () => {
       const list = [jsonMetadata1Mock, jsonMetadata2Mock];
       const currentSelectedOption = convertMetadataToOption(jsonMetadata1Mock);
-      expect(computeSelectedOption(currentSelectedOption, list, list)).toEqual(currentSelectedOption);
+      expect(computeSelectedOption(currentSelectedOption, list, list)).toEqual(
+        currentSelectedOption,
+      );
     });
   });
 

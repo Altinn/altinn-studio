@@ -1,4 +1,5 @@
-import React, { ReactNode, forwardRef } from 'react';
+import type { ReactNode } from 'react';
+import React, { forwardRef } from 'react';
 import classes from './StudioModal.module.css';
 import ReactModal from 'react-modal'; // TODO - Replace with component from Designsystemet. Issue:
 import { useTranslation } from 'react-i18next';

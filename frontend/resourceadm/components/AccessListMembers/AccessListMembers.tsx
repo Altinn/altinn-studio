@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Textfield, Radio } from '@digdir/design-system-react';
 import classes from './AccessListMembers.module.css';
-import { AccessList, AccessListMember } from 'app-shared/types/ResourceAdm';
+import type { AccessList, AccessListMember } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useRemoveAccessListMemberMutation } from '../../hooks/mutations/useRemoveAccessListMemberMutation';
 import { useAddAccessListMemberMutation } from '../../hooks/mutations/useAddAccessListMemberMutation';

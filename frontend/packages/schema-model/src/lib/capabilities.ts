@@ -1,7 +1,14 @@
 import type { UiSchemaNode } from '../types';
 import { ObjectKind } from '../types';
 import { ROOT_POINTER } from './constants';
-import { isCombination, isField, isFieldOrCombination, isObject, isReference, pointerIsDefinition } from './utils';
+import {
+  isCombination,
+  isField,
+  isFieldOrCombination,
+  isObject,
+  isReference,
+  pointerIsDefinition,
+} from './utils';
 
 export enum Capabilites {
   CanBeConvertedToArray = 'CAN_BE_CONVERTED_TO_ARRAY', // no restrictions, not combination
@@ -24,11 +31,7 @@ export const getCapabilities = (node: UiSchemaNode): Capabilites[] => {
   if (objectKind === ObjectKind.Field || objectKind === ObjectKind.Reference) {
     output.push(Capabilites.CanBeConvertedToArray);
   }
-  if (
-    (isReference(node)) ||
-    (isArray && !hasRestrictions) ||
-    (isCombination(node) && !hasChildren)
-  ) {
+  if (isReference(node) || (isArray && !hasRestrictions) || (isCombination(node) && !hasChildren)) {
     output.push(Capabilites.CanBeConvertedToField);
   }
 

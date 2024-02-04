@@ -6,7 +6,6 @@ import {
   combinationNodeWithMultipleChildrenMock,
   defNodeMock,
   defNodeWithChildrenChildMock,
-  defNodeWithChildrenGrandchildMock,
   defNodeWithChildrenMock,
   enumNodeMock,
   nodeWithSameNameAsStringNodeMock,
@@ -30,13 +29,14 @@ import {
 } from '../../test/uiSchemaMock';
 import { expect } from '@jest/globals';
 import { validateTestUiSchema } from '../../test/validateTestUiSchema';
-import { CombinationKind, FieldType, NodePosition, ObjectKind } from '../types';
-import { FieldNode } from '../types/FieldNode';
-import { ReferenceNode } from '../types/ReferenceNode';
+import type { NodePosition } from '../types';
+import { CombinationKind, FieldType, ObjectKind } from '../types';
+import type { FieldNode } from '../types/FieldNode';
+import type { ReferenceNode } from '../types/ReferenceNode';
 import { extractNameFromPointer } from './pointerUtils';
 import { isArray, isDefinition } from './utils';
 import { ROOT_POINTER } from './constants';
-import { CombinationNode } from '../types/CombinationNode';
+import type { CombinationNode } from '../types/CombinationNode';
 import { last } from 'app-shared/utils/arrayUtils';
 
 // Test data:
@@ -102,8 +102,8 @@ describe('SchemaModel', () => {
       expect(schemaModel.getRootNode()).toEqual(rootNodeMock);
     });
 
-    it('Throws an error if the root node is not a field node', () => {
-      const invalidRootNode = { ...allOfNodeMock, pointer: ROOT_POINTER };
+    it('Throws an error if the root node is not a field nor a combination node', () => {
+      const invalidRootNode = { ...referenceNodeMock, pointer: ROOT_POINTER };
       const model = SchemaModel.fromArray([invalidRootNode]);
       expect(() => model.getRootNode()).toThrowError();
     });
@@ -217,6 +217,18 @@ describe('SchemaModel', () => {
     it('Returns the referred node', () => {
       const result = schemaModel.getReferredNode(referenceNodeMock);
       expect(result).toEqual(defNodeMock);
+    });
+  });
+
+  describe('areDefinitionParentsInUse', () => {
+    it('Returns false if definition parent not in use', () => {
+      const result = schemaModel.areDefinitionParentsInUse(unusedDefinitionMock.pointer);
+      expect(result).toBeFalsy();
+    });
+
+    it('Returns true if definition parent is in use', () => {
+      const result = schemaModel.areDefinitionParentsInUse(defNodeWithChildrenChildMock.pointer);
+      expect(result).toBeTruthy();
     });
   });
 
@@ -695,18 +707,10 @@ describe('SchemaModel', () => {
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
-    it('Throws an error and keeps the model unchanged if trying to delete a definition node that is in use', () => {
+    it('Should not throw an error if trying to delete a child node of a definition in use', () => {
       const model = schemaModel.deepClone();
-      expect(() => model.deleteNode(defNodeMock.pointer)).toThrowError();
-      expect(() => model.deleteNode(defNodeWithChildrenMock.pointer)).toThrowError();
-      expect(model.asArray()).toEqual(schemaModel.asArray());
-    });
-
-    it('Throws an error and keeps the model unchanged if trying to delete a child node of a definition in use', () => {
-      const model = schemaModel.deepClone();
-      expect(() => model.deleteNode(defNodeWithChildrenChildMock.pointer)).toThrowError();
-      expect(() => model.deleteNode(defNodeWithChildrenGrandchildMock.pointer)).toThrowError();
-      expect(model.asArray()).toEqual(schemaModel.asArray());
+      expect(() => model.deleteNode(defNodeWithChildrenChildMock.pointer)).not.toThrowError();
+      expect(model.asArray()).not.toEqual(schemaModel.asArray());
     });
   });
 

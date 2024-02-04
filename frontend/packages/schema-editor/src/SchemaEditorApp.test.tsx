@@ -13,9 +13,10 @@ const initialProps = {
   jsonSchema: jsonSchemaMock,
   modelPath: jsonMetadataMock.repositoryRelativeUrl,
   save: saveMock,
+  name: 'Test',
 };
 
-export const render = () => rtlRender(<SchemaEditorApp {...initialProps}/>);
+export const render = () => rtlRender(<SchemaEditorApp {...initialProps} />);
 
 describe('SchemaEditorApp', () => {
   afterEach(jest.clearAllMocks);
@@ -29,7 +30,8 @@ describe('SchemaEditorApp', () => {
     const user = userEvent.setup();
     render();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    const firstDeleteButton = screen.getAllByRole('button', { name: textMock('general.delete') })[0];
+    const deleteButtonName = textMock('general.delete');
+    const firstDeleteButton = screen.getAllByRole('button', { name: deleteButtonName })[0];
     await act(() => user.click(firstDeleteButton));
     expect(saveMock).toHaveBeenCalledTimes(1);
   });

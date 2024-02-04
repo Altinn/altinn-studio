@@ -3,14 +3,14 @@ import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Combobox, Paragraph, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { EnvironmentType } from '../../types/EnvironmentType';
+import type { EnvironmentType } from '../../types/EnvironmentType';
 import { useNavigate } from 'react-router-dom';
 import { ServiceContent } from './ServiceContent';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { useImportResourceFromAltinn2Mutation } from '../../hooks/mutations';
-import { Resource } from 'app-shared/types/ResourceAdm';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from '../../utils/urlUtils';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
@@ -47,8 +47,8 @@ export const ImportResourceModal = ({
 
   const navigate = useNavigate();
 
-  const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
-  const [selectedService, setSelectedService] = useState<Altinn2LinkService>();
+  const [selectedEnv, setSelectedEnv] = useState<EnvironmentType | undefined>(undefined);
+  const [selectedService, setSelectedService] = useState<Altinn2LinkService | undefined>(undefined);
   const [id, setId] = useState('');
   const [resourceIdExists, setResourceIdExists] = useState(false);
 
@@ -61,6 +61,8 @@ export const ImportResourceModal = ({
   const handleClose = () => {
     onClose();
     setSelectedEnv(undefined);
+    setSelectedService(undefined);
+    setId('');
   };
 
   /**
@@ -98,7 +100,11 @@ export const ImportResourceModal = ({
         <Combobox
           value={selectedEnv ? [selectedEnv] : undefined}
           label={t('resourceadm.dashboard_import_modal_select_env')}
-          onValueChange={(newValue: EnvironmentType[]) => setSelectedEnv(newValue[0])}
+          onValueChange={(newValue: EnvironmentType[]) => {
+            setSelectedEnv(newValue[0]);
+            setSelectedService(undefined);
+            setId('');
+          }}
         >
           {environmentOptions.map((env) => (
             <Combobox.Option key={env} value={env}>

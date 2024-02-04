@@ -5,14 +5,15 @@ import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButton } from '../altinnHeaderButtons/AltinnHeaderButton';
 import { AltinnHeaderProfile } from '../AltinnHeaderProfile';
-import { User } from 'app-shared/types/Repository';
+import type { User } from 'app-shared/types/Repository';
 import classnames from 'classnames';
-import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
-import { Repository } from 'app-shared/types/Repository';
-import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import type { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
+import type { Repository } from 'app-shared/types/Repository';
+import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { useTranslation } from 'react-i18next';
 
 export interface AltinnHeaderProps {
   menuItems: TopBarMenuItem[];
@@ -39,13 +40,15 @@ export const AltinnHeader = ({
   variant = 'regular',
   repoOwnerIsOrg,
 }: AltinnHeaderProps) => {
+  const { t } = useTranslation();
+
   const repositoryType = getRepositoryType(org, app);
 
   return (
     <div role='banner'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
         <div className={classes.leftContent}>
-          <a href='/'>
+          <a href='/' aria-label={t('top_menu.dashboard')}>
             <AltinnStudioLogo />
           </a>
           {app && (
