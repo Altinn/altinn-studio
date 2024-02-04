@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
 import classes from './deployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
-import type { ImageOption } from '../components/appDeploymentComponent';
-import { AppDeploymentComponent } from '../components/appDeploymentComponent';
+import { AppDeployment } from '../components/AppDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 import { useAppSelector } from '../../../hooks';
 import {
@@ -19,12 +18,15 @@ import type {
 import { formatDateTime } from 'app-shared/pure/date-format';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import type { ImageOption } from '../components/ImageOption';
 
 export const DeployContainerComponent = () => {
   const { org, app } = useStudioUrlParams();
   const createAppDeploymentErrors: any = useAppSelector(
     (state) => state.appDeployments.createAppDeploymentErrors,
   );
+
+  console.log('createAppDeploymentErrors', createAppDeploymentErrors);
 
   const { data: appDeployments = [], isPending: isDeploysPending } = useAppDeploymentsQuery(
     org,
@@ -89,14 +91,13 @@ export const DeployContainerComponent = () => {
           (x) => x.envName === env.name,
         );
         return (
-          <AppDeploymentComponent
+          <AppDeployment
             key={index}
             envName={env.name}
             urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             imageOptions={imageOptions}
             deployHistory={deploymentsInEnv}
-            deployError={createAppDeploymentErrors.filter((x) => x.env === env.name)}
             deployPermission={
               permissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }

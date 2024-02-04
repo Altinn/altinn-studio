@@ -5,7 +5,7 @@ import { useAppDeploymentsQuery } from 'app-development/hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { StudioSpinner } from '@studio/components';
-import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
+import { DeploymentStatus } from 'app-development/features/appPublish/components/DeploymentStatus';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 import type { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 import { getReleaseBuildPipelineLink } from 'app-development/utils/urlHelper';
@@ -37,7 +37,7 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
     }
 
     if (latestDeploy.build.finished === null) {
-      return { deployInProgress: true, deploymentStatus: DeploymentStatus.inProgress };
+      return { deployInProgress: true, deploymentStatus: DeploymentStatus.progressing };
     }
 
     if (latestDeploy.build.finished && latestDeploy.build.result) {
@@ -52,7 +52,7 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
   const deployFailed = latestDeploy && deploymentStatus === DeploymentStatus.failed;
 
   const deployedVersionNotReachable =
-    latestDeploy && !appDeployedAndReachable && deploymentStatus === DeploymentStatus.succeeded;
+    latestDeploy && !appDeployedAndReachable && deploymentStatus === DeploymentStatus.completed;
 
   const noAppDeployed = !latestDeploy || deployInProgress;
 

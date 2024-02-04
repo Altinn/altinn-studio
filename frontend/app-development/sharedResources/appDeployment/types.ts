@@ -1,5 +1,5 @@
 import type { AxiosError } from 'axios';
-import type { DeploymentStatus } from '../../features/appPublish/components/appDeploymentComponent';
+import type { DeploymentStatus } from 'app-development/features/appPublish/components/DeploymentStatus';
 
 export interface IBuild {
   id: string;
@@ -45,6 +45,8 @@ export interface IDeployment {
   org: string;
   envName: string;
   deployedInEnv: boolean;
+  status: DeploymentStatus;
+  availabilityPercentage: number;
   createdBy: string;
   created: string;
   build: IBuild;

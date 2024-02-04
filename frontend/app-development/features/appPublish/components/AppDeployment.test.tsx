@@ -1,18 +1,16 @@
 import React from 'react';
-import type { AppDeploymentComponentProps, ImageOption } from './appDeploymentComponent';
-import { AppDeploymentComponent } from './appDeploymentComponent';
+import type { AppDeploymentProps } from './AppDeployment';
+import { AppDeployment } from './AppDeployment';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import type { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ImageOption } from './ImageOption';
 
-const render = (
-  props?: Partial<AppDeploymentComponentProps>,
-  queries?: Partial<ServicesContextProps>,
-) => {
-  const defaultProps: AppDeploymentComponentProps = {
+const render = (props?: Partial<AppDeploymentProps>, queries?: Partial<ServicesContextProps>) => {
+  const defaultProps: AppDeploymentProps = {
     deployHistory: [],
     deployPermission: true,
     envName: 'test',
@@ -22,7 +20,7 @@ const render = (
   };
   const merged = { ...defaultProps, ...props };
 
-  return renderWithMockStore({}, queries)(<AppDeploymentComponent {...merged} />);
+  return renderWithMockStore({}, queries)(<AppDeployment {...merged} />);
 };
 describe('AppDeploymentComponent', () => {
   const user = userEvent.setup();
@@ -70,6 +68,8 @@ describe('AppDeploymentComponent', () => {
           started: new Date().toDateString(),
         },
         deployedInEnv: true,
+        status: null,
+        availabilityPercentage: null,
       },
     ];
     render({ deployHistory });
@@ -101,6 +101,8 @@ describe('AppDeploymentComponent', () => {
           started: date,
         },
         deployedInEnv: false,
+        status: null,
+        availabilityPercentage: null,
       },
     ];
     render({ deployHistory });
@@ -133,6 +135,8 @@ describe('AppDeploymentComponent', () => {
           started: new Date().toDateString(),
         },
         deployedInEnv: false,
+        status: null,
+        availabilityPercentage: null,
       },
     ];
     render({ deployHistory });
@@ -159,6 +163,8 @@ describe('AppDeploymentComponent', () => {
           started: new Date().toDateString(),
         },
         deployedInEnv: true,
+        status: null,
+        availabilityPercentage: null,
       },
     ];
     render({ deployHistory });
@@ -190,6 +196,8 @@ describe('AppDeploymentComponent', () => {
           started: new Date().toDateString(),
         },
         deployedInEnv: true,
+        status: null,
+        availabilityPercentage: null,
       },
     ];
     render({ deployHistory });
@@ -240,6 +248,8 @@ describe('AppDeploymentComponent', () => {
           started: new Date().toDateString(),
         },
         deployedInEnv: false,
+        status: null,
+        availabilityPercentage: null,
       },
     ];
     render({ deployHistory });

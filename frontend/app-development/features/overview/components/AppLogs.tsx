@@ -4,7 +4,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppDeploymentsQuery, useEnvironmentsQuery } from 'app-development/hooks/queries';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
-import { DeploymentStatus } from 'app-development/features/appPublish/components/appDeploymentComponent';
+import { DeploymentStatus } from 'app-development/features/appPublish/components/DeploymentStatus';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import type { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 import { Alert, Heading } from '@digdir/design-system-react';

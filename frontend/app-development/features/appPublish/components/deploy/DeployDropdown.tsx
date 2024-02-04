@@ -3,8 +3,8 @@ import classes from './DeployDropdown.module.css';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { LegacySelect } from '@digdir/design-system-react';
-import type { ImageOption } from '../appDeploymentComponent';
-import { DeploymentStatus } from '../appDeploymentComponent';
+import type { ImageOption } from '../ImageOption';
+import { DeploymentStatus } from '../DeploymentStatus';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
 import { shouldDisplayDeployStatus } from './utils';
@@ -86,8 +86,8 @@ export const DeployDropdown = ({
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (
         <div className={classes.deployStatusGridContainer}>
           <div className={classes.deploySpinnerGridItem}>
-            {deploymentStatus === DeploymentStatus.inProgress && <StudioSpinner />}
-            {deploymentStatus === DeploymentStatus.succeeded && (
+            {deploymentStatus === DeploymentStatus.progressing && <StudioSpinner />}
+            {deploymentStatus === DeploymentStatus.completed && (
               <CheckmarkCircleFillIcon className={classes.successIcon} />
             )}
             {(deploymentStatus === DeploymentStatus.partiallySucceeded ||
@@ -100,12 +100,12 @@ export const DeployDropdown = ({
             )}
           </div>
           <div>
-            {deploymentStatus === DeploymentStatus.inProgress &&
+            {deploymentStatus === DeploymentStatus.progressing &&
               t('app_deploy_messages.deploy_in_progress', {
                 createdBy: deployHistoryEntry?.createdBy,
                 tagName: deployHistoryEntry?.tagName,
               })}
-            {deploymentStatus === DeploymentStatus.succeeded &&
+            {deploymentStatus === DeploymentStatus.completed &&
               t('app_deploy_messages.success', {
                 tagName: deployHistoryEntry?.tagName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
