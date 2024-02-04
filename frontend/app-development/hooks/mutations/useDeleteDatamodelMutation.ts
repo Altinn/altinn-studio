@@ -3,7 +3,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export const useDeleteDatamodelMutation = () => {
   const { deleteDatamodel } = useServicesContext();
