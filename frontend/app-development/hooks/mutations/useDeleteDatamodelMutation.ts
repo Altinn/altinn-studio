@@ -26,6 +26,16 @@ export const useDeleteDatamodelMutation = () => {
       });
       await deleteDatamodel(org, app, modelPath);
     },
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(
+        [QueryKey.DatamodelsJson, org, app],
+        (oldData: DatamodelMetadata[]) => removeDatamodelFromList(oldData, variables),
+      );
+      queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], (oldData: DatamodelMetadata[]) =>
+        removeDatamodelFromList(oldData, variables),
+      );
+      queryClient.removeQueries({ queryKey: [QueryKey.JsonSchema, org, app, variables] });
+    },
   });
 };
 
