@@ -1,5 +1,3 @@
-using System.Reflection.Metadata.Ecma335;
-
 namespace Altinn.App.Core.Models
 {
     /// <summary>
@@ -8,9 +6,9 @@ namespace Altinn.App.Core.Models
     public class AppOptions
     {
         /// <summary>
-        /// Gets or sets the list of options.
+        /// Gets or sets the list of options. Null indicates that no options are found
         /// </summary>
-        public List<AppOption> Options { get; set; } = new List<AppOption>();
+        public List<AppOption>? Options { get; set; }
 
         /// <summary>
         /// Gets or sets the parameters used to generate the options.

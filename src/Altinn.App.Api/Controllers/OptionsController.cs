@@ -44,7 +44,7 @@ namespace Altinn.App.Api.Controllers
             [FromQuery] string? language = null)
         {
             AppOptions appOptions = await _appOptionsService.GetOptionsAsync(optionsId, language, queryParams);
-            if (appOptions.Options == null)
+            if (appOptions?.Options == null)
             {
                 return NotFound();
             }
