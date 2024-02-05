@@ -5,31 +5,31 @@ import type { RefAttributes, SVGProps } from 'react';
 import type React from 'react';
 import ActionButtonSchema from '../testing/schemas/json/component/ActionButton.schema.v1.json';
 import {
-  Accordion,
+  AccordionIcon,
   CalendarIcon,
-  Checkbox,
+  CheckboxIcon,
   ChevronDownDoubleIcon,
   ExclamationmarkTriangleIcon,
   FileTextIcon,
   FingerButtonIcon,
-  Group,
+  GroupIcon,
   HouseIcon,
   ImageIcon,
   InformationSquareIcon,
-  Likert,
+  LikertIcon,
   LinkIcon,
-  LongText,
-  NavBar,
+  LongTextIcon,
+  NavBarIcon,
   PaperclipIcon,
-  Paragraph,
+  ParagraphIcon,
   PinIcon,
   PresentationIcon,
-  RadioButton,
-  Select,
-  ShortText,
+  RadioButtonIcon,
+  SelectIcon,
+  ShortTextIcon,
   TableIcon,
   TasklistIcon,
-  Title,
+  TitleIcon,
 } from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
@@ -66,7 +66,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Accordion,
       propertyPath: 'definitions/accordionComponent',
     },
-    icon: Accordion,
+    icon: AccordionIcon,
     validChildTypes: [ComponentType.Paragraph],
   },
   [ComponentType.AccordionGroup]: {
@@ -156,7 +156,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: Checkbox,
+    icon: CheckboxIcon,
   },
   [ComponentType.Custom]: {
     name: ComponentType.Custom,
@@ -197,7 +197,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: Select,
+    icon: SelectIcon,
   },
   [ComponentType.FileUpload]: {
     name: ComponentType.FileUpload,
@@ -255,7 +255,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.Group,
       propertyPath: 'definitions/groupComponent',
     },
-    icon: Group,
+    icon: GroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
   [ComponentType.Header]: {
@@ -268,7 +268,7 @@ export const formItemConfigs: FormItemConfigs = {
       size: 'L',
       propertyPath: 'definitions/headerComponent',
     },
-    icon: Title,
+    icon: TitleIcon,
   },
   [ComponentType.IFrame]: {
     name: ComponentType.IFrame,
@@ -308,7 +308,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/inputComponent',
     },
-    icon: ShortText,
+    icon: ShortTextIcon,
   },
   [ComponentType.InstanceInformation]: {
     name: ComponentType.InstanceInformation,
@@ -341,7 +341,7 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {},
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: Likert,
+    icon: LikertIcon,
   },
   [ComponentType.Link]: {
     name: ComponentType.Link,
@@ -394,7 +394,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/selectionComponents',
     },
-    icon: Select,
+    icon: SelectIcon,
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
@@ -405,7 +405,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentType.NavigationBar,
       propertyPath: 'definitions/navigationBarComponent',
     },
-    icon: NavBar,
+    icon: NavBarIcon,
   },
   [ComponentType.NavigationButtons]: {
     name: ComponentType.NavigationButtons,
@@ -440,7 +440,7 @@ export const formItemConfigs: FormItemConfigs = {
       itemType: 'COMPONENT',
       type: ComponentType.Paragraph,
     },
-    icon: Paragraph,
+    icon: ParagraphIcon,
   },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
@@ -463,7 +463,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
-    icon: RadioButton,
+    icon: RadioButtonIcon,
   },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
@@ -487,7 +487,7 @@ export const formItemConfigs: FormItemConfigs = {
       required: true,
       propertyPath: 'definitions/textAreaComponent',
     },
-    icon: LongText,
+    icon: LongTextIcon,
   },
 };
 
