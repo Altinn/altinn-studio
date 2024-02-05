@@ -4,7 +4,14 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
+  - [Clone the repository](#clone-the-repository)
+  - [Option A: Start the containers using podman](#option-a-start-the-containers-using-podman)
+  - [Option B: Start the containers using Docker](#option-b-start-the-containers-using-docker)
+  - [Start your app](#start-your-app)
+- [Changing configuration](#changing-configuration)
+- [Multiple apps at the same time (running LocalTest locally)](#multiple-apps-at-the-same-time-running-localtest-locally)
 - [Changing test data](#changing-test-data)
+- [Known issues](#known-issues)
 
 ### Prerequisites
 
@@ -14,89 +21,94 @@ These are some of the required steps, tips, and tricks when it comes to running 
     - Also
       install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (
       f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
-4. [Docker Desktop](https://www.docker.com/products/docker-desktop) (Linux users can also use native Docker)
-
+4. [Podman Desktop](https://podman-desktop.io)/[Podman](https://podman.io) (Linux users can also use native Docker) or [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license.
+On mac with apple silicone (M1, M2, M3):
+5. [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation)
 ### Setup
 
-#### Using docker 
+#### Clone the repository
 
-1. Clone the `app-localtest` repository to a local folder and move into the folder.
+```shell
+git clone https://github.com/Altinn/app-localtest
+cd app-localtest
+ ```
 
-   ```shell
-   git clone https://github.com/Altinn/app-localtest
-   cd app-localtest
-   ```
+#### Option A: Start the containers using podman
 
-2. Build and run the containers in the background. 
+This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker/Podman.
 
-    ```shell
-    docker compose up -d --build
-    ```
+> [!IMPORTANT]
+> If you are using an mac with either a M1, M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
+> This can be done by setting the environment variable `CONTAINERS_MACHINE_PROVIDER` to `applehv` before running the command below.
+> To add this to your zsh profile run the following command: `echo "export CONTAINERS_MACHINE_PROVIDER=applehv" >> ~/.zprofile`
+> If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
+>  
+> ```
+> [machine]
+>   provider = "applehv"
+> ```
 
-   :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
+Start the containers with the following command:
 
-    ```shell
-    make docker-start-localtest
-    ```
+```shell
+podman compose --file podman-compose.yml up -d --build
+```
+
+> [!NOTE]
+> If you are using linux or mac you can use the Makefile to build and run the containers.
+> 
+> ```shell
+> make podman-start-localtest
+> ```
+
+> [!IMPORTANT]
+> Are you running podman version < 4.7.0 you need to use the following command instead:
+> 
+> ```shell
+> podman-compose --file podman-compose.yml up -d --build
+> ```
+> 
+> or the make command:
+> 
+> ```shell
+> make podman-compose-start-localtest
+> ```
+
+Localtest should now be runningn on port 8000 and can be accessed on <http://local.altinn.cloud:8000>.
+
+#### Option B: Start the containers using Docker
+
+This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
+
+```shell
+docker compose up -d --build
+```
    
-    This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
+> [!NOTE]
+> If you are using linux or mac you can use the Makefile to build and run the containers.
+> 
+> ```shell
+> make docker-start-localtest
+> ```
 
-3. Start your app
-    _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
-  
-    Move into the `App` folder of your application.
+Localtest should now be runningn on port 80 and can be accessed on <http://local.altinn.cloud:80>.
 
-     Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
+#### Start your app
+_This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
 
-    ```shell
-    cd C:\my_applications\my-awasome-app\App
-    ```
+Move into the `App` folder of your application.
 
-     Run the application:
+Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
 
-     ```shell
-     dotnet run
-    ```
+```shell
+cd C:\my_applications\my-awasome-app\App
+```
 
-#### Using podman
+Run the application:
 
-1. Clone the `app-localtest` repository to a local folder and move into the folder.
-
-   ```shell
-   git clone https://github.com/Altinn/app-localtest
-   cd app-localtest
-   ```
-
-2. Build and run the containers in the background.
-
-    ```shell
-    podman compose --file podman-compose.yml up -d --build
-    ```
-
-   :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
-
-   ```shell
-   make podman-start-localtest
-   ```
-
-   This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
-
-3. Start your app
-   _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
-
-   Move into the `App` folder of your application.
-
-   Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
-
-    ```shell
-    cd C:\my_applications\my-awasome-app\App
-    ```
-
-   Run the application:
-
-     ```shell
-     dotnet run
-    ```
+ ```shell
+ dotnet run
+```
 
 The app and local platform services are now running locally. The app can be accessed on <http://local.altinn.cloud>.
 
@@ -203,3 +215,29 @@ This would be required if your app requires a role which none of the test users 
 
 4. Save and close the file
 5. Restart LocalTest
+
+### Known issues
+
+#### Bind mounts folders gives permission denied. Nginx returns default page
+
+On some nix systems you might experience problems with the bind mounts used by the containers. If you get the default nginx page when trying to access local.altinn.cloud this might be the case.
+
+To verify this you can run the following command:
+
+```shell
+podman container exec -it localtest-loadbalancer cat /etc/nginx/templates/nginx.conf.conf
+```
+
+if you get a permission denied message this verifies that the bind mount is not working. A best effort fix for this is to run the following command:
+
+```shell
+make podman-selinux-bind-hack
+```
+
+#### Localtest reports that the app is not running even though it is
+
+If localtest and you app is running, but localtest reports that the app is not running, it might be that the port is not open in the firewall.
+
+You can verify if the app is running by opening `http://localhost:5005/<app-org-name>/<app-name>/swagger/index.html` (remember to replace `<app-org-name>` and `<app-name>` with the correct values).
+
+If this is the case you can open a Windows Powershell as administrator and run the script `OpenAppPortInHyperVFirewall.ps1` located in the `scripts` folder.

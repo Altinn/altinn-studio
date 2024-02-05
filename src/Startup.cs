@@ -36,6 +36,8 @@ using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.LocalApp.Implementation;
 using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.LocalFrontend;
+using LocalTest.Services.LocalFrontend.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
@@ -199,6 +201,8 @@ namespace LocalTest
             {
                 services.AddTransient<ILocalApp, LocalAppFile>();
             }
+
+            services.AddTransient<ILocalFrontendService, LocalFrontendService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -2,13 +2,8 @@
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-
-using LocalTest.Configuration;
 using LocalTest.Models;
-using LocalTest.Services.LocalApp.Interface;
-
-using LocalTest.Services.TestData;
+using LocalTest.Services.LocalFrontend.Interface;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -23,7 +18,7 @@ public class FrontendVersionController : Controller
     public static readonly string FRONTEND_URL_COOKIE_NAME = "frontendVersion";
 
     [HttpGet]
-    public async Task<ActionResult> Index([FromServices] HttpClient client)
+    public async Task<ActionResult> Index([FromServices] HttpClient client, [FromServices] ILocalFrontendService localFrontendService)
     {
         var versionFromCookie = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
 
@@ -36,14 +31,20 @@ public class FrontendVersionController : Controller
                     {
                         Text = "Keep as is",
                         Value = "",
-                    },
-                    new ()
-                    {
-                        Text = "localhost:8080 (local dev)",
-                        Value = "http://localhost:8080/"
                     }
                 }
         };
+        var groupLocalVersions = new SelectListGroup() { Name = "Frontend served from local dev server" };
+        var localFrontendPorts = await localFrontendService.GetLocalFrontendDevPorts();
+        foreach (var localPort in localFrontendPorts)
+        {
+            frontendVersion.Versions.Add(new SelectListItem()
+            {
+                Text = $"Local dev-server on port {localPort.Port} ({localPort.Branch} branch)",
+                Value = $"http://localhost:{localPort.Port}/",
+                Group = groupLocalVersions
+            });
+        }
         var cdnVersionsString = await client.GetStringAsync("https://altinncdn.no/toolkits/altinn-app-frontend/index.json");
         var groupCdnVersions = new SelectListGroup() { Name = "Specific version from cdn" };
         var versions = JsonSerializer.Deserialize<List<string>>(cdnVersionsString)!;

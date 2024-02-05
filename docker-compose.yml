@@ -17,6 +17,7 @@ services:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
       - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
+      - HOST_DOMAIN=host.docker.internal
       - INTERNAL_DOMAIN=host.docker.internal
       - ALTINN3LOCAL_PORT=${ALTINN3LOCAL_PORT:-80}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
