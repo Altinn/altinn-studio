@@ -81,7 +81,6 @@ describe('PolicyEditorUtils', () => {
     it('should map a policy rule card to a policy rule backend object', () => {
       const result = mapPolicyRuleToPolicyRuleBackendObject(
         mockSubjects,
-        mockActions,
         mockPolicyRuleCard1,
         mockRuleId1,
       );
