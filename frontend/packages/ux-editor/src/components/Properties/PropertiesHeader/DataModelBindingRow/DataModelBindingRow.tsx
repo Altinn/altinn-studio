@@ -2,7 +2,7 @@ import React from 'react';
 import { EditDataModelBindings } from '../../../config/editModal/EditDataModelBindings';
 import type { FormComponent } from '../../../../types/FormComponent';
 
-type DataModelBindingRowProps = {
+export type DataModelBindingRowProps = {
   schema: any;
   component: FormComponent;
   formId: string;

@@ -16,7 +16,7 @@ const defaultProps: PropertiesHeaderProps = {
   handleComponentUpdate: mockHandleComponentUpdate,
 };
 
-describe('PropertiesHeader Component', () => {
+describe('PropertiesHeader', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the header name for the component', () => {
