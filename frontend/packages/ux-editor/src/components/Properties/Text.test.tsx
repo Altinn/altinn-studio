@@ -190,7 +190,7 @@ describe('TextTab', () => {
         props: {
           ...props,
           form: {
-            ...layoutMock.components.componentWithOptionsMock,
+            ...layoutMock.components.ComponentWithOptionsMock,
             optionsId: 'optionsId',
           },
         },
@@ -208,7 +208,7 @@ describe('TextTab', () => {
         props: {
           ...props,
           form: {
-            ...layoutMock.components.componentWithOptionsMock,
+            ...layoutMock.components.ComponentWithOptionsMock,
             optionsId: 'optionsId',
           },
         },
@@ -224,7 +224,7 @@ describe('TextTab', () => {
         props: {
           ...props,
           form: {
-            ...layoutMock.components.componentWithOptionsMock,
+            ...layoutMock.components.ComponentWithOptionsMock,
             options: [{ label: labelTextId, value: 'value' }],
           },
         },

@@ -47,6 +47,7 @@ export function EditOptions({
   editFormId,
   component,
   handleComponentChange,
+  renderOptions,
 }: ISelectionEditComponentProvidedProps) {
   const previousEditFormId = useRef(editFormId);
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
@@ -110,6 +111,10 @@ export function EditOptions({
   const handleAddOption = () => {
     handleComponentChange(addOptionToComponent(component, generateRandomOption()));
   };
+
+  if (renderOptions?.onlyCodeListOptions) {
+    return <EditCodeList component={component} handleComponentChange={handleComponentChange} />;
+  }
 
   return (
     <>

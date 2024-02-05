@@ -58,6 +58,9 @@ export const Text = () => {
             }}
             editFormId={formId}
             layoutName={selectedLayout}
+            renderOptions={{
+              onlyCodeListOptions: schema.properties.optionsId && !schema.properties.options,
+            }}
           />
         </>
       )}

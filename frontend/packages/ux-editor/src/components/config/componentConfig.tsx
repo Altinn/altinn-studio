@@ -52,7 +52,6 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
     EditSettings.PreselectedIndex,
     EditSettings.AutoComplete,
   ],
-  [ComponentType.FileUploadWithTag]: [EditSettings.CodeList],
   [ComponentType.Map]: [...editBoilerPlate],
 };
 
