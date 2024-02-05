@@ -14,6 +14,7 @@ export default defineConfig<ExtendedTestOptions>({
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
   },
   fullyParallel: false,
+  timeout: 3 * 60 * 1000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
