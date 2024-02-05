@@ -258,20 +258,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment)
         {
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            string url = $"{resourceRegisterUrl}{_platformSettings.ResourceRegistryUrl}/resourceregistry/api/v1/altinn2export/resource/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/resource/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             string contentString = await response.Content.ReadAsStringAsync();
-            ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(contentString);
+            ServiceResource serviceResource = JsonSerializer.Deserialize<ServiceResource>(contentString, _serializerOptions);
             return serviceResource;
         }
 
         public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
         {
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            string url = $"{resourceRegisterUrl}{_platformSettings.ResourceRegistryUrl}/resourceregistry/api/v1/altinn2export/policy/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&resourceIdentifer={identifier}";
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/policy/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&resourceIdentifier={identifier}";
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
