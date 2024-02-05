@@ -38,6 +38,7 @@ export type FormButtonComponent = FormComponent<
   ComponentType.Button | ComponentType.NavigationButtons
 >;
 export type FormAddressComponent = FormComponent<ComponentType.AddressComponent>;
+export type FormAttachmentListComponent = FormComponent<ComponentType.AttachmentList>;
 
 export type FormComponent<T extends ComponentType = ComponentType> = {
   [componentType in ComponentType]: FormComponentBase<componentType> &
