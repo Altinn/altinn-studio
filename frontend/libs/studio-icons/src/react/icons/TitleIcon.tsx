@@ -2,7 +2,7 @@ import React from 'react';
 import type { IconProps } from '../types';
 import { SvgTemplate } from './SvgTemplate';
 
-export const TitleIcon = (props: IconProps): JSX.Element => {
+export const TitleIcon = (props: IconProps): React.ReactElement => {
   return (
     <SvgTemplate {...props}>
       <path d='M4 15.8467H20' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' />

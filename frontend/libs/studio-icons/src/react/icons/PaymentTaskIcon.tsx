@@ -2,7 +2,7 @@ import React from 'react';
 import type { IconProps } from '../types';
 import { SvgTemplate } from './SvgTemplate';
 
-export const PaymentTaskIcon = (props: IconProps): JSX.Element => {
+export const PaymentTaskIcon = (props: IconProps): React.ReactElement => {
   return (
     <SvgTemplate {...props}>
       <rect
