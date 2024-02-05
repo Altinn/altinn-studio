@@ -39,7 +39,7 @@ export const useDeleteDatamodelMutation = () => {
   });
 };
 
-const removeDatamodelFromList = (
+export const removeDatamodelFromList = (
   datamodels: DatamodelMetadata[],
   relativeUrl: string,
 ): DatamodelMetadata[] =>
