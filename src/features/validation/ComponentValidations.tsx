@@ -62,7 +62,7 @@ function ErrorValidations({ validations, node }: { validations: NodeValidation<'
   return (
     <div style={{ paddingTop: '0.375rem' }}>
       <ErrorMessage size='small'>
-        <ol style={{ padding: 0, margin: 0 }}>
+        <ol style={{ padding: 0, margin: 0, listStyleType: 'none' }}>
           {validations.map((validation) => (
             <li
               role='alert'
