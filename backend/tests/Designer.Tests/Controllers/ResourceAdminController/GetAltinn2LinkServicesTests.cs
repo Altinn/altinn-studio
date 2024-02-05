@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;
+using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 using Xunit;
@@ -36,7 +37,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                     ExternalServiceCode = "Test2",
                     ExternalServiceEditionCode = 123
                 });
-
+                ResourceRegistryMock.Setup(r => r.GetResourceList(It.IsAny<string>())).ReturnsAsync(new List<ServiceResource>());
                 Altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
 
                 // Act
