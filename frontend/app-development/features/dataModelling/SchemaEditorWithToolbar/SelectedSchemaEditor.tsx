@@ -8,14 +8,15 @@ import { useTranslation } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useOnUnmount } from 'app-shared/hooks/useOnUnmount';
-import type { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import type {
+  DatamodelMetadataJson,
+  DatamodelMetadataXsd,
+} from 'app-shared/types/DatamodelMetadata';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { mergeJsonAndXsdData } from 'app-development/utils/metadataUtils';
 import { extractFilename, removeSchemaExtension } from 'app-shared/utils/filenameUtils';
-
-
 export interface SelectedSchemaEditorProps {
   modelPath: string;
 }
