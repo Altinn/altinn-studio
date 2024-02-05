@@ -1543,6 +1543,7 @@
   "ux_editor.modal_options": "Valg",
   "ux_editor.modal_properties_add_check_box_options": "Hvordan vil du legge til avkrysningsbokser?",
   "ux_editor.modal_properties_add_options": "Hvordan vil du legge til alternativer?",
+  "ux_editor.modal_properties_add_radio_button_options": "Hvordan vil du legge til radioknapper?",
   "ux_editor.modal_properties_button_helper": "Søk etter tekst til knappen",
   "ux_editor.modal_properties_button_type_ActionButton": "ActionButton",
   "ux_editor.modal_properties_button_type_InstantiationButton": "InstantiationButton",
