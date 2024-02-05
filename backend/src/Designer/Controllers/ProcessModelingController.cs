@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +27,12 @@ namespace Altinn.Studio.Designer.Controllers
     public class ProcessModelingController : ControllerBase
     {
         private readonly IProcessModelingService _processModelingService;
-        public ProcessModelingController(IProcessModelingService processModelingService)
+        private readonly IMediator _mediator;
+
+        public ProcessModelingController(IProcessModelingService processModelingService, IMediator mediator)
         {
             _processModelingService = processModelingService;
+            _mediator = mediator;
         }
 
         [HttpGet("process-definition")]
@@ -33,13 +40,16 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            Stream processDefinitionStream = _processModelingService.GetProcessDefinitionStream(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer));
+            Stream processDefinitionStream =
+                _processModelingService.GetProcessDefinitionStream(
+                    AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer));
 
             return new FileStreamResult(processDefinitionStream, MediaTypeNames.Text.Plain);
         }
 
         [HttpPut("process-definition")]
-        public async Task<IActionResult> SaveProcessDefinition(string org, string repo, CancellationToken cancellationToken)
+        public async Task<IActionResult> SaveProcessDefinition(string org, string repo,
+            CancellationToken cancellationToken)
         {
             Request.EnableBuffering();
             try
@@ -52,7 +62,43 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _processModelingService.SaveProcessDefinitionAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), Request.Body, cancellationToken);
+            await _processModelingService.SaveProcessDefinitionAsync(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), Request.Body, cancellationToken);
+            return Ok();
+        }
+
+        [HttpPut("process-definition-latest")]
+        public async Task<IActionResult> UpsertProcessDefinition(string org, string repo, [FromForm] ProcessDefinitionDto processDefinitionDto, CancellationToken cancellationToken)
+        {
+            Request.EnableBuffering();
+
+            Stream stream = processDefinitionDto.Content.OpenReadStream();
+
+            try
+            {
+                await Guard.AssertValidXmlStreamAndRewindAsync(stream);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest("BPMN file is not valid XML");
+            }
+
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            await _processModelingService.SaveProcessDefinitionAsync(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), stream, cancellationToken);
+
+            if (processDefinitionDto.ProcessDefinitionMetadata?.TaskIdChanges is not null)
+            {
+                foreach (TaskIdChange taskIdChange in processDefinitionDto.ProcessDefinitionMetadata.TaskIdChanges)
+                {
+                    await _mediator.Publish(new ProcessTaskIdChangedEvent
+                    {
+                        OldId = taskIdChange.OldId,
+                        NewId = taskIdChange.NewId
+                    }, cancellationToken);
+                }
+            }
+
             return Ok();
         }
 
@@ -64,19 +110,22 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut("templates/{appVersion}/{templateName}")]
-        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo, SemanticVersion appVersion, string templateName, CancellationToken cancellationToken)
+        public async Task<FileStreamResult> SaveProcessDefinitionFromTemplate(string org, string repo,
+            SemanticVersion appVersion, string templateName, CancellationToken cancellationToken)
         {
             Guard.AssertArgumentNotNull(appVersion, nameof(appVersion));
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            await _processModelingService.SaveProcessDefinitionFromTemplateAsync(editingContext, templateName, appVersion, cancellationToken);
+            await _processModelingService.SaveProcessDefinitionFromTemplateAsync(editingContext, templateName,
+                appVersion, cancellationToken);
 
             Stream processDefinitionStream = _processModelingService.GetProcessDefinitionStream(editingContext);
             return new FileStreamResult(processDefinitionStream, MediaTypeNames.Text.Plain);
         }
 
         [HttpPut("tasks/{taskId}/{taskName}")]
-        public async Task<ActionResult> UpdateProcessTaskName(string org, string repo, string taskId, string taskName, CancellationToken cancellationToken)
+        public async Task<ActionResult> UpdateProcessTaskName(string org, string repo, string taskId, string taskName,
+            CancellationToken cancellationToken)
         {
             Guard.AssertArgumentNotNull(taskId, nameof(taskId));
             Guard.AssertArgumentNotNull(taskName, nameof(taskName));
@@ -84,7 +133,9 @@ namespace Altinn.Studio.Designer.Controllers
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             try
             {
-                Stream updatedProcessDefinitionStream = await _processModelingService.UpdateProcessTaskNameAsync(editingContext, taskId, taskName, cancellationToken);
+                Stream updatedProcessDefinitionStream =
+                    await _processModelingService.UpdateProcessTaskNameAsync(editingContext, taskId, taskName,
+                        cancellationToken);
                 return new FileStreamResult(updatedProcessDefinitionStream, MediaTypeNames.Text.Plain);
             }
             catch (InvalidOperationException)
