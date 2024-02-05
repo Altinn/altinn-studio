@@ -34,11 +34,11 @@ public class UpsertProcessDefinitionAndNotifyTests : DisagnerEndpointsTestsBase<
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         string fileContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
         fileContent = metadata.TaskIdChanges.Aggregate(fileContent, (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
-        var fileStream = GenerateStreamFromString(fileContent);
+        using var fileStream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
 
         string url = VersionPrefix(org, targetRepository);
 
-        var form = new MultipartFormDataContent();
+        using var form = new MultipartFormDataContent();
         string metadataString = JsonSerializer.Serialize(metadata,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         form.Add(new StreamContent(fileStream), "content", "process.bpmn");
@@ -52,16 +52,6 @@ public class UpsertProcessDefinitionAndNotifyTests : DisagnerEndpointsTestsBase<
         XDocument expectedXml = XDocument.Parse(fileContent);
         XDocument savedXml = XDocument.Parse(savedFile);
         XNode.DeepEquals(savedXml, expectedXml).Should().BeTrue();
-    }
-
-    private static Stream GenerateStreamFromString(string s)
-    {
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
-        writer.Write(s);
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()
