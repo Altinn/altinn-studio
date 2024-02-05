@@ -1,0 +1,65 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/NavigationButtons.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NavigationButtons component",
+  "description": "Schema that describes the layout configuration for a NavigationButtons component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "NavigationButtons"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "next": {
+          "title": "Next button text",
+          "description": "Text to be shown on the 'next' button",
+          "type": "string",
+          "default": "Neste"
+        },
+        "back": {
+          "title": "Back button text",
+          "description": "Text to be shown on the 'back' button",
+          "type": "string",
+          "default": "Tilbake"
+        }
+      },
+      "additionalProperties": true
+    },
+    "showBackButton": {
+      "type": "boolean",
+      "title": "Show back button",
+      "description": "Shows two buttons (back/next) instead of just 'next'."
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type"],
+  "additionalProperties": false
+}

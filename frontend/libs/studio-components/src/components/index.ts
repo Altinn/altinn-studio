@@ -1,3 +1,4 @@
+export * from './StudioAnimateHeight';
 export * from './StudioButton';
 export * from './StudioCenter';
 export * from './StudioDeleteButton';
@@ -8,3 +9,4 @@ export * from './StudioNotFoundPage';
 export * from './StudioNumberInput';
 export * from './StudioPageSpinner';
 export * from './StudioSpinner';
+export * from './StudioTreeView';

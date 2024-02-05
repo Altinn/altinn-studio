@@ -5,7 +5,7 @@ import { ItemRestrictions } from './ItemRestrictions';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import { fieldNode1Mock, uiSchemaNodesMock } from '../../../../test/mocks/uiSchemaMock';
-import { SchemaModel } from '../../../../../schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 
 const user = userEvent.setup();
 

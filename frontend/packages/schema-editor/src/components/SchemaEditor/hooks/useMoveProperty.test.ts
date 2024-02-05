@@ -7,7 +7,7 @@ import {
   ROOT_POINTER,
   SchemaModel,
   validateTestUiSchema,
-} from '../../../../../schema-model';
+} from '@altinn/schema-model';
 import {
   combinationNodeMock,
   fieldNode1Mock,

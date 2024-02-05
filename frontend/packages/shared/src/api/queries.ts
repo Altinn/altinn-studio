@@ -1,9 +1,9 @@
 import { get } from 'app-shared/utils/networking';
 import {
   altinn2LinkServicesPath,
-  appLibVersionPath,
   appMetadataPath,
   appPolicyPath,
+  appVersionPath,
   branchStatusPath,
   datamodelMetadataPath,
   datamodelPath,
@@ -70,9 +70,10 @@ import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { NewsList } from 'app-shared/types/api/NewsList';
-import type { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import type { AppVersion } from 'app-shared/types/AppVersion';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
+export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
@@ -130,5 +131,4 @@ export const getParties = (url: string) => get<BrregPartySearchResult>(url);
 export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
 
 // ProcessEditor
-export const getAppLibVersion = (org: string, app: string) => get<AppLibVersion>(appLibVersionPath(org, app));
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));

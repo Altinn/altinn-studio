@@ -1,0 +1,43 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  flex: var(--preview-width-fraction);
+}
+
+.openPreviewButton {
+  writing-mode: vertical-lr;
+  text-transform: uppercase;
+  border-radius: 0;
+}
+
+.closePreviewButton {
+  position: absolute;
+}
+
+.iframeContainer {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+  background-color: var(--fds-semantic-surface-neutral-dark);
+}
+
+.iframe {
+  border: 0;
+  margin: 0 auto;
+}
+
+.previewArea {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.iframe.mobile {
+  --phone-width: 390px;
+  width: var(--phone-width);
+}
+
+.iframe.desktop {
+  width: 100%;
+  height: 100%;
+}
