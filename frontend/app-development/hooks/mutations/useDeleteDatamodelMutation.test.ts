@@ -29,7 +29,7 @@ const initialData: DatamodelMetadata[] = [
 describe('useDeleteDatamodelMutation', () => {
   beforeEach(jest.clearAllMocks);
 
-  it('Returns correct state with the correct parameters', async () => {
+  it('Check mutation function Execution', async () => {
     const queryClient = createQueryClientMock();
     const deleteDatamodel = jest.fn();
     const {
@@ -53,7 +53,7 @@ describe('useDeleteDatamodelMutation', () => {
     expect(removeDatamodelFromList).toHaveBeenCalled;
   });
 
-  it('Calls onSuccess correctly with mutate function', async () => {
+  it('Check calling onSuccess function', async () => {
     const queryClient = createQueryClientMock();
     const deleteDatamodel = jest.fn();
     const {
@@ -118,7 +118,7 @@ describe('useDeleteDatamodelMutation', () => {
     ).toEqual(undefined);
   });
 
-  it('Calls onSuccess correctly', async () => {
+  it('Check mutation result', async () => {
     const queryClient = createQueryClientMock();
     const deleteDatamodel = jest.fn();
     const {
