@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useImmer } from 'use-immer';
 
 import { createContext } from 'src/core/contexts/context';
+import { Loader } from 'src/core/loading/Loader';
 import { useHasPendingAttachments } from 'src/features/attachments/AttachmentsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ValidationMask } from 'src/features/validation';
@@ -67,16 +68,15 @@ export function ValidationContext({ children }) {
   const [showAllErrors, setShowAllErrors] = useState(false);
 
   // Update frontend validations for nodes when their data changes
-  useOnNodeDataChange((changedNodes) => {
+  const initialValidationsSet = useOnNodeDataChange(async (changedNodes) => {
     const newValidations = runValidationOnNodes(changedNodes, validationContext);
 
     setFrontendValidations((state) => {
       mergeNewFrontendValidations(state, newValidations);
     });
 
-    validating().then(() => {
-      reduceNodeVisibility(changedNodes);
-    });
+    await validating();
+    reduceNodeVisibility(changedNodes);
   });
 
   // Update frontend validations and visibility for nodes when they are added or removed
@@ -110,8 +110,11 @@ export function ValidationContext({ children }) {
 
   // Get backend validations
   const lastSaveValidations = FD.useLastSaveValidationIssues();
-  const { validations: backendValidations, processedLast: backendValidationsProcessedLast } =
-    useBackendValidation(lastSaveValidations);
+  const {
+    validations: backendValidations,
+    processedLast: backendValidationsProcessedLast,
+    initialValidationDone,
+  } = useBackendValidation(lastSaveValidations);
   const waitForSave = FD.useWaitForSave();
   const backendValidationsProcessedLastRef = useAsRef(backendValidationsProcessedLast);
   const waitForBackendValidations = useWaitForState(backendValidationsProcessedLastRef);
@@ -207,6 +210,10 @@ export function ValidationContext({ children }) {
     removeRowVisibilityOnDelete,
     backendValidationsProcessedLast,
   };
+
+  if (!initialValidationDone || !initialValidationsSet) {
+    return <Loader reason='validation' />;
+  }
 
   return <Provider value={out}>{children}</Provider>;
 }

@@ -12,6 +12,7 @@ import { mapValidationIssueToFieldValidation } from 'src/features/validation/bac
 interface RetVal {
   validations: BackendValidations;
   processedLast: BackendValidationIssueGroups | undefined;
+  initialValidationDone: boolean;
 }
 
 export function useBackendValidation(fromLastSave: BackendValidationIssueGroups | undefined): RetVal {
@@ -71,6 +72,7 @@ export function useBackendValidation(fromLastSave: BackendValidationIssueGroups 
     return {
       validations: backendValidations,
       processedLast: fromLastSave,
+      initialValidationDone: initialValidations !== undefined,
     };
   }, [fromLastSave, initialValidations]);
 }

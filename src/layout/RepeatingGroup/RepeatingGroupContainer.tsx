@@ -24,11 +24,9 @@ interface RepeatingGroupContainerProps {
 }
 
 export function RepeatingGroupContainer({ containerDivRef }: RepeatingGroupContainerProps): JSX.Element | null {
-  const { node } = useRepeatingGroup();
-  const { editingIndex, visibleRowIndexes } = useRepeatingGroupSelector((state) => ({
+  const { node, visibleRowIndexes } = useRepeatingGroup();
+  const { editingIndex } = useRepeatingGroupSelector((state) => ({
     editingIndex: state.editingIndex,
-    isFirstRender: state.isFirstRender,
-    visibleRowIndexes: state.visibleRowIndexes,
   }));
   const isEditingAnyRow = editingIndex !== undefined;
 
@@ -109,16 +107,13 @@ export function RepeatingGroupContainer({ containerDivRef }: RepeatingGroupConta
 function AddButton() {
   const { lang, langAsString } = useLanguage();
   const { triggerFocus } = useRepeatingGroupsFocusContext();
-  const { node, addRow } = useRepeatingGroup();
-  const { editingAll, editingNone, editingIndex, visibleRowIndexes, currentlyAddingRow } = useRepeatingGroupSelector(
-    (state) => ({
-      editingAll: state.editingAll,
-      editingNone: state.editingNone,
-      editingIndex: state.editingIndex,
-      visibleRowIndexes: state.visibleRowIndexes,
-      currentlyAddingRow: state.currentlyAddingRow !== undefined,
-    }),
-  );
+  const { node, addRow, visibleRowIndexes } = useRepeatingGroup();
+  const { editingAll, editingNone, editingIndex, currentlyAddingRow } = useRepeatingGroupSelector((state) => ({
+    editingAll: state.editingAll,
+    editingNone: state.editingNone,
+    editingIndex: state.editingIndex,
+    currentlyAddingRow: state.addingIndexes.length > 0,
+  }));
   const isEditingAnyRow = editingIndex !== undefined;
 
   const { textResourceBindings, id, edit } = node.item;

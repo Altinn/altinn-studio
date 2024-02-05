@@ -8,7 +8,7 @@ import cn from 'classnames';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
-import { useRepeatingGroup, useRepeatingGroupSelector } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import {
   RepeatingGroupEditRowProvider,
   useRepeatingGroupEdit,
@@ -67,9 +67,8 @@ function RepeatingGroupsEditContainerInternal({
   group: CompRepeatingGroupInternal;
   row: CompRepeatingGroupInternal['rows'][number];
 }): JSX.Element | null {
-  const { node, closeForEditing, deleteRow, openNextForEditing, isDeleting } = useRepeatingGroup();
+  const { node, closeForEditing, deleteRow, openNextForEditing, isDeleting, visibleRowIndexes } = useRepeatingGroup();
 
-  const visibleRowIndexes = useRepeatingGroupSelector((state) => state.visibleRowIndexes);
   let moreVisibleRowsAfterEditIndex = false;
   for (const visibleRowIndex of visibleRowIndexes) {
     if (visibleRowIndex > editIndex) {

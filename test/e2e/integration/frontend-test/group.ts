@@ -61,7 +61,7 @@ describe('Group', () => {
   [true, false].forEach((openByDefault) => {
     it(`Add and delete items on main and nested group (openByDefault = ${openByDefault ? 'true' : 'false'})`, () => {
       cy.interceptLayout('group', (c) => {
-        if (c.type === 'RepeatingGroup' && c.edit && typeof c.edit.openByDefault !== 'undefined') {
+        if (c.type === 'RepeatingGroup' && c.edit) {
           c.edit.openByDefault = openByDefault;
         }
       });
@@ -77,26 +77,17 @@ describe('Group', () => {
       cy.get(appFrontend.group.subGroup).find(appFrontend.group.edit).click();
       cy.get(appFrontend.group.subGroup).find(appFrontend.group.delete).click();
 
-      if (openByDefault) {
-        cy.get(appFrontend.group.subGroup).find(mui.tableElement).eq(0).should('not.contain.text', 'automation');
-        cy.get(appFrontend.group.comments).should('be.visible');
-      } else {
-        cy.get(appFrontend.group.subGroup).find(mui.tableElement).should('have.length', 0);
-        cy.get(appFrontend.group.addNewItemSubGroup).should('have.length', 1);
-        cy.get(appFrontend.group.comments).should('not.exist');
-      }
+      // This test used to make sure deleted rows were re-added automatically, but that is no longer the case.
+      cy.get(appFrontend.group.subGroup).find(mui.tableElement).should('have.length', 0);
+      cy.get(appFrontend.group.addNewItemSubGroup).should('be.visible');
+      cy.get(appFrontend.group.comments).should('not.exist');
 
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.back).click();
       cy.get(appFrontend.group.mainGroup).find(appFrontend.group.delete).click();
 
-      if (openByDefault) {
-        cy.get(appFrontend.group.saveMainGroup).should('be.visible');
-        cy.get(appFrontend.group.mainGroup).find(mui.tableElement).should('have.length.greaterThan', 0);
-      } else {
-        cy.get(appFrontend.group.mainGroup).find(mui.tableElement).should('have.length', 0);
-        cy.get(appFrontend.group.saveMainGroup).should('not.exist');
-        cy.get(appFrontend.group.addNewItem).should('have.length', 1);
-      }
+      cy.get(appFrontend.group.mainGroup).find(mui.tableElement).should('have.length', 0);
+      cy.get(appFrontend.group.saveMainGroup).should('not.exist');
+      cy.get(appFrontend.group.addNewItem).should('have.length', 1);
     });
   });
 
@@ -461,7 +452,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.subGroup).find(appFrontend.group.delete).click();
     cy.get(appFrontend.group.subGroup).find(appFrontend.group.popOverDeleteButton).click();
 
-    cy.get(appFrontend.group.subGroup).find('tbody > tr > td').eq(0).should('not.contain.text', 'automation');
+    cy.get(appFrontend.group.subGroup).find('tbody > tr > td').should('have.length', 0);
 
     // Navigate to main group and test delete warning popup cancel and confirm
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.back).click();

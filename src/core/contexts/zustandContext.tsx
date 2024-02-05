@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import deepEqual from 'fast-deep-equal';
@@ -55,13 +55,16 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
 
   function MyProvider({ children, ...props }: PropsWithChildren<Props>) {
     const storeRef = useRef<Store>();
-    if (storeRef.current) {
-      if (onReRender) {
-        onReRender(storeRef.current, props as Props);
-      }
-    } else {
+    if (!storeRef.current) {
       storeRef.current = initialCreateStore(props as Props);
     }
+
+    useEffect(() => {
+      if (onReRender && storeRef.current) {
+        onReRender(storeRef.current, props as Props);
+      }
+    });
+
     return <Provider value={storeRef.current}>{children}</Provider>;
   }
 

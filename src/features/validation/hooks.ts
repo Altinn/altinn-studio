@@ -78,10 +78,11 @@ export function useOnHierarchyChange(
 /**
  * Provides a callback function with a list of nodes whose data has changed
  */
-export function useOnNodeDataChange(onChange: (changedNodes: LayoutNode[]) => void) {
+export function useOnNodeDataChange(onChange: (changedNodes: LayoutNode[]) => Promise<void>) {
   const onChangeEvent = useEffectEvent(onChange);
   const layoutNodes = useNodes();
   const lastNodeData = useRef<{ [id: string]: LayoutNode }>({});
+  const [initialRunDone, setInitialRunDone] = useState(false);
 
   useEffect(() => {
     const prevNodes = lastNodeData.current;
@@ -95,6 +96,8 @@ export function useOnNodeDataChange(onChange: (changedNodes: LayoutNode[]) => vo
     for (const [id, newNode] of Object.entries(newNodes)) {
       const prevNode = prevNodes[id];
       if (!prevNode) {
+        shouldUpdate = true;
+        changedNodes.push(newNode);
         continue;
       }
       if (
@@ -110,9 +113,15 @@ export function useOnNodeDataChange(onChange: (changedNodes: LayoutNode[]) => vo
       lastNodeData.current = newNodes;
     }
     if (changedNodes.length) {
-      onChangeEvent(changedNodes);
+      onChangeEvent(changedNodes).then(() => {
+        setInitialRunDone(true);
+      });
+    } else {
+      setInitialRunDone(true);
     }
   }, [layoutNodes, onChangeEvent]);
+
+  return initialRunDone;
 }
 
 export function useOnAttachmentsChange(
