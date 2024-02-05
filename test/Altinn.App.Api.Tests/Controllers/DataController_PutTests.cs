@@ -72,7 +72,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed =
             JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
-        readDataElementResponseParsed.Melding.Name.Should().Be("Ola Olsen");
+        readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
 
         _dataProcessor.Verify(p => p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), null), Times.Exactly(1));
         _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.IsAny<Skjema?>(), null), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
@@ -88,7 +88,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             {
                 if (data is Skjema skjema)
                 {
-                    skjema.Melding.Toggle = true;
+                    skjema.Melding!.Toggle = true;
                 }
 
                 return Task.CompletedTask;
@@ -128,7 +128,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         var firstReadDataElementResponseContent = await firstReadDataElementResponse.Content.ReadAsStringAsync();
         var firstReadDataElementResponseParsed =
             JsonSerializer.Deserialize<Skjema>(firstReadDataElementResponseContent)!;
-        firstReadDataElementResponseParsed.Melding.Name.Should().Be("Ivar");
+        firstReadDataElementResponseParsed.Melding!.Name.Should().Be("Ivar");
         firstReadDataElementResponseParsed.Melding.Toggle.Should().BeFalse();
 
         // Update data element
@@ -143,7 +143,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed =
             JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
-        readDataElementResponseParsed.Melding.Name.Should().Be("Ola Olsen");
+        readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
         readDataElementResponseParsed.Melding.Toggle.Should().BeTrue();
 
         _dataProcessor.Verify(p=>p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), null), Times.Exactly(2));

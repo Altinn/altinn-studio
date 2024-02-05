@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Core.Features.Validation.Default;
 
 /// <summary>
-/// Ensures that the old <see cref="IInstanceValidator.ValidateTask(Instance, string, ModelStateDictionary)"/> extention hook is still supported.
+/// Ensures that the old <see cref="IInstanceValidator.ValidateTask(Instance, string, ModelStateDictionary)"/> extension hook is still supported.
 /// </summary>
 public class LegacyIInstanceValidatorTaskValidator : ITaskValidator
 {

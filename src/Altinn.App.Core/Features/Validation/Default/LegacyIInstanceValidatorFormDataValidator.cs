@@ -19,7 +19,7 @@ public class LegacyIInstanceValidatorFormDataValidator : IFormDataValidator
     /// <summary>
     /// constructor
     /// </summary>
-    public LegacyIInstanceValidatorFormDataValidator(IInstanceValidator? instanceValidator, IOptions<GeneralSettings> generalSettings)
+    public LegacyIInstanceValidatorFormDataValidator(IOptions<GeneralSettings> generalSettings, IInstanceValidator? instanceValidator = null)
     {
         _instanceValidator = instanceValidator;
         _generalSettings = generalSettings.Value;
@@ -28,7 +28,10 @@ public class LegacyIInstanceValidatorFormDataValidator : IFormDataValidator
     /// <summary>
     /// The legacy validator should run for all data types
     /// </summary>
-    public string DataType => "*";
+    public string DataType => _instanceValidator is null ? "" : "*";
+
+    /// <inheritdoc />>
+    public string ValidationSource => _instanceValidator?.GetType().FullName ?? GetType().FullName!;
 
     /// <summary>
     /// Always run for incremental validation (if it exists)

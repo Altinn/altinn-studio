@@ -140,7 +140,7 @@ public class ValidationService : IValidationService
             {
                 _logger.LogDebug("Start running validator {validatorName} on {dataType} for data element {dataElementId} in instance {instanceId}", v.GetType().Name, dataElement.DataType, dataElement.Id, instance.Id);
                 var issues = await v.ValidateFormData(instance, dataElement, data);
-                issues.ForEach(i => i.Source = v.ValidationSource);// Ensure that the code is set to the validator code
+                issues.ForEach(i => i.Source = v.ValidationSource); // Ensure that the Source is set to the ValidatorSource
                 return issues;
             }
             catch (Exception e)

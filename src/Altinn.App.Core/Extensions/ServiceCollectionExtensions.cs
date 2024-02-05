@@ -181,18 +181,18 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<IValidationService, ValidationService>();
             if (configuration.GetSection("AppSettings").Get<AppSettings>()?.RequiredValidation == true)
             {
-                services.TryAddTransient<IFormDataValidator, RequiredLayoutValidator>();
+                services.AddTransient<IFormDataValidator, RequiredLayoutValidator>();
             }
 
             if (configuration.GetSection("AppSettings").Get<AppSettings>()?.ExpressionValidation == true)
             {
-                services.TryAddTransient<IFormDataValidator, ExpressionValidator>();
+                services.AddTransient<IFormDataValidator, ExpressionValidator>();
             }
-            services.TryAddTransient<IFormDataValidator, DataAnnotationValidator>();
-            services.TryAddTransient<IFormDataValidator, LegacyIInstanceValidatorFormDataValidator>();
-            services.TryAddTransient<IDataElementValidator, DefaultDataElementValidator>();
-            services.TryAddTransient<ITaskValidator, LegacyIInstanceValidatorTaskValidator>();
-            services.TryAddTransient<ITaskValidator, DefaultTaskValidator>();
+            services.AddTransient<IFormDataValidator, DataAnnotationValidator>();
+            services.AddTransient<IFormDataValidator, LegacyIInstanceValidatorFormDataValidator>();
+            services.AddTransient<IDataElementValidator, DefaultDataElementValidator>();
+            services.AddTransient<ITaskValidator, LegacyIInstanceValidatorTaskValidator>();
+            services.AddTransient<ITaskValidator, DefaultTaskValidator>();
         }
 
         /// <summary>

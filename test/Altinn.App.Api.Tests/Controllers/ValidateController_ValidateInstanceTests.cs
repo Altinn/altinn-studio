@@ -4,9 +4,7 @@ using System.Net.Http.Headers;
 using System.Net;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Core.Features;
@@ -14,9 +12,6 @@ using Altinn.App.Core.Models.Validation;
 using Xunit;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Json.Patch;
-using Json.Pointer;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -33,8 +28,8 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
     private static readonly string InstanceId = $"{InstanceOwnerPartyId}/{InstanceGuid}";
     private static readonly Guid DataGuid = new("5240d834-dca6-44d3-b99a-1b7ca9b862af");
 
-    private readonly Mock<IDataProcessor> _dataProcessorMock = new();
-    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new();
+    private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
+    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new ()
     {
@@ -100,11 +95,12 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
         var parsedResponse = ParseResponse<List<ValidationIssue>>(responseString);
         parsedResponse.Should().BeEmpty();
 
-        _dataProcessorMock.VerifyNoOtherCalls();
+        _dataProcessorMock.Verify();
+        _formDataValidatorMock.Verify();
     }
 
     [Fact]
-    public async Task ValidateInstance_WithTaskValidator()
+    public async Task ValidateInstance_WithLegacyFormDataValidator()
     {
         var oldTaskValidatorMock = new Mock<IInstanceValidator>(MockBehavior.Strict);
 
@@ -112,7 +108,14 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
             .Returns(
                 (Instance instance, string task, ModelStateDictionary issues) =>
                 {
-                    issues.AddModelError((Skjema s)=>s.Melding.NestedList, "CustomErrorText");
+                    issues.AddModelError("**SHOULD_BE_IGNORED**", "TaskErrorText");
+                    return Task.CompletedTask;
+                }).Verifiable(Times.Once);
+        oldTaskValidatorMock.Setup(v => v.ValidateData(It.IsAny<object>(), It.IsAny<ModelStateDictionary>()))
+            .Returns(
+                (object data, ModelStateDictionary issues) =>
+                {
+                    issues.AddModelError((Skjema s)=>s.Melding!.NestedList, "*FIXED*CustomErrorText");
                     return Task.CompletedTask;
                 }).Verifiable(Times.Once);
 
@@ -125,14 +128,20 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
 
         response.Should().HaveStatusCode(HttpStatusCode.OK);
         var parsedResponse = ParseResponse<List<ValidationIssue>>(responseString);
-        var singleIssue = parsedResponse.Should().ContainSingle().Which;
-        singleIssue.Field.Should().BeNull();
-        singleIssue.Code.Should().Be("CustomErrorText");
-        singleIssue.Severity.Should().Be(ValidationIssueSeverity.Error);
+        parsedResponse.Should().HaveCount(2);
+        var taskIssue = parsedResponse.Should().ContainSingle(i=>i.DataElementId == null).Which;
+        taskIssue.Field.Should().BeNull();
+        taskIssue.Description.Should().Be("TaskErrorText");
+        taskIssue.Severity.Should().Be(ValidationIssueSeverity.Error);
 
-        _dataProcessorMock.VerifyNoOtherCalls();
+        var dataIssue = parsedResponse.Should().ContainSingle(i=>i.DataElementId != null).Which;
+        dataIssue.Field.Should().Be("melding.nested_list");
+        dataIssue.Description.Should().Be("CustomErrorText");
+        dataIssue.Severity.Should().Be(ValidationIssueSeverity.Fixed);
+
+        _dataProcessorMock.Verify();
+        _formDataValidatorMock.Verify();
         oldTaskValidatorMock.Verify();
-        oldTaskValidatorMock.VerifyNoOtherCalls();
     }
 
 }
