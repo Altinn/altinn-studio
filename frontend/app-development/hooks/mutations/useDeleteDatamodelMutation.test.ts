@@ -6,9 +6,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { jsonSchemaMock } from '../../test/jsonSchemaMock';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
-const DatamodelMetadata = jest.fn();
 const modelPath = 'modelPath';
 const org = 'org';
 const app = 'app';
