@@ -30,6 +30,13 @@ export const component2Mock: FormComponent = {
   itemType: 'COMPONENT',
   pageIndex: null,
 };
+export const componentWithOptionsMock: FormComponent = {
+  id: 'ComponentWithOptions',
+  type: ComponentType.Checkboxes,
+  itemType: 'COMPONENT',
+  pageIndex: null,
+  optionsId: '',
+};
 export const container1IdMock = 'Container-1';
 export const customRootPropertiesMock: KeyValuePairs = {
   someCustomRootProp: 'someStringValue',
@@ -43,6 +50,7 @@ export const layoutMock: IInternalLayout = {
   components: {
     [component1IdMock]: component1Mock,
     [component2IdMock]: component2Mock,
+    componentWithOptionsMock,
   },
   containers: {
     [baseContainerIdMock]: {

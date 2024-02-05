@@ -65,11 +65,16 @@ describe('TextTab', () => {
     it('should render all available textResourceBinding properties for the group component', async () => {
       await render({ props });
       textResourceBindingsPropertiesForComponentType(props.form.type).forEach((trbProperty) => {
-        // INVESTIGATE WHY IT DOES NOT WORK WITHOUT MOCKED TEXT
-        const textResourcePropertyLabel = `[mockedText(ux_editor.modal_properties_textResourceBindings_${trbProperty})]`;
-        expect(screen.getByText(textMock(textResourcePropertyLabel))).toBeInTheDocument();
-        const textResourcePropertyPlaceHolder = `[mockedText(ux_editor.modal_properties_textResourceBindings_${trbProperty}_add)]`;
-        expect(screen.getByText(textMock(textResourcePropertyPlaceHolder))).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}`),
+          ),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}_add`),
+          ),
+        ).toBeInTheDocument();
       });
     });
 
@@ -119,11 +124,16 @@ describe('TextTab', () => {
     it('should render all available textResourceBinding properties for the input component', async () => {
       await render({ props });
       textResourceBindingsPropertiesForComponentType(props.form.type).forEach((trbProperty) => {
-        // INVESTIGATE WHY IT DOES NOT WORK WITHOUT MOCKED TEXT
-        const textResourcePropertyLabel = `[mockedText(ux_editor.modal_properties_textResourceBindings_${trbProperty})]`;
-        expect(screen.getByText(textMock(textResourcePropertyLabel))).toBeInTheDocument();
-        const textResourcePropertyPlaceHolder = `[mockedText(ux_editor.modal_properties_textResourceBindings_${trbProperty}_add)]`;
-        expect(screen.getByText(textMock(textResourcePropertyPlaceHolder))).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}`),
+          ),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}_add`),
+          ),
+        ).toBeInTheDocument();
       });
     });
 
@@ -156,6 +166,73 @@ describe('TextTab', () => {
       expect(screen.getByText(textMock('ux_editor.edit_text_resource'))).toBeInTheDocument();
       const labelTextField = screen.getByRole('textbox', { name: textMock('language.nb') });
       expect(labelTextField).toBeInTheDocument();
+    });
+
+    it('should not render options section if component schema does not have options/optionsId property', async () => {
+      await render({
+        props: {
+          ...props,
+          form: {
+            ...layoutMock.components[component1IdMock],
+          },
+        },
+      });
+
+      expect(
+        screen.queryByRole('heading', {
+          name: textMock('ux_editor.properties_panel.texts.options_title'),
+        }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should render options section if component schema has options property', async () => {
+      await render({
+        props: {
+          ...props,
+          form: {
+            ...layoutMock.components.componentWithOptionsMock,
+            optionsId: 'optionsId',
+          },
+        },
+      });
+
+      expect(
+        screen.getByRole('heading', {
+          name: textMock('ux_editor.properties_panel.texts.options_title'),
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it('should render options section with codelist view if component has optionId defined', async () => {
+      await render({
+        props: {
+          ...props,
+          form: {
+            ...layoutMock.components.componentWithOptionsMock,
+            optionsId: 'optionsId',
+          },
+        },
+      });
+
+      expect(
+        screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
+      ).toBeInTheDocument();
+    });
+
+    it('should render options section with manual view if component has options', async () => {
+      await render({
+        props: {
+          ...props,
+          form: {
+            ...layoutMock.components.componentWithOptionsMock,
+            options: [{ label: labelTextId, value: 'value' }],
+          },
+        },
+      });
+
+      expect(
+        screen.getByText(textMock('ux_editor.properties_panel.options.add_options')),
+      ).toBeInTheDocument();
     });
   });
 });

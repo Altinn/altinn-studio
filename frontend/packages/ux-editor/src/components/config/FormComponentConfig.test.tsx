@@ -14,35 +14,30 @@ describe('FormComponentConfig', () => {
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_component_change_id')),
     ).toBeInTheDocument();
-    ['title', 'description', 'help'].forEach(async (key) => {
+
+    await waitFor(() => {
       expect(
-        screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_${key}`)),
+        screen.getByText(textMock('ux_editor.modal_properties_data_model_link')),
       ).toBeInTheDocument();
+    });
 
-      await waitFor(() => {
-        expect(
-          screen.getByText(textMock('ux_editor.modal_properties_data_model_link')),
-        ).toBeInTheDocument();
-      });
-
-      [
-        'grid',
-        'readOnly',
-        'required',
-        'hidden',
-        'renderAsSummary',
-        'variant',
-        'autocomplete',
-        'maxLength',
-        'triggers',
-        'labelSettings',
-        'pageBreak',
-        'formatting',
-      ].forEach(async (propertyKey) => {
-        expect(
-          await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`)),
-        ).toBeInTheDocument();
-      });
+    [
+      'grid',
+      'readOnly',
+      'required',
+      'hidden',
+      'renderAsSummary',
+      'variant',
+      'autocomplete',
+      'maxLength',
+      'triggers',
+      'labelSettings',
+      'pageBreak',
+      'formatting',
+    ].forEach(async (propertyKey) => {
+      expect(
+        await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`)),
+      ).toBeInTheDocument();
     });
   });
 

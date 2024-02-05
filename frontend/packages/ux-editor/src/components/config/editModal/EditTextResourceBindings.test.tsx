@@ -51,7 +51,7 @@ describe('EditTextResourceBindings component', () => {
     const textResourceBindingKeys = ['title', 'description', 'help'];
     await renderEditTextResourceBindingsComponent({ textResourceBindingKeys });
     const label = screen.getByText(
-      textMock('[mockedText(ux_editor.modal_properties_textResourceBindings_title)]'),
+      textMock('ux_editor.modal_properties_textResourceBindings_title'),
     );
     expect(label).toBeInTheDocument();
     const labelText = screen.getByText('This is a test text');

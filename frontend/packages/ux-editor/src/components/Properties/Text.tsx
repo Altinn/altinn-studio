@@ -10,6 +10,8 @@ import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors'
 import { StudioSpinner } from '@studio/components';
 import { getCurrentEditId } from '../../selectors/textResourceSelectors';
 import { TextResourceEdit } from '../TextResourceEdit';
+import { EditOptions } from '../config/editModal/EditOptions';
+import classes from './Text.module.css';
 
 export const Text = () => {
   const { formId, form, handleUpdate, debounceSave } = useFormContext();
@@ -27,8 +29,8 @@ export const Text = () => {
     <>
       {!schema && <StudioSpinner spinnerText={t('general.loading')} />}
       {schema.properties.textResourceBindings?.properties && (
-        <>
-          <Heading level={3} size='xxsmall'>
+        <div className={classes.textResourceContainer}>
+          <Heading level={3} size='xxsmall' spacing>
             {t('general.text')}
           </Heading>
           <EditTextResourceBindings
@@ -38,6 +40,22 @@ export const Text = () => {
               debounceSave(formId, updatedComponent);
             }}
             textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
+            editFormId={formId}
+            layoutName={selectedLayout}
+          />
+        </div>
+      )}
+      {(schema.properties.options || schema.properties.optionsId) && (
+        <>
+          <Heading level={3} size='xxsmall' spacing>
+            {t('ux_editor.properties_panel.texts.options_title')}
+          </Heading>
+          <EditOptions
+            component={form as any}
+            handleComponentChange={async (updatedComponent) => {
+              handleUpdate(updatedComponent);
+              debounceSave(formId, updatedComponent);
+            }}
             editFormId={formId}
             layoutName={selectedLayout}
           />

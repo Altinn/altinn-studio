@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
-import { useTranslation } from 'react-i18next';
 import type { FormContainer } from '../../../types/FormContainer';
 import type { FormComponent } from '../../../types/FormComponent';
 
@@ -18,8 +17,6 @@ export const EditTextResourceBindings = ({
   handleComponentChange,
   textResourceBindingKeys,
 }: EditTextResourceBindingsProps) => {
-  const { t } = useTranslation();
-
   const [keysSet, setKeysSet] = useState(
     Object.keys(textResourceBindingKeys || component.textResourceBindings || {}),
   );
@@ -42,8 +39,8 @@ export const EditTextResourceBindings = ({
           handleComponentChange={handleComponentChange}
           removeTextResourceBinding={() => handleRemoveKey(key)}
           textKey={key}
-          labelKey={t(`ux_editor.modal_properties_textResourceBindings_${key}`)}
-          placeholderKey={t(`ux_editor.modal_properties_textResourceBindings_${key}_add`)}
+          labelKey={`ux_editor.modal_properties_textResourceBindings_${key}` as any}
+          placeholderKey={`ux_editor.modal_properties_textResourceBindings_${key}_add` as any}
         />
       ))}
     </div>

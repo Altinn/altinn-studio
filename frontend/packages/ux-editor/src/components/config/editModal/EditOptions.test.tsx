@@ -40,13 +40,15 @@ describe('EditOptions', () => {
   it('should render', async () => {
     await render();
     expect(
-      screen.getByText(textMock('ux_editor.modal_properties_add_radio_button_options')),
+      screen.getByText(textMock('ux_editor.properties_panel.options.use_code_list_label')),
     ).toBeInTheDocument();
   });
 
   it('should show code list input by default when neither options nor optionId are set', async () => {
     await render();
-    expect(screen.getByText(textMock('ux_editor.modal_add_options_codelist'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
+    ).toBeInTheDocument();
   });
 
   it('should show manual input when component has options defined', async () => {
@@ -56,7 +58,9 @@ describe('EditOptions', () => {
         options: [{ label: 'option1', value: 'option1' }],
       },
     });
-    expect(screen.getByText(textMock('ux_editor.modal_add_options_manual'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.properties_panel.options.add_options')),
+    ).toBeInTheDocument();
   });
 
   it('should show code list input when component has optionsId defined', async () => {
@@ -66,6 +70,8 @@ describe('EditOptions', () => {
         optionsId: 'optionsId',
       },
     });
-    expect(screen.getByText(textMock('ux_editor.modal_add_options_manual'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
+    ).toBeInTheDocument();
   });
 });

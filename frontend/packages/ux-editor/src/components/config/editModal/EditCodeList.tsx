@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { LegacySelect, Textfield } from '@digdir/design-system-react';
+import React, { useEffect, useState } from 'react';
+import { Alert, LegacySelect, Textfield } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
@@ -22,6 +22,15 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
     });
   };
 
+  useEffect(() => {
+    if (!optionListIds) return;
+    if (optionListIds?.length === 0) {
+      setUseCustomCodeList(true);
+    } else {
+      setUseCustomCodeList(false);
+    }
+  }, [isPending, optionListIds]);
+
   return (
     <div>
       {isPending ? (
@@ -31,7 +40,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
         </ErrorMessage>
       ) : optionListIds?.length === 0 ? (
-        <ErrorMessage>{t('ux_editor.modal_properties_no_options_found_message')}</ErrorMessage>
+        <Alert severity='info'>{t('ux_editor.modal_properties_no_options_found_message')}</Alert>
       ) : (
         <>
           <p>
@@ -40,8 +49,12 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
               size='small'
             >
-              {optionListIds?.length > 0 && useCustomCodeList && <>Bytt til statisk kodeliste</>}
-              {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}
+              {optionListIds?.length > 0 && useCustomCodeList && (
+                <>{t('ux_editor.properties_panel.options.codelist_switch_to_static')}</>
+              )}
+              {!useCustomCodeList && (
+                <>{t('ux_editor.properties_panel.options.codelist_switch_to_custom')}</>
+              )}
             </StudioButton>
           </p>
 

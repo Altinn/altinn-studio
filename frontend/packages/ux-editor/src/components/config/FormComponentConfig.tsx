@@ -5,7 +5,6 @@ import type { FormComponent } from '../../types/FormComponent';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
-import { EditOptions } from './editModal/EditOptions';
 import { EditStringValue } from './editModal/EditStringValue';
 import { useText } from '../../hooks';
 import { getComponentPropertyLabel } from '../../utils/language';
@@ -101,13 +100,6 @@ export const FormComponentConfig = ({
         <Heading level={3} size='xxsmall'>
           {'Andre innstillinger'}
         </Heading>
-      )}
-      {options && optionsId && (
-        <EditOptions
-          component={component as any}
-          editFormId={editFormId}
-          handleComponentChange={handleComponentUpdate}
-        />
       )}
 
       {hasCustomFileEndings && (

@@ -9,6 +9,7 @@ import {
 } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import userEvent from '@testing-library/user-event';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 describe('EditCodeList', () => {
   it('should render the component', async () => {
@@ -19,7 +20,11 @@ describe('EditCodeList', () => {
           .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
       },
     });
-    expect(await screen.findByText('Bytt til egendefinert kodeliste')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        textMock('ux_editor.properties_panel.options.codelist_switch_to_custom'),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('should render the component when optionListIds is undefined', async () => {
@@ -31,7 +36,11 @@ describe('EditCodeList', () => {
       },
     });
 
-    expect(await screen.findByText('Bytt til egendefinert kodeliste')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        textMock('ux_editor.properties_panel.options.codelist_switch_to_custom'),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('should call onChange when option list changes', async () => {

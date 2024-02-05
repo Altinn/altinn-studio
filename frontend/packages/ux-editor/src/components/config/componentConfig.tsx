@@ -2,7 +2,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditCodeList } from './editModal/EditCodeList';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
 import { EditHeaderSize } from './editModal/EditHeaderSize';
-import { EditOptions } from './editModal/EditOptions';
 import { EditPreselectedIndex } from './editModal/EditPreselectedIndex';
 import { EditReadOnly } from './editModal/EditReadOnly';
 import { EditRequired } from './editModal/EditRequired';
@@ -46,19 +45,10 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
   [ComponentType.Input]: [...editBoilerPlate, EditSettings.AutoComplete],
   [ComponentType.TextArea]: [...editBoilerPlate, EditSettings.AutoComplete],
   [ComponentType.Datepicker]: [...editBoilerPlate],
-  [ComponentType.Checkboxes]: [
-    ...editBoilerPlate,
-    EditSettings.Options,
-    EditSettings.PreselectedIndex,
-  ],
-  [ComponentType.RadioButtons]: [
-    ...editBoilerPlate,
-    EditSettings.Options,
-    EditSettings.PreselectedIndex,
-  ],
+  [ComponentType.Checkboxes]: [...editBoilerPlate, EditSettings.PreselectedIndex],
+  [ComponentType.RadioButtons]: [...editBoilerPlate, EditSettings.PreselectedIndex],
   [ComponentType.Dropdown]: [
     ...editBoilerPlate,
-    EditSettings.CodeList,
     EditSettings.PreselectedIndex,
     EditSettings.AutoComplete,
   ],
@@ -71,7 +61,6 @@ export const configComponents: IConfigComponents = {
   [EditSettings.Size]: EditHeaderSize,
   [EditSettings.ReadOnly]: EditReadOnly,
   [EditSettings.Required]: EditRequired,
-  [EditSettings.Options]: EditOptions,
   [EditSettings.CodeList]: EditCodeList,
   [EditSettings.PreselectedIndex]: EditPreselectedIndex,
   [EditSettings.AutoComplete]: EditAutoComplete,
