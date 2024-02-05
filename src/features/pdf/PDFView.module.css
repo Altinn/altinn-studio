@@ -25,7 +25,13 @@
 }
 
 @media print {
-  .hide-form {
+  .hideInPrint {
+    display: none;
+  }
+}
+
+@media screen {
+  .onlyInPrint {
     display: none;
   }
 }

@@ -181,4 +181,45 @@ describe('PDF', () => {
       cy.getSummary('Hvem gjelder saken?').should('contain.text', 'Caroline');
     });
   });
+
+  it('should use custom PDF if set', () => {
+    const pdfLayoutName = 'CustomPDF';
+
+    cy.intercept('GET', '**/layoutsettings/**', (req) => {
+      req.continue((res) => {
+        const body = JSON.parse(res.body);
+        res.body = JSON.stringify({
+          ...body,
+          pages: { ...body.pages, pdfLayoutName },
+        });
+      });
+    });
+
+    cy.intercept('GET', '**/layouts/**', (req) => {
+      req.continue((res) => {
+        const body = JSON.parse(res.body);
+        res.body = JSON.stringify({
+          ...body,
+          [pdfLayoutName]: {
+            data: {
+              layout: [
+                {
+                  id: 'title',
+                  type: 'Header',
+                  textResourceBindings: { title: 'This is a custom PDF' },
+                  size: 'L',
+                },
+              ],
+            },
+          },
+        });
+      });
+    });
+
+    cy.goto('changename');
+
+    cy.testPdf(() => {
+      cy.findByRole('heading', { name: /this is a custom pdf/i }).should('be.visible');
+    });
+  });
 });

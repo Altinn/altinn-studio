@@ -24,10 +24,10 @@ export const usePdfPage = (): LayoutPage | null => {
   const dataSources = useExpressionDataSources(hidden);
   const pdfLayoutName = useLayoutSettings().pages.pdfLayoutName;
 
-  const customPdfPage = pdfLayoutName ? layoutPages?.[pdfLayoutName] : undefined;
+  const customPdfPage = pdfLayoutName ? layoutPages.findLayout(pdfLayoutName) : undefined;
   const method = customPdfPage ? 'custom' : 'auto';
 
-  const { data: pdfFormat, isLoading: pdfFormatIsLoading } = usePdfFormatQuery(method === 'auto');
+  const { data: pdfFormat, isFetching: pdfFormatIsLoading } = usePdfFormatQuery(method === 'auto');
 
   const readyForPrint = !!layoutPages && !pdfFormatIsLoading;
 

@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
+import cn from 'classnames';
+
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { PDFView } from 'src/features/pdf/PDFView';
 import classes from 'src/features/pdf/PDFView.module.css';
@@ -29,16 +31,16 @@ export function PDFWrapper({ children }: PropsWithChildren) {
     return <PDFView />;
   }
 
-  if (previewPDF) {
-    return (
-      <>
-        <div className={classes['hide-form']}>{children}</div>
-        <PDFView />
-      </>
-    );
-  }
-
-  return <>{children}</>;
+  return (
+    <>
+      <div className={cn({ [classes.hideInPrint]: previewPDF })}>{children}</div>
+      {previewPDF && (
+        <div className={classes.onlyInPrint}>
+          <PDFView />
+        </div>
+      )}
+    </>
+  );
 }
 
 async function waitForPrint(timeOut = 5000): Promise<boolean> {
