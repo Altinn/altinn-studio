@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Mime;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
@@ -48,6 +48,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut("process-definition")]
+        [Obsolete("This endpoint should be replaced by process-definition-latest, and url fixed after integration with frontend")]
         public async Task<IActionResult> SaveProcessDefinition(string org, string repo,
             CancellationToken cancellationToken)
         {
@@ -68,11 +69,16 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut("process-definition-latest")]
-        public async Task<IActionResult> UpsertProcessDefinition(string org, string repo, [FromForm] ProcessDefinitionDto processDefinitionDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpsertProcessDefinitionAndNotify(string org, string repo, [FromForm] IFormFile content, [FromForm] string metadata, CancellationToken cancellationToken)
         {
             Request.EnableBuffering();
 
-            Stream stream = processDefinitionDto.Content.OpenReadStream();
+            var metadataObject = metadata is not null
+                ? JsonSerializer.Deserialize<ProcessDefinitionMetadata>(metadata,
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
+                : null;
+
+            Stream stream = content.OpenReadStream();
 
             try
             {
@@ -87,9 +93,9 @@ namespace Altinn.Studio.Designer.Controllers
             await _processModelingService.SaveProcessDefinitionAsync(
                 AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), stream, cancellationToken);
 
-            if (processDefinitionDto.ProcessDefinitionMetadata?.TaskIdChanges is not null)
+            if (metadataObject?.TaskIdChanges is not null)
             {
-                foreach (TaskIdChange taskIdChange in processDefinitionDto.ProcessDefinitionMetadata.TaskIdChanges)
+                foreach (TaskIdChange taskIdChange in metadataObject.TaskIdChanges)
                 {
                     await _mediator.Publish(new ProcessTaskIdChangedEvent
                     {
