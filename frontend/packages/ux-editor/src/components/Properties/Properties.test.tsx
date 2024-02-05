@@ -163,4 +163,3 @@ const getComponent = (formContextProps: Partial<FormContext> = {}) => (
 
 const renderProperties = (formContextProps: Partial<FormContext> = {}) =>
   renderWithProviders(getComponent(formContextProps));
-// render(getComponent(formContextProps));

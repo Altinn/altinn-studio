@@ -43,7 +43,7 @@ export const PropertiesHeader = ({
             {itemTitle(form)}
           </Heading>
         </div>
-        <HelpText size='medium' title='TODO'>
+        <HelpText size='medium' title={t('ux_editor.component_help_text_general_title')}>
           {getComponentHelperTextByComponentType(form.type, t)}
         </HelpText>
       </div>
@@ -52,16 +52,16 @@ export const PropertiesHeader = ({
         <div className={classes.contentRow}>
           <EditComponentIdRow component={form} handleComponentUpdate={handleComponentUpdate} />
         </div>
-        <div className={classes.contentRow}>
-          {schema && (
+        {schema && (
+          <div className={classes.contentRow}>
             <DataModelBindingRow
               schema={schema}
               component={form}
               formId={formId}
               handleComponentUpdate={handleComponentUpdate}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </>
   );
