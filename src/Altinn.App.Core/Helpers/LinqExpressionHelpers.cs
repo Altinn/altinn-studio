@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Helpers;
 
 /// <summary>
-/// Utilities for working with <see cref="Expression"/>
+/// Utilities for working with <see cref="Expression" />
 /// </summary>
 public static class LinqExpressionHelpers
 {
@@ -44,23 +44,32 @@ public static class LinqExpressionHelpers
                     current = null;
                     break;
 
-                // This is a special case for accessing a list item by index
-                case MethodCallExpression { Method.Name: "get_Item", Arguments: [ ConstantExpression { Value: Int32 index } ], Object: MemberExpression memberExpression }:
+                // Special case for handling indexers (eg m=>m.Children![0].Age)
+                case MethodCallExpression
+                {
+                    Method.Name: "get_Item", Arguments: [{ } indexExpression],
+                    Object: MemberExpression memberExpression
+                }:
+                    var index = GetValueFromExpression(indexExpression);
+                    if (index is not int)
+                    {
+                        throw new ArgumentException(
+                            $"Invalid indexer expression: Expected int, but got {index?.GetType().Name}: {index}");
+                    }
+
                     path.Add($"{GetJsonPropertyName(memberExpression.Member)}[{index}]");
                     current = memberExpression.Expression;
                     break;
-                // This is a special case for accessing a list item by index in a variable
-                case MethodCallExpression { Method.Name: "get_Item", Arguments: [ MemberExpression { Expression: ConstantExpression constantExpression, Member: FieldInfo fieldInfo }], Object: MemberExpression memberExpression }:
-                    // Evaluate the constant expression to get the index
-                    var evaluatedIndex = fieldInfo.GetValue(constantExpression.Value);
-                    path.Add($"{GetJsonPropertyName(memberExpression.Member)}[{evaluatedIndex}]");
-                    current = memberExpression.Expression;
+
+                // Special case for selecting all children of a list using Select ( m => m.Children.Select(c=>c.Age) )
+                case MethodCallExpression
+                {
+                    Method.Name: "Select", Arguments: [{ } root, { } selectorFunction]
+                }:
+                    path.Add(GetJsonPath_internal(selectorFunction));
+                    current = root;
                     break;
-                // This is a special case for selecting all childern of a list using Select
-                case MethodCallExpression { Method.Name: "Select" } methodCallExpression:
-                    path.Add(GetJsonPath_internal(methodCallExpression.Arguments[1]));
-                    current = methodCallExpression.Arguments[0];
-                    break;
+
                 default:
                     throw new ArgumentException($"Invalid expression {expression}. Failed reading {current}");
             }
@@ -68,6 +77,27 @@ public static class LinqExpressionHelpers
 
         path.Reverse();
         return string.Join(".", path);
+    }
+
+    private static object? GetValueFromExpression(Expression expression)
+    {
+        switch (expression)
+        {
+            // Just return the value of the constant expression (eg: m=>m.Children![0].Age)
+            case ConstantExpression constantExpression:
+                return constantExpression.Value;
+
+            // Evaluate the member expression on a field (recursively if needed)
+            // This is used to evaluate the index in an indexer expression (eg: m=>m.Children![index].Age)
+            case MemberExpression { Member: FieldInfo fieldInfo, Expression: { } memberExpression }:
+                var evaluatedMember = GetValueFromExpression(memberExpression);
+                return fieldInfo.GetValue(evaluatedMember);
+
+            // Currently we just error on unknown expressions
+            default:
+                throw new ArgumentException(
+                    $"Invalid indexer expression {expression}. Failed reading {expression}");
+        }
     }
 
     private static string GetJsonPropertyName(MemberInfo memberExpressionMember)

@@ -56,6 +56,18 @@ public class LinqExpressionHelpersTests
     }
 
     [Fact]
+    public void GetJsonPath_IndexInSelectStatement()
+    {
+        var i = 134;
+        var list = new List<string> { "a", "b", "c" };
+        foreach (var (id, j) in list.Select((id, j) => (id, j)))
+        {
+            var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, int?>(m => m.Children![i].Children![j].Age);
+            propertyName.Should().Be($"Children[{i}].Children[{j}].age");
+        }
+    }
+
+    [Fact]
     public void GetJsonPath_IndexInVariableLoop()
     {
         for (var i = 0; i < 10; i++)
