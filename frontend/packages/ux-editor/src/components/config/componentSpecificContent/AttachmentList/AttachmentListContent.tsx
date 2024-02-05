@@ -1,11 +1,10 @@
 import React from 'react';
 import { Combobox, Switch } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import type { IGenericEditComponent } from '../../componentConfig';
 import classes from './AttachmentListContent.module.css';
 
-type IAttachmentListContent = {
-  component: any;
-  handleComponentChange: any;
+type IAttachmentListContent = IGenericEditComponent & {
   dataTypes: string[];
   setOnlyCurrentTask: (value: boolean) => void;
   onlyCurrentTask: boolean;
