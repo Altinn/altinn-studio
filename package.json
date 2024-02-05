@@ -68,7 +68,7 @@
     "source-map-loader": "4.0.2",
     "style-loader": "3.3.4",
     "svg-inline-loader": "0.8.2",
-    "swc-loader": "0.2.3",
+    "swc-loader": "0.2.4",
     "terser-webpack-plugin": "5.3.10",
     "ts-loader": "9.5.1",
     "ts-morph": "21.0.1",
