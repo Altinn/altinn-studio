@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
         private const string PROCESS_DEFINITION_FOLDER_PATH = "App/config/process/";
-        private const string CSHTML_PATH = "App/views/Home/index.cshtml";
+        private const string CSHTML_PATH = "App/views/Home/Index.cshtml";
 
         private const string SERVICE_CONFIG_FILENAME = "config.json";
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
