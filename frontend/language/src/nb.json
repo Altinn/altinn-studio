@@ -1676,6 +1676,7 @@
   "ux_editor.properties_panel.options.add_options": "Legg til alternativer",
   "ux_editor.properties_panel.options.codelist_switch_to_custom": "Bytt til egendefinert kodeliste",
   "ux_editor.properties_panel.options.codelist_switch_to_static": "Bytt til statisk kodeliste",
+  "ux_editor.properties_panel.options.remove_option": "Slett alternativ",
   "ux_editor.properties_panel.options.use_code_list_helptext": "Skru på denne innstillingen for å bruke en kodeliste for å styre alternativene til denne komponenten. Skru av innstillingen for å legge til alternativene manuelt.",
   "ux_editor.properties_panel.options.use_code_list_label": "Bruk kodeliste",
   "ux_editor.properties_panel.texts.options_title": "Kodelister og alternativer",

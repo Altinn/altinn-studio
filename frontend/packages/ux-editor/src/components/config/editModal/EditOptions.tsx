@@ -185,6 +185,7 @@ export function EditOptions({
                           onClick={removeItem}
                           variant='tertiary'
                           size='small'
+                          title={t('ux_editor.properties_panel.options.remove_option')}
                         />
                       </div>
                     </div>

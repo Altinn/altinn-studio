@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 
 import { EditOptions } from './EditOptions';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
@@ -56,10 +56,14 @@ describe('EditOptions', () => {
       component: {
         ...mockComponent,
         options: [{ label: 'option1', value: 'option1' }],
+        optionsId: undefined,
       },
     });
     expect(
       screen.getByText(textMock('ux_editor.properties_panel.options.add_options')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_radio_button_increment') + ' 1'),
     ).toBeInTheDocument();
   });
 
@@ -73,5 +77,66 @@ describe('EditOptions', () => {
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
     ).toBeInTheDocument();
+  });
+
+  it('should switch to manual input when toggling codelist switch off', async () => {
+    const handleComponentChange = jest.fn();
+    await render({ handleComponentChange });
+    const switchElement = screen.getByRole('checkbox');
+    await act(() => switchElement.click());
+    expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, options: [] });
+  });
+
+  it('should switch to codelist input when toggling codelist switch on', async () => {
+    const handleComponentChange = jest.fn();
+    await render({
+      handleComponentChange,
+      component: {
+        ...mockComponent,
+        options: [{ label: 'option1', value: 'option1' }],
+        optionsId: undefined,
+      },
+    });
+    const switchElement = screen.getByRole('checkbox');
+    await act(() => switchElement.click());
+    expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, optionsId: '' });
+  });
+
+  it('should update component options when adding new option', async () => {
+    const handleComponentChange = jest.fn();
+    await render({
+      handleComponentChange,
+      component: {
+        ...mockComponent,
+        options: [{ label: 'option1', value: 'option1' }],
+      },
+    });
+    const addOptionButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_new_option'),
+    });
+    await act(() => addOptionButton.click());
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...mockComponent,
+      options: expect.arrayContaining([
+        { label: 'option1', value: 'option1' },
+        expect.objectContaining({ label: '' }),
+      ]),
+    });
+  });
+
+  it('should update component options when removing option', async () => {
+    const handleComponentChange = jest.fn();
+    await render({
+      handleComponentChange,
+      component: {
+        ...mockComponent,
+        options: [{ label: 'option1', value: 'option1' }],
+      },
+    });
+    const removeOptionButton = screen.getByRole('button', {
+      name: textMock('ux_editor.properties_panel.options.remove_option'),
+    });
+    await act(() => removeOptionButton.click());
+    expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, options: [] });
   });
 });
