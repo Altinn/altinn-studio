@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, LegacySelect, Textfield } from '@digdir/design-system-react';
-import type { IGenericEditComponent } from '../componentConfig';
-import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
+import type { IGenericEditComponent } from '../../componentConfig';
+import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { ErrorMessage } from '@digdir/design-system-react';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { FormField } from '../../FormField';
+import { FormField } from '../../../FormField';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import classes from './EditCodeList.module.css';
 
 export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
   const { t } = useTranslation();
@@ -48,6 +49,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               variant='tertiary'
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
               size='small'
+              className={classes.customOrStaticButton}
             >
               {optionListIds?.length > 0 && useCustomCodeList && (
                 <>{t('ux_editor.properties_panel.options.codelist_switch_to_static')}</>

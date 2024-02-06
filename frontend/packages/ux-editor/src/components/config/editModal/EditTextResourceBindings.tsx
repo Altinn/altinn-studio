@@ -1,15 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
 import type { FormContainer } from '../../../types/FormContainer';
 import type { FormComponent } from '../../../types/FormComponent';
 
-export interface EditTextResourceBindingsProps {
+export interface EditTextResourceBindingBase {
   editFormId?: string;
   component: FormComponent | FormContainer;
   handleComponentChange: (component: FormComponent | FormContainer) => void;
-  textResourceBindingKeys?: string[];
   layoutName?: string;
+}
+
+export interface EditTextResourceBindingsProps extends EditTextResourceBindingBase {
+  textResourceBindingKeys: string[];
 }
 
 export const EditTextResourceBindings = ({
@@ -17,22 +20,15 @@ export const EditTextResourceBindings = ({
   handleComponentChange,
   textResourceBindingKeys,
 }: EditTextResourceBindingsProps) => {
-  const [keysSet, setKeysSet] = useState(
-    Object.keys(textResourceBindingKeys || component.textResourceBindings || {}),
-  );
-
-  const keysToAdd = useMemo(
-    () => textResourceBindingKeys.filter((key) => !keysSet.includes(key)),
-    [keysSet, textResourceBindingKeys],
-  );
-
   const handleRemoveKey = (key: string) => {
-    setKeysSet((prevKeysSet) => prevKeysSet.filter((k) => k !== key));
+    const updatedComponent = { ...component };
+    delete updatedComponent.textResourceBindings[key];
+    handleComponentChange(updatedComponent);
   };
 
   return (
     <div className={classes.container}>
-      {keysToAdd.map((key: string) => (
+      {textResourceBindingKeys.map((key: string) => (
         <EditTextResourceBinding
           key={key}
           component={component}

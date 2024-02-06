@@ -35,11 +35,11 @@ describe('EditTextResourceBindings component', () => {
   const textResources: ITextResource[] = [
     {
       id: 'test-title-text-id',
-      value: 'This is a test text',
+      value: 'This is a test title',
     },
     {
       id: 'test-desc-text-id',
-      value: 'This is a test desc ',
+      value: 'This is a test description ',
     },
     {
       id: 'test-help-text-id',
@@ -50,28 +50,45 @@ describe('EditTextResourceBindings component', () => {
   test('that it renders with expected text resource binding keys', async () => {
     const textResourceBindingKeys = ['title', 'description', 'help'];
     await renderEditTextResourceBindingsComponent({ textResourceBindingKeys });
-    const label = screen.getByText(
-      textMock('ux_editor.modal_properties_textResourceBindings_title'),
-    );
-    expect(label).toBeInTheDocument();
-    const labelText = screen.getByText('This is a test text');
+
+    textResourceBindingKeys.forEach((key) => {
+      expect(
+        screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_${key}`)),
+      ).toBeInTheDocument();
+    });
+
+    const labelText = screen.getByText('This is a test title');
     expect(labelText).toBeInTheDocument();
-    const descText = screen.getByText('This is a test desc');
+    const descText = screen.getByText('This is a test description');
     expect(descText).toBeInTheDocument();
     const helpText = screen.getByText('This is a test help text');
     expect(helpText).toBeInTheDocument();
   });
 
-  test('that it renders no text resource bindings if none are added', async () => {
+  test('that it renders no text resource bindings if no keys are provided', async () => {
     await renderEditTextResourceBindingsComponent({
+      textResourceBindingKeys: [],
       component: { ...mockComponent, textResourceBindings: {} },
     });
-    const titleLabel = screen.queryByText(
-      textMock(`ux_editor.modal_properties_textResourceBindings_title`),
-    );
-    expect(titleLabel).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(textMock('ux_editor.modal_properties_textResourceBindings_title')),
+    ).not.toBeInTheDocument();
     const searchTextButton = screen.queryByRole('button', { name: textMock('general.search') });
     expect(searchTextButton).not.toBeInTheDocument();
+  });
+
+  test('that it renders empty text resource bindings if component has no text resource bindings', async () => {
+    const textResourceBindingKeys = ['title', 'description', 'help'];
+    await renderEditTextResourceBindingsComponent({
+      textResourceBindingKeys,
+      component: { ...mockComponent, textResourceBindings: {} },
+    });
+
+    textResourceBindingKeys.forEach((key) => {
+      expect(
+        screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_${key}_add`)),
+      ).toBeInTheDocument();
+    });
   });
 
   const waitForData = async () => {
