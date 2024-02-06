@@ -56,6 +56,7 @@ class SetupEnvironment extends ContainerTool {
 
   runCompose() {
     if (this.containerManager === 'docker') {
+      console.log('Using Docker');
       runCommand(`docker compose up -d --remove-orphans`);
       return;
     }
