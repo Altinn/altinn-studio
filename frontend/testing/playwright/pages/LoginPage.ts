@@ -1,16 +1,14 @@
 ﻿import type { Page } from '@playwright/test';
 import { BasePage } from '../helpers/BasePage';
+import { Language } from '../enum/Language';
 
 // Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.
 const loginPageTexts: Record<string, string> = {
   login: 'logg inn',
   username: 'Brukernavn eller epost',
   password: 'Passord',
-  // After loging out, the language on the page changes from Norwegian to English
-  login_after_logout: 'Sign in',
-  username_after_logout: 'Username or Email Address',
-  password_after_logout: 'Password',
-  error_message_after_logout: 'Username or password is incorrect.',
+  error_message: 'Ugyldig brukernavn eller passord.',
+  links: 'Links',
 };
 
 export class LoginPage extends BasePage {
@@ -32,19 +30,16 @@ export class LoginPage extends BasePage {
     await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
   }
 
-  public async writeUsername(username: string, isAfterLogout: boolean = false): Promise<void> {
-    const textKey = isAfterLogout ? 'username_after_logout' : 'username';
-    return await this.page.getByLabel(loginPageTexts[textKey]).fill(username);
+  public async writeUsername(username: string): Promise<void> {
+    return await this.page.getByLabel(loginPageTexts['username']).fill(username);
   }
 
-  public async writePassword(password: string, isAfterLogout: boolean = false): Promise<void> {
-    const textKey = isAfterLogout ? 'password_after_logout' : 'password';
-    return await this.page.getByLabel(loginPageTexts[textKey]).fill(password);
+  public async writePassword(password: string): Promise<void> {
+    return await this.page.getByLabel(loginPageTexts['password']).fill(password);
   }
 
-  public async clickLoginButton(isAfterLogout: boolean = false): Promise<void> {
-    const textKey = isAfterLogout ? 'login_after_logout' : 'login';
-    return await this.page.getByRole('button', { name: loginPageTexts[textKey] }).click();
+  public async clickLoginButton(): Promise<void> {
+    return await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {
@@ -52,7 +47,22 @@ export class LoginPage extends BasePage {
   }
 
   public async checkThatErrorMessageIsVisible(): Promise<void> {
-    await this.page.getByText(loginPageTexts['error_message_after_logout']).isVisible();
+    await this.page.getByText(loginPageTexts['error_message']).isVisible();
+  }
+
+  public async getLanguage(): Promise<string> {
+    return await this.page
+      .getByRole('group', { name: loginPageTexts['links'] })
+      .getByRole('menu')
+      .innerText();
+  }
+
+  public async clickOnLanguageMenu(): Promise<void> {
+    await this.page.getByRole('group', { name: loginPageTexts['links'] }).getByRole('menu').click();
+  }
+
+  public async clickOnNorwegianLanguageOption(): Promise<void> {
+    await this.page.getByRole('menuitem', { name: Language.NORWEGIAN }).click();
   }
 
   public async addSessionToSharableStorage() {

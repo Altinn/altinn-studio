@@ -1,6 +1,8 @@
 import { test } from '../../extenders/testExtend';
 import { LoginPage } from '../../pages/LoginPage';
 import { DashboardPage } from '../../pages/DashboardPage';
+import { expect } from '@playwright/test';
+import { Language } from '../../enum/Language';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -26,20 +28,27 @@ test('That it is possible to login with valid user credentials, and then log out
 
 test('That it is not possible to login with invalid credentials', async ({
   page,
-  locale,
 }): Promise<void> => {
   const loginPage = new LoginPage(page);
-  console.log('locale', locale);
 
   await loginPage.goToAltinnLoginPage();
   await loginPage.goToGiteaLoginPage();
 
-  // Gitea login page is in Norwegian locally, but english in dev and prod
-  const isEnglish: boolean = locale === 'en';
+  const lang = await loginPage.getLanguage();
 
-  await loginPage.writeUsername(process.env.PLAYWRIGHT_USER, isEnglish);
-  await loginPage.writePassword('123', isEnglish);
+  if (lang !== Language.NORWEGIAN) {
+    await loginPage.clickOnLanguageMenu();
+    await loginPage.clickOnNorwegianLanguageOption();
 
-  await loginPage.clickLoginButton(isEnglish);
+    const langAfterchange = await loginPage.getLanguage();
+    expect(langAfterchange).toBe(Language.NORWEGIAN);
+  } else {
+    expect(lang).toBe(Language.NORWEGIAN);
+  }
+
+  await loginPage.writeUsername(process.env.PLAYWRIGHT_USER);
+  await loginPage.writePassword('123');
+
+  await loginPage.clickLoginButton();
   await loginPage.checkThatErrorMessageIsVisible();
 });
