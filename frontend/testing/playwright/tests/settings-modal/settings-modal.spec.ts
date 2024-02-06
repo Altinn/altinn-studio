@@ -77,7 +77,7 @@ test('That it is possible to change tab to "Policy editor" tab', async ({ page, 
   await settingsModal.verifyThatTabIsVisible('policy');
 });
 
-test.skip('That it is possible to edit security level on "Policy editor" tab, and that changes are saved', async ({
+test('That it is possible to edit security level on "Policy editor" tab, and that changes are saved', async ({
   page,
   testAppName,
 }) => {
@@ -88,21 +88,27 @@ test.skip('That it is possible to edit security level on "Policy editor" tab, an
 
   const securityLevel2 = 2;
   const securityLevel2Text = policyEditor.getSecurityLevelByTextByLevel(securityLevel2);
-  expect(await policyEditor.getSelectedSecurityLevel()).toEqual(securityLevel2Text);
+
+  const securityValueInitial = await policyEditor.getSelectedSecurityLevel();
+  expect(securityValueInitial).toBe(securityLevel2Text);
 
   await policyEditor.clickOnSecurityLevelSelect();
   await policyEditor.clickOnSecurityLevelSelectOption(3);
 
   const securityLevel3 = 3;
   const securityLevel3Text = policyEditor.getSecurityLevelByTextByLevel(securityLevel3);
-  expect(await policyEditor.getSelectedSecurityLevel()).toEqual(securityLevel3Text);
+
+  const securityValueAfterChange = await policyEditor.getSelectedSecurityLevel();
+  expect(securityValueAfterChange).toBe(securityLevel3Text);
 
   await settingsModal.navigateToTab('about');
   await settingsModal.verifyThatTabIsVisible('about');
   await settingsModal.verifyThatTabIsHidden('policy');
 
   await settingsModal.navigateToTab('policy');
-  expect(await policyEditor.getSelectedSecurityLevel()).toEqual(securityLevel3Text);
+
+  const securityValueAfterNavigation = await policyEditor.getSelectedSecurityLevel();
+  expect(securityValueAfterNavigation).toBe(securityLevel3Text);
 });
 
 test('That it is possible to change tab to "Access control" tab', async ({ page, testAppName }) => {
