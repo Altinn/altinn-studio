@@ -34,4 +34,12 @@ export class BasePage extends RouterRoute {
 
     return text;
   }
+
+  public async waitForXAmountOfMilliseconds(milliseconds: number): Promise<void> {
+    await new Promise((resolve) =>
+      setTimeout(() => {
+        return resolve('');
+      }, milliseconds),
+    );
+  }
 }
