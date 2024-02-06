@@ -1,6 +1,8 @@
 import { test } from '../../extenders/testExtend';
 import { LoginPage } from '../../pages/LoginPage';
 import { DashboardPage } from '../../pages/DashboardPage';
+import { expect } from '@playwright/test';
+import { Language } from '../../enum/Language';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -31,6 +33,18 @@ test('That it is not possible to login with invalid credentials', async ({
 
   await loginPage.goToAltinnLoginPage();
   await loginPage.goToGiteaLoginPage();
+
+  const lang = await loginPage.getLanguage();
+
+  if (lang !== Language.Norwegian) {
+    await loginPage.clickOnLanguageMenu();
+    await loginPage.clickOnNorwegianLanguageOption();
+
+    const langAfterchange = await loginPage.getLanguage();
+    expect(langAfterchange).toBe(Language.Norwegian);
+  } else {
+    expect(lang).toBe(Language.Norwegian);
+  }
 
   await loginPage.writeUsername(process.env.PLAYWRIGHT_USER);
   await loginPage.writePassword('123');
