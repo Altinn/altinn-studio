@@ -44,10 +44,6 @@ jobs:
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
           echo CONTAINER_MANAGER_TOOL=docker >> .env
 
-      - name: Build all images
-        run: |
-           docker compose build --no-cache
-
       - name: Install node
         uses: actions/setup-node@v4
         with:
