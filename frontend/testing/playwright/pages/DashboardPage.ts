@@ -113,7 +113,6 @@ export class DashboardPage extends BasePage {
     await this.page
       .getByRole('menuitem', {
         name: this.textMock('dashboard.edit_app', { appName }),
-        exact: true,
       })
       .click();
   }
