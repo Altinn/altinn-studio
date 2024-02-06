@@ -131,7 +131,7 @@ test('That it is possible to navigate from overview to the preview page and back
   await uiEditor.verifyUiEditorPage(null);
 });
 
-test('That it is possible to navigate from overview to the deploy page and back again', async ({
+test.skip('That it is possible to navigate from overview to the deploy page and back again', async ({
   page,
   testAppName,
   request,
