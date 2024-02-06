@@ -40,7 +40,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 { "[[appLibVersion]]", backendVersion }, { "[[frontendVersion]]", frontendVersion }
             };
             await AddCsProjToRepo("App/App.csproj", csprojTemplate, replacements);
-            await AddFrontendIndexToRepo("App/Views/Home/Index.cshtml", indesCshtmlTemplate, replacements);
+            await AddFrontendIndexToRepo("App/views/Home/Index.cshtml", indesCshtmlTemplate, replacements);
 
             string url = VersionPrefix(org, targetRepository);
 
@@ -101,7 +101,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             await AddCsProjToRepo("App/App.csproj", csprojTemplate,
                 new Dictionary<string, string>() { { "[[appLibVersion]]", backendVersion } });
-            await AddFrontendIndexToRepo("App/Views/Home/Index.cshtml", indesCshtmlTemplate);
+            await AddFrontendIndexToRepo("App/views/Home/Index.cshtml", indesCshtmlTemplate);
             string url = VersionPrefix(org, targetRepository);
 
             using var response = await HttpClient.GetAsync(url);
