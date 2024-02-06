@@ -2,6 +2,8 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { IDataModelBindings, ITextResourceBindings, IOption } from './global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { FormComponent } from '../components/FormComponent';
+import type { SimpleComponentType } from './SimpleComponentType';
+import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;
@@ -25,6 +27,7 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   required?: boolean | any;
   hidden?: boolean | any;
   readOnly?: boolean | any;
+  grid?: GridSizes;
   [id: string]: any;
   propertyPath?: string;
 }
@@ -39,7 +42,7 @@ export type FormButtonComponent = FormComponent<
 >;
 export type FormAddressComponent = FormComponent<ComponentType.AddressComponent>;
 
-export type FormComponent<T extends ComponentType = ComponentType> = {
+export type FormComponent<T extends SimpleComponentType = SimpleComponentType> = {
   [componentType in ComponentType]: FormComponentBase<componentType> &
     ComponentSpecificConfig<componentType>;
 }[T];

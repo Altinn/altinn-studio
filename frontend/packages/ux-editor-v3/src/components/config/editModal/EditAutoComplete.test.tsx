@@ -2,7 +2,7 @@ import React from 'react';
 import { EditAutoComplete } from './EditAutoComplete';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormComponent } from '../../../types/FormComponent';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
@@ -10,7 +10,7 @@ import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuer
 const componentMock: FormComponent = {
   id: 'random-id',
   autocomplete: '',
-  type: ComponentType.Input,
+  type: ComponentTypeV3.Input,
   itemType: 'COMPONENT',
   propertyPath: 'definitions/inputComponent',
   dataModelBindings: {},

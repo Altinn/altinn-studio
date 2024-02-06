@@ -5,14 +5,18 @@ import { Tabs } from '@digdir/design-system-react';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
-import type { FormComponent } from '../../../../types/FormComponent';
 import { deepCopy } from 'app-shared/pure';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
+import type { FormItem } from '../../../../types/FormItem';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => {
-  const newComponent = deepCopy(component);
+const setGridOnComponent = <T extends ComponentType>(
+  gridValues: GridSizes,
+  component: FormItem<T>,
+): FormItem<T> => {
+  const newComponent: FormItem<T> = deepCopy(component);
   newComponent.grid = { ...newComponent.grid, ...gridValues };
   if (
     Object.keys(newComponent.grid).length === 0 ||
@@ -23,7 +27,10 @@ const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => 
   return newComponent;
 };
 
-export const EditGrid = ({ handleComponentChange, component }: IGenericEditComponent) => {
+export const EditGrid = <T extends ComponentType>({
+  handleComponentChange,
+  component,
+}: IGenericEditComponent<T>) => {
   const [gridValues, setGridValues] = useState<GridSizes>(component.grid ?? {});
   const [selectedViewSizeForGridProp, setSelectedViewSizeForGridProp] = useState<ViewSize>(
     ViewSize.Xs,

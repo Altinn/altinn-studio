@@ -4,7 +4,7 @@ import {
   convertExternalLayoutsToInternalFormat,
   firstAvailableLayout,
 } from './formLayoutsUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
@@ -24,9 +24,9 @@ describe('formLayoutsUtils', () => {
       const layout1Components = Object.values(updatedLayouts[layout1Id].components);
       const layout2Components = Object.values(updatedLayouts[layout2Id].components);
       expect(layout1Components.length).toBe(1);
-      expect(layout1Components[0].type).toBe(ComponentType.NavigationButtons);
+      expect(layout1Components[0].type).toBe(ComponentTypeV3.NavigationButtons);
       expect(layout2Components.length).toBe(1);
-      expect(layout2Components[0].type).toBe(ComponentType.NavigationButtons);
+      expect(layout2Components[0].type).toBe(ComponentTypeV3.NavigationButtons);
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenCalledWith(layout1Id, updatedLayouts[layout1Id]);
       expect(callback).toHaveBeenCalledWith(layout2Id, updatedLayouts[layout2Id]);
@@ -63,7 +63,7 @@ describe('formLayoutsUtils', () => {
         id: navButtonsId,
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
-        type: ComponentType.NavigationButtons,
+        type: ComponentTypeV3.NavigationButtons,
         dataModelBindings: {},
       };
       const layouts: IFormLayouts = {
@@ -116,9 +116,9 @@ describe('formLayoutsUtils', () => {
       const layout2Components = Object.values(updatedLayouts[layout2id].components);
       const layoutReceiptComponents = Object.values(updatedLayouts[layoutReceiptId].components);
       expect(layout1Components.length).toBe(1);
-      expect(layout1Components[0].type).toBe(ComponentType.NavigationButtons);
+      expect(layout1Components[0].type).toBe(ComponentTypeV3.NavigationButtons);
       expect(layout2Components.length).toBe(1);
-      expect(layout2Components[0].type).toBe(ComponentType.NavigationButtons);
+      expect(layout2Components[0].type).toBe(ComponentTypeV3.NavigationButtons);
       expect(layoutReceiptComponents.length).toBe(0);
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenCalledWith(layout1id, updatedLayouts[layout1id]);
@@ -133,7 +133,7 @@ describe('formLayoutsUtils', () => {
         id: navButtonsId,
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
-        type: ComponentType.NavigationButtons,
+        type: ComponentTypeV3.NavigationButtons,
         dataModelBindings: {},
       };
       const layouts: IFormLayouts = {
@@ -167,7 +167,7 @@ describe('formLayoutsUtils', () => {
         id: navButtonsId,
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
-        type: ComponentType.NavigationButtons,
+        type: ComponentTypeV3.NavigationButtons,
         dataModelBindings: {},
       };
       const layouts: IFormLayouts = {
@@ -207,7 +207,7 @@ describe('formLayoutsUtils', () => {
         id: navButtonsId,
         itemType: 'COMPONENT',
         onClickAction: jest.fn(),
-        type: ComponentType.NavigationButtons,
+        type: ComponentTypeV3.NavigationButtons,
         dataModelBindings: {},
       };
       const layouts: IFormLayouts = {

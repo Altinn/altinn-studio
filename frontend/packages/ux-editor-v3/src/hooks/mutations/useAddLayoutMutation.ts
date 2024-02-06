@@ -5,7 +5,7 @@ import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLa
 import { deepCopy } from 'app-shared/pure';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../types/global';
-import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import type { ExternalFormLayoutV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
@@ -20,7 +20,7 @@ export interface AddLayoutMutationArgs {
 }
 
 export const useAddLayoutMutation = (org: string, app: string, layoutSetName: string) => {
-  const { saveFormLayout } = useServicesContext();
+  const { saveFormLayoutV3 } = useServicesContext();
   const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
@@ -28,8 +28,8 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   const queryClient = useQueryClient();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
-    const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
-    return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, convertedLayout);
+    const convertedLayout: ExternalFormLayoutV3 = internalLayoutToExternal(updatedLayout);
+    return await saveFormLayoutV3(org, app, updatedLayoutName, layoutSetName, convertedLayout);
   };
 
   return useMutation({

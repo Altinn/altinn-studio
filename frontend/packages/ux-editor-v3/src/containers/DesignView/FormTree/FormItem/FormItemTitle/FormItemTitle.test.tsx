@@ -3,12 +3,12 @@ import { renderWithMockStore } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
-const item: FormComponent = componentMocks[ComponentType.Input];
+const item: FormComponent = componentMocks[ComponentTypeV3.Input];
 const label = 'Test label';
 
 // Mocks:
