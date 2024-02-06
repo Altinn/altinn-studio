@@ -14,7 +14,6 @@ export default defineConfig<ExtendedTestOptions>({
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
   },
   fullyParallel: true,
-  timeout: 3 * 60 * 1000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1, // Github actions always use only 1, so we set to 1 locally as well

@@ -101,6 +101,9 @@ test('That it is possible to edit security level on "Policy editor" tab, and tha
   const securityValueAfterChange = await policyEditor.getSelectedSecurityLevel();
   expect(securityValueAfterChange).toBe(securityLevel3Text);
 
+  // In dev, the API call to save the policy takes some time, and therefore we add functionality to wait for a while to wait for the save to happen
+  await settingsModal.waitForXAmountOfMilliseconds(4000);
+
   await settingsModal.navigateToTab('about');
   await settingsModal.verifyThatTabIsVisible('about');
   await settingsModal.verifyThatTabIsHidden('policy');
