@@ -45,6 +45,23 @@ jest.mock('./Calculations', () => ({
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('Properties', () => {
+  describe('Text', () => {
+    it('Toggles text when clicked', async () => {
+      render();
+      const button = screen.queryByRole('button', { name: textText });
+      await act(() => user.click(button));
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      await act(() => user.click(button));
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('Opens text when a component is selected', async () => {
+      const { rerender } = render();
+      rerender(getComponent({ formId: 'test' }));
+      const button = screen.queryByRole('button', { name: textText });
+      await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
+    });
+  });
   describe('Content', () => {
     it('Closes content on load', () => {
       render();
@@ -59,13 +76,6 @@ describe('Properties', () => {
       expect(button).toHaveAttribute('aria-expanded', 'true');
       await act(() => user.click(button));
       expect(button).toHaveAttribute('aria-expanded', 'false');
-    });
-
-    it('Opens text when a component is selected', async () => {
-      const { rerender } = render();
-      rerender(getComponent({ formId: 'test' }));
-      const button = screen.queryByRole('button', { name: textText });
-      await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
     });
   });
 

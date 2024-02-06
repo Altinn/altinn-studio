@@ -20,12 +20,6 @@ export const EditTextResourceBindings = ({
   handleComponentChange,
   textResourceBindingKeys,
 }: EditTextResourceBindingsProps) => {
-  const handleRemoveKey = (key: string) => {
-    const updatedComponent = { ...component };
-    delete updatedComponent.textResourceBindings[key];
-    handleComponentChange(updatedComponent);
-  };
-
   return (
     <div className={classes.container}>
       {textResourceBindingKeys.map((key: string) => (
@@ -33,7 +27,6 @@ export const EditTextResourceBindings = ({
           key={key}
           component={component}
           handleComponentChange={handleComponentChange}
-          removeTextResourceBinding={() => handleRemoveKey(key)}
           textKey={key}
           labelKey={`ux_editor.modal_properties_textResourceBindings_${key}` as any}
           placeholderKey={`ux_editor.modal_properties_textResourceBindings_${key}_add` as any}
