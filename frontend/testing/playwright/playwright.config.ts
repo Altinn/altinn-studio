@@ -124,6 +124,7 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         storageState: '.playwright/auth/user.json',
         headless: true,
+        locale: process.env.CI ? 'en' : 'no', // Our solution runs Gitea page in Norwegian locally and English in dev and prod.
       },
     },
   ],

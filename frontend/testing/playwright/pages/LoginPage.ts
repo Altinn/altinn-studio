@@ -4,8 +4,13 @@ import { BasePage } from '../helpers/BasePage';
 // Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.
 const loginPageTexts: Record<string, string> = {
   login: 'logg inn',
-  username: 'Brukernavn eller epost',
+  username: 'Brukernavn eller epost', // SHOULD THIS BE "Username or Email Address"
   password: 'Passord',
+  // After loging out, the language on the page changes from Norwegian to English
+  login_after_logout: 'Sign in',
+  username_after_logout: 'Username or Email Address',
+  password_after_logout: 'Password',
+  error_message_after_logout: 'Username or password is incorrect.',
 };
 
 export class LoginPage extends BasePage {
@@ -27,16 +32,19 @@ export class LoginPage extends BasePage {
     await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
   }
 
-  public async writeUsername(username: string): Promise<void> {
-    return await this.page.getByLabel(loginPageTexts['username']).fill(username);
+  public async writeUsername(username: string, isAfterLogout: boolean = false): Promise<void> {
+    const textKey = isAfterLogout ? 'username_after_logout' : 'username';
+    return await this.page.getByLabel(loginPageTexts[textKey]).fill(username);
   }
 
-  public async writePassword(password: string): Promise<void> {
-    return await this.page.getByLabel(loginPageTexts['password']).fill(password);
+  public async writePassword(password: string, isAfterLogout: boolean = false): Promise<void> {
+    const textKey = isAfterLogout ? 'password_after_logout' : 'password';
+    return await this.page.getByLabel(loginPageTexts[textKey]).fill(password);
   }
 
-  public async clickLoginButton(): Promise<void> {
-    return await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
+  public async clickLoginButton(isAfterLogout: boolean = false): Promise<void> {
+    const textKey = isAfterLogout ? 'login_after_logout' : 'login';
+    return await this.page.getByRole('button', { name: loginPageTexts[textKey] }).click();
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {
@@ -44,7 +52,7 @@ export class LoginPage extends BasePage {
   }
 
   public async checkThatErrorMessageIsVisible(): Promise<void> {
-    await this.page.getByText(/ugyldig brukernavn eller passord./i).isVisible();
+    await this.page.getByText(loginPageTexts['error_message_after_logout']).isVisible();
   }
 
   public async addSessionToSharableStorage() {

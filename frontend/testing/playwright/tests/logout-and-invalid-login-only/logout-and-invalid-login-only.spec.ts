@@ -26,15 +26,20 @@ test('That it is possible to login with valid user credentials, and then log out
 
 test('That it is not possible to login with invalid credentials', async ({
   page,
+  locale,
 }): Promise<void> => {
   const loginPage = new LoginPage(page);
+  console.log('locale', locale);
 
   await loginPage.goToAltinnLoginPage();
   await loginPage.goToGiteaLoginPage();
 
-  await loginPage.writeUsername(process.env.PLAYWRIGHT_USER);
-  await loginPage.writePassword('123');
+  // Gitea login page is in Norwegian locally, but english in dev and prod
+  const isEnglish: boolean = locale === 'en';
 
-  await loginPage.clickLoginButton();
+  await loginPage.writeUsername(process.env.PLAYWRIGHT_USER, isEnglish);
+  await loginPage.writePassword('123', isEnglish);
+
+  await loginPage.clickLoginButton(isEnglish);
   await loginPage.checkThatErrorMessageIsVisible();
 });
