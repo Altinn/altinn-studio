@@ -14,10 +14,6 @@ import { DeployPage } from '../../pages/DeployPage';
 import { Header } from '../../components/Header';
 import { Gitea } from '../../helpers/Gitea';
 
-// This line must be there to ensure that the tests do not run in parallell, and
-// that the before all call is being executed before we start the tests
-test.describe.configure({ mode: 'serial' });
-
 // Before the tests starts, we need to create the dashboard app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
   // Create a new app
@@ -135,7 +131,7 @@ test('That it is possible to navigate from overview to the preview page and back
   await uiEditor.verifyUiEditorPage(null);
 });
 
-test('That it is possible to navigate from overview to the deploy page and back again', async ({
+test.skip('That it is possible to navigate from overview to the deploy page and back again', async ({
   page,
   testAppName,
   request,

@@ -37,6 +37,7 @@
     <PackageReference Update="Polly" Version="8.2.1" />
     <PackageReference Update="Altinn.Authorization.ABAC" Version="0.0.7" />
     <PackageReference Update="Altinn.ApiClients.Maskinporten" Version="9.1.0" />
+    <PackageReference Update="MediatR" Version="12.2.0" />
   </ItemGroup>
 
   <ItemGroup Label="Packages used for testing">
