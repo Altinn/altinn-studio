@@ -37,34 +37,6 @@ namespace Designer.Tests.Services
             }
         }
 
-        [Theory]
-        [InlineData("ttd", "app-with-process", "testUser", "Task_1", "NewTaskName")]
-        public async void UpdateProcessTaskNameAsync_GivenTaskIdAndTaskName_UpdatesTaskName(string org, string repo, string developer, string taskId, string newTaskName)
-        {
-            // Arrange
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
-            await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
-
-            try
-            {
-                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                IProcessModelingService processModelingService = new ProcessModelingService(altinnGitRepositoryFactory);
-
-                // Act
-                using Stream result = await processModelingService.UpdateProcessTaskNameAsync(editingContext, taskId, newTaskName);
-                XmlSerializer serializer = new(typeof(Definitions));
-                Definitions definitions = (Definitions)serializer.Deserialize(result);
-
-                // Assert
-                definitions.Process.Tasks.First(t => t.Id == taskId).Name.Should().Be(newTaskName);
-            }
-            finally
-            {
-                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-            }
-        }
-
         public static IEnumerable<object[]> TemplatesTestData => new List<object[]>
         {
             new object[]

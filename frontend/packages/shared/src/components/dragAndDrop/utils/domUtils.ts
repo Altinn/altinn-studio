@@ -1,12 +1,12 @@
-import { removeEnd, removeStart } from 'app-shared/utils/stringUtils';
+import { StringUtils } from '@studio/pure-functions';
 
 export const domListId = (baseId: string, id: string) => `${baseId}-${id}-list`;
 export const domItemId = (baseId: string, id: string) => `${baseId}-${id}-listitem`;
 
 export const extractIdFromDomItemId = (baseId: string, domItemId: string): string =>
-  removeEnd(removeStart(domItemId, `${baseId}-`), '-listitem');
+  StringUtils.removeEnd(StringUtils.removeStart(domItemId, `${baseId}-`), '-listitem');
 export const extractIdFromDomListId = (baseId: string, domListId: string): string =>
-  removeEnd(removeStart(domListId, `${baseId}-`), '-list');
+  StringUtils.removeEnd(StringUtils.removeStart(domListId, `${baseId}-`), '-list');
 
 const replaceColonsWithUnderscores = (id: string): string => id.replaceAll(':', '_'); // Used to convert the useId value to a valid class name
 export const domItemClass = (baseId: string) => `${replaceColonsWithUnderscores(baseId)}-listitem`;

@@ -1,0 +1,40 @@
+.expressionContainer {
+  border: 2px solid #e1e1e1;
+  border-radius: 5px;
+  padding: 1rem;
+  background-color: white;
+}
+
+.topBar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.previewMode {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.expressionDetails div p span {
+  font-style: italic;
+}
+
+.expressionDetails span span {
+  font-weight: bold;
+}
+
+.expressionDetails p {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.subExpression {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-rows: auto;
+  margin: 0.5rem 0;
+}

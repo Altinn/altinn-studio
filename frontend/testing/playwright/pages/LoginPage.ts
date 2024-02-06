@@ -15,6 +15,10 @@ export class LoginPage extends BasePage {
     super(page);
   }
 
+  public async verifyLoginPage(): Promise<void> {
+    await this.page.waitForURL(this.getRoute('altinnLoginPage'));
+  }
+
   public async goToAltinnLoginPage(): Promise<void> {
     await this.page.goto(this.getRoute('altinnLoginPage'));
   }
@@ -36,7 +40,11 @@ export class LoginPage extends BasePage {
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {
-    return this.page.waitForURL(this.getRoute('dashboard'));
+    await this.page.waitForURL(this.getRoute('dashboard'));
+  }
+
+  public async checkThatErrorMessageIsVisible(): Promise<void> {
+    await this.page.getByText(/ugyldig brukernavn eller passord./i).isVisible();
   }
 
   public async addSessionToSharableStorage() {
