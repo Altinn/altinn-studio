@@ -42,7 +42,6 @@ jobs:
           echo POSTGRES_PASSWORD=kyeDIG@eip >> .env
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
-          echo CONTAINER_MANAGER_TOOL=docker >> .env
 
       - name: Build all images
         run: |
