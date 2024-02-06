@@ -4,7 +4,7 @@ import { BasePage } from '../helpers/BasePage';
 // Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.
 const loginPageTexts: Record<string, string> = {
   login: 'logg inn',
-  username: 'Brukernavn eller epost', // SHOULD THIS BE "Username or Email Address"
+  username: 'Brukernavn eller epost',
   password: 'Passord',
   // After loging out, the language on the page changes from Norwegian to English
   login_after_logout: 'Sign in',
