@@ -27,10 +27,19 @@ class SetupEnvironment extends ContainerTool {
 
     await dnsIsOk(this.host);
     if (!(this.env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
-      await dnsIsOk(`host.${this.containerManager}.internal`);
+      // Podman do also understand host.docker.internal.
+      await dnsIsOk(`host.docker.internal`);
     }
+
+    if (this.containerManager === 'podman' && !(await this.isRunningPodmanMachine())) {
+      await this.createRootfulPodmanMachine();
+      await this.startPodmanMachine();
+    } else {
+      console.log('Podman Machine is already running, continue setup');
+    }
+
     await this.runCompose();
-    await waitFor(`http://${this.host}/repos/`);
+    await this.waitForRepos();
     await this.createGiteaAdminUser();
     await this.createCypressUser();
 
@@ -55,17 +64,17 @@ class SetupEnvironment extends ContainerTool {
   }
 
   runCompose() {
-    if (this.containerManager === 'docker') {
-      console.log('Using Docker');
-      runCommand(`docker compose up -d --remove-orphans`);
-      return;
-    }
+    runCommand(
+      `${this.containerManager} compose --env-file ${path.resolve(__dirname, '../.env')} up -d --remove-orphans`,
+    );
+  }
 
-    // Podman does not support "--remove-orphans", and doesn't auto-detect .env files, like Docker do. Use "--env-file" to specify .env file.
-    // Open Issue: https://github.com/containers/podman-compose/issues/815
-    if (this.containerManager === 'podman') {
-      runCommand('podman compose down');
-      runCommand(`podman compose --env-file ${path.resolve(__dirname, '../.env')} up -d`);
+  async waitForRepos() {
+    try {
+      await waitFor(`http://${this.host}/repos/`);
+    } catch (e) {
+      console.error(e);
+      process.exit(1);
     }
   }
 
