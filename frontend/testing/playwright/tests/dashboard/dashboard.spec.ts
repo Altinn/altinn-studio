@@ -11,16 +11,8 @@ const getExtraAppName = (appName: string): string => `extra-app-${appName}`;
 
 // Before the tests starts, we need to create the dashboard app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
-  // Create 2 apps
-  const firstApp = await createApp(testAppName, request, storageState as StorageState);
-  const secondApp = await createApp(
-    getExtraAppName(testAppName),
-    request,
-    storageState as StorageState,
-  );
-
-  expect(firstApp.ok()).toBeTruthy();
-  expect(secondApp.ok()).toBeTruthy();
+  const response = await createApp(testAppName, request, storageState as StorageState);
+  expect(response.ok()).toBeTruthy();
 });
 
 test.afterAll(async ({ request, testAppName }) => {
@@ -84,14 +76,24 @@ test('It is possible to change context and view only Testdepartementet apps', as
   await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
 });
 
-test('It is possible to search an app by name', async ({ page, testAppName }) => {
+test('It is possible to search an app by name', async ({
+  page,
+  testAppName,
+  request,
+  storageState,
+}) => {
   const dashboardPage = await setupAndVerifyDashboardPage(page, testAppName);
-  const testAppName2 = `${testAppName}2`;
+  const testAppName2 = getExtraAppName(testAppName);
+
+  // Need to wait a bit to make sure that Gitea does not crash
+  dashboardPage.waitForXAmountOfMilliseconds(3000);
+  const response = await createApp(testAppName2, request, storageState as StorageState);
+  expect(response.ok()).toBeTruthy();
 
   await dashboardPage.checkThatAppIsVisible(testAppName);
   await dashboardPage.checkThatAppIsVisible(testAppName2);
 
-  await dashboardPage.typeInSearchField('2');
+  await dashboardPage.typeInSearchField('extra');
   await dashboardPage.checkThatAppIsHidden(testAppName);
   await dashboardPage.checkThatAppIsVisible(testAppName2);
 });
