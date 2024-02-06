@@ -110,13 +110,13 @@ export default defineConfig<ExtendedTestOptions>({
       // Add ALL other test names here to make sure that the log out test is the last test to be executed
       dependencies: [
         TestNames.SETUP,
-        TestNames.CREATE_APP_ONLY,
+        /*TestNames.CREATE_APP_ONLY,
         TestNames.DATA_MODEL,
         TestNames.DASHBOARD,
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
         TestNames.GIT_SYNC,
         TestNames.UI_EDITOR,
-        TestNames.SETTINGS_MODAL,
+        TestNames.SETTINGS_MODAL,*/
       ],
       testDir: './tests/logout-and-invalid-login-only/',
       testMatch: '*.spec.ts',

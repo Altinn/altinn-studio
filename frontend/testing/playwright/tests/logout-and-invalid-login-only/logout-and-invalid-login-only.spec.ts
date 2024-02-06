@@ -40,6 +40,8 @@ test('That it is not possible to login with invalid credentials', async ({
     await loginPage.clickOnLanguageMenu();
     await loginPage.clickOnNorwegianLanguageOption();
 
+    await loginPage.waitForXAmountOfMilliseconds(2000);
+
     const langAfterchange = await loginPage.getLanguage();
     expect(langAfterchange).toBe(Language.Norwegian);
   } else {
