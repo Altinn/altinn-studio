@@ -1,6 +1,6 @@
 ﻿using NuGet.Versioning;
 
-namespace Altinn.Studio.Designer.ViewModels.Response
+namespace Altinn.Studio.Designer.Models.Dto
 {
     public class VersionResponse
     {
