@@ -62,7 +62,7 @@ export class LoginPage extends BasePage {
   }
 
   public async clickOnNorwegianLanguageOption(): Promise<void> {
-    await this.page.getByRole('menuitem', { name: Language.NORWEGIAN }).click();
+    await this.page.getByRole('menuitem', { name: Language.Norwegian }).click();
   }
 
   public async addSessionToSharableStorage() {

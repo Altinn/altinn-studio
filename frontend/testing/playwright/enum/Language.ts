@@ -1,3 +1,3 @@
 export enum Language {
-  NORWEGIAN = 'Norsk',
+  Norwegian = 'Norsk',
 }

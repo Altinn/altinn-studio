@@ -36,14 +36,14 @@ test('That it is not possible to login with invalid credentials', async ({
 
   const lang = await loginPage.getLanguage();
 
-  if (lang !== Language.NORWEGIAN) {
+  if (lang !== Language.Norwegian) {
     await loginPage.clickOnLanguageMenu();
     await loginPage.clickOnNorwegianLanguageOption();
 
     const langAfterchange = await loginPage.getLanguage();
-    expect(langAfterchange).toBe(Language.NORWEGIAN);
+    expect(langAfterchange).toBe(Language.Norwegian);
   } else {
-    expect(lang).toBe(Language.NORWEGIAN);
+    expect(lang).toBe(Language.Norwegian);
   }
 
   await loginPage.writeUsername(process.env.PLAYWRIGHT_USER);
