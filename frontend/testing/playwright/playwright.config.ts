@@ -13,11 +13,10 @@ export default defineConfig<ExtendedTestOptions>({
     trace: 'on-first-retry',
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
   },
-  fullyParallel: false,
-  timeout: 3 * 60 * 1000,
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1, // Github actions always use only 1, so we set to 1 locally as well
   reporter: 'html',
 
   projects: [
@@ -60,7 +59,7 @@ export default defineConfig<ExtendedTestOptions>({
     },
     {
       name: TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
-      dependencies: ['setup'],
+      dependencies: [TestNames.SETUP],
       testDir: './tests/main-navigation-between-sub-apps/',
       testMatch: '*.spec.ts',
       use: {
@@ -72,7 +71,7 @@ export default defineConfig<ExtendedTestOptions>({
     },
     {
       name: TestNames.GIT_SYNC,
-      dependencies: ['setup'],
+      dependencies: [TestNames.SETUP],
       testDir: './tests/git-sync/',
       testMatch: '*.spec.ts',
       use: {
@@ -84,14 +83,25 @@ export default defineConfig<ExtendedTestOptions>({
     },
     {
       name: TestNames.UI_EDITOR,
-      dependencies: ['setup'],
+      dependencies: [TestNames.SETUP],
       testDir: './tests/ui-editor/',
       testMatch: '*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.UI_EDITOR_APP,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.SETTINGS_MODAL,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/settings-modal/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.SETTINGS_MODAL_APP,
         headless: true,
       },
     },
@@ -106,6 +116,7 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
         TestNames.GIT_SYNC,
         TestNames.UI_EDITOR,
+        TestNames.SETTINGS_MODAL,
       ],
       testDir: './tests/logout-and-invalid-login-only/',
       testMatch: '*.spec.ts',
