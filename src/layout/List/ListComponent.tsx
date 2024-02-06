@@ -3,7 +3,11 @@ import React, { useMemo, useState } from 'react';
 import { Pagination } from '@altinn/altinn-design-system';
 import { LegacyFieldSet, LegacyResponsiveTable } from '@digdir/design-system-react';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
-import type { ChangeProps, LegacyResponsiveTableConfig, SortDirection } from '@digdir/design-system-react';
+import type { LegacyResponsiveTableConfig } from '@digdir/design-system-react';
+import type {
+  ChangeProps,
+  SortDirection,
+} from '@digdir/design-system-react/dist/types/components/legacy/LegacyTable/utils';
 
 import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';

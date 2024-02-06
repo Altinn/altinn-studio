@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, TableCell, TableRow } from '@digdir/design-system-react';
+import { Button, LegacyTableCell, LegacyTableRow } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
@@ -119,7 +119,7 @@ export function RepeatingGroupTableRow({
   const deleteButtonText = langAsString('general.delete');
 
   return (
-    <TableRow
+    <LegacyTableRow
       key={`repeating-group-row-${index}`}
       className={cn(
         {
@@ -132,7 +132,7 @@ export function RepeatingGroupTableRow({
       {!mobileView ? (
         tableNodes.map((n, idx) =>
           shouldEditInTable(edit, n, columnSettings) ? (
-            <TableCell
+            <LegacyTableCell
               key={n.item.id}
               className={classes.tableCell}
             >
@@ -149,9 +149,9 @@ export function RepeatingGroupTableRow({
                   }}
                 />
               </div>
-            </TableCell>
+            </LegacyTableCell>
           ) : (
-            <TableCell
+            <LegacyTableCell
               key={`${n.item.id}-${index}`}
               className={classes.tableCell}
             >
@@ -161,11 +161,11 @@ export function RepeatingGroupTableRow({
               >
                 {isEditingRow ? null : displayData[idx]}
               </span>
-            </TableCell>
+            </LegacyTableCell>
           ),
         )
       ) : (
-        <TableCell className={classes.mobileTableCell}>
+        <LegacyTableCell className={classes.mobileTableCell}>
           <Grid
             container={true}
             spacing={3}
@@ -202,18 +202,18 @@ export function RepeatingGroupTableRow({
                 )),
             )}
           </Grid>
-        </TableCell>
+        </LegacyTableCell>
       )}
       {!mobileView ? (
         <>
           {edit?.editButton === false && edit?.deleteButton === false && (displayEditColumn || displayDeleteColumn) ? (
-            <TableCell
+            <LegacyTableCell
               key={`editDelete-${index}`}
               colSpan={displayEditColumn && displayDeleteColumn ? 2 : 1}
             />
           ) : null}
           {edit?.editButton !== false && displayEditColumn && (
-            <TableCell
+            <LegacyTableCell
               key={`edit-${index}`}
               className={classes.buttonCell}
               colSpan={displayDeleteColumn && edit?.deleteButton === false ? 2 : 1}
@@ -235,10 +235,10 @@ export function RepeatingGroupTableRow({
                   {editButtonText}
                 </Button>
               </div>
-            </TableCell>
+            </LegacyTableCell>
           )}
           {edit?.deleteButton !== false && displayDeleteColumn && (
-            <TableCell
+            <LegacyTableCell
               key={`delete-${index}`}
               className={cn(classes.buttonCell)}
               colSpan={displayEditColumn && edit?.editButton === false ? 2 : 1}
@@ -256,11 +256,11 @@ export function RepeatingGroupTableRow({
                   {deleteButtonText}
                 </DeleteElement>
               </div>
-            </TableCell>
+            </LegacyTableCell>
           )}
         </>
       ) : (
-        <TableCell
+        <LegacyTableCell
           className={cn(classes.buttonCell, classes.mobileTableCell)}
           style={{ verticalAlign: 'top' }}
         >
@@ -299,9 +299,9 @@ export function RepeatingGroupTableRow({
               </>
             )}
           </div>
-        </TableCell>
+        </LegacyTableCell>
       )}
-    </TableRow>
+    </LegacyTableRow>
   );
 }
 

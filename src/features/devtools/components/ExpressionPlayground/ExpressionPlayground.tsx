@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 
-import { Checkbox, Fieldset, Select, Tabs } from '@digdir/design-system-react';
+import { Checkbox, Fieldset, LegacySelect, Tabs } from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground.module.css';
@@ -202,7 +202,7 @@ export const ExpressionPlayground = () => {
         </SplitView>
         <div className={classes.rightColumn}>
           <Fieldset legend={'Kjør uttrykk i kontekst av komponent'}>
-            <Select
+            <LegacySelect
               value={`${forPage}|${forComponentId}`}
               onChange={(value) => {
                 const [forPage, forComponentId] = value.split('|', 2);

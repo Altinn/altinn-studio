@@ -14,7 +14,7 @@ describe('Grid component', () => {
     // about for Grid.
     cy.get(appFrontend.changeOfName.newFirstName).type('anna');
     cy.get(appFrontend.changeOfName.newLastName).type('last name');
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').check();
     cy.get(appFrontend.changeOfName.reasonRelationship).click();
     cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
     cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
@@ -24,13 +24,13 @@ describe('Grid component', () => {
 
     // Dynamics hiding the entire grid table
     cy.get(appFrontend.grid.gridWithAll).should('be.visible');
-    cy.get(appFrontend.grid.showGridWithAll).find('label:contains("Nei")').click();
+    cy.get(appFrontend.grid.showGridWithAll).find('label:contains("Nei")').dsCheck();
     cy.get(appFrontend.grid.gridWithAll).should('not.exist');
 
     // Dynamics hiding an entire row
-    cy.get(appFrontend.grid.hasCreditCard).find('label:contains("Nei")').click();
+    cy.get(appFrontend.grid.hasCreditCard).find('label:contains("Nei")').dsCheck();
     cy.get(appFrontend.grid.grid).find('tr').should('have.length', 4);
-    cy.get(appFrontend.grid.hasCreditCard).find('label:contains("Ja")').click();
+    cy.get(appFrontend.grid.hasCreditCard).find('label:contains("Ja")').dsCheck();
     cy.get(appFrontend.grid.grid).find('tr').should('have.length', 5);
 
     // Filling out the form without ending up at 100% total. We reference these fields in their respective rows
@@ -107,7 +107,7 @@ describe('Grid component', () => {
       'contain.text',
       'Er fordelingen av kredittkortgjeld verifisert?',
     );
-    cy.get(appFrontend.grid.hasCreditCard).find('label:contains("Nei")').click();
+    cy.get(appFrontend.grid.hasCreditCard).find('label:contains("Nei")').dsCheck();
     cy.get(appFrontend.grid.kredittkort.percent).should('not.exist');
     cy.get(appFrontend.grid.kredittkort.percentComponent).should('not.exist');
     cy.get(appFrontend.grid.kredittkort.verifiedComponent).should('not.exist');
@@ -126,9 +126,9 @@ describe('Grid component', () => {
     });
 
     cy.goto('group');
-    cy.get(appFrontend.group.prefill.liten).dsCheck();
+    cy.get(appFrontend.group.prefill.liten).check();
     cy.navPage('repeating').click();
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.row(0).nestedGroup.groupContainer)

@@ -1,7 +1,13 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
+import {
+  LegacyTable,
+  LegacyTableBody,
+  LegacyTableCell,
+  LegacyTableHeader,
+  LegacyTableRow,
+} from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
@@ -43,7 +49,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
       condition={shouldHaveFullWidth}
       wrapper={(child) => <FullWidthWrapper>{child}</FullWidthWrapper>}
     >
-      <Table id={node.item.id}>
+      <LegacyTable id={node.item.id}>
         {title && (
           <Caption
             className={cn({ [css.captionFullWidth]: shouldHaveFullWidth })}
@@ -62,7 +68,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
             node={node}
           />
         ))}
-      </Table>
+      </LegacyTable>
     </ConditionalWrapper>
   );
 }
@@ -150,16 +156,16 @@ function InternalRow({ header, readOnly, children }: InternalRowProps) {
 
   if (header) {
     return (
-      <TableHeader>
-        <TableRow className={className}>{children}</TableRow>
-      </TableHeader>
+      <LegacyTableHeader>
+        <LegacyTableRow className={className}>{children}</LegacyTableRow>
+      </LegacyTableHeader>
     );
   }
 
   return (
-    <TableBody>
-      <TableRow className={className}>{children}</TableRow>
-    </TableBody>
+    <LegacyTableBody>
+      <LegacyTableRow className={className}>{children}</LegacyTableRow>
+    </LegacyTableBody>
   );
 }
 
@@ -184,7 +190,7 @@ function CellWithComponent({ node, className, columnStyleOptions }: CellWithComp
   if (node && !node.isHidden()) {
     const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
     return (
-      <TableCell
+      <LegacyTableCell
         className={cn(css.tableCellFormatting, className)}
         style={columnStyles}
       >
@@ -196,18 +202,18 @@ function CellWithComponent({ node, className, columnStyleOptions }: CellWithComp
             renderedInTable: true,
           }}
         />
-      </TableCell>
+      </LegacyTableCell>
     );
   }
 
-  return <TableCell className={className} />;
+  return <LegacyTableCell className={className} />;
 }
 
 function CellWithText({ children, className, columnStyleOptions, help }: CellWithTextProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const { elementAsString } = useLanguage();
   return (
-    <TableCell
+    <LegacyTableCell
       className={cn(css.tableCellFormatting, className)}
       style={columnStyles}
     >
@@ -225,7 +231,7 @@ function CellWithText({ children, className, columnStyleOptions, help }: CellWit
           />
         )}
       </span>
-    </TableCell>
+    </LegacyTableCell>
   );
 }
 
@@ -243,7 +249,7 @@ function CellWithLabel({ className, columnStyleOptions, referenceComponent }: Ce
   const componentId = referenceComponent?.item.id ?? referenceComponent?.item.baseComponentId;
 
   return (
-    <TableCell
+    <LegacyTableCell
       className={cn(css.tableCellFormatting, className)}
       style={columnStyles}
     >
@@ -264,7 +270,7 @@ function CellWithLabel({ className, columnStyleOptions, referenceComponent }: Ce
           />
         </>
       )}
-    </TableCell>
+    </LegacyTableCell>
   );
 }
 

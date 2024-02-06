@@ -30,7 +30,11 @@ describe('Validation', () => {
 
     cy.get(appFrontend.changeOfName.newMiddleName).type('Some middle name');
 
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
+    cy.get(appFrontend.changeOfName.confirmChangeName)
+      .findByRole('checkbox', {
+        name: /Ja[a-z, ]*/,
+      })
+      .check();
     cy.get(appFrontend.changeOfName.reasonRelationship).type('test');
     cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
     cy.get(mui.selectedDate).click();
@@ -98,7 +102,11 @@ describe('Validation', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
+    cy.get(appFrontend.changeOfName.confirmChangeName)
+      .findByRole('checkbox', {
+        name: /Ja[a-z, ]*/,
+      })
+      .check();
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.nextButton).scrollIntoView();
     cy.get(appFrontend.nextButton).should('be.inViewport');
@@ -245,7 +253,7 @@ describe('Validation', () => {
     // Init and add data to group
     cy.goto('group');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue).type('123');
     cy.get(appFrontend.group.newValue).type('321');
@@ -257,7 +265,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('exist').should('be.visible');
 
     // Hide field that contains validation error and verify validation messages are gone
-    cy.get(appFrontend.group.hideCommentField).find('input').dsCheck();
+    cy.get(appFrontend.group.hideCommentField).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.comments).should('not.exist');
     cy.get(appFrontend.fieldValidation('comments-0-0')).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -314,8 +322,8 @@ describe('Validation', () => {
     });
     cy.goto('group');
 
-    cy.get(appFrontend.group.prefill.liten).dsCheck();
-    cy.get(appFrontend.group.prefill.stor).dsCheck();
+    cy.get(appFrontend.group.prefill.liten).check();
+    cy.get(appFrontend.group.prefill.stor).check();
     cy.get(appFrontend.nextButton).clickAndGone();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
 
@@ -328,7 +336,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.showGroupToContinue).find('input').should('be.focused');
 
     // Check that clicking the error focuses a component inside a group
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.row(2).nestedGroup.row(0).comments).should('be.visible');
@@ -597,7 +605,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
 
     cy.gotoNavPage('repeating');
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(2, 3, 'hideSendersName');
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page is still visible
@@ -651,7 +659,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
 
     cy.gotoNavPage('repeating');
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(1, 11, 'whatever');
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page should be visible and active
@@ -680,7 +688,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
 
     cy.gotoNavPage('repeating');
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(2, 3, 'hidePage');
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.navMenuButtons).should('have.length', 3); // 'hide' page is now invisible

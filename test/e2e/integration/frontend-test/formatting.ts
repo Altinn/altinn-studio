@@ -20,7 +20,7 @@ describe('Formatting', () => {
     cy.get(appFrontend.sendinButton).click();
     cy.wait('@getLayoutGroup');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue).type('1');
     cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 1').and('have.css', 'text-align', 'right');
@@ -40,7 +40,7 @@ describe('Formatting', () => {
     cy.goto('group');
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.addNewItem).click();
 
     cy.get(appFrontend.group.currentValue).numberFormatClear();

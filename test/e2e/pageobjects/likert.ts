@@ -36,13 +36,13 @@ export class Likert {
 
   selectRadio(question, option) {
     cy.findByRole('row', { name: question }).within(() => {
-      cy.findByRole('radio', { name: new RegExp(option) }).dsCheck();
+      cy.findByRole('radio', { name: new RegExp(option) }).check();
     });
   }
 
   selectRadioInMobile(question, option) {
     cy.findByRole('radiogroup', { name: question }).within(() => {
-      cy.findByRole('radio', { name: new RegExp(option) }).dsCheck();
+      cy.findByRole('radio', { name: new RegExp(option) }).check();
     });
   }
 

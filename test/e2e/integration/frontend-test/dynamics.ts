@@ -20,7 +20,11 @@ describe('Dynamics', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
     cy.get(appFrontend.changeOfName.newLastName).type('test');
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
+    cy.get(appFrontend.changeOfName.confirmChangeName)
+      .findByRole('checkbox', {
+        name: /Ja[a-z, ]*/,
+      })
+      .check();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
   });
 

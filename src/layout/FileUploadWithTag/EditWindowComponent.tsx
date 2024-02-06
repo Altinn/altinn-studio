@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Button, Select } from '@digdir/design-system-react';
+import { Button, LegacySelect } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import { CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
 
@@ -170,7 +170,7 @@ export function EditWindowComponent({ attachment, mobileView, node, options }: E
             style={{ minWidth: '150px' }}
             xs
           >
-            <Select
+            <LegacySelect
               inputId={`attachment-tag-dropdown-${uniqueId}`}
               onChange={onDropdownDataChange}
               options={formattedOptions}

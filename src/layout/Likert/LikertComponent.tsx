@@ -1,6 +1,12 @@
 import React from 'react';
 
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
+import {
+  LegacyTable,
+  LegacyTableBody,
+  LegacyTableCell,
+  LegacyTableHeader,
+  LegacyTableRow,
+} from '@digdir/design-system-react';
 import { Grid, Typography } from '@material-ui/core';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
@@ -103,33 +109,33 @@ export const LikertComponent = ({ node, ref }: LikertComponentProps) => {
           className={classes.likertTableContainer}
           ref={ref}
         >
-          <Table
+          <LegacyTable
             id={id}
             aria-labelledby={(hasTitle && titleId) || undefined}
             aria-describedby={(hasDescription && descriptionId) || undefined}
           >
-            <TableHeader id={`likert-table-header-${id}`}>
-              <TableRow>
+            <LegacyTableHeader id={`likert-table-header-${id}`}>
+              <LegacyTableRow>
                 {node?.item.textResourceBindings?.leftColumnHeader ? (
-                  <TableCell>{lang(node?.item.textResourceBindings?.leftColumnHeader)}</TableCell>
+                  <LegacyTableCell>{lang(node?.item.textResourceBindings?.leftColumnHeader)}</LegacyTableCell>
                 ) : (
-                  <TableCell />
+                  <LegacyTableCell />
                 )}
                 {calculatedOptions.map((option, index) => {
                   const colLabelId = `${id}-likert-columnheader-${index}`;
                   return (
-                    <TableCell
+                    <LegacyTableCell
                       key={option.value}
                       id={colLabelId}
                       className={classes.likertTableHeaderTop}
                     >
                       {lang(option.label)}
-                    </TableCell>
+                    </LegacyTableCell>
                   );
                 })}
-              </TableRow>
-            </TableHeader>
-            <TableBody id={`likert-table-body-${id}`}>
+              </LegacyTableRow>
+            </LegacyTableHeader>
+            <LegacyTableBody id={`likert-table-body-${id}`}>
               {node?.children().map((comp) => {
                 if (comp.isType('Group') || comp.isType('Summary')) {
                   window.logWarnOnce('Unexpected Group or Summary inside likert container:\n', comp.item.id);
@@ -148,8 +154,8 @@ export const LikertComponent = ({ node, ref }: LikertComponentProps) => {
                   />
                 );
               })}
-            </TableBody>
-          </Table>
+            </LegacyTableBody>
+          </LegacyTable>
         </div>
       )}
     </>

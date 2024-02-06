@@ -36,7 +36,7 @@ describe('Repeating group attachments', () => {
   beforeEach(() => {
     cy.goto('group');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     addNewRow();
     gotoSecondPage();
   });

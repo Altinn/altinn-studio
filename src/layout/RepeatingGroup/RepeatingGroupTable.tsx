@@ -1,6 +1,12 @@
 import React from 'react';
 
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '@digdir/design-system-react';
+import {
+  LegacyTable,
+  LegacyTableBody,
+  LegacyTableCell,
+  LegacyTableHeader,
+  LegacyTableRow,
+} from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/Caption';
@@ -100,20 +106,20 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
       }
 
       return (
-        <TableBody>
-          <TableRow>
-            <TableCell className={classes.mobileTableCell}>
+        <LegacyTableBody>
+          <LegacyTableRow>
+            <LegacyTableCell className={classes.mobileTableCell}>
               {nodes.map((child) => (
                 <GenericComponent
                   key={child.item.id}
                   node={child}
                 />
               ))}
-            </TableCell>
+            </LegacyTableCell>
             {/* One extra cell to make place for edit/delete buttons */}
-            <TableCell className={classes.mobileTableCell} />
-          </TableRow>
-        </TableBody>
+            <LegacyTableCell className={classes.mobileTableCell} />
+          </LegacyTableRow>
+        </LegacyTableBody>
       );
     }
 
@@ -142,7 +148,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         [classes.tableEmpty]: isEmpty,
       })}
     >
-      <Table
+      <LegacyTable
         id={`group-${id}-table`}
         className={cn({ [classes.editingBorder]: isNested }, classes.repeatingGroupTable)}
       >
@@ -162,10 +168,10 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           where={'Before'}
         />
         {showTableHeader && !mobileView && (
-          <TableHeader id={`group-${id}-table-header`}>
-            <TableRow className={classes.repeatingGroupRow}>
+          <LegacyTableHeader id={`group-${id}-table-header`}>
+            <LegacyTableRow className={classes.repeatingGroupRow}>
               {tableNodes?.map((n) => (
-                <TableCell
+                <LegacyTableCell
                   key={n.item.id}
                   className={classes.tableCellFormatting}
                   style={getColumnStylesRepeatingGroups(n, columnSettings)}
@@ -174,26 +180,26 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                     node={n}
                     columnSettings={columnSettings}
                   />
-                </TableCell>
+                </LegacyTableCell>
               ))}
               {displayEditColumn && (
-                <TableCell style={{ padding: 0, paddingRight: '10px' }}>
+                <LegacyTableCell style={{ padding: 0, paddingRight: '10px' }}>
                   <span className={classes.visuallyHidden}>
                     <Lang id={'general.edit'} />
                   </span>
-                </TableCell>
+                </LegacyTableCell>
               )}
               {displayDeleteColumn && (
-                <TableCell style={{ padding: 0 }}>
+                <LegacyTableCell style={{ padding: 0 }}>
                   <span className={classes.visuallyHidden}>
                     <Lang id={'general.delete'} />
                   </span>
-                </TableCell>
+                </LegacyTableCell>
               )}
-            </TableRow>
-          </TableHeader>
+            </LegacyTableRow>
+          </LegacyTableHeader>
         )}
-        <TableBody id={`group-${id}-table-body`}>
+        <LegacyTableBody id={`group-${id}-table-body`}>
           {visibleRowIndexes.map((index: number) => {
             const isEditingRow = isEditing(index) && edit?.mode !== 'onlyTable';
             return (
@@ -209,11 +215,11 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                   displayEditColumn={displayEditColumn}
                 />
                 {isEditingRow && (
-                  <TableRow
+                  <LegacyTableRow
                     key={`edit-container-${index}`}
                     className={classes.editContainerRow}
                   >
-                    <TableCell
+                    <LegacyTableCell
                       style={{ padding: 0, borderTop: 0 }}
                       colSpan={
                         mobileView
@@ -222,18 +228,18 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                       }
                     >
                       {edit?.mode !== 'onlyTable' && <RepeatingGroupsEditContainer editIndex={index} />}
-                    </TableCell>
-                  </TableRow>
+                    </LegacyTableCell>
+                  </LegacyTableRow>
                 )}
               </React.Fragment>
             );
           })}
-        </TableBody>
+        </LegacyTableBody>
         <RenderExtraRows
           rows={rowsAfter}
           where={'After'}
         />
-      </Table>
+      </LegacyTable>
     </div>
   );
 }

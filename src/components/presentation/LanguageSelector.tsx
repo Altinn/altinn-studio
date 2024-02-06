@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-import { Select } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { useCurrentLanguage, useSetCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -35,7 +35,7 @@ export const LanguageSelector = ({ hideLabel }: { hideLabel?: boolean }) => {
   if (appLanguages) {
     return (
       <div style={{ minWidth: 160 }}>
-        <Select
+        <LegacySelect
           label={!hideLabel ? langAsString('language.selector.label') : undefined}
           options={optionsMap || []}
           onChange={(value) => handleAppLanguageChange(value)}

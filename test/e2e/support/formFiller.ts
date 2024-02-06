@@ -43,7 +43,11 @@ function fillOutChangeName() {
     cy.navPage('form').click();
     cy.get(appFrontend.changeOfName.newFirstName).type('a');
     cy.get(appFrontend.changeOfName.newLastName).type('a');
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
+    cy.get(appFrontend.changeOfName.confirmChangeName)
+      .findByRole('checkbox', {
+        name: /Ja[a-z, ]*/,
+      })
+      .check();
     cy.get(appFrontend.changeOfName.reasonRelationship).click();
     cy.get(appFrontend.changeOfName.reasonRelationship).type('test');
     cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
@@ -63,7 +67,7 @@ function fillOutGroup() {
   });
 
   cy.get(appFrontend.nextButton).click();
-  cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+  cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
   cy.addItemToGroup(1, 2, 'automation');
   cy.get(appFrontend.group.row(0).editBtn).click();
   cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();

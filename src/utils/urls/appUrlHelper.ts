@@ -1,4 +1,4 @@
-import type { SortDirection } from '@digdir/design-system-react';
+import type { SortDirection } from '@digdir/design-system-react/dist/types/components/legacy/LegacyTable/utils';
 
 import { getQueryStringFromObject } from 'src/utils/urls/urlHelper';
 

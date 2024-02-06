@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, Fieldset, Select, Spinner } from '@digdir/design-system-react';
+import { Button, Fieldset, LegacySelect, Spinner } from '@digdir/design-system-react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -55,7 +55,7 @@ export const VersionSwitcher = () => {
       legend='Frontend versjon'
       style={{ width: 250 }}
     >
-      <Select
+      <LegacySelect
         value={selectedVersion}
         options={versions}
         onChange={(value) => setSelectedVersion(value)}

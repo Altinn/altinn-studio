@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Select } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
 
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -27,7 +27,7 @@ export function MultipleSelectComponent({ node, isValid, overrideDisplay }: IMul
   const formattedOptions = useFormattedOptions(calculatedOptions, true);
 
   return (
-    <Select
+    <LegacySelect
       label={langAsString('general.choose')}
       hideLabel={true}
       options={formattedOptions}

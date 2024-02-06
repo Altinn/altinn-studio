@@ -131,23 +131,17 @@ describe('useLanguage', () => {
 
     expect(screen.getByTestId('as-string').innerHTML).toEqual('This is my message');
     expect(screen.getByTestId('as-element')).toHaveTextContent('This is my message');
-    expect(screen.getByTestId('as-element').innerHTML).toEqual(
-      '<h1 class="fds-heading-heading fds-heading-large">This is my message</h1>',
-    );
+    expect(screen.getByTestId('as-element').innerHTML).toMatch(/<h1 class="[a-z0-9- ]*">This is my message<\/h1>/);
 
     rerender(<TestSimple input='simpleHtml' />);
     expect(screen.getByTestId('as-string').innerHTML).toEqual('This is my message');
     expect(screen.getByTestId('as-element')).toHaveTextContent('This is my message');
-    expect(screen.getByTestId('as-element').innerHTML).toEqual(
-      '<h1 class="fds-heading-heading fds-heading-large">This is my message</h1>',
-    );
+    expect(screen.getByTestId('as-element').innerHTML).toMatch(/<h1 class="[a-z0-9- ]*">This is my message<\/h1>/);
 
     rerender(<TestSimple input='simpleMarkdown' />);
     expect(screen.getByTestId('as-string').innerHTML).toEqual('This is my message');
     expect(screen.getByTestId('as-element')).toHaveTextContent('This is my message');
-    expect(screen.getByTestId('as-element').innerHTML).toEqual(
-      '<h1 class="fds-heading-heading fds-heading-large">This is my message</h1>',
-    );
+    expect(screen.getByTestId('as-element').innerHTML).toMatch(/<h1 class="[a-z0-9- ]*">This is my message<\/h1>/);
   });
 
   it('langAsString() should work with complex lookups and arrays', async () => {

@@ -15,7 +15,7 @@ describe('Calculate Page Order', () => {
     cy.goto('group');
     cy.get(appFrontend.navMenuButtons).should('have.length', 4);
 
-    cy.get(appFrontend.group.prefill.stor).dsCheck();
+    cy.get(appFrontend.group.prefill.stor).check();
     cy.get(appFrontend.navMenuCurrent).should('have.text', '1. prefill');
 
     // Both pages the 'repeating' and 'hide' pages are now hidden

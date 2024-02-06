@@ -177,7 +177,7 @@ describe('Summary', () => {
 
     // Verify empty group summary
     cy.gotoNavPage('repeating');
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-group-component] > div').last().should('contain.text', texts.emptySummary);
     cy.gotoNavPage('prefill');
@@ -217,9 +217,9 @@ describe('Summary', () => {
 
     // Check to show a couple of nested options, then go back to the summary
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
-    cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedDynamics).dsCheck();
-    cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[1]).dsCheck();
-    cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[2]).dsCheck();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedDynamics).check();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[1]).check();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[2]).check();
     cy.get(appFrontend.backToSummaryButton).click();
 
     cy.get(appFrontend.group.mainGroupSummaryContent)
@@ -234,9 +234,9 @@ describe('Summary', () => {
       });
 
     cy.gotoNavPage('prefill');
-    cy.get(appFrontend.group.prefill.liten).dsCheck();
-    cy.get(appFrontend.group.prefill.middels).dsCheck();
-    cy.get(appFrontend.group.prefill.svaer).dsCheck();
+    cy.get(appFrontend.group.prefill.liten).check();
+    cy.get(appFrontend.group.prefill.middels).check();
+    cy.get(appFrontend.group.prefill.svaer).check();
     cy.gotoNavPage('summary');
 
     function assertSummaryItem(groupRow: number, items: { [key: string]: boolean }) {
@@ -334,7 +334,7 @@ describe('Summary', () => {
     // Hiding the group should hide the group summary as well
     cy.get('[data-testid=summary-summary1]').should('be.visible');
     cy.gotoNavPage('repeating');
-    cy.get(appFrontend.group.showGroupToContinue).find('input[type=checkbox]').dsUncheck();
+    cy.get(appFrontend.group.showGroupToContinue).find('input[type=checkbox]').uncheck();
     cy.gotoNavPage('summary');
     cy.get('[data-testid=summary-summary1]').should('not.exist');
   });
@@ -347,9 +347,9 @@ describe('Summary', () => {
     });
     cy.goto('group');
 
-    cy.get(appFrontend.group.prefill['liten']).dsCheck();
+    cy.get(appFrontend.group.prefill['liten']).check();
     cy.gotoNavPage('repeating');
-    cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+    cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     // Add data
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();

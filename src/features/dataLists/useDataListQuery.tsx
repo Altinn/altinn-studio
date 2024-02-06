@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { SortDirection } from '@digdir/design-system-react';
+import type { SortDirection } from '@digdir/design-system-react/dist/types/components/legacy/LegacyTable/utils';
 import type { UseQueryResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';

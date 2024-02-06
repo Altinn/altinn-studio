@@ -15,7 +15,7 @@ describe('Auto save behavior', () => {
       cy.intercept('PATCH', '**/data/**', () => {
         formDataReqCounter++;
       }).as('putFormData');
-      cy.get(appFrontend.group.prefill.liten).dsCheck();
+      cy.get(appFrontend.group.prefill.liten).check();
       cy.wait('@putFormData').then(() => {
         expect(formDataReqCounter).to.be.eq(1);
       });
@@ -37,7 +37,7 @@ describe('Auto save behavior', () => {
       cy.intercept('PATCH', '**/data/**', () => {
         formDataReqCounter++;
       }).as('putFormData');
-      cy.get(appFrontend.group.prefill.liten).dsCheck();
+      cy.get(appFrontend.group.prefill.liten).check();
       // Doing a hard wait to be sure no request is sent to backend
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(1000).then(() => {
@@ -57,21 +57,21 @@ describe('Auto save behavior', () => {
 
       // Go forward again, change something and then observe the back button saves
       cy.get(appFrontend.nextButton).clickAndGone();
-      cy.get(appFrontend.group.showGroupToContinue).find('input').dsCheck();
+      cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
       cy.get(appFrontend.backButton).clickAndGone();
       cy.wait('@putFormData').then(() => {
         expect(formDataReqCounter).to.be.eq(2);
       });
 
       // NavigationBar
-      cy.get(appFrontend.group.prefill.middels).dsCheck();
+      cy.get(appFrontend.group.prefill.middels).check();
       cy.get(appFrontend.navMenu).findByRole('button', { name: '2. repeating' }).click();
       cy.wait('@putFormData').then(() => {
         expect(formDataReqCounter).to.be.eq(3);
       });
 
       // Icon previous button
-      cy.get(appFrontend.group.showGroupToContinue).find('input').dsUncheck();
+      cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).uncheck();
       cy.get(appFrontend.prevButton).clickAndGone();
       cy.wait('@putFormData').then(() => {
         expect(formDataReqCounter).to.be.eq(4);
@@ -104,7 +104,11 @@ describe('Auto save behavior', () => {
       cy.get(appFrontend.changeOfName.newFirstName).type('test');
 
       cy.get(appFrontend.changeOfName.newMiddleName).type('Kråka');
-      cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
+      cy.get(appFrontend.changeOfName.confirmChangeName)
+        .findByRole('checkbox', {
+          name: /Ja[a-z, ]*/,
+        })
+        .check();
       cy.get(appFrontend.changeOfName.reasonRelationship).click();
       cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
       cy.get(appFrontend.changeOfName.dateOfEffect).siblings().findByRole('button').click();

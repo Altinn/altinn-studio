@@ -4,13 +4,13 @@ import { Pagination } from '@altinn/altinn-design-system';
 import {
   Button,
   Heading,
+  LegacyTable,
+  LegacyTableBody,
+  LegacyTableCell,
+  LegacyTableFooter,
+  LegacyTableHeader,
+  LegacyTableRow,
   Paragraph,
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHeader,
-  TableRow,
 } from '@digdir/design-system-react';
 import { Edit as EditIcon } from '@navikt/ds-icons';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
@@ -89,11 +89,11 @@ function InstanceSelection() {
       >
         <Lang id={'instance_selection.left_of'} />
       </Heading>
-      <Table id='instance-selection-mobile-table'>
-        <TableBody>
+      <LegacyTable id='instance-selection-mobile-table'>
+        <LegacyTableBody>
           {paginatedInstances.map((instance) => (
-            <TableRow key={instance.id}>
-              <TableCell className={classes.mobileTableCell}>
+            <LegacyTableRow key={instance.id}>
+              <LegacyTableCell className={classes.mobileTableCell}>
                 <div>
                   <b>{langAsString('instance_selection.last_changed')}:</b>
                   <br />
@@ -104,8 +104,8 @@ function InstanceSelection() {
                   <br />
                   <span>{instance.lastChangedBy}</span>
                 </div>
-              </TableCell>
-              <TableCell>
+              </LegacyTableCell>
+              <LegacyTableCell>
                 <div className={classes.tableButtonWrapper}>
                   <Button
                     variant='tertiary'
@@ -118,14 +118,14 @@ function InstanceSelection() {
                     aria-label={`${langAsString('instance_selection.continue')}`}
                   />
                 </div>
-              </TableCell>
-            </TableRow>
+              </LegacyTableCell>
+            </LegacyTableRow>
           ))}
-        </TableBody>
+        </LegacyTableBody>
         {instances.length > rowsPerPageOptions[0] && (
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={2}>
+          <LegacyTableFooter>
+            <LegacyTableRow>
+              <LegacyTableCell colSpan={2}>
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
                     numberOfRows={instances.length}
@@ -139,34 +139,34 @@ function InstanceSelection() {
                     descriptionTexts={language && (language['list_component'] as DescriptionText)}
                   />
                 </div>
-              </TableCell>
-            </TableRow>
-          </TableFooter>
+              </LegacyTableCell>
+            </LegacyTableRow>
+          </LegacyTableFooter>
         )}
-      </Table>
+      </LegacyTable>
     </>
   );
 
   const renderTable = () => (
     <div className={classes.tableContainer}>
-      <Table id='instance-selection-table'>
-        <TableHeader id='instance-selection-table-header'>
-          <TableRow>
-            <TableCell>
+      <LegacyTable id='instance-selection-table'>
+        <LegacyTableHeader id='instance-selection-table-header'>
+          <LegacyTableRow>
+            <LegacyTableCell>
               <Lang id={'instance_selection.last_changed'} />
-            </TableCell>
-            <TableCell>
+            </LegacyTableCell>
+            <LegacyTableCell>
               <Lang id={'instance_selection.changed_by'} />
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHeader>
-        <TableBody id='instance-selection-table-body'>
+            </LegacyTableCell>
+            <LegacyTableCell />
+          </LegacyTableRow>
+        </LegacyTableHeader>
+        <LegacyTableBody id='instance-selection-table-body'>
           {paginatedInstances.map((instance: ISimpleInstance) => (
-            <TableRow key={instance.id}>
-              <TableCell>{getDateDisplayString(instance.lastChanged)}</TableCell>
-              <TableCell>{instance.lastChangedBy}</TableCell>
-              <TableCell className={classes.buttonCell}>
+            <LegacyTableRow key={instance.id}>
+              <LegacyTableCell>{getDateDisplayString(instance.lastChanged)}</LegacyTableCell>
+              <LegacyTableCell>{instance.lastChangedBy}</LegacyTableCell>
+              <LegacyTableCell className={classes.buttonCell}>
                 <div className={classes.tableButtonWrapper}>
                   <Button
                     variant='tertiary'
@@ -179,14 +179,14 @@ function InstanceSelection() {
                     <Lang id={'instance_selection.continue'} />
                   </Button>
                 </div>
-              </TableCell>
-            </TableRow>
+              </LegacyTableCell>
+            </LegacyTableRow>
           ))}
-        </TableBody>
+        </LegacyTableBody>
         {instances.length > rowsPerPageOptions[0] && (
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={3}>
+          <LegacyTableFooter>
+            <LegacyTableRow>
+              <LegacyTableCell colSpan={3}>
                 <div className={classes.paginationWrapper}>
                   <Pagination
                     numberOfRows={instances.length}
@@ -200,11 +200,11 @@ function InstanceSelection() {
                     descriptionTexts={language && (language['list_component'] as DescriptionText)}
                   />
                 </div>
-              </TableCell>
-            </TableRow>
-          </TableFooter>
+              </LegacyTableCell>
+            </LegacyTableRow>
+          </LegacyTableFooter>
         )}
-      </Table>
+      </LegacyTable>
     </div>
   );
 
