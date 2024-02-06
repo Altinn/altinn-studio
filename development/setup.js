@@ -35,7 +35,7 @@ class SetupEnvironment extends ContainerTool {
       await this.createRootfulPodmanMachine();
       await this.startPodmanMachine();
     } else {
-      console.log('Podman Machine is already running, continue setup');
+      console.log('Podman Machine is already running. Continuing setup...');
     }
 
     await this.runCompose();
