@@ -7,16 +7,17 @@ import { DashboardPage } from 'testing/playwright/pages/DashboardPage';
 import { OverviewPage } from 'testing/playwright/pages/OverviewPage';
 import { Gitea } from '../../helpers/Gitea';
 
-// This line must be there to ensure that the tests do not run in parallell, and
-// that the before all call is being executed before we start the tests
-test.describe.configure({ mode: 'serial' });
+const getExtraAppName = (appName: string): string => `extra-app-${appName}`;
 
 // Before the tests starts, we need to create the dashboard app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
   // Create 2 apps
-  const testAppName2: string = `${testAppName}2`;
   const firstApp = await createApp(testAppName, request, storageState as StorageState);
-  const secondApp = await createApp(testAppName2, request, storageState as StorageState);
+  const secondApp = await createApp(
+    getExtraAppName(testAppName),
+    request,
+    storageState as StorageState,
+  );
 
   expect(firstApp.ok()).toBeTruthy();
   expect(secondApp.ok()).toBeTruthy();
@@ -24,7 +25,7 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
 
 test.afterAll(async ({ request, testAppName }) => {
   const gitea = new Gitea();
-  const appsToDelete: string[] = [testAppName, `${testAppName}2`];
+  const appsToDelete: string[] = [testAppName, getExtraAppName(testAppName)];
 
   for (const app of appsToDelete) {
     const response = await request.delete(gitea.getDeleteAppEndpoint({ app }));
