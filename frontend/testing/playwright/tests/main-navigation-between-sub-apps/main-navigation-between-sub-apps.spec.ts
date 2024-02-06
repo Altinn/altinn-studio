@@ -131,14 +131,20 @@ test('That it is possible to navigate from overview to the preview page and back
   await uiEditor.verifyUiEditorPage(null);
 });
 
-test.skip('That it is possible to navigate from overview to the deploy page and back again', async ({
+test('That it is possible to navigate from overview to the deploy page and back again', async ({
   page,
   testAppName,
   request,
   storageState,
 }) => {
+  const testDepartmentOrg: string = 'ttd';
+
   const designerApi = new DesignerApi({ app: testAppName });
-  const response = await designerApi.createApp(request, storageState as StorageState, 'ttd');
+  const response = await designerApi.createApp(
+    request,
+    storageState as StorageState,
+    testDepartmentOrg,
+  );
   expect(response.ok()).toBeTruthy();
 
   const dashboardPage = new DashboardPage(page, { app: testAppName });
@@ -149,13 +155,12 @@ test.skip('That it is possible to navigate from overview to the deploy page and 
   await dashboardPage.loadDashboardPage();
   await dashboardPage.verifyDashboardPage();
 
-  const testDepartmentOrg: string = 'ttd';
-
-  // Change org to TTD
   await dashboardPage.clickOnHeaderAvatar();
   await dashboardPage.clickOnOrgApplications();
   dashboardPage.updateOrgNameEnv(testDepartmentOrg);
   await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
+
+  expect(dashboardPage.org).toEqual('ttd');
   await dashboardPage.clickOnTestAppEditButton(testAppName);
 
   // As we have changed env.org to 'ttd', we need to update the org of the new classes to make sure it works.
