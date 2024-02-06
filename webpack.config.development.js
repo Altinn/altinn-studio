@@ -36,7 +36,9 @@ console.log('====================================');
 const branchName = {
   toString() {
     const hasGitFolder = fs.existsSync('.git');
-    return hasGitFolder ? fs.readFileSync('.git/HEAD', 'utf-8').trim().split('/').pop() : 'unknown-branch';
+    const gitHead = hasGitFolder ? fs.readFileSync('.git/HEAD', 'utf-8') : '';
+    const ref = gitHead.match(/ref: refs\/heads\/([^\n]+)/);
+    return ref ? ref[1] : 'unknown-branch';
   },
 };
 
