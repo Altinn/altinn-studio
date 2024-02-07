@@ -18,7 +18,7 @@ export const altinnCustomTasks = {
         {
           name: 'actions',
           isMany: false,
-          type: 'Action',
+          type: 'Actions',
         },
         {
           name: 'signatureConfig',
