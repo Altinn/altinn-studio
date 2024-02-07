@@ -105,7 +105,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
-            return Ok();
+            return Accepted();
         }
 
         [HttpGet("templates/{appVersion}")]
