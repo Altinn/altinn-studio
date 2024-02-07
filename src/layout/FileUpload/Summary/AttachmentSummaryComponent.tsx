@@ -26,7 +26,10 @@ export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryCom
   };
 
   return (
-    <div data-testid={`${hasTag ? 'attachment-with-tag-summary' : 'attachment-summary-component'}`}>
+    <div
+      className={hasTag ? classes.containerWithTag : classes.container}
+      data-testid={`${hasTag ? 'attachment-with-tag-summary' : 'attachment-summary-component'}`}
+    >
       {attachments.length === 0 ? (
         <div className={classes.emptyField}>
           <Lang id={'general.empty_summary'} />
@@ -36,12 +39,15 @@ export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryCom
           const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;
           return (
             <div
-              className={hasTag ? classes.row : classes.data}
+              className={hasTag ? classes.rowWithTag : classes.row}
               key={`attachment-summary-${uniqueId}`}
             >
               <div key={uniqueId}>{attachment.data.filename}</div>
               {hasTag && isAttachmentUploaded(attachment) && (
-                <div key={`attachment-summary-tag-${uniqueId}`}>
+                <div
+                  className={classes.tag}
+                  key={`attachment-summary-tag-${uniqueId}`}
+                >
                   {attachment.data.tags && attachment.data.tags[0] && tryToGetTextResource(attachment.data.tags[0])}
                 </div>
               )}
