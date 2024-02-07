@@ -8,10 +8,11 @@ namespace Altinn.App.Core.Models.UserAction;
 public class ClientAction
 {
     /// <summary>
-    /// Name of the action
+    /// Id of the action. This is used in the frontend to identify
+    /// which action to run. 
     /// </summary>
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// Metadata for the action
@@ -27,7 +28,7 @@ public class ClientAction
     {
         var frontendAction = new ClientAction()
         {
-            Name = "nextPage"
+            Id = "nextPage"
         };
         return frontendAction;
     }
@@ -40,7 +41,7 @@ public class ClientAction
     {
         var frontendAction = new ClientAction()
         {
-            Name = "previousPage"
+            Id = "previousPage"
         };
         return frontendAction;
     }
@@ -54,7 +55,7 @@ public class ClientAction
     {
         var frontendAction = new ClientAction()
         {
-            Name = "navigateToPage",
+            Id = "navigateToPage",
             Metadata = new Dictionary<string, object> { { "page", page } }
         };
         return frontendAction;

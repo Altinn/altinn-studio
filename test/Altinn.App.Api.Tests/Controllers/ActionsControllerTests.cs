@@ -156,7 +156,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                                "updatedDataModels": null,
                                "clientActions": [
                                  {
-                                   "name": "nextPage",
+                                   "id": "nextPage",
                                    "metadata": null
                                  }
                                ],
