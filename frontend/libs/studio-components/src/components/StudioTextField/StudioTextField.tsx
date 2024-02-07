@@ -17,6 +17,11 @@ export const StudioTextField = ({ inputProps, viewProps }: StudioTextFieldProps)
     setIsViewMode((prevMode) => !prevMode);
   };
 
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    toggleViewMode();
+    inputProps.onBlur?.(event);
+  };
+
   if (isViewMode) return <StudioTextfieldToggleView onClick={toggleViewMode} {...viewProps} />;
-  return <StudioIconTextfield onBlur={toggleViewMode} {...inputProps} />;
+  return <StudioIconTextfield {...inputProps} onBlur={handleBlur} />;
 };

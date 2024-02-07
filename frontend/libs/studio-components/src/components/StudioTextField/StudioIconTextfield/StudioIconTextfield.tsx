@@ -5,10 +5,10 @@ export type StudioIconTextfieldProps = {
   icon: React.ReactNode;
 } & TextfieldProps;
 
-export const StudioIconTextfield = ({ icon, ...rest }: StudioIconTextfieldProps) => {
+export const StudioIconTextfield = ({ icon, error, ...rest }: StudioIconTextfieldProps) => {
   return (
     <div>
-      <Textfield {...rest} error={undefined} />
+      <Textfield {...rest} error={error} /> {/** Update error */}
     </div>
   );
 };
