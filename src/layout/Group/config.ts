@@ -42,4 +42,13 @@ export const Config = new CG.component({
         .setTitle('Children')
         .setDescription('Array of component IDs that should be displayed in the group'),
     ).onlyIn(Variant.External),
+  )
+  .addProperty(
+    new CG.prop(
+      'headingLevel',
+      new CG.enum(2, 3, 4, 5, 6)
+        .optional()
+        .setTitle('Heading level')
+        .setDescription('The heading level of the group title.'),
+    ),
   );
