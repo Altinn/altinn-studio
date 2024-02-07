@@ -12,22 +12,29 @@ import { getCurrentEditId } from '../../selectors/textResourceSelectors';
 import { TextResourceEdit } from '../TextResourceEdit';
 import { EditOptions } from '../config/editModal/EditOptions';
 import classes from './Text.module.css';
+import type { FormComponentBase } from '../../types/FormComponent';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { OptionsComponentBase } from 'app-shared/types/ComponentSpecificConfig';
 
 export const Text = () => {
   const { formId, form, handleUpdate, debounceSave } = useFormContext();
   const { t } = useTranslation();
 
-  useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
+  useLayoutSchemaQuery(); // Component schema query is dependent on the data loaded by the layout schema query
   const { data: schema } = useComponentSchemaQuery(form.type);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const editId = useSelector(getCurrentEditId);
 
   if (editId) return <TextResourceEdit />;
+
+  if (!schema) {
+    <StudioSpinner spinnerText={t('general.loading')} />;
+  }
+
   if (!schema?.properties) return null;
 
   return (
     <>
-      {!schema && <StudioSpinner spinnerText={t('general.loading')} />}
       {schema.properties.textResourceBindings?.properties && (
         <div className={classes.textResourceContainer}>
           <Heading level={3} size='xxsmall' spacing>
@@ -51,7 +58,11 @@ export const Text = () => {
             {t('ux_editor.properties_panel.texts.options_title')}
           </Heading>
           <EditOptions
-            component={form as any}
+            component={
+              form as
+                | (FormComponentBase<ComponentType.Checkboxes> & OptionsComponentBase)
+                | (FormComponentBase<ComponentType.RadioButtons> & OptionsComponentBase)
+            }
             handleComponentChange={async (updatedComponent) => {
               handleUpdate(updatedComponent);
               debounceSave(formId, updatedComponent);

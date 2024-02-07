@@ -8,7 +8,7 @@ type Option<T = any> = {
   value: T;
 };
 
-type OptionsComponentBase = {
+export type OptionsComponentBase = {
   options?: Option[];
   preselectedOptionIndex?: number;
   optionsId?: string;

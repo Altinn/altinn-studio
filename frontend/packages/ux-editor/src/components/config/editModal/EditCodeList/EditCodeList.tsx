@@ -25,12 +25,8 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   useEffect(() => {
     if (!optionListIds) return;
-    if (optionListIds?.length === 0) {
-      setUseCustomCodeList(true);
-    } else {
-      setUseCustomCodeList(false);
-    }
-  }, [isPending, optionListIds]);
+    setUseCustomCodeList(optionListIds?.length === 0);
+  }, [optionListIds]);
 
   return (
     <div>

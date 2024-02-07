@@ -6,7 +6,7 @@
   flex-direction: column;
   gap: 4px;
   margin-top: 8px;
-  background-color: white;
+  background-color: var(--fds-semantic-surface-action-first-no_fill);
 }
 
 .root.isEditing {

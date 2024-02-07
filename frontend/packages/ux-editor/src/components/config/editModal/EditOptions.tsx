@@ -36,6 +36,17 @@ export enum SelectedOptionsType {
   Unknown = '',
 }
 
+const optionsTypeMap = {
+  [SelectedOptionsType.CodeList]: {
+    propertyName: 'optionsId',
+    defaultValue: '',
+  },
+  [SelectedOptionsType.Manual]: {
+    propertyName: 'options',
+    defaultValue: [],
+  },
+};
+
 const getSelectedOptionsType = (codeListId: string, options: IOption[]): SelectedOptionsType => {
   if (options?.length) {
     return SelectedOptionsType.Manual;
@@ -63,22 +74,19 @@ export function EditOptions({
     }
   }, [editFormId, initialSelectedOptionType]);
 
-  const handleOptionsTypeChange = (value: SelectedOptionsType) => {
-    if (value === SelectedOptionsType.CodeList) {
-      setSelectedOptionsType(SelectedOptionsType.Manual);
-      delete component.optionsId;
-      handleComponentChange({
-        ...component,
-        options: [],
-      });
-    } else {
-      setSelectedOptionsType(SelectedOptionsType.CodeList);
-      delete component.options;
-      handleComponentChange({
-        ...component,
-        optionsId: '',
-      });
-    }
+  const handleOptionsTypeChange = (oldOptionsType: SelectedOptionsType) => {
+    const newOptionsType =
+      oldOptionsType === SelectedOptionsType.CodeList
+        ? SelectedOptionsType.Manual
+        : SelectedOptionsType.CodeList;
+
+    setSelectedOptionsType(newOptionsType);
+    delete component[optionsTypeMap[oldOptionsType].propertyName];
+
+    handleComponentChange({
+      ...component,
+      [optionsTypeMap[newOptionsType].propertyName]: optionsTypeMap[newOptionsType].defaultValue,
+    });
   };
 
   const handleUpdateOptionLabel = (index: number) => (id: string) => {
