@@ -750,6 +750,12 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Did not find form data for data element {dataGuid}");
             }
 
+            if (instance.Data.FirstOrDefault(d => d.Id == dataGuid.ToString())?.Locked == true)
+            {
+                // Skip further processing if the data element is locked
+                return Ok(appModel);
+            }
+
             // we need to save the changes if dataProcessRead changes the model
             byte[] beforeProcessDataRead = JsonSerializer.SerializeToUtf8Bytes(appModel);
 
@@ -761,7 +767,7 @@ namespace Altinn.App.Api.Controllers
 
             if (!beforeProcessDataRead.SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(appModel)))
             {
-                // Save back teh changes if dataProcessRead has changed the model
+                // Save back the changes if dataProcessRead has changed the model
                 await _dataClient.UpdateData(appModel, instanceGuid, appModel.GetType(), org, app, instanceOwnerId, dataGuid);
             }
 
