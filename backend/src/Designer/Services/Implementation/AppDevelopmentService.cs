@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -305,7 +306,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             try
             {
-                indexFilePath = altinnAppGitRepository.FindFiles(new[] { "App/Views/Home/Index.cshtml" }).FirstOrDefault();
+                indexFilePath = altinnAppGitRepository.FindFiles(new[] { "App/views/Home/Index.cshtml" }).FirstOrDefault();
             }
             catch (DirectoryNotFoundException)
             {
