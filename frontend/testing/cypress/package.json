@@ -26,7 +26,6 @@
     "prettier:check": "prettier -c src/**/*.js",
     "prettier:format": "prettier -w src/**/*.js",
     "test:all": "cypress run -b chrome -s 'src/integration/**/*.js'",
-    "test:studio": "cypress run -b chrome -s 'src/integration/studio/*.js'",
     "test:usecase": "cypress run -b chrome -s 'src/integration/usecase/*.js'"
   }
 }
