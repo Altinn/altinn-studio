@@ -1,144 +1,67 @@
 import { renderHookWithMockStore } from '../../test/mocks';
-import { removeDatamodelFromList, useDeleteDatamodelMutation } from './useDeleteDatamodelMutation';
+import { useDeleteDatamodelMutation } from './useDeleteDatamodelMutation';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { jsonSchemaMock } from '../../test/jsonSchemaMock';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
-import { isXsdFile } from 'app-shared/utils/filenameUtils';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createJsonModelPathMock } from 'app-shared/mocks/modelPathMocks';
+import {
+  createJsonMetadataMock,
+  createXsdMetadataMock,
+} from 'app-shared/mocks/datamodelMetadataMocks';
 
-const modelPath = 'modelPath';
+const modelName = 'modelName';
+const modelPath = createJsonModelPathMock(modelName);
 const org = 'org';
 const app = 'app';
-const initialData: DatamodelMetadata[] = [
-  {
-    description: null,
-    directory: 'directory',
-    fileName: 'fileName',
-    filePath: 'filePath',
-    fileStatus: 'fileStatus',
-    fileType: '.json',
-    lastChanged: 'lastChanged',
-    repositoryRelativeUrl: 'repositoryRelativeUrl',
-    select: true,
-  },
-];
+const modelMetadataJson = createJsonMetadataMock(modelName);
+const modelMetadataXsd = createXsdMetadataMock(modelName);
 
 describe('useDeleteDatamodelMutation', () => {
   beforeEach(jest.clearAllMocks);
 
-  it('Check mutation function Execution', async () => {
-    const queryClient = createQueryClientMock();
-    const deleteDatamodel = jest.fn();
+  it('Calls deleteDatamodel with correct parameters', async () => {
+    const client = createQueryClientMock();
+    client.setQueryData([QueryKey.DatamodelsJson, org, app], [modelMetadataJson]);
+    client.setQueryData([QueryKey.DatamodelsXsd, org, app], [modelMetadataXsd]);
     const {
       renderHookResult: { result },
-    } = render({ deleteDatamodel });
-    result.current.mutate({ modelPath, model: jsonSchemaMock });
-    await waitFor(() => result.current.isPending);
-    expect(
-      queryClient.setQueryData(
-        [QueryKey.DatamodelsJson, org, app],
-        (oldData: DatamodelMetadata[] = initialData) => removeDatamodelFromList(oldData, modelPath),
-      ),
-    ).toEqual(initialData);
-    expect(
-      queryClient.setQueryData(
-        [QueryKey.DatamodelsXsd, org, app],
-        (oldData: DatamodelMetadata[] = initialData) => removeDatamodelFromList(oldData, modelPath),
-      ),
-    ).toEqual(initialData);
+    } = render({}, client);
+    expect(result.current).toBeDefined();
+    result.current.mutate(modelPath);
     await waitFor(() => result.current.isSuccess);
-    expect(removeDatamodelFromList).toHaveBeenCalled;
+    expect(queriesMock.deleteDatamodel).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deleteDatamodel).toHaveBeenCalledWith(org, app, modelPath);
   });
 
-  it('Check calling onSuccess function', async () => {
-    const queryClient = createQueryClientMock();
-    const deleteDatamodel = jest.fn();
+  it('Removes the metadata instances from the query cache', async () => {
+    const client = createQueryClientMock();
+    client.setQueryData([QueryKey.DatamodelsJson, org, app], [modelMetadataJson]);
+    client.setQueryData([QueryKey.DatamodelsXsd, org, app], [modelMetadataXsd]);
     const {
       renderHookResult: { result },
-    } = render({ deleteDatamodel });
-    result.current.mutate({ modelPath, model: jsonSchemaMock });
+    } = render({}, client);
+    result.current.mutate(modelPath);
     await waitFor(() => result.current.isSuccess);
-    queryClient.setQueryData([QueryKey.DatamodelsJson, org, app], initialData);
-    queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], initialData);
-    result.current.mutate({ modelPath, model: jsonSchemaMock });
-    await waitFor(() => result.current.isSuccess);
-    expect(
-      queryClient.setQueryData(
-        [QueryKey.DatamodelsJson, org, app],
-        (oldData: DatamodelMetadata[] = initialData) => removeDatamodelFromList(oldData, modelPath),
-      ),
-    ).toEqual(initialData);
-    expect(
-      queryClient.setQueryData(
-        [QueryKey.DatamodelsXsd, org, app],
-        (oldData: DatamodelMetadata[] = initialData) => removeDatamodelFromList(oldData, modelPath),
-      ),
-    ).toEqual(initialData);
-    expect(
-      queryClient.removeQueries({ queryKey: [QueryKey.JsonSchema, org, app, modelPath] }),
-    ).toEqual(undefined);
-
-    const updatedXsdData = queryClient.getQueryData([QueryKey.DatamodelsXsd, org, app]);
-    expect(updatedXsdData).toEqual(removeDatamodelFromList(initialData, modelPath));
+    expect(client.getQueryData([QueryKey.DatamodelsJson, org, app])).toEqual([]);
+    expect(client.getQueryData([QueryKey.DatamodelsXsd, org, app])).toEqual([]);
   });
 
-  it('Calls onSuccess', async () => {
-    const queryClient = createQueryClientMock();
-    const deleteDatamodel = jest.fn();
+  it('Removes the schema queries from the query cache', async () => {
+    const client = createQueryClientMock();
+    client.setQueryData([QueryKey.DatamodelsJson, org, app], [modelMetadataJson]);
+    client.setQueryData([QueryKey.DatamodelsXsd, org, app], [modelMetadataXsd]);
     const {
       renderHookResult: { result },
-    } = render({ deleteDatamodel });
-    result.current.mutate({ modelPath, model: jsonSchemaMock });
+    } = render({}, client);
+    result.current.mutate(modelPath);
     await waitFor(() => result.current.isSuccess);
-    queryClient.setQueryData([QueryKey.DatamodelsJson, org, app], initialData);
-    queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], initialData);
-
-    if (result.current.onSuccess) result.current.onSuccess(initialData, modelPath);
+    expect(client.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toBeUndefined();
     expect(
-      queryClient.setQueryData(
-        [QueryKey.DatamodelsJson, org, app],
-        (oldData: DatamodelMetadata[] = initialData) => removeDatamodelFromList(oldData, modelPath),
-      ),
-    ).toEqual(initialData);
-
-    expect(
-      queryClient.setQueryData(
-        [QueryKey.DatamodelsXsd, org, app],
-        (oldData: DatamodelMetadata[] = initialData) => removeDatamodelFromList(oldData, modelPath),
-      ),
-    ).toEqual(initialData);
-
-    expect(
-      queryClient.removeQueries({
-        queryKey: [QueryKey.JsonSchema, org, app, { modelPath }],
-      }),
-    ).toEqual(undefined);
-  });
-
-  it('Check mutation result', async () => {
-    const queryClient = createQueryClientMock();
-    const deleteDatamodel = jest.fn();
-    const {
-      renderHookResult: { result },
-    } = render({ deleteDatamodel });
-    result.current.mutate({ modelPath, model: jsonSchemaMock });
-    await waitFor(() => result.current.isSuccess);
-    queryClient.setQueryData([QueryKey.DatamodelsJson, org, app], initialData);
-    queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], initialData);
-    result.current.mutate({ modelPath, model: jsonSchemaMock });
-    await waitFor(() => result.current.isSuccess);
-    const respectiveFileNameInXsdOrJson = isXsdFile(modelPath)
-      ? modelPath.replace('.xsd', '.schema.json')
-      : modelPath.replace('.schema.json', '.xsd');
-    expect(respectiveFileNameInXsdOrJson).toEqual('modelPath');
-    expect(
-      queryClient.removeQueries({
-        queryKey: [QueryKey.JsonSchema, org, app, respectiveFileNameInXsdOrJson],
-      }),
-    ).toEqual(undefined);
+      client.getQueryData([QueryKey.JsonSchema, org, app, modelMetadataXsd.repositoryRelativeUrl]),
+    ).toBeUndefined();
   });
 });
 

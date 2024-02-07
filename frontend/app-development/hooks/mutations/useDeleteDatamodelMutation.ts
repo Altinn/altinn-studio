@@ -11,30 +11,27 @@ export const useDeleteDatamodelMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (modelPath: string) => {
-      queryClient.setQueryData(
-        [QueryKey.DatamodelsJson, org, app],
-        (oldData: DatamodelMetadata[]) => removeDatamodelFromList(oldData, modelPath),
-      );
-      queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], (oldData: DatamodelMetadata[]) =>
-        removeDatamodelFromList(oldData, modelPath),
-      );
-      const respectiveFileNameInXsdOrJson = isXsdFile(modelPath)
+      const jsonSchemaPath = isXsdFile(modelPath)
         ? modelPath.replace('.xsd', '.schema.json')
-        : modelPath.replace('.schema.json', '.xsd');
-      queryClient.removeQueries({
-        queryKey: [QueryKey.JsonSchema, org, app, respectiveFileNameInXsdOrJson],
-      });
-      await deleteDatamodel(org, app, modelPath);
-    },
-    onSuccess: (data, variables) => {
+        : modelPath;
+      const xsdPath = isXsdFile(modelPath) ? modelPath : modelPath.replace('.schema.json', '.xsd');
       queryClient.setQueryData(
         [QueryKey.DatamodelsJson, org, app],
-        (oldData: DatamodelMetadata[]) => removeDatamodelFromList(oldData, variables),
+        (oldData: DatamodelMetadata[]) => removeDatamodelFromList(oldData, jsonSchemaPath),
       );
       queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], (oldData: DatamodelMetadata[]) =>
-        removeDatamodelFromList(oldData, variables),
+        removeDatamodelFromList(oldData, xsdPath),
       );
-      queryClient.removeQueries({ queryKey: [QueryKey.JsonSchema, org, app, variables] });
+      await deleteDatamodel(org, app, modelPath);
+      return { jsonSchemaPath, xsdPath };
+    },
+    onSuccess: ({ jsonSchemaPath, xsdPath }) => {
+      queryClient.removeQueries({
+        queryKey: [QueryKey.JsonSchema, org, app, jsonSchemaPath],
+      });
+      queryClient.removeQueries({
+        queryKey: [QueryKey.JsonSchema, org, app, xsdPath],
+      });
     },
   });
 };

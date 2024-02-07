@@ -77,8 +77,7 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
     [saveFunction],
   );
 
-  useOnUnmount(() => {
-    clearTimeout(saveTimeoutRef.current);
+  const doesModelExist = useCallback(() => {
     const jsonModels: DatamodelMetadataJson[] = queryClient.getQueryData([
       QueryKey.DatamodelsJson,
       org,
@@ -90,9 +89,12 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
       app,
     ]);
     const metadataList = mergeJsonAndXsdData(jsonModels, xsdModels);
-    const datamodelExists = metadataList.some(
-      (datamodel) => datamodel.repositoryRelativeUrl === modelPath,
-    );
+    return metadataList.some((datamodel) => datamodel.repositoryRelativeUrl === modelPath);
+  }, [queryClient, org, app, modelPath]);
+
+  useOnUnmount(() => {
+    clearTimeout(saveTimeoutRef.current);
+    const datamodelExists = doesModelExist();
     if (datamodelExists) saveFunction();
   });
 
