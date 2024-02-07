@@ -56,13 +56,13 @@ export class Header extends BasePage {
       .isVisible();
   }
 
-  public async closeSuccessMessageBox(): Promise<void> {
-    await this.page.keyboard.press('Escape');
-  }
-
   public async clickOnLocalChangesButton(): Promise<void> {
     await this.page
       .getByRole('button', { name: this.textMock('sync_header.local_changes') })
       .click();
+  }
+
+  public async clickOnOpenSettingsModalButton(): Promise<void> {
+    await this.page.getByRole('button', { name: this.textMock('sync_header.settings') }).click();
   }
 }

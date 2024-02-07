@@ -9,10 +9,6 @@ import { UiEditorPage } from '../../pages/UiEditorPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { Gitea } from '../../helpers/Gitea';
 
-// This line must be there to ensure that the tests do not run in parallell, and
-// that the before all call is being executed before we start the tests
-test.describe.configure({ mode: 'serial' });
-
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
   // Create a new app
@@ -57,7 +53,6 @@ test('That new changes are pushed to gitea and are visible on Gitea after they h
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
   await header.checkThatUploadSuccessMessageIsVisible();
-  await header.closeSuccessMessageBox();
 
   await goToGiteaAndNavigateToUiLayoutFiles(header, giteaPage);
   await giteaPage.verifyThatTheNewPageIsPresent(newPageName);

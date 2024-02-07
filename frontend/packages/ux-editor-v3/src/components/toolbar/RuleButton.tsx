@@ -1,0 +1,16 @@
+import React from 'react';
+import { StudioButton } from '@studio/components';
+import { CogIcon } from '@navikt/aksel-icons';
+
+export interface IRuleButtonProps {
+  onClick: () => void;
+  text: string;
+}
+
+export default function RuleButton(props: IRuleButtonProps) {
+  return (
+    <StudioButton icon={<CogIcon />} onClick={props.onClick} variant='secondary' size='small'>
+      {props.text}
+    </StudioButton>
+  );
+}
