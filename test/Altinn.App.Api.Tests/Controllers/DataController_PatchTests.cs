@@ -140,14 +140,14 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
-    public async Task InvalidTestValue_ReturnsPreconditionFailed()
+    public async Task InvalidTestValue_ReturnsConflict()
     {
         // Update data element
         var patch = new JsonPatch(
             PatchOperation.Test(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Not correct previous value\"")),
             PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("null")));
 
-        var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(patch, null, HttpStatusCode.PreconditionFailed);
+        var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(patch, null, HttpStatusCode.Conflict);
 
         parsedResponse.Detail.Should().Be("Path `/melding/name` is not equal to the indicated value.");
 

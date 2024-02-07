@@ -382,7 +382,7 @@ namespace Altinn.App.Api.Controllers
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPatch("{dataGuid:guid}")]
         [ProducesResponseType(typeof(DataPatchResponse), 200)]
-        [ProducesResponseType(typeof(ProblemDetails), 412)]
+        [ProducesResponseType(typeof(ProblemDetails), 409)]
         [ProducesResponseType(typeof(ProblemDetails), 422)]
         public async Task<ActionResult<DataPatchResponse>> PatchFormData(
             [FromRoute] string org,
@@ -475,10 +475,10 @@ namespace Altinn.App.Api.Controllers
                 bool testOperationFailed = patchResult.Error!.Contains("is not equal to the indicated value.");
                 return (null!, new ProblemDetails()
                 {
-                    Title = testOperationFailed ? "Precondition in patch failed" : "Patch Operation Failed",
+                    Title = testOperationFailed ? "Test operation in patch failed" : "Patch Operation Failed",
                     Detail = patchResult.Error,
                     Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
-                    Status = testOperationFailed ? (int)HttpStatusCode.PreconditionFailed : (int)HttpStatusCode.UnprocessableContent,
+                    Status = testOperationFailed ? (int)HttpStatusCode.Conflict : (int)HttpStatusCode.UnprocessableContent,
                     Extensions = new Dictionary<string, object?>()
                     {
                         { "previousModel", oldModel },
