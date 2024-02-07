@@ -13,6 +13,7 @@
 .summary {
   grid-area: summary;
 }
+
 .container {
   display: grid;
   width: 100%;
@@ -20,4 +21,10 @@
   grid-template-areas:
     'label btn'
     'summary summary';
+}
+
+@media print {
+  .container {
+    break-inside: avoid;
+  }
 }

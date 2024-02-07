@@ -90,6 +90,7 @@ function generateAutomaticPage(
           type: 'Summary',
           componentRef: node.item.id,
           excludedChildren: pdfFormat?.excludedComponents,
+          grid: node.item.grid,
           largeGroup: node.isType('Group'),
         } as CompSummaryExternal;
       }

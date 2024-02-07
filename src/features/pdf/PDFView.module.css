@@ -12,18 +12,6 @@
   margin-top: 0;
 }
 
-.component-container {
-  width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  margin-bottom: 0.625rem;
-}
-
-.component-container:empty {
-  display: none;
-}
-
 @media print {
   .hideInPrint {
     display: none;

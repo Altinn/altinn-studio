@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Heading } from '@digdir/design-system-react';
+import { Grid } from '@material-ui/core';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
@@ -18,7 +19,6 @@ const PDFComponent = ({ node }: { node: LayoutNode }) => {
       <SummaryComponent
         summaryNode={node as LayoutNode<'Summary'>}
         overrides={{
-          grid: { xs: 12 },
           display: { hideChangeButton: true, hideValidationMessages: true },
         }}
       />
@@ -73,14 +73,18 @@ export const PDFView = () => {
       >
         {appName}
       </Heading>
-      {pdfPage.children().map((node) => (
-        <div
-          key={node.item.id}
-          className={classes['component-container']}
-        >
-          <PDFComponent node={node} />
-        </div>
-      ))}
+      <Grid
+        container={true}
+        spacing={3}
+        alignItems='flex-start'
+      >
+        {pdfPage.children().map((node) => (
+          <PDFComponent
+            key={node.item.id}
+            node={node}
+          />
+        ))}
+      </Grid>
       <ReadyForPrint />
     </div>
   );
