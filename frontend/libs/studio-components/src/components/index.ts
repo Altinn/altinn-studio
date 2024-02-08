@@ -10,3 +10,4 @@ export * from './StudioNumberInput';
 export * from './StudioPageSpinner';
 export * from './StudioSpinner';
 export * from './StudioTreeView';
+export * from './StudioTextField';

@@ -7,8 +7,10 @@ export type StudioIconTextfieldProps = {
 
 export const StudioIconTextfield = ({ icon, error, ...rest }: StudioIconTextfieldProps) => {
   return (
+    // TODO: Fix icon positioning
     <div>
-      <Textfield {...rest} error={error} /> {/** Update error */}
+      <div aria-hidden>{icon}</div>
+      <Textfield {...rest} error={error} />
     </div>
   );
 };
