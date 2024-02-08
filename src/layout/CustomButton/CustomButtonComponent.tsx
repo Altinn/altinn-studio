@@ -57,6 +57,10 @@ function useHandleClientActions(): UseHandleClientActions {
   };
 
   const handleClientAction = async (action: CBTypes.ClientAction) => {
+    if (action.id == null) {
+      window.logError('Client action is missing id. Did you provide the id of the action? Action:', action);
+      return;
+    }
     if (isSpecificClientAction('navigateToPage', action)) {
       return await frontendActions[action.id](action.metadata);
     }
@@ -113,6 +117,7 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
         }
       } catch (error) {
         lockTools.unlock();
+        window.logError(error.stack);
         if (error?.response?.data?.error?.message !== undefined) {
           toast(<Lang id={error?.response?.data?.error?.message} />, { type: 'error' });
         } else {
