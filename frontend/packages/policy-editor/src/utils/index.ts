@@ -115,8 +115,8 @@ export const mapSubjectTitleToSubjectString = (
   const subject: PolicySubject = subjectOptions.find(
     (s) => s.subjectTitle.toLowerCase() === subjectTitle.toLowerCase(),
   );
-  if (subject === undefined) return;
-  return `urn:${subject?.subjectSource}:${subject?.subjectId}`;
+  if (!subject) return;
+  return `urn:${subject.subjectSource}:${subject.subjectId}`;
 };
 
 /**
@@ -140,8 +140,8 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
       .map((r) => (r.type.startsWith('urn:') ? `${r.type}:${r.id}` : `urn:${r.type}:${r.id}`)),
   );
 
-  const subject: string[] = policyRule.subject.map(
-    (s) => s && mapSubjectTitleToSubjectString(subjectOptions, s),
+  const subject: string[] = policyRule.subject.map((s) =>
+    mapSubjectTitleToSubjectString(subjectOptions, s),
   );
 
   return {
@@ -230,7 +230,7 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
   rules.forEach((rule) => {
     rule.subject.forEach((subjectString) => {
       const subjectId = convertSubjectStringToSubjectId(subjectString);
-      if (!existingSubjectIds.includes(subjectId?.toLowerCase())) {
+      if (!existingSubjectIds.includes(subjectId.toLowerCase())) {
         const newSubject: PolicySubject = createNewSubjectFromSubjectString(subjectString);
         copiedSubjects.push(newSubject);
         existingSubjectIds.push(subjectId);
