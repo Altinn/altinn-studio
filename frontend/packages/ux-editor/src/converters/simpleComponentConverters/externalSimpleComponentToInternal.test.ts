@@ -7,7 +7,7 @@ import { formItemConfigs } from '../../data/formItemConfig';
 const id = '1';
 const customProperty = 'test';
 const type: ComponentType = ComponentType.Input;
-const propertyPath = formItemConfigs[type].defaultProperties.propertyPath;
+const propertyPath = formItemConfigs[type].propertyPath;
 
 describe('externalSimpleComponentToInternal', () => {
   it.each([null, 0, 1, 2])(

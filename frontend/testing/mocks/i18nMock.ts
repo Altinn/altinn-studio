@@ -5,7 +5,9 @@ export const mockUseTranslation = (texts: { [key: string]: string } = {}) => ({
   t: ((key: string) => texts[key] ?? key) as typeof i18next.t,
 });
 
-export const textMock = ((key: string, variables?: KeyValuePairs<string>) =>
-  variables
+export const textMock = ((keys: string | string[], variables?: KeyValuePairs<string>) => {
+  const key = Array.isArray(keys) ? keys[0] : keys;
+  return variables
     ? '[mockedText(' + key + ', ' + JSON.stringify(variables) + ')]'
-    : '[mockedText(' + key + ')]') as typeof i18next.t;
+    : '[mockedText(' + key + ')]';
+}) as typeof i18next.t;

@@ -5,7 +5,7 @@ import { waitFor } from '@testing-library/react';
 import type { AddFormContainerMutationArgs } from './useAddFormContainerMutation';
 import { useAddFormContainerMutation } from './useAddFormContainerMutation';
 import type { FormContainer } from '../../types/FormContainer';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:
@@ -16,7 +16,7 @@ const selectedLayoutSet = 'test-layout-set';
 const container: FormContainer = {
   id,
   itemType: 'CONTAINER',
-  type: ComponentType.Group,
+  type: ComponentTypeV3.Group,
 };
 const defaultArgs: AddFormContainerMutationArgs = {
   container,
@@ -28,11 +28,11 @@ jest.mock('../../utils/generateId', () => ({
 }));
 
 describe('useAddFormContainerMutation', () => {
-  it('Calls saveFormLayout with correct arguments and payload', async () => {
+  it('Calls saveFormLayoutV3 with correct arguments and payload', async () => {
     const { result } = await renderAddFormContainerMutation();
     await result.current.mutateAsync(defaultArgs);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledWith(
       org,
       app,
       layout1NameMock,
@@ -42,7 +42,7 @@ describe('useAddFormContainerMutation', () => {
           layout: expect.arrayContaining([
             {
               id,
-              type: ComponentType.Group,
+              type: ComponentTypeV3.Group,
               children: [],
             },
           ]),

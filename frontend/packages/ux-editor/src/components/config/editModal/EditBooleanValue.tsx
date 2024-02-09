@@ -3,7 +3,7 @@ import { Switch } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
-import { getComponentPropertyLabel } from '../../../utils/language';
+import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 
 export interface EditBooleanValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -17,6 +17,7 @@ export const EditBooleanValue = ({
   helpText,
 }: EditBooleanValueProps) => {
   const t = useText();
+  const componentPropertyLabel = useComponentPropertyLabel();
 
   const handleChange = () => {
     handleComponentChange({
@@ -51,7 +52,7 @@ export const EditBooleanValue = ({
             id={`${propertyKey}-checkbox-${component.id}`}
             disabled={isValueExpression(fieldProps.value)}
           >
-            {getComponentPropertyLabel(propertyKey, t)}
+            {componentPropertyLabel(propertyKey)}
           </Switch>
         );
       }}

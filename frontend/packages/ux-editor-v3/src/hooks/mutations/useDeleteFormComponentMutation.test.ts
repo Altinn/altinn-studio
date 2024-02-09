@@ -14,8 +14,8 @@ describe('useDeleteFormComponentMutation', () => {
   it('Should save layout without deleted component', async () => {
     const { result } = await renderDeleteFormComponentsMutation();
     await result.current.mutateAsync(component2IdMock);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledWith(
       org,
       app,
       layout1NameMock,

@@ -1,6 +1,6 @@
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import type { FormFileUploaderComponent } from '../../types/FormComponent';
@@ -9,7 +9,7 @@ import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export interface AddFormItemMutationArgs {
-  componentType: ComponentType;
+  componentType: ComponentTypeV3;
   newId: string;
   parentId: string;
   index: number;
@@ -29,8 +29,8 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
 
       return formLayoutsMutation.mutateAsync(updatedLayout).then(() => {
         if (
-          componentType === ComponentType.FileUpload ||
-          componentType === ComponentType.FileUploadWithTag
+          componentType === ComponentTypeV3.FileUpload ||
+          componentType === ComponentTypeV3.FileUploadWithTag
         ) {
           const taskId = layoutSets
             ? layoutSets?.sets.find((set) => set.id === layoutSetName)?.tasks[0]

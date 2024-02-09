@@ -5,8 +5,12 @@ import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import { FormField } from '../../../FormField';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-export const PanelComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
+export const PanelComponent = ({
+  component,
+  handleComponentChange,
+}: IGenericEditComponent<ComponentType.Panel>) => {
   const t = useText();
 
   const handleShowIconClick = (showIcon: boolean) => {

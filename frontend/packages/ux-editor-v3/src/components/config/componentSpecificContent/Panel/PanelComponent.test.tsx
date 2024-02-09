@@ -9,7 +9,7 @@ import {
   renderWithMockStore,
 } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -20,10 +20,10 @@ const org = 'org';
 const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
-const component: FormComponent<ComponentType.Panel> = {
+const component: FormComponent<ComponentTypeV3.Panel> = {
   id: '',
   itemType: 'COMPONENT',
-  type: ComponentType.Panel,
+  type: ComponentTypeV3.Panel,
   dataModelBindings: {},
   variant: FormPanelVariant.Info,
   showIcon: false,

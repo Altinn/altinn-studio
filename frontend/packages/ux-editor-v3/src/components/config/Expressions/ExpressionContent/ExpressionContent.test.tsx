@@ -19,7 +19,7 @@ import { ExpressionPropertyBase } from '../../../../types/Expressions';
 import { FormContext } from '../../../../containers/FormContext';
 import { formContextProviderMock } from '../../../../testing/formContextMocks';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormContainer } from '../../../../types/FormContainer';
 
 const org = 'org';
@@ -163,7 +163,7 @@ describe('ExpressionContent', () => {
 
 const componentWithExpression: FormComponent = {
   id: 'some-id',
-  type: ComponentType.Input,
+  type: ComponentTypeV3.Input,
   itemType: 'COMPONENT',
   hidden: parsableExternalExpression,
 };

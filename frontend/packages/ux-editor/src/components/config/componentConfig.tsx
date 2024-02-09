@@ -1,7 +1,6 @@
 import React from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditCodeList } from './editModal/EditCodeList';
-import { EditDataModelBindings } from './editModal/EditDataModelBindings';
 import { EditHeaderSize } from './editModal/EditHeaderSize';
 import { EditOptions } from './editModal/EditOptions';
 import { EditPreselectedIndex } from './editModal/EditPreselectedIndex';
@@ -9,12 +8,12 @@ import { EditReadOnly } from './editModal/EditReadOnly';
 import { EditRequired } from './editModal/EditRequired';
 import { EditAutoComplete } from './editModal/EditAutoComplete';
 import { EditTextResourceBinding } from './editModal/EditTextResourceBinding';
-import type { FormComponent } from '../../types/FormComponent';
+import type { FormItem } from '../../types/FormItem';
 
-export interface IGenericEditComponent<T extends FormComponent = FormComponent> {
+export interface IGenericEditComponent<T extends ComponentType = ComponentType> {
   editFormId?: string;
-  component: T;
-  handleComponentChange: (component: T) => void;
+  component: FormItem<T>;
+  handleComponentChange: (component: FormItem<T>) => void;
   layoutName?: string;
 }
 
@@ -87,7 +86,6 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
 };
 
 export const configComponents: IConfigComponents = {
-  [EditSettings.DataModelBindings]: EditDataModelBindings,
   [EditSettings.Size]: EditHeaderSize,
   [EditSettings.Title]: ({ component, handleComponentChange }: IGenericEditComponent) => (
     <EditTextResourceBinding

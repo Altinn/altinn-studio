@@ -6,7 +6,7 @@ import {
   getFullLayoutOrder,
   selectedLayoutNameSelector,
 } from './formLayoutSelectors';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 // Test data:
 const layout1Name = 'Side1';
@@ -41,37 +41,37 @@ const formLayoutsData: IFormLayouts = {
         id: container0Id,
         index: 0,
         itemType: 'CONTAINER',
-        type: ComponentType.Group,
+        type: ComponentTypeV3.Group,
       },
       [container1Id]: {
         id: container1Id,
         index: 1,
         itemType: 'CONTAINER',
-        type: ComponentType.Group,
+        type: ComponentTypeV3.Group,
       },
     },
     components: {
       [component0AId]: {
         id: component0AId,
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       },
       [component0BId]: {
         id: component0BId,
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       },
       [component1AId]: {
         id: component1AId,
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       },
       [component1BId]: {
         id: component1BId,
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       },
@@ -89,19 +89,19 @@ const formLayoutsData: IFormLayouts = {
         id: container2Id,
         index: 0,
         itemType: 'CONTAINER',
-        type: ComponentType.Group,
+        type: ComponentTypeV3.Group,
       },
     },
     components: {
       [component2AId]: {
         id: component2AId,
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       },
       [component2BId]: {
         id: component2BId,
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       },

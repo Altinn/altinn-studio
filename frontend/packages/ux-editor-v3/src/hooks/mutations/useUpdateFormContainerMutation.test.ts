@@ -13,9 +13,9 @@ import {
   layout1NameMock,
 } from '../../testing/layoutMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 // Test data:
 const org = 'org';
@@ -26,7 +26,7 @@ const maxCount = 2;
 const updatedContainer: FormContainer = {
   id: 'newId',
   itemType: 'CONTAINER',
-  type: ComponentType.Group,
+  type: ComponentTypeV3.Group,
   maxCount,
 };
 const id = container1IdMock;
@@ -42,8 +42,8 @@ describe('useUpdateFormContainerMutation', () => {
 
     await updateFormContainerResult.current.mutateAsync(mutationArgs);
 
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledWith(
       org,
       app,
       layout1NameMock,
@@ -64,15 +64,15 @@ describe('useUpdateFormContainerMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayouts = jest
+  const getFormLayoutsV3 = jest
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>(externalLayoutsMock));
   const getRuleConfig = jest
     .fn()
     .mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfigMock));
   const formLayoutsResult = renderHookWithMockStore(
     {},
-    { getFormLayouts },
+    { getFormLayoutsV3 },
   )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   const ruleConfigResult = renderHookWithMockStore(
     {},

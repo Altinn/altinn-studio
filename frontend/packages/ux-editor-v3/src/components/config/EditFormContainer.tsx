@@ -27,7 +27,7 @@ import { FormField } from '../FormField';
 import type { FormContainer } from '../../types/FormContainer';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../hooks/useAppContext';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 export interface IEditFormContainerProps {
   editFormId: string;
@@ -138,7 +138,7 @@ export const EditFormContainer = ({
     });
   };
 
-  return container.type === ComponentType.Group ? (
+  return container.type === ComponentTypeV3.Group ? (
     <LegacyFieldSet className={classes.fieldset}>
       <FormField
         id={container.id}

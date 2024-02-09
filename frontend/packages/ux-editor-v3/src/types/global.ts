@@ -1,6 +1,6 @@
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from './FormComponent';
@@ -53,7 +53,7 @@ export interface IRuleModelFieldElement {
 export interface IWidget {
   components: any[];
   texts: IWidgetTexts[];
-  displayName: ComponentType;
+  displayName: ComponentTypeV3;
 }
 
 export interface IWidgetTexts {
@@ -64,7 +64,7 @@ export interface IWidgetTexts {
 export interface IToolbarElement {
   label: string;
   icon?: React.ComponentType;
-  type: ComponentType;
+  type: ComponentTypeV3;
 }
 
 export enum CollapsableMenus {

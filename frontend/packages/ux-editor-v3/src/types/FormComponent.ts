@@ -1,9 +1,9 @@
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { IDataModelBindings, ITextResourceBindings, IOption } from './global';
-import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { ComponentSpecificConfigV3 } from 'app-shared/types/ComponentSpecificConfigV3';
 import type { FormComponent } from '../components/FormComponent';
 
-export interface FormComponentBase<T extends ComponentType = ComponentType> {
+export interface FormComponentBase<T extends ComponentTypeV3 = ComponentTypeV3> {
   id: string;
   component?: string;
   itemType: 'COMPONENT';
@@ -29,17 +29,17 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   propertyPath?: string;
 }
 
-export type FormImageComponent = FormComponent<ComponentType.Image>;
-export type FormCheckboxesComponent = FormComponent<ComponentType.Checkboxes>;
-export type FormRadioButtonsComponent = FormComponent<ComponentType.RadioButtons>;
-export type FormFileUploaderComponent = FormComponent<ComponentType.FileUpload>;
-export type FormFileUploaderWithTagComponent = FormComponent<ComponentType.FileUploadWithTag>;
+export type FormImageComponent = FormComponent<ComponentTypeV3.Image>;
+export type FormCheckboxesComponent = FormComponent<ComponentTypeV3.Checkboxes>;
+export type FormRadioButtonsComponent = FormComponent<ComponentTypeV3.RadioButtons>;
+export type FormFileUploaderComponent = FormComponent<ComponentTypeV3.FileUpload>;
+export type FormFileUploaderWithTagComponent = FormComponent<ComponentTypeV3.FileUploadWithTag>;
 export type FormButtonComponent = FormComponent<
-  ComponentType.Button | ComponentType.NavigationButtons
+  ComponentTypeV3.Button | ComponentTypeV3.NavigationButtons
 >;
-export type FormAddressComponent = FormComponent<ComponentType.AddressComponent>;
+export type FormAddressComponent = FormComponent<ComponentTypeV3.AddressComponent>;
 
-export type FormComponent<T extends ComponentType = ComponentType> = {
-  [componentType in ComponentType]: FormComponentBase<componentType> &
-    ComponentSpecificConfig<componentType>;
+export type FormComponent<T extends ComponentTypeV3 = ComponentTypeV3> = {
+  [componentType in ComponentTypeV3]: FormComponentBase<componentType> &
+    ComponentSpecificConfigV3<componentType>;
 }[T];

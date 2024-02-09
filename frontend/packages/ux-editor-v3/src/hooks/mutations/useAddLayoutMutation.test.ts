@@ -5,9 +5,9 @@ import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { externalLayoutsMock } from '../../testing/layoutMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
 
 // Test data:
@@ -20,7 +20,7 @@ const defaultArgs: AddLayoutMutationArgs = { layoutName };
 describe('useAddLayoutMutation', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Calls saveFormLayout with new layout', async () => {
+  it('Calls saveFormLayoutV3 with new layout', async () => {
     await renderAndWaitForData();
 
     const addLayoutResult = renderHookWithMockStore()(() =>
@@ -31,7 +31,7 @@ describe('useAddLayoutMutation', () => {
 
     await waitFor(() => expect(addLayoutResult.current.isSuccess).toBe(true));
 
-    expect(queriesMock.saveFormLayout).toHaveBeenLastCalledWith(
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenLastCalledWith(
       org,
       app,
       layoutName,
@@ -39,14 +39,14 @@ describe('useAddLayoutMutation', () => {
       {
         $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
         data: {
-          layout: [expect.objectContaining({ type: ComponentType.NavigationButtons })],
+          layout: [expect.objectContaining({ type: ComponentTypeV3.NavigationButtons })],
           hidden: undefined,
         },
       },
     );
   });
 
-  it('Calls saveFormLayout with new layout for receiptPage', async () => {
+  it('Calls saveFormLayoutV3 with new layout for receiptPage', async () => {
     await renderAndWaitForData();
 
     const addLayoutResult = renderHookWithMockStore()(() =>
@@ -60,7 +60,7 @@ describe('useAddLayoutMutation', () => {
 
     await waitFor(() => expect(addLayoutResult.current.isSuccess).toBe(true));
 
-    expect(queriesMock.saveFormLayout).toHaveBeenLastCalledWith(
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenLastCalledWith(
       org,
       app,
       formLayoutSettingsMock.receiptLayoutName,
@@ -77,15 +77,15 @@ describe('useAddLayoutMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayouts = jest
+  const getFormLayoutsV3 = jest
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>(externalLayoutsMock));
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore(
     {},
-    { getFormLayouts },
+    { getFormLayoutsV3 },
   )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   const settingsResult = renderHookWithMockStore(
     {},
