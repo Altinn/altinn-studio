@@ -14,7 +14,7 @@ type Option<T extends string | boolean | number = string | boolean | number> = {
   helpText?: string;
 };
 
-export type SelectionComponent = {
+type SelectionComponent = {
   optionsId?: string;
   mapping?: KeyValuePairs;
   queryParameters?: KeyValuePairs;

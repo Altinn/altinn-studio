@@ -13,7 +13,7 @@ import { EditOptions } from '../config/editModal/EditOptions';
 import classes from './Text.module.css';
 import type { FormComponentBase } from '../../types/FormComponent';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import type { OptionsComponentBase } from 'app-shared/types/ComponentSpecificConfig';
+import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 
 export const Text = () => {
   const { formId, form, handleUpdate, debounceSave } = useFormContext();
@@ -60,8 +60,10 @@ export const Text = () => {
           <EditOptions
             component={
               form as
-                | (FormComponentBase<ComponentType.Checkboxes> & OptionsComponentBase)
-                | (FormComponentBase<ComponentType.RadioButtons> & OptionsComponentBase)
+                | (FormComponentBase<ComponentType.Checkboxes> &
+                    ComponentSpecificConfig<ComponentType.Checkboxes>)
+                | (FormComponentBase<ComponentType.RadioButtons> &
+                    ComponentSpecificConfig<ComponentType.RadioButtons>)
             }
             handleComponentChange={async (updatedComponent) => {
               handleUpdate(updatedComponent);

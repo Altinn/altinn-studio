@@ -33,7 +33,9 @@ describe('EditOptions', () => {
 
   it('should show code list input by default when neither options nor optionId are set', async () => {
     renderEditOptions();
-    expect(screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
+    ).toBeInTheDocument();
   });
 
   it('should show manual input when component has options defined', async () => {
@@ -66,7 +68,7 @@ describe('EditOptions', () => {
 
   it('should switch to manual input when toggling codelist switch off', async () => {
     const handleComponentChange = jest.fn();
-    await render({ handleComponentChange });
+    renderEditOptions({ handleComponentChange });
     const switchElement = screen.getByRole('checkbox');
     await act(() => switchElement.click());
     expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, options: [] });
@@ -74,7 +76,7 @@ describe('EditOptions', () => {
 
   it('should switch to codelist input when toggling codelist switch on', async () => {
     const handleComponentChange = jest.fn();
-    await render({
+    renderEditOptions({
       handleComponentChange,
       component: {
         ...mockComponent,
@@ -89,7 +91,7 @@ describe('EditOptions', () => {
 
   it('should update component options when adding new option', async () => {
     const handleComponentChange = jest.fn();
-    await render({
+    renderEditOptions({
       handleComponentChange,
       component: {
         ...mockComponent,
@@ -111,7 +113,7 @@ describe('EditOptions', () => {
 
   it('should update component options when removing option', async () => {
     const handleComponentChange = jest.fn();
-    await render({
+    renderEditOptions({
       handleComponentChange,
       component: {
         ...mockComponent,
