@@ -90,8 +90,8 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _processModelingService.SaveProcessDefinitionAsync(
-                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), stream, cancellationToken);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+            await _processModelingService.SaveProcessDefinitionAsync(editingContext, stream, cancellationToken);
 
             if (metadataObject?.TaskIdChanges is not null)
             {
@@ -100,7 +100,8 @@ namespace Altinn.Studio.Designer.Controllers
                     await _mediator.Publish(new ProcessTaskIdChangedEvent
                     {
                         OldId = taskIdChange.OldId,
-                        NewId = taskIdChange.NewId
+                        NewId = taskIdChange.NewId,
+                        EditingContext = editingContext
                     }, cancellationToken);
                 }
             }
