@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { internalContainerComponentToExternal } from './internalContainerComponentToExternal';
 import type { FormContainer } from '../../types/FormContainer';
 
@@ -12,7 +12,7 @@ describe('internalGroupComponentToExternal', () => {
     const internalGroupComponent: FormContainer = {
       id,
       itemType: 'CONTAINER',
-      type: ComponentType.Group,
+      type: ComponentTypeV3.Group,
       pageIndex: null,
       customProperty,
     };
@@ -20,7 +20,7 @@ describe('internalGroupComponentToExternal', () => {
     expect(result).toEqual({
       id,
       children,
-      type: ComponentType.Group,
+      type: ComponentTypeV3.Group,
       customProperty,
     });
   });

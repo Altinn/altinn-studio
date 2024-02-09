@@ -1,5 +1,5 @@
-import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ExternalComponentV3, ExternalFormLayoutV3 } from 'app-shared/types/api';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { IInternalLayout } from '../types/global';
 import type { FormComponent } from '../types/FormComponent';
 import type { FormContainer } from '../types/FormContainer';
@@ -16,43 +16,43 @@ export const component3_1_2Id = 'component3_1_2';
 export const component3_1_3Id = 'component3_1_3';
 export const component3_1_4Id = 'component3_1_4';
 
-const externalComponent1: ExternalComponent = {
+const externalComponent1: ExternalComponentV3 = {
   id: component1Id,
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
 };
 const internalComponent1: FormComponent = {
   id: component1Id,
   itemType: 'COMPONENT',
   pageIndex: null,
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
 };
 
-const externalComponent2: ExternalComponent = {
+const externalComponent2: ExternalComponentV3 = {
   id: component2Id,
-  type: ComponentType.Input,
+  type: ComponentTypeV3.Input,
 };
 const internalComponent2: FormComponent = {
   id: component2Id,
   itemType: 'COMPONENT',
   pageIndex: null,
   propertyPath: 'definitions/inputComponent',
-  type: ComponentType.Input,
+  type: ComponentTypeV3.Input,
 };
 
-const externalComponent3: ExternalComponent = {
+const externalComponent3: ExternalComponentV3 = {
   id: component3Id,
-  type: ComponentType.Group,
+  type: ComponentTypeV3.Group,
   children: [component3_1Id, component3_2Id],
 };
 const internalComponent3: FormContainer = {
   id: component3Id,
   itemType: 'CONTAINER',
-  type: ComponentType.Group,
+  type: ComponentTypeV3.Group,
   pageIndex: null,
   propertyPath: 'definitions/groupComponent',
 };
 
-const externalComponent3_1: ExternalComponent = {
+const externalComponent3_1: ExternalComponentV3 = {
   id: component3_1Id,
   children: [
     '0:' + component3_1_1Id,
@@ -61,76 +61,76 @@ const externalComponent3_1: ExternalComponent = {
     '1:' + component3_1_4Id,
   ],
   edit: { multiPage: true },
-  type: ComponentType.Group,
+  type: ComponentTypeV3.Group,
 };
 const internalComponent3_1: FormContainer = {
   edit: { multiPage: true },
   id: component3_1Id,
   itemType: 'CONTAINER',
-  type: ComponentType.Group,
+  type: ComponentTypeV3.Group,
   pageIndex: null,
   propertyPath: 'definitions/groupComponent',
 };
 
-const externalComponent3_1_1: ExternalComponent = {
+const externalComponent3_1_1: ExternalComponentV3 = {
   id: component3_1_1Id,
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
 };
 const internalComponent3_1_1: FormComponent = {
   id: component3_1_1Id,
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
   itemType: 'COMPONENT',
   pageIndex: 0,
 };
 
-const externalComponent3_1_2: ExternalComponent = {
+const externalComponent3_1_2: ExternalComponentV3 = {
   id: component3_1_2Id,
-  type: ComponentType.ButtonGroup,
+  type: ComponentTypeV3.ButtonGroup,
 };
 const internalComponent3_1_2: FormContainer = {
   id: component3_1_2Id,
   itemType: 'CONTAINER',
-  type: ComponentType.ButtonGroup,
+  type: ComponentTypeV3.ButtonGroup,
   pageIndex: 0,
   propertyPath: 'definitions/buttonGroupComponent',
 };
 
-const externalComponent3_1_3: ExternalComponent = {
+const externalComponent3_1_3: ExternalComponentV3 = {
   id: component3_1_3Id,
-  type: ComponentType.Accordion,
+  type: ComponentTypeV3.Accordion,
   children: [],
 };
 const internalComponent3_1_3: FormContainer = {
   id: component3_1_3Id,
   itemType: 'CONTAINER',
-  type: ComponentType.Accordion,
+  type: ComponentTypeV3.Accordion,
   pageIndex: 1,
   propertyPath: 'definitions/accordionComponent',
 };
 
-const externalComponent3_1_4: ExternalComponent = {
+const externalComponent3_1_4: ExternalComponentV3 = {
   id: component3_1_4Id,
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
 };
 const internalComponent3_1_4: FormComponent = {
   id: component3_1_4Id,
   itemType: 'COMPONENT',
   pageIndex: 1,
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
 };
 
-const externalComponent3_2: ExternalComponent = {
+const externalComponent3_2: ExternalComponentV3 = {
   id: component3_2Id,
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
 };
 const internalComponent3_2: FormComponent = {
   id: component3_2Id,
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
   itemType: 'COMPONENT',
   pageIndex: null,
 };
 
-export const externalLayoutWithMultiPageGroup: ExternalFormLayout = {
+export const externalLayoutWithMultiPageGroup: ExternalFormLayoutV3 = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [

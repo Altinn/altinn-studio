@@ -3,7 +3,7 @@ import type { IFormLayouts, IInternalLayout } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import type { ExternalFormLayoutV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import { useAppContext } from '../useAppContext';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 
@@ -14,14 +14,14 @@ export const useFormLayoutMutation = (
   layoutSetName: string,
 ) => {
   const previewConnection = usePreviewConnection();
-  const { saveFormLayout } = useServicesContext();
+  const { saveFormLayoutV3 } = useServicesContext();
   const queryClient = useQueryClient();
   const { previewIframeRef } = useAppContext();
 
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {
-      const convertedLayout: ExternalFormLayout = internalLayoutToExternal(layout);
-      return saveFormLayout(org, app, layoutName, layoutSetName, convertedLayout).then(
+      const convertedLayout: ExternalFormLayoutV3 = internalLayoutToExternal(layout);
+      return saveFormLayoutV3(org, app, layoutName, layoutSetName, convertedLayout).then(
         () => layout,
       );
     },

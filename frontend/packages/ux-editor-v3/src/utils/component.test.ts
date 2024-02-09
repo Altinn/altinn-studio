@@ -8,7 +8,7 @@ import {
   isPropertyTypeSupported,
   setComponentProperty,
 } from './component';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type {
   FormCheckboxesComponent,
   FormComponent,
@@ -31,7 +31,7 @@ describe('Component utils', () => {
           [bindingKeyToKeep]: resourceKeyToKeep,
           [bindingKeyToChange]: resourceKeyToChange,
         },
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       };
@@ -54,7 +54,7 @@ describe('Component utils', () => {
         textResourceBindings: {
           title: titleResourceKey,
         },
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       };
@@ -73,7 +73,7 @@ describe('Component utils', () => {
         textResourceBindings: {
           description: descriptionResourceKey,
         },
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       };
@@ -85,9 +85,9 @@ describe('Component utils', () => {
   });
 
   describe('addOptionToComponent', () => {
-    it.each([ComponentType.Checkboxes, ComponentType.RadioButtons] as (
-      | ComponentType.Checkboxes
-      | ComponentType.RadioButtons
+    it.each([ComponentTypeV3.Checkboxes, ComponentTypeV3.RadioButtons] as (
+      | ComponentTypeV3.Checkboxes
+      | ComponentTypeV3.RadioButtons
     )[])('Adds option to %s component', (componentType) => {
       const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
         id: 'test',
@@ -114,9 +114,9 @@ describe('Component utils', () => {
   });
 
   describe('changeComponentOptionLabel', () => {
-    it.each([ComponentType.Checkboxes, ComponentType.RadioButtons] as (
-      | ComponentType.Checkboxes
-      | ComponentType.RadioButtons
+    it.each([ComponentTypeV3.Checkboxes, ComponentTypeV3.RadioButtons] as (
+      | ComponentTypeV3.Checkboxes
+      | ComponentTypeV3.RadioButtons
     )[])('Changes label of option with given value on %s component', (componentType) => {
       const valueOfWhichLabelShouldChange = 'testValue2';
       const component: FormCheckboxesComponent | FormRadioButtonsComponent = {
@@ -151,7 +151,7 @@ describe('Component utils', () => {
   });
 
   describe('generateFormItem', () => {
-    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
+    it.each(Object.values(ComponentTypeV3).filter((v) => !containerComponentTypes.includes(v)))(
       'Generates component of type %s with given ID',
       (componentType) => {
         const id = 'testId';
@@ -186,7 +186,7 @@ describe('Component utils', () => {
     it('Sets given property on given component', () => {
       const component: FormComponent = {
         id: 'test',
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         itemType: 'COMPONENT',
         dataModelBindings: {},
       };

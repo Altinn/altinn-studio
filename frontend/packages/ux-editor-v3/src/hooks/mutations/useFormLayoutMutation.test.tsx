@@ -3,7 +3,7 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { IInternalLayout } from '../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { baseContainerIdMock } from '../../testing/layoutMock';
 import type { AppContextProps } from '../../AppContext';
 import type { RefObject } from 'react';
@@ -15,7 +15,7 @@ const app = 'app';
 const layoutName = 'layoutName';
 const selectedLayoutSet = 'test-layout-set';
 const componentId = 'component1';
-const componentType = ComponentType.TextArea;
+const componentType = ComponentTypeV3.TextArea;
 const baseContainerId = baseContainerIdMock;
 const containerId = 'container1';
 const newLayout: IInternalLayout = {
@@ -39,7 +39,7 @@ const newLayout: IInternalLayout = {
       id: containerId,
       itemType: 'CONTAINER',
       pageIndex: null,
-      type: ComponentType.Group,
+      type: ComponentTypeV3.Group,
     },
   },
   order: {
@@ -53,10 +53,10 @@ const newLayout: IInternalLayout = {
 describe('useFormLayoutMutation', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Calls saveFormLayout with correct arguments and payload', async () => {
+  it('Calls saveFormLayoutV3 with correct arguments and payload', async () => {
     await renderAndMutate(newLayout);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledWith(
       org,
       app,
       layoutName,
@@ -66,7 +66,7 @@ describe('useFormLayoutMutation', () => {
           layout: [
             {
               id: containerId,
-              type: ComponentType.Group,
+              type: ComponentTypeV3.Group,
               children: [componentId],
             },
             {

@@ -18,10 +18,10 @@ const selectedLayoutName = 'Side1';
 const selectedLayoutSet = 'test-layout-set';
 
 const render = async (callback: () => IFormLayouts | IInternalLayout | IInternalLayoutWithName) => {
-  const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
+  const getFormLayoutsV3 = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
   const formLayoutsResult = renderHookWithMockStore(
     {},
-    { getFormLayouts },
+    { getFormLayoutsV3 },
   )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 

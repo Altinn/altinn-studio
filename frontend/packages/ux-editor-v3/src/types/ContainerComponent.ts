@@ -1,7 +1,7 @@
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 export type ContainerComponentType =
-  | ComponentType.Accordion
-  | ComponentType.AccordionGroup
-  | ComponentType.ButtonGroup
-  | ComponentType.Group;
+  | ComponentTypeV3.Accordion
+  | ComponentTypeV3.AccordionGroup
+  | ComponentTypeV3.ButtonGroup
+  | ComponentTypeV3.Group;

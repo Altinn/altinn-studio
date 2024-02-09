@@ -5,7 +5,7 @@ import { EditHeaderSize } from './EditHeaderSize';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 const getComboBox = () =>
   screen.getByRole('combobox', { name: textMock('ux_editor.modal_header_type_helper') });
@@ -25,7 +25,7 @@ const render = async ({ size = undefined, handleComponentChange = jest.fn() } = 
       handleComponentChange={handleComponentChange}
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-        type: ComponentType.Header,
+        type: ComponentTypeV3.Header,
         textResourceBindings: {
           title: 'ServiceName',
         },
@@ -105,7 +105,7 @@ describe('HeaderSizeSelect', () => {
     expect(handleComponentChange).toHaveBeenCalledWith({
       id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
       itemType: 'COMPONENT',
-      type: ComponentType.Header,
+      type: ComponentTypeV3.Header,
       textResourceBindings: {
         title: 'ServiceName',
       },

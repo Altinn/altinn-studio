@@ -14,6 +14,8 @@ const user = userEvent.setup();
 
 // Test data:
 const srcValueLabel = 'Source';
+const autocompleteLabel = 'Autocomplete';
+const datamodelFieldLinkLabel = 'Add data model field';
 const texts = {
   'general.label': '',
   'general.value': '',
@@ -24,6 +26,8 @@ const texts = {
   'ux_editor.modal_properties_image_placement_label': 'Placement',
   'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
   'ux_editor.modal_properties_image_width_label': 'Width',
+  'ux_editor.component_properties.autocomplete': autocompleteLabel,
+  'ux_editor.modal_properties_data_model_link': datamodelFieldLinkLabel,
 };
 
 // Mocks:
@@ -80,16 +84,6 @@ const getDatamodelMetadata = () =>
 describe('EditFormComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  test('should return input specific content when type input', async () => {
-    await render({
-      componentProps: {
-        type: ComponentType.Input,
-      },
-    });
-
-    expect(screen.getByLabelText('Autocomplete (WCAG)'));
   });
 
   test('should return header specific content when type header', async () => {

@@ -52,7 +52,7 @@ import {
 import { deepCopy } from 'app-shared/pure';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import type { FormContainer } from '../types/FormContainer';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 describe('expressionsUtils', () => {
   describe('convertSubExpression', () => {
@@ -392,7 +392,7 @@ describe('expressionsUtils', () => {
       const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer = {
         id: 'some-id',
         itemType: 'CONTAINER',
-        type: ComponentType.Group,
+        type: ComponentTypeV3.Group,
         hidden: parsableExternalExpression,
         required: parsableExternalExpression,
         readOnly: parsableExternalExpression,

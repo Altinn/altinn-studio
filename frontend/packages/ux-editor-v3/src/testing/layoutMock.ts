@@ -1,20 +1,20 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { IInternalLayout } from '../types/global';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from '../types/FormComponent';
 import type {
-  ExternalFormLayout,
-  FormLayoutsResponse,
-} from 'app-shared/types/api/FormLayoutsResponse';
+  ExternalFormLayoutV3,
+  FormLayoutsResponseV3,
+} from 'app-shared/types/api/FormLayoutsResponseV3';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
 
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = 'Component-1';
-export const component1TypeMock = ComponentType.Input;
+export const component1TypeMock = ComponentTypeV3.Input;
 export const component1Mock: FormComponent = {
   id: component1IdMock,
   type: component1TypeMock,
@@ -23,7 +23,7 @@ export const component1Mock: FormComponent = {
   pageIndex: null,
 };
 export const component2IdMock = 'Component-2';
-export const component2TypeMock = ComponentType.Paragraph;
+export const component2TypeMock = ComponentTypeV3.Paragraph;
 export const component2Mock: FormComponent = {
   id: component2IdMock,
   type: component2TypeMock,
@@ -55,7 +55,7 @@ export const layoutMock: IInternalLayout = {
     [container1IdMock]: {
       id: container1IdMock,
       itemType: 'CONTAINER',
-      type: ComponentType.Group,
+      type: ComponentTypeV3.Group,
       pageIndex: null,
       propertyPath: 'definitions/groupComponent',
     },
@@ -68,13 +68,13 @@ export const layoutMock: IInternalLayout = {
   customDataProperties: customDataPropertiesMock,
 };
 
-export const layout1Mock: ExternalFormLayout = {
+export const layout1Mock: ExternalFormLayoutV3 = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [
       {
         id: container1IdMock,
-        type: ComponentType.Group,
+        type: ComponentTypeV3.Group,
         children: [component1IdMock, component2IdMock],
       },
       {
@@ -90,13 +90,13 @@ export const layout1Mock: ExternalFormLayout = {
   },
   ...customRootPropertiesMock,
 };
-const layout2Mock: ExternalFormLayout = {
+const layout2Mock: ExternalFormLayoutV3 = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [],
   },
 };
-export const externalLayoutsMock: FormLayoutsResponse = {
+export const externalLayoutsMock: FormLayoutsResponseV3 = {
   [layout1NameMock]: layout1Mock,
   [layout2NameMock]: layout2Mock,
 };

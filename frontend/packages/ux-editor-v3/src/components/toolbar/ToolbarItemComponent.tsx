@@ -5,11 +5,11 @@ import { StudioButton } from '@studio/components';
 import { InformationIcon } from '@navikt/aksel-icons';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 export interface IToolbarItemProvidedProps {
-  componentType: ComponentType;
-  onClick: (type: ComponentType, event: MouseEvent) => void;
+  componentType: ComponentTypeV3;
+  onClick: (type: ComponentTypeV3, event: MouseEvent) => void;
   thirdPartyLabel?: string;
   icon?: string | React.ComponentType;
 }

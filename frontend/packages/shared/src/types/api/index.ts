@@ -8,6 +8,7 @@ export * from './CreateReleasePayload';
 export * from './CreateRepoCommitPayload';
 export * from './DatamodelMetadataResponse';
 export * from './FormLayoutsResponse';
+export * from './FormLayoutsResponseV3';
 export * from './SearchRepoFilterParams';
 export * from './SearchRepositoryResponse';
 export * from './UpdateTextIdPayload';
