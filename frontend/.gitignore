@@ -12,4 +12,4 @@ language/old/*
 **/stats.json
 *.csv
 script.js
-
+/testing/playwright/test-results
