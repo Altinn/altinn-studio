@@ -52,6 +52,7 @@ const component: FormAttachmentListComponent = {
   id: '1',
   type: ComponentType.AttachmentList,
   itemType: 'COMPONENT',
+  dataTypeIds: [],
 };
 
 const handleComponentChange = jest.fn();
@@ -142,6 +143,52 @@ describe('AttachmentListComponent', () => {
     expect(screen.getByText('test4')).toBeInTheDocument();
   });
 
+  it('should unselect other data types when "Alle vedlegg (inkl. PDF)" is selected', async () => {
+    await render(
+      {
+        component: {
+          ...component,
+          dataTypeIds: ['test1', 'test3', 'test4'],
+        },
+      },
+      'layoutSetId3',
+    );
+    await waitForData();
+
+    const dropdown = screen.getByRole('combobox');
+    await act(() => user.click(dropdown));
+    const option = screen.getByRole('option', { name: 'Alle vedlegg (inkl. PDF)' });
+    await act(() => user.click(option));
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...component,
+      dataTypeIds: ['include-all'],
+    });
+  });
+
+  it('should unselect other data types when "Alle vedlegg (eksl. PDF)" is selected', async () => {
+    await render(
+      {
+        component: {
+          ...component,
+          dataTypeIds: ['test1', 'test3', 'test4'],
+        },
+      },
+      'layoutSetId3',
+    );
+    await waitForData();
+
+    const dropdown = screen.getByRole('combobox');
+    await act(() => user.click(dropdown));
+    const option = screen.getByRole('option', { name: 'Alle vedlegg (eksl. PDF)' });
+    await act(() => user.click(option));
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...component,
+      dataTypeIds: [],
+    });
+  });
+
   it('should remove selected attachments from other tasks if only current task is set to true', async () => {
     await render(
       {
@@ -161,6 +208,22 @@ describe('AttachmentListComponent', () => {
     expect(screen.getByText('test4')).toBeInTheDocument();
     await act(() => user.click(currentTaskCheckbox));
 
+    expect(screen.queryByText('test1')).not.toBeInTheDocument();
+    expect(screen.getByText('test4')).toBeInTheDocument();
+  });
+
+  it('should display only data types from current task when switch is checked', async () => {
+    await render({}, 'layoutSetId3');
+    await waitForData();
+
+    const currentTaskCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.current_task'),
+    });
+    await act(() => user.click(currentTaskCheckbox));
+    expect(currentTaskCheckbox).toBeChecked();
+
+    const dropdown = screen.getByRole('combobox');
+    await act(() => user.click(dropdown));
     expect(screen.queryByText('test1')).not.toBeInTheDocument();
     expect(screen.getByText('test4')).toBeInTheDocument();
   });
