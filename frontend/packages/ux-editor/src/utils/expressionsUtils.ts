@@ -19,6 +19,7 @@ import type { FormComponent } from '../types/FormComponent';
 import type { LegacySingleSelectOption } from '@digdir/design-system-react';
 import type { FormContainer } from '../types/FormContainer';
 import type { UseText } from '../hooks';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export const convertInternalExpressionToExternal = (expression: Expression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
@@ -427,7 +428,7 @@ export const getExternalExpressionOnComponentProperty = (
   property: ExpressionProperty,
 ): any => {
   let value = form[property];
-  if (form.itemType === 'CONTAINER' && property.includes('edit')) {
+  if (form.type === ComponentType.Group && property.includes('edit')) {
     const editPropertyForGroup = property.split('edit.')[1];
     value = form['edit'][editPropertyForGroup];
   }

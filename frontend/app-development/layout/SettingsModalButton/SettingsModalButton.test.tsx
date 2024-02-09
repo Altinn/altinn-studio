@@ -43,7 +43,7 @@ describe('SettingsModal', () => {
     });
     expect(modalHeading).not.toBeInTheDocument();
 
-    const button = screen.getByRole('button', { name: textMock('settings_modal.heading') });
+    const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
     await act(() => user.click(button));
 
     const modalHeadingAfter = screen.getByRole('heading', {
@@ -55,7 +55,7 @@ describe('SettingsModal', () => {
 
   it('closes the SettingsModal when the modal is closed', async () => {
     render();
-    const button = screen.getByRole('button', { name: textMock('settings_modal.heading') });
+    const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
     await act(() => user.click(button));
 
     const modalHeading = screen.getByRole('heading', {

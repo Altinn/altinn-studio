@@ -1,0 +1,107 @@
+import React from 'react';
+import { EditAutoComplete } from './EditAutoComplete';
+import { act, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import type { FormComponent } from '../../../types/FormComponent';
+import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
+import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
+
+const componentMock: FormComponent = {
+  id: 'random-id',
+  autocomplete: '',
+  type: ComponentTypeV3.Input,
+  itemType: 'COMPONENT',
+  propertyPath: 'definitions/inputComponent',
+  dataModelBindings: {},
+};
+
+const waitForData = async () => {
+  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
+    .renderHookResult.result;
+  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
+};
+
+export const render = async (
+  handleComponentChangeMock: any = jest.fn(),
+  component: FormComponent = componentMock,
+) => {
+  await waitForData();
+  return renderWithMockStore()(
+    <EditAutoComplete handleComponentChange={handleComponentChangeMock} component={component} />,
+  );
+};
+
+test('should render first 6 suggestions on search field focused', async () => {
+  await render();
+  const user = userEvent.setup();
+
+  const inputField = screen.getByRole('textbox');
+  expect(inputField).toBeInTheDocument();
+
+  await act(() => user.click(inputField));
+
+  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  expect(screen.getAllByRole('option')).toHaveLength(6);
+});
+
+test('should filter options while typing in search field', async () => {
+  await render();
+  const user = userEvent.setup();
+
+  await act(() => user.type(screen.getByRole('textbox'), 'of'));
+
+  await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('of'));
+
+  expect(screen.getByRole('option', { name: 'off' })).toBeInTheDocument();
+  expect(screen.queryByRole('option', { name: 'given-name' })).not.toBeInTheDocument();
+});
+
+test('should set the chosen options within the search field', async () => {
+  await render();
+  const user = userEvent.setup();
+
+  const searchField = screen.getByRole('textbox');
+
+  await act(() => user.type(searchField, 'of'));
+  await waitFor(() => expect(searchField).toHaveValue('of'));
+  await act(() => user.click(screen.getByRole('option', { name: 'off' })));
+
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  await waitFor(() => expect(searchField).toHaveValue('off'));
+});
+
+test('should toggle autocomplete-popup based onFocus and onBlur', async () => {
+  await render();
+  const user = userEvent.setup();
+  await act(() => user.click(screen.getByRole('textbox')));
+
+  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+  await act(() => user.tab());
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+});
+
+test('should call handleComponentChangeMock callback ', async () => {
+  const handleComponentChangeMock = jest.fn();
+  await render(handleComponentChangeMock);
+
+  const user = userEvent.setup();
+
+  const inputField = screen.getByRole('textbox');
+  expect(inputField).toBeInTheDocument();
+
+  await act(() => user.click(inputField));
+  await screen.findByRole('dialog');
+
+  await act(() => user.click(screen.getByRole('option', { name: 'on' })));
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  expect(handleComponentChangeMock).toHaveBeenCalledWith({
+    autocomplete: 'on',
+    dataModelBindings: {},
+    id: 'random-id',
+    itemType: 'COMPONENT',
+    propertyPath: 'definitions/inputComponent',
+    type: 'Input',
+  });
+});

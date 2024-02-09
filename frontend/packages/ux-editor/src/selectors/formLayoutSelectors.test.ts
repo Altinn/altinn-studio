@@ -41,11 +41,13 @@ const formLayoutsData: IFormLayouts = {
         id: container0Id,
         index: 0,
         itemType: 'CONTAINER',
+        type: ComponentType.Group,
       },
       [container1Id]: {
         id: container1Id,
         index: 1,
         itemType: 'CONTAINER',
+        type: ComponentType.Group,
       },
     },
     components: {
@@ -87,6 +89,7 @@ const formLayoutsData: IFormLayouts = {
         id: container2Id,
         index: 0,
         itemType: 'CONTAINER',
+        type: ComponentType.Group,
       },
     },
     components: {

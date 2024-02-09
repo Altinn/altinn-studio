@@ -1,6 +1,6 @@
 # @studio/components
 
-Studio-Components is a tool that wraps around `@digdir/design-system-react` and `@digdir/design-system-tokens`, giving you access to the Designsystem's componetns and tokens adding Altinn customisation to them. It is also a place where internal components for altinn-studio lives, where they follow a "dummy-components" pattern. It's great for delvelopers and designers to have this library for components to ensure that the components used throughout altinn studio's applications looks great and stay consistent.
+Studio-Components is a tool that wraps around `@digdir/design-system-react` and `@digdir/design-system-tokens`, giving you access to the Designsystem's components and tokens adding Altinn customisation to them. It is also a place where internal components for altinn-studio lives, where they follow a "dummy-components" pattern. It's great for developers and designers to have this library for components to ensure that the components used throughout Altinn studio's applications looks great and stay consistent.
 
 ## Contribute with new components
 

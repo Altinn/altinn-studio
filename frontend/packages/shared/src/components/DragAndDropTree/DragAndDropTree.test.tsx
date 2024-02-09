@@ -41,7 +41,7 @@ const render = () =>
   );
 
 describe('DragAndDropTree', () => {
-  it('Reders root items', () => {
+  it('Renders root items', () => {
     render();
     expect(
       screen.getByRole('treeitem', { name: rootNodeLabel1, expanded: false }),

@@ -11,9 +11,9 @@ import { EditOptions } from './editModal/EditOptions';
 import { EditStringValue } from './editModal/EditStringValue';
 import { useSelector } from 'react-redux';
 import { useText } from '../../hooks';
-import { getComponentPropertyLabel } from '../../utils/language';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
+import { useComponentPropertyLabel } from '../../hooks/useComponentPropertyLabel';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -34,6 +34,7 @@ export const FormComponentConfig = ({
 }: FormComponentConfigProps) => {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const t = useText();
+  const componentPropertyLabel = useComponentPropertyLabel();
 
   if (!schema?.properties) return null;
 
@@ -86,7 +87,7 @@ export const FormComponentConfig = ({
           <Heading level={3} size='xxsmall'>
             {t('top_menu.datamodel')}
           </Heading>
-          {Object.keys(dataModelBindings?.properties).map((propertyKey: any) => {
+          {Object.keys(dataModelBindings?.properties).map((propertyKey: string) => {
             return (
               <EditDataModelBindings
                 key={`${component.id}-datamodel-${propertyKey}`}
@@ -229,7 +230,7 @@ export const FormComponentConfig = ({
           return (
             <React.Fragment key={propertyKey}>
               <Heading level={3} size='xxsmall'>
-                {getComponentPropertyLabel(propertyKey, t)}
+                {componentPropertyLabel(propertyKey)}
               </Heading>
               {rest[propertyKey]?.description && (
                 <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>

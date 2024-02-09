@@ -6,8 +6,11 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Helpers;
@@ -250,6 +253,37 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 throw;
             }
+        }
+
+        public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment)
+        {
+            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/resource/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
+
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string contentString = await response.Content.ReadAsStringAsync();
+            ServiceResource serviceResource = JsonSerializer.Deserialize<ServiceResource>(contentString, _serializerOptions);
+            return serviceResource;
+        }
+
+        public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
+        {
+            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/policy/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&resourceIdentifier={identifier}";
+
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string contentString = await response.Content.ReadAsStringAsync();
+            XacmlPolicy policy;
+            using (XmlReader reader = XmlReader.Create(new StringReader(contentString)))
+            {
+                policy = XacmlParser.ParseXacmlPolicy(reader);
+            }
+
+            return policy;
         }
 
         private async Task<TokenResponse> GetBearerTokenFromMaskinporten()

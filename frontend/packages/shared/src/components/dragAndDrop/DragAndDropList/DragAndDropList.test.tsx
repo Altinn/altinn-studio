@@ -16,7 +16,7 @@ const rootId = 'rootId';
 const uniqueDomId = ':r0:';
 const onDrop = jest.fn();
 const gap = '1rem';
-const defaultlistItemContextProps: DragAndDropListItemContextProps = {
+const defaultListItemContextProps: DragAndDropListItemContextProps = {
   isDisabled: false,
   itemId,
 };
@@ -51,7 +51,7 @@ function render({ listItemContextProps = {}, rootContextProps = {} }: RenderProp
           value={{ ...rootContextProps, ...defaultRootContextProps }}
         >
           <DragAndDropListItemContext.Provider
-            value={{ ...listItemContextProps, ...defaultlistItemContextProps }}
+            value={{ ...listItemContextProps, ...defaultListItemContextProps }}
           >
             <DragAndDropList>{children}</DragAndDropList>
           </DragAndDropListItemContext.Provider>

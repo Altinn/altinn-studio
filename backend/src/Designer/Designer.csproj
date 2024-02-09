@@ -29,6 +29,7 @@
     <PackageReference Include="ini-parser-netstandard" />
     <PackageReference Include="JWTCookieAuthentication" />
     <PackageReference Include="LibGit2Sharp" />
+    <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
     <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" />

@@ -250,6 +250,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     // Auto register all settings classes
     services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
+
+    // Registers all handlers and the mediator
+    services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
 

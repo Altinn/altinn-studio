@@ -1,0 +1,12 @@
+.accordionItem > div {
+  border-bottom: none !important;
+}
+
+.accordionHeader > button {
+  border: none;
+  padding: var(--fds-spacing-3) var(--fds-spacing-5);
+}
+
+.accordionContent {
+  padding: 0;
+}

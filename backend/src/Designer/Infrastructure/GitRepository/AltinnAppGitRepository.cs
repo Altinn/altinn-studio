@@ -38,6 +38,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
         private const string PROCESS_DEFINITION_FOLDER_PATH = "App/config/process/";
+        private const string CSHTML_PATH = "App/views/Home/Index.cshtml";
 
         private const string SERVICE_CONFIG_FILENAME = "config.json";
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
@@ -702,6 +703,23 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Gets the cshtml file for the app
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The content of Index.cshtml</returns>
+        public async Task<string> GetAppFrontendCshtml(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (FileExistsByRelativePath(CSHTML_PATH))
+            {
+                string cshtml = await ReadTextByRelativePathAsync(CSHTML_PATH, cancellationToken);
+                return cshtml;
+            }
+
+            throw new FileNotFoundException("Index.cshtml was not found.");
+        }
+
+        /// <summary>
         /// Gets the options list with the provided id.
         /// <param name="optionsListId">The id of the options list to fetch.</param>
         /// <returns>The options list as a string.</returns>
@@ -853,8 +871,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 Path.Combine(LAYOUTS_FOLDER_NAME, RULE_CONFIGURATION_FILENAME) :
                 Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, RULE_CONFIGURATION_FILENAME);
         }
-
-
 
         /// <summary>
         /// String writer that ensures UTF8 is used.
