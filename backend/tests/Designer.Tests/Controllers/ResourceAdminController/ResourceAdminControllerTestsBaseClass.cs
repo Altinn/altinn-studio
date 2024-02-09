@@ -16,6 +16,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     {
         protected readonly string VersionPrefix = "/designer/api";
         protected readonly Mock<IRepository> RepositoryMock;
+        protected readonly Mock<IResourceRegistry> ResourceRegistryMock;
         protected readonly Mock<IAltinn2MetadataClient> Altinn2MetadataClientMock;
 
         protected override void ConfigureTestServices(IServiceCollection services)
@@ -25,12 +26,14 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGitea, IGiteaMock>();
             services.AddTransient(_ => RepositoryMock.Object);
+            services.AddTransient(_ => ResourceRegistryMock.Object);
             services.AddTransient(_ => Altinn2MetadataClientMock.Object);
         }
 
         protected ResourceAdminControllerTestsBaseClass(WebApplicationFactory<Program> factory) : base(factory)
         {
             RepositoryMock = new Mock<IRepository>();
+            ResourceRegistryMock = new Mock<IResourceRegistry>();
             Altinn2MetadataClientMock = new Mock<IAltinn2MetadataClient>();
         }
 
