@@ -15,16 +15,15 @@ import { PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import { TextResource } from '../../TextResource';
 import { useText, useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
-import type {
-  FormCheckboxesComponent,
-  FormRadioButtonsComponent,
-} from '../../../types/FormComponent';
 import { ErrorMessage } from '@digdir/design-system-react';
 import { FormField } from '../../FormField';
 import { StudioButton } from '@studio/components';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-export interface ISelectionEditComponentProvidedProps
-  extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
+type SelectionComponentType = ComponentType.Checkboxes | ComponentType.RadioButtons;
+
+export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
+  extends IGenericEditComponent<T> {
   renderOptions?: {
     onlyCodeListOptions?: boolean;
   };
@@ -54,12 +53,13 @@ const getSelectedOptionsType = (codeListId: string, options: IOption[]): Selecte
   return SelectedOptionsType.CodeList;
 };
 
-export function EditOptions({
+export function EditOptions<T extends SelectionComponentType>({
   editFormId,
   component,
   handleComponentChange,
   renderOptions,
-}: ISelectionEditComponentProvidedProps) {
+}: ISelectionEditComponentProvidedProps<T>) {
+
   const previousEditFormId = useRef(editFormId);
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);

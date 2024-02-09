@@ -1,5 +1,5 @@
 import React from 'react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { EditCodeList } from './editModal/EditCodeList';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
 import { EditHeaderSize } from './editModal/EditHeaderSize';
@@ -51,39 +51,39 @@ interface IConfigComponents {
 }
 
 export const componentSpecificEditConfig: IComponentEditConfig = {
-  [ComponentType.Header]: [EditSettings.Title, EditSettings.Size],
-  [ComponentType.Input]: [...editBoilerPlate, EditSettings.AutoComplete],
-  [ComponentType.TextArea]: [...editBoilerPlate, EditSettings.AutoComplete],
-  [ComponentType.Datepicker]: [...editBoilerPlate],
-  [ComponentType.Paragraph]: [EditSettings.Title],
-  [ComponentType.AttachmentList]: [EditSettings.Title],
-  [ComponentType.Checkboxes]: [
+  [ComponentTypeV3.Header]: [EditSettings.Title, EditSettings.Size],
+  [ComponentTypeV3.Input]: [...editBoilerPlate, EditSettings.AutoComplete],
+  [ComponentTypeV3.TextArea]: [...editBoilerPlate, EditSettings.AutoComplete],
+  [ComponentTypeV3.Datepicker]: [...editBoilerPlate],
+  [ComponentTypeV3.Paragraph]: [EditSettings.Title],
+  [ComponentTypeV3.AttachmentList]: [EditSettings.Title],
+  [ComponentTypeV3.Checkboxes]: [
     ...editBoilerPlate,
     EditSettings.Options,
     EditSettings.PreselectedIndex,
   ],
-  [ComponentType.RadioButtons]: [
+  [ComponentTypeV3.RadioButtons]: [
     ...editBoilerPlate,
     EditSettings.Options,
     EditSettings.PreselectedIndex,
   ],
-  [ComponentType.Dropdown]: [
+  [ComponentTypeV3.Dropdown]: [
     ...editBoilerPlate,
     EditSettings.CodeList,
     EditSettings.PreselectedIndex,
     EditSettings.AutoComplete,
   ],
-  [ComponentType.AddressComponent]: [EditSettings.Title, EditSettings.Help],
-  [ComponentType.FileUpload]: [EditSettings.Title, EditSettings.Description, EditSettings.Help],
-  [ComponentType.FileUploadWithTag]: [
+  [ComponentTypeV3.AddressComponent]: [EditSettings.Title, EditSettings.Help],
+  [ComponentTypeV3.FileUpload]: [EditSettings.Title, EditSettings.Description, EditSettings.Help],
+  [ComponentTypeV3.FileUploadWithTag]: [
     EditSettings.Title,
     EditSettings.Description,
     EditSettings.Help,
     EditSettings.TagTitle,
     EditSettings.CodeList,
   ],
-  [ComponentType.Panel]: [EditSettings.Title],
-  [ComponentType.Map]: [...editBoilerPlate],
+  [ComponentTypeV3.Panel]: [EditSettings.Title],
+  [ComponentTypeV3.Map]: [...editBoilerPlate],
 };
 
 export const configComponents: IConfigComponents = {

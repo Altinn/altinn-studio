@@ -39,6 +39,7 @@ export const EditFormComponent = ({
   const [showComponentConfigBeta, setShowComponentConfigBeta] = React.useState<boolean>(
     shouldDisplayFeature('componentConfigBeta'),
   );
+  const formItemConfig = formItemConfigs[component.type];
 
   const { data: schema, isPending } = useComponentSchemaQuery(component.type);
 
@@ -70,7 +71,7 @@ export const EditFormComponent = ({
     }
   };
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[component.type];
+  const isUnknownInternalComponent: boolean = !formItemConfig;
   if (isUnknownInternalComponent) {
     return <UnknownComponentAlert componentName={component.type} />;
   }
@@ -81,7 +82,7 @@ export const EditFormComponent = ({
         id={component.id}
         value={showComponentConfigBeta || false}
         onChange={toggleShowBetaFunc}
-        propertyPath={component.propertyPath}
+        propertyPath={formItemConfig.propertyPath}
         componentType={component.type}
         helpText={t('ux_editor.edit_component.show_beta_func_help_text')}
         renderField={({ fieldProps }) => (

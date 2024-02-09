@@ -2,6 +2,7 @@ import type {
   DatamodelMetadataJson,
   DatamodelMetadataXsd,
 } from 'app-shared/types/DatamodelMetadata';
+import { createJsonModelPathMock, createXsdModelPathMock } from 'app-shared/mocks/modelPathMocks';
 
 export const datamodelNameMock = 'model1';
 const description = null;
@@ -15,18 +16,21 @@ const metadataMockBase = {
   lastChanged,
 };
 
-export const jsonMetadataMock: DatamodelMetadataJson = {
+export const createJsonMetadataMock = (modelName: string): DatamodelMetadataJson => ({
   ...metadataMockBase,
-  fileName: `${datamodelNameMock}.schema.json`,
-  filePath: `${directory}/${datamodelNameMock}.schema.json`,
+  fileName: `${modelName}.schema.json`,
+  filePath: `${directory}/${modelName}.schema.json`,
   fileType: '.json',
-  repositoryRelativeUrl: `/App/models/${datamodelNameMock}.schema.json`,
-};
+  repositoryRelativeUrl: createJsonModelPathMock(modelName),
+});
 
-export const xsdMetadataMock: DatamodelMetadataXsd = {
+export const createXsdMetadataMock = (modelName: string): DatamodelMetadataXsd => ({
   ...metadataMockBase,
-  fileName: `${datamodelNameMock}.xsd`,
-  filePath: `${directory}/${datamodelNameMock}.xsd`,
+  fileName: `${modelName}.xsd`,
+  filePath: `${directory}/${modelName}.xsd`,
   fileType: '.xsd',
-  repositoryRelativeUrl: `/App/models/${datamodelNameMock}.xsd`,
-};
+  repositoryRelativeUrl: createXsdModelPathMock(modelName),
+});
+
+export const jsonMetadataMock: DatamodelMetadataJson = createJsonMetadataMock(datamodelNameMock);
+export const xsdMetadataMock: DatamodelMetadataXsd = createXsdMetadataMock(datamodelNameMock);

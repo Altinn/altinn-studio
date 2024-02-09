@@ -22,7 +22,7 @@ import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery'
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { FormContextProvider } from '../../FormContext';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 const mockOrg = 'org';
 const mockApp = 'app';
@@ -35,7 +35,7 @@ const mockReceiptName: string = 'Kvittering';
 
 const mockPageData: IInternalLayout = {
   components: { component1Mock, component2Mock },
-  containers: { mockContainerId: { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group } },
+  containers: { mockContainerId: { id: 'id', itemType: 'CONTAINER', type: ComponentTypeV3.Group } },
   customDataProperties: {},
   customRootProperties: {},
   order: { mockContainerId: [] },

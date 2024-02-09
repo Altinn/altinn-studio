@@ -1,5 +1,5 @@
 import type { FormComponent, FormComponentBase } from '../types/FormComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 
 const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> = {
@@ -7,9 +7,9 @@ const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBinding
   itemType: 'COMPONENT',
   dataModelBindings: {},
 };
-const checkboxesComponent: FormComponent<ComponentType.Checkboxes> = {
+const checkboxesComponent: FormComponent<ComponentTypeV3.Checkboxes> = {
   ...commonProps,
-  type: ComponentType.Checkboxes,
+  type: ComponentTypeV3.Checkboxes,
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -17,9 +17,9 @@ const checkboxesComponent: FormComponent<ComponentType.Checkboxes> = {
   ],
   optionsId: '',
 };
-const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
+const radiosComponent: FormComponent<ComponentTypeV3.RadioButtons> = {
   ...commonProps,
-  type: ComponentType.RadioButtons,
+  type: ComponentTypeV3.RadioButtons,
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -27,40 +27,40 @@ const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
   ],
   optionsId: '',
 };
-const inputComponent: FormComponent<ComponentType.Input> = {
+const inputComponent: FormComponent<ComponentTypeV3.Input> = {
   ...commonProps,
-  type: ComponentType.Input,
+  type: ComponentTypeV3.Input,
 };
-const headerComponent: FormComponent<ComponentType.Header> = {
+const headerComponent: FormComponent<ComponentTypeV3.Header> = {
   ...commonProps,
-  type: ComponentType.Header,
+  type: ComponentTypeV3.Header,
   size: 'medium',
 };
-const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
+const paragraphComponent: FormComponent<ComponentTypeV3.Paragraph> = {
   ...commonProps,
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
 };
-const imageComponent: FormComponent<ComponentType.Image> = {
+const imageComponent: FormComponent<ComponentTypeV3.Image> = {
   ...commonProps,
-  type: ComponentType.Image,
+  type: ComponentTypeV3.Image,
 };
-const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
+const datePickerComponent: FormComponent<ComponentTypeV3.Datepicker> = {
   ...commonProps,
-  type: ComponentType.Datepicker,
+  type: ComponentTypeV3.Datepicker,
   timeStamp: true,
 };
-const dropdownComponent: FormComponent<ComponentType.Dropdown> = {
+const dropdownComponent: FormComponent<ComponentTypeV3.Dropdown> = {
   ...commonProps,
-  type: ComponentType.Dropdown,
+  type: ComponentTypeV3.Dropdown,
   optionsId: '',
 };
-const textareaComponent: FormComponent<ComponentType.TextArea> = {
+const textareaComponent: FormComponent<ComponentTypeV3.TextArea> = {
   ...commonProps,
-  type: ComponentType.TextArea,
+  type: ComponentTypeV3.TextArea,
 };
-const fileUploaderComponent: FormComponent<ComponentType.FileUpload> = {
+const fileUploaderComponent: FormComponent<ComponentTypeV3.FileUpload> = {
   ...commonProps,
-  type: ComponentType.FileUpload,
+  type: ComponentTypeV3.FileUpload,
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
@@ -68,9 +68,9 @@ const fileUploaderComponent: FormComponent<ComponentType.FileUpload> = {
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 1,
 };
-const fileUploaderWithTagComponent: FormComponent<ComponentType.FileUploadWithTag> = {
+const fileUploaderWithTagComponent: FormComponent<ComponentTypeV3.FileUploadWithTag> = {
   ...commonProps,
-  type: ComponentType.FileUploadWithTag,
+  type: ComponentTypeV3.FileUploadWithTag,
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
@@ -79,43 +79,43 @@ const fileUploaderWithTagComponent: FormComponent<ComponentType.FileUploadWithTa
   minNumberOfAttachments: 1,
   optionsId: '',
 };
-const buttonComponent: FormComponent<ComponentType.Button> = {
+const buttonComponent: FormComponent<ComponentTypeV3.Button> = {
   ...commonProps,
-  type: ComponentType.Button,
+  type: ComponentTypeV3.Button,
   onClickAction: jest.fn(),
 };
-const addressComponent: FormComponent<ComponentType.AddressComponent> = {
+const addressComponent: FormComponent<ComponentTypeV3.AddressComponent> = {
   ...commonProps,
-  type: ComponentType.AddressComponent,
+  type: ComponentTypeV3.AddressComponent,
   simplified: true,
 };
-const groupComponent: FormComponent<ComponentType.Group> = {
+const groupComponent: FormComponent<ComponentTypeV3.Group> = {
   ...commonProps,
-  type: ComponentType.Group,
+  type: ComponentTypeV3.Group,
 };
-const navigationBarComponent: FormComponent<ComponentType.NavigationBar> = {
+const navigationBarComponent: FormComponent<ComponentTypeV3.NavigationBar> = {
   ...commonProps,
-  type: ComponentType.NavigationBar,
+  type: ComponentTypeV3.NavigationBar,
 };
-const attachmentListComponent: FormComponent<ComponentType.AttachmentList> = {
+const attachmentListComponent: FormComponent<ComponentTypeV3.AttachmentList> = {
   ...commonProps,
-  type: ComponentType.AttachmentList,
+  type: ComponentTypeV3.AttachmentList,
 };
-const thirdPartyComponent: FormComponent<ComponentType.Custom> = {
+const thirdPartyComponent: FormComponent<ComponentTypeV3.Custom> = {
   ...commonProps,
-  type: ComponentType.Custom,
+  type: ComponentTypeV3.Custom,
   tagName: 'test',
   framework: 'test',
 };
-const panelComponent: FormComponent<ComponentType.Panel> = {
+const panelComponent: FormComponent<ComponentTypeV3.Panel> = {
   ...commonProps,
-  type: ComponentType.Panel,
+  type: ComponentTypeV3.Panel,
   variant: FormPanelVariant.Info,
   showIcon: true,
 };
-const mapComponent: FormComponent<ComponentType.Map> = {
+const mapComponent: FormComponent<ComponentTypeV3.Map> = {
   ...commonProps,
-  type: ComponentType.Map,
+  type: ComponentTypeV3.Map,
   centerLocation: {
     latitude: 0,
     longitude: 0,
@@ -124,23 +124,23 @@ const mapComponent: FormComponent<ComponentType.Map> = {
 };
 
 export const componentMocks = {
-  [ComponentType.AddressComponent]: addressComponent,
-  [ComponentType.AttachmentList]: attachmentListComponent,
-  [ComponentType.Button]: buttonComponent,
-  [ComponentType.Checkboxes]: checkboxesComponent,
-  [ComponentType.Datepicker]: datePickerComponent,
-  [ComponentType.Dropdown]: dropdownComponent,
-  [ComponentType.FileUploadWithTag]: fileUploaderWithTagComponent,
-  [ComponentType.FileUpload]: fileUploaderComponent,
-  [ComponentType.Group]: groupComponent,
-  [ComponentType.Header]: headerComponent,
-  [ComponentType.Image]: imageComponent,
-  [ComponentType.Input]: inputComponent,
-  [ComponentType.Map]: mapComponent,
-  [ComponentType.NavigationBar]: navigationBarComponent,
-  [ComponentType.Panel]: panelComponent,
-  [ComponentType.Paragraph]: paragraphComponent,
-  [ComponentType.RadioButtons]: radiosComponent,
-  [ComponentType.TextArea]: textareaComponent,
-  [ComponentType.Custom]: thirdPartyComponent,
+  [ComponentTypeV3.AddressComponent]: addressComponent,
+  [ComponentTypeV3.AttachmentList]: attachmentListComponent,
+  [ComponentTypeV3.Button]: buttonComponent,
+  [ComponentTypeV3.Checkboxes]: checkboxesComponent,
+  [ComponentTypeV3.Datepicker]: datePickerComponent,
+  [ComponentTypeV3.Dropdown]: dropdownComponent,
+  [ComponentTypeV3.FileUploadWithTag]: fileUploaderWithTagComponent,
+  [ComponentTypeV3.FileUpload]: fileUploaderComponent,
+  [ComponentTypeV3.Group]: groupComponent,
+  [ComponentTypeV3.Header]: headerComponent,
+  [ComponentTypeV3.Image]: imageComponent,
+  [ComponentTypeV3.Input]: inputComponent,
+  [ComponentTypeV3.Map]: mapComponent,
+  [ComponentTypeV3.NavigationBar]: navigationBarComponent,
+  [ComponentTypeV3.Panel]: panelComponent,
+  [ComponentTypeV3.Paragraph]: paragraphComponent,
+  [ComponentTypeV3.RadioButtons]: radiosComponent,
+  [ComponentTypeV3.TextArea]: textareaComponent,
+  [ComponentTypeV3.Custom]: thirdPartyComponent,
 };

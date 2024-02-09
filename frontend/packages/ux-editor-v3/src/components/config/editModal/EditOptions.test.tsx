@@ -5,7 +5,7 @@ import { EditOptions } from './EditOptions';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type {
   FormCheckboxesComponent,
   FormRadioButtonsComponent,
@@ -19,7 +19,7 @@ const waitForData = async () => {
 
 const mockComponent: FormCheckboxesComponent | FormRadioButtonsComponent = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-  type: ComponentType.RadioButtons,
+  type: ComponentTypeV3.RadioButtons,
   textResourceBindings: {
     title: 'ServiceName',
   },

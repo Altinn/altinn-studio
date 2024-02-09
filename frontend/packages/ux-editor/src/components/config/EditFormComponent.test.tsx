@@ -14,6 +14,8 @@ const user = userEvent.setup();
 
 // Test data:
 const srcValueLabel = 'Source';
+const autocompleteLabel = 'Autocomplete';
+const datamodelFieldLinkLabel = 'Add data model field';
 const texts = {
   'general.label': '',
   'general.value': '',
@@ -24,6 +26,8 @@ const texts = {
   'ux_editor.modal_properties_image_placement_label': 'Placement',
   'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
   'ux_editor.modal_properties_image_width_label': 'Width',
+  'ux_editor.component_properties.autocomplete': autocompleteLabel,
+  'ux_editor.modal_properties_data_model_link': datamodelFieldLinkLabel,
 };
 
 // Mocks:
@@ -91,14 +95,13 @@ describe('EditFormComponent', () => {
       'ux_editor.modal_configure_read_only': 'checkbox',
     };
 
-    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
-    await act(() => user.click(linkIcon));
+    const datamodelFieldButton = screen.getByRole('button', { name: datamodelFieldLinkLabel });
+    await act(() => user.click(datamodelFieldButton));
 
     Object.keys(labels).map(async (label) =>
       expect(await screen.findByRole(labels[label], { name: label })),
     );
-    expect(screen.getByRole('combobox'));
-    expect(screen.getByLabelText('Autocomplete (WCAG)'));
+    expect(screen.getByRole('combobox', { name: autocompleteLabel }));
   });
 
   test('should return header specific content when type header', async () => {

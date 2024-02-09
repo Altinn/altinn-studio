@@ -1,23 +1,13 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 
 import { EditOptions } from './EditOptions';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithMockStore } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type {
-  FormCheckboxesComponent,
-  FormRadioButtonsComponent,
-} from '../../../types/FormComponent';
+import type { FormRadioButtonsComponent } from '../../../types/FormComponent';
 
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
-
-const mockComponent: FormCheckboxesComponent | FormRadioButtonsComponent = {
+const mockComponent: FormRadioButtonsComponent = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
   type: ComponentType.RadioButtons,
   textResourceBindings: {
@@ -28,31 +18,26 @@ const mockComponent: FormCheckboxesComponent | FormRadioButtonsComponent = {
   dataModelBindings: {},
 };
 
-const render = async ({ component = mockComponent, handleComponentChange = jest.fn() } = {}) => {
-  await waitForData();
-
-  return renderWithMockStore()(
+const renderEditOptions = ({ component = mockComponent, handleComponentChange = jest.fn() } = {}) =>
+  renderWithMockStore()(
     <EditOptions handleComponentChange={handleComponentChange} component={component} />,
   );
-};
 
 describe('EditOptions', () => {
-  it('should render', async () => {
-    await render();
+  it('should render', () => {
+    renderEditOptions();
     expect(
       screen.getByText(textMock('ux_editor.properties_panel.options.use_code_list_label')),
     ).toBeInTheDocument();
   });
 
   it('should show code list input by default when neither options nor optionId are set', async () => {
-    await render();
-    expect(
-      screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
-    ).toBeInTheDocument();
+    renderEditOptions();
+    expect(screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id'))).toBeInTheDocument();
   });
 
   it('should show manual input when component has options defined', async () => {
-    await render({
+    renderEditOptions({
       component: {
         ...mockComponent,
         options: [{ label: 'option1', value: 'option1' }],
@@ -68,7 +53,7 @@ describe('EditOptions', () => {
   });
 
   it('should show code list input when component has optionsId defined', async () => {
-    await render({
+    renderEditOptions({
       component: {
         ...mockComponent,
         optionsId: 'optionsId',

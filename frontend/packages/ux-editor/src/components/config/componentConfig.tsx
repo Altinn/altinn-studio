@@ -6,12 +6,13 @@ import { EditPreselectedIndex } from './editModal/EditPreselectedIndex';
 import { EditReadOnly } from './editModal/EditReadOnly';
 import { EditRequired } from './editModal/EditRequired';
 import { EditAutoComplete } from './editModal/EditAutoComplete';
-import type { FormComponent } from '../../types/FormComponent';
+import { EditTextResourceBinding } from './editModal/EditTextResourceBinding';
+import type { FormItem } from '../../types/FormItem';
 
-export interface IGenericEditComponent<T extends FormComponent = FormComponent> {
+export interface IGenericEditComponent<T extends ComponentType = ComponentType> {
   editFormId?: string;
-  component: T;
-  handleComponentChange: (component: T) => void;
+  component: FormItem<T>;
+  handleComponentChange: (component: FormItem<T>) => void;
   layoutName?: string;
 }
 
