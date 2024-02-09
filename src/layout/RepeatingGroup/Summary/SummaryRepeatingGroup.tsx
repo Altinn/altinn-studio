@@ -120,36 +120,39 @@ export function SummaryRepeatingGroup({
               <Lang id={'general.empty_summary'} />
             </span>
           ) : (
-            rowIndexes.map((idx) => {
-              const childSummaryComponents = targetNode
-                .children(undefined, idx)
-                .filter((n) => !inExcludedChildren(n))
-                .map((child) => {
-                  if (child.isHidden() || !child.isCategory(CompCategory.Form)) {
-                    return;
-                  }
-                  const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def);
-                  return (
-                    <RenderCompactSummary
-                      onChangeClick={onChangeClick}
-                      changeText={changeText}
-                      key={child.item.id}
-                      targetNode={child as any}
-                      summaryNode={summaryNode}
-                      overrides={{}}
-                    />
-                  );
-                });
+            rowIndexes
+              .filter((idx) => targetNode.children(undefined, idx).some((child) => !child.isHidden()))
+              .map((idx) => {
+                const childSummaryComponents = targetNode
+                  .children(undefined, idx)
+                  .filter((n) => !inExcludedChildren(n))
+                  .map((child) => {
+                    if (child.isHidden() || !child.isCategory(CompCategory.Form)) {
+                      return;
+                    }
+                    const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def);
+                    return (
+                      <RenderCompactSummary
+                        onChangeClick={onChangeClick}
+                        changeText={changeText}
+                        key={child.item.id}
+                        targetNode={child as any}
+                        summaryNode={summaryNode}
+                        overrides={{}}
+                      />
+                    );
+                  });
 
-              return (
-                <div
-                  key={`row-${idx}`}
-                  className={classes.border}
-                >
-                  {childSummaryComponents}
-                </div>
-              );
-            })
+                return (
+                  <div
+                    data-testid={'summary-repeating-row'}
+                    key={`row-${idx}`}
+                    className={classes.border}
+                  >
+                    {childSummaryComponents}
+                  </div>
+                );
+              })
           )}
         </div>
       </div>
