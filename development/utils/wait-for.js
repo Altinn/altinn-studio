@@ -28,9 +28,10 @@ module.exports = (url) =>
       req.on('error', (err) => {
         if (err.code !== 'ECONNREFUSED') {
           console.error(err);
+          reject();
+        } else {
+          checkAttempts();
         }
-
-        checkAttempts();
       });
     }, 1000);
   });
