@@ -1,54 +1,50 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormAttachmentListComponent } from '../../../../types/FormComponent';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
-import { useLayoutSetsQuery } from '../../../../hooks/queries/useLayoutSetsQuery';
+import { renderWithMockStore } from '../../../../testing/mocks';
 import { AttachmentListComponent } from './AttachmentListComponent';
 import React from 'react';
-import { waitFor, screen, act } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 
 const user = userEvent.setup();
-
 const org = 'org';
 const app = 'app';
 
-const getAppMetadata = jest.fn().mockImplementation(() =>
-  Promise.resolve({
-    ...queriesMock,
-    dataTypes: [
-      { id: 'test1', taskId: 'Task_1' },
-      { id: 'test2', taskId: 'Task_1', appLogic: 'should not be included' },
-      { id: 'test3', taskId: 'Task_2' },
-      { id: 'test4', taskId: 'Task_3' },
-    ],
-  }),
-);
+const defaultLayoutSets: LayoutSets = {
+  sets: [
+    {
+      id: 'layoutSetId1',
+      dataTypes: 'layoutSetId1',
+      tasks: ['Task_1'],
+    },
+    {
+      id: 'layoutSetId2',
+      dataTypes: 'layoutSetId2',
+      tasks: ['Task_2'],
+    },
+    {
+      id: 'layoutSetId3',
+      dataTypes: 'layoutSetId3',
+      tasks: ['Task_3'],
+    },
+  ],
+};
 
-const getLayoutSets = jest.fn().mockImplementation(() =>
-  Promise.resolve({
-    ...queriesMock,
-    sets: [
-      {
-        id: 'layoutSetId1',
-        tasks: ['Task_1'],
-      },
-      {
-        id: 'layoutSetId2',
-        tasks: ['Task_2'],
-      },
-      {
-        id: 'layoutSetId3',
-        tasks: ['Task_3'],
-      },
-    ],
-  }),
-);
+const defaultDataTypes: DataTypeElement[] = [
+  { id: 'test1', taskId: 'Task_1' },
+  { id: 'test2', taskId: 'Task_1', appLogic: {} },
+  { id: 'test3', taskId: 'Task_2' },
+  { id: 'test4', taskId: 'Task_3' },
+  { id: 'ref-data-as-pdf' },
+];
 
-const component: FormAttachmentListComponent = {
+const defaultComponent: FormAttachmentListComponent = {
   id: '1',
   type: ComponentType.AttachmentList,
   itemType: 'COMPONENT',
@@ -58,37 +54,27 @@ const component: FormAttachmentListComponent = {
 const handleComponentChange = jest.fn();
 
 const defaultProps: IGenericEditComponent = {
-  component,
+  component: defaultComponent,
   handleComponentChange,
-};
-
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSetsQuery(org, app))
-    .renderHookResult.result;
-  await waitFor(() => expect(layoutSchemaResult.current.isSuccess).toBe(true));
 };
 
 const render = async (
   props: Partial<IGenericEditComponent> = {},
   selectedLayoutSet: string = undefined,
+  layoutSets: LayoutSets = defaultLayoutSets,
+  dataTypes: DataTypeElement[] = defaultDataTypes,
 ) => {
-  return renderWithMockStore({}, { getAppMetadata, getLayoutSets }, queryClientMock, {
+  const client = createQueryClientMock();
+  client.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
+  client.setQueryData([QueryKey.AppMetadata, org, app], { dataTypes });
+  return renderWithMockStore({}, {}, client, {
     selectedLayoutSet,
   })(<AttachmentListComponent {...defaultProps} {...props} />);
 };
 
 describe('AttachmentListComponent', () => {
-  it('should render a spinner while loading', async () => {
-    await render();
-
-    expect(screen.getByTestId('studio-spinner-test-id')).toBeInTheDocument();
-  });
-
   it('should render AttachmentList component', async () => {
     await render();
-    await waitForData();
-
-    expect(screen.queryByTestId('studio-spinner-test-id')).not.toBeInTheDocument();
     expect(screen.getByRole('combobox')).toBeInTheDocument();
     expect(
       screen.getByRole('checkbox', {
@@ -98,16 +84,7 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should display "Alle vedlegg (eksl. PDF)" as selected by default if there is no dataTypeIds selected', async () => {
-    await render(
-      {
-        component: {
-          ...component,
-        },
-      },
-      'layoutSetId2',
-    );
-    await waitForData();
-
+    await render();
     expect(screen.getByText('Alle vedlegg (eksl. PDF)')).toBeInTheDocument();
   });
 
@@ -115,13 +92,12 @@ describe('AttachmentListComponent', () => {
     await render(
       {
         component: {
-          ...component,
+          ...defaultComponent,
           dataTypeIds: ['include-all'],
         },
       },
       'layoutSetId3',
     );
-    await waitForData();
 
     expect(screen.getByText('Alle vedlegg (inkl. PDF)')).toBeInTheDocument();
   });
@@ -130,13 +106,12 @@ describe('AttachmentListComponent', () => {
     await render(
       {
         component: {
-          ...component,
+          ...defaultComponent,
           dataTypeIds: ['test1', 'test3', 'test4'],
         },
       },
       'layoutSetId3',
     );
-    await waitForData();
 
     expect(screen.getByText('test1')).toBeInTheDocument();
     expect(screen.getByText('test3')).toBeInTheDocument();
@@ -147,13 +122,12 @@ describe('AttachmentListComponent', () => {
     await render(
       {
         component: {
-          ...component,
+          ...defaultComponent,
           dataTypeIds: ['test1', 'test3', 'test4'],
         },
       },
       'layoutSetId3',
     );
-    await waitForData();
 
     const dropdown = screen.getByRole('combobox');
     await act(() => user.click(dropdown));
@@ -161,7 +135,7 @@ describe('AttachmentListComponent', () => {
     await act(() => user.click(option));
 
     expect(handleComponentChange).toHaveBeenCalledWith({
-      ...component,
+      ...defaultComponent,
       dataTypeIds: ['include-all'],
     });
   });
@@ -170,13 +144,12 @@ describe('AttachmentListComponent', () => {
     await render(
       {
         component: {
-          ...component,
+          ...defaultComponent,
           dataTypeIds: ['test1', 'test3', 'test4'],
         },
       },
       'layoutSetId3',
     );
-    await waitForData();
 
     const dropdown = screen.getByRole('combobox');
     await act(() => user.click(dropdown));
@@ -184,7 +157,7 @@ describe('AttachmentListComponent', () => {
     await act(() => user.click(option));
 
     expect(handleComponentChange).toHaveBeenCalledWith({
-      ...component,
+      ...defaultComponent,
       dataTypeIds: [],
     });
   });
@@ -193,13 +166,12 @@ describe('AttachmentListComponent', () => {
     await render(
       {
         component: {
-          ...component,
+          ...defaultComponent,
           dataTypeIds: ['test1', 'test4'],
         },
       },
       'layoutSetId3',
     );
-    await waitForData();
 
     const currentTaskCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.current_task'),
@@ -214,7 +186,6 @@ describe('AttachmentListComponent', () => {
 
   it('should display only data types from current task when switch is checked', async () => {
     await render({}, 'layoutSetId3');
-    await waitForData();
 
     const currentTaskCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.current_task'),
@@ -230,28 +201,29 @@ describe('AttachmentListComponent', () => {
 
   it('should display all data types when in the last process task, except for data type with appLogic', async () => {
     await render({}, 'layoutSetId3');
-    await waitForData();
+
     const dropdown = screen.getByRole('combobox');
     await act(() => user.click(dropdown));
+
     expect(screen.getByRole('option', { name: 'Alle vedlegg (inkl. PDF)' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Alle vedlegg (eksl. PDF)' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Generert PDF' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'test1' })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: 'test2' })).not.toBeInTheDocument(); // because data types with appLogic should not be included
     expect(screen.getByRole('option', { name: 'test3' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'test4' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'test2' })).not.toBeInTheDocument(); // because data types with appLogic should not be included
   });
 
   it('should update component when changing selected data types', async () => {
     await render(
       {
         component: {
-          ...component,
+          ...defaultComponent,
           dataTypeIds: ['test1', 'test4'],
         },
       },
       'layoutSetId3',
     );
-    await waitForData();
 
     const dropdown = screen.getByRole('combobox');
     await act(() => user.click(dropdown));
@@ -259,8 +231,28 @@ describe('AttachmentListComponent', () => {
     await act(() => user.click(option));
 
     expect(handleComponentChange).toHaveBeenCalledWith({
-      ...component,
+      ...defaultComponent,
       dataTypeIds: ['test1', 'test4', 'test3'],
     });
+  });
+
+  //This test only secure that studio doesn't crash when there is no layoutSets
+  // In v4 there shouldn't be a case with apps with no layoutSets
+  it('should render AttachmentList component when there is no layoutSets', async () => {
+    await render({}, undefined, null);
+
+    const dropdown = screen.getByRole('combobox');
+    expect(dropdown).toBeInTheDocument();
+
+    const currentTaskCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.current_task'),
+    });
+    expect(currentTaskCheckbox).toBeInTheDocument();
+
+    await act(() => user.click(dropdown));
+    expect(screen.getByRole('option', { name: 'Alle vedlegg (inkl. PDF)' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Alle vedlegg (eksl. PDF)' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Generert PDF' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'test1' })).not.toBeInTheDocument();
   });
 });
