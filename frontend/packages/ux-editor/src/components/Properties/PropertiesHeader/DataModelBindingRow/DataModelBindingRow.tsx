@@ -20,7 +20,7 @@ export const DataModelBindingRow = ({
   return (
     dataModelBindings?.properties && (
       <>
-        {Object.keys(dataModelBindings?.properties).map((propertyKey: any) => {
+        {Object.keys(dataModelBindings?.properties).map((propertyKey: string) => {
           return (
             <EditDataModelBindings
               key={`${component.id}-datamodel-${propertyKey}`}
