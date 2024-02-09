@@ -4,7 +4,7 @@ import {
   internalLayoutWithMultiPageGroup,
 } from '../../testing/layoutWithMultiPageGroupMocks';
 import { internalLayoutToExternal } from './internalLayoutToExternal';
-import type { ExternalFormLayout } from 'app-shared/types/api';
+import type { ExternalFormLayoutV3 } from 'app-shared/types/api';
 
 describe('formLayoutConverters', () => {
   test('Internal layout remains the same when converted to en external layout and back', () => {
@@ -14,7 +14,7 @@ describe('formLayoutConverters', () => {
   });
 
   test('External layout that is already converted once remains the same when converted to an internal layout and back', () => {
-    const convertToInternalAndBack = (layout: ExternalFormLayout) =>
+    const convertToInternalAndBack = (layout: ExternalFormLayoutV3) =>
       internalLayoutToExternal(externalLayoutToInternal(layout));
     const convertedOnce = convertToInternalAndBack(externalLayoutWithMultiPageGroup);
     const convertedTwice = convertToInternalAndBack(convertedOnce);

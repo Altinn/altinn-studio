@@ -1,6 +1,6 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import React, { useEffect, useState } from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
@@ -40,7 +40,7 @@ export const EditDataModelBindings = ({
       },
       required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0,
       timeStamp:
-        component.type === ComponentType.Datepicker
+        component.type === ComponentTypeV3.Datepicker
           ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
           : undefined,
     });

@@ -1,5 +1,5 @@
-import type { ExternalComponent } from 'app-shared/types/api';
+import type { ExternalComponentV3 } from 'app-shared/types/api';
 import type { SimpleComponentType } from './SimpleComponentType';
 
 export type ExternalSimpleComponent<T extends SimpleComponentType = SimpleComponentType> =
-  ExternalComponent<T>;
+  ExternalComponentV3<T>;

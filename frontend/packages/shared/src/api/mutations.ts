@@ -43,6 +43,7 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import type { ExternalFormLayoutV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
@@ -83,6 +84,7 @@ export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(o
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
 export const saveDatamodel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(datamodelPath(org, app, modelPath, true), payload);
 export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: ExternalFormLayout) => post<void, ExternalFormLayout>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
+export const saveFormLayoutV3 = (org: string, app: string, layoutName: string, layoutSetName: string, payload: ExternalFormLayoutV3) => post<void, ExternalFormLayoutV3>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutSettings = (org: string, app: string, layoutSetName: string, payload: ILayoutSettings) => post<ILayoutSettings>(layoutSettingsPath(org, app, layoutSetName), payload);
 export const saveRuleConfig = (org: string, app: string, layoutSetName: string, payload: RuleConfig) => post<RuleConfig>(ruleConfigPath(org, app, layoutSetName), payload);
 export const setStarredRepo = (org: string, app: string) => put(userStarredRepoPath(org, app), {});

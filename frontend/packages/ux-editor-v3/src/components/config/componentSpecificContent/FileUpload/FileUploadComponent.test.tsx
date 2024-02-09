@@ -3,7 +3,7 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { FileUploadComponent } from './FileUploadComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
 import { waitFor, screen, act } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -19,7 +19,7 @@ const component: FormFileUploaderComponent = {
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 0,
   onClickAction: jest.fn(),
-  type: ComponentType.FileUpload,
+  type: ComponentTypeV3.FileUpload,
   itemType: 'COMPONENT',
   dataModelBindings: {},
 };

@@ -6,7 +6,7 @@ import {
 } from '../../testing/layoutWithMultiPageGroupMocks';
 import { getComponentIdWithPageIndex, internalLayoutToExternal } from './internalLayoutToExternal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import type { ExternalComponent } from 'app-shared/types/api';
+import type { ExternalComponentV3 } from 'app-shared/types/api';
 import { layoutMock } from '../../testing/layoutMock';
 
 describe('internalLayoutToExternal', () => {
@@ -20,7 +20,7 @@ describe('internalLayoutToExternal', () => {
   const findInternalComponent = (id) =>
     internalLayoutWithMultiPageGroup.components[id] ||
     internalLayoutWithMultiPageGroup.containers[id];
-  const findExternalComponent = (id): ExternalComponent =>
+  const findExternalComponent = (id): ExternalComponentV3 =>
     layout.find((component) => component.id === id);
 
   it('Creates a list containing all components and containers', () => {

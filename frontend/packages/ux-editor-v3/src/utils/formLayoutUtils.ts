@@ -9,7 +9,7 @@ import type {
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
 import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arrayUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
 import type { FormItemConfigs } from '../data/formItemConfig';
@@ -18,7 +18,7 @@ import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 
-export const mapComponentToToolbarElement = <T extends ComponentType>(
+export const mapComponentToToolbarElement = <T extends ComponentTypeV3>(
   c: FormItemConfigs[T],
 ): IToolbarElement => ({
   label: c.name,
@@ -46,7 +46,7 @@ export const hasNavigationButtons = (layout: IInternalLayout): boolean => {
   const { components } = layout;
   return Object.values(components)
     .map(({ type }) => type)
-    .includes(ComponentType.NavigationButtons);
+    .includes(ComponentTypeV3.NavigationButtons);
 };
 
 /**
@@ -216,7 +216,7 @@ export const removeComponent = (layout: IInternalLayout, componentId: string): I
  */
 export const removeComponentsByType = (
   layout: IInternalLayout,
-  componentType: ComponentType,
+  componentType: ComponentTypeV3,
 ): IInternalLayout => {
   let newLayout = layout;
   Object.keys(layout.components)
@@ -240,7 +240,7 @@ export const addNavigationButtons = (layout: IInternalLayout, id: string): IInte
     onClickAction: () => {},
     showBackButton: true,
     textResourceBindings: { next: undefined, back: undefined },
-    type: ComponentType.NavigationButtons,
+    type: ComponentTypeV3.NavigationButtons,
   };
   return addComponent(layout, navigationButtons);
 };
@@ -318,7 +318,7 @@ const findItem = (layout: IInternalLayout, id: string): FormComponent | FormCont
  * @param position The desired index of the component within its container. Set it to a negative value to add it at the end. Defaults to -1.
  * @returns The new layout.
  */
-export const addItemOfType = <T extends ComponentType>(
+export const addItemOfType = <T extends ComponentTypeV3>(
   layout: IInternalLayout,
   componentType: T,
   id: string,
@@ -383,7 +383,7 @@ export const validateDepth = (layout: IInternalLayout): boolean =>
 export const isComponentTypeValidChild = (
   layout: IInternalLayout,
   parentId: string,
-  componentType: ComponentType,
+  componentType: ComponentTypeV3,
 ): boolean => {
   if (parentId === BASE_CONTAINER_ID) return true;
   const parent = getItem(layout, parentId);

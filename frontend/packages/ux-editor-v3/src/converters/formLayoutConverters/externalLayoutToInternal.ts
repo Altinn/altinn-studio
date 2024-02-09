@@ -1,4 +1,8 @@
-import type { ExternalComponent, ExternalData, ExternalFormLayout } from 'app-shared/types/api';
+import type {
+  ExternalComponentV3,
+  ExternalDataV3,
+  ExternalFormLayoutV3,
+} from 'app-shared/types/api';
 import type {
   IFormDesignerComponents,
   IFormDesignerContainers,
@@ -24,11 +28,11 @@ import {
 import { containerComponentTypes } from '../../data/containerComponentTypes';
 
 export const externalLayoutToInternal = (
-  externalLayout: ExternalFormLayout | null,
+  externalLayout: ExternalFormLayoutV3 | null,
 ): IInternalLayout =>
   externalLayout ? convertExternalLayout(externalLayout) : createEmptyLayout();
 
-const convertExternalLayout = (externalLayout: ExternalFormLayout): IInternalLayout => {
+const convertExternalLayout = (externalLayout: ExternalFormLayoutV3): IInternalLayout => {
   const customRootProperties = getCustomRootProperties(externalLayout);
   const { data } = externalLayout;
   const convertedData: InternalLayoutData = data
@@ -37,14 +41,14 @@ const convertExternalLayout = (externalLayout: ExternalFormLayout): IInternalLay
   return { ...convertedData, customRootProperties };
 };
 
-const getCustomRootProperties = (externalLayout: ExternalFormLayout) => {
+const getCustomRootProperties = (externalLayout: ExternalFormLayoutV3) => {
   const customProperties = { ...externalLayout };
   delete customProperties.data;
   delete customProperties.$schema;
   return customProperties;
 };
 
-const convertExternalData = (externalData: ExternalData): InternalLayoutData => {
+const convertExternalData = (externalData: ExternalDataV3): InternalLayoutData => {
   const customDataProperties = getCustomDataProperties(externalData);
   const { layout } = externalData;
   const convertedComponents: InternalLayoutComponents = layout
@@ -53,14 +57,14 @@ const convertExternalData = (externalData: ExternalData): InternalLayoutData => 
   return { ...convertedComponents, customDataProperties };
 };
 
-const getCustomDataProperties = (externalData: ExternalData) => {
+const getCustomDataProperties = (externalData: ExternalDataV3) => {
   const customProperties = { ...externalData };
   delete customProperties.layout;
   return customProperties;
 };
 
 const convertExternalComponentList = (
-  externalComponents: ExternalComponent[],
+  externalComponents: ExternalComponentV3[],
 ): InternalLayoutComponents => ({
   components: getInternalComponents(externalComponents),
   containers: getInternalContainers(externalComponents),
@@ -68,7 +72,7 @@ const convertExternalComponentList = (
 });
 
 const getInternalComponents = (
-  externalComponents: ExternalComponent[],
+  externalComponents: ExternalComponentV3[],
 ): IFormDesignerComponents => {
   const convert = (component: ExternalSimpleComponent) =>
     convertSimpleComponent(externalComponents, component);
@@ -77,7 +81,7 @@ const getInternalComponents = (
 };
 
 const getInternalContainers = (
-  externalComponents: ExternalComponent[],
+  externalComponents: ExternalComponentV3[],
 ): IFormDesignerContainers => {
   const baseContainer: FormContainer = {
     id: BASE_CONTAINER_ID,
@@ -91,36 +95,37 @@ const getInternalContainers = (
   return mapByProperty(containers, 'id');
 };
 
-const getConvertedContainers = (externalComponents: ExternalComponent[]): FormContainer[] => {
+const getConvertedContainers = (externalComponents: ExternalComponentV3[]): FormContainer[] => {
   const convert = (component) => convertContainerComponent(externalComponents, component);
   return findContainerComponents(externalComponents).map(convert);
 };
 
-const getOrderOfComponents = (externalComponents: ExternalComponent[]): IFormLayoutOrder => ({
+const getOrderOfComponents = (externalComponents: ExternalComponentV3[]): IFormLayoutOrder => ({
   [BASE_CONTAINER_ID]: findTopLevelComponentIds(externalComponents),
   ...getChildrenIdsOfAllContainers(externalComponents),
 });
 
 const findContainerComponents = (
-  externalComponents: ExternalComponent[],
+  externalComponents: ExternalComponentV3[],
 ): ExternalContainerComponent[] => externalComponents.filter(isContainer);
 
-const isContainer = (component: ExternalComponent): component is ExternalContainerComponent =>
+const isContainer = (component: ExternalComponentV3): component is ExternalContainerComponent =>
   containerComponentTypes.includes(component.type);
 
-const findSimpleComponents = (externalComponents: ExternalComponent[]): ExternalSimpleComponent[] =>
-  externalComponents.filter(isSimpleComponent);
+const findSimpleComponents = (
+  externalComponents: ExternalComponentV3[],
+): ExternalSimpleComponent[] => externalComponents.filter(isSimpleComponent);
 
-const isSimpleComponent = (component: ExternalComponent): component is ExternalSimpleComponent =>
+const isSimpleComponent = (component: ExternalComponentV3): component is ExternalSimpleComponent =>
   !isContainer(component);
 
-const findTopLevelComponentIds = (externalComponents: ExternalComponent[]) =>
+const findTopLevelComponentIds = (externalComponents: ExternalComponentV3[]) =>
   externalComponents
     .filter((component) => findParent(externalComponents, component.id) === null)
     .map(({ id }) => id);
 
 const getChildrenIdsOfAllContainers = (
-  externalComponents: ExternalComponent[],
+  externalComponents: ExternalComponentV3[],
 ): IFormLayoutOrder => {
   const entries: [string, string[]][] = findContainerComponents(externalComponents).map(
     (container) => [container.id, getChildIds(container)],
@@ -129,7 +134,7 @@ const getChildrenIdsOfAllContainers = (
 };
 
 const convertSimpleComponent = (
-  externalComponentList: ExternalComponent[],
+  externalComponentList: ExternalComponentV3[],
   externalComponent: ExternalSimpleComponent,
 ): FormComponent => {
   const pageIndex = findPageIndexOfComponent(externalComponentList, externalComponent.id);
@@ -137,7 +142,7 @@ const convertSimpleComponent = (
 };
 
 const convertContainerComponent = (
-  externalComponentList: ExternalComponent[],
+  externalComponentList: ExternalComponentV3[],
   externalComponent: ExternalContainerComponent,
 ): FormContainer => {
   const pageIndex = findPageIndexOfComponent(externalComponentList, externalComponent.id);
@@ -145,7 +150,7 @@ const convertContainerComponent = (
 };
 
 const findParent = (
-  externalComponents: ExternalComponent[],
+  externalComponents: ExternalComponentV3[],
   id: string,
 ): ExternalContainerComponent | null =>
   findContainerComponents(externalComponents).find((container) =>
@@ -153,7 +158,7 @@ const findParent = (
   ) ?? null;
 
 const findPageIndexOfComponent = (
-  externalComponents: ExternalComponent[],
+  externalComponents: ExternalComponentV3[],
   id: string,
 ): number | null => {
   const parentContainer = findParent(externalComponents, id);

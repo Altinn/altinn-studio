@@ -12,7 +12,7 @@ import {
   layout1NameMock,
   layoutMock,
 } from '../../testing/layoutMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 
 // Test data:
 const org = 'org';
@@ -35,8 +35,8 @@ describe('useUpdateFormComponentOrderMutation', () => {
     };
     await componentOrderResult.current.mutateAsync(newOrder);
 
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledWith(
       org,
       app,
       layout1NameMock,
@@ -55,12 +55,12 @@ describe('useUpdateFormComponentOrderMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayouts = jest
+  const getFormLayoutsV3 = jest
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>(externalLayoutsMock));
   const formLayoutsResult = renderHookWithMockStore(
     {},
-    { getFormLayouts },
+    { getFormLayoutsV3 },
   )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 };

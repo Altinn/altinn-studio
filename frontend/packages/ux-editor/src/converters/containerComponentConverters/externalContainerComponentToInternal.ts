@@ -13,7 +13,7 @@ export const externalContainerComponentToInternal = (
     ...propertiesToKeep,
     itemType: 'CONTAINER',
     type: externalComponent.type,
-    propertyPath: formItemConfigs[externalComponent.type].defaultProperties.propertyPath,
+    propertyPath: formItemConfigs[externalComponent.type].propertyPath,
     pageIndex,
   };
 };

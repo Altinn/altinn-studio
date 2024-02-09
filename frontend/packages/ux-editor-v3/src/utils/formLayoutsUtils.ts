@@ -5,11 +5,11 @@ import {
   hasNavigationButtons,
   removeComponentsByType,
 } from './formLayoutUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { generateComponentId } from './generateId';
 import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
+import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import { ArrayUtils } from '@studio/pure-functions';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';
 
@@ -42,7 +42,7 @@ export const addOrRemoveNavigationButtons = async (
   if (layoutsThatShouldHaveNavigationButtons.length === 1) {
     // There is only one layout
     const name = layoutsThatShouldHaveNavigationButtons[0];
-    const layout = removeComponentsByType(layouts[name], ComponentType.NavigationButtons);
+    const layout = removeComponentsByType(layouts[name], ComponentTypeV3.NavigationButtons);
     layouts[name] !== layout && layoutsToUpdate.push(name);
     allLayouts[name] = layout;
   } else {
@@ -50,7 +50,7 @@ export const addOrRemoveNavigationButtons = async (
     for (const name of layoutsThatShouldHaveNavigationButtons) {
       const layout = layouts[name];
       if (!hasNavigationButtons(layout)) {
-        const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
+        const navButtonsId = generateComponentId(ComponentTypeV3.NavigationButtons, layouts);
         allLayouts[name] = addNavigationButtons(layout, navButtonsId);
         layoutsToUpdate.push(name);
       }
@@ -73,7 +73,7 @@ interface AllLayouts {
  * @returns A list of layouts in internal format and a list of layouts with an invalid format.
  */
 export const convertExternalLayoutsToInternalFormat = (
-  layouts: FormLayoutsResponse,
+  layouts: FormLayoutsResponseV3,
 ): AllLayouts => {
   const convertedLayouts: IFormLayouts = {};
   const invalidLayouts: string[] = [];

@@ -5,7 +5,7 @@ import { EditStringValue } from './EditStringValue';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 
@@ -30,7 +30,7 @@ const render = async ({ maxLength = undefined, handleComponentChange = jest.fn()
       propertyKey='maxLength'
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         textResourceBindings: {
           title: 'ServiceName',
         },
@@ -54,7 +54,7 @@ describe('EditStringValue', () => {
     await act(() => user.type(inputElement, 'new value'));
     expect(handleComponentChange).toHaveBeenCalledWith({
       id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-      type: ComponentType.Input,
+      type: ComponentTypeV3.Input,
       textResourceBindings: {
         title: 'ServiceName',
       },
