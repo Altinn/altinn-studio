@@ -2,9 +2,8 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { useFormContext } from '../../containers/FormContext';
 import { useTranslation } from 'react-i18next';
-import { Heading } from '@digdir/design-system-react';
+import { Heading, Paragraph } from '@digdir/design-system-react';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings';
-import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { StudioSpinner } from '@studio/components';
@@ -20,7 +19,6 @@ export const Text = () => {
   const { formId, form, handleUpdate, debounceSave } = useFormContext();
   const { t } = useTranslation();
 
-  useLayoutSchemaQuery(); // Component schema query is dependent on the data loaded by the layout schema query
   const { data: schema } = useComponentSchemaQuery(form.type);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const editId = useSelector(getCurrentEditId);
@@ -28,10 +26,12 @@ export const Text = () => {
   if (editId) return <TextResourceEdit />;
 
   if (!schema) {
-    <StudioSpinner spinnerText={t('general.loading')} />;
+    return <StudioSpinner spinnerText={t('general.loading')} />;
   }
 
-  if (!schema?.properties) return null;
+  if (!schema?.properties) {
+    return <Paragraph>{t('ux_editor.properties_panel.texts.no_properties')}</Paragraph>;
+  }
 
   return (
     <>
