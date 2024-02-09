@@ -49,7 +49,8 @@ export function App() {
     removeSelectedLayoutSet,
   ]);
 
-  const componentIsReady = areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched;
+  const componentIsReady =
+    areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched && areLayoutSetsFetched;
 
   const componentHasError = dataModelFetchedError || widgetFetchedError;
 
