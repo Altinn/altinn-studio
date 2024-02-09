@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import classes from './AppDeployment.module.css';
+import classes from './AppDeploymentActions.module.css';
 import { StudioSpinner } from '@studio/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { InformationSquareFillIcon } from '@navikt/aksel-icons';
-
-import type { IDeployment } from '../../../sharedResources/appDeployment/types';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { DeploymentStatus } from './DeploymentStatus';
 import type { ImageOption } from './ImageOption';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import { PipelineDeploymentBuildStatus } from 'app-shared/types/api/PipelineDeploymentBuild';
 
 export interface AppDeploymentActionsProps {
-  deployHistory?: IDeployment[];
+  pipelineDeploymentList?: PipelineDeployment[];
   deployPermission: boolean;
   envName: string;
   imageOptions: ImageOption[];
@@ -20,7 +19,7 @@ export interface AppDeploymentActionsProps {
 }
 
 export const AppDeploymentActions = ({
-  deployHistory,
+  pipelineDeploymentList,
   deployPermission,
   envName,
   imageOptions,
@@ -37,8 +36,34 @@ export const AppDeploymentActions = ({
       envName,
     });
 
-  const latestDeploy = deployHistory ? deployHistory[0] : null;
-  const deployInProgress = latestDeploy?.status === DeploymentStatus.progressing;
+  // useEffect(() => {
+  //   if (!deployPermission) return;
+  //   if (mutation.isError) {
+  //     toast.error(() => (
+  //       <Trans
+  //         i18nKey={'app_deploy_messages.technical_error_1'}
+  //         components={{
+  //           a: (
+  //             <Link href='/contact' inverted={true}>
+  //               {' '}
+  //             </Link>
+  //           ),
+  //         }}
+  //       />
+  //     ));
+  //   } else if (deployFailed) {
+  //     toast.error(() =>
+  //       t('app_deploy_messages.failed', {
+  //         envName: latestDeploy.envName,
+  //         tagName: latestDeploy.tagName,
+  //         time: latestDeploy.build.started,
+  //       }),
+  //     );
+  //   }
+  // }, [deployPermission, deployFailed, t, latestDeploy, mutation.isError]);
+
+  const latestDeploy = pipelineDeploymentList ? pipelineDeploymentList[0] : null;
+  const deployInProgress = latestDeploy?.build?.status === PipelineDeploymentBuildStatus.inProgress;
 
   return (
     <div className={classes.dropdownGrid}>

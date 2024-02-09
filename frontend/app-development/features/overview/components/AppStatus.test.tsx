@@ -4,7 +4,7 @@ import { AppStatus } from './AppStatus';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import { appDeployment } from 'app-shared/mocks/mocks';
+import { pipelineDeployment } from 'app-shared/mocks/mocks';
 
 // Test data
 const org = 'ttd';
@@ -45,7 +45,7 @@ describe('AppStatus', () => {
           Promise.resolve({
             results: [
               {
-                ...appDeployment,
+                ...pipelineDeployment,
                 deployedInEnv: true,
               },
             ],
@@ -69,7 +69,7 @@ describe('AppStatus', () => {
         Promise.resolve({
           results: [
             {
-              ...appDeployment,
+              ...pipelineDeployment,
               envName: envNameTest,
               deployedInEnv: true,
             },
@@ -101,10 +101,10 @@ describe('AppStatus', () => {
         Promise.resolve({
           results: [
             {
-              ...appDeployment,
+              ...pipelineDeployment,
               envName: envNameTest,
               build: {
-                ...appDeployment.build,
+                ...pipelineDeployment.build,
                 finished: '2023-10-03T09:57:41.29Z',
               },
             },

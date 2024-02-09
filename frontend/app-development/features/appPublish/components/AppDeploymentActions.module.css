@@ -1,0 +1,15 @@
+.dropdownGrid {
+  padding-bottom: 4rem;
+  padding-left: 5rem;
+}
+
+.deployStatusGridContainer {
+  display: flex;
+  align-items: center;
+}
+
+.deploySpinnerGridItem {
+  min-width: 6rem;
+  color: #000;
+  font-size: 3.6rem;
+}

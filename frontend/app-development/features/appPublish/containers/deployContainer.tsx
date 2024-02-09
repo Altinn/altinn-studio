@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react';
 import classes from './deployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
-import { AppDeployment } from '../components/AppDeployment';
 import { BuildResult } from 'app-shared/types/Build';
-import { useAppSelector } from '../../../hooks';
 import {
   useOrgListQuery,
   useEnvironmentsQuery,
@@ -11,27 +9,18 @@ import {
   useAppReleasesQuery,
   useAppDeploymentsQuery,
 } from '../../../hooks/queries';
-import type {
-  ICreateAppDeploymentEnvObject,
-  IDeployment,
-} from '../../../sharedResources/appDeployment/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { ImageOption } from '../components/ImageOption';
+import type { AppDeployment as AppDeploymentType } from 'app-shared/types/api/AppDeployment';
+import { AppDeployment } from '../components/AppDeployment';
 
 export const DeployContainerComponent = () => {
   const { org, app } = useStudioUrlParams();
-  const createAppDeploymentErrors: any = useAppSelector(
-    (state) => state.appDeployments.createAppDeploymentErrors,
-  );
 
-  console.log('createAppDeploymentErrors', createAppDeploymentErrors);
+  const { data: appDeployments, isPending: isDeploysPending } = useAppDeploymentsQuery(org, app);
 
-  const { data: appDeployments = [], isPending: isDeploysPending } = useAppDeploymentsQuery(
-    org,
-    app,
-  );
   const { data: environmentList = [], isPending: isEnvPending } = useEnvironmentsQuery();
   const { data: releases = [], isPending: isReleasesPending } = useAppReleasesQuery(org, app);
   const { data: orgs = { orgs: {} }, isPending: isOrgsPending } = useOrgListQuery();
@@ -51,7 +40,7 @@ export const DeployContainerComponent = () => {
     return name;
   }, [org, orgs]);
 
-  const deployEnvironments: ICreateAppDeploymentEnvObject[] = useMemo(
+  const deployEnvironments: DeployEnvironment[] = useMemo(
     () =>
       orgs?.orgs[org]?.environments
         .map((envName: string) =>
@@ -87,8 +76,8 @@ export const DeployContainerComponent = () => {
   return (
     <div className={classes.deployContainer}>
       {deployEnvironments.map((env: DeployEnvironment, index: number) => {
-        const deploymentsInEnv: IDeployment[] = appDeployments.filter(
-          (x) => x.envName === env.name,
+        const appDeployment: AppDeploymentType = appDeployments.find(
+          (item) => item.envName === env.name,
         );
         return (
           <AppDeployment
@@ -97,16 +86,12 @@ export const DeployContainerComponent = () => {
             urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             imageOptions={imageOptions}
-            deployHistory={deploymentsInEnv}
+            pipelineDeploymentList={appDeployment.deploymentList}
+            kubernetesDeployment={appDeployment.kubernetesDeployment}
             deployPermission={
               permissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }
             orgName={orgName}
-            showLinkToApp={
-              deploymentsInEnv.length > 0 &&
-              deploymentsInEnv[0].deployedInEnv &&
-              deploymentsInEnv[0].build.result === BuildResult.succeeded
-            }
           />
         );
       })}

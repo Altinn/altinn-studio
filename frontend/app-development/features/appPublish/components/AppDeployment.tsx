@@ -4,35 +4,35 @@ import { Link } from '@digdir/design-system-react';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { useTranslation, Trans } from 'react-i18next';
 
-import type { IDeployment } from '../../../sharedResources/appDeployment/types';
 import { toast } from 'react-toastify';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { DeploymentStatus } from './DeploymentStatus';
 import { AppDeploymentHeader } from './AppDeploymentHeader';
 import { AppDeploymentActions } from './AppDeploymentActions';
 import { AppDeploymentList } from './AppDeploymentList';
 import type { ImageOption } from './ImageOption';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 
 export interface AppDeploymentProps {
   envName: string;
   urlToApp?: string;
   urlToAppLinkTxt?: string;
-  deployHistory?: IDeployment[];
+  pipelineDeploymentList?: PipelineDeployment[];
+  kubernetesDeployment?: KubernetesDeployment;
   deployPermission: boolean;
   orgName: string;
   imageOptions: ImageOption[];
-  showLinkToApp: boolean;
 }
 
 export const AppDeployment = ({
-  deployHistory,
+  pipelineDeploymentList,
+  kubernetesDeployment,
   deployPermission,
   envName,
   imageOptions,
   urlToApp,
   urlToAppLinkTxt,
   orgName,
-  showLinkToApp,
 }: AppDeploymentProps) => {
   console.log('---', envName, '---');
   const { t } = useTranslation();
@@ -40,68 +40,44 @@ export const AppDeployment = ({
   const { org, app } = useStudioUrlParams();
   const mutation = useCreateDeploymentMutation(org, app, { hideDefaultError: true });
 
-  const latestDeploy = deployHistory ? deployHistory[0] : null;
-  const deploymentInEnv = deployHistory ? deployHistory.find((d) => d.deployedInEnv) : false;
-
-  const appDeployedAndReachable = !!deploymentInEnv;
-  const deployFailed = latestDeploy && latestDeploy.status === DeploymentStatus.failed;
-  const deployedVersionNotReachable =
-    latestDeploy && !appDeployedAndReachable && latestDeploy.status === DeploymentStatus.completed;
-
-  useEffect(() => {
-    if (deployPermission && latestDeploy && deployedVersionNotReachable) {
-      toast.error(() => (
-        <Trans i18nKey='app_deploy_messages.unable_to_list_deploys'>
-          <Link inverted href='mailto:tjenesteeier@altinn.no'>
-            tjenesteeier@altinn.no
-          </Link>
-        </Trans>
-      ));
-    }
-  }, [deployPermission, latestDeploy, deployedVersionNotReachable]);
-
-  useEffect(() => {
-    if (!deployPermission) return;
-    if (mutation.isError) {
-      toast.error(() => (
-        <Trans i18nKey='app_deploy_messages.technical_error_1'>
-          <Link inverted href='mailto:tjenesteeier@altinn.no'>
-            tjenesteeier@altinn.no
-          </Link>
-        </Trans>
-      ));
-    } else if (deployFailed) {
-      toast.error(() =>
-        t('app_deploy_messages.failed', {
-          envName: latestDeploy.envName,
-          tagName: latestDeploy.tagName,
-          time: latestDeploy.build.started,
-        }),
-      );
-    }
-  }, [deployPermission, deployFailed, t, latestDeploy, mutation.isError]);
+  // useEffect(() => {
+  //   if (deployPermission && latestDeploy && deployedVersionNotReachable) {
+  //     toast.error(() => (
+  //       <Trans
+  //         i18nKey={'app_deploy_messages.unable_to_list_deploys'}
+  //         components={{
+  //           a: (
+  //             <Link href='/contact' inverted={true}>
+  //               {' '}
+  //             </Link>
+  //           ),
+  //         }}
+  //       />
+  //     ));
+  //   }
+  // }, [deployPermission, latestDeploy, deployedVersionNotReachable]);
 
   return (
     <div className={classes.mainContainer}>
       <AppDeploymentHeader
-        deployHistory={deployHistory}
+        kubernetesDeploymentStatus={kubernetesDeployment?.status}
+        version={kubernetesDeployment?.version}
         envName={envName}
         urlToApp={urlToApp}
         urlToAppLinkTxt={urlToAppLinkTxt}
-        showLinkToApp={showLinkToApp}
       />
       <div className={classes.bodyContainer}>
         <AppDeploymentActions
-          deployHistory={deployHistory}
+          pipelineDeploymentList={pipelineDeploymentList}
           deployPermission={deployPermission}
           envName={envName}
           imageOptions={imageOptions}
           orgName={orgName}
         />
         <AppDeploymentList
-          deployHistory={deployHistory}
-          deployPermission={deployPermission}
           envName={envName}
+          pipelineDeploymentList={pipelineDeploymentList}
+          kubernetesDeployment={kubernetesDeployment}
         />
       </div>
     </div>

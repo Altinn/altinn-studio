@@ -1,5 +1,4 @@
 import handleServiceInformationReducer from '../features/overview/handleServiceInformationSlice';
-import appDeploymentReducer from '../sharedResources/appDeployment/appDeploymentSlice';
 import applicationMetadataReducer from '../sharedResources/applicationMetadata/applicationMetadataSlice';
 import appReleaseReducer from '../sharedResources/appRelease/appReleaseSlice';
 import configurationReducer from '../sharedResources/configuration/configurationSlice';
@@ -11,7 +10,6 @@ export const rootReducer = {
   applicationMetadataState: applicationMetadataReducer,
   repoStatus: repoStatusReducer,
   appReleases: appReleaseReducer,
-  appDeployments: appDeploymentReducer,
   configuration: configurationReducer,
   userState: userReducer,
 };

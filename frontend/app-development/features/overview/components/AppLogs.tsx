@@ -6,9 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/DeploymentStatus';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
-import type { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 import { Alert, Heading } from '@digdir/design-system-react';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 export const AppLogs = () => {
   const { org, app } = useStudioUrlParams();
@@ -32,7 +32,7 @@ export const AppLogs = () => {
     return <Alert severity='danger'>{t('overview.app_logs_error')}</Alert>;
 
   const succeededDeployments = appDeployments.filter(
-    (deployment: IDeployment) =>
+    (deployment: AppDeployment) =>
       deployment.build.result === DeploymentStatus.succeeded && deployment.build.finished !== null,
   );
   const hasSucceededDeployments = succeededDeployments.length > 0;

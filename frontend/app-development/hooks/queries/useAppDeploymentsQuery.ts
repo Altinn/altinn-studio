@@ -1,16 +1,15 @@
 import type { UseQueryResult, QueryMeta } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import type { IDeployment } from '../../sharedResources/appDeployment/types';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import type { AppDeployment } from 'app-shared/types/AppDeployment';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { DEPLOYMENTS_REFETCH_INTERVAL } from 'app-shared/constants';
+import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 
 export const useAppDeploymentsQuery = (
   owner,
   app,
   meta?: QueryMeta,
-): UseQueryResult<IDeployment[], Error> => {
+): UseQueryResult<AppDeployment[], Error> => {
   const { getDeployments } = useServicesContext();
   return useQuery<AppDeployment[]>({
     queryKey: [QueryKey.AppDeployments, owner, app],

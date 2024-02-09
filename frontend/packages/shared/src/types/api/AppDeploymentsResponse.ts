@@ -1,4 +1,4 @@
-import type { AppDeployment } from 'app-shared/types/AppDeployment';
+import type { AppDeployment } from './AppDeployment';
 
 export interface AppDeploymentsResponse {
   results: AppDeployment[];

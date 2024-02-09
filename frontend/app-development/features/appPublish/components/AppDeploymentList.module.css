@@ -1,0 +1,22 @@
+.table {
+  background-color: #ffffff;
+  min-width: 30rem;
+}
+
+.colorBlack {
+  color: #000;
+}
+
+.tableRow {
+  height: 2.6rem;
+}
+
+.tableWrapper {
+  max-height: 350px;
+  overflow: auto;
+}
+
+.deploymentListGrid {
+  display: flex;
+  flex-direction: column;
+}

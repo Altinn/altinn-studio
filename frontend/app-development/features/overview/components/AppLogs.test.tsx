@@ -4,7 +4,7 @@ import { AppLogs } from './AppLogs';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import { appDeployment, deployEnvironment } from 'app-shared/mocks/mocks';
+import { pipelineDeployment, deployEnvironment } from 'app-shared/mocks/mocks';
 
 // Test data
 const org = 'ttd';
@@ -40,12 +40,12 @@ describe('AppLogs', () => {
         Promise.resolve({
           results: [
             {
-              ...appDeployment,
+              ...pipelineDeployment,
               tagName: '2',
               envName: 'production',
             },
             {
-              ...appDeployment,
+              ...pipelineDeployment,
               tagName: '1',
               envName: 'tt02',
             },
@@ -93,7 +93,7 @@ describe('AppLogs', () => {
         Promise.resolve({
           results: [
             {
-              ...appDeployment,
+              ...pipelineDeployment,
               build: {
                 result: '',
               },

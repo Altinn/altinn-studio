@@ -7,10 +7,10 @@ using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,17 +45,20 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
         /// <param name="query">Document query model</param>
-        /// <returns>SearchResults of type DeploymentEntity</returns>
+        /// <returns>SearchResults of type Deployment</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<DeploymentEntity>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
+        public async Task<SearchResults<Deployment>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
         {
-            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query);
-            List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
+            SearchResults<Deployment> deployments = await _deploymentService.GetAsync(org, app, query);
 
-            foreach (DeploymentEntity deployment in laggingDeployments)
+            foreach (Deployment deployment in deployments.Results)
             {
-                await _deploymentService.UpdateAsync(deployment.Build.Id, deployment.Org);
+                List<DeploymentEntity> laggingDeployments = deployment.DeploymentList.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
+                foreach (DeploymentEntity laggingDeployment in laggingDeployments)
+                {
+                    await _deploymentService.UpdateAsync(laggingDeployment.Build.Id, laggingDeployment.Org);
+                }
             }
 
             return deployments;

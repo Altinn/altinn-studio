@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Models;
@@ -28,7 +29,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application name</param>
         /// <param name="query">DocumentQueryModel</param>
         /// <returns>SearchResults of type DeploymentEntity</returns>
-        Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query);
+        Task<SearchResults<Deployment>> GetAsync(string org, string app, DocumentQueryModel query);
 
         /// <summary>
         /// Updates a deployment entity

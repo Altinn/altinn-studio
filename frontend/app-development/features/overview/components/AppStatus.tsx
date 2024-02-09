@@ -7,9 +7,9 @@ import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { StudioSpinner } from '@studio/components';
 import { DeploymentStatus } from 'app-development/features/appPublish/components/DeploymentStatus';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
-import type { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 import { getReleaseBuildPipelineLink } from 'app-development/utils/urlHelper';
 import { publishPath } from 'app-shared/api/paths';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 export type AppStatusProps = {
   envName: string;
@@ -26,7 +26,7 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
     isError: deploysAreError,
   } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
 
-  const deployHistory: IDeployment[] = appDeployments.filter((x) => x.envName === envName);
+  const deployHistory: PipelineDeployment[] = appDeployments.filter((x) => x.envName === envName);
 
   const latestDeploy = deployHistory ? deployHistory[0] : null;
   const deploymentInEnv = deployHistory.find((d) => d.deployedInEnv);

@@ -4,7 +4,6 @@ import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { LegacySelect } from '@digdir/design-system-react';
 import type { ImageOption } from '../ImageOption';
-import { DeploymentStatus } from '../DeploymentStatus';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
 import { shouldDisplayDeployStatus } from './utils';
@@ -14,6 +13,7 @@ import {
   InformationSquareFillIcon,
   XMarkOctagonFillIcon,
 } from '@studio/icons';
+import { PipelineDeploymentBuildResult } from 'app-shared/types/api/PipelineDeploymentBuild';
 
 export interface DeployDropdownProps {
   appDeployedVersion: string;
@@ -21,7 +21,7 @@ export interface DeployDropdownProps {
   imageOptions: ImageOption[];
   disabled: boolean;
   deployHistoryEntry: any;
-  deploymentStatus: DeploymentStatus | string | number;
+  pipelineDeploymentBuildResult?: PipelineDeploymentBuildResult;
   setSelectedImageTag: (tag) => void;
   selectedImageTag: string;
   startDeploy: any;
@@ -31,7 +31,7 @@ export const DeployDropdown = ({
   appDeployedVersion,
   imageOptions,
   envName,
-  deploymentStatus,
+  pipelineDeploymentBuildResult,
   deployHistoryEntry,
   selectedImageTag,
   setSelectedImageTag,
@@ -86,51 +86,53 @@ export const DeployDropdown = ({
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (
         <div className={classes.deployStatusGridContainer}>
           <div className={classes.deploySpinnerGridItem}>
-            {deploymentStatus === DeploymentStatus.progressing && <StudioSpinner />}
-            {deploymentStatus === DeploymentStatus.completed && (
-              <CheckmarkCircleFillIcon className={classes.successIcon} />
+            {/* {pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.progressing && (
+              <StudioSpinner />
             )}
-            {(deploymentStatus === DeploymentStatus.partiallySucceeded ||
-              deploymentStatus === DeploymentStatus.none) && (
+            {pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.completed && (
+              <CheckmarkCircleFillIcon className={classes.successIcon} />
+            )} */}
+            {(pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.partiallySucceeded ||
+              pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.none) && (
               <InformationSquareFillIcon className={classes.infoIcon} />
             )}
-            {(deploymentStatus === DeploymentStatus.canceled ||
-              deploymentStatus === DeploymentStatus.failed) && (
+            {(pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.canceled ||
+              pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.failed) && (
               <XMarkOctagonFillIcon className={classes.errorIcon} />
             )}
           </div>
           <div>
-            {deploymentStatus === DeploymentStatus.progressing &&
+            {/* {pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.progressing &&
               t('app_deploy_messages.deploy_in_progress', {
                 createdBy: deployHistoryEntry?.createdBy,
                 tagName: deployHistoryEntry?.tagName,
-              })}
-            {deploymentStatus === DeploymentStatus.completed &&
+              })} */}
+            {pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.succeeded &&
               t('app_deploy_messages.success', {
                 tagName: deployHistoryEntry?.tagName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
                 createdBy: deployHistoryEntry?.createdBy,
               })}
-            {deploymentStatus === DeploymentStatus.failed &&
+            {pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.failed &&
               t('app_deploy_messages.failed', {
                 tagName: deployHistoryEntry?.tagName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
               })}
-            {deploymentStatus === DeploymentStatus.canceled &&
+            {pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.canceled &&
               t('app_deploy_messages.canceled', {
                 tagName: deployHistoryEntry?.tagName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
                 envName,
               })}
-            {deploymentStatus === DeploymentStatus.partiallySucceeded &&
+            {pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.partiallySucceeded &&
               t('app_deploy_messages.partiallySucceeded', {
                 tagName: deployHistoryEntry?.tagName,
                 envName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),
               })}
-            {deploymentStatus === DeploymentStatus.none &&
+            {pipelineDeploymentBuildResult === PipelineDeploymentBuildResult.none &&
               t('app_deploy_messages.none', {
                 tagName: deployHistoryEntry?.tagName,
                 time: formatTimeHHmm(deployHistoryEntry?.build.finished),

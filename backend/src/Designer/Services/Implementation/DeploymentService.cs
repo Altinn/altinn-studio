@@ -85,31 +85,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <inheritdoc/>
         /// TODO: https://github.com/Altinn/altinn-studio/issues/11377
-        public async Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query)
+        public async Task<SearchResults<Deployment>> GetAsync(string org, string app, DocumentQueryModel query)
         {
+            List<Deployment> deploymentList = new();
             List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
-            var environments = await _environmentsService.GetOrganizationEnvironments(org);
+            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
             foreach (EnvironmentModel env in environments)
             {
                 try
                 {
-                    IList<Deployment> kubernetesDeploymentsInEnv =
-                        await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, app, env);
+                    Deployment deployment = new() { envName = env.Name };
 
                     var dbDeploymentEntitiesInEnv = deploymentEntities
                         .Where(deployment => deployment.EnvName == env.Name)
                         .ToList();
 
-                    foreach (var deployment in dbDeploymentEntitiesInEnv)
-                    {
-                        Deployment kubernetesDeployment = kubernetesDeploymentsInEnv.FirstOrDefault(kubernetesDeployment =>
-                            kubernetesDeployment.Release == $"{deployment.Org}-{deployment.App}" &&
-                            kubernetesDeployment.Version == deployment.TagName);
-                        deployment.DeployedInEnv = kubernetesDeployment != null;
-                        deployment.Status = kubernetesDeployment?.Status;
-                        deployment.AvailabilityPercentage = kubernetesDeployment?.AvailabilityPercentage ?? 0;
-                    }
+                    deployment.DeploymentList = dbDeploymentEntitiesInEnv;
+
+                    var kubernetesDeployments = await _kubernetesWrapperClient.GetDeploymentsAsync(org, app, env);
+                    deployment.KubernetesDeployment = kubernetesDeployments.FirstOrDefault();
+
+                    deploymentList.Add(deployment);
                 }
                 catch (KubernetesWrapperResponseException)
                 {
@@ -117,7 +114,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
 
-            return new SearchResults<DeploymentEntity> { Results = deploymentEntities };
+            return new SearchResults<Deployment> { Results = deploymentList };
         }
 
         /// <inheritdoc/>

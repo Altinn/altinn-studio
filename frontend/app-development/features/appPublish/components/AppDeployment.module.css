@@ -5,87 +5,11 @@
   flex-direction: column;
 }
 
-.headingContainer {
-  border-bottom: 2px solid #c9c9c9;
-  border-top: 2px solid #000000;
-  margin-bottom: 2rem;
-  margin-top: 2rem;
-  padding: 2rem 5rem;
-  display: flex;
-}
-
-.headingContainer :first-child {
-  width: 200px;
-}
-.headingContainer :nth-child(2) {
-  flex-grow: 1;
-}
-
-.headingContainer :last-child {
-  width: fit-content;
-}
-.dropdownGrid {
-  padding-bottom: 4rem;
-  padding-left: 5rem;
-}
-
-.gridItem {
-  padding-right: 2rem;
-}
-
-.gridBorder {
-  border: 1px solid black;
-}
-
-.envTitle {
-  font-size: 18px;
-  font-weight: 500;
-  max-width: 22.5rem;
-  padding-right: 0.5rem;
-}
-
-.table {
-  background-color: #ffffff;
-  min-width: 30rem;
-}
-
-.colorBlack {
-  color: #000;
-}
-
-.tableRow {
-  height: 2.6rem;
-}
-
-.tableWrapper {
-  max-height: 350px;
-  overflow: auto;
-}
-
-.deployStatusGridContainer {
-  display: flex;
-  align-items: center;
-}
-
-.deploySpinnerGridItem {
-  min-width: 6rem;
-  color: #000;
-  font-size: 3.6rem;
-}
-
-.deploymentListGrid {
-  display: flex;
-  flex-direction: column;
-}
-
-.paperProps {
-  background-color: #f9cad3;
-}
-
 .bodyContainer {
   display: flex;
   gap: 40px;
 }
+
 .bodyContainer > * {
   flex-basis: 49%;
 }

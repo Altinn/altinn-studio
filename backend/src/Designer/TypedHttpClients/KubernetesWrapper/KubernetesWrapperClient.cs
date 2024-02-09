@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Models;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
@@ -17,7 +16,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         _client = httpClient;
     }
 
-    public async Task<IList<Deployment>> GetDeploymentsInEnvAsync(string org, string app, EnvironmentModel env)
+    public async Task<IList<KubernetesDeployment>> GetDeploymentsAsync(string org, string app, EnvironmentModel env)
     {
         // @todo We doesn't have a good way to mock this service locally. Unfortunately subdomains is not supported.
         // The issue have been discussed but we have not been able to find an agreement on how this should be solved. :-/
@@ -30,7 +29,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         {
             using HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsAsync<List<Deployment>>();
+            return await response.Content.ReadAsAsync<List<KubernetesDeployment>>();
         }
         catch (Exception e)
         {

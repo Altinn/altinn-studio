@@ -5,9 +5,9 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import type { IDeployment } from 'app-development/sharedResources/appDeployment/types';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { ImageOption } from './ImageOption';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 const render = (props?: Partial<AppDeploymentProps>, queries?: Partial<ServicesContextProps>) => {
   const defaultProps: AppDeploymentProps = {
@@ -51,7 +51,7 @@ describe('AppDeploymentComponent', () => {
   });
 
   it('should render with deploy history', () => {
-    const deployHistory: IDeployment[] = [
+    const deployHistory: PipelineDeployment[] = [
       {
         app: 'test-app',
         created: new Date().toDateString(),
@@ -84,7 +84,7 @@ describe('AppDeploymentComponent', () => {
 
   it('should render error message if latest deploy failed', async () => {
     const date = new Date().toDateString();
-    const deployHistory: IDeployment[] = [
+    const deployHistory: PipelineDeployment[] = [
       {
         app: 'test-app',
         created: date,
@@ -118,7 +118,7 @@ describe('AppDeploymentComponent', () => {
   });
 
   it('should should render error message if latest deploy succeeded but app is not reachable', () => {
-    const deployHistory: IDeployment[] = [
+    const deployHistory: PipelineDeployment[] = [
       {
         app: 'test-app',
         created: new Date().toDateString(),
@@ -146,7 +146,7 @@ describe('AppDeploymentComponent', () => {
   });
 
   it('should should render warning message if latest deploy has status failed but app is reachable', () => {
-    const deployHistory: IDeployment[] = [
+    const deployHistory: PipelineDeployment[] = [
       {
         app: 'test-app',
         created: new Date().toDateString(),
@@ -179,7 +179,7 @@ describe('AppDeploymentComponent', () => {
   });
 
   it('should handle build.finished as null when latest deploy has status failed but app is reachable', () => {
-    const deployHistory: IDeployment[] = [
+    const deployHistory: PipelineDeployment[] = [
       {
         app: 'test-app',
         created: new Date().toDateString(),
@@ -231,7 +231,7 @@ describe('AppDeploymentComponent', () => {
   });
 
   it('should render spinner when deployment is in progress', () => {
-    const deployHistory: IDeployment[] = [
+    const deployHistory: PipelineDeployment[] = [
       {
         app: 'test-app',
         created: new Date().toDateString(),

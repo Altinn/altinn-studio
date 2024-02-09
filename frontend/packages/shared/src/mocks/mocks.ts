@@ -20,7 +20,7 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import type { AppDeployment } from 'app-shared/types/AppDeployment';
+import type { PipelineDeployment } from 'app-shared/types/PipelineDeployment';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import type { Organization } from 'app-shared/types/Organization';
 import type { Repository } from 'app-shared/types/Repository';
@@ -51,13 +51,12 @@ export const appDeploymentsResponse: AppDeploymentsResponse = {
   results: [],
 };
 
-export const appDeployment: AppDeployment = {
+export const pipelineDeployment: PipelineDeployment = {
   id: '',
   tagName: '',
   app: '',
   org: '',
   envName: '',
-  deployedInEnv: false,
   createdBy: '',
   created: '',
   build: {

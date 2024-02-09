@@ -1,19 +1,9 @@
-using System;
-using System.Text.Json.Serialization;
-
-namespace Altinn.Studio.Designer.Repository.Models
+namespace Altinn.Studio.Designer.Services.Models
 {
-    public class Deployment : IEquatable<Deployment>
+    public class KubernetesDeployment
     {
-
-        public bool Equals(Deployment other)
-        {
-            return other.Release == Release && other.Version == Version;
-        }
-
-        [JsonPropertyName("release")]
         public string Release { get; set; }
-        [JsonPropertyName("version")]
+
         public string Version { get; set; }
 
         /// <summary>
