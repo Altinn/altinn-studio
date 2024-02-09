@@ -94,8 +94,7 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
 
   useOnUnmount(() => {
     clearTimeout(saveTimeoutRef.current);
-    const datamodelExists = doesModelExist();
-    if (datamodelExists) saveFunction();
+    if (doesModelExist()) saveFunction();
   });
 
   return (
