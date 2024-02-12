@@ -45,9 +45,13 @@ const buttonGroupContainer: FormContainer = {
   pageIndex: 1,
   propertyPath: 'definitions/buttonGroupComponent',
 };
-const nonEditableContainers = [accordionContainer, accordionGroupContainer, buttonGroupContainer];
+const nonGroupContainers = [accordionContainer, accordionGroupContainer, buttonGroupContainer];
 
 const handleContainerUpdateMock = jest.fn();
+
+jest.mock('./FormComponentConfig', () => ({
+  FormComponentConfig: () => <div data-testid='formComponentConfig' />,
+}));
 
 describe('EditFormContainer', () => {
   afterEach(jest.clearAllMocks);
@@ -60,13 +64,11 @@ describe('EditFormContainer', () => {
     ).toBeInTheDocument();
   });
 
-  it.each(nonEditableContainers)(
-    'should show info message when container is not group',
+  it.each(nonGroupContainers)(
+    'should show component config generated from schema message when container is not group',
     async (container) => {
       await render({ container });
-      expect(
-        screen.getByText(textMock('ux_editor.container_not_editable_info')),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId('formComponentConfig')).toBeInTheDocument();
     },
   );
 

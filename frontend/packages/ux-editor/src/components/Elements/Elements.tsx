@@ -45,8 +45,7 @@ export const Elements = () => {
           </Accordion.Item>
         )}
       </Accordion>
-      <div className={classes.componentsList}>
-        <Heading size='xxsmall' className={classes.componentsHeader}>
+      <Heading size='xxsmall' className={classes.componentsHeader}>
           {t('left_menu.components')}
         </Heading>
         {hideComponents ? (
@@ -58,7 +57,6 @@ export const Elements = () => {
         ) : (
           <DefaultToolbar />
         )}
-      </div>
     </div>
   );
 };
