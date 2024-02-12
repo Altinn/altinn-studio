@@ -250,6 +250,38 @@ describe('AttachmentListComponent', () => {
     });
   });
 
+  it("should display current task as checked when data types in component contains 'current-task'", async () => {
+    await render(
+      {
+        component: {
+          ...defaultComponent,
+          dataTypeIds: ['current-task'],
+        },
+      },
+      'layoutSetId3',
+    );
+    const currentTaskCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.current_task'),
+    });
+    expect(currentTaskCheckbox).toBeChecked();
+  });
+
+  it("should display include task as checked when data types in component contains 'ref-data-as-pdf'", async () => {
+    await render(
+      {
+        component: {
+          ...defaultComponent,
+          dataTypeIds: ['ref-data-as-pdf'],
+        },
+      },
+      'layoutSetId3',
+    );
+    const includePdfCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.select_pdf'),
+    });
+    expect(includePdfCheckbox).toBeChecked();
+  });
+
   //This test only secure that studio doesn't crash when there is no layoutSets
   // In v4 there shouldn't be a case with apps with no layoutSets
   it('should render AttachmentList component even when there are no layout sets', async () => {
