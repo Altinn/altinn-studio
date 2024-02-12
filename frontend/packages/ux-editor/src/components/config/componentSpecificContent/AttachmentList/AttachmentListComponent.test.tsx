@@ -83,23 +83,11 @@ describe('AttachmentListComponent', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display "Alle vedlegg (eksl. PDF)" as selected by default if there is no dataTypeIds selected', async () => {
+  it('should display "Alle vedlegg" as selected by default if there are no dataTypeIds selected', async () => {
     await render();
-    expect(screen.getByText('Alle vedlegg (eksl. PDF)')).toBeInTheDocument();
-  });
-
-  it('should display "Alle vedlegg (inkl. PDF)" if include-all shows as selected in dataTypeIds', async () => {
-    await render(
-      {
-        component: {
-          ...defaultComponent,
-          dataTypeIds: ['include-all'],
-        },
-      },
-      'layoutSetId3',
-    );
-
-    expect(screen.getByText('Alle vedlegg (inkl. PDF)')).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.component_properties.select_all_attachments')),
+    ).toBeInTheDocument();
   });
 
   it('should display some specified datatypes if selected', async () => {
@@ -118,7 +106,7 @@ describe('AttachmentListComponent', () => {
     expect(screen.getByText('test4')).toBeInTheDocument();
   });
 
-  it('should unselect other data types when "Alle vedlegg (inkl. PDF)" is selected', async () => {
+  it('should unselect other data types when "Alle vedlegg" is selected', async () => {
     await render(
       {
         component: {
@@ -131,7 +119,9 @@ describe('AttachmentListComponent', () => {
 
     const dropdown = screen.getByRole('combobox');
     await act(() => user.click(dropdown));
-    const option = screen.getByRole('option', { name: 'Alle vedlegg (inkl. PDF)' });
+    const option = screen.getByRole('option', {
+      name: textMock('ux_editor.component_properties.select_all_attachments'),
+    });
     await act(() => user.click(option));
 
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -140,12 +130,12 @@ describe('AttachmentListComponent', () => {
     });
   });
 
-  it('should unselect other data types when "Alle vedlegg (eksl. PDF)" is selected', async () => {
+  it('should unselect "Alle vedlegg" when other data types is selected', async () => {
     await render(
       {
         component: {
           ...defaultComponent,
-          dataTypeIds: ['test1', 'test3', 'test4'],
+          dataTypeIds: ['include-all'],
         },
       },
       'layoutSetId3',
@@ -153,12 +143,12 @@ describe('AttachmentListComponent', () => {
 
     const dropdown = screen.getByRole('combobox');
     await act(() => user.click(dropdown));
-    const option = screen.getByRole('option', { name: 'Alle vedlegg (eksl. PDF)' });
+    const option = screen.getByRole('option', { name: 'test1' });
     await act(() => user.click(option));
 
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
-      dataTypeIds: [],
+      dataTypeIds: ['test1'],
     });
   });
 
@@ -187,16 +177,38 @@ describe('AttachmentListComponent', () => {
   it('should display only data types from current task when switch is checked', async () => {
     await render({}, 'layoutSetId3');
 
+    const dropdown = screen.getByRole('combobox');
     const currentTaskCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.current_task'),
     });
+
+    await act(() => user.click(dropdown));
+
+    expect(screen.getByRole('option', { name: 'test1' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'test4' })).toBeInTheDocument();
+
     await act(() => user.click(currentTaskCheckbox));
     expect(currentTaskCheckbox).toBeChecked();
 
-    const dropdown = screen.getByRole('combobox');
     await act(() => user.click(dropdown));
-    expect(screen.queryByText('test1')).not.toBeInTheDocument();
-    expect(screen.getByText('test4')).toBeInTheDocument();
+
+    expect(screen.queryByRole('option', { name: 'test1' })).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'test4' })).toBeInTheDocument();
+  });
+
+  it('should include pdf if the switch is set to true', async () => {
+    await render({}, 'layoutSetId3');
+
+    const includePdfCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.select_pdf'),
+    });
+
+    await act(() => user.click(includePdfCheckbox));
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      dataTypeIds: ['ref-data-as-pdf'],
+    });
   });
 
   it('should display all data types when in the last process task, except for data type with appLogic', async () => {
@@ -205,13 +217,15 @@ describe('AttachmentListComponent', () => {
     const dropdown = screen.getByRole('combobox');
     await act(() => user.click(dropdown));
 
-    expect(screen.getByRole('option', { name: 'Alle vedlegg (inkl. PDF)' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Alle vedlegg (eksl. PDF)' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Generert PDF' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.select_all_attachments'),
+      }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'test1' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'test3' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'test4' })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: 'test2' })).not.toBeInTheDocument(); // because data types with appLogic should not be included
+    expect(screen.queryByRole('option', { name: 'test2' })).not.toBeInTheDocument();
   });
 
   it('should update component when changing selected data types', async () => {
@@ -238,21 +252,14 @@ describe('AttachmentListComponent', () => {
 
   //This test only secure that studio doesn't crash when there is no layoutSets
   // In v4 there shouldn't be a case with apps with no layoutSets
-  it('should render AttachmentList component when there is no layoutSets', async () => {
+  it('should render AttachmentList component even when there are no layout sets', async () => {
     await render({}, undefined, null);
 
-    const dropdown = screen.getByRole('combobox');
-    expect(dropdown).toBeInTheDocument();
-
-    const currentTaskCheckbox = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.current_task'),
-    });
-    expect(currentTaskCheckbox).toBeInTheDocument();
-
-    await act(() => user.click(dropdown));
-    expect(screen.getByRole('option', { name: 'Alle vedlegg (inkl. PDF)' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Alle vedlegg (eksl. PDF)' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Generert PDF' })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: 'test1' })).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(
+      screen.getByRole('checkbox', {
+        name: textMock('ux_editor.component_properties.current_task'),
+      }),
+    ).toBeInTheDocument();
   });
 });
