@@ -29,12 +29,12 @@ export const AttachmentListComponent = ({
   );
 
   const tasks: string[] = getTasks(layoutSets, selectedLayoutSet, onlyCurrentTask);
-  const attachmentsToUse: string[] = getAttachments(tasks, appMetadata);
+  const attachmentsToDisplay: string[] = getAttachments(tasks, appMetadata);
 
-  const selectedAttachmentsToUse = selectedAttachments.filter((attachment: string) => {
+  const selectedAttachmentsToDisplay = selectedAttachments.filter((attachment: string) => {
     const isNotTaskId = attachment !== 'current-task';
     const isNotPdfId = attachment !== 'ref-data-as-pdf';
-    const isIncluded = attachmentsToUse.includes(attachment);
+    const isIncluded = attachmentsToDisplay.includes(attachment);
 
     return onlyCurrentTask ? isNotTaskId && isNotPdfId && isIncluded : isNotTaskId && isNotPdfId;
   });
@@ -78,8 +78,8 @@ export const AttachmentListComponent = ({
       <AttachmentListContent
         component={component}
         handleComponentChange={handleComponentChange}
-        selectedAttachments={selectedAttachmentsToUse}
-        attachments={attachmentsToUse}
+        selectedAttachments={selectedAttachmentsToDisplay}
+        attachments={attachmentsToDisplay}
         onlyCurrentTask={onlyCurrentTask}
         includePdf={includePdf}
       />
