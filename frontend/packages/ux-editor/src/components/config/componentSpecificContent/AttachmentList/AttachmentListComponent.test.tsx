@@ -250,7 +250,7 @@ describe('AttachmentListComponent', () => {
     });
   });
 
-  it("should display current task as checked when data types in component contains 'current-task'", async () => {
+  it("should display current task as checked when component contains 'current-task'", async () => {
     await render(
       {
         component: {
@@ -266,7 +266,7 @@ describe('AttachmentListComponent', () => {
     expect(currentTaskCheckbox).toBeChecked();
   });
 
-  it("should display include task as checked when data types in component contains 'ref-data-as-pdf'", async () => {
+  it("should display include pdfs as checked when component contains 'ref-data-as-pdf'", async () => {
     await render(
       {
         component: {
@@ -280,6 +280,50 @@ describe('AttachmentListComponent', () => {
       name: textMock('ux_editor.component_properties.select_pdf'),
     });
     expect(includePdfCheckbox).toBeChecked();
+  });
+
+  it('should update component when unchecking pdf', async () => {
+    await render(
+      {
+        component: {
+          ...defaultComponent,
+          dataTypeIds: ['ref-data-as-pdf', 'test1'],
+        },
+      },
+      'layoutSetId3',
+    );
+
+    const includePdfCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.select_pdf'),
+    });
+    await act(() => user.click(includePdfCheckbox));
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      dataTypeIds: ['test1'],
+    });
+  });
+
+  it('should update component when unchecking current task', async () => {
+    await render(
+      {
+        component: {
+          ...defaultComponent,
+          dataTypeIds: ['current-task', 'test4'],
+        },
+      },
+      'layoutSetId3',
+    );
+
+    const currentTaskCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.current_task'),
+    });
+    await act(() => user.click(currentTaskCheckbox));
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      dataTypeIds: ['test4'],
+    });
   });
 
   //This test only secure that studio doesn't crash when there is no layoutSets
