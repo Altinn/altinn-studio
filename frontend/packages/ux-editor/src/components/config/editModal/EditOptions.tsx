@@ -59,7 +59,6 @@ export function EditOptions<T extends SelectionComponentType>({
   handleComponentChange,
   renderOptions,
 }: ISelectionEditComponentProvidedProps<T>) {
-
   const previousEditFormId = useRef(editFormId);
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
