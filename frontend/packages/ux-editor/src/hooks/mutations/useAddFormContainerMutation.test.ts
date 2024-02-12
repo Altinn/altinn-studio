@@ -16,6 +16,7 @@ const selectedLayoutSet = 'test-layout-set';
 const container: FormContainer = {
   id,
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
 };
 const defaultArgs: AddFormContainerMutationArgs = {
   container,

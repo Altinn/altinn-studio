@@ -7,7 +7,7 @@ import { internalSimpleComponentToExternal } from './internalSimpleComponentToEx
 const id = '1';
 const customProperty = 'test';
 const type: ComponentType = ComponentType.Input;
-const propertyPath = formItemConfigs[type].defaultProperties.propertyPath;
+const propertyPath = formItemConfigs[type].propertyPath;
 
 describe('internalGroupComponentToExternal', () => {
   it('Correctly converts an internal simple component', () => {

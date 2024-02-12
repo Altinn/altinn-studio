@@ -12,6 +12,7 @@ import {
 import {
   definitionNodeMock,
   objectNodeMock,
+  referenceNodeMock,
   referredNodeMock,
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
@@ -99,6 +100,17 @@ describe('SchemaNode', () => {
     const deleteButtonTitle = textMock('general.delete');
     const deleteButton = screen.getByRole('button', { name: deleteButtonTitle });
     expect(deleteButton).toBeEnabled();
+  });
+
+  it('Enables the deletion of a child node from a definition that is currently in use', async () => {
+    const { pointer } = referenceNodeMock;
+    const save = jest.fn();
+    render({ pointer, save });
+
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    await act(() => user.click(deleteButton));
+    expect(save).toHaveBeenCalledTimes(1);
   });
 
   it('Saves the model correctly when a node is deleted', async () => {

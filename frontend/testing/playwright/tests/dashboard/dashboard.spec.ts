@@ -5,20 +5,24 @@ import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { DashboardPage } from 'testing/playwright/pages/DashboardPage';
 import { OverviewPage } from 'testing/playwright/pages/OverviewPage';
+import { Gitea } from '../../helpers/Gitea';
 
-// This line must be there to ensure that the tests do not run in parallell, and
-// that the before all call is being executed before we start the tests
-test.describe.configure({ mode: 'serial' });
+const getExtraAppName = (appName: string): string => `extra-app-${appName}`;
 
 // Before the tests starts, we need to create the dashboard app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
-  // Create 2 apps
-  const testAppName2: string = `${testAppName}2`;
-  const firstApp = await createApp(testAppName, request, storageState as StorageState);
-  const secondApp = await createApp(testAppName2, request, storageState as StorageState);
+  const response = await createApp(testAppName, request, storageState as StorageState);
+  expect(response.ok()).toBeTruthy();
+});
 
-  expect(firstApp.ok()).toBeTruthy();
-  expect(secondApp.ok()).toBeTruthy();
+test.afterAll(async ({ request, testAppName }) => {
+  const gitea = new Gitea();
+  const appsToDelete: string[] = [testAppName, getExtraAppName(testAppName)];
+
+  for (const app of appsToDelete) {
+    const response = await request.delete(gitea.getDeleteAppEndpoint({ app }));
+    expect(response.ok()).toBeTruthy();
+  }
 });
 
 const createApp = async (
@@ -72,14 +76,24 @@ test('It is possible to change context and view only Testdepartementet apps', as
   await dashboardPage.checkThatTTDApplicationsHeaderIsVisible();
 });
 
-test('It is possible to search an app by name', async ({ page, testAppName }) => {
+test('It is possible to search an app by name', async ({
+  page,
+  testAppName,
+  request,
+  storageState,
+}) => {
   const dashboardPage = await setupAndVerifyDashboardPage(page, testAppName);
-  const testAppName2 = `${testAppName}2`;
+  const testAppName2 = getExtraAppName(testAppName);
+
+  // Need to wait a bit to make sure that Gitea does not crash
+  dashboardPage.waitForXAmountOfMilliseconds(3000);
+  const response = await createApp(testAppName2, request, storageState as StorageState);
+  expect(response.ok()).toBeTruthy();
 
   await dashboardPage.checkThatAppIsVisible(testAppName);
   await dashboardPage.checkThatAppIsVisible(testAppName2);
 
-  await dashboardPage.typeInSearchField('2');
+  await dashboardPage.typeInSearchField('extra');
   await dashboardPage.checkThatAppIsHidden(testAppName);
   await dashboardPage.checkThatAppIsVisible(testAppName2);
 });

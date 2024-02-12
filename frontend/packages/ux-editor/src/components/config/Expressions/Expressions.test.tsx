@@ -89,6 +89,7 @@ describe('Expressions', () => {
     const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer = {
       id: 'some-id',
       itemType: 'CONTAINER',
+      type: ComponentType.Group,
       hidden: parsableExternalExpression,
       required: parsableExternalExpression,
       readOnly: parsableExternalExpression,
@@ -162,6 +163,7 @@ describe('Expressions', () => {
     const component: FormContainer = {
       id: 'some-id',
       itemType: 'CONTAINER',
+      type: ComponentType.Group,
       edit: {
         multiPage: true,
       },

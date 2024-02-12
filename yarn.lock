@@ -4051,15 +4051,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/jest@npm:0.2.31":
-  version: 0.2.31
-  resolution: "@swc/jest@npm:0.2.31"
+"@swc/counter@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "@swc/counter@npm:0.1.3"
+  checksum: df8f9cfba9904d3d60f511664c70d23bb323b3a0803ec9890f60133954173047ba9bdeabce28cd70ba89ccd3fd6c71c7b0bd58be85f611e1ffbe5d5c18616598
+  languageName: node
+  linkType: hard
+
+"@swc/jest@npm:0.2.36":
+  version: 0.2.36
+  resolution: "@swc/jest@npm:0.2.36"
   dependencies:
     "@jest/create-cache-key-function": "npm:^29.7.0"
+    "@swc/counter": "npm:^0.1.3"
     jsonc-parser: "npm:^3.2.0"
   peerDependencies:
     "@swc/core": "*"
-  checksum: cbd5a2c4919bc1abd8be29d6a027a800bd6781ff655c6d2f6eceb9b1969ee5b3ffa030c99aae53a1bfd0e43a98bc801f648a630df5e0470810df3e9a706c5c5a
+  checksum: 39c5699646f0e90400af106156e5604069e8a7d8216f2421e171837b086839176c16f69925ce6a5c4c48182005eed649bdf9664023708e169aa48814feecc0d8
   languageName: node
   linkType: hard
 
@@ -5467,7 +5475,7 @@ __metadata:
     "@redux-saga/symbols": "npm:1.1.3"
     "@svgr/webpack": "npm:8.1.0"
     "@swc/core": "npm:1.3.104"
-    "@swc/jest": "npm:0.2.31"
+    "@swc/jest": "npm:0.2.36"
     "@tanstack/react-query": "npm:5.17.15"
     "@tanstack/react-query-devtools": "npm:5.17.18"
     "@testing-library/dom": "npm:9.3.4"
@@ -5518,7 +5526,7 @@ __metadata:
     source-map-loader: "npm:4.0.2"
     style-loader: "npm:3.3.4"
     svg-inline-loader: "npm:0.8.2"
-    swc-loader: "npm:0.2.3"
+    swc-loader: "npm:0.2.6"
     terser-webpack-plugin: "npm:5.3.10"
     ts-loader: "npm:9.5.1"
     ts-morph: "npm:21.0.1"
@@ -15445,13 +15453,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swc-loader@npm:0.2.3":
-  version: 0.2.3
-  resolution: "swc-loader@npm:0.2.3"
+"swc-loader@npm:0.2.6":
+  version: 0.2.6
+  resolution: "swc-loader@npm:0.2.6"
+  dependencies:
+    "@swc/counter": "npm:^0.1.3"
   peerDependencies:
     "@swc/core": ^1.2.147
     webpack: ">=2"
-  checksum: 010d84d399525c0185d36d62c86c55ae017e7a90046bc8a39be4b7e07526924037868049f6037bc966da98151cb2600934b96a66279b742d3c413a718b427251
+  checksum: fe90948c02a51bb8ffcff1ce3590e01dc12860b0bb7c9e22052b14fa846ed437781ae265614a5e14344bea22001108780f00a6e350e28c0b3499bc4cd11335fb
   languageName: node
   linkType: hard
 
@@ -16320,6 +16330,33 @@ __metadata:
   checksum: 9a5f7aa1d6f56dd1e8d5f2478f855f25c645e64e26e347a98e98d95781d5ed20062d6cca2eecb58ba7c84bc3910be95c0451ef4161906abaab44f9cb68ffbdd1
   languageName: node
   linkType: hard
+
+"ux-editor-v3@workspace:frontend/packages/ux-editor-v3":
+  version: 0.0.0-use.local
+  resolution: "ux-editor-v3@workspace:frontend/packages/ux-editor-v3"
+  dependencies:
+    "@mui/material": "npm:5.15.5"
+    "@redux-devtools/extension": "npm:3.0.0"
+    "@reduxjs/toolkit": "npm:1.9.7"
+    "@studio/icons": "workspace:^"
+    axios: "npm:1.6.5"
+    classnames: "npm:2.5.1"
+    jest: "npm:29.7.0"
+    react: "npm:18.2.0"
+    react-dnd: "npm:16.0.1"
+    react-dnd-html5-backend: "npm:16.0.1"
+    react-dom: "npm:18.2.0"
+    react-modal: "npm:3.16.1"
+    react-redux: "npm:8.1.3"
+    react-select: "npm:5.8.0"
+    redux: "npm:4.2.1"
+    reselect: "npm:4.1.8"
+    typescript: "npm:5.3.3"
+    uuid: "npm:9.0.1"
+  peerDependencies:
+    webpack: 5.89.0
+  languageName: unknown
+  linkType: soft
 
 "ux-editor@workspace:frontend/packages/ux-editor":
   version: 0.0.0-use.local

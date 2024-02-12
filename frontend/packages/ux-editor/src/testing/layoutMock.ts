@@ -15,7 +15,7 @@ export const layout2NameMock = 'Side2';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = 'Component-1';
 export const component1TypeMock = ComponentType.Input;
-export const component1Mock: FormComponent = {
+export const component1Mock: FormComponent<ComponentType.Input> = {
   id: component1IdMock,
   type: component1TypeMock,
   itemType: 'COMPONENT',
@@ -24,7 +24,7 @@ export const component1Mock: FormComponent = {
 };
 export const component2IdMock = 'Component-2';
 export const component2TypeMock = ComponentType.Paragraph;
-export const component2Mock: FormComponent = {
+export const component2Mock: FormComponent<ComponentType.Paragraph> = {
   id: component2IdMock,
   type: component2TypeMock,
   itemType: 'COMPONENT',
@@ -48,12 +48,14 @@ export const layoutMock: IInternalLayout = {
     [baseContainerIdMock]: {
       id: baseContainerIdMock,
       itemType: 'CONTAINER',
+      type: undefined,
       index: 0,
       pageIndex: null,
     },
     [container1IdMock]: {
       id: container1IdMock,
       itemType: 'CONTAINER',
+      type: ComponentType.Group,
       pageIndex: null,
       propertyPath: 'definitions/groupComponent',
     },

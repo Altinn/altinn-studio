@@ -1,6 +1,6 @@
 export const altinnCustomTasks = {
   name: 'AltinnTask',
-  uri: 'http://altinn.no',
+  uri: 'http://altinn.no/process',
   prefix: 'altinn',
   xml: {
     tagAlias: 'lowerCase',
@@ -18,7 +18,7 @@ export const altinnCustomTasks = {
         {
           name: 'actions',
           isMany: false,
-          type: 'Action',
+          type: 'Actions',
         },
         {
           name: 'signatureConfig',

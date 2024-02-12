@@ -1,6 +1,6 @@
 import React from 'react';
-import { screen, waitFor, act } from '@testing-library/react';
-import { FormContextProvider, FormContext } from './FormContext';
+import { act, screen, waitFor } from '@testing-library/react';
+import { FormContext, FormContextProvider } from './FormContext';
 import userEvent from '@testing-library/user-event';
 import type { UpdateFormContainerMutationArgs } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
@@ -57,7 +57,7 @@ describe('FormContext', () => {
 
   it('should update the form when calling handleUpdate', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
 
     render(() => {
       const { form, handleUpdate } = React.useContext(FormContext);
@@ -83,7 +83,7 @@ describe('FormContext', () => {
 
   it('should edit the form when calling handleEdit', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
 
     const { store } = render(() => {
       const { formId, form, handleEdit } = React.useContext(FormContext);
@@ -115,7 +115,7 @@ describe('FormContext', () => {
 
   it('should render id and itemType when calling handleEdit with truthy updatedForm', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
     const { store } = render(() => {
       const { formId, form, handleEdit } = React.useContext(FormContext);
       return (
@@ -176,7 +176,7 @@ describe('FormContext', () => {
 
   it('should save the container when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
 
     render(() => {
       const { handleSave } = React.useContext(FormContext);
@@ -191,7 +191,7 @@ describe('FormContext', () => {
 
   it('should save the container and its new id when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
 
     render(() => {
       const { formId, handleSave } = React.useContext(FormContext);
@@ -214,7 +214,7 @@ describe('FormContext', () => {
 
   it('should save the container when calling debounceSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER' };
+    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
 
     render(() => {
       const { debounceSave } = React.useContext(FormContext);

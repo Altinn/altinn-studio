@@ -1,22 +1,37 @@
 const { get } = require('http');
 module.exports = (url) =>
   new Promise(function (resolve, reject) {
-    let attemts = 0;
+    let attempts = 0;
+
+    const checkAttempts = () => {
+      attempts++;
+      if (attempts > 10) {
+        clearInterval(intervalId);
+        console.log('Giving up: ', url);
+        reject('Giving up this');
+      } else {
+        console.log('Waiting for:', url);
+      }
+    };
+
     const intervalId = setInterval(function () {
-      get(url, (res) => {
+      const req = get(url, (res) => {
         if (res.statusCode === 200) {
           console.log(url, ' is up!');
           clearInterval(intervalId);
           resolve();
         } else {
-          console.log('Waiting for:', url);
+          checkAttempts();
         }
-        if (attemts > 10) {
-          clearInterval(intervalId);
-          console.log('Giving up: ', url);
-          reject('Giving up this');
+      });
+
+      req.on('error', (err) => {
+        if (err.code !== 'ECONNREFUSED') {
+          console.error(err);
+          reject();
+        } else {
+          checkAttempts();
         }
-        attemts++;
-      }).end();
+      });
     }, 1000);
   });

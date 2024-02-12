@@ -1,0 +1,48 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/ActionButton.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ActionButton component",
+  "description": "Schema that describes the layout configuration for a ActionButton component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "ActionButton"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": ["title"],
+      "additionalProperties": true
+    },
+    "action": {
+      "type": "string",
+      "title": "Action",
+      "description": "The action to be triggered when the button is clicked.",
+      "examples": ["sign, confirm, reject"]
+    },
+    "buttonStyle": {
+      "type": "string",
+      "title": "Button style",
+      "description": "The style of the button.",
+      "enum": ["primary", "secondary"]
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    }
+  },
+  "required": ["id", "type", "action"],
+  "additionalProperties": false
+}
