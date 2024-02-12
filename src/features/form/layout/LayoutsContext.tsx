@@ -11,7 +11,6 @@ import { useHasInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import type { ExprObjConfig, ExprVal } from 'src/features/expressions/types';
-import type { ILayoutFileExternal } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IHiddenLayoutsExternal } from 'src/types';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -60,22 +59,13 @@ export const useLayouts = () => useCtx().layouts;
 
 export const useHiddenLayoutsExpressions = () => useCtx().hiddenLayoutsExpressions;
 
-function isSingleLayout(layouts: ILayoutCollection | ILayoutFileExternal): layouts is ILayoutFileExternal {
-  return 'data' in layouts && 'layout' in layouts.data && Array.isArray(layouts.data.layout);
-}
-
-function processLayouts(input: ILayoutCollection | ILayoutFileExternal): LayoutContextValue {
+function processLayouts(input: ILayoutCollection): LayoutContextValue {
   const layouts: ILayouts = {};
   const hiddenLayoutsExpressions: IHiddenLayoutsExternal = {};
-  if (isSingleLayout(input)) {
-    layouts['FormLayout'] = cleanLayout(input.data.layout);
-    hiddenLayoutsExpressions['FormLayout'] = input.data.hidden;
-  } else {
-    for (const key of Object.keys(input)) {
-      const file = input[key];
-      layouts[key] = cleanLayout(file.data.layout);
-      hiddenLayoutsExpressions[key] = file.data.hidden;
-    }
+  for (const key of Object.keys(input)) {
+    const file = input[key];
+    layouts[key] = cleanLayout(file.data.layout);
+    hiddenLayoutsExpressions[key] = file.data.hidden;
   }
 
   const config: ExprObjConfig<{ hidden: ExprVal.Boolean; whatever: string }> = {
