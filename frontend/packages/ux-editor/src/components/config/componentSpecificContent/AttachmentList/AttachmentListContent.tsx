@@ -1,94 +1,67 @@
 import React from 'react';
-import { Combobox, Switch } from '@digdir/design-system-react';
+import { Combobox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import type { IGenericEditComponent } from '../../componentConfig';
 import classes from './AttachmentListContent.module.css';
 
 type IAttachmentListContent = IGenericEditComponent & {
-  dataTypes: string[];
-  setOnlyCurrentTask: (value: boolean) => void;
+  selectedAttachments: string[];
+  attachments: string[];
   onlyCurrentTask: boolean;
+  includePdf: boolean;
 };
 
 export const AttachmentListContent = ({
   component,
   handleComponentChange,
-  dataTypes,
-  setOnlyCurrentTask,
+  selectedAttachments,
+  attachments,
   onlyCurrentTask,
+  includePdf,
 }: IAttachmentListContent) => {
   const { t } = useTranslation();
 
-  const handleValueChanges = (updateDataTypes: string[]) => {
-    const last = updateDataTypes[updateDataTypes.length - 1];
-    switch (last) {
-      case 'include-all':
-        updateDataTypes = ['include-all'];
-        break;
-      case 'include-attachments':
-        updateDataTypes = [];
-        break;
-      default:
-        updateDataTypes = updateDataTypes.filter(
-          (dataType) => dataType !== 'include-all' && dataType !== 'include-attachments',
-        );
-        break;
+  const handleValueChanges = (updatedSelection: string[]) => {
+    const lastSelected = updatedSelection[updatedSelection.length - 1];
+
+    updatedSelection =
+      lastSelected === 'include-all'
+        ? ['include-all']
+        : updatedSelection.filter((dataType) => dataType !== 'include-all');
+
+    if (onlyCurrentTask) {
+      updatedSelection.push('current-task');
     }
-    handleComponentChange({ ...component, dataTypeIds: updateDataTypes });
+    if (includePdf) {
+      updatedSelection.push('ref-data-as-pdf');
+    }
+
+    handleComponentChange({ ...component, dataTypeIds: updatedSelection });
   };
 
-  const getSelectedDataTypes = () => {
-    let value: string[];
-    if (onlyCurrentTask) {
-      const currentDataTypes = component.dataTypeIds.filter((dataType: string) =>
-        dataTypes.includes(dataType),
-      );
-      value = currentDataTypes;
-    } else {
-      value = component.dataTypeIds ?? [];
-    }
-
-    return value.length === 0 ? ['include-attachments'] : value;
+  const getDescription = (dataType: string) => {
+    return dataType === 'include-all' ? 'Alle vedlegg' : dataType;
   };
 
   return (
-    <>
-      <Switch onChange={() => setOnlyCurrentTask(!onlyCurrentTask)} size='small'>
-        {t('ux_editor.component_properties.current_task')}
-      </Switch>
-
-      <Combobox
-        multiple
-        label={t('ux_editor.component_properties.select_attachments')}
-        className={classes.comboboxLabel}
-        size='small'
-        value={getSelectedDataTypes()}
-        onValueChange={handleValueChanges}
-      >
-        {dataTypes.map((dataType) => {
-          return (
-            <Combobox.Option
-              key={dataType}
-              value={dataType}
-              description={getDescription(dataType)}
-              displayValue={getDescription(dataType)}
-            />
-          );
-        })}
-      </Combobox>
-    </>
+    <Combobox
+      multiple
+      label={t('ux_editor.component_properties.select_attachments')}
+      className={classes.comboboxLabel}
+      size='small'
+      value={selectedAttachments.length === 0 ? ['include-all'] : selectedAttachments}
+      onValueChange={handleValueChanges}
+    >
+      {attachments?.map((attachment) => {
+        return (
+          <Combobox.Option
+            key={attachment}
+            value={attachment}
+            description={getDescription(attachment)}
+            displayValue={getDescription(attachment)}
+          />
+        );
+      })}
+    </Combobox>
   );
-};
-
-const getDescription = (dataType: string) => {
-  switch (dataType) {
-    case 'ref-data-as-pdf':
-      return 'Generert PDF';
-    case 'include-all':
-      return 'Alle vedlegg (inkl. PDF)';
-    case 'include-attachments':
-      return 'Alle vedlegg (eksl. PDF)';
-    default:
-      return dataType;
-  }
 };
