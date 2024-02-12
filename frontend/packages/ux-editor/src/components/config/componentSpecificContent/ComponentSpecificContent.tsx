@@ -1,7 +1,6 @@
 import React from 'react';
 import { ImageComponent } from './Image';
 import { PanelComponent } from './Panel';
-import { ButtonComponent } from './Button';
 import { AddressComponent } from './Address';
 import { FileUploadComponent } from './FileUpload';
 import type { IGenericEditComponent } from '../componentConfig';
@@ -15,16 +14,6 @@ export function ComponentSpecificContent({
   layoutName,
 }: IGenericEditComponent) {
   switch (component.type) {
-    case ComponentType.NavigationButtons:
-    case ComponentType.Button:
-      return (
-        <ButtonComponent
-          component={component}
-          handleComponentChange={handleComponentChange}
-          layoutName={layoutName}
-        />
-      );
-
     case ComponentType.AddressComponent:
       return (
         <AddressComponent

@@ -30,6 +30,14 @@ export const component2Mock: FormComponent<ComponentType.Paragraph> = {
   itemType: 'COMPONENT',
   pageIndex: null,
 };
+export const componentWithOptionsMock: FormComponent = {
+  id: 'ComponentWithOptionsMock',
+  type: ComponentType.Checkboxes,
+  itemType: 'COMPONENT',
+  pageIndex: null,
+  optionsId: '',
+  propertyPath: 'definitions/radioAndCheckboxComponents',
+};
 export const container1IdMock = 'Container-1';
 export const customRootPropertiesMock: KeyValuePairs = {
   someCustomRootProp: 'someStringValue',
@@ -43,6 +51,7 @@ export const layoutMock: IInternalLayout = {
   components: {
     [component1IdMock]: component1Mock,
     [component2IdMock]: component2Mock,
+    ComponentWithOptionsMock: componentWithOptionsMock,
   },
   containers: {
     [baseContainerIdMock]: {
@@ -61,7 +70,7 @@ export const layoutMock: IInternalLayout = {
     },
   },
   order: {
-    [baseContainerIdMock]: [container1IdMock],
+    [baseContainerIdMock]: [container1IdMock, 'ComponentWithOptionsMock'],
     [container1IdMock]: [component1IdMock, component2IdMock],
   },
   customRootProperties: customRootPropertiesMock,
@@ -84,6 +93,11 @@ export const layout1Mock: ExternalFormLayout = {
       {
         id: component2IdMock,
         type: component2TypeMock,
+      },
+      {
+        id: 'ComponentWithOptionsMock',
+        type: ComponentType.Checkboxes,
+        optionsId: '',
       },
     ],
     ...customDataPropertiesMock,
