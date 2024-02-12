@@ -31,16 +31,6 @@ namespace Designer.Tests.GiteaIntegrationTests
         protected override string TestRepositoriesLocation =>
             Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
 
-        /// <summary>
-        /// Used when performing chained calls to designer api
-        /// </summary>
-        protected void InvalidateAllCookies()
-        {
-            foreach (Cookie cookie in CookieContainer.GetAllCookies())
-            {
-                cookie.Expires = DateTime.Now - TimeSpan.FromHours(1);
-            }
-        }
 
         protected override void Dispose(bool disposing)
         {
@@ -135,7 +125,6 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.Created);
-            InvalidateAllCookies();
         }
 
         protected static string GetCommitInfoJson(string text, string org, string repository) =>

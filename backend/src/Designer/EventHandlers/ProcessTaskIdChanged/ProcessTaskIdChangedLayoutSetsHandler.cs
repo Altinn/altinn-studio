@@ -9,7 +9,7 @@ namespace Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 
 public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<ProcessTaskIdChangedEvent>
 {
-    private IHubContext<SyncHub, ISyncClient> _hubContext;
+    private readonly IHubContext<SyncHub, ISyncClient> _hubContext;
 
     public ProcessTaskIdChangedLayoutSetsHandler(IHubContext<SyncHub, ISyncClient> hubContext)
     {

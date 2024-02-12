@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Hubs.Auth;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -7,8 +8,7 @@ using Xunit;
 
 namespace Designer.Tests.Hubs.SyncHub;
 
-public class SyncHubConnectionTests : DisagnerEndpointsTestsBase<SyncHubConnectionTests>,
-    IClassFixture<WebApplicationFactory<Program>>
+public class SyncHubConnectionTests : DisagnerEndpointsTestsBase<SyncHubConnectionTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private HubConnection HubConnection { get; set; }
 
@@ -27,17 +27,18 @@ public class SyncHubConnectionTests : DisagnerEndpointsTestsBase<SyncHubConnecti
         Then.HubConnection.State.Should().Be(HubConnectionState.Disconnected);
     }
 
-
     private async Task ConnectionStarted()
     {
         var client = HttpClient;
-        var server = Factory.Server;
+
         HubConnection = new HubConnectionBuilder()
-            .WithUrl($"ws://localhost/sync-hub", o =>
+            .WithUrl("ws://localhost/sync-hub", o =>
             {
-                o.HttpMessageHandlerFactory = _ => server.CreateHandler();
-            })
-            .Build();
+                o.HttpMessageHandlerFactory = h => new HubAuthDelegatingHandler(client)
+                {
+                    InnerHandler = Factory.Server.CreateHandler()
+                };
+            }).Build();
 
         await HubConnection.StartAsync();
     }
