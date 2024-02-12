@@ -2,6 +2,7 @@ import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Locator, Page } from '@playwright/test';
 import * as testids from '../../testids';
+import type { ComponentType } from '../enum/ComponentType';
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -30,17 +31,19 @@ export class UiEditorPage extends BasePage {
     await this.page.getByText(this.textMock('ux_editor.container_empty')).isVisible();
   }
 
-  public async dragTitleInputComponentInToDroppableList(): Promise<void> {
+  public async dragComponentInToDroppableList(component: ComponentType): Promise<void> {
     const dropDestination = this.getDroppableList();
     await this.getToolbarItems()
-      .getByText(this.textMock('ux_editor.component_title.Input'))
+      .getByText(this.textMock(`ux_editor.component_title.${component}`))
       .dragTo(dropDestination);
   }
 
-  public async verifyThatInputComponentTreeItemIsVisibleInDroppableList(): Promise<void> {
+  public async verifyThatComponentTreeItemIsVisibleInDroppableList(
+    component: ComponentType,
+  ): Promise<void> {
     await this.page
       .getByRole('treeitem', {
-        name: this.textMock('ux_editor.component_title.Input'),
+        name: this.textMock(`ux_editor.component_title.${component}`),
       })
       .isVisible();
   }
@@ -73,6 +76,77 @@ export class UiEditorPage extends BasePage {
         name: this.textMock('ux_editor.component_title.NavigationButtons'),
       })
       .isVisible();
+  }
+
+  public async openTextComponentSection(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('ux_editor.collapsable_text_components'),
+      })
+      .click();
+  }
+
+  public async getBetaConfigSwitchValue(): Promise<boolean> {
+    return await this.page
+      .getByRole('checkbox', {
+        name: this.textMock('ux_editor.edit_component.show_beta_func'),
+      })
+      .isChecked();
+  }
+
+  public async clickOnTurnOnBetaConfigSwitch(): Promise<void> {
+    await this.page
+      .getByRole('checkbox', {
+        name: this.textMock('ux_editor.edit_component.show_beta_func'),
+      })
+      .click();
+  }
+
+  public async clickOnAddTextType(): Promise<void> {
+    await this.page
+      .getByRole('combobox', { name: this.textMock('ux_editor.text_resource_bindings.add_label') })
+      .click();
+  }
+
+  public async clickOnLabelOption(): Promise<void> {
+    await this.page
+      .getByRole('option', {
+        name: this.textMock('ux_editor.modal_properties_textResourceBindings_title'),
+      })
+      .click();
+  }
+
+  public async clickOnAddLabelText(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('general.add'),
+        exact: true,
+      })
+      .click();
+  }
+
+  public async writeLabelTextInTextarea(text: string): Promise<void> {
+    await this.page
+      .getByRole('textbox', {
+        name: this.textMock('language.nb'),
+      })
+      .fill(text);
+  }
+
+  public async clickOnSaveNewLabelName(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('general.close'),
+      })
+      .click();
+  }
+
+  public async verifyThatTreeItemByNameIsNotVisibleInDroppableList(name: string): Promise<void> {
+    await this.page.getByRole('treeitem', { name }).isHidden();
+  }
+
+  public async verifyThatTreeItemByNameIsVisibleInDroppableList(name: string): Promise<void> {
+    await this.page.getByRole('treeitem', { name }).isVisible();
   }
 
   private getToolbarItems(): Locator {

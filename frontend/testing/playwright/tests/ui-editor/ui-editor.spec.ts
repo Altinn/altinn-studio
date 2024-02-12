@@ -5,6 +5,7 @@ import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { Gitea } from '../../helpers/Gitea';
+import { ComponentType } from '../../enum/ComponentType';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -37,12 +38,12 @@ test('That it is possible to add and delete form components', async ({
   const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
 
   const page1: string = 'Side1';
-  await uiEditorPage.clickOnPageAccordion(page1);
-  await uiEditorPage.verifyThatPageIsEmpty();
-  await uiEditorPage.verifyUiEditorPage(page1); // When clicking the page, the url is updated to include the layout
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
 
-  await uiEditorPage.dragTitleInputComponentInToDroppableList();
-  await uiEditorPage.verifyThatInputComponentTreeItemIsVisibleInDroppableList();
+  await uiEditorPage.verifyThatPageIsEmpty();
+
+  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.clickOnDeleteInputComponentButton();
 
@@ -58,9 +59,9 @@ test('That when adding more than one page, navigation buttons are added to the p
   const page1: string = 'Side1';
   const page2: string = 'Side2';
 
-  await uiEditorPage.clickOnPageAccordion(page1);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
+
   await uiEditorPage.verifyThatPageIsEmpty();
-  await uiEditorPage.verifyUiEditorPage(page1);
 
   await uiEditorPage.clickOnAddNewPage();
   await uiEditorPage.verifyThatNewPageIsVisible(page2);
@@ -74,3 +75,62 @@ test('That when adding more than one page, navigation buttons are added to the p
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 });
+
+test('That it is possible to add a Header component and edit the name of the component', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
+
+  const page1: string = 'Side1';
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
+
+  await uiEditorPage.openTextComponentSection();
+  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Header);
+  await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Header);
+
+  const newHeaderName: string = 'New Header';
+  await addNewLabelToTreeItemComponent(uiEditorPage, newHeaderName);
+});
+
+test('That it is possible to add a data model binding, and that the files are updated accordingly in Gitea', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
+
+  const page1: string = 'Side1';
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
+
+  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Input);
+
+  const newInputLabel: string = 'Input Label 1';
+  await addNewLabelToTreeItemComponent(uiEditorPage, newInputLabel);
+});
+
+const openPageAccordionAndVerifyUpdatedUrl = async (
+  uiEditorPage: UiEditorPage,
+  pageName: string,
+): Promise<void> => {
+  await uiEditorPage.clickOnPageAccordion(pageName);
+  await uiEditorPage.verifyUiEditorPage(pageName); // When clicking the page, the url is updated to include the layout
+};
+
+const addNewLabelToTreeItemComponent = async (
+  uiEditorPage: UiEditorPage,
+  newInputLabel: string,
+) => {
+  const isBeta: boolean = await uiEditorPage.getBetaConfigSwitchValue();
+
+  if (!isBeta) {
+    await uiEditorPage.clickOnTurnOnBetaConfigSwitch();
+  }
+  await uiEditorPage.clickOnAddTextType();
+  await uiEditorPage.clickOnLabelOption();
+  await uiEditorPage.clickOnAddLabelText();
+  await uiEditorPage.writeLabelTextInTextarea(newInputLabel);
+  await uiEditorPage.clickOnSaveNewLabelName();
+  await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
+  await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
+};
