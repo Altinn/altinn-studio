@@ -12,6 +12,8 @@ import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 
 // Test data:
 const srcValueLabel = 'Source';
+const autocompleteLabel = 'Autocomplete';
+const datamodelFieldLinkLabel = 'Add data model field';
 const texts = {
   'general.label': '',
   'general.value': '',
@@ -22,14 +24,12 @@ const texts = {
   'ux_editor.modal_properties_image_placement_label': 'Placement',
   'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
   'ux_editor.modal_properties_image_width_label': 'Width',
+  'ux_editor.component_properties.autocomplete': autocompleteLabel,
+  'ux_editor.modal_properties_data_model_link': datamodelFieldLinkLabel,
 };
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
-const buttonSpecificContentId = 'button-specific-content';
-jest.mock('./componentSpecificContent/Button/ButtonComponent', () => ({
-  ButtonComponent: () => <div data-testid={buttonSpecificContentId} />,
-}));
 const imageSpecificContentId = 'image-specific-content';
 jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
@@ -115,14 +115,6 @@ describe('EditFormComponent', () => {
       },
     });
 
-    const testIdButton = screen.getByRole('button', { name: 'ID: test' });
-    expect(testIdButton).toBeInTheDocument();
-
-    await act(() => user.click(testIdButton));
-    await waitFor(() =>
-      expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id')),
-    );
-
     await waitFor(() =>
       expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' })),
     );
@@ -141,7 +133,6 @@ describe('EditFormComponent', () => {
     await act(() => user.click(testIdButton));
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id',
       'ux_editor.modal_properties_file_upload_simple',
       'ux_editor.modal_properties_file_upload_list',
       'ux_editor.modal_properties_valid_file_endings_all',
@@ -196,15 +187,6 @@ describe('EditFormComponent', () => {
     });
   });
 
-  test('should return button specific content when type button', async () => {
-    await render({
-      componentProps: {
-        type: ComponentType.Button,
-      },
-    });
-    expect(await screen.findByTestId(buttonSpecificContentId)).toBeInTheDocument();
-  });
-
   test('should render Image component when component type is Image', async () => {
     await render({
       componentProps: {
@@ -243,7 +225,6 @@ const waitForData = async () => {
     { getDatamodelMetadata },
   )(() => useDatamodelMetadataQuery('test-org', 'test-app')).renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async ({

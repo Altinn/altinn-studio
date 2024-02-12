@@ -1,6 +1,6 @@
 import type { IInternalLayout } from '../../types/global';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
@@ -54,8 +54,8 @@ export const useUpdateFormComponentMutation = (
         parentContainerOrder[containerIndex] = newId;
       } else {
         if (
-          components[id]?.type === ComponentType.RadioButtons ||
-          components[id]?.type === ComponentType.Checkboxes
+          components[id]?.type === ComponentTypeV3.RadioButtons ||
+          components[id]?.type === ComponentTypeV3.Checkboxes
         ) {
           delete components[id].options;
           delete components[id].optionsId;
@@ -66,8 +66,8 @@ export const useUpdateFormComponentMutation = (
       return saveLayout(updatedLayout)
         .then(async (data) => {
           if (
-            updatedComponent.type === ComponentType.FileUpload ||
-            updatedComponent.type === ComponentType.FileUploadWithTag
+            updatedComponent.type === ComponentTypeV3.FileUpload ||
+            updatedComponent.type === ComponentTypeV3.FileUploadWithTag
           ) {
             // Todo: Consider handling this in the backend
             const taskId = layoutSets

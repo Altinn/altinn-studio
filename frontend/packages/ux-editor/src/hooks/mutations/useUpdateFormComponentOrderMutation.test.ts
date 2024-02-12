@@ -45,6 +45,7 @@ describe('useUpdateFormComponentOrderMutation', () => {
         data: expect.objectContaining({
           layout: [
             expect.objectContaining({ id: container1IdMock }),
+            expect.objectContaining({ id: 'ComponentWithOptionsMock' }),
             expect.objectContaining({ id: component2IdMock }),
             expect.objectContaining({ id: component1IdMock }),
           ],

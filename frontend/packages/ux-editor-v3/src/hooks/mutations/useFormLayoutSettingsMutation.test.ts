@@ -9,7 +9,7 @@ const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
 describe('useFormLayoutSettingsMutation', () => {
-  it('Calls saveFormLayoutSettings with correct arguments and payload', async () => {
+  it('Calls saveFormLayoutV3Settings with correct arguments and payload', async () => {
     const settingsResult = renderHookWithMockStore()(() =>
       useFormLayoutSettingsMutation(org, app, selectedLayoutSet),
     ).renderHookResult.result;

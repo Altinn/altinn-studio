@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { FormContext } from '../../containers/FormContext';
 import { container1IdMock, layoutMock } from '../../testing/layoutMock';
+import { container1IdMock, layoutMock } from '../../testing/layoutMock';
 import type { IAppDataState } from '../../features/appData/appDataReducers';
 import type { ITextResourcesState } from '../../features/appData/textResources/textResourcesSlice';
 import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mocks';
@@ -12,23 +13,10 @@ import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
 import { formContextProviderMock } from '../../testing/formContextMocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 
-// Test data:
-const textResourceEditTestId = 'text-resource-edit';
-
-// Mocks:
-jest.mock('../TextResourceEdit', () => ({
-  TextResourceEdit: () => <div data-testid={textResourceEditTestId} />,
-}));
+const user = userEvent.setup();
 
 describe('ContentTab', () => {
   afterEach(jest.clearAllMocks);
-
-  describe('when editing a text resource', () => {
-    it('should render the component', async () => {
-      await render({ props: {}, editId: 'test' });
-      expect(screen.getByTestId(textResourceEditTestId)).toBeInTheDocument();
-    });
-  });
 
   describe('when editing a container', () => {
     const props = {

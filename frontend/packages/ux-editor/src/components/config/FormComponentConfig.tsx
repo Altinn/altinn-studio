@@ -1,19 +1,13 @@
 import React from 'react';
-import { EditComponentId } from './editModal/EditComponentId';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
-import { EditDataModelBindings } from './editModal/EditDataModelBindings';
-import { EditTextResourceBindings } from './editModal/EditTextResourceBindings';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
-import { EditOptions } from './editModal/EditOptions';
 import { EditStringValue } from './editModal/EditStringValue';
-import { useSelector } from 'react-redux';
 import { useText } from '../../hooks';
-import { getComponentPropertyLabel } from '../../utils/language';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
+import { useComponentPropertyLabel } from '../../hooks/useComponentPropertyLabel';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -32,17 +26,17 @@ export const FormComponentConfig = ({
   handleComponentUpdate,
   hideUnsupported,
 }: FormComponentConfigProps) => {
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
   const t = useText();
+  const componentPropertyLabel = useComponentPropertyLabel();
 
   if (!schema?.properties) return null;
 
   const {
-    textResourceBindings,
     dataModelBindings,
     required,
     readOnly,
     id,
+    textResourceBindings,
     type,
     options,
     optionsId,
@@ -60,49 +54,6 @@ export const FormComponentConfig = ({
   );
   return (
     <>
-      {id && (
-        <EditComponentId
-          component={component}
-          handleComponentUpdate={handleComponentUpdate}
-          helpText={id.description}
-        />
-      )}
-      {textResourceBindings?.properties && (
-        <>
-          <Heading level={3} size='xxsmall'>
-            {t('general.text')}
-          </Heading>
-          <EditTextResourceBindings
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            textResourceBindingKeys={Object.keys(textResourceBindings.properties)}
-            editFormId={editFormId}
-            layoutName={selectedLayout}
-          />
-        </>
-      )}
-      {dataModelBindings?.properties && (
-        <>
-          <Heading level={3} size='xxsmall'>
-            {t('top_menu.datamodel')}
-          </Heading>
-          {Object.keys(dataModelBindings?.properties).map((propertyKey: any) => {
-            return (
-              <EditDataModelBindings
-                key={`${component.id}-datamodel-${propertyKey}`}
-                component={component}
-                handleComponentChange={handleComponentUpdate}
-                editFormId={editFormId}
-                helpText={dataModelBindings?.properties[propertyKey]?.description}
-                renderOptions={{
-                  key: propertyKey,
-                  label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
-                }}
-              />
-            );
-          })}
-        </>
-      )}
       {grid && (
         <div>
           <Heading level={3} size='xxsmall'>
@@ -119,13 +70,6 @@ export const FormComponentConfig = ({
         <Heading level={3} size='xxsmall'>
           {'Andre innstillinger'}
         </Heading>
-      )}
-      {options && optionsId && (
-        <EditOptions
-          component={component as any}
-          editFormId={editFormId}
-          handleComponentChange={handleComponentUpdate}
-        />
       )}
 
       {hasCustomFileEndings && (
@@ -229,7 +173,7 @@ export const FormComponentConfig = ({
           return (
             <React.Fragment key={propertyKey}>
               <Heading level={3} size='xxsmall'>
-                {getComponentPropertyLabel(propertyKey, t)}
+                {componentPropertyLabel(propertyKey)}
               </Heading>
               {rest[propertyKey]?.description && (
                 <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>

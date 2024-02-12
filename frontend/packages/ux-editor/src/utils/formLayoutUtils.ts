@@ -17,6 +17,7 @@ import { formItemConfigs } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
+import type { ContainerComponentType } from '../types/ContainerComponent';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],
@@ -128,9 +129,9 @@ const findPositionOfPreviousComponent = (
  * @param position The desired index of the container within its parent container. Set it to a negative value to add it at the end. Defaults to -1.
  * @returns The new layout.
  */
-export const addContainer = (
+export const addContainer = <T extends ContainerComponentType>(
   layout: IInternalLayout,
-  container: FormContainer,
+  container: FormContainer<T>,
   id: string,
   parentId: string = BASE_CONTAINER_ID,
   position: number = -1,
@@ -151,9 +152,9 @@ export const addContainer = (
  * @param containerId The current id of the updated container.
  * @returns The new layout.
  */
-export const updateContainer = (
+export const updateContainer = <T extends ContainerComponentType>(
   layout: IInternalLayout,
-  updatedContainer: FormContainer,
+  updatedContainer: FormContainer<T>,
   containerId: string,
 ): IInternalLayout => {
   const oldLayout: IInternalLayout = deepCopy(layout);

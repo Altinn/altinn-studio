@@ -5,7 +5,7 @@ import { appStateMock, formDesignerMock } from '../../testing/stateMocks';
 import { waitFor } from '@testing-library/react';
 import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
 import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import type { IAppState } from '../../types/global';
 import { externalLayoutsMock, layoutSetsMock } from '../../testing/layoutMock';
@@ -19,7 +19,7 @@ const selectedLayoutSet = 'test-layout-set';
 const id = 'component-id';
 
 const defaultArgs: AddFormItemMutationArgs = {
-  componentType: ComponentType.Paragraph,
+  componentType: ComponentTypeV3.Paragraph,
   newId: id,
   parentId: 'Container-1',
   index: 0,
@@ -63,21 +63,21 @@ describe('useAddItemToLayoutMutation', () => {
 
   it('Adds attachment metadata when component type is fileUpload', async () => {
     const { result } = renderAddItemToLayoutMutation(selectedLayoutSet);
-    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
+    result.current.mutate({ ...defaultArgs, componentType: ComponentTypeV3.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
   });
 
   it('Adds attachment metadata when component type is fileUploadWithTag', async () => {
     const { result } = renderAddItemToLayoutMutation(selectedLayoutSet);
-    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUploadWithTag });
+    result.current.mutate({ ...defaultArgs, componentType: ComponentTypeV3.FileUploadWithTag });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
   });
 
   it('Adds correct taskId to attachment metadata when component type is fileUpload and selectedLayoutSet is test-layout-set-2', async () => {
     const { result } = renderAddItemToLayoutMutation('test-layout-set-2');
-    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
+    result.current.mutate({ ...defaultArgs, componentType: ComponentTypeV3.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
       ...applicationAttachmentMetaDataMock,
@@ -87,7 +87,7 @@ describe('useAddItemToLayoutMutation', () => {
 
   it('Adds Task_1 to attachment metadata when component type is fileUpload and selectedLayoutSet is undefined', async () => {
     const { result } = renderAddItemToLayoutMutation(undefined);
-    result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
+    result.current.mutate({ ...defaultArgs, componentType: ComponentTypeV3.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
       ...applicationAttachmentMetaDataMock,

@@ -3,7 +3,7 @@ import {
   getComponentTitleByComponentType,
   getTextResource,
 } from './language';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 describe('Designer > utils/language', () => {
@@ -11,14 +11,14 @@ describe('Designer > utils/language', () => {
     const componentHelpTexts = {
       'ux_editor.component_help_text.default': 'Default help text',
     };
-    Object.values(ComponentType).forEach((componentType) => {
+    Object.values(ComponentTypeV3).forEach((componentType) => {
       componentHelpTexts[`ux_editor.component_help_text.${componentType}`] =
         `Help text for ${componentType}`;
     });
 
     const { t } = mockUseTranslation(componentHelpTexts);
     it('should return specific help text when component type is known', () => {
-      Object.values(ComponentType).forEach((componentType) => {
+      Object.values(ComponentTypeV3).forEach((componentType) => {
         expect(getComponentHelperTextByComponentType(componentType, t)).toBe(
           `Help text for ${componentType}`,
         );
@@ -32,14 +32,14 @@ describe('Designer > utils/language', () => {
 
   describe('getComponentTitleByComponentType', () => {
     const componentTitleTexts = {};
-    Object.values(ComponentType).forEach((componentType) => {
+    Object.values(ComponentTypeV3).forEach((componentType) => {
       componentTitleTexts[`ux_editor.component_title.${componentType}`] =
         `Title text for ${componentType}`;
     });
 
     it('should return specific title text it exists', () => {
       const { t } = mockUseTranslation(componentTitleTexts);
-      Object.values(ComponentType).forEach((componentType) => {
+      Object.values(ComponentTypeV3).forEach((componentType) => {
         expect(getComponentTitleByComponentType(componentType, t)).toBe(
           `Title text for ${componentType}`,
         );
@@ -48,9 +48,11 @@ describe('Designer > utils/language', () => {
 
     it('should return component type when title text does not exist', () => {
       const { t } = mockUseTranslation({
-        [`ux_editor.component_title.${ComponentType.Accordion}`]: `Title text for ${ComponentType.Accordion}`,
+        [`ux_editor.component_title.${ComponentTypeV3.Accordion}`]: `Title text for ${ComponentTypeV3.Accordion}`,
       });
-      expect(getComponentTitleByComponentType(ComponentType.Input, t)).toBe(ComponentType.Input);
+      expect(getComponentTitleByComponentType(ComponentTypeV3.Input, t)).toBe(
+        ComponentTypeV3.Input,
+      );
     });
   });
 

@@ -5,8 +5,8 @@ import { ButtonComponent } from './Button';
 import { AddressComponent } from './Address';
 import { FileUploadComponent } from './FileUpload';
 import type { IGenericEditComponent } from '../componentConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 export function ComponentSpecificContent({
   component,
@@ -14,8 +14,8 @@ export function ComponentSpecificContent({
   layoutName,
 }: IGenericEditComponent) {
   switch (component.type) {
-    case ComponentType.NavigationButtons:
-    case ComponentType.Button:
+    case ComponentTypeV3.NavigationButtons:
+    case ComponentTypeV3.Button:
       return (
         <ButtonComponent
           component={component}
@@ -24,7 +24,7 @@ export function ComponentSpecificContent({
         />
       );
 
-    case ComponentType.AddressComponent:
+    case ComponentTypeV3.AddressComponent:
       return (
         <AddressComponent
           component={component}
@@ -33,8 +33,8 @@ export function ComponentSpecificContent({
         />
       );
 
-    case ComponentType.FileUpload:
-    case ComponentType.FileUploadWithTag:
+    case ComponentTypeV3.FileUpload:
+    case ComponentTypeV3.FileUploadWithTag:
       return (
         <FileUploadComponent
           component={component}
@@ -43,7 +43,7 @@ export function ComponentSpecificContent({
         />
       );
 
-    case ComponentType.Image: {
+    case ComponentTypeV3.Image: {
       return (
         <ImageComponent
           component={component}
@@ -53,11 +53,11 @@ export function ComponentSpecificContent({
       );
     }
 
-    case ComponentType.Panel: {
+    case ComponentTypeV3.Panel: {
       return <PanelComponent component={component} handleComponentChange={handleComponentChange} />;
     }
 
-    case ComponentType.Map: {
+    case ComponentTypeV3.Map: {
       return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
     }
     default: {

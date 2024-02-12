@@ -10,7 +10,7 @@ import {
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
@@ -26,7 +26,7 @@ describe('EditTextResourceBindings component', () => {
     textResourceBindings: {
       test: 'test-text',
     },
-    type: ComponentType.Input,
+    type: ComponentTypeV3.Input,
     itemType: 'COMPONENT',
     dataModelBindings: {},
   };

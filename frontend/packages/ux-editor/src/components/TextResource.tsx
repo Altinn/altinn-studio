@@ -24,7 +24,6 @@ import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../hooks';
-import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
@@ -60,7 +59,6 @@ export const TextResource = ({
   handleRemoveTextResource,
   label,
   placeholder,
-  previewMode,
   textResourceId,
   generateIdOptions,
 }: TextResourceProps) => {
@@ -109,7 +107,6 @@ export const TextResource = ({
     <span
       className={cn(
         classes.root,
-        previewMode && classes.previewMode,
         isEditing && classes.isEditing,
         isSearchMode && classes.isSearching,
       )}
@@ -216,16 +213,7 @@ export const TextResource = ({
     </span>
   );
 
-  return previewMode ? (
-    renderTextResource()
-  ) : (
-    <FormField
-      id={textResourceId}
-      value={{ [textResourceId]: textResource?.value }}
-      propertyPath='definitions/component/properties/textResourceBindings'
-      renderField={() => renderTextResource()}
-    />
-  );
+  return renderTextResource();
 };
 
 export interface TextResourceOptionProps {

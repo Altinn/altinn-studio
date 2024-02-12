@@ -10,8 +10,6 @@ import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors'
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
-import { EditComponentId } from './editModal/EditComponentId';
-import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { useSelector } from 'react-redux';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
@@ -40,8 +38,8 @@ export const EditFormComponent = ({
   const [showComponentConfigBeta, setShowComponentConfigBeta] = React.useState<boolean>(
     shouldDisplayFeature('componentConfigBeta'),
   );
+  const formItemConfig = formItemConfigs[component.type];
 
-  useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema, isPending } = useComponentSchemaQuery(component.type);
 
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {
@@ -72,7 +70,7 @@ export const EditFormComponent = ({
     }
   };
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[component.type];
+  const isUnknownInternalComponent: boolean = !formItemConfig;
   if (isUnknownInternalComponent) {
     return <UnknownComponentAlert componentName={component.type} />;
   }
@@ -83,7 +81,7 @@ export const EditFormComponent = ({
         id={component.id}
         value={showComponentConfigBeta || false}
         onChange={toggleShowBetaFunc}
-        propertyPath={component.propertyPath}
+        propertyPath={formItemConfig.propertyPath}
         componentType={component.type}
         helpText={t('ux_editor.edit_component.show_beta_func_help_text')}
         renderField={({ fieldProps }) => (
@@ -106,7 +104,6 @@ export const EditFormComponent = ({
       )}
       {!showComponentConfigBeta && (
         <>
-          <EditComponentId component={component} handleComponentUpdate={handleComponentUpdate} />
           {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
           <ComponentSpecificContent
             component={component}

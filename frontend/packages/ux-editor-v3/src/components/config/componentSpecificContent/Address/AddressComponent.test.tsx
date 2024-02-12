@@ -3,14 +3,14 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { AddressComponent } from './AddressComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { waitFor, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
 const component: FormAddressComponent = {
-  type: ComponentType.AddressComponent,
+  type: ComponentTypeV3.AddressComponent,
   dataModelBindings: {
     test: 'test',
   },

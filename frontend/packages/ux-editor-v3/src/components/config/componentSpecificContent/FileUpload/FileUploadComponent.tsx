@@ -3,12 +3,12 @@ import { Fieldset, LegacyTextField, Radio, Textfield } from '@digdir/design-syst
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import type {
   FormFileUploaderComponent,
   FormFileUploaderWithTagComponent,
 } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 export const FileUploadComponent = ({
   component,
@@ -103,7 +103,7 @@ export const FileUploadComponent = ({
         />
       )}
 
-      {component.type === ComponentType.FileUpload && (
+      {component.type === ComponentTypeV3.FileUpload && (
         <FormField
           id={component.id}
           onChange={handleDisplayModeChange}

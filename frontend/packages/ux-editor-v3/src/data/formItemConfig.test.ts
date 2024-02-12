@@ -1,9 +1,9 @@
 import { formItemConfigs } from './formItemConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 describe('formItemConfigs', () => {
   it('should have textResourceBindings and buttonStyle defined for ActionButton', () => {
-    const actionButtonConfig = formItemConfigs[ComponentType.ActionButton];
+    const actionButtonConfig = formItemConfigs[ComponentTypeV3.ActionButton];
     expect(actionButtonConfig).toBeDefined();
 
     const { defaultProperties } = actionButtonConfig;

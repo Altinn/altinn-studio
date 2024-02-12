@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { Popover } from '@mui/material';
 
 import {
@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 export interface IInformationPanelProvidedProps {
   anchorElement: any;
-  selectedComponent: ComponentType;
+  selectedComponent: ComponentTypeV3;
   informationPanelOpen: boolean;
   onClose: () => void;
   thirdPartyLibrary?: boolean;

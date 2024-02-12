@@ -1,7 +1,7 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { UpdateFormComponentMutationArgs } from './useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import { component1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
@@ -22,12 +22,12 @@ const app = 'app';
 const selectedLayoutName = 'Side1';
 const selectedLayoutSet = 'test-layout-set';
 const id = component1IdMock;
-const type = ComponentType.TextArea;
+const type = ComponentTypeV3.TextArea;
 const dataModelBindings: IDataModelBindings = {};
 const updatedComponent: FormComponent = {
   id,
   itemType: 'COMPONENT',
-  type: ComponentType.TextArea,
+  type: ComponentTypeV3.TextArea,
   dataModelBindings,
 };
 const defaultArgs: UpdateFormComponentMutationArgs = { id, updatedComponent };
@@ -44,8 +44,8 @@ describe('useUpdateFormComponentMutation', () => {
 
     await updateFormComponentResult.current.mutateAsync(defaultArgs);
 
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledWith(
       org,
       app,
       layout1NameMock,
@@ -88,7 +88,7 @@ describe('useUpdateFormComponentMutation', () => {
       maxFileSizeInMB: 100,
       maxNumberOfAttachments: 2,
       minNumberOfAttachments: 1,
-      type: ComponentType.FileUpload,
+      type: ComponentTypeV3.FileUpload,
     };
     const args: UpdateFormComponentMutationArgs = {
       ...defaultArgs,
@@ -104,7 +104,7 @@ describe('useUpdateFormComponentMutation', () => {
       useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
     ).renderHookResult.result;
 
-    for (const componentType of [ComponentType.RadioButtons, ComponentType.Checkboxes]) {
+    for (const componentType of [ComponentTypeV3.RadioButtons, ComponentTypeV3.Checkboxes]) {
       for (const optionKind of ['options', 'optionsId']) {
         const optionsProp = optionKind === 'options' ? { options: [] } : { optionsId: 'test' };
         const newComponent = {
@@ -118,7 +118,7 @@ describe('useUpdateFormComponentMutation', () => {
           updatedComponent: newComponent,
         };
         await updateFormComponentResult.current.mutateAsync(args);
-        expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+        expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledWith(
           org,
           app,
           layout1NameMock,

@@ -5,7 +5,7 @@ import type {
   FormComponent,
   FormRadioButtonsComponent,
 } from '../types/FormComponent';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { FormItem } from '../types/FormItem';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -90,7 +90,7 @@ export const generateRandomOption = (): IOption => ({ label: '', value: generate
  * @param id The id of the component to generate.
  * @returns A component of the given type.
  */
-export const generateFormItem = <T extends ComponentType>(type: T, id: string): FormItem<T> => {
+export const generateFormItem = <T extends ComponentTypeV3>(type: T, id: string): FormItem<T> => {
   const { defaultProperties } = formItemConfigs[type];
   return { ...defaultProperties, id };
 };

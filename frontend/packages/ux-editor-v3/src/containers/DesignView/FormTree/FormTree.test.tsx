@@ -9,7 +9,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ITextResources } from 'app-shared/types/global';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { FormContext } from '../../FormContext';
 import type { IInternalLayout } from '../../../types/global';
 import type { FormComponent } from '../../../types/FormComponent';
@@ -29,32 +29,32 @@ const onMove = jest.fn();
 const rootComponent: FormComponent = {
   id: 'rootComponent',
   itemType: 'COMPONENT',
-  type: ComponentType.Paragraph,
+  type: ComponentTypeV3.Paragraph,
 };
 const rootContainerWithChildren: FormContainer = {
   id: 'rootContainer1',
   itemType: 'CONTAINER',
-  type: ComponentType.Group,
+  type: ComponentTypeV3.Group,
 };
 const emptyRootContainer: FormContainer = {
   id: 'rootContainer2',
   itemType: 'CONTAINER',
-  type: ComponentType.ButtonGroup,
+  type: ComponentTypeV3.ButtonGroup,
 };
 const subComponent: FormComponent = {
   id: 'subComponent',
   itemType: 'COMPONENT',
-  type: ComponentType.Input,
+  type: ComponentTypeV3.Input,
 };
 const subContainer: FormContainer = {
   id: 'subContainer',
   itemType: 'CONTAINER',
-  type: ComponentType.Accordion,
+  type: ComponentTypeV3.Accordion,
 };
 const subSubComponent: FormComponent = {
   id: 'subSubComponent',
   itemType: 'COMPONENT',
-  type: ComponentType.TextArea,
+  type: ComponentTypeV3.TextArea,
 };
 const layoutMock: IInternalLayout = {
   components: {

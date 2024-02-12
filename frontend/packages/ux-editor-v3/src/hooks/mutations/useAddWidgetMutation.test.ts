@@ -5,7 +5,7 @@ import { waitFor } from '@testing-library/react';
 import type { AddWidgetMutationArgs } from './useAddWidgetMutation';
 import { useAddWidgetMutation } from './useAddWidgetMutation';
 import type { IWidget, IWidgetTexts } from '../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 
@@ -13,7 +13,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 const org = 'org';
 const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
-const displayName = ComponentType.TextArea;
+const displayName = ComponentTypeV3.TextArea;
 const language = 'nb';
 const textId = 'testid';
 const textValue = 'testvalue';
@@ -32,7 +32,7 @@ describe('useAddWidgetMutation', () => {
   it('Saves layout', async () => {
     const { result } = await renderAddWidgetMutation();
     await result.current.mutateAsync(defaultArgs);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledTimes(1);
   });
 
   it('Saves text resources', async () => {

@@ -69,6 +69,7 @@ import {
   user,
   validation,
 } from './mocks';
+import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -97,6 +98,7 @@ export const queriesMock: ServicesContextProps = {
   getExpressionSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
+  getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
@@ -188,6 +190,7 @@ export const queriesMock: ServicesContextProps = {
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   saveDatamodel: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
+  saveFormLayoutV3: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),

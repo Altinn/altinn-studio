@@ -4,7 +4,7 @@ import { waitFor } from '@testing-library/react';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
 import { container1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 
 // Test data:
 const org = 'org';
@@ -16,8 +16,8 @@ describe('useDeleteFormContainerMutation', () => {
   it('Should save layout without deleted container', async () => {
     const { result } = await renderDeleteFormContainerMutation();
     await result.current.mutateAsync(id);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledWith(
       org,
       app,
       layout1NameMock,
@@ -32,12 +32,12 @@ describe('useDeleteFormContainerMutation', () => {
 });
 
 const renderDeleteFormContainerMutation = async () => {
-  const getFormLayouts = jest
+  const getFormLayoutsV3 = jest
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>(externalLayoutsMock));
   const formLayoutsResult = renderHookWithMockStore(
     {},
-    { getFormLayouts },
+    { getFormLayoutsV3 },
   )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   return renderHookWithMockStore()(() =>
