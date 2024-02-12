@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Altinn.Studio.Designer.Hubs.SyncHub;
 
-[Authorize]
+// [Authorize]
 public class SyncHub : Hub<ISyncClient>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
