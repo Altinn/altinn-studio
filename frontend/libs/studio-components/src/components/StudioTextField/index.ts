@@ -1,2 +1,2 @@
 export { StudioTextField } from './StudioTextField';
-export { StudioTextfieldSchema } from './StudioTextfieldSchema/StudiotextfieldSchema';
+export { StudioTextfieldSchema } from './StudioTextfieldSchema';

@@ -1,0 +1,11 @@
+.iconTextfieldWrapper {
+  display: flex;
+  align-items: center;
+}
+.iconContainer {
+  display: flex;
+  justify-content: flex-start;
+  padding-right: var(--fds-spacing-2);
+  margin-top: var(--fds-spacing-6);
+  align-items: center;
+}

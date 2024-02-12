@@ -1,4 +1,12 @@
-.prefixKeyIcon {
+.KeyVerticalIcon {
   color: var(--fds-semantic-text-neutral-default);
-  font-size: 18px;
+  font-size: 25px;
+  display: flex;
+  align-items: center;
+}
+
+.StudioTextfieldSchema {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }

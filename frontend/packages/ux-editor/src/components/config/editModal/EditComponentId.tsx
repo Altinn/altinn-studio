@@ -11,14 +11,9 @@ import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuer
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponent) => void;
   component: FormComponent;
-  helpText?: string;
 }
 
-export const EditComponentId = ({
-  component,
-  handleComponentUpdate,
-  helpText,
-}: IEditComponentId) => {
+export const EditComponentId = ({ component, handleComponentUpdate }: IEditComponentId) => {
   const [idInputValue, setIdInputValue] = useState(component.id);
   const { components, containers } = useSelectedFormLayout();
   const [{ data: layoutSchema }] = useLayoutSchemaQuery();
@@ -28,7 +23,7 @@ export const EditComponentId = ({
     setIdInputValue(component.id);
   }, [component.id]);
 
-  const handleIdChange = (id: string) => {
+  const saveComponentUpdate = (id: string) => {
     handleComponentUpdate({
       ...component,
       id,
@@ -38,20 +33,21 @@ export const EditComponentId = ({
   const validateId = (value: string) => {
     setIdInputValue(value);
     if (value.length === 0) {
-      return t('ux_editor.modal_properties_component_id_not_unique_error');
+      return t('validation_errors.required');
     }
     if (value !== component.id && idExists(value, components, containers)) {
-      return 'ux_editor.modal_properties_component_id_not_unique_error';
+      return t('ux_editor.modal_properties_component_id_not_unique_error');
     }
     return undefined;
   };
 
   return (
-    <div>
+    <div className={classes.StudioTextfieldSchema}>
       <StudioTextfieldSchema
         schema={layoutSchema}
+        propertyPath='definitions/component/properties/id'
         key={component.id}
-        helpText={helpText}
+        helpText={t('ux_editor.edit_component.id_help_text')}
         viewProps={{
           children: `ID: ${component.id}`,
           variant: 'tertiary',
@@ -59,9 +55,9 @@ export const EditComponentId = ({
           style: { paddingLeft: 0, paddingRight: 0 },
         }}
         inputProps={{
-          icon: <KeyVerticalIcon className={classes.prefixKeyIcon} />,
+          icon: <KeyVerticalIcon className={classes.KeyVerticalIcon} />,
           value: idInputValue,
-          onChange: (e) => handleIdChange(e.target.value),
+          onBlur: (e) => saveComponentUpdate(e.target.value),
           label: 'ID',
           size: 'small',
         }}
