@@ -11,6 +11,7 @@ import type { NodeMap } from '../types/NodeMap';
 import {
   isCombination,
   isDefinition,
+  isDefinitionPointer,
   isFieldOrCombination,
   isNodeValidParent,
   isProperty,
@@ -521,6 +522,7 @@ export class SchemaModel {
   }
 
   public isChildOfCombination(pointer: string): boolean {
+    if (isDefinitionPointer(pointer)) return false; // Todo: This is necessary because definitions are in the same list as the root object properties in our internal structure. Remove this check when the data structure is fixed: https://github.com/Altinn/altinn-studio/issues/11824
     const parent = this.getParentNode(pointer);
     return !!parent && isCombination(parent);
   }
