@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import classes from './createAppReleaseComponent.module.css';
+import classes from './CreateRelease.module.css';
 import type { ChangeEvent } from 'react';
 import { Textfield, Textarea } from '@digdir/design-system-react';
 import { versionNameValid } from './utils';
@@ -10,7 +10,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { FormField } from 'app-shared/components/FormField';
 import { StudioButton } from '@studio/components';
 
-export function CreateReleaseComponent() {
+export function CreateRelease() {
   const { org, app } = useStudioUrlParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');

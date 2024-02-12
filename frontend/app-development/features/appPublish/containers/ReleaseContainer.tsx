@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import classes from './releaseContainer.module.css';
-import type { AppRelease } from 'app-shared/types/AppRelease';
+import classes from './ReleaseContainer.module.css';
+import type { AppRelease as AppReleaseType } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { LegacyPopover } from '@digdir/design-system-react';
-import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
-import { ReleaseComponent } from '../components/appReleaseComponent';
+import { CreateRelease } from '../components/CreateRelease';
+import { AppRelease } from '../components/AppRelease';
 import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useMediaQuery } from '@studio/components';
@@ -31,7 +31,7 @@ export function ReleaseContainer() {
     'master',
   );
 
-  const latestRelease: AppRelease = releases && releases[0] ? releases[0] : null;
+  const latestRelease: AppReleaseType = releases && releases[0] ? releases[0] : null;
 
   const { t } = useTranslation();
 
@@ -117,7 +117,7 @@ export function ReleaseContainer() {
         </div>
       );
     }
-    return <CreateReleaseComponent />;
+    return <CreateRelease />;
   }
 
   function renderStatusIcon() {
@@ -228,8 +228,8 @@ export function ReleaseContainer() {
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
       <div className={classes.appReleaseHistory}>
         {!!releases.length &&
-          releases.map((release: AppRelease, index: number) => (
-            <ReleaseComponent key={index} release={release} />
+          releases.map((release: AppReleaseType, index: number) => (
+            <AppRelease key={index} release={release} />
           ))}
       </div>
     </div>

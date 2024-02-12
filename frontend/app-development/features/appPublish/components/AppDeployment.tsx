@@ -10,23 +10,20 @@ import { AppDeploymentHeader } from './AppDeploymentHeader';
 import { AppDeploymentActions } from './AppDeploymentActions';
 import { AppDeploymentList } from './AppDeploymentList';
 import type { ImageOption } from './ImageOption';
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import type { AppDeployment as AppDeploymentType } from 'app-shared/types/api/AppDeployment';
 
 export interface AppDeploymentProps {
+  appDeployment: AppDeploymentType;
   envName: string;
   urlToApp?: string;
   urlToAppLinkTxt?: string;
-  pipelineDeploymentList?: PipelineDeployment[];
-  kubernetesDeployment?: KubernetesDeployment;
   deployPermission: boolean;
   orgName: string;
   imageOptions: ImageOption[];
 }
 
 export const AppDeployment = ({
-  pipelineDeploymentList,
-  kubernetesDeployment,
+  appDeployment,
   deployPermission,
   envName,
   imageOptions,
@@ -60,15 +57,15 @@ export const AppDeployment = ({
   return (
     <div className={classes.mainContainer}>
       <AppDeploymentHeader
-        kubernetesDeploymentStatus={kubernetesDeployment?.status}
-        version={kubernetesDeployment?.version}
+        kubernetesDeploymentStatus={appDeployment.kubernetesDeployment?.status}
+        version={appDeployment.kubernetesDeployment?.version}
         envName={envName}
         urlToApp={urlToApp}
         urlToAppLinkTxt={urlToAppLinkTxt}
       />
       <div className={classes.bodyContainer}>
         <AppDeploymentActions
-          pipelineDeploymentList={pipelineDeploymentList}
+          pipelineDeploymentList={appDeployment.pipelineDeploymentList}
           deployPermission={deployPermission}
           envName={envName}
           imageOptions={imageOptions}
@@ -76,8 +73,8 @@ export const AppDeployment = ({
         />
         <AppDeploymentList
           envName={envName}
-          pipelineDeploymentList={pipelineDeploymentList}
-          kubernetesDeployment={kubernetesDeployment}
+          pipelineDeploymentList={appDeployment.pipelineDeploymentList}
+          kubernetesDeployment={appDeployment.kubernetesDeployment}
         />
       </div>
     </div>

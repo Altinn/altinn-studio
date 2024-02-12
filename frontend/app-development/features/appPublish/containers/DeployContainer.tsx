@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import classes from './deployContainer.module.css';
+import classes from './DeployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { BuildResult } from 'app-shared/types/Build';
 import {
@@ -16,7 +16,7 @@ import type { ImageOption } from '../components/ImageOption';
 import type { AppDeployment as AppDeploymentType } from 'app-shared/types/api/AppDeployment';
 import { AppDeployment } from '../components/AppDeployment';
 
-export const DeployContainerComponent = () => {
+export const DeployContainer = () => {
   const { org, app } = useStudioUrlParams();
 
   const { data: appDeployments, isPending: isDeploysPending } = useAppDeploymentsQuery(org, app);
@@ -86,8 +86,7 @@ export const DeployContainerComponent = () => {
             urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             imageOptions={imageOptions}
-            pipelineDeploymentList={appDeployment.deploymentList}
-            kubernetesDeployment={appDeployment.kubernetesDeployment}
+            appDeployment={appDeployment}
             deployPermission={
               permissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }

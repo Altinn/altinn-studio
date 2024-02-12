@@ -3,6 +3,6 @@ import type { PipelineDeployment } from './PipelineDeployment';
 
 export interface AppDeployment {
   envName: string;
-  deploymentList: PipelineDeployment[];
+  pipelineDeploymentList: PipelineDeployment[];
   kubernetesDeployment?: KubernetesDeployment;
 }

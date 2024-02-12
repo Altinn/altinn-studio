@@ -1,8 +1,9 @@
 import React from 'react';
 import classes from './AppDeploymentHeader.module.css';
 import { Link } from '@digdir/design-system-react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
+import { Alert } from '@digdir/design-system-react';
 
 export interface AppDeploymentHeaderProps {
   kubernetesDeploymentStatus?: KubernetesDeploymentStatus;
@@ -21,27 +22,31 @@ export const AppDeploymentHeader = ({
 }: AppDeploymentHeaderProps) => {
   const { t } = useTranslation();
 
-  ('/kuberneteswrapper/api/v1/deployments');
-
-  const showLinkToApp =
-    kubernetesDeploymentStatus === KubernetesDeploymentStatus.available ||
-    kubernetesDeploymentStatus === KubernetesDeploymentStatus.completed;
+  const showLinkToApp = kubernetesDeploymentStatus === KubernetesDeploymentStatus.completed;
 
   const getStatus = () => {
     if (!kubernetesDeploymentStatus) {
+      /*
+        <Alert severity='danger'>
+          <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
+            <a href='mailto:tjenesteeier@altinn.no' />
+          </Trans>
+        </Alert>
+      */
       return t('app_deploy.no_app_deployed');
     }
     switch (kubernetesDeploymentStatus) {
-      case KubernetesDeploymentStatus.progressing:
-      case KubernetesDeploymentStatus.available:
-        return 'Deployment of ' + version + ' is in progress';
       case KubernetesDeploymentStatus.completed:
         return t('app_deploy.deployed_version', { appDeployedVersion: version });
-      case KubernetesDeploymentStatus.paused:
-        return 'Deployment of ' + version + ' has been paused';
+      case KubernetesDeploymentStatus.failed:
+        <Alert severity='danger'>
+          <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
+            <a href='mailto:tjenesteeier@altinn.no' />
+          </Trans>
+        </Alert>;
+      //return t('app_deploy.deployed_version_unavailable');
       default:
-        return 'Deployment of ' + version + ' has failed';
-      // return t('app_deploy.deployed_version_unavailable');
+        return '';
     }
   };
 

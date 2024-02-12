@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import classes from './AppDeploymentActions.module.css';
 import { StudioSpinner } from '@studio/components';
-import { DeployDropdown } from './deploy/DeployDropdown';
+import { DeployDropdown } from './DeployDropdown';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { ImageOption } from './ImageOption';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import { PipelineDeploymentBuildStatus } from 'app-shared/types/api/PipelineDeploymentBuild';
+import { BuildStatus } from 'app-shared/types/Build';
+import { AppDeploymentStatus } from './AppDeploymentStatus';
+import { toast } from 'react-toastify';
+import { Link } from '@digdir/design-system-react';
 
 export interface AppDeploymentActionsProps {
   pipelineDeploymentList?: PipelineDeployment[];
@@ -31,65 +34,65 @@ export const AppDeploymentActions = ({
   const { org, app } = useStudioUrlParams();
   const mutation = useCreateDeploymentMutation(org, app, { hideDefaultError: true });
   const startDeploy = () =>
-    mutation.mutate({
-      tagName: selectedImageTag,
-      envName,
-    });
+    mutation.mutate(
+      {
+        tagName: selectedImageTag,
+        envName,
+      },
+      {
+        onError: (): void => {
+          toast.error(() => (
+            <Trans
+              i18nKey={'app_deploy_messages.technical_error_1'}
+              components={{
+                a: (
+                  <Link href='/contact' inverted={true}>
+                    {' '}
+                  </Link>
+                ),
+              }}
+            />
+          ));
+        },
+      },
+    );
 
-  // useEffect(() => {
-  //   if (!deployPermission) return;
-  //   if (mutation.isError) {
-  //     toast.error(() => (
-  //       <Trans
-  //         i18nKey={'app_deploy_messages.technical_error_1'}
-  //         components={{
-  //           a: (
-  //             <Link href='/contact' inverted={true}>
-  //               {' '}
-  //             </Link>
-  //           ),
-  //         }}
-  //       />
-  //     ));
-  //   } else if (deployFailed) {
-  //     toast.error(() =>
-  //       t('app_deploy_messages.failed', {
-  //         envName: latestDeploy.envName,
-  //         tagName: latestDeploy.tagName,
-  //         time: latestDeploy.build.started,
-  //       }),
-  //     );
-  //   }
-  // }, [deployPermission, deployFailed, t, latestDeploy, mutation.isError]);
-
-  const latestDeploy = pipelineDeploymentList ? pipelineDeploymentList[0] : null;
-  const deployInProgress = latestDeploy?.build?.status === PipelineDeploymentBuildStatus.inProgress;
+  const latestPipelineDeployment = pipelineDeploymentList[0];
+  const deployInProgress = latestPipelineDeployment?.build?.status === BuildStatus.inProgress;
 
   return (
     <div className={classes.dropdownGrid}>
-      {!deployPermission && (
+      {!deployPermission ? (
         <div className={classes.deployStatusGridContainer}>
           <div className={classes.deploySpinnerGridItem}>
             <InformationSquareFillIcon />
           </div>
           <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
         </div>
-      )}
-      {deployPermission && imageOptions.length > 0 && !deployInProgress && (
-        <DeployDropdown
-          appDeployedVersion={latestDeploy ? latestDeploy.tagName : undefined}
-          envName={envName}
-          disabled={selectedImageTag === null || deployInProgress === true}
-          deployHistoryEntry={latestDeploy}
-          deploymentStatus={latestDeploy?.status}
-          selectedImageTag={selectedImageTag}
-          imageOptions={imageOptions}
-          setSelectedImageTag={setSelectedImageTag}
-          startDeploy={startDeploy}
-        />
-      )}
-      {deployInProgress && (
-        <StudioSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
+      ) : (
+        <>
+          {deployInProgress ? (
+            <StudioSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
+          ) : (
+            <>
+              {!deployInProgress && (
+                <DeployDropdown
+                  appDeployedVersion={latestPipelineDeployment?.tagName}
+                  envName={envName}
+                  disabled={selectedImageTag === null || deployInProgress === true}
+                  selectedImageTag={selectedImageTag}
+                  imageOptions={imageOptions}
+                  setSelectedImageTag={setSelectedImageTag}
+                  startDeploy={startDeploy}
+                />
+              )}
+              <AppDeploymentStatus
+                envName={envName}
+                latestPipelineDeployment={latestPipelineDeployment}
+              />
+            </>
+          )}
+        </>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import type { PipelineDeploymentBuild } from './PipelineDeploymentBuild';
+import type { Build } from '../Build';
 
 export interface PipelineDeployment {
   id: string;
@@ -8,5 +8,5 @@ export interface PipelineDeployment {
   envName: string;
   createdBy: string;
   created: string;
-  build: PipelineDeploymentBuild;
+  build: Build;
 }

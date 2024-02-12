@@ -101,7 +101,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         .Where(deployment => deployment.EnvName == env.Name)
                         .ToList();
 
-                    deployment.DeploymentList = dbDeploymentEntitiesInEnv;
+                    deployment.PipelineDeploymentList = dbDeploymentEntitiesInEnv;
 
                     var kubernetesDeployments = await _kubernetesWrapperClient.GetDeploymentsAsync(org, app, env);
                     deployment.KubernetesDeployment = kubernetesDeployments.FirstOrDefault();

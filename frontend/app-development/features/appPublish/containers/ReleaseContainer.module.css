@@ -4,11 +4,9 @@
   border-left: 1px solid #bcc7cc;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
   height: calc(100vh - var(--header-height));
-  max-width: 78.6rem;
-  min-width: 34.6rem;
   overflow-y: scroll;
+  width: 35%;
 }
 
 .appReleaseCreateRelease {
@@ -37,12 +35,6 @@
 
 .popover {
   pointer-events: none;
-}
-
-.popoverPaper {
-  background-color: #fbf6bd;
-  max-width: 50rem;
-  padding: 2rem;
 }
 
 .cannotCreateReleaseContainer {

@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from './appReleaseComponent.module.css';
+import classes from './AppRelease.module.css';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
@@ -14,7 +14,7 @@ interface IAppReleaseComponent {
   release: AppRelease;
 }
 
-export function ReleaseComponent(props: IAppReleaseComponent) {
+export function AppRelease(props: IAppReleaseComponent) {
   const { release } = props;
 
   const { t } = useTranslation();

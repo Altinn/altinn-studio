@@ -13,7 +13,8 @@ import { useTranslation } from 'react-i18next';
 
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
-import { PipelineDeploymentBuildResult } from 'app-shared/types/api/PipelineDeploymentBuild';
+import { BuildResult } from 'app-shared/types/Build';
+import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 
 export interface AppDeploymentListProps {
   envName: string;
@@ -28,29 +29,34 @@ export const AppDeploymentList = ({
 }: AppDeploymentListProps) => {
   const { t } = useTranslation();
 
-  const deployedApp = pipelineDeploymentList.find(
-    (item) => item.tagName.toLowerCase() === kubernetesDeployment?.version,
+  const succeededPipelineDeploymentList = pipelineDeploymentList.filter(
+    (item) => item.build.result === BuildResult.succeeded && item.build.finished !== null,
   );
+
+  // Deployment to Kubernetes succeeded but Pipeline failed
   const deployStatusUnavailable =
-    deployedApp?.build?.result === PipelineDeploymentBuildResult.failed;
+    kubernetesDeployment?.status === KubernetesDeploymentStatus.completed &&
+    succeededPipelineDeploymentList[0]?.tagName !== kubernetesDeployment?.version;
 
   return (
     <div className={classes.deploymentListGrid}>
-      {pipelineDeploymentList.length === 0 ? (
-        deployStatusUnavailable ? (
-          <Alert severity='warning'>
-            {t('app_publish.deployment_in_env.status_missing', {
-              // envName: latestDeploy.envName,
-              // tagName: latestDeploy.tagName,
-            })}
-          </Alert>
-        ) : (
+      {deployStatusUnavailable && (
+        <Alert severity='warning'>
+          {t('app_publish.deployment_in_env.status_missing', {
+            envName,
+            tagName: kubernetesDeployment.version,
+          })}
+        </Alert>
+      )}
+
+      {succeededPipelineDeploymentList.length === 0 ? (
+        !deployStatusUnavailable && (
           <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
             {t('app_deploy_table.deployed_version_history_empty', { envName })}
           </span>
         )
       ) : (
-        <>
+        <div>
           <div id={`deploy-history-for-${envName.toLowerCase()}-available`}>
             {t('app_deploy_table.deployed_version_history', { envName })}
           </div>
@@ -74,7 +80,7 @@ export const AppDeploymentList = ({
                 </LegacyTableRow>
               </LegacyTableHeader>
               <LegacyTableBody>
-                {pipelineDeploymentList.map((deploy: PipelineDeployment) => (
+                {succeededPipelineDeploymentList.map((deploy: PipelineDeployment) => (
                   <LegacyTableRow
                     key={`${deploy.tagName}-${deploy.created}`}
                     className={classes.tableRow}
@@ -82,15 +88,12 @@ export const AppDeploymentList = ({
                     <LegacyTableCell>{deploy.tagName}</LegacyTableCell>
                     <LegacyTableCell>{formatDateTime(deploy.build.finished)}</LegacyTableCell>
                     <LegacyTableCell>{deploy.createdBy}</LegacyTableCell>
-                    <LegacyTableCell>
-                      {t(`app_deploy.build_status.${deploy.build?.status}`)}
-                    </LegacyTableCell>
                   </LegacyTableRow>
                 ))}
               </LegacyTableBody>
             </LegacyTable>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

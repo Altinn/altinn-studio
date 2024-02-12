@@ -1,8 +1,8 @@
 import React from 'react';
-import classes from './deployPage.module.css';
-import { DeployContainerComponent } from '../containers/deployContainer';
+import classes from './DeployPage.module.css';
+import { DeployContainer } from '../containers/DeployContainer';
 import { InfoCard } from '../components/InfoCard';
-import { ReleaseContainer } from '../containers/releaseContainer';
+import { ReleaseContainer } from '../containers/ReleaseContainer';
 import { useDeployPermissionsQuery, useOrgListQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
@@ -58,7 +58,7 @@ export function DeployPage() {
 
   return (
     <div className={classes.container} style={{ height: 'calc(100% - 111px)' }}>
-      <DeployContainerComponent />
+      <DeployContainer />
       <ReleaseContainer />
     </div>
   );

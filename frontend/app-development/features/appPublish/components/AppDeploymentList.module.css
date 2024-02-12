@@ -1,3 +1,9 @@
+.deploymentListGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+}
+
 .table {
   background-color: #ffffff;
   min-width: 30rem;
@@ -14,9 +20,4 @@
 .tableWrapper {
   max-height: 350px;
   overflow: auto;
-}
-
-.deploymentListGrid {
-  display: flex;
-  flex-direction: column;
 }
