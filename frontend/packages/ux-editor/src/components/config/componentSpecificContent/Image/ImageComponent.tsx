@@ -2,7 +2,6 @@ import React from 'react';
 import { LegacySelect, Textfield } from '@digdir/design-system-react';
 import { Fieldset } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
-import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
@@ -45,16 +44,6 @@ export const ImageComponent = ({
     handleComponentChange(updatedComponent);
   };
 
-  const handleAltTextChange = (altTextImg: string) => {
-    handleComponentChange({
-      ...component,
-      textResourceBindings: {
-        ...component.textResourceBindings,
-        altTextImg: altTextImg,
-      },
-    });
-  };
-
   const handleSourceChange = (src: any) => {
     const updatedComponent = { ...component };
     updatedComponent.image.src = src;
@@ -80,17 +69,6 @@ export const ImageComponent = ({
             value={fieldProps.value?.nb || ''}
           />
         )}
-      />
-
-      <TextResource
-        handleIdChange={handleAltTextChange}
-        label={t('ux_editor.modal_properties_image_alt_text_label')}
-        textResourceId={component.textResourceBindings?.altTextImg}
-        generateIdOptions={{
-          componentId: component.id,
-          layoutId: layoutName,
-          textResourceKey: 'altTextImg',
-        }}
       />
 
       <div className={classes.widthAndPlacement}>

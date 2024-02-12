@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 
 import { EditOptions } from './EditOptions';
 import { renderWithMockStore } from '../../../testing/mocks';
@@ -27,13 +27,15 @@ describe('EditOptions', () => {
   it('should render', () => {
     renderEditOptions();
     expect(
-      screen.getByText(textMock('ux_editor.modal_properties_add_radio_button_options')),
+      screen.getByText(textMock('ux_editor.properties_panel.options.use_code_list_label')),
     ).toBeInTheDocument();
   });
 
   it('should show code list input by default when neither options nor optionId are set', async () => {
     renderEditOptions();
-    expect(screen.getByText(textMock('ux_editor.modal_add_options_codelist'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
+    ).toBeInTheDocument();
   });
 
   it('should show manual input when component has options defined', async () => {
@@ -41,9 +43,15 @@ describe('EditOptions', () => {
       component: {
         ...mockComponent,
         options: [{ label: 'option1', value: 'option1' }],
+        optionsId: undefined,
       },
     });
-    expect(screen.getByText(textMock('ux_editor.modal_add_options_manual'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.properties_panel.options.add_options')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_radio_button_increment') + ' 1'),
+    ).toBeInTheDocument();
   });
 
   it('should show code list input when component has optionsId defined', async () => {
@@ -53,6 +61,69 @@ describe('EditOptions', () => {
         optionsId: 'optionsId',
       },
     });
-    expect(screen.getByText(textMock('ux_editor.modal_add_options_manual'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
+    ).toBeInTheDocument();
+  });
+
+  it('should switch to manual input when toggling codelist switch off', async () => {
+    const handleComponentChange = jest.fn();
+    renderEditOptions({ handleComponentChange });
+    const switchElement = screen.getByRole('checkbox');
+    await act(() => switchElement.click());
+    expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, options: [] });
+  });
+
+  it('should switch to codelist input when toggling codelist switch on', async () => {
+    const handleComponentChange = jest.fn();
+    renderEditOptions({
+      handleComponentChange,
+      component: {
+        ...mockComponent,
+        options: [{ label: 'option1', value: 'option1' }],
+        optionsId: undefined,
+      },
+    });
+    const switchElement = screen.getByRole('checkbox');
+    await act(() => switchElement.click());
+    expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, optionsId: '' });
+  });
+
+  it('should update component options when adding new option', async () => {
+    const handleComponentChange = jest.fn();
+    renderEditOptions({
+      handleComponentChange,
+      component: {
+        ...mockComponent,
+        options: [{ label: 'option1', value: 'option1' }],
+      },
+    });
+    const addOptionButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_new_option'),
+    });
+    await act(() => addOptionButton.click());
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...mockComponent,
+      options: expect.arrayContaining([
+        { label: 'option1', value: 'option1' },
+        expect.objectContaining({ label: '' }),
+      ]),
+    });
+  });
+
+  it('should update component options when removing option', async () => {
+    const handleComponentChange = jest.fn();
+    renderEditOptions({
+      handleComponentChange,
+      component: {
+        ...mockComponent,
+        options: [{ label: 'option1', value: 'option1' }],
+      },
+    });
+    const removeOptionButton = screen.getByRole('button', {
+      name: textMock('ux_editor.properties_panel.options.remove_option'),
+    });
+    await act(() => removeOptionButton.click());
+    expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, options: [] });
   });
 });

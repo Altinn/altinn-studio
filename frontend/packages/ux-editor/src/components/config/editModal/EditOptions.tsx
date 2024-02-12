@@ -1,10 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Fieldset, Radio, Textfield } from '@digdir/design-system-react';
+import {
+  Fieldset,
+  Heading,
+  HelpText,
+  Paragraph,
+  Switch,
+  Textfield,
+} from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
-import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import { TextResource } from '../../TextResource';
 import { useText, useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
@@ -28,6 +35,17 @@ export enum SelectedOptionsType {
   Unknown = '',
 }
 
+const optionsTypeMap = {
+  [SelectedOptionsType.CodeList]: {
+    propertyName: 'optionsId',
+    defaultValue: '',
+  },
+  [SelectedOptionsType.Manual]: {
+    propertyName: 'options',
+    defaultValue: [],
+  },
+};
+
 const getSelectedOptionsType = (codeListId: string, options: IOption[]): SelectedOptionsType => {
   if (options?.length) {
     return SelectedOptionsType.Manual;
@@ -39,6 +57,7 @@ export function EditOptions<T extends SelectionComponentType>({
   editFormId,
   component,
   handleComponentChange,
+  renderOptions,
 }: ISelectionEditComponentProvidedProps<T>) {
   const previousEditFormId = useRef(editFormId);
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
@@ -54,22 +73,19 @@ export function EditOptions<T extends SelectionComponentType>({
     }
   }, [editFormId, initialSelectedOptionType]);
 
-  const handleOptionsTypeChange = (value: SelectedOptionsType) => {
-    setSelectedOptionsType(value);
-    if (value === SelectedOptionsType.CodeList) {
-      delete component.options;
-      handleComponentChange({
-        ...component,
-        optionsId: '',
-      });
-    }
-    if (value === SelectedOptionsType.Manual) {
-      delete component.optionsId;
-      handleComponentChange({
-        ...component,
-        options: [],
-      });
-    }
+  const handleOptionsTypeChange = (oldOptionsType: SelectedOptionsType) => {
+    const newOptionsType =
+      oldOptionsType === SelectedOptionsType.CodeList
+        ? SelectedOptionsType.Manual
+        : SelectedOptionsType.CodeList;
+
+    setSelectedOptionsType(newOptionsType);
+    delete component[optionsTypeMap[oldOptionsType].propertyName];
+
+    handleComponentChange({
+      ...component,
+      [optionsTypeMap[newOptionsType].propertyName]: optionsTypeMap[newOptionsType].defaultValue,
+    });
   };
 
   const handleUpdateOptionLabel = (index: number) => (id: string) => {
@@ -99,84 +115,93 @@ export function EditOptions<T extends SelectionComponentType>({
     });
   };
 
-  const handleAddOption = () =>
+  const handleAddOption = () => {
     handleComponentChange(addOptionToComponent(component, generateRandomOption()));
+  };
+
+  if (renderOptions?.onlyCodeListOptions) {
+    return <EditCodeList component={component} handleComponentChange={handleComponentChange} />;
+  }
 
   return (
     <>
-      <Radio.Group
-        onChange={handleOptionsTypeChange}
-        legend={t('ux_editor.modal_properties_add_radio_button_options')}
-        name={`${component.id}-options`}
-        value={selectedOptionsType}
-        inline={true}
-        size='small'
-      >
-        <Radio value={SelectedOptionsType.CodeList}>
-          {t('ux_editor.modal_add_options_codelist')}
-        </Radio>
-        <Radio value={SelectedOptionsType.Manual}>{t('ux_editor.modal_add_options_manual')}</Radio>
-      </Radio.Group>
+      <div className={classes.codeListSwitchWrapper}>
+        <Switch
+          checked={selectedOptionsType === SelectedOptionsType.CodeList}
+          onChange={() => handleOptionsTypeChange(selectedOptionsType)}
+        >
+          <Paragraph>{t('ux_editor.properties_panel.options.use_code_list_label')}</Paragraph>
+        </Switch>
+        <HelpText title='Bruk kodeliste'>
+          {t('ux_editor.properties_panel.options.use_code_list_helptext')}
+        </HelpText>
+      </div>
       {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
 
       {selectedOptionsType === SelectedOptionsType.Manual && (
-        <FormField
-          id={component.id}
-          value={component.options}
-          propertyPath={`${component.propertyPath}/properties/options`}
-          renderField={() => (
-            <div>
-              {component.options?.map((option, index) => {
-                const updateValue = (e: any) => handleUpdateOptionValue(index, e);
-                const removeItem = () => handleRemoveOption(index);
-                const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
-                const optionTitle = `${
-                  component.type === 'RadioButtons'
-                    ? t('ux_editor.modal_radio_button_increment')
-                    : t('ux_editor.modal_check_box_increment')
-                } ${index + 1}`;
-                return (
-                  <div className={classes.optionContainer} key={key}>
-                    <div className={classes.optionContentWrapper}>
-                      <Fieldset legend={optionTitle}>
-                        <div className={classes.optionContent}>
-                          <TextResource
-                            handleIdChange={handleUpdateOptionLabel(index)}
-                            placeholder={
-                              component.type === 'RadioButtons'
-                                ? t('ux_editor.modal_radio_button_add_label')
-                                : t('ux_editor.modal_check_box_add_label')
-                            }
-                            textResourceId={option.label}
-                          />
-                          <div>
-                            <Textfield
-                              label={t('general.value')}
-                              onChange={updateValue}
-                              placeholder={t('general.value')}
-                              value={option.value}
+        <>
+          <Heading level={4} size='xxsmall' spacing>
+            {t('ux_editor.properties_panel.options.add_options')}
+          </Heading>
+          <FormField
+            id={component.id}
+            value={component.options}
+            propertyPath={`${component.propertyPath}/properties/options`}
+            renderField={() => (
+              <div>
+                {component.options?.map((option, index) => {
+                  const updateValue = (e: any) => handleUpdateOptionValue(index, e);
+                  const removeItem = () => handleRemoveOption(index);
+                  const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
+                  const optionTitle = `${
+                    component.type === 'RadioButtons'
+                      ? t('ux_editor.modal_radio_button_increment')
+                      : t('ux_editor.modal_check_box_increment')
+                  } ${index + 1}`;
+                  return (
+                    <div className={classes.optionContainer} key={key}>
+                      <div className={classes.optionContentWrapper}>
+                        <Fieldset legend={optionTitle}>
+                          <div className={classes.optionContent}>
+                            <TextResource
+                              handleIdChange={handleUpdateOptionLabel(index)}
+                              placeholder={
+                                component.type === 'RadioButtons'
+                                  ? t('ux_editor.modal_radio_button_add_label')
+                                  : t('ux_editor.modal_check_box_add_label')
+                              }
+                              textResourceId={option.label}
                             />
+                            <div>
+                              <Textfield
+                                label={t('general.value')}
+                                onChange={updateValue}
+                                placeholder={t('general.value')}
+                                value={option.value}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </Fieldset>
+                        </Fieldset>
+                      </div>
+                      <div>
+                        <StudioButton
+                          color='danger'
+                          icon={<TrashIcon />}
+                          onClick={removeItem}
+                          variant='tertiary'
+                          size='small'
+                          title={t('ux_editor.properties_panel.options.remove_option')}
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <StudioButton
-                        color='danger'
-                        icon={<XMarkIcon />}
-                        onClick={removeItem}
-                        variant='tertiary'
-                        size='small'
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        />
+                  );
+                })}
+              </div>
+            )}
+          />
+        </>
       )}
 
       {selectedOptionsType === SelectedOptionsType.Manual && (

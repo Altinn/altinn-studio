@@ -5,41 +5,30 @@ import { renderWithMockStore } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 describe('FormComponentConfig', () => {
   it('should render expected components', async () => {
     render({});
-    ['title', 'description', 'help'].forEach(async (key) => {
+
+    [
+      'grid',
+      'readOnly',
+      'required',
+      'hidden',
+      'renderAsSummary',
+      'variant',
+      'autocomplete',
+      'maxLength',
+      'triggers',
+      'labelSettings',
+      'pageBreak',
+      'formatting',
+    ].forEach(async (propertyKey) => {
       expect(
-        screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_${key}`)),
+        await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`)),
       ).toBeInTheDocument();
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(textMock('ux_editor.modal_properties_data_model_link')),
-        ).toBeInTheDocument();
-      });
-
-      [
-        'grid',
-        'readOnly',
-        'required',
-        'hidden',
-        'renderAsSummary',
-        'variant',
-        'autocomplete',
-        'maxLength',
-        'triggers',
-        'labelSettings',
-        'pageBreak',
-        'formatting',
-      ].forEach(async (propertyKey) => {
-        expect(
-          await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`)),
-        ).toBeInTheDocument();
-      });
     });
   });
 
