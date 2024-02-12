@@ -9,21 +9,27 @@ import { component1Mock, component1IdMock } from '../../testing/layoutMock';
 import { renderWithProviders } from '../../testing/mocks';
 
 // Test data:
+const textText = 'Tekst';
 const contentText = 'Innhold';
 const dynamicsText = 'Dynamikk';
 const calculationsText = 'Beregninger';
 const texts = {
+  'right_menu.text': textText,
   'right_menu.content': contentText,
   'right_menu.dynamics': dynamicsText,
   'right_menu.calculations': calculationsText,
 };
 
+const textTestId = 'text';
 const contentTestId = 'content';
 const conditionalRenderingTestId = 'conditional-rendering';
 const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
 
 // Mocks:
+jest.mock('./Text', () => ({
+  Text: () => <div data-testid={textTestId} />,
+}));
 jest.mock('./Content', () => ({
   Content: () => <div data-testid={contentTestId} />,
 }));
@@ -39,6 +45,24 @@ jest.mock('./Calculations', () => ({
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('Properties', () => {
+  describe('Text', () => {
+    it('Toggles text when clicked', async () => {
+      const user = userEvent.setup();
+      renderProperties();
+      const button = screen.queryByRole('button', { name: textText });
+      await act(() => user.click(button));
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      await act(() => user.click(button));
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('Opens text when a component is selected', async () => {
+      const { rerender } = renderProperties();
+      rerender(getComponent({ formId: 'test' }));
+      const button = screen.queryByRole('button', { name: textText });
+      await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
+    });
+  });
   describe('Default config', () => {
     it('hides the properties header when the form is undefined', () => {
       renderProperties({ form: undefined });
@@ -82,13 +106,6 @@ describe('Properties', () => {
       expect(button).toHaveAttribute('aria-expanded', 'true');
       await act(() => user.click(button));
       expect(button).toHaveAttribute('aria-expanded', 'false');
-    });
-
-    it('Opens content when a component is selected', async () => {
-      const { rerender } = renderProperties();
-      rerender(getComponent({ formId: 'test' }));
-      const button = screen.queryByRole('button', { name: contentText });
-      await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
     });
   });
 
@@ -141,9 +158,11 @@ describe('Properties', () => {
   it('Renders accordion', () => {
     const formIdMock = 'test-id';
     renderProperties({ formId: formIdMock });
+    expect(screen.getByText(textText)).toBeInTheDocument();
     expect(screen.getByText(contentText)).toBeInTheDocument();
     expect(screen.getByText(dynamicsText)).toBeInTheDocument();
     expect(screen.getByText(calculationsText)).toBeInTheDocument();
+    expect(screen.getByTestId(textTestId)).toBeInTheDocument();
     expect(screen.getByTestId(contentTestId)).toBeInTheDocument();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
     expect(screen.getByTestId(calculationsTestId)).toBeInTheDocument();

@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
-import { LegacySelect, Textfield } from '@digdir/design-system-react';
-import type { IGenericEditComponent } from '../componentConfig';
-import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
+import React, { useEffect, useState } from 'react';
+import { Alert, LegacySelect, Textfield } from '@digdir/design-system-react';
+import type { IGenericEditComponent } from '../../componentConfig';
+import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { ErrorMessage } from '@digdir/design-system-react';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { FormField } from '../../FormField';
+import { FormField } from '../../../FormField';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import classes from './EditCodeList.module.css';
 
 export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
   const { t } = useTranslation();
@@ -22,6 +23,11 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
     });
   };
 
+  useEffect(() => {
+    if (!optionListIds) return;
+    setUseCustomCodeList(optionListIds?.length === 0);
+  }, [optionListIds]);
+
   return (
     <div>
       {isPending ? (
@@ -31,7 +37,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
         </ErrorMessage>
       ) : optionListIds?.length === 0 ? (
-        <ErrorMessage>{t('ux_editor.modal_properties_no_options_found_message')}</ErrorMessage>
+        <Alert severity='info'>{t('ux_editor.modal_properties_no_options_found_message')}</Alert>
       ) : (
         <>
           <p>
@@ -39,9 +45,14 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               variant='tertiary'
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
               size='small'
+              className={classes.customOrStaticButton}
             >
-              {optionListIds?.length > 0 && useCustomCodeList && <>Bytt til statisk kodeliste</>}
-              {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}
+              {optionListIds?.length > 0 && useCustomCodeList && (
+                <>{t('ux_editor.properties_panel.options.codelist_switch_to_static')}</>
+              )}
+              {!useCustomCodeList && (
+                <>{t('ux_editor.properties_panel.options.codelist_switch_to_custom')}</>
+              )}
             </StudioButton>
           </p>
 
