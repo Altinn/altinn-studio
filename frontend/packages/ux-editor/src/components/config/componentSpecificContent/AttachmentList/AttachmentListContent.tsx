@@ -39,7 +39,7 @@ export const AttachmentListContent = ({
     handleComponentChange({ ...component, dataTypeIds: updatedSelection });
   };
 
-  const getDescription = (dataType: string) => {
+  const getTextToDisplay = (dataType: string) => {
     return dataType === 'include-all'
       ? t('ux_editor.component_properties.select_all_attachments')
       : dataType;
@@ -59,8 +59,8 @@ export const AttachmentListContent = ({
           <Combobox.Option
             key={attachment}
             value={attachment}
-            description={getDescription(attachment)}
-            displayValue={getDescription(attachment)}
+            description={getTextToDisplay(attachment)}
+            displayValue={getTextToDisplay(attachment)}
           />
         );
       })}
