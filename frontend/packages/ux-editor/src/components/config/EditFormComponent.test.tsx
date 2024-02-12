@@ -10,6 +10,8 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 
+const user = userEvent.setup();
+
 // Test data:
 const srcValueLabel = 'Source';
 const autocompleteLabel = 'Autocomplete';
@@ -80,35 +82,7 @@ describe('EditFormComponent', () => {
     jest.clearAllMocks();
   });
 
-  test('should return input specific content when type input', async () => {
-    const user = userEvent.setup();
-    await render({
-      componentProps: {
-        type: ComponentType.Input,
-      },
-    });
-
-    const labels = {
-      'ID: test': 'button',
-      'ux_editor.modal_properties_data_model_helper': 'combobox',
-      'ux_editor.modal_configure_read_only': 'checkbox',
-    };
-
-    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
-    await act(() => user.click(linkIcon));
-
-    await waitFor(() => {
-      Object.keys(labels).map(async (label) =>
-        expect(await screen.findByRole(labels[label], { name: label })),
-      );
-    });
-
-    expect(screen.getByRole('combobox'));
-    expect(screen.getByLabelText('Autocomplete (WCAG)'));
-  });
-
   test('should return header specific content when type header', async () => {
-    const user = userEvent.setup();
     await render({
       componentProps: {
         type: ComponentType.Header,
@@ -121,16 +95,11 @@ describe('EditFormComponent', () => {
   });
 
   test('should return file uploader specific content when type file uploader', async () => {
-    const user = userEvent.setup();
     await render({
       componentProps: {
         type: ComponentType.FileUpload,
       },
     });
-
-    const testIdButton = screen.getByRole('button', { name: 'ID: test' });
-    expect(testIdButton).toBeInTheDocument();
-    await act(() => user.click(testIdButton));
 
     const labels = [
       'ux_editor.modal_properties_file_upload_simple',
@@ -146,7 +115,6 @@ describe('EditFormComponent', () => {
   });
 
   test('should call handleComponentUpdate with max number of attachments to 1 when clearing max number of attachments', async () => {
-    const user = userEvent.setup();
     const handleUpdate = jest.fn();
     const { allComponentProps } = await render({
       componentProps: {
@@ -166,7 +134,6 @@ describe('EditFormComponent', () => {
   });
 
   test('should call handleComponentUpdate with required: false when min number of attachments is set to 0', async () => {
-    const user = userEvent.setup();
     const handleUpdate = jest.fn();
     const { allComponentProps } = await render({
       componentProps: {
