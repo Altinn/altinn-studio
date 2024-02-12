@@ -6,6 +6,7 @@ using Altinn.App.Core.Models;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
+using Moq;
 
 namespace Altinn.App.Api.Tests.Controllers
 {
@@ -39,6 +40,63 @@ namespace Altinn.App.Api.Tests.Controllers
             var headerValue = response.Headers.GetValues("Altinn-DownstreamParameters");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             headerValue.Should().Contain("lang=esperanto");
+        }
+
+        [Fact]
+        public async Task Get_ShouldReturnParametersInHeaderWithSpecialChars()
+        {
+            var options = new AppOptions
+            {
+                Options = new List<AppOption>()
+                {
+                    new()
+                    {
+                        Value = "",
+                        Label = ""
+                    }
+                },
+                Parameters = new Dictionary<string, string?>
+                {
+                    { "language", "español" },
+                    { "level", "1" },
+                    { "variant", "Småviltjakt"},
+                    { "special", ",\".%"}
+                },
+            };
+            var provider = new Mock<IAppOptionsProvider>(MockBehavior.Strict);
+            provider
+                .Setup(p => p.GetAppOptionsAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+                .ReturnsAsync(options)
+                .Verifiable(Times.Once);
+            provider
+                .Setup(p => p.Id)
+                .Returns("test")
+                .Verifiable(Times.Once);
+
+            OverrideServicesForThisTest = (services) =>
+            {
+                services.AddSingleton(provider.Object);
+            };
+
+            string org = "tdd";
+            string app = "contributer-restriction";
+            HttpClient client = GetRootedClient(org, app);
+
+            string url = $"/{org}/{app}/api/options/test?";
+            HttpResponseMessage response = await client.GetAsync(url);
+            var content = await response.Content.ReadAsStringAsync();
+            response.StatusCode.Should().Be(HttpStatusCode.OK, content);
+
+            var headerValue = response.Headers.Should().Contain((header) => header.Key == "Altinn-DownstreamParameters").Which.Value; ;
+            response.Should().HaveStatusCode(HttpStatusCode.OK);
+            headerValue.Should().ContainSingle().Which.Split(',').Should().Contain(new List<string>()
+            {
+                "language=espa%C3%B1ol",
+                "level=1",
+                "variant=Sm%C3%A5viltjakt",
+                "special=%2C%22.%25"
+            });
+            provider.Verify();
         }
 
         [Fact]
