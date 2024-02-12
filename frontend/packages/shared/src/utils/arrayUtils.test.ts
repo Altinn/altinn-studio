@@ -3,7 +3,6 @@ import {
   arrayIntersection,
   generateUniqueStringWithNumber,
   insertArrayElementAtPos,
-  last,
   mapByKey,
   moveArrayItem,
   prepend,
@@ -21,17 +20,6 @@ describe('arrayUtils', () => {
     it('Prepends item to array', () => {
       expect(prepend([1, 2, 3], 0)).toEqual([0, 1, 2, 3]);
       expect(prepend(['a', 'b', 'c'], 'd')).toEqual(['d', 'a', 'b', 'c']);
-    });
-  });
-
-  describe('last', () => {
-    it('Returns last item in array', () => {
-      expect(last([1, 2, 3])).toEqual(3);
-      expect(last(['a', 'b', 'c'])).toEqual('c');
-    });
-
-    it('Returns undefined if array is empty', () => {
-      expect(last([])).toBeUndefined();
     });
   });
 
