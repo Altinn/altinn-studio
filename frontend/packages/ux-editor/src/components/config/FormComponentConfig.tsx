@@ -7,11 +7,13 @@ import { EditStringValue } from './editModal/EditStringValue';
 import { useText } from '../../hooks';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
+import { useComponentPropertyLabel } from '../../hooks/useComponentPropertyLabel';
+import type { FormItem } from '../../types/FormItem';
 
 export interface IEditFormComponentProps {
   editFormId: string;
-  component: FormComponent;
-  handleComponentUpdate: (component: FormComponent) => void;
+  component: FormItem;
+  handleComponentUpdate: (component: FormItem) => void;
 }
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
@@ -40,16 +42,12 @@ export const FormComponentConfig = ({
     optionsId,
     hasCustomFileEndings,
     validFileEndings,
-    children,
     grid,
     ...rest
   } = schema.properties;
 
-  // children property is not supported in component config - it should be part of container config.
-  const unsupportedPropertyKeys: string[] = getUnsupportedPropertyTypes(
-    rest,
-    children ? ['children'] : undefined,
-  );
+  const unsupportedPropertyKeys: string[] = getUnsupportedPropertyTypes(rest);
+
   return (
     <>
       {grid && (

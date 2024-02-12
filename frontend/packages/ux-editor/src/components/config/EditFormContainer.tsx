@@ -5,14 +5,7 @@ import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import {
-  Alert,
-  Switch,
-  Checkbox,
-  LegacyFieldSet,
-  LegacyTextField,
-  Paragraph,
-} from '@digdir/design-system-react';
+import { Switch, Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import { useText } from '../../hooks';
@@ -27,6 +20,9 @@ import type { FormContainer } from '../../types/FormContainer';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../hooks/useAppContext';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
+import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
+import { FormComponentConfig } from './FormComponentConfig';
 
 export interface IEditFormContainerProps {
   editFormId: string;
@@ -50,6 +46,8 @@ export const EditFormContainer = ({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
+  useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
+  const { data: schema } = useComponentSchemaQuery(container.type);
 
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);
 
@@ -229,8 +227,11 @@ export const EditFormContainer = ({
       )}
     </LegacyFieldSet>
   ) : (
-    <Alert severity='info'>
-      <Paragraph size='small'>{t('ux_editor.container_not_editable_info')}</Paragraph>
-    </Alert>
+    <FormComponentConfig
+      schema={schema}
+      editFormId={container.id}
+      component={container}
+      handleComponentUpdate={handleContainerUpdate}
+    ></FormComponentConfig>
   );
 };
