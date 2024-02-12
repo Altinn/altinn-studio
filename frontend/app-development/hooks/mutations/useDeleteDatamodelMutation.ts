@@ -3,6 +3,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 
 export const useDeleteDatamodelMutation = () => {
   const { deleteDatamodel } = useServicesContext();
@@ -10,19 +11,33 @@ export const useDeleteDatamodelMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (modelPath: string) => {
-      await deleteDatamodel(org, app, modelPath);
-      const respectiveFileNameInXsdOrJson = isXsdFile(modelPath)
+      const jsonSchemaPath = isXsdFile(modelPath)
         ? modelPath.replace('.xsd', '.schema.json')
-        : modelPath.replace('.schema.json', '.xsd');
-      queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], undefined);
+        : modelPath;
+      const xsdPath = isXsdFile(modelPath) ? modelPath : modelPath.replace('.schema.json', '.xsd');
       queryClient.setQueryData(
-        [QueryKey.JsonSchema, org, app, respectiveFileNameInXsdOrJson],
-        undefined,
+        [QueryKey.DatamodelsJson, org, app],
+        (oldData: DatamodelMetadata[]) => removeDatamodelFromList(oldData, jsonSchemaPath),
       );
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsJson, org, app] }),
-        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
-      ]);
+      queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], (oldData: DatamodelMetadata[]) =>
+        removeDatamodelFromList(oldData, xsdPath),
+      );
+      await deleteDatamodel(org, app, modelPath);
+      return { jsonSchemaPath, xsdPath };
+    },
+    onSuccess: ({ jsonSchemaPath, xsdPath }) => {
+      queryClient.removeQueries({
+        queryKey: [QueryKey.JsonSchema, org, app, jsonSchemaPath],
+      });
+      queryClient.removeQueries({
+        queryKey: [QueryKey.JsonSchema, org, app, xsdPath],
+      });
     },
   });
 };
+
+export const removeDatamodelFromList = (
+  datamodels: DatamodelMetadata[],
+  relativeUrl: string,
+): DatamodelMetadata[] =>
+  datamodels.filter((datamodel) => datamodel.repositoryRelativeUrl !== relativeUrl);

@@ -13,10 +13,10 @@ import {
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { container1IdMock, externalLayoutsMock, layoutMock } from '../../testing/layoutMock';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormContainer } from '../../types/FormContainer';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 const user = userEvent.setup();
 
@@ -27,21 +27,21 @@ const selectedLayoutSet = 'test-layout-set';
 const accordionContainer: FormContainer = {
   id: 'accordionContainerId',
   itemType: 'CONTAINER',
-  type: ComponentType.Accordion,
+  type: ComponentTypeV3.Accordion,
   pageIndex: 1,
   propertyPath: 'definitions/accordionComponent',
 };
 const accordionGroupContainer: FormContainer = {
   id: 'accordionGroupContainerId',
   itemType: 'CONTAINER',
-  type: ComponentType.AccordionGroup,
+  type: ComponentTypeV3.AccordionGroup,
   pageIndex: 1,
   propertyPath: 'definitions/accordionGroupComponent',
 };
 const buttonGroupContainer: FormContainer = {
   id: 'buttonGroupContainerId',
   itemType: 'CONTAINER',
-  type: ComponentType.ButtonGroup,
+  type: ComponentTypeV3.ButtonGroup,
   pageIndex: 1,
   propertyPath: 'definitions/buttonGroupComponent',
 };
@@ -120,15 +120,15 @@ describe('EditFormContainer', () => {
 });
 
 const waitForData = async () => {
-  const getFormLayouts = jest
+  const getFormLayoutsV3 = jest
     .fn()
-    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>(externalLayoutsMock));
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore(
     {},
-    { getFormLayouts },
+    { getFormLayoutsV3 },
   )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   const settingsResult = renderHookWithMockStore(
     {},

@@ -9,6 +9,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { FormItem } from '../types/FormItem';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
 
 export function getTextResourceByAddressKey(key: AddressKeys, t: (key: string) => string): string {
   switch (key) {
@@ -91,8 +92,8 @@ export const generateRandomOption = (): IOption => ({ label: '', value: generate
  * @returns A component of the given type.
  */
 export const generateFormItem = <T extends ComponentType>(type: T, id: string): FormItem<T> => {
-  const { defaultProperties } = formItemConfigs[type];
-  return { ...defaultProperties, id };
+  const { defaultProperties, itemType } = formItemConfigs[type];
+  return { ...defaultProperties, id, type, itemType } as FormItem<T>;
 };
 
 /**
@@ -102,11 +103,15 @@ export const generateFormItem = <T extends ComponentType>(type: T, id: string): 
  * @param value The value to set the property to.
  * @returns The component with updated property.
  */
-export const setComponentProperty = (
-  component: FormComponent,
-  propertyKey: string,
-  value: any,
-): FormComponent => ({
+export const setComponentProperty = <
+  T extends ComponentType,
+  V,
+  K extends FilterKeysOfType<FormItem<T>, V>,
+>(
+  component: FormItem<T>,
+  propertyKey: K,
+  value: V,
+): FormItem<T> => ({
   ...component,
   [propertyKey]: value,
 });

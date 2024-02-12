@@ -1,5 +1,5 @@
 import { areItemsUnique } from 'app-shared/utils/arrayUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type {
   FormCheckboxesComponent,
   FormComponent,
@@ -52,8 +52,8 @@ export const useValidateComponent = (component: FormComponent): ComponentValidat
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
 
   switch (component.type) {
-    case ComponentType.Checkboxes:
-    case ComponentType.RadioButtons:
+    case ComponentTypeV3.Checkboxes:
+    case ComponentTypeV3.RadioButtons:
       return validateOptionGroup(component, optionListIds);
     default:
       return { isValid: true };

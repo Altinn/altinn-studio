@@ -6,7 +6,7 @@ import type { FormComponent } from '../../types/FormComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 
@@ -85,7 +85,7 @@ describe('EditFormComponent', () => {
   test('should return input specific content when type input', async () => {
     await render({
       componentProps: {
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
       },
     });
 
@@ -108,7 +108,7 @@ describe('EditFormComponent', () => {
   test('should return header specific content when type header', async () => {
     await render({
       componentProps: {
-        type: ComponentType.Header,
+        type: ComponentTypeV3.Header,
       },
     });
 
@@ -121,7 +121,7 @@ describe('EditFormComponent', () => {
   test('should return file uploader specific content when type file uploader', async () => {
     await render({
       componentProps: {
-        type: ComponentType.FileUpload,
+        type: ComponentTypeV3.FileUpload,
       },
     });
 
@@ -144,7 +144,7 @@ describe('EditFormComponent', () => {
     const { allComponentProps } = await render({
       componentProps: {
         maxNumberOfAttachments: 3,
-        type: ComponentType.FileUpload,
+        type: ComponentTypeV3.FileUpload,
       },
       handleComponentUpdate: handleUpdate,
     });
@@ -164,7 +164,7 @@ describe('EditFormComponent', () => {
       componentProps: {
         required: true,
         minNumberOfAttachments: 1,
-        type: ComponentType.FileUpload,
+        type: ComponentTypeV3.FileUpload,
       },
       handleComponentUpdate: handleUpdate,
     });
@@ -182,7 +182,7 @@ describe('EditFormComponent', () => {
   test('should return button specific content when type button', async () => {
     await render({
       componentProps: {
-        type: ComponentType.Button,
+        type: ComponentTypeV3.Button,
       },
     });
     expect(await screen.findByTestId(buttonSpecificContentId)).toBeInTheDocument();
@@ -191,7 +191,7 @@ describe('EditFormComponent', () => {
   test('should render Image component when component type is Image', async () => {
     await render({
       componentProps: {
-        type: ComponentType.Image,
+        type: ComponentTypeV3.Image,
       },
     });
     expect(await screen.findByTestId(imageSpecificContentId)).toBeInTheDocument();
@@ -200,7 +200,7 @@ describe('EditFormComponent', () => {
   it('should not render Image component when component type is not Image', async () => {
     await render({
       componentProps: {
-        type: ComponentType.Button,
+        type: ComponentTypeV3.Button,
       },
     });
     expect(screen.queryByLabelText(srcValueLabel)).not.toBeInTheDocument();
@@ -209,7 +209,7 @@ describe('EditFormComponent', () => {
   it('should notify users when the component is unrecognized and cannot be configured in Studio', async () => {
     await render({
       componentProps: {
-        // Cast the type to avoid TypeScript error due to components that does not exists within ComponentType.
+        // Cast the type to avoid TypeScript error due to components that does not exists within ComponentTypeV3.
         type: 'UnknownComponent' as unknown as any,
       },
     });
@@ -247,7 +247,7 @@ const render = async ({
     textResourceBindings: {
       title: 'title',
     },
-    type: ComponentType.Input,
+    type: ComponentTypeV3.Input,
     id: 'test',
     itemType: 'COMPONENT',
     ...componentProps,

@@ -14,6 +14,8 @@ const user = userEvent.setup();
 
 // Test data:
 const srcValueLabel = 'Source';
+const autocompleteLabel = 'Autocomplete';
+const datamodelFieldLinkLabel = 'Add data model field';
 const texts = {
   'general.label': '',
   'general.value': '',
@@ -24,6 +26,8 @@ const texts = {
   'ux_editor.modal_properties_image_placement_label': 'Placement',
   'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
   'ux_editor.modal_properties_image_width_label': 'Width',
+  'ux_editor.component_properties.autocomplete': autocompleteLabel,
+  'ux_editor.modal_properties_data_model_link': datamodelFieldLinkLabel,
 };
 
 // Mocks:
@@ -82,29 +86,6 @@ describe('EditFormComponent', () => {
     jest.clearAllMocks();
   });
 
-  test('should return input specific content when type input', async () => {
-    await render({
-      componentProps: {
-        type: ComponentType.Input,
-      },
-    });
-
-    const labels = {
-      'ux_editor.modal_properties_component_change_id': 'textbox',
-      'ux_editor.modal_properties_data_model_helper': 'combobox',
-      'ux_editor.modal_configure_read_only': 'checkbox',
-    };
-
-    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
-    await act(() => user.click(linkIcon));
-
-    Object.keys(labels).map(async (label) =>
-      expect(await screen.findByRole(labels[label], { name: label })),
-    );
-    expect(screen.getByRole('combobox'));
-    expect(screen.getByLabelText('Autocomplete (WCAG)'));
-  });
-
   test('should return header specific content when type header', async () => {
     await render({
       componentProps: {
@@ -112,7 +93,6 @@ describe('EditFormComponent', () => {
       },
     });
 
-    expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id'));
     await waitFor(() =>
       expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' })),
     );
@@ -126,7 +106,6 @@ describe('EditFormComponent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id',
       'ux_editor.modal_properties_file_upload_simple',
       'ux_editor.modal_properties_file_upload_list',
       'ux_editor.modal_properties_valid_file_endings_all',

@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 import { externalSimpleComponentToInternal } from './externalSimpleComponentToInternal';
 import { formItemConfigs } from '../../data/formItemConfig';
@@ -6,7 +6,7 @@ import { formItemConfigs } from '../../data/formItemConfig';
 // Test data:
 const id = '1';
 const customProperty = 'test';
-const type: ComponentType = ComponentType.Input;
+const type: ComponentTypeV3 = ComponentTypeV3.Input;
 const propertyPath = formItemConfigs[type].defaultProperties.propertyPath;
 
 describe('externalSimpleComponentToInternal', () => {

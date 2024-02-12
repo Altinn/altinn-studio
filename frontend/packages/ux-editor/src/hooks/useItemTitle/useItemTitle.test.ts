@@ -1,8 +1,8 @@
 import { useItemTitle } from './useItemTitle';
-import { renderHookWithMockStore } from '../../../../testing/mocks';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import type { FormContainer } from '../../../../types/FormContainer';
-import type { FormComponent } from '../../../../types/FormComponent';
+import { renderHookWithMockStore } from '../../testing/mocks';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
+import type { FormContainer } from '../../types/FormContainer';
+import type { FormComponent } from '../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';

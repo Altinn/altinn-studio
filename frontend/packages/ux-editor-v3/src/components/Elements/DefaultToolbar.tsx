@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { IToolbarElement } from '../../types/global';
 import { CollapsableMenus } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
@@ -16,7 +16,7 @@ import { getComponentTitleByComponentType } from '../../utils/language';
 
 export function DefaultToolbar() {
   const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);
-  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentType>(null);
+  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentTypeV3>(null);
   const [anchorElement, setAnchorElement] = useState<any>(null);
 
   const { t } = useTranslation();
@@ -41,7 +41,7 @@ export function DefaultToolbar() {
     // [CollapsableMenus.ThirdParty]: thirdPartyComponentList,
   };
 
-  const handleComponentInformationOpen = (component: ComponentType, event: any) => {
+  const handleComponentInformationOpen = (component: ComponentTypeV3, event: any) => {
     setCompInfoPanelOpen(true);
     setCompSelForInfoPanel(component);
     setAnchorElement(event.currentTarget);
