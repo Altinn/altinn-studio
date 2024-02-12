@@ -3,7 +3,6 @@ using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Action;
-using Altinn.App.Core.Internal.Exceptions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.UserAction;

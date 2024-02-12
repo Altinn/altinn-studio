@@ -1,4 +1,4 @@
-namespace Altinn.App.Api.Configuration;
+namespace Altinn.App.Core.Configuration;
 
 /// <summary>
 /// Metric settings for Altinn Apps

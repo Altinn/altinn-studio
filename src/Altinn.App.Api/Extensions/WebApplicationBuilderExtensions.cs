@@ -1,7 +1,7 @@
 #nullable enable
 using System.Reflection;
-using Altinn.App.Api.Configuration;
 using Altinn.App.Api.Helpers;
+using Altinn.App.Core.Configuration;
 using Prometheus;
 
 namespace Altinn.App.Api.Extensions;
