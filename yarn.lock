@@ -5532,7 +5532,7 @@ __metadata:
     source-map-loader: "npm:4.0.2"
     style-loader: "npm:3.3.4"
     svg-inline-loader: "npm:0.8.2"
-    swc-loader: "npm:0.2.4"
+    swc-loader: "npm:0.2.6"
     terser-webpack-plugin: "npm:5.3.10"
     ts-loader: "npm:9.5.1"
     ts-morph: "npm:21.0.1"
@@ -15508,13 +15508,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swc-loader@npm:0.2.4":
-  version: 0.2.4
-  resolution: "swc-loader@npm:0.2.4"
+"swc-loader@npm:0.2.6":
+  version: 0.2.6
+  resolution: "swc-loader@npm:0.2.6"
+  dependencies:
+    "@swc/counter": "npm:^0.1.3"
   peerDependencies:
     "@swc/core": ^1.2.147
     webpack: ">=2"
-  checksum: 10/f23bfe8900b35abdcb9910a2749f3c9d66edf5c660afc67fcf7983647eaec322e024d1edd3bd9fd48bd3191eea0616f67b5f8b5f923e3a648fa5b448683c3213
+  checksum: 10/fe90948c02a51bb8ffcff1ce3590e01dc12860b0bb7c9e22052b14fa846ed437781ae265614a5e14344bea22001108780f00a6e350e28c0b3499bc4cd11335fb
   languageName: node
   linkType: hard
 
