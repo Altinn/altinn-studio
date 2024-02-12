@@ -40,7 +40,9 @@ export const AttachmentListContent = ({
   };
 
   const getDescription = (dataType: string) => {
-    return dataType === 'include-all' ? 'Alle vedlegg' : dataType;
+    return dataType === 'include-all'
+      ? t('ux_editor.component_properties.select_all_attachments')
+      : dataType;
   };
 
   return (

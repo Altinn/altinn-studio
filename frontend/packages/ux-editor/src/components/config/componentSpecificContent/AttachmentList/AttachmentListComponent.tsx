@@ -20,7 +20,7 @@ export const AttachmentListComponent = ({
   const { selectedLayoutSet } = useAppContext();
   const { t } = useTranslation();
 
-  const selectedAttachments = component?.dataTypeIds;
+  const selectedAttachments = component?.dataTypeIds ?? [];
   const [onlyCurrentTask, setOnlyCurrentTask] = useState(
     selectedAttachments && selectedAttachments.includes('current-task') ? true : false,
   );
@@ -73,7 +73,7 @@ export const AttachmentListComponent = ({
         {t('ux_editor.component_properties.current_task')}
       </Switch>
       <Switch onChange={(e) => onChangePdf(e.target.checked)} size='small' checked={includePdf}>
-        Inkluder PDF
+        {t('ux_editor.component_properties.select_pdf')}
       </Switch>
       <AttachmentListContent
         component={component}
@@ -92,7 +92,7 @@ const getTasks = (
   selectedLayoutSet: string,
   onlyCurrentTask: boolean,
 ): string[] => {
-  if (!layoutSets.sets) return undefined;
+  if (!layoutSets) return [];
   const currentTask = () =>
     layoutSets?.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks ?? [];
 
