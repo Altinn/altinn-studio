@@ -10,7 +10,6 @@ import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors'
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
-import { EditComponentId } from './editModal/EditComponentId';
 import { useSelector } from 'react-redux';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
@@ -105,7 +104,6 @@ export const EditFormComponent = ({
       )}
       {!showComponentConfigBeta && (
         <>
-          <EditComponentId component={component} handleComponentUpdate={handleComponentUpdate} />
           {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
           <ComponentSpecificContent
             component={component}

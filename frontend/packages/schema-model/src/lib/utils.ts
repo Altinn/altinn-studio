@@ -91,8 +91,10 @@ export const isReference = (node: UiSchemaNode): node is ReferenceNode =>
 export const isFieldOrCombination = (node: UiSchemaNode): node is FieldNode | CombinationNode =>
   isField(node) || isCombination(node);
 
-export const isDefinition = (node: UiSchemaNode): boolean =>
-  node.pointer.startsWith(makePointerFromArray([Keyword.Definitions]));
+export const isDefinition = (node: UiSchemaNode): boolean => isDefinitionPointer(node.pointer);
+
+export const isDefinitionPointer = (pointer: string): boolean =>
+  pointer.startsWith(makePointerFromArray([Keyword.Definitions]));
 
 export const isProperty = (node: UiSchemaNode): boolean => !isDefinition(node);
 

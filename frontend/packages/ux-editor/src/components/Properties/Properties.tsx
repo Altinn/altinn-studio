@@ -7,10 +7,12 @@ import { Accordion } from '@digdir/design-system-react';
 import { useFormContext } from '../../containers/FormContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
+import { PropertiesHeader } from './PropertiesHeader';
+import { isContainer } from '../../utils/formItemUtils';
 
 export const Properties = () => {
   const { t } = useTranslation();
-  const { formId } = useFormContext();
+  const { formId, form, handleUpdate, debounceSave } = useFormContext();
   const formIdRef = React.useRef(formId);
 
   const [openList, setOpenList] = React.useState<string[]>([]);
@@ -32,6 +34,16 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
+      {form && !isContainer(form) && (
+        <PropertiesHeader
+          form={form}
+          formId={formId}
+          handleComponentUpdate={async (updatedComponent) => {
+            handleUpdate(updatedComponent);
+            debounceSave(formId, updatedComponent);
+          }}
+        />
+      )}
       <Accordion color='subtle'>
         <Accordion.Item open={openList.includes('text')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('text')}>

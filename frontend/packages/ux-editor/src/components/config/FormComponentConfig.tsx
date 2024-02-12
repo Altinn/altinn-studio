@@ -1,8 +1,6 @@
 import React from 'react';
-import { EditComponentId } from './editModal/EditComponentId';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
-import { EditDataModelBindings } from './editModal/EditDataModelBindings';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
 import { EditStringValue } from './editModal/EditStringValue';
@@ -56,35 +54,6 @@ export const FormComponentConfig = ({
   );
   return (
     <>
-      {id && (
-        <EditComponentId
-          component={component}
-          handleComponentUpdate={handleComponentUpdate}
-          helpText={id.description}
-        />
-      )}
-      {dataModelBindings?.properties && (
-        <>
-          <Heading level={3} size='xxsmall'>
-            {t('top_menu.datamodel')}
-          </Heading>
-          {Object.keys(dataModelBindings?.properties).map((propertyKey: string) => {
-            return (
-              <EditDataModelBindings
-                key={`${component.id}-datamodel-${propertyKey}`}
-                component={component}
-                handleComponentChange={handleComponentUpdate}
-                editFormId={editFormId}
-                helpText={dataModelBindings?.properties[propertyKey]?.description}
-                renderOptions={{
-                  key: propertyKey,
-                  label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
-                }}
-              />
-            );
-          })}
-        </>
-      )}
       {grid && (
         <div>
           <Heading level={3} size='xxsmall'>
