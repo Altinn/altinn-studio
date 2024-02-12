@@ -9,7 +9,7 @@ import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateForm
 import type { UseMutationResult } from '@tanstack/react-query';
 import { renderWithMockStore } from '../testing/mocks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
 import type { IAppState } from '../types/global';
@@ -57,7 +57,11 @@ describe('FormContext', () => {
 
   it('should update the form when calling handleUpdate', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
+    const mockForm: FormContainer = {
+      id: 'id',
+      itemType: 'CONTAINER',
+      type: ComponentTypeV3.Group,
+    };
 
     render(() => {
       const { form, handleUpdate } = React.useContext(FormContext);
@@ -83,7 +87,11 @@ describe('FormContext', () => {
 
   it('should edit the form when calling handleEdit', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
+    const mockForm: FormContainer = {
+      id: 'id',
+      itemType: 'CONTAINER',
+      type: ComponentTypeV3.Group,
+    };
 
     const { store } = render(() => {
       const { formId, form, handleEdit } = React.useContext(FormContext);
@@ -115,7 +123,11 @@ describe('FormContext', () => {
 
   it('should render id and itemType when calling handleEdit with truthy updatedForm', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
+    const mockForm: FormContainer = {
+      id: 'id',
+      itemType: 'CONTAINER',
+      type: ComponentTypeV3.Group,
+    };
     const { store } = render(() => {
       const { formId, form, handleEdit } = React.useContext(FormContext);
       return (
@@ -176,7 +188,11 @@ describe('FormContext', () => {
 
   it('should save the container when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
+    const mockForm: FormContainer = {
+      id: 'id',
+      itemType: 'CONTAINER',
+      type: ComponentTypeV3.Group,
+    };
 
     render(() => {
       const { handleSave } = React.useContext(FormContext);
@@ -191,7 +207,11 @@ describe('FormContext', () => {
 
   it('should save the container and its new id when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
+    const mockForm: FormContainer = {
+      id: 'id',
+      itemType: 'CONTAINER',
+      type: ComponentTypeV3.Group,
+    };
 
     render(() => {
       const { formId, handleSave } = React.useContext(FormContext);
@@ -214,7 +234,11 @@ describe('FormContext', () => {
 
   it('should save the container when calling debounceSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = { id: 'id', itemType: 'CONTAINER', type: ComponentType.Group };
+    const mockForm: FormContainer = {
+      id: 'id',
+      itemType: 'CONTAINER',
+      type: ComponentTypeV3.Group,
+    };
 
     render(() => {
       const { debounceSave } = React.useContext(FormContext);
@@ -231,7 +255,11 @@ describe('FormContext', () => {
 
   it('should save the component when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
+    const mockForm: FormComponent = {
+      id: 'id',
+      itemType: 'COMPONENT',
+      type: ComponentTypeV3.Input,
+    };
 
     render(() => {
       const { handleSave } = React.useContext(FormContext);
@@ -246,7 +274,11 @@ describe('FormContext', () => {
 
   it('should save the component and its new id when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
+    const mockForm: FormComponent = {
+      id: 'id',
+      itemType: 'COMPONENT',
+      type: ComponentTypeV3.Input,
+    };
 
     render(() => {
       const { formId, handleSave } = React.useContext(FormContext);
@@ -269,7 +301,11 @@ describe('FormContext', () => {
 
   it('should save the component when calling debounceSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormComponent = { id: 'id', itemType: 'COMPONENT', type: ComponentType.Input };
+    const mockForm: FormComponent = {
+      id: 'id',
+      itemType: 'COMPONENT',
+      type: ComponentTypeV3.Input,
+    };
 
     render(() => {
       const { debounceSave } = React.useContext(FormContext);

@@ -2,7 +2,7 @@
   "name": "playwright-studio",
   "private": true,
   "version": "1.0.0",
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.1.0",
   "dependencies": {
     "dotenv": "^16.3.1"
   },

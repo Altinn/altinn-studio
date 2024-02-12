@@ -1,7 +1,7 @@
 import React from 'react';
 import { EditCodeList } from './EditCodeList';
 import { screen, waitFor, act } from '@testing-library/react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import {
   renderWithMockStore,
   renderHookWithMockStore,
@@ -78,7 +78,7 @@ const render = async ({
       handleComponentChange={handleComponentChange}
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-        type: ComponentType.Dropdown,
+        type: ComponentTypeV3.Dropdown,
         textResourceBindings: {
           title: 'ServiceName',
         },

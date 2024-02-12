@@ -3,7 +3,7 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
 import { LegacySelect, Textfield } from '@digdir/design-system-react';
-import { getComponentPropertyLabel } from '../../../utils/language';
+import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 
 export interface EditStringValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -21,6 +21,7 @@ export const EditStringValue = ({
   multiple,
 }: EditStringValueProps) => {
   const { t } = useTranslation();
+  const componentPropertyLabel = useComponentPropertyLabel();
 
   const handleValueChange = (newValue: string) => {
     handleComponentChange({
@@ -32,7 +33,7 @@ export const EditStringValue = ({
   return (
     <FormField
       id={component.id}
-      label={getComponentPropertyLabel(propertyKey, t)}
+      label={componentPropertyLabel(propertyKey)}
       value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={`${component.propertyPath}/properties/${propertyKey}`}

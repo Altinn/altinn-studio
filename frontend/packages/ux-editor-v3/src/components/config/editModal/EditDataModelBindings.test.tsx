@@ -5,7 +5,7 @@ import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
 import type { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import userEvent from '@testing-library/user-event';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 
@@ -66,7 +66,7 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
       handleComponentChange={handleComponentChange}
       component={{
         id: 'someComponentId',
-        type: ComponentType.Input,
+        type: ComponentTypeV3.Input,
         textResourceBindings: {
           title: 'ServiceName',
         },
@@ -248,7 +248,7 @@ describe('EditDataModelBindings', () => {
         handleComponentChange={jest.fn()}
         component={{
           id: 'someComponentId',
-          type: ComponentType.Input,
+          type: ComponentTypeV3.Input,
           dataModelBindings: { simpleBinding: 'testModel.field2' },
           itemType: 'COMPONENT',
         }}

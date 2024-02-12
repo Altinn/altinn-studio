@@ -16,7 +16,7 @@ import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { generateComponentId } from '../utils/generateId';
 import {
   addItemOfType,
@@ -114,7 +114,7 @@ export const FormDesigner = ({
     const triggerInvalidChildAlert = () => alert(t('schema_editor.invalid_child_error'));
     const layout = formLayouts[selectedLayout];
 
-    const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
+    const addItem: HandleAdd<ComponentTypeV3> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
 
       if (!isComponentTypeValidChild(layout, parentId, type)) {

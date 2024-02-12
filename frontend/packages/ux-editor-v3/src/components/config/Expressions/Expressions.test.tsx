@@ -13,7 +13,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { Expressions } from './Expressions';
 import { FormContext } from '../../../containers/FormContext';
 import type { FormComponent } from '../../../types/FormComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { parsableExternalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
 
@@ -25,7 +25,7 @@ const layouts: IFormLayouts = {
 };
 const componentWithExpression: FormComponent = {
   id: 'some-id',
-  type: ComponentType.Input,
+  type: ComponentTypeV3.Input,
   itemType: 'COMPONENT',
   hidden: parsableExternalExpression,
 };
@@ -69,7 +69,7 @@ describe('Expressions', () => {
   it('renders alert component when there are as many existing expressions as available properties to set expressions on for a regular component', () => {
     const componentWithMultipleExpressions: FormComponent = {
       id: 'some-id',
-      type: ComponentType.Input,
+      type: ComponentTypeV3.Input,
       itemType: 'COMPONENT',
       hidden: parsableExternalExpression,
       required: parsableExternalExpression,
@@ -89,7 +89,7 @@ describe('Expressions', () => {
     const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer = {
       id: 'some-id',
       itemType: 'CONTAINER',
-      type: ComponentType.Group,
+      type: ComponentTypeV3.Group,
       hidden: parsableExternalExpression,
       required: parsableExternalExpression,
       readOnly: parsableExternalExpression,
@@ -163,7 +163,7 @@ describe('Expressions', () => {
     const component: FormContainer = {
       id: 'some-id',
       itemType: 'CONTAINER',
-      type: ComponentType.Group,
+      type: ComponentTypeV3.Group,
       edit: {
         multiPage: true,
       },
@@ -177,7 +177,7 @@ describe('Expressions', () => {
   it('renders no existing expressions when component fields are boolean', () => {
     const componentWithoutExpressions: FormComponent = {
       id: 'some-id',
-      type: ComponentType.Input,
+      type: ComponentTypeV3.Input,
       itemType: 'COMPONENT',
       hidden: true,
       required: false,

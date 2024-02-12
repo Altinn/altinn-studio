@@ -1,5 +1,5 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { renderHook } from '@testing-library/react';
 import { useComponentTypeName } from './useComponentTypeName';
 
@@ -7,8 +7,8 @@ import { useComponentTypeName } from './useComponentTypeName';
 const inputText = 'input';
 const paragraphText = 'paragraph';
 const texts: KeyValuePairs<string> = {
-  [`ux_editor.component_title.${ComponentType.Input}`]: inputText,
-  [`ux_editor.component_title.${ComponentType.Paragraph}`]: paragraphText,
+  [`ux_editor.component_title.${ComponentTypeV3.Input}`]: inputText,
+  [`ux_editor.component_title.${ComponentTypeV3.Paragraph}`]: paragraphText,
 };
 
 // Mocks:
@@ -23,12 +23,12 @@ describe('useComponentTypeName', () => {
   const { result } = renderHook(useComponentTypeName);
 
   it('Returns the correct text if it exists', () => {
-    expect(result.current(ComponentType.Input)).toBe(inputText);
-    expect(result.current(ComponentType.Paragraph)).toBe(paragraphText);
+    expect(result.current(ComponentTypeV3.Input)).toBe(inputText);
+    expect(result.current(ComponentTypeV3.Paragraph)).toBe(paragraphText);
   });
 
   it('Returns the component type if the text does not exist', () => {
-    expect(result.current(ComponentType.Header)).toBe(ComponentType.Header);
-    expect(result.current(ComponentType.Checkboxes)).toBe(ComponentType.Checkboxes);
+    expect(result.current(ComponentTypeV3.Header)).toBe(ComponentTypeV3.Header);
+    expect(result.current(ComponentTypeV3.Checkboxes)).toBe(ComponentTypeV3.Checkboxes);
   });
 });

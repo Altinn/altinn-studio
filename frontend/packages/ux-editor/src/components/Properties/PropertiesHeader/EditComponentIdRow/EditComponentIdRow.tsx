@@ -1,21 +1,21 @@
 import React from 'react';
-import { idExists } from '../../../utils/formLayoutUtils';
+import { idExists } from '../../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
-import { useSelectedFormLayout } from '../../../hooks';
-import type { FormComponent } from '../../../types/FormComponent';
-import { FormField } from '../../FormField';
+import { useSelectedFormLayout } from '../../../../hooks';
+import type { FormComponent } from '../../../../types/FormComponent';
+import { FormField } from '../../../FormField';
 import { Textfield } from '@digdir/design-system-react';
 
-export interface IEditComponentId {
+export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormComponent) => void;
   component: FormComponent;
   helpText?: string;
 }
-export const EditComponentId = ({
+export const EditComponentIdRow = ({
   component,
   handleComponentUpdate,
   helpText,
-}: IEditComponentId) => {
+}: EditComponentIdRowProps) => {
   const { components, containers } = useSelectedFormLayout();
   const { t } = useTranslation();
 

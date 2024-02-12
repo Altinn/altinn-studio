@@ -1,5 +1,5 @@
 import type { IInternalLayout } from '../../types/global';
-import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
+import type { ExternalComponentV3, ExternalFormLayoutV3 } from 'app-shared/types/api';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 import { internalContainerComponentToExternal } from '../containerComponentConverters';
@@ -10,7 +10,9 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import type { CompareFunction } from 'app-shared/utils/compareFunctions';
 import type { FormComponent } from '../../types/FormComponent';
 
-export const internalLayoutToExternal = (internalLayout: IInternalLayout): ExternalFormLayout => ({
+export const internalLayoutToExternal = (
+  internalLayout: IInternalLayout,
+): ExternalFormLayoutV3 => ({
   $schema: layoutSchemaUrl(),
   data: {
     layout: generateExternalComponents(internalLayout),
@@ -21,7 +23,7 @@ export const internalLayoutToExternal = (internalLayout: IInternalLayout): Exter
 
 export const generateExternalComponents = (
   internalLayout: IInternalLayout,
-): ExternalComponent[] => {
+): ExternalComponentV3[] => {
   const groupComponents = getGroupComponents(internalLayout);
   const simpleComponents = getSimpleComponents(internalLayout);
   const allComponents = [...groupComponents, ...simpleComponents];
@@ -77,7 +79,7 @@ const getComponentById = (
 ): FormComponent | FormContainer =>
   internalLayout.components[componentId] || internalLayout.containers[componentId];
 
-const getSimpleComponents = (internalLayout: IInternalLayout): ExternalComponent[] =>
+const getSimpleComponents = (internalLayout: IInternalLayout): ExternalComponentV3[] =>
   Object.values(internalLayout.components).map(internalSimpleComponentToExternal);
 
 /**
@@ -90,8 +92,8 @@ const getAllComponentIdsInOrder = (internalLayout: IInternalLayout): string[] =>
 };
 
 const compareComponentsByPosition =
-  (idsInOrder: string[]): CompareFunction<ExternalComponent> =>
-  (componentA: ExternalComponent, componentB: ExternalComponent) => {
+  (idsInOrder: string[]): CompareFunction<ExternalComponentV3> =>
+  (componentA: ExternalComponentV3, componentB: ExternalComponentV3) => {
     const indexA = idsInOrder.indexOf(componentA.id);
     const indexB = idsInOrder.indexOf(componentB.id);
     return indexA - indexB;

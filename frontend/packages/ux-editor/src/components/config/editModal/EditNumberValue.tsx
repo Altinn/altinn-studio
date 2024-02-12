@@ -1,26 +1,31 @@
 import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { getComponentPropertyLabel } from '../../../utils/language';
 import { setComponentProperty } from '../../../utils/component';
 import { StudioDecimalInput } from '@studio/components';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { FormItem } from '../../../types/FormItem';
+import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
+import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-export interface EditNumberValueProps extends IGenericEditComponent {
-  propertyKey: string;
+type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;
+
+export interface EditNumberValueProps<T extends ComponentType, K extends NumberKeys<FormItem<T>>>
+  extends IGenericEditComponent<T> {
+  propertyKey: K;
   helpText?: string;
 }
 
-export const EditNumberValue = ({
+export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<FormItem<T>>>({
   component,
   handleComponentChange,
   propertyKey,
   helpText,
-}: EditNumberValueProps) => {
-  const { t } = useTranslation();
-  const handleValueChange = (newValue: number) => {
-    handleComponentChange(setComponentProperty(component, propertyKey, newValue));
-  };
+}: EditNumberValueProps<T, K>) => {
+  const componentPropertyLabel = useComponentPropertyLabel();
+  const handleValueChange = (newValue: number) =>
+    handleComponentChange(setComponentProperty<T, number, K>(component, propertyKey, newValue));
 
   return (
     <FormField
@@ -33,7 +38,7 @@ export const EditNumberValue = ({
         <StudioDecimalInput
           {...fieldProps}
           onChange={fieldProps.onChange}
-          description={getComponentPropertyLabel(propertyKey, t)}
+          description={componentPropertyLabel(propertyKey as string)}
         />
       )}
     />

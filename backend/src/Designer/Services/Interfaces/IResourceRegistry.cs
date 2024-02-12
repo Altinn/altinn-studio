@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,5 +36,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <returns>The resource full list of all resources if exists</returns>
         Task<List<ServiceResource>> GetResourceList(string env);
+
+        /// <summary>
+        /// Get Resource from Altinn 2 service
+        /// </summary>
+        Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment);
+
+        /// <summary>
+        /// Get Policy from Altinn 2 Service
+        /// </summary>
+        Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment);
     }
 }
