@@ -338,5 +338,8 @@ export function nb(): FixedLanguageList {
         'Denne versjonen av app frontend er ikke kompatibel med den versjonen av backend-bibliotekene du bruker. Oppdater til nyeste versjon av pakkene og prøv igjen.',
       min_backend_version: 'Minimum backend versjon er {0}',
     },
+    likert: {
+      left_column_default_header_text: 'Spørsmål',
+    },
   };
 }

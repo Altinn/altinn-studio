@@ -5,7 +5,5 @@ import { IFrameComponent } from 'src/layout/IFrame/IFrameComponent';
 import type { IFrameComponentProps } from 'src/layout/IFrame/IFrameComponent';
 
 export class IFrame extends IFrameDef {
-  render(props: IFrameComponentProps): JSX.Element | null {
-    return <IFrameComponent {...props} />;
-  }
+  render = (props: IFrameComponentProps): JSX.Element | null => <IFrameComponent {...props} />;
 }

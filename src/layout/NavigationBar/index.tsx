@@ -5,7 +5,7 @@ import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarCo
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class NavigationBar extends NavigationBarDef {
-  render(props: PropsFromGenericComponent<'NavigationBar'>): JSX.Element | null {
-    return <NavigationBarComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'NavigationBar'>): JSX.Element | null => (
+    <NavigationBarComponent {...props} />
+  );
 }

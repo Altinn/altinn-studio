@@ -5,7 +5,5 @@ import { ParagraphComponent } from 'src/layout/Paragraph/ParagraphComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class Paragraph extends ParagraphDef {
-  render(props: PropsFromGenericComponent<'Paragraph'>): JSX.Element | null {
-    return <ParagraphComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Paragraph'>): JSX.Element | null => <ParagraphComponent {...props} />;
 }

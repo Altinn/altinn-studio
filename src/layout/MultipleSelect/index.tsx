@@ -15,9 +15,9 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class MultipleSelect extends MultipleSelectDef {
-  render(props: PropsFromGenericComponent<'MultipleSelect'>): JSX.Element | null {
-    return <MultipleSelectComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'MultipleSelect'>): JSX.Element | null => (
+    <MultipleSelectComponent {...props} />
+  );
 
   private getSummaryData(
     node: LayoutNode<'MultipleSelect'>,

@@ -21,9 +21,7 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Datepicker extends DatepickerDef implements ValidateComponent {
-  render(props: PropsFromGenericComponent<'Datepicker'>): JSX.Element | null {
-    return <DatepickerComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Datepicker'>): JSX.Element | null => <DatepickerComponent {...props} />;
 
   getDisplayData(node: LayoutNode<'Datepicker'>, { currentLanguage }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {

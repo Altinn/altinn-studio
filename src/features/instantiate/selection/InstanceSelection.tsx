@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 
 import { Pagination } from '@altinn/altinn-design-system';
-import {
-  Button,
-  Heading,
-  LegacyTable,
-  LegacyTableBody,
-  LegacyTableCell,
-  LegacyTableFooter,
-  LegacyTableHeader,
-  LegacyTableRow,
-  Paragraph,
-} from '@digdir/design-system-react';
+import { Button, Heading, Paragraph, Table } from '@digdir/design-system-react';
 import { Edit as EditIcon } from '@navikt/ds-icons';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
 
@@ -89,11 +79,14 @@ function InstanceSelection() {
       >
         <Lang id={'instance_selection.left_of'} />
       </Heading>
-      <LegacyTable id='instance-selection-mobile-table'>
-        <LegacyTableBody>
+      <Table
+        id='instance-selection-mobile-table'
+        className={classes.table}
+      >
+        <Table.Body>
           {paginatedInstances.map((instance) => (
-            <LegacyTableRow key={instance.id}>
-              <LegacyTableCell className={classes.mobileTableCell}>
+            <Table.Row key={instance.id}>
+              <Table.Cell className={classes.mobileTableCell}>
                 <div>
                   <b>{langAsString('instance_selection.last_changed')}:</b>
                   <br />
@@ -104,8 +97,8 @@ function InstanceSelection() {
                   <br />
                   <span>{instance.lastChangedBy}</span>
                 </div>
-              </LegacyTableCell>
-              <LegacyTableCell>
+              </Table.Cell>
+              <Table.Cell>
                 <div className={classes.tableButtonWrapper}>
                   <Button
                     variant='tertiary'
@@ -118,14 +111,15 @@ function InstanceSelection() {
                     aria-label={`${langAsString('instance_selection.continue')}`}
                   />
                 </div>
-              </LegacyTableCell>
-            </LegacyTableRow>
+              </Table.Cell>
+            </Table.Row>
           ))}
-        </LegacyTableBody>
+        </Table.Body>
         {instances.length > rowsPerPageOptions[0] && (
-          <LegacyTableFooter>
-            <LegacyTableRow>
-              <LegacyTableCell colSpan={2}>
+          <tfoot>
+            <Table.Row className={classes.tableFooter}>
+              {/* @ts-expect-error this will be fixed in v0.48.0 of the design system */}
+              <Table.Cell colSpan={2}>
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
                     numberOfRows={instances.length}
@@ -139,34 +133,37 @@ function InstanceSelection() {
                     descriptionTexts={language && (language['list_component'] as DescriptionText)}
                   />
                 </div>
-              </LegacyTableCell>
-            </LegacyTableRow>
-          </LegacyTableFooter>
+              </Table.Cell>
+            </Table.Row>
+          </tfoot>
         )}
-      </LegacyTable>
+      </Table>
     </>
   );
 
   const renderTable = () => (
     <div className={classes.tableContainer}>
-      <LegacyTable id='instance-selection-table'>
-        <LegacyTableHeader id='instance-selection-table-header'>
-          <LegacyTableRow>
-            <LegacyTableCell>
+      <Table
+        id='instance-selection-table'
+        className={classes.table}
+      >
+        <Table.Head id='instance-selection-table-header'>
+          <Table.Row>
+            <Table.HeaderCell>
               <Lang id={'instance_selection.last_changed'} />
-            </LegacyTableCell>
-            <LegacyTableCell>
+            </Table.HeaderCell>
+            <Table.HeaderCell>
               <Lang id={'instance_selection.changed_by'} />
-            </LegacyTableCell>
-            <LegacyTableCell />
-          </LegacyTableRow>
-        </LegacyTableHeader>
-        <LegacyTableBody id='instance-selection-table-body'>
+            </Table.HeaderCell>
+            <Table.HeaderCell />
+          </Table.Row>
+        </Table.Head>
+        <Table.Body id='instance-selection-table-body'>
           {paginatedInstances.map((instance: ISimpleInstance) => (
-            <LegacyTableRow key={instance.id}>
-              <LegacyTableCell>{getDateDisplayString(instance.lastChanged)}</LegacyTableCell>
-              <LegacyTableCell>{instance.lastChangedBy}</LegacyTableCell>
-              <LegacyTableCell className={classes.buttonCell}>
+            <Table.Row key={instance.id}>
+              <Table.Cell>{getDateDisplayString(instance.lastChanged)}</Table.Cell>
+              <Table.Cell>{instance.lastChangedBy}</Table.Cell>
+              <Table.Cell className={classes.buttonCell}>
                 <div className={classes.tableButtonWrapper}>
                   <Button
                     variant='tertiary'
@@ -179,14 +176,15 @@ function InstanceSelection() {
                     <Lang id={'instance_selection.continue'} />
                   </Button>
                 </div>
-              </LegacyTableCell>
-            </LegacyTableRow>
+              </Table.Cell>
+            </Table.Row>
           ))}
-        </LegacyTableBody>
+        </Table.Body>
         {instances.length > rowsPerPageOptions[0] && (
-          <LegacyTableFooter>
-            <LegacyTableRow>
-              <LegacyTableCell colSpan={3}>
+          <tfoot>
+            <Table.Row className={classes.tableFooter}>
+              {/* @ts-expect-error this will be fixed in v0.48.0 of the design system */}
+              <Table.Cell colSpan={3}>
                 <div className={classes.paginationWrapper}>
                   <Pagination
                     numberOfRows={instances.length}
@@ -200,11 +198,11 @@ function InstanceSelection() {
                     descriptionTexts={language && (language['list_component'] as DescriptionText)}
                   />
                 </div>
-              </LegacyTableCell>
-            </LegacyTableRow>
-          </LegacyTableFooter>
+              </Table.Cell>
+            </Table.Row>
+          </tfoot>
         )}
-      </LegacyTable>
+      </Table>
     </div>
   );
 

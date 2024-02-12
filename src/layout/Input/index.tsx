@@ -14,9 +14,7 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Input extends InputDef {
-  render(props: PropsFromGenericComponent<'Input'>): JSX.Element | null {
-    return <InputComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Input'>): JSX.Element | null => <InputComponent {...props} />;
 
   getDisplayData(node: LayoutNode<'Input'>, { currentLanguage }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {

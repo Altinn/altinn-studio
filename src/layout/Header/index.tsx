@@ -5,7 +5,5 @@ import { HeaderComponent } from 'src/layout/Header/HeaderComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class Header extends HeaderDef {
-  render(props: PropsFromGenericComponent<'Header'>): JSX.Element | null {
-    return <HeaderComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Header'>): JSX.Element | null => <HeaderComponent {...props} />;
 }

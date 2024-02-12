@@ -5,7 +5,7 @@ import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/Navigat
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class NavigationButtons extends NavigationButtonsDef {
-  render(props: PropsFromGenericComponent<'NavigationButtons'>): JSX.Element | null {
-    return <NavigationButtonsComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'NavigationButtons'>): JSX.Element | null => (
+    <NavigationButtonsComponent {...props} />
+  );
 }

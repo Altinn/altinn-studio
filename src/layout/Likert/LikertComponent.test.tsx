@@ -169,7 +169,7 @@ describe('RepeatingGroupsLikertContainer', () => {
     it('should render standard view and use keyboard to navigate', async () => {
       const { formDataMethods } = await render();
       await waitFor(async () => {
-        expect(await screen.findAllByRole('columnheader')).toHaveLength(3);
+        expect(await screen.findAllByRole('columnheader')).toHaveLength(4);
       });
       await validateTableLayout(defaultMockQuestions, defaultMockOptions);
 

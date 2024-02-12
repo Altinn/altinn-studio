@@ -27,19 +27,17 @@ export class Group extends GroupDef implements ValidateAny, ValidateComponent {
     return true;
   }
 
-  render(props: PropsFromGenericComponent<'Group'>): JSX.Element | null {
-    return (
-      <GroupComponent
-        groupNode={props.node}
-        renderLayoutNode={(n) => (
-          <GenericComponent
-            key={n.item.id}
-            node={n}
-          />
-        )}
-      />
-    );
-  }
+  render = (props: PropsFromGenericComponent<'Group'>): JSX.Element | null => (
+    <GroupComponent
+      groupNode={props.node}
+      renderLayoutNode={(n) => (
+        <GenericComponent
+          key={n.item.id}
+          node={n}
+        />
+      )}
+    />
+  );
 
   renderSummary({
     onChangeClick,

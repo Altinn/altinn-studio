@@ -11,9 +11,9 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class RadioButtons extends RadioButtonsDef {
-  render(props: PropsFromGenericComponent<'RadioButtons'>): JSX.Element | null {
-    return <RadioButtonContainerComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'RadioButtons'>): JSX.Element | null => (
+    <RadioButtonContainerComponent {...props} />
+  );
 
   getDisplayData(node: LayoutNode<'RadioButtons'>, { langTools, options }: DisplayDataProps): string {
     const value = String(node.getFormData().simpleBinding ?? '');

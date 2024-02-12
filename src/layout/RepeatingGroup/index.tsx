@@ -29,15 +29,13 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateAny, Va
     return true;
   }
 
-  render(props: PropsFromGenericComponent<'RepeatingGroup'>): JSX.Element | null {
-    return (
-      <RepeatingGroupProvider node={props.node}>
-        <RepeatingGroupsFocusProvider>
-          <RepeatingGroupContainer containerDivRef={props.containerDivRef} />
-        </RepeatingGroupsFocusProvider>
-      </RepeatingGroupProvider>
-    );
-  }
+  render = (props: PropsFromGenericComponent<'RepeatingGroup'>): JSX.Element | null => (
+    <RepeatingGroupProvider node={props.node}>
+      <RepeatingGroupsFocusProvider>
+        <RepeatingGroupContainer containerDivRef={props.containerDivRef} />
+      </RepeatingGroupsFocusProvider>
+    </RepeatingGroupProvider>
+  );
 
   renderSummary({
     onChangeClick,

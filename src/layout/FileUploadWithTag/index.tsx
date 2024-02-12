@@ -14,9 +14,9 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateComponent {
-  render(props: PropsFromGenericComponent<'FileUploadWithTag'>): JSX.Element | null {
-    return <FileUploadComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'FileUploadWithTag'>): JSX.Element | null => (
+    <FileUploadComponent {...props} />
+  );
 
   renderDefaultValidations(): boolean {
     return false;

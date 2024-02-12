@@ -10,15 +10,13 @@ export class Summary extends SummaryDef {
     return true;
   }
 
-  render(props: PropsFromGenericComponent<'Summary'>): JSX.Element | null {
-    return (
-      <SummaryComponent
-        summaryNode={props.node}
-        overrides={props.overrideItemProps}
-        ref={props.containerDivRef}
-      />
-    );
-  }
+  render = (props: PropsFromGenericComponent<'Summary'>): JSX.Element | null => (
+    <SummaryComponent
+      summaryNode={props.node}
+      overrides={props.overrideItemProps}
+      ref={props.containerDivRef}
+    />
+  );
 
   renderSummary(): JSX.Element | null {
     // If the code ever ends up with a Summary component referencing another Summary component, we should not end up

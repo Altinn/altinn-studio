@@ -9,9 +9,7 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Custom extends CustomDef {
-  render(props: PropsFromGenericComponent<'Custom'>): JSX.Element | null {
-    return <CustomWebComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Custom'>): JSX.Element | null => <CustomWebComponent {...props} />;
 
   getDisplayData(node: LayoutNode<'Custom'>): string {
     const data = node.getFormData();

@@ -26,9 +26,7 @@ export class Likert extends LikertDef implements ValidateAny {
     return true;
   }
 
-  render(props: PropsFromGenericComponent<'Likert'>): JSX.Element | null {
-    return <LikertComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Likert'>): JSX.Element | null => <LikertComponent {...props} />;
 
   renderSummary({
     onChangeClick,

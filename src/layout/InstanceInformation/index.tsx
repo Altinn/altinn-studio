@@ -5,7 +5,7 @@ import { InstanceInformationComponent } from 'src/layout/InstanceInformation/Ins
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class InstanceInformation extends InstanceInformationDef {
-  render(props: PropsFromGenericComponent<'InstanceInformation'>): JSX.Element | null {
-    return <InstanceInformationComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'InstanceInformation'>): JSX.Element | null => (
+    <InstanceInformationComponent {...props} />
+  );
 }

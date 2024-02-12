@@ -5,7 +5,7 @@ import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/Ins
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class InstantiationButton extends InstantiationButtonDef {
-  render(props: PropsFromGenericComponent<'InstantiationButton'>): JSX.Element | null {
-    return <InstantiationButtonComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'InstantiationButton'>): JSX.Element | null => (
+    <InstantiationButtonComponent {...props} />
+  );
 }

@@ -335,5 +335,8 @@ export function en() {
         'This version of the app frontend is not compatible with the version of the backend libraries you are using. Update to the latest version of the packages and try again.',
       min_backend_version: 'Minimum backend version is {0}',
     },
+    likert: {
+      left_column_default_header_text: 'Question',
+    },
   };
 }

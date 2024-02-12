@@ -120,6 +120,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
       | HTMLSelectElement
       | HTMLInputElement
       | HTMLTextAreaElement;
+
     if (maybeInput) {
       maybeInput.focus();
     }
@@ -162,7 +163,10 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   if (layoutComponent.directRender(componentProps) || overrideDisplay?.directRender) {
     return (
       <FormComponentContextProvider value={formComponentContext}>
-        <RenderComponent {...componentProps} />
+        <RenderComponent
+          {...componentProps}
+          ref={containerDivRef}
+        />
       </FormComponentContextProvider>
     );
   }

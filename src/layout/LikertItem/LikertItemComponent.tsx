@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
-import { LegacyTableCell, LegacyTableRow } from '@digdir/design-system-react';
+import { Table } from '@digdir/design-system-react';
 import { Typography } from '@material-ui/core';
 
 import { RadioButton } from 'src/components/form/RadioButton';
@@ -14,23 +14,31 @@ import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IControlledRadioGroupProps } from 'src/layout/RadioButtons/ControlledRadioGroup';
 
-export const LikertItemComponent = (props: PropsFromGenericComponent<'LikertItem'>) => {
-  const nodeLayout = props.node.item.layout;
-  const overriddenLayout = props.overrideItemProps?.layout;
-  const actualLayout = overriddenLayout || nodeLayout;
+export const LikertItemComponent = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
+  (props, ref) => {
+    const nodeLayout = props.node.item.layout;
+    const overriddenLayout = props.overrideItemProps?.layout;
+    const actualLayout = overriddenLayout || nodeLayout;
 
-  if (actualLayout === LayoutStyle.Table) {
-    return <RadioGroupTableRow {...props} />;
-  }
+    if (actualLayout === LayoutStyle.Table) {
+      return (
+        <RadioGroupTableRow
+          {...props}
+          ref={ref}
+        />
+      );
+    }
 
-  return (
-    <div className={classes.likertRadioGroupWrapperMobile}>
-      <ControlledRadioGroup {...props} />
-    </div>
-  );
-};
+    return (
+      <div className={classes.likertRadioGroupWrapperMobile}>
+        <ControlledRadioGroup {...props} />
+      </div>
+    );
+  },
+);
+LikertItemComponent.displayName = 'LikertItemComponent';
 
-const RadioGroupTableRow = (props: IControlledRadioGroupProps) => {
+const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroupProps>((props, ref) => {
   const { node } = props;
   const { selected, handleChange, calculatedOptions, fetchingOptions } = useRadioButtons(props);
   const validations = useUnifiedValidationsForNode(node);
@@ -40,16 +48,13 @@ const RadioGroupTableRow = (props: IControlledRadioGroupProps) => {
   const rowLabelId = `row-label-${id}`;
 
   return (
-    <LegacyTableRow
+    <Table.Row
       aria-labelledby={rowLabelId}
       data-componentid={node.item.id}
       data-is-loading={fetchingOptions ? 'true' : 'false'}
-      className={classes.likertTableRow}
+      ref={ref}
     >
-      <LegacyTableCell
-        id={rowLabelId}
-        className={classes.likertTableRowHeader}
-      >
+      <Table.Cell id={rowLabelId}>
         <Typography component={'div'}>
           <GenericComponentLegend />
           <ComponentValidations
@@ -57,15 +62,12 @@ const RadioGroupTableRow = (props: IControlledRadioGroupProps) => {
             node={node}
           />
         </Typography>
-      </LegacyTableCell>
+      </Table.Cell>
       {calculatedOptions?.map((option, colIndex) => {
         const colLabelId = `${groupContainerId}-likert-columnheader-${colIndex}`;
         const isChecked = selected === option.value;
         return (
-          <LegacyTableCell
-            key={option.value}
-            className={classes.likertTableCell}
-          >
+          <Table.Cell key={option.value}>
             <RadioButton
               aria-labelledby={`${rowLabelId} ${colLabelId}`}
               checked={isChecked}
@@ -73,9 +75,10 @@ const RadioGroupTableRow = (props: IControlledRadioGroupProps) => {
               value={option.value}
               name={rowLabelId}
             />
-          </LegacyTableCell>
+          </Table.Cell>
         );
       })}
-    </LegacyTableRow>
+    </Table.Row>
   );
-};
+});
+RadioGroupTableRow.displayName = 'RadioGroupTableRow';

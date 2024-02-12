@@ -5,7 +5,7 @@ import { AttachmentListDef } from 'src/layout/AttachmentList/config.def.generate
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class AttachmentList extends AttachmentListDef {
-  render(props: PropsFromGenericComponent<'AttachmentList'>): JSX.Element | null {
-    return <AttachmentListComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'AttachmentList'>): JSX.Element | null => (
+    <AttachmentListComponent {...props} />
+  );
 }

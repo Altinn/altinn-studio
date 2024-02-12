@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, LegacyTableCell, LegacyTableRow } from '@digdir/design-system-react';
+import { Button, Table } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
@@ -119,7 +119,7 @@ export function RepeatingGroupTableRow({
   const deleteButtonText = langAsString('general.delete');
 
   return (
-    <LegacyTableRow
+    <Table.Row
       key={`repeating-group-row-${index}`}
       className={cn(
         {
@@ -132,7 +132,7 @@ export function RepeatingGroupTableRow({
       {!mobileView ? (
         tableNodes.map((n, idx) =>
           shouldEditInTable(edit, n, columnSettings) ? (
-            <LegacyTableCell
+            <Table.Cell
               key={n.item.id}
               className={classes.tableCell}
             >
@@ -149,9 +149,9 @@ export function RepeatingGroupTableRow({
                   }}
                 />
               </div>
-            </LegacyTableCell>
+            </Table.Cell>
           ) : (
-            <LegacyTableCell
+            <Table.Cell
               key={`${n.item.id}-${index}`}
               className={classes.tableCell}
             >
@@ -161,11 +161,11 @@ export function RepeatingGroupTableRow({
               >
                 {isEditingRow ? null : displayData[idx]}
               </span>
-            </LegacyTableCell>
+            </Table.Cell>
           ),
         )
       ) : (
-        <LegacyTableCell className={classes.mobileTableCell}>
+        <Table.Cell className={classes.mobileTableCell}>
           <Grid
             container={true}
             spacing={3}
@@ -202,20 +202,22 @@ export function RepeatingGroupTableRow({
                 )),
             )}
           </Grid>
-        </LegacyTableCell>
+        </Table.Cell>
       )}
       {!mobileView ? (
         <>
           {edit?.editButton === false && edit?.deleteButton === false && (displayEditColumn || displayDeleteColumn) ? (
-            <LegacyTableCell
+            <Table.Cell
               key={`editDelete-${index}`}
+              // @ts-expect-error this will be fixed in v0.48.0 of the design system
               colSpan={displayEditColumn && displayDeleteColumn ? 2 : 1}
             />
           ) : null}
           {edit?.editButton !== false && displayEditColumn && (
-            <LegacyTableCell
+            <Table.Cell
               key={`edit-${index}`}
               className={classes.buttonCell}
+              // @ts-expect-error this will be fixed in v0.48.0 of the design system
               colSpan={displayDeleteColumn && edit?.deleteButton === false ? 2 : 1}
             >
               <div className={classes.buttonInCellWrapper}>
@@ -235,12 +237,13 @@ export function RepeatingGroupTableRow({
                   {editButtonText}
                 </Button>
               </div>
-            </LegacyTableCell>
+            </Table.Cell>
           )}
           {edit?.deleteButton !== false && displayDeleteColumn && (
-            <LegacyTableCell
+            <Table.Cell
               key={`delete-${index}`}
               className={cn(classes.buttonCell)}
+              // @ts-expect-error this will be fixed in v0.48.0 of the design system
               colSpan={displayEditColumn && edit?.editButton === false ? 2 : 1}
             >
               <div className={classes.buttonInCellWrapper}>
@@ -256,11 +259,11 @@ export function RepeatingGroupTableRow({
                   {deleteButtonText}
                 </DeleteElement>
               </div>
-            </LegacyTableCell>
+            </Table.Cell>
           )}
         </>
       ) : (
-        <LegacyTableCell
+        <Table.Cell
           className={cn(classes.buttonCell, classes.mobileTableCell)}
           style={{ verticalAlign: 'top' }}
         >
@@ -299,9 +302,9 @@ export function RepeatingGroupTableRow({
               </>
             )}
           </div>
-        </LegacyTableCell>
+        </Table.Cell>
       )}
-    </LegacyTableRow>
+    </Table.Row>
   );
 }
 

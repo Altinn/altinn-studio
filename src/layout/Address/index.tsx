@@ -14,9 +14,7 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Address extends AddressDef implements ValidateComponent {
-  render(props: PropsFromGenericComponent<'Address'>): JSX.Element | null {
-    return <AddressComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Address'>): JSX.Element | null => <AddressComponent {...props} />;
 
   getDisplayData(node: LayoutNode<'Address'>): string {
     const data = node.getFormData();

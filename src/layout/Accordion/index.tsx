@@ -11,9 +11,9 @@ import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGene
 export class Accordion extends AccordionDef {
   private _hierarchyGenerator = new AccordionHierarchyGenerator();
 
-  render(props: PropsFromGenericComponent<'Accordion'>): React.JSX.Element | null {
-    return <AccordionComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Accordion'>): React.JSX.Element | null => (
+    <AccordionComponent {...props} />
+  );
 
   hierarchyGenerator(): ComponentHierarchyGenerator<'Accordion'> {
     return this._hierarchyGenerator;

@@ -11,9 +11,7 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Dropdown extends DropdownDef {
-  render(props: PropsFromGenericComponent<'Dropdown'>): JSX.Element | null {
-    return <DropdownComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Dropdown'>): JSX.Element | null => <DropdownComponent {...props} />;
 
   getDisplayData(node: LayoutNode<'Dropdown'>, { langTools, options }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {

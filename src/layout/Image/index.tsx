@@ -5,7 +5,5 @@ import { ImageComponent } from 'src/layout/Image/ImageComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class Image extends ImageDef {
-  render(props: PropsFromGenericComponent<'Image'>): JSX.Element | null {
-    return <ImageComponent {...props} />;
-  }
+  render = (props: PropsFromGenericComponent<'Image'>): JSX.Element | null => <ImageComponent {...props} />;
 }

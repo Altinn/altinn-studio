@@ -10,13 +10,12 @@ import type { NodeValidation } from 'src/features/validation';
 import type { AlertSeverity } from 'src/layout/Alert/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function ComponentValidations({
-  validations,
-  node,
-}: {
+type Props = {
   validations: NodeValidation[] | undefined;
   node?: LayoutNode;
-}) {
+};
+
+export function ComponentValidations({ validations, node }: Props) {
   if (!validations || validations.length === 0) {
     return null;
   }

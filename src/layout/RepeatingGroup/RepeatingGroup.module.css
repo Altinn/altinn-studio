@@ -9,18 +9,63 @@
 
 .groupContainer > table > tbody > tr > td:first-child,
 .groupContainer > table > thead > tr > th:first-child {
-  padding-left: calc(var(--modal-padding-x) - var(--table-input-margin));
+  padding-left: var(--modal-padding-x);
 }
 
 .groupContainer > table > tbody > tr > td:last-child,
 .groupContainer > table > thead > tr > th:last-child {
-  padding-right: calc(var(--modal-padding-x) - var(--table-input-margin));
+  padding-right: var(--modal-padding-x);
 }
 
 .nestedGroupContainer {
-  overflow-x: auto;
   margin: 0 0 15px 0;
   width: 100%;
+}
+
+.repeatingGroupTable {
+  width: 100%;
+}
+
+/* ====
+TODO(1779): Remove these styles after going through all the different Table styles in
+Altinn, and making sure they are consistent. */
+.repeatingGroupTable > thead > tr > th {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #dde3e5;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.repeatingGroupTable > tbody > tr > td {
+  border-bottom: 1px solid #dde3e5;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+/* ==== */
+
+.repeatingGroupTable > tbody > tr:hover {
+  background-color: unset;
+}
+
+.nestedTable {
+  background-color: var(--fds-semantic-surface-neutral-default);
+}
+
+.nestedTable > thead > tr > th {
+  /*background-color: var(--fds-semantic-background-subtle);*/
+  background-color: #f5f5f5;
+}
+
+.nestedTable thead:not(:first-of-type) th {
+  /*border-top: 2px solid var(--fds-semantic-border-divider-default);*/
+  border-top: 1px solid #dde3e5; /* Remove this and uncomment the line above when adjusting the new table component*/
+}
+
+.nestedTable thead:not(:first-of-type) th:first-of-type {
+  border-top-left-radius: 0 !important;
+}
+.nestedTable thead:not(:first-of-type) th:last-of-type {
+  border-top-right-radius: 0 !important;
 }
 
 .tableEmpty {
@@ -38,6 +83,10 @@
 
 .editingRow {
   border-top: 2px dotted var(--repeating-group-edit-border-color);
+  background-color: var(--repeating-group-edit-surface-color);
+}
+
+table > tbody > tr.editingRow:hover {
   background-color: var(--repeating-group-edit-surface-color);
 }
 
