@@ -20,7 +20,7 @@ import {
   LongTextIcon,
   NavBarIcon,
   PaperclipIcon,
-  ParagraphIcon,
+  TextIcon,
   PinIcon,
   PresentationIcon,
   RadioButtonIcon,
@@ -334,8 +334,12 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Paragraph]: {
     name: ComponentType.Paragraph,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
-    icon: ParagraphIcon,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Paragraph,
+    },
+    icon: TextIcon,
   },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
