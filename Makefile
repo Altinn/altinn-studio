@@ -21,7 +21,6 @@ podman-compose-start-localtest:
 .PHONY: podman-compose-stop-localtest
 podman-compose-stop-localtest:
 	podman-compose --file podman-compose.yml down
-		
 
 .PHONY: podman-selinux-bind-hack
 podman-selinux-bind-hack:

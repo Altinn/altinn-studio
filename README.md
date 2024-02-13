@@ -218,22 +218,6 @@ This would be required if your app requires a role which none of the test users 
 
 ### Known issues
 
-#### Bind mounts folders gives permission denied. Nginx returns default page
-
-On some nix systems you might experience problems with the bind mounts used by the containers. If you get the default nginx page when trying to access local.altinn.cloud this might be the case.
-
-To verify this you can run the following command:
-
-```shell
-podman container exec -it localtest-loadbalancer cat /etc/nginx/templates/nginx.conf.conf
-```
-
-if you get a permission denied message this verifies that the bind mount is not working. A best effort fix for this is to run the following command:
-
-```shell
-make podman-selinux-bind-hack
-```
-
 #### Localtest reports that the app is not running even though it is
 
 If localtest and you app is running, but localtest reports that the app is not running, it might be that the port is not open in the firewall.
