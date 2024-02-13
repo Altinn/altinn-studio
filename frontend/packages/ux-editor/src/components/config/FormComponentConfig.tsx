@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
@@ -7,7 +7,6 @@ import { EditStringValue } from './editModal/EditStringValue';
 import { useText } from '../../hooks';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
-import { useComponentPropertyLabel } from '../../hooks/useComponentPropertyLabel';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -27,7 +26,6 @@ export const FormComponentConfig = ({
   hideUnsupported,
 }: FormComponentConfigProps) => {
   const t = useText();
-  const componentPropertyLabel = useComponentPropertyLabel();
 
   if (!schema?.properties) return null;
 
@@ -169,31 +167,6 @@ export const FormComponentConfig = ({
             />
           );
         }
-        // if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
-        //   return (
-        //     <React.Fragment key={propertyKey}>
-        //       <Heading level={3} size='xxsmall'>
-        //         {componentPropertyLabel(propertyKey)}
-        //       </Heading>
-        //       {rest[propertyKey]?.description && (
-        //         <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
-        //       )}
-        //       <FormComponentConfig
-        //         key={propertyKey}
-        //         schema={rest[propertyKey]}
-        //         component={component[propertyKey] || {}}
-        //         handleComponentUpdate={(updatedComponent: FormComponent) => {
-        //           handleComponentUpdate({
-        //             ...component,
-        //             [propertyKey]: updatedComponent,
-        //           });
-        //         }}
-        //         editFormId={editFormId}
-        //         hideUnsupported
-        //       />
-        //     </React.Fragment>
-        //   );
-        // }
         return null;
       })}
       {/* Show information about unsupported properties if there are any */}
