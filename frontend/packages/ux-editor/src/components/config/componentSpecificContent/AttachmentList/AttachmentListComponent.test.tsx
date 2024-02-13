@@ -48,7 +48,6 @@ const defaultComponent: FormAttachmentListComponent = {
   id: '1',
   type: ComponentType.AttachmentList,
   itemType: 'COMPONENT',
-  dataTypeIds: [],
 };
 
 const handleComponentChange = jest.fn();
@@ -328,8 +327,8 @@ describe('AttachmentListComponent', () => {
 
   //This test only secure that studio doesn't crash when there is no layoutSets
   // In v4 there shouldn't be a case with apps with no layoutSets
-  it('should render AttachmentList component even when there are no layout sets', async () => {
-    await render({}, undefined, null);
+  it('should render AttachmentList component even when there are no layout sets and data types', async () => {
+    await render({}, undefined, null, undefined);
 
     expect(screen.getByRole('combobox')).toBeInTheDocument();
     expect(

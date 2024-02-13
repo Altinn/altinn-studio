@@ -92,9 +92,9 @@ const getTasks = (
   selectedLayoutSet: string,
   onlyCurrentTask: boolean,
 ): string[] => {
-  if (!layoutSets) return [];
+  if (!layoutSets?.sets) return [];
   const currentTask = () =>
-    layoutSets?.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks ?? [];
+    layoutSets.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks;
 
   const sampleTasks = () => {
     const tasks = [];
