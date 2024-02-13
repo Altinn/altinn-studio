@@ -46,17 +46,17 @@ export const Elements = () => {
         )}
       </Accordion>
       <Heading size='xxsmall' className={classes.componentsHeader}>
-          {t('left_menu.components')}
-        </Heading>
-        {hideComponents ? (
-          <Paragraph className={classes.noPageSelected} size='small'>
-            {t('left_menu.no_components_selected')}
-          </Paragraph>
-        ) : receiptName === selectedLayout ? (
-          <ConfPageToolbar />
-        ) : (
-          <DefaultToolbar />
-        )}
+        {t('left_menu.components')}
+      </Heading>
+      {hideComponents ? (
+        <Paragraph className={classes.noPageSelected} size='small'>
+          {t('left_menu.no_components_selected')}
+        </Paragraph>
+      ) : receiptName === selectedLayout ? (
+        <ConfPageToolbar />
+      ) : (
+        <DefaultToolbar />
+      )}
     </div>
   );
 };

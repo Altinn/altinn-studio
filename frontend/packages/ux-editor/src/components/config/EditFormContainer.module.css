@@ -1,5 +1,15 @@
+.root {
+  --fieldset-gap: var(--fds-spacing-2);
+}
+
 .fieldset > div {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fieldset-gap);
 }

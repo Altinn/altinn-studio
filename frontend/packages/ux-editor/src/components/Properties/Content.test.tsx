@@ -4,7 +4,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { FormContext } from '../../containers/FormContext';
-import { container1IdMock, layoutMock } from '../../testing/layoutMock';
+import { container2IdMock, layoutMock } from '../../testing/layoutMock';
 import type { IAppDataState } from '../../features/appData/appDataReducers';
 import type { ITextResourcesState } from '../../features/appData/textResources/textResourcesSlice';
 import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mocks';
@@ -17,14 +17,18 @@ const user = userEvent.setup();
 describe('ContentTab', () => {
   afterEach(jest.clearAllMocks);
 
-  describe('when editing a container', () => {
+  describe('when editing a repeating group component', () => {
     const props = {
-      formId: container1IdMock,
-      form: { ...layoutMock.containers[container1IdMock], id: 'id' },
+      formId: container2IdMock,
+      form: { ...layoutMock.containers[container2IdMock], id: 'id' },
     };
 
     it('should render the component', async () => {
       await render({ props });
+
+      // Act is needed to avoid error with LegacySelect used in FormField
+      await act(() => Promise.resolve());
+
       expect(
         screen.getByText(textMock('ux_editor.modal_properties_group_change_id')),
       ).toBeInTheDocument();

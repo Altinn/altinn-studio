@@ -216,7 +216,7 @@ export const EditFormContainer = ({
               value={items}
               onChange={handleTableHeadersChange}
               propertyPath={`${container.propertyPath}/properties/tableHeaders`}
-              renderField={() => {
+              renderField={({ fieldProps }) => {
                 const filteredItems = items.filter((id) => !!components[id]);
                 const checkboxes = filteredItems.map((id) => ({
                   id,
@@ -226,6 +226,7 @@ export const EditFormContainer = ({
                 }));
                 return (
                   <Checkbox.Group
+                    {...fieldProps}
                     error={tableHeadersError}
                     legend={t('ux_editor.modal_properties_group_table_headers')}
                   >
