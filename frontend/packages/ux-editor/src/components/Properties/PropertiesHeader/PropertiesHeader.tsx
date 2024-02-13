@@ -4,7 +4,6 @@ import { Divider, Heading, HelpText } from '@digdir/design-system-react';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import type { FormComponent } from '../../../types/FormComponent';
-import { useItemTitle } from '../../../hooks/useItemTitle';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
@@ -24,7 +23,6 @@ export const PropertiesHeader = ({
   handleComponentUpdate,
 }: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
-  const itemTitle = useItemTitle();
 
   const isUnknownInternalComponent: boolean = !formItemConfigs[form.type];
   const Icon = isUnknownInternalComponent
@@ -40,7 +38,7 @@ export const PropertiesHeader = ({
         <div className={classes.iconAndTextWrapper}>
           {Icon && <Icon />}
           <Heading size='xxsmall' level={2}>
-            {itemTitle(form)}
+            {t(`ux_editor.component_title.${form.type}`)}
           </Heading>
         </div>
         <HelpText size='medium' title={t('ux_editor.component_help_text_general_title')}>
