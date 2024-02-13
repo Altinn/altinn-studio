@@ -169,31 +169,31 @@ export const FormComponentConfig = ({
             />
           );
         }
-        if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
-          return (
-            <React.Fragment key={propertyKey}>
-              <Heading level={3} size='xxsmall'>
-                {componentPropertyLabel(propertyKey)}
-              </Heading>
-              {rest[propertyKey]?.description && (
-                <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
-              )}
-              <FormComponentConfig
-                key={propertyKey}
-                schema={rest[propertyKey]}
-                component={component[propertyKey] || {}}
-                handleComponentUpdate={(updatedComponent: FormComponent) => {
-                  handleComponentUpdate({
-                    ...component,
-                    [propertyKey]: updatedComponent,
-                  });
-                }}
-                editFormId={editFormId}
-                hideUnsupported
-              />
-            </React.Fragment>
-          );
-        }
+        // if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
+        //   return (
+        //     <React.Fragment key={propertyKey}>
+        //       <Heading level={3} size='xxsmall'>
+        //         {componentPropertyLabel(propertyKey)}
+        //       </Heading>
+        //       {rest[propertyKey]?.description && (
+        //         <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
+        //       )}
+        //       <FormComponentConfig
+        //         key={propertyKey}
+        //         schema={rest[propertyKey]}
+        //         component={component[propertyKey] || {}}
+        //         handleComponentUpdate={(updatedComponent: FormComponent) => {
+        //           handleComponentUpdate({
+        //             ...component,
+        //             [propertyKey]: updatedComponent,
+        //           });
+        //         }}
+        //         editFormId={editFormId}
+        //         hideUnsupported
+        //       />
+        //     </React.Fragment>
+        //   );
+        // }
         return null;
       })}
       {/* Show information about unsupported properties if there are any */}
