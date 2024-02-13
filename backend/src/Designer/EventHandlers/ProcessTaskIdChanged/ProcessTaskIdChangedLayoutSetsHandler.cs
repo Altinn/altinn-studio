@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,57 +6,48 @@ using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 
 public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<ProcessTaskIdChangedEvent>
 {
-    private readonly IHubContext<SyncHub, ISyncClient> _hubContext;
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessTaskIdChangedLayoutSetsHandler(IHubContext<SyncHub, ISyncClient> hubContext, IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    public ProcessTaskIdChangedLayoutSetsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
     {
-        _hubContext = hubContext;
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
     }
 
     public async Task Handle(ProcessTaskIdChangedEvent notification, CancellationToken cancellationToken)
     {
-        try
-        {
-            var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                notification.EditingContext.Org,
-                notification.EditingContext.Repo,
-                notification.EditingContext.Developer);
-
-            if (!repository.AppUsesLayoutSets())
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
+            notification.EditingContext,
+            SyncErrorCodes.LayoutSetsTaskIdSyncError,
+            "App/ui/layout-sets.json",
+            async () =>
             {
-                return;
-            }
+                var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    notification.EditingContext.Org,
+                    notification.EditingContext.Repo,
+                    notification.EditingContext.Developer);
 
-            var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
-            if (TryChangeTaskIds(layoutSets, notification.OldId, notification.NewId))
-            {
-                await repository.SaveLayoutSetsFile(layoutSets);
-            }
-        }
-        catch (Exception e)
-        {
-            SyncError error = new(
-                SyncErrorCodes.LayoutSetsTaskIdSyncError,
-                new ErrorSource(
-                    "layout-sets.json",
-                    "App/ui/layout-sets.json"
-                ),
-                e.Message
-            );
+                if (!repository.AppUsesLayoutSets())
+                {
+                    return;
+                }
 
-            await _hubContext.Clients.Group(notification.EditingContext.Developer).FileSyncError(error);
-        }
+                var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
+                if (TryChangeTaskIds(layoutSets, notification.OldId, notification.NewId))
+                {
+                    await repository.SaveLayoutSetsFile(layoutSets);
+                }
+            });
     }
 
-    private bool TryChangeTaskIds(LayoutSets layoutSets, string oldId, string newId)
+    private static bool TryChangeTaskIds(LayoutSets layoutSets, string oldId, string newId)
     {
         bool changed = false;
         foreach (var layoutSet in layoutSets.Sets.Where(layoutSet => layoutSet.Tasks.Contains(oldId)))

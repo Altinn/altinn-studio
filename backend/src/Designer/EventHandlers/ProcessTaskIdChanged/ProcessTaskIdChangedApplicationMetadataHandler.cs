@@ -1,58 +1,45 @@
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
-using Microsoft.AspNetCore.SignalR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 
 public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandler<ProcessTaskIdChangedEvent>
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-    private readonly IHubContext<SyncHub, ISyncClient> _hubContext;
+    private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
     public ProcessTaskIdChangedApplicationMetadataHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IHubContext<SyncHub, ISyncClient> hubContext)
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-        _hubContext = hubContext;
+        _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
     }
 
     public async Task Handle(ProcessTaskIdChangedEvent notification, CancellationToken cancellationToken)
     {
-        try
-        {
-            var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                notification.EditingContext.Org,
-                notification.EditingContext.Repo,
-                notification.EditingContext.Developer);
-
-            var applicationMetadata = await repository.GetApplicationMetadata(cancellationToken);
-
-            if (TryChangeTaskIds(applicationMetadata, notification.OldId, notification.NewId))
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
+            notification.EditingContext,
+            SyncErrorCodes.ApplicationMetadataTaskIdSyncError,
+            "App/config/applicationmetadata.json", async () =>
             {
-                await repository.SaveApplicationMetadata(applicationMetadata);
-            }
-        }
-        catch (Exception e)
-        {
-            SyncError error = new(
-                SyncErrorCodes.ApplicationMetadataTaskIdSyncError,
-                new ErrorSource(
-                    $"{nameof(ApplicationMetadata).ToLower()}.json",
-                    "App/config/applicationmetadata.json"
-                ),
-                e.Message
-            );
+                var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    notification.EditingContext.Org,
+                    notification.EditingContext.Repo,
+                    notification.EditingContext.Developer);
 
-            await _hubContext.Clients.Group(notification.EditingContext.Developer).FileSyncError(error);
-        }
+                var applicationMetadata = await repository.GetApplicationMetadata(cancellationToken);
+
+                if (TryChangeTaskIds(applicationMetadata, notification.OldId, notification.NewId))
+                {
+                    await repository.SaveApplicationMetadata(applicationMetadata);
+                }
+            });
     }
 
     /// <summary>
