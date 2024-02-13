@@ -45,7 +45,7 @@ public class UpsertProcessDefinitionAndNotifyTests : DisagnerEndpointsTestsBase<
         form.Add(new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json), "metadata");
 
         using var response = await HttpClient.PutAsync(url, form);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/process/process.bpmn");
 
