@@ -120,7 +120,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 }
 
 export const renderWithProviders = (
-  component: any,
+  component: ReactNode,
   {
     preloadedState = {},
     queries = {},

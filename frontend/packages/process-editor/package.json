@@ -5,7 +5,7 @@
   "license": "MIT",
   "main": "index.ts",
   "private": true,
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.1.0",
   "scripts": {
     "test": "jest"
   },

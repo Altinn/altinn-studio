@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider } from './ServicesContext';
@@ -27,7 +27,7 @@ const wrapper = ({
   children,
   queries = {},
 }: {
-  children: React.JSX.Element;
+  children: ReactNode;
   queries?: Partial<ServicesContextProps>;
 }) => {
   const allQueries: ServicesContextProps = {

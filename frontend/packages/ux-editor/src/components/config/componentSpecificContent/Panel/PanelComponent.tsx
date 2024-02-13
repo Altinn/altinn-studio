@@ -2,7 +2,6 @@ import React from 'react';
 import { Switch, LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useText } from '../../../../hooks';
-import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
@@ -23,13 +22,6 @@ export const PanelComponent = ({
 
   return (
     <>
-      <EditTextResourceBinding
-        component={component}
-        handleComponentChange={handleComponentChange}
-        textKey='body'
-        labelKey='ux_editor.modal_text_resource_body'
-        placeholderKey='ux_editor.modal_text_resource_body_add'
-      />
       <FormField
         id={component.id}
         value={component?.showIcon || false}

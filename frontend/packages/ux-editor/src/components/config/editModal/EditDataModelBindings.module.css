@@ -1,3 +1,7 @@
+.wrapper {
+  width: 100%;
+}
+
 .datamodelLink {
   display: flex;
   align-items: center;
