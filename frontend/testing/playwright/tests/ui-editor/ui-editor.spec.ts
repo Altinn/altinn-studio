@@ -6,6 +6,9 @@ import type { StorageState } from '../../types/StorageState';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { Gitea } from '../../helpers/Gitea';
 import { ComponentType } from '../../enum/ComponentType';
+import { Header } from '../../components/Header';
+import { DataModelPage } from '../../pages/DataModelPage';
+import { GiteaPage } from '../../pages/GiteaPage';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -97,6 +100,9 @@ test('That it is possible to add a data model binding, and that the files are up
   page,
   testAppName,
 }): Promise<void> => {
+  const header = new Header(page, { app: testAppName });
+  const dataModelPage = new DataModelPage(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
   const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
 
   const page1: string = 'Side1';
@@ -107,6 +113,62 @@ test('That it is possible to add a data model binding, and that the files are up
 
   const newInputLabel: string = 'Input Label 1';
   await addNewLabelToTreeItemComponent(uiEditorPage, newInputLabel);
+
+  await uiEditorPage.clickOnAddDataModelButton();
+  await uiEditorPage.clickOnDataModelBindingsCombobox();
+  await uiEditorPage.verifyThatThereAreNoOptionsInTheDataModelList();
+
+  await header.clickOnThreeDotsMenu();
+  await header.clickOnGoToGiteaRepository();
+
+  await giteaPage.verifyGiteaPage();
+  await giteaPage.clickOnAppFilesButton();
+  await giteaPage.clickOnUiFilesButton();
+  await giteaPage.clickOnLayoutsFilesButton();
+  await giteaPage.clickOnLayoutJsonFile(page1);
+  await giteaPage.verifyThatDataModelBindingsAreNotPresent();
+  await giteaPage.goBackNPages(5); // 5 because of: Gitea -> App -> ui -> layouts -> page1.json
+
+  await uiEditorPage.verifyUiEditorPage(page1);
+
+  await header.clickOnNavigateToPageInTopMenuHeader('datamodel');
+  await dataModelPage.verifyDataModelPage();
+
+  // Add datamodel
+  await dataModelPage.clickOnCreateNewDataModelButton();
+  const dataModelName: string = 'datamodel';
+  await dataModelPage.typeDataModelName(dataModelName);
+  await dataModelPage.clickOnCreateModelButton();
+  await dataModelPage.clickOnGenerateDataModelButton();
+  await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
+
+  await header.clickOnNavigateToPageInTopMenuHeader('create');
+  await uiEditorPage.verifyUiEditorPage();
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
+  await uiEditorPage.clickOnTreeItem(newInputLabel);
+
+  await turnOnBetaMode(uiEditorPage);
+
+  await uiEditorPage.clickOnAddDataModelButton();
+  await uiEditorPage.clickOnDataModelBindingsCombobox();
+  await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
+
+  const dataModelBindingName = 'Property1';
+  await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
+  await uiEditorPage.clickOnSaveDataModel();
+
+  await header.clickOnUploadLocalChangesButton();
+  await header.clickOnValidateChanges();
+  await header.checkThatUploadSuccessMessageIsVisible();
+  await header.clickOnThreeDotsMenu();
+  await header.clickOnGoToGiteaRepository();
+
+  await giteaPage.verifyGiteaPage();
+  await giteaPage.clickOnAppFilesButton();
+  await giteaPage.clickOnUiFilesButton();
+  await giteaPage.clickOnLayoutsFilesButton();
+  await giteaPage.clickOnLayoutJsonFile(page1);
+  await giteaPage.verifyThatDataModelBindingsAreVisible(dataModelBindingName);
 });
 
 const openPageAccordionAndVerifyUpdatedUrl = async (
@@ -121,11 +183,8 @@ const addNewLabelToTreeItemComponent = async (
   uiEditorPage: UiEditorPage,
   newInputLabel: string,
 ) => {
-  const isBeta: boolean = await uiEditorPage.getBetaConfigSwitchValue();
+  await turnOnBetaMode(uiEditorPage);
 
-  if (!isBeta) {
-    await uiEditorPage.clickOnTurnOnBetaConfigSwitch();
-  }
   await uiEditorPage.clickOnAddTextType();
   await uiEditorPage.clickOnLabelOption();
   await uiEditorPage.clickOnAddLabelText();
@@ -133,4 +192,12 @@ const addNewLabelToTreeItemComponent = async (
   await uiEditorPage.clickOnSaveNewLabelName();
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
+};
+
+const turnOnBetaMode = async (uiEditorPage: UiEditorPage): Promise<void> => {
+  const isBeta: boolean = await uiEditorPage.getBetaConfigSwitchValue();
+
+  if (!isBeta) {
+    await uiEditorPage.clickOnTurnOnBetaConfigSwitch();
+  }
 };

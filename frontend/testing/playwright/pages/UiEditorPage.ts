@@ -149,6 +149,54 @@ export class UiEditorPage extends BasePage {
     await this.page.getByRole('treeitem', { name }).isVisible();
   }
 
+  public async clickOnAddDataModelButton(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: this.textMock('ux_editor.modal_properties_data_model_link') })
+      .click();
+  }
+
+  public async clickOnTreeItem(name: string): Promise<void> {
+    await this.page.getByRole('treeitem', { name }).click();
+  }
+
+  public async clickOnDataModelBindingsCombobox(): Promise<void> {
+    await this.page
+      .getByRole('combobox', {
+        name: this.textMock('ux_editor.modal_properties_data_model_helper'),
+      })
+      .click();
+  }
+
+  public async verifyThatThereAreNoOptionsInTheDataModelList(): Promise<void> {
+    await this.page
+      .getByRole('combobox', {
+        name: this.textMock('ux_editor.modal_properties_data_model_helper'),
+      })
+      .getByRole('option')
+      .isHidden();
+  }
+
+  public async verifyThatThereAreOptionsInTheDataModelList(): Promise<void> {
+    await this.page
+      .getByRole('combobox', {
+        name: this.textMock('ux_editor.modal_properties_data_model_helper'),
+      })
+      .getByRole('option')
+      .isVisible();
+  }
+
+  public async clickOnDataModelPropertyOption(option: string): Promise<void> {
+    await this.page.getByRole('option', { name: option }).click();
+  }
+
+  public async clickOnSaveDataModel(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('ux_editor.input_popover_save_button'),
+      })
+      .click();
+  }
+
   private getToolbarItems(): Locator {
     return this.page.getByTestId(testids.draggableToolbarItem);
   }
