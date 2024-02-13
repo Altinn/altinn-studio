@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { StudioTextField, type StudioTextFieldProps } from '../StudioTextField';
+import React, { useMemo, useState } from 'react';
+import {
+  StudioToggableTextfield,
+  type StudioToggableTextfieldProps,
+} from '../StudioToggableTextfield';
 import type { JsonSchema } from '../../../../../../packages/shared/src/types/JsonSchema';
 import { isPropertyRequired, validateProperty } from '../StudioSchemaUtils';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 export type StudioTextfieldSchemaProps = {
   schema: JsonSchema;
   propertyPath: string;
-} & StudioTextFieldProps;
+} & StudioToggableTextfieldProps;
 
 export const StudioTextfieldSchema = <T extends unknown, TT extends unknown>({
   schema,
@@ -19,13 +22,10 @@ export const StudioTextfieldSchema = <T extends unknown, TT extends unknown>({
   const [errorMessage, setErrorMessage] = useState<string | null>();
   const { t } = useTranslation();
 
-  const [propertyId, setPropertyId] = useState(
-    schema && propertyPath ? `${schema.$id}#/${propertyPath}` : null,
+  const propertyId = useMemo(
+    () => (schema && propertyPath ? `${schema.$id}#/${propertyPath}` : null),
+    [schema, propertyPath],
   );
-
-  useEffect(() => {
-    if (schema) setPropertyId(propertyPath ? `${schema.$id}#/${propertyPath}` : null);
-  }, [schema, propertyPath]);
 
   const validateAgainstSchema = (event: React.ChangeEvent<HTMLInputElement>): string | null => {
     const newValue = event.target.value;
@@ -49,7 +49,7 @@ export const StudioTextfieldSchema = <T extends unknown, TT extends unknown>({
   };
 
   return (
-    <StudioTextField
+    <StudioToggableTextfield
       {...rest}
       inputProps={{
         ...inputProps,

@@ -6,21 +6,20 @@ import {
 } from './StudioIconTextfield/StudioIconTextfield';
 import { StudioTextfieldToggleView } from './StudioTextfieldToggleView/StudioTextfieldToggleView';
 import { HelpText } from '@digdir/design-system-react';
-import classes from './StudioTextField.module.css';
 
-export type StudioTextFieldProps = {
+export type StudioToggableTextfieldProps = {
   viewProps: StudioTextfieldToggleViewProps;
   inputProps: StudioIconTextfieldProps;
   helpText?: string;
   customValidation?: (value: string) => string | undefined;
 };
 
-export const StudioTextField = ({
+export const StudioToggableTextfield = ({
   inputProps,
   viewProps,
   helpText,
   customValidation,
-}: StudioTextFieldProps) => {
+}: StudioToggableTextfieldProps) => {
   const [isViewMode, setIsViewMode] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
   const helpTextId = useId();
@@ -58,22 +57,18 @@ export const StudioTextField = ({
   if (isViewMode) return <StudioTextfieldToggleView onClick={toggleViewMode} {...viewProps} />;
   return (
     <>
-      <div className={classes.StudioIconTextfield}>
-        <StudioIconTextfield
-          {...inputProps}
-          onBlur={handleBlur}
-          onChange={handleOnChange}
-          error={inputProps.error || errorMessage}
-          autoFocus
-        />
-      </div>
-      <div className={classes.helpText}>
-        {helpText && (
-          <HelpText id={helpTextId} title={helpText}>
-            {helpText}
-          </HelpText>
-        )}
-      </div>
+      <StudioIconTextfield
+        {...inputProps}
+        onBlur={handleBlur}
+        onChange={handleOnChange}
+        error={inputProps.error || errorMessage}
+        autoFocus
+      />
+      {helpText && (
+        <HelpText id={helpTextId} title={helpText}>
+          {helpText}
+        </HelpText>
+      )}
     </>
   );
 };

@@ -16,7 +16,7 @@ export const StudioTextfieldToggleView = ({
         <KeyVerticalIcon aria-hidden />
         {children}
       </span>
-      <PencilIcon aria-hidden className={classes.pencilIcon} />
+      <PencilIcon aria-hidden className={classes.editIcon} />
     </StudioButton>
   );
 };

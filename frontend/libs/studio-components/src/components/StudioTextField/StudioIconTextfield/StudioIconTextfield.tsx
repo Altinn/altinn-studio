@@ -6,13 +6,13 @@ export type StudioIconTextfieldProps = {
   icon: React.ReactNode;
 } & TextfieldProps;
 
-export const StudioIconTextfield = ({ icon, error, ...rest }: StudioIconTextfieldProps) => {
+export const StudioIconTextfield = ({ icon, ...rest }: StudioIconTextfieldProps) => {
   return (
     <div className={classes.iconTextfieldWrapper}>
       <div aria-hidden className={classes.iconContainer}>
         {icon}
       </div>
-      <Textfield {...rest} error={error} />
+      <Textfield {...rest} />
     </div>
   );
 };

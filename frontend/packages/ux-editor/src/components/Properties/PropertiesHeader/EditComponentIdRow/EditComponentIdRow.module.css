@@ -5,7 +5,7 @@
   width: 100%;
 }
 
-.KeyVerticalIcon {
+.prefixIcon {
   color: var(--fds-semantic-text-neutral-default);
   font-size: 25px;
   display: flex;

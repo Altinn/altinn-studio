@@ -1,10 +1,9 @@
 .viewModeIconsContainer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   color: var(--fds-semantic-text-neutral-default);
 }
 
-.pencilIcon {
+.editIcon {
   margin-left: auto;
 }

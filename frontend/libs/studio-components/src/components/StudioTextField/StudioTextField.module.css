@@ -1,9 +1,0 @@
-.StudioIconTextfield {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.helpText {
-  margin-top: var(--fds-spacing-6);
-}

@@ -1,2 +1,2 @@
-export { StudioTextField } from './StudioTextField';
+export { StudioToggableTextfield } from './StudioToggableTextfield';
 export { StudioTextfieldSchema } from './StudioTextfieldSchema';

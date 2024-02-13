@@ -59,7 +59,7 @@ export const EditComponentIdRow = ({
           style: { paddingLeft: 0, paddingRight: 0 },
         }}
         inputProps={{
-          icon: <KeyVerticalIcon className={classes.KeyVerticalIcon} />,
+          icon: <KeyVerticalIcon className={classes.prefixIcon} />,
           value: idInputValue,
           onBlur: (e) => saveComponentUpdate(e.target.value),
           label: 'ID',
