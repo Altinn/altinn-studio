@@ -1,6 +1,7 @@
 .iconTextfieldWrapper {
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 .iconContainer {
   display: flex;

@@ -1,10 +1,12 @@
-import React from 'react';
-import { idExists } from '../../../../utils/formLayoutUtils';
-import { useTranslation } from 'react-i18next';
-import { useSelectedFormLayout } from '../../../../hooks';
+import React, { useEffect, useState } from 'react';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { FormField } from '../../../FormField';
-import { Textfield } from '@digdir/design-system-react';
+import { StudioTextfieldSchema } from '@studio/components';
+import { KeyVerticalIcon } from '@navikt/aksel-icons';
+import classes from './EditComponentIdRow.module.css';
+import { idExists } from '../../../../utils/formLayoutUtils';
+import { useSelectedFormLayout } from '../../../../hooks';
+import { useTranslation } from 'react-i18next';
+import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormComponent) => void;
@@ -18,43 +20,55 @@ export const EditComponentIdRow = ({
 }: EditComponentIdRowProps) => {
   const { components, containers } = useSelectedFormLayout();
   const { t } = useTranslation();
+  const [idInputValue, setIdInputValue] = useState(component.id);
+  const [{ data: layoutSchema }] = useLayoutSchemaQuery();
 
-  const handleIdChange = (id: string) => {
+  useEffect(() => {
+    setIdInputValue(component.id);
+  }, [component.id]);
+
+  const saveComponentUpdate = (id: string) => {
     handleComponentUpdate({
       ...component,
       id,
     });
   };
 
+  const validateId = (value: string) => {
+    setIdInputValue(value);
+    if (value.length === 0) {
+      return t('validation_errors.required');
+    }
+    if (value !== component.id && idExists(value, components, containers)) {
+      return t('ux_editor.modal_properties_component_id_not_unique_error');
+    }
+    return undefined;
+  };
+
   return (
-    <FormField
-      id={component.id}
-      label={t('ux_editor.modal_properties_component_change_id')}
-      value={component.id}
-      onChange={handleIdChange}
-      propertyPath='definitions/component/properties/id'
-      componentType={component.type}
-      helpText={helpText}
-      customValidationRules={(value: string) => {
-        if (value !== component.id && idExists(value, components, containers)) {
-          return 'unique';
-        }
-      }}
-      customValidationMessages={(errorCode: string) => {
-        if (errorCode === 'unique') {
-          return t('ux_editor.modal_properties_component_id_not_unique_error');
-        }
-        if (errorCode === 'pattern') {
-          return t('ux_editor.modal_properties_component_id_not_valid');
-        }
-      }}
-      renderField={({ fieldProps }) => (
-        <Textfield
-          {...fieldProps}
-          name={`component-id-input${component.id}`}
-          onChange={(e) => fieldProps.onChange(e.target.value, e)}
-        />
-      )}
-    />
+    <div className={classes.StudioTextfieldSchema}>
+      <StudioTextfieldSchema
+        schema={layoutSchema}
+        propertyPath='definitions/component/properties/id'
+        key={component.id}
+        helpText={t('ux_editor.edit_component.id_help_text')}
+        viewProps={{
+          children: `ID: ${component.id}`,
+          variant: 'tertiary',
+          fullWidth: true,
+          style: { paddingLeft: 0, paddingRight: 0 },
+        }}
+        inputProps={{
+          icon: <KeyVerticalIcon className={classes.KeyVerticalIcon} />,
+          value: idInputValue,
+          onBlur: (e) => saveComponentUpdate(e.target.value),
+          label: 'ID',
+          size: 'small',
+        }}
+        customValidation={(value) => {
+          return validateId(value);
+        }}
+      />
+    </div>
   );
 };

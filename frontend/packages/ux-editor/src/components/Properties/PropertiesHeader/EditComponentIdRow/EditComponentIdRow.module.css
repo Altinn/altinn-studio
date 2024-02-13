@@ -1,0 +1,13 @@
+.StudioTextfieldSchema {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.KeyVerticalIcon {
+  color: var(--fds-semantic-text-neutral-default);
+  font-size: 25px;
+  display: flex;
+  align-items: center;
+}
