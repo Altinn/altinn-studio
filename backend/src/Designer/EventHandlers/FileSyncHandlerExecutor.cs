@@ -5,7 +5,7 @@ using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
+namespace Altinn.Studio.Designer.EventHandlers;
 
 public class FileSyncHandlerExecutor : IFileSyncHandlerExecutor
 {
@@ -16,11 +16,11 @@ public class FileSyncHandlerExecutor : IFileSyncHandlerExecutor
         _hubContext = hubContext;
     }
 
-    public async Task ExecuteWithExceptionHandling(AltinnRepoEditingContext editingContext, string errorCode, string sourcePath, Func<Task> method)
+    public async Task ExecuteWithExceptionHandling(AltinnRepoEditingContext editingContext, string errorCode, string sourcePath, Func<Task> handlerFunction)
     {
         try
         {
-            await method();
+            await handlerFunction();
         }
         catch (Exception e)
         {
@@ -36,8 +36,4 @@ public class FileSyncHandlerExecutor : IFileSyncHandlerExecutor
             await _hubContext.Clients.Group(editingContext.Developer).FileSyncError(error);
         }
     }
-
-    public Task ExecuteWithExceptionHandling(
-        (AltinnRepoEditingContext editingContext, string errorCode, string sourcePath, Func<Task> method) missing_name) =>
-        throw new NotImplementedException();
 }

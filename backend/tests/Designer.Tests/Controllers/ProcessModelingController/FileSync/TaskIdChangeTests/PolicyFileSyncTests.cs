@@ -7,7 +7,6 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -18,24 +17,24 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class LayoutSetsFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFileSyncTests>,
+public class PolicyFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFileSyncTests>,
     IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
 
-    public LayoutSetsFileSyncTests(WebApplicationFactory<Program> factory) : base(factory)
+    public PolicyFileSyncTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Theory]
     [MemberData(nameof(UpsertProcessDefinitionAndNotifyTestData))]
     public async Task UpsertProcessDefinition_ShouldSyncLayoutSets(string org, string app, string developer,
-        string bpmnFilePath, string layoutSetsPath, ProcessDefinitionMetadata metadata)
+        string bpmnFilePath, string policyFilePath, ProcessDefinitionMetadata metadata)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        await AddFileToRepo(layoutSetsPath, "App/ui/layout-sets.json");
+        await AddFileToRepo(policyFilePath, "App/config/authorization/policy.xml");
 
         string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
         processContent = metadata.TaskIdChanges.Aggregate(processContent,
@@ -53,15 +52,13 @@ public class LayoutSetsFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFile
         using var response = await HttpClient.PutAsync(url, form);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        string layoutSetsFromRepo =
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
-
-        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        string policyFileFromRepo =
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/authorization/policy.xml");
 
         foreach (var taskIdChange in metadata.TaskIdChanges)
         {
-            layoutSets.Sets.Should().NotContain(layout => layout.Tasks.Contains(taskIdChange.OldId));
-            layoutSets.Sets.Should().Contain(layout => layout.Tasks.Contains(taskIdChange.NewId));
+            policyFileFromRepo.Should().NotContain(taskIdChange.OldId);
+            policyFileFromRepo.Should().Contain(taskIdChange.NewId);
         }
 
     }
@@ -71,7 +68,7 @@ public class LayoutSetsFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFile
         yield return new object[]
         {
             "ttd", "empty-app", "testUser", "App/config/process/process.bpmn",
-            "App/ui/layout-sets.json",
+            "App/config/authorization/policy.xml",
             new ProcessDefinitionMetadata
             {
                 TaskIdChanges = new List<TaskIdChange> { new() { OldId = "Task_1", NewId = "SomeNewId" } }
