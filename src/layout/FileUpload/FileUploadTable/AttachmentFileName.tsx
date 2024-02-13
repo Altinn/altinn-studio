@@ -4,6 +4,7 @@ import { FileCsvIcon, FileExcelIcon, FileIcon, FilePdfIcon, FileWordIcon } from 
 
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import classes from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName.module.css';
 import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
 import { getDataElementUrl } from 'src/utils/urls/appUrlHelper';
@@ -11,10 +12,11 @@ import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IAttachment } from 'src/features/attachments';
 
 export const AttachmentFileName = ({ attachment, mobileView }: { attachment: IAttachment; mobileView: boolean }) => {
+  const language = useCurrentLanguage();
   const instanceId = useLaxInstanceData()?.id;
   const url =
     isAttachmentUploaded(attachment) && instanceId
-      ? makeUrlRelativeIfSameDomain(getDataElementUrl(instanceId, attachment.data.id))
+      ? makeUrlRelativeIfSameDomain(getDataElementUrl(instanceId, attachment.data.id, language))
       : undefined;
 
   const fileName = (

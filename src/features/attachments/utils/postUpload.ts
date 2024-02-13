@@ -10,6 +10,7 @@ import type { ImmerReducer } from 'use-immer';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useMappedAttachments } from 'src/features/attachments/utils/mapping';
 import { useLaxInstance, useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type {
   AttachmentActionRemove,
@@ -272,6 +273,7 @@ function useAttachmentsRemoveTagMutation() {
 function useAttachmentsRemoveMutation() {
   const { doAttachmentRemove } = useAppMutations();
   const instanceId = useLaxInstanceData()?.id;
+  const language = useCurrentLanguage();
 
   return useMutation({
     mutationFn: (dataGuid: string) => {
@@ -279,7 +281,7 @@ function useAttachmentsRemoveMutation() {
         throw new Error('Missing instanceId, cannot remove attachment');
       }
 
-      return doAttachmentRemove(instanceId, dataGuid);
+      return doAttachmentRemove(instanceId, dataGuid, language);
     },
     onError: (error: HttpClientError) => {
       window.logError('Failed to delete attachment:\n', error);

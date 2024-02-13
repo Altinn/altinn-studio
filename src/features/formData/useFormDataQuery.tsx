@@ -29,6 +29,8 @@ export function useFormDataQuery(url: string | undefined) {
     };
   }
 
+  // We dont want to refetch if only the language changes
+  const urlPath = url ? new URL(url).pathname : undefined;
   const enabled = url !== undefined;
   const { fetchFormData } = useAppQueries();
   return useQuery({
@@ -37,7 +39,7 @@ export function useFormDataQuery(url: string | undefined) {
     cacheTime: 0,
     retry: false,
 
-    queryKey: ['fetchFormData', url, currentTaskId],
+    queryKey: ['fetchFormData', urlPath, currentTaskId],
     queryFn: async () => await fetchFormData(url!, options),
     enabled,
     onError: async (error: HttpClientError) => {

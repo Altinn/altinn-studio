@@ -14,6 +14,7 @@ import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import {
   getAnonymousStatelessDataModelUrl,
@@ -43,6 +44,7 @@ export function useCurrentDataModelUrl() {
   const dataType = useDataTypeByLayoutSetId(layoutSetId);
   const dataElementUuid = useCurrentDataModelGuid();
   const isStateless = useIsStatelessApp();
+  const language = useCurrentLanguage();
 
   if (isStateless && isAnonymous && dataType) {
     return getAnonymousStatelessDataModelUrl(dataType);
@@ -53,7 +55,7 @@ export function useCurrentDataModelUrl() {
   }
 
   if (instance?.id && dataElementUuid) {
-    return getDataElementUrl(instance.id, dataElementUuid);
+    return getDataElementUrl(instance.id, dataElementUuid, language);
   }
 
   return undefined;
@@ -63,6 +65,7 @@ export function useDataModelUrl(dataType: string | undefined) {
   const isAnonymous = useAllowAnonymous();
   const isStateless = useIsStatelessApp();
   const instance = useLaxInstanceData();
+  const language = useCurrentLanguage();
 
   if (isStateless && isAnonymous && dataType) {
     return getAnonymousStatelessDataModelUrl(dataType);
@@ -75,7 +78,7 @@ export function useDataModelUrl(dataType: string | undefined) {
   if (instance?.id && dataType) {
     const uuid = getFirstDataElementId(instance, dataType);
     if (uuid) {
-      return getDataElementUrl(instance.id, uuid);
+      return getDataElementUrl(instance.id, uuid, language);
     }
   }
 

@@ -236,7 +236,7 @@ describe('Validation', () => {
 
   it('Task validation', () => {
     cy.intercept('**/active', []).as('noActiveInstances');
-    cy.intercept('GET', '**/validate', [
+    cy.intercept('GET', '**/validate*', [
       {
         severity: 1,
         code: 'error',

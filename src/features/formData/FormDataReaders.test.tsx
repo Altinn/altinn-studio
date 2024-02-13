@@ -87,7 +87,7 @@ async function render(props: TestProps) {
   function urlFor(dataModelName: string) {
     for (const [uuid, name] of Object.entries(idToNameMap)) {
       if (name === dataModelName) {
-        return `https://local.altinn.cloud/ttd/test/instances/${instanceId}/data/${uuid}`;
+        return `https://local.altinn.cloud/ttd/test/instances/${instanceId}/data/${uuid}?language=nb`;
       }
     }
     return false;
@@ -119,7 +119,8 @@ async function render(props: TestProps) {
         language: 'nb',
       }),
       fetchFormData: async (url) => {
-        const id = url.split('/').pop();
+        const path = new URL(url).pathname;
+        const id = path.split('/').pop();
         const modelName = idToNameMap[id!];
         const formData = props.dataModels[modelName];
         if (formData instanceof Error) {

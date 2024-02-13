@@ -35,8 +35,10 @@ export const getFileTagUrl = (instanceId: string, dataGuid: string, tag: string 
 export const getAnonymousStatelessDataModelUrl = (dataType: string) =>
   `${appPath}/v1/data/anonymous?dataType=${dataType}`;
 export const getStatelessDataModelUrl = (dataType: string) => `${appPath}/v1/data?dataType=${dataType}`;
-export const getDataElementUrl = (instanceId: string, dataGuid: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataGuid}`;
+export const getDataElementUrl = (instanceId: string, dataGuid: string, language: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${appPath}/instances/${instanceId}/data/${dataGuid}${queryString}`;
+};
 
 export const getProcessStateUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process`;
 export const getActionsUrl = (partyId: string, instanceId: string) =>
@@ -46,15 +48,16 @@ export const getCreateInstancesUrl = (partyId: string) => `${appPath}/instances?
 
 export const getValidationUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/validate`;
 
-export const getDataValidationUrl = (instanceId: string, dataGuid: string) =>
-  `${appPath}/instances/${instanceId}/data/${dataGuid}/validate`;
+export const getDataValidationUrl = (instanceId: string, dataGuid: string, language: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${appPath}/instances/${instanceId}/data/${dataGuid}/validate${queryString}`;
+};
 
 export const getPdfFormatUrl = (instanceId: string, dataGuid: string) =>
   `${appPath}/instances/${instanceId}/data/${dataGuid}/pdf/format`;
 
 export const getProcessNextUrl = (instanceId: string, language?: string) => {
-  const queryString = getQueryStringFromObject({ lang: language });
-
+  const queryString = getQueryStringFromObject({ language });
   return `${appPath}/instances/${instanceId}/process/next${queryString}`;
 };
 
