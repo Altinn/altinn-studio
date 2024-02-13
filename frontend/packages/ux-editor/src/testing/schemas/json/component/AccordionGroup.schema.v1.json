@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/NavigationButtons.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/AccordionGroup.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,58 +47,39 @@
       },
       "additionalProperties": false
     },
-    "type": { "const": "NavigationButtons" },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean value or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "type": { "const": "AccordionGroup" },
     "textResourceBindings": {
-      "type": "object",
       "properties": {
-        "back": {
-          "title": "Back",
-          "description": "Text on the back/previous page button",
+        "summaryTitle": {
+          "title": "Summary title",
+          "description": "Title used in the summary view (overrides the default title)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "next": {
-          "title": "Next",
-          "description": "Text on the next page button",
+        "summaryAccessibleTitle": {
+          "title": "Accessible summary title",
+          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "title": {
+          "title": "Title",
+          "description": "The title of the accordion group",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
-      },
-      "additionalProperties": false
+      }
     },
-    "showBackButton": {
-      "title": "Show back button",
-      "description": "Shows two buttons (back/next) instead of just 'next'.",
-      "default": false,
-      "type": "boolean"
-    },
-    "validateOnNext": {
-      "title": "PageValidation",
-      "type": "object",
-      "properties": {
-        "page": {
-          "title": "Page",
-          "description": "Which pages should be validated when the next button is clicked.",
-          "enum": ["current", "currentAndPrevious", "all"]
-        },
-        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
-      },
-      "required": ["page", "show"],
-      "additionalProperties": false
-    },
-    "validateOnPrevious": {
-      "title": "PageValidation",
-      "type": "object",
-      "properties": {
-        "page": {
-          "title": "Page",
-          "description": "Which pages should be validated when the next button is clicked.",
-          "enum": ["current", "currentAndPrevious", "all"]
-        },
-        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
-      },
-      "required": ["page", "show"],
-      "additionalProperties": false
+    "children": {
+      "title": "Children",
+      "description": "List of child component IDs to show inside the Accordion (limited to a few component types)",
+      "type": "array",
+      "items": { "type": "string" }
     }
   },
-  "required": ["id", "type"],
-  "title": "NavigationButtons component schema"
+  "required": ["id", "type", "children"],
+  "title": "AccordionGroup component schema"
 }

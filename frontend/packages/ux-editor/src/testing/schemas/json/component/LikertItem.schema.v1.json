@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Checkboxes.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/LikertItem.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -64,7 +64,6 @@
       "description": "List of validation types to show",
       "type": "array",
       "items": {
-        "type": "string",
         "enum": [
           "Schema",
           "Component",
@@ -181,19 +180,7 @@
       "description": "Index of the option to preselect (if no option has been selected yet)",
       "type": "integer"
     },
-    "labelSettings": {
-      "title": "ILabelSettings",
-      "type": "object",
-      "properties": {
-        "optionalIndicator": {
-          "title": "Optional indicator",
-          "description": "Show optional indicator on label",
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
-    "type": { "const": "Checkboxes" },
+    "type": { "const": "LikertItem" },
     "textResourceBindings": {
       "properties": {
         "tableTitle": {
@@ -223,17 +210,17 @@
         },
         "title": {
           "title": "Title",
-          "description": "Label text/title shown above the component",
+          "description": "Title of the Likert component/row",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "description": {
           "title": "Description",
-          "description": "Label description shown above the component, below the title",
+          "description": "Description of the Likert component/row",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "help": {
-          "title": "Help text",
-          "description": "Help text shown in a tooltip when clicking the help button",
+          "title": "Help",
+          "description": "Help text of the Likert component/row",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
@@ -257,14 +244,8 @@
       "description": "Define the layout style for the options",
       "enum": ["column", "row", "table"],
       "type": "string"
-    },
-    "alertOnChange": {
-      "title": "Alert on change",
-      "description": "Boolean value indicating if the component should alert on uncheck",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
     }
   },
   "required": ["id", "type", "dataModelBindings"],
-  "title": "Checkboxes component schema"
+  "title": "LikertItem component schema"
 }

@@ -1,134 +1,191 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/FileUpload.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "FileUpload component",
-  "description": "Schema that describes the layout configuration for a FileUpload component.",
-  "type": "object",
   "properties": {
     "id": {
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
-    },
-    "type": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
       "type": "string",
-      "title": "Type",
-      "description": "The component type.",
-      "const": "FileUpload"
-    },
-    "dataModelBindings": {
-      "title": "Data model bindings",
-      "description": "Data model bindings for component",
-      "type": "object",
-      "properties": {
-        "simpleBinding": {
-          "type": "string",
-          "title": "Simple binding",
-          "description": "Data model binding for file uploader with a single file"
-        },
-        "list": {
-          "type": "string",
-          "title": "List",
-          "description": "Data model binding for file uploader with multiple files"
-        }
-      },
-      "additionalProperties": false
-    },
-    "textResourceBindings": {
-      "type": "object",
-      "title": "Text resource bindings",
-      "description": "Text resource bindings for a component.",
-      "properties": {
-        "title": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "help": {
-          "type": "string"
-        }
-      },
-      "required": ["title"],
-      "additionalProperties": true
-    },
-    "maxFileSizeInMB": {
-      "title": "Maximum file size in MB",
-      "description": "Sets the maximum file size allowed in megabytes.",
-      "type": "integer",
-      "minimum": 0
-    },
-    "maxNumberOfAttachments": {
-      "title": "Maximum allowed attachments",
-      "description": "Sets the maximum number of attachments allowed to upload.",
-      "type": "integer",
-      "minimum": 0
-    },
-    "minNumberOfAttachments": {
-      "title": "Minimum allowed attachments",
-      "description": "Sets the minimum number of attachments to upload",
-      "type": "integer",
-      "minimum": 0
-    },
-    "displayMode": {
-      "title": "Display mode",
-      "description": "Sets the display mode for the file upload component. simple: hides the file uploader after 1 file has been uploaded, regardless of maximum number of files allowed. list: shows the file uploader until the maximum number of files has been uploaded.",
-      "type": "string",
-      "enum": ["simple", "list"]
-    },
-    "hasCustomFileEndings": {
-      "title": "Has custom file endings",
-      "description": "Boolean value indicating if the component has valid file endings",
-      "type": "boolean"
-    },
-    "validFileEndings": {
-      "title": "Valid file endings",
-      "description": "A comma separated string of valid file endings to upload. If not set all endings are accepted.",
-      "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      ]
-    },
-    "renderAsSummary": {
-      "title": "Render as summary",
-      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
-      "default": false,
-      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
     },
     "hidden": {
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
       "default": false,
-      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
     "grid": {
-      "type": "object",
-      "title": "Grid",
-      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
-      "examples": [
-        {
-          "xs": 12
-        }
-      ]
+      "properties": {
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
+      }
     },
     "pageBreak": {
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+      "title": "Page break",
+      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "readOnly": {
+      "title": "Read only/disabled?",
+      "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "required": {
+      "title": "Required?",
+      "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "showValidations": {
+      "title": "Validation types",
+      "description": "List of validation types to show",
+      "type": "array",
+      "items": {
+        "enum": [
+          "Schema",
+          "Component",
+          "Expression",
+          "CustomBackend",
+          "Required",
+          "AllExceptRequired",
+          "All"
+        ]
+      }
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean value or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "labelSettings": {
+      "title": "ILabelSettings",
+      "type": "object",
+      "properties": {
+        "optionalIndicator": {
+          "title": "Optional indicator",
+          "description": "Show optional indicator on label",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "type": { "const": "FileUpload" },
+    "textResourceBindings": {
+      "properties": {
+        "tableTitle": {
+          "title": "Table title",
+          "description": "Title used in the table view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "shortName": {
+          "title": "Short name (for validation)",
+          "description": "Alternative name used for required validation messages (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "requiredValidation": {
+          "title": "Required validation message",
+          "description": "Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryTitle": {
+          "title": "Summary title",
+          "description": "Title used in the summary view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryAccessibleTitle": {
+          "title": "Accessible summary title",
+          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "title": {
+          "title": "Title",
+          "description": "Label text/title shown above the component",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "Label description shown above the component, below the title",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "help": {
+          "title": "Help text",
+          "description": "Help text shown in a tooltip when clicking the help button",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      }
+    },
+    "dataModelBindings": {
+      "anyOf": [
+        { "$ref": "#/definitions/IDataModelBindingsSimple" },
+        { "$ref": "#/definitions/IDataModelBindingsList" }
+      ]
+    },
+    "maxFileSizeInMB": {
+      "title": "Max file size (MB)",
+      "description": "Sets the maximum file size allowed in megabytes",
+      "type": "integer"
+    },
+    "maxNumberOfAttachments": {
+      "title": "Max number of attachments",
+      "description": "Sets the maximum number of attachments allowed to upload",
+      "type": "integer"
+    },
+    "minNumberOfAttachments": {
+      "title": "Min number of attachments",
+      "description": "Sets the minimum number of attachments required to upload",
+      "type": "integer"
+    },
+    "displayMode": { "enum": ["simple", "list"], "type": "string" },
+    "hasCustomFileEndings": {
+      "title": "Has custom file endings",
+      "description": "Boolean value indicating if the component has valid file endings",
+      "default": false,
+      "type": "boolean"
+    },
+    "validFileEndings": {
+      "title": "Valid file endings",
+      "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
+      "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
+      "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+    },
+    "alertOnDelete": {
+      "title": "Alert on delete",
+      "description": "Boolean value indicating if warning popup should be displayed when attempting to delete an element",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
     }
   },
   "required": [
     "id",
     "type",
-    "displayMode",
     "maxFileSizeInMB",
     "maxNumberOfAttachments",
-    "minNumberOfAttachments"
+    "minNumberOfAttachments",
+    "displayMode"
   ],
-  "additionalProperties": false
+  "title": "FileUpload component schema"
 }
