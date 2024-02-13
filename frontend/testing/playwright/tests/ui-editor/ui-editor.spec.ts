@@ -121,11 +121,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 
-  await giteaPage.verifyGiteaPage();
-  await giteaPage.clickOnAppFilesButton();
-  await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutsFilesButton();
-  await giteaPage.clickOnLayoutJsonFile(page1);
+  await navigateInToLayoutJsonFile(giteaPage, page1);
   await giteaPage.verifyThatDataModelBindingsAreNotPresent();
   await giteaPage.goBackNPages(5); // 5 because of: Gitea -> App -> ui -> layouts -> page1.json
 
@@ -153,7 +149,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.clickOnDataModelBindingsCombobox();
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
 
-  const dataModelBindingName = 'Property1';
+  const dataModelBindingName = 'property1';
   await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
   await uiEditorPage.clickOnSaveDataModel();
 
@@ -163,11 +159,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 
-  await giteaPage.verifyGiteaPage();
-  await giteaPage.clickOnAppFilesButton();
-  await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutsFilesButton();
-  await giteaPage.clickOnLayoutJsonFile(page1);
+  await navigateInToLayoutJsonFile(giteaPage, page1);
   await giteaPage.verifyThatDataModelBindingsAreVisible(dataModelBindingName);
 });
 
@@ -200,4 +192,12 @@ const turnOnBetaMode = async (uiEditorPage: UiEditorPage): Promise<void> => {
   if (!isBeta) {
     await uiEditorPage.clickOnTurnOnBetaConfigSwitch();
   }
+};
+
+const navigateInToLayoutJsonFile = async (giteaPage: GiteaPage, layoutName: string) => {
+  await giteaPage.verifyGiteaPage();
+  await giteaPage.clickOnAppFilesButton();
+  await giteaPage.clickOnUiFilesButton();
+  await giteaPage.clickOnLayoutsFilesButton();
+  await giteaPage.clickOnLayoutJsonFile(layoutName);
 };
