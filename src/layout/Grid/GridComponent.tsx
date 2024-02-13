@@ -264,16 +264,18 @@ function CellWithLabel({ className, columnStyleOptions, referenceComponent, isHe
           <span className={css.textLabel}>
             <Label
               key={`label-${componentId}`}
-              label={title}
+              label={<Lang id={title} />}
               id={componentId}
               required={required}
-              helpText={<Lang id={help} />}
+              helpText={help && <Lang id={help} />}
             />
           </span>
-          <Description
-            id={componentId}
-            description={description}
-          />
+          {description && (
+            <Description
+              id={componentId}
+              description={<Lang id={description} />}
+            />
+          )}
         </>
       )}
     </CellComponent>
