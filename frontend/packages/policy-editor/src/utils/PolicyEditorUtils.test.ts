@@ -10,6 +10,7 @@ import {
   convertSubjectStringToSubjectId,
   createNewSubjectFromSubjectString,
   convertSubjectStringToSubjectSource,
+  findSubjectByPolicyRuleSubject,
 } from './index';
 import {
   mockAction1,
@@ -32,10 +33,12 @@ import {
   mockSubject3,
   mockSubjectBackendString1,
   mockSubjectBackendString3,
+  mockSubjectId1,
   mockSubjectTitle1,
   mockSubjectTitle3,
   mockSubjects,
 } from '../data-mocks';
+import type { PolicySubject } from '../types';
 
 describe('PolicyEditorUtils', () => {
   describe('mapPolicySubjectToSubjectTitle', () => {
@@ -160,6 +163,19 @@ describe('PolicyEditorUtils', () => {
     it('converts subject string to subject source correctly', () => {
       const subjectSource = convertSubjectStringToSubjectSource(mockSubjectBackendString1);
       expect(subjectSource).toBe(mockSubject1.subjectSource);
+    });
+  });
+
+  describe('findSubjectByPolicyRuleSubject', () => {
+    it('returns a subject when the policy rule subject is in the subject options list', () => {
+      const subject: PolicySubject = findSubjectByPolicyRuleSubject(mockSubjects, mockSubjectId1);
+      expect(subject.subjectTitle).toEqual(mockSubjectTitle1);
+      expect(subject.subjectId).toEqual(mockSubjectId1);
+    });
+
+    it('returns undefined when the policy rule subject is not in the subject options list', () => {
+      const subject: PolicySubject = findSubjectByPolicyRuleSubject(mockSubjects, 's4');
+      expect(subject).toEqual(undefined);
     });
   });
 });

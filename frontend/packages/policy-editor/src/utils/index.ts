@@ -42,6 +42,7 @@ export const mapPolicySubjectToSubjectTitle = (
     return subjectOption?.subjectTitle || subjectId;
   });
 };
+
 const findSubjectOptionBySubjectId = (
   subjectOptions: PolicySubject[],
   subjectId: string,
@@ -262,4 +263,13 @@ export const convertSubjectStringToSubjectSource = (subjectString: string): stri
   const lastColonIndex = subjectString.lastIndexOf(':');
   // Starting at 1 to remove 'urn', and excluding the final to remove the id
   return subjectString.slice(firstColonIndex + 1, lastColonIndex);
+};
+
+export const findSubjectByPolicyRuleSubject = (
+  subjectOptions: PolicySubject[],
+  policyRuleSubject: string,
+): PolicySubject => {
+  return subjectOptions.find(
+    (subject) => subject.subjectId.toLowerCase() === policyRuleSubject.toLowerCase(),
+  );
 };
