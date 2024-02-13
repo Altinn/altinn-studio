@@ -2,7 +2,6 @@ import React from 'react';
 import classes from './AppDeploymentStatus.module.css';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
-import { shouldDisplayDeployStatus } from './utils';
 import { useTranslation, Trans } from 'react-i18next';
 import {
   CheckmarkCircleFillIcon,
@@ -75,22 +74,20 @@ export const AppDeploymentStatus = ({
   };
 
   return (
-    <>
-      {shouldDisplayDeployStatus(latestPipelineDeployment?.created) && (
-        <div className={classes.deployStatusGridContainer}>
-          <div className={classes.deploySpinnerGridItem}>{getStatusIcon()}</div>
-          <div>
-            {getStatus()}{' '}
-            <Trans i18nKey={'app_deploy_messages.see_build_log'}>
-              <a
-                href={getAzureDevopsBuildResultUrl(latestPipelineDeployment?.build?.id)}
-                target='_newTab'
-                rel='noopener noreferrer'
-              />
-            </Trans>
-          </div>
+    <div className={classes.deployStatusGridContainer}>
+      <div className={classes.deploySpinnerGridItem}>{getStatusIcon()}</div>
+      <div>
+        {getStatus()}{' '}
+        <Trans i18nKey={'app_deploy_messages.see_build_log'}>
+          <a
+            href={getAzureDevopsBuildResultUrl(latestPipelineDeployment?.build?.id)}
+            target='_newTab'
+            rel='noopener noreferrer'
+          />
+        </Trans>
+      </div>
 
-          {/* {deployPermission && latestDeploy && deployedVersionNotReachable && (
+      {/* {deployPermission && latestDeploy && deployedVersionNotReachable && (
         <Alert severity='danger'>
           <Trans i18nKey={'app_deploy_messages.unable_to_list_deploys'}>
             <a href='mailto:tjenesteeier@altinn.no' />
@@ -104,8 +101,6 @@ export const AppDeploymentStatus = ({
           </Trans>
         </Alert>
       )} */}
-        </div>
-      )}
-    </>
+    </div>
   );
 };

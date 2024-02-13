@@ -33,7 +33,7 @@ export const DeployDropdown = ({
   return (
     <>
       <div>{t('app_deploy_messages.choose_version')}</div>
-      <div className={classes.select} id={`deploy-select-${envName.toLowerCase()}`}>
+      <div id={`deploy-select-${envName.toLowerCase()}`}>
         {imageOptions.length > 0 && (
           <LegacySelect
             key={imageOptions.length}

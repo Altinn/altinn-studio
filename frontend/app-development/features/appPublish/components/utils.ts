@@ -1,9 +1,5 @@
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { addMinutesToTime } from 'app-shared/pure/date-format';
-
-export const shouldDisplayDeployStatus = (timestring: string) =>
-  new Date() < addMinutesToTime(timestring, 60);
 
 export function versionNameValid(releases: AppRelease[], tagName: string): boolean {
   if (

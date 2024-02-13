@@ -13,13 +13,12 @@ import { formatDateTime } from 'app-shared/pure/date-format';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { ImageOption } from '../components/ImageOption';
-import type { AppDeployment as AppDeploymentType } from 'app-shared/types/api/AppDeployment';
 import { AppDeployment } from '../components/AppDeployment';
 
 export const DeployContainer = () => {
   const { org, app } = useStudioUrlParams();
 
-  const { data: appDeployments, isPending: isDeploysPending } = useAppDeploymentsQuery(org, app);
+  const { data: appDeployment, isPending: isDeploysPending } = useAppDeploymentsQuery(org, app);
 
   const { data: environmentList = [], isPending: isEnvPending } = useEnvironmentsQuery();
   const { data: releases = [], isPending: isReleasesPending } = useAppReleasesQuery(org, app);
@@ -76,17 +75,22 @@ export const DeployContainer = () => {
   return (
     <div className={classes.deployContainer}>
       {deployEnvironments.map((env: DeployEnvironment, index: number) => {
-        const appDeployment: AppDeploymentType = appDeployments.find(
-          (item) => item.envName === env.name,
+        const pipelineDeploymentList = appDeployment.pipelineDeploymentList.filter(
+          (item) => item.envName.toLowerCase() === env.name.toLowerCase(),
+        );
+        const kubernetesDeployment = appDeployment.kubernetesDeploymentList.find(
+          (item) => item.envName.toLowerCase() === env.name.toLowerCase(),
         );
         return (
           <AppDeployment
             key={index}
             envName={env.name}
+            envType={env.type}
             urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             imageOptions={imageOptions}
-            appDeployment={appDeployment}
+            pipelineDeploymentList={pipelineDeploymentList}
+            kubernetesDeployment={kubernetesDeployment}
             deployPermission={
               permissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }

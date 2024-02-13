@@ -2,6 +2,8 @@ namespace Altinn.Studio.Designer.Services.Models
 {
     public class KubernetesDeployment
     {
+        public string EnvName { get; set; }
+
         public string Release { get; set; }
 
         public string Version { get; set; }

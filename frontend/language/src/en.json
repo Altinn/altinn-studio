@@ -47,6 +47,7 @@
   "app_deploy.deployment_status.failed": "Failed",
   "app_deploy.deployment_status.paused": "Paused",
   "app_deploy.deployment_status.progressing": "Progressing",
+  "app_deploy_messages.build_log": "<0 href=\"{{buildResultUrl}}\" >build log</0>",
   "app_deploy_messages.see_build_log": "For more information see <0 href=\"{{buildResultUrl}}\" >the build log</0>.",
   "app_publish.deployment_in_progress": "Deployment in progress",
   "app_publish.missing_rights": "You do not have permissions to deploy to the {{envName}} environment. Permissions can be granted by owners in {{orgName}}.",

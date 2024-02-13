@@ -8,10 +8,8 @@ namespace Altinn.Studio.Designer.Services.Models
     /// </summary>
     public class Deployment
     {
-        public string envName { get; set; }
-
         public List<DeploymentEntity> PipelineDeploymentList { get; set; }
 
-        public KubernetesDeployment KubernetesDeployment { get; set; }
+        public List<KubernetesDeployment> KubernetesDeploymentList { get; set; }
     }
 }

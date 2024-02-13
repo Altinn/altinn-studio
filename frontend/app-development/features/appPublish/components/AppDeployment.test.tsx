@@ -33,7 +33,7 @@ describe('AppDeploymentComponent', () => {
 
   it('should render with no deploy history', () => {
     render();
-    expect(screen.getByText(textMock('app_deploy.no_app_deployed'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.no_app'))).toBeInTheDocument();
     expect(
       screen.getByText(
         textMock('app_deploy_table.deployed_version_history_empty', { envName: 'test' }),
@@ -74,7 +74,7 @@ describe('AppDeploymentComponent', () => {
     ];
     render({ deployHistory });
     expect(
-      screen.getByText(textMock('app_deploy.deployed_version', { appDeployedVersion: 'test' })),
+      screen.getByText(textMock('overview.success', { appDeployedVersion: 'test' })),
     ).toBeInTheDocument();
     expect(
       screen.getByText(textMock('app_deploy_table.deployed_version_history', { envName: 'test' })),

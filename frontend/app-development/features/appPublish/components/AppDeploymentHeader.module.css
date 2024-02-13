@@ -1,30 +1,7 @@
 .headingContainer {
-  border-bottom: 2px solid #c9c9c9;
-  border-top: 2px solid #000000;
-  margin-bottom: 2rem;
-  margin-top: 2rem;
-  padding: 2rem 5rem;
-  display: flex;
-}
-
-.headingContainer :first-child {
-  width: 200px;
-}
-.headingContainer :nth-child(2) {
-  flex-grow: 1;
-}
-
-.headingContainer :last-child {
-  width: fit-content;
-}
-
-.gridItem {
-  padding-right: 2rem;
+  width: 100%;
 }
 
 .envTitle {
-  font-size: 18px;
-  font-weight: 500;
-  max-width: 22.5rem;
-  padding-right: 0.5rem;
+  text-transform: uppercase;
 }

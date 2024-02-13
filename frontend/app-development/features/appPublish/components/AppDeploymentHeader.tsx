@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './AppDeploymentHeader.module.css';
-import { Link } from '@digdir/design-system-react';
+import { Heading, Link } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import { Alert } from '@digdir/design-system-react';
@@ -9,6 +9,7 @@ export interface AppDeploymentHeaderProps {
   kubernetesDeploymentStatus?: KubernetesDeploymentStatus;
   version?: string;
   envName: string;
+  envType: string;
   urlToApp?: string;
   urlToAppLinkTxt?: string;
 }
@@ -17,50 +18,56 @@ export const AppDeploymentHeader = ({
   kubernetesDeploymentStatus,
   version,
   envName,
+  envType,
   urlToApp,
   urlToAppLinkTxt,
 }: AppDeploymentHeaderProps) => {
   const { t } = useTranslation();
 
+  const severity = 'info';
+  const isProduction = envType.toLowerCase() === 'production';
+  const headingText = isProduction ? t('general.production') : envName;
+
   const showLinkToApp = kubernetesDeploymentStatus === KubernetesDeploymentStatus.completed;
 
   const getStatus = () => {
     if (!kubernetesDeploymentStatus) {
-      /*
-        <Alert severity='danger'>
-          <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
-            <a href='mailto:tjenesteeier@altinn.no' />
-          </Trans>
-        </Alert>
-      */
-      return t('app_deploy.no_app_deployed');
+      return t('overview.no_app');
     }
     switch (kubernetesDeploymentStatus) {
       case KubernetesDeploymentStatus.completed:
-        return t('app_deploy.deployed_version', { appDeployedVersion: version });
+        return t('overview.success', { appDeployedVersion: version });
       case KubernetesDeploymentStatus.failed:
-        <Alert severity='danger'>
-          <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
-            <a href='mailto:tjenesteeier@altinn.no' />
-          </Trans>
-        </Alert>;
-      //return t('app_deploy.deployed_version_unavailable');
+        return t('overview.unavailable');
       default:
         return '';
     }
   };
 
+  const getSeverity = () => {
+    switch (kubernetesDeploymentStatus) {
+      case KubernetesDeploymentStatus.completed:
+        return 'success';
+      case KubernetesDeploymentStatus.failed:
+        return 'danger';
+      default:
+        return 'info';
+    }
+  };
+
   return (
-    <div className={classes.headingContainer}>
-      <div className={classes.envTitle}>{t('app_deploy.environment', { envName })}</div>
-      <div className={classes.gridItem}>{getStatus()}</div>
-      <div className={classes.gridItem}>
+    <Alert severity={getSeverity()} className={classes.headingContainer}>
+      <Heading spacing level={2} size='xsmall' className={classes.envTitle}>
+        {headingText}
+      </Heading>
+      <div>{getStatus()}</div>
+      <div>
         {showLinkToApp && (
           <Link href={urlToApp} target='_blank' rel='noopener noreferrer'>
             {urlToAppLinkTxt}
           </Link>
         )}
       </div>
-    </div>
+    </Alert>
   );
 };

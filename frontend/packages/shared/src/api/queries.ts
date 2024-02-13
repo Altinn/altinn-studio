@@ -46,7 +46,8 @@ import {
   widgetSettingsPath,
   resourceAccessListsPath,
 } from './paths';
-import type { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import type { AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
@@ -83,7 +84,7 @@ export const getDatamodelMetadata = (owner: string, app: string) => get<Datamode
 export const getDatamodelsJson = (owner: string, app: string) => get<DatamodelMetadataJson[]>(datamodelsPath(owner, app));
 export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelMetadataXsd[]>(datamodelsXsdPath(owner, app));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));
-export const getDeployments = (owner: string, app: string) => get<AppDeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
+export const getDeployments = (owner: string, app: string) => get<AppDeployment>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<DeployEnvironment[]>(envConfigPath());
 export const getExpressionSchema = () => get<string[]>(expressionSchemaUrl());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));

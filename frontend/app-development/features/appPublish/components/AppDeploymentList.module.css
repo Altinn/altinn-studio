@@ -1,23 +1,78 @@
-.deploymentListGrid {
+.appDeploymentList {
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-6);
-}
-
-.table {
-  background-color: #ffffff;
-  min-width: 30rem;
-}
-
-.colorBlack {
-  color: #000;
-}
-
-.tableRow {
-  height: 2.6rem;
+  flex: 1;
 }
 
 .tableWrapper {
-  max-height: 350px;
+  max-height: 550px;
   overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-spacing: var(--fds-spacing-1);
+}
+
+.tableCell {
+  border: none;
+}
+
+.buildResult {
+  padding: var(--fds-spacing-2);
+  display: flex;
+  align-items: center;
+}
+
+.buildResult * {
+  font-size: inherit !important;
+}
+
+.heading {
+  margin-bottom: var(--fds-spacing-6);
+}
+
+.canceled {
+  background-color: var(--fds-semantic-surface-warning-subtle);
+}
+.failed {
+  background-color: var(--fds-semantic-surface-danger-subtle);
+}
+.none {
+  background-color: transparent;
+}
+.partiallySucceeded {
+  background-color: var(--fds-semantic-surface-warning-subtle);
+}
+.succeeded {
+  /* background-color: var(--fds-semantic-surface-success-subtle); */
+}
+
+.icon {
+  --icon-size: calc((4 * 6 / 16) * var(--fds-font-size-f0)); /** Fluid sizing-6 */
+  display: block;
+
+  height: var(--icon-size);
+  width: var(--icon-size);
+}
+
+.icon-canceled {
+  color: var(--fds-semantic-border-warning-default);
+}
+.icon-failed {
+  color: var(--fds-semantic-border-danger-default);
+}
+.icon-none {
+  color: inherit;
+}
+.icon-partiallySucceeded {
+  color: var(--fds-semantic-border-warning-default);
+}
+.icon-succeeded {
+  color: var(--fds-semantic-border-success-default);
+}
+
+.selected {
+  font-weight: bold;
 }

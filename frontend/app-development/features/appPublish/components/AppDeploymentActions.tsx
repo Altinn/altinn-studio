@@ -11,7 +11,7 @@ import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment
 import { BuildStatus } from 'app-shared/types/Build';
 import { AppDeploymentStatus } from './AppDeploymentStatus';
 import { toast } from 'react-toastify';
-import { Link } from '@digdir/design-system-react';
+import { Alert, Link } from '@digdir/design-system-react';
 
 export interface AppDeploymentActionsProps {
   pipelineDeploymentList?: PipelineDeployment[];
@@ -61,36 +61,26 @@ export const AppDeploymentActions = ({
   const deployInProgress = latestPipelineDeployment?.build?.status === BuildStatus.inProgress;
 
   return (
-    <div className={classes.dropdownGrid}>
+    <div className={classes.appDeploymentActions}>
       {!deployPermission ? (
-        <div className={classes.deployStatusGridContainer}>
-          <div className={classes.deploySpinnerGridItem}>
-            <InformationSquareFillIcon />
-          </div>
-          <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
-        </div>
+        <Alert severity='info'>{t('app_publish.missing_rights', { envName, orgName })}</Alert>
       ) : (
         <>
           {deployInProgress ? (
-            <StudioSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
+            <StudioSpinner
+              spinnerText={t('app_publish.deployment_in_progress') + '...'}
+              className={classes.loadingSpinner}
+            />
           ) : (
-            <>
-              {!deployInProgress && (
-                <DeployDropdown
-                  appDeployedVersion={latestPipelineDeployment?.tagName}
-                  envName={envName}
-                  disabled={selectedImageTag === null || deployInProgress === true}
-                  selectedImageTag={selectedImageTag}
-                  imageOptions={imageOptions}
-                  setSelectedImageTag={setSelectedImageTag}
-                  startDeploy={startDeploy}
-                />
-              )}
-              <AppDeploymentStatus
-                envName={envName}
-                latestPipelineDeployment={latestPipelineDeployment}
-              />
-            </>
+            <DeployDropdown
+              appDeployedVersion={latestPipelineDeployment?.tagName}
+              envName={envName}
+              disabled={selectedImageTag === null || deployInProgress}
+              selectedImageTag={selectedImageTag}
+              imageOptions={imageOptions}
+              setSelectedImageTag={setSelectedImageTag}
+              startDeploy={startDeploy}
+            />
           )}
         </>
       )}

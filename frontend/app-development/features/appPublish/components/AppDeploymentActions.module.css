@@ -1,15 +1,10 @@
-.dropdownGrid {
-  padding-bottom: 4rem;
-  padding-left: 5rem;
+.appDeploymentActions {
+  /* width: 35%; */
 }
 
-.deployStatusGridContainer {
+.loadingSpinner {
   display: flex;
+  justify-content: left;
   align-items: center;
-}
-
-.deploySpinnerGridItem {
-  min-width: 6rem;
-  color: #000;
-  font-size: 3.6rem;
+  gap: var(--fds-spacing-1);
 }

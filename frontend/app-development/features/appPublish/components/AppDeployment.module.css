@@ -1,15 +1,20 @@
-.mainContainer {
-  height: fit-content;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
 .bodyContainer {
   display: flex;
-  gap: 40px;
+  flex: 1;
+  gap: var(--fds-spacing-12);
+  padding: var(--fds-spacing-6);
 }
 
-.bodyContainer > * {
-  flex-basis: 49%;
+.accordionHeader > button {
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+.accordionHeader > button > span {
+  width: 100%;
+}
+
+.accordionContent {
+  padding: 0;
+  padding-left: var(--fds-spacing-10);
 }

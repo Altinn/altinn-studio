@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
-using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -85,28 +84,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <inheritdoc/>
         /// TODO: https://github.com/Altinn/altinn-studio/issues/11377
-        public async Task<SearchResults<Deployment>> GetAsync(string org, string app, DocumentQueryModel query)
+        public async Task<Deployment> GetAsync(string org, string app, DocumentQueryModel query)
         {
-            List<Deployment> deploymentList = new();
+            Deployment deployment = new() { KubernetesDeploymentList = new List<KubernetesDeployment>() };
+
             List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
             IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
+            IList<string> environmentNames = environments.Select(environment => environment.Name).ToList();
+            deployment.PipelineDeploymentList = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList();
+
             foreach (EnvironmentModel env in environments)
             {
                 try
                 {
-                    Deployment deployment = new() { envName = env.Name };
-
-                    var dbDeploymentEntitiesInEnv = deploymentEntities
-                        .Where(deployment => deployment.EnvName == env.Name)
-                        .ToList();
-
-                    deployment.PipelineDeploymentList = dbDeploymentEntitiesInEnv;
-
-                    var kubernetesDeployments = await _kubernetesWrapperClient.GetDeploymentsAsync(org, app, env);
-                    deployment.KubernetesDeployment = kubernetesDeployments.FirstOrDefault();
-
-                    deploymentList.Add(deployment);
+                    KubernetesDeployment kubernetesDeployment = await _kubernetesWrapperClient.GetDeploymentAsync(org, app, env);
+                    deployment.KubernetesDeploymentList.Add(kubernetesDeployment);
                 }
                 catch (KubernetesWrapperResponseException)
                 {
@@ -114,7 +107,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
 
-            return new SearchResults<Deployment> { Results = deploymentList };
+            return deployment;
         }
 
         /// <inheritdoc/>

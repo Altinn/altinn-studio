@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
-using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,23 +44,20 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
         /// <param name="query">Document query model</param>
-        /// <returns>SearchResults of type Deployment</returns>
+        /// <returns>Deployment</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<Deployment>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
+        public async Task<Deployment> Get(string org, string app, [FromQuery] DocumentQueryModel query)
         {
-            SearchResults<Deployment> deployments = await _deploymentService.GetAsync(org, app, query);
+            Deployment deployment = await _deploymentService.GetAsync(org, app, query);
 
-            foreach (Deployment deployment in deployments.Results)
+            List<DeploymentEntity> laggingDeployments = deployment.PipelineDeploymentList.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
+            foreach (DeploymentEntity laggingDeployment in laggingDeployments)
             {
-                List<DeploymentEntity> laggingDeployments = deployment.PipelineDeploymentList.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
-                foreach (DeploymentEntity laggingDeployment in laggingDeployments)
-                {
-                    await _deploymentService.UpdateAsync(laggingDeployment.Build.Id, laggingDeployment.Org);
-                }
+                await _deploymentService.UpdateAsync(laggingDeployment.Build.Id, laggingDeployment.Org);
             }
 
-            return deployments;
+            return deployment;
         }
 
         /// <summary>

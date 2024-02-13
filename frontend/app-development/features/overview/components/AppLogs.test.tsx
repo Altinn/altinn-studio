@@ -77,7 +77,7 @@ describe('AppLogs', () => {
       screen.getByText(
         textMock('overview.app_logs_title', {
           tagName: '2',
-          environment: textMock('general.production_environment'),
+          environment: textMock('general.production'),
           envName: 'PRODUCTION',
         }),
       ),
