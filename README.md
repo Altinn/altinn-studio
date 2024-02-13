@@ -8,6 +8,20 @@ Command line tool for app development
 
 ## Local installation
 
+### Install from NuGet
+To install the tool from NuGet, run the following command:
+
+```
+dotnet tool install --global Altinn.Studio.Cli
+```
+
+If you already have the tool installed, you can reinstall it by running:
+
+```
+dotnet tool update --global Altinn.Studio.Cli
+```
+
+### Install from source
 To install the tool from source, run the following command:
 
 ```
