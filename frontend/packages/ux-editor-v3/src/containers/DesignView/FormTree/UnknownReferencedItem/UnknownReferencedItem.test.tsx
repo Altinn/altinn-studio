@@ -44,7 +44,7 @@ describe('UnknownReferencedItem', () => {
         layout: layoutMock,
       },
       queries: {
-        saveFormLayout: mockedSaveFormLayout,
+        saveFormLayoutV3: mockedSaveFormLayout,
       },
     });
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Textfield } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type {
   FormCheckboxesComponent,
   FormRadioButtonsComponent,
@@ -19,13 +19,13 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
     });
   };
 
-  const mapComponentTypeToText = (componentType: ComponentType) => {
+  const mapComponentTypeToText = (componentType: ComponentTypeV3) => {
     switch (componentType) {
-      case ComponentType.Checkboxes:
+      case ComponentTypeV3.Checkboxes:
         return t('ux_editor.modal_check_box_set_preselected');
-      case ComponentType.RadioButtons:
+      case ComponentTypeV3.RadioButtons:
         return t('ux_editor.modal_radio_button_set_preselected');
-      case ComponentType.Dropdown:
+      case ComponentTypeV3.Dropdown:
         return t('ux_editor.component_dropdown_set_preselected');
       default:
         return 'Unknown component';
@@ -35,7 +35,7 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
   return (
     <FormField
       id={component.id}
-      label={mapComponentTypeToText(component.type as ComponentType)}
+      label={mapComponentTypeToText(component.type)}
       value={
         (component as FormCheckboxesComponent | FormRadioButtonsComponent).preselectedOptionIndex
       }

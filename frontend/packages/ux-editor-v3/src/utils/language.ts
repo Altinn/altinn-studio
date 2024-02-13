@@ -1,9 +1,9 @@
 import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
-import type { ComponentType } from 'app-shared/types/ComponentType';
 import type i18next from 'i18next';
 import type { UseText } from '../hooks';
 import type { TranslationKey } from 'app-shared/types/language';
+import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 /**
  * Get the help text for a given component type
@@ -12,7 +12,7 @@ import type { TranslationKey } from 'app-shared/types/language';
  * @returns The help text for the component, or the default help text if none is found
  */
 export function getComponentHelperTextByComponentType(
-  type: ComponentType,
+  type: ComponentTypeV3,
   t: typeof i18next.t,
 ): string {
   const text = t(`ux_editor.component_help_text.${type}`);
@@ -27,7 +27,10 @@ export function getComponentHelperTextByComponentType(
  * @param t The translation function
  * @returns The title text for the component, or the type if none is found
  */
-export function getComponentTitleByComponentType(type: ComponentType, t: typeof i18next.t): string {
+export function getComponentTitleByComponentType(
+  type: ComponentTypeV3,
+  t: typeof i18next.t,
+): string {
   const text = t(`ux_editor.component_title.${type}`);
   return text !== `ux_editor.component_title.${type}` ? text : type;
 }
@@ -43,13 +46,6 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, t: typeof 
     case CollapsableMenus.AdvancedComponents: {
       return t('ux_editor.collapsable_text_advanced_components');
     }
-    // TODO : Uncomment when we have widgets components
-    // case CollapsableMenus.Widgets: {
-    //   return t('ux_editor.collapsable_text_widgets');
-    // }
-    // case CollapsableMenus.ThirdParty: {
-    //   return language['ux_editor.collapsable_text_thirdparty_components'];
-    // }
     default: {
       return '';
     }

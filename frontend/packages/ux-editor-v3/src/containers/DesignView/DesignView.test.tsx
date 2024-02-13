@@ -75,7 +75,7 @@ describe('DesignView', () => {
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await act(() => user.click(addButton));
 
-    expect(queriesMock.saveFormLayout).toHaveBeenCalled();
+    expect(queriesMock.saveFormLayoutV3).toHaveBeenCalled();
   });
 
   it('Displays the tree view version of the layout when the formTree feature flag is enabled', async () => {

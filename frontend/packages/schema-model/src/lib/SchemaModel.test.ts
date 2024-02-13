@@ -8,6 +8,7 @@ import {
   defNodeWithChildrenChildMock,
   defNodeWithChildrenMock,
   enumNodeMock,
+  nodeMockBase,
   nodeWithSameNameAsStringNodeMock,
   numberNodeMock,
   optionalNodeMock,
@@ -29,7 +30,7 @@ import {
 } from '../../test/uiSchemaMock';
 import { expect } from '@jest/globals';
 import { validateTestUiSchema } from '../../test/validateTestUiSchema';
-import type { NodePosition } from '../types';
+import type { NodePosition, UiSchemaNodes } from '../types';
 import { CombinationKind, FieldType, ObjectKind } from '../types';
 import type { FieldNode } from '../types/FieldNode';
 import type { ReferenceNode } from '../types/ReferenceNode';
@@ -37,7 +38,7 @@ import { extractNameFromPointer } from './pointerUtils';
 import { isArray, isDefinition } from './utils';
 import { ROOT_POINTER } from './constants';
 import type { CombinationNode } from '../types/CombinationNode';
-import { last } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 
 // Test data:
 
@@ -316,7 +317,7 @@ describe('SchemaModel', () => {
       expect(extractNameFromPointer(result.pointer)).toEqual(name);
       expect(result.objectKind).toEqual(ObjectKind.Combination);
       expect(result.combinationType).toEqual(CombinationKind.AnyOf);
-      expect(last(model.getRootNode().children)).toBe(result.pointer);
+      expect(ArrayUtils.last(model.getRootNode().children)).toBe(result.pointer);
       validateTestUiSchema(model.asArray());
     });
 
@@ -827,6 +828,27 @@ describe('SchemaModel', () => {
 
     it('Returns false when the given node is not a direct child of a combination node', () => {
       expect(schemaModel.isChildOfCombination(simpleChildNodeMock.pointer)).toBe(false);
+    });
+
+    it('Returns false when the root node is a combination, but the given node is a definition', () => {
+      const definitionPointer = '#/$defs/test';
+      const rootNode: CombinationNode = {
+        ...rootNodeMock,
+        objectKind: ObjectKind.Combination,
+        combinationType: CombinationKind.AnyOf,
+        children: [definitionPointer],
+      };
+      const definitionNode: FieldNode = {
+        ...nodeMockBase,
+        objectKind: ObjectKind.Field,
+        fieldType: FieldType.Object,
+        pointer: definitionPointer,
+        children: [],
+      };
+      const nodes: UiSchemaNodes = [rootNode, definitionNode];
+      validateTestUiSchema(nodes);
+      const model = SchemaModel.fromArray(nodes);
+      expect(model.isChildOfCombination(definitionPointer)).toBe(false);
     });
   });
 

@@ -3,7 +3,7 @@ import { useDeleteItem } from './useDeleteItem';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
 import { componentMocks } from '../../../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { container1IdMock, layoutMock } from '../../../../../testing/layoutMock';
 
 // Mocks:
@@ -20,7 +20,7 @@ describe('useDeleteItem', () => {
   afterEach(jest.clearAllMocks);
 
   it('Calls component mutation when formItem is a component', () => {
-    const { result } = render(componentMocks[ComponentType.Input]);
+    const { result } = render(componentMocks[ComponentTypeV3.Input]);
     result.current();
     expect(mockComponentMutation).toHaveBeenCalledTimes(1);
     expect(mockContainerMutation).not.toHaveBeenCalled();

@@ -40,7 +40,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Attempt to wait for deploy to environment (12 minutes sleep)
+      - name: Attempt to wait for deploy to environment (10 minutes sleep)
         run: sleep 10m
         shell: bash
 

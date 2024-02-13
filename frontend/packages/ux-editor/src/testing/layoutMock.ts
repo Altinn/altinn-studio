@@ -15,7 +15,7 @@ export const layout2NameMock = 'Side2';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = 'Component-1';
 export const component1TypeMock = ComponentType.Input;
-export const component1Mock: FormComponent = {
+export const component1Mock: FormComponent<ComponentType.Input> = {
   id: component1IdMock,
   type: component1TypeMock,
   itemType: 'COMPONENT',
@@ -24,11 +24,19 @@ export const component1Mock: FormComponent = {
 };
 export const component2IdMock = 'Component-2';
 export const component2TypeMock = ComponentType.Paragraph;
-export const component2Mock: FormComponent = {
+export const component2Mock: FormComponent<ComponentType.Paragraph> = {
   id: component2IdMock,
   type: component2TypeMock,
   itemType: 'COMPONENT',
   pageIndex: null,
+};
+export const componentWithOptionsMock: FormComponent = {
+  id: 'ComponentWithOptionsMock',
+  type: ComponentType.Checkboxes,
+  itemType: 'COMPONENT',
+  pageIndex: null,
+  optionsId: '',
+  propertyPath: 'definitions/radioAndCheckboxComponents',
 };
 export const container1IdMock = 'Container-1';
 export const customRootPropertiesMock: KeyValuePairs = {
@@ -43,6 +51,7 @@ export const layoutMock: IInternalLayout = {
   components: {
     [component1IdMock]: component1Mock,
     [component2IdMock]: component2Mock,
+    ComponentWithOptionsMock: componentWithOptionsMock,
   },
   containers: {
     [baseContainerIdMock]: {
@@ -61,7 +70,7 @@ export const layoutMock: IInternalLayout = {
     },
   },
   order: {
-    [baseContainerIdMock]: [container1IdMock],
+    [baseContainerIdMock]: [container1IdMock, 'ComponentWithOptionsMock'],
     [container1IdMock]: [component1IdMock, component2IdMock],
   },
   customRootProperties: customRootPropertiesMock,
@@ -84,6 +93,11 @@ export const layout1Mock: ExternalFormLayout = {
       {
         id: component2IdMock,
         type: component2TypeMock,
+      },
+      {
+        id: 'ComponentWithOptionsMock',
+        type: ComponentType.Checkboxes,
+        optionsId: '',
       },
     ],
     ...customDataPropertiesMock,

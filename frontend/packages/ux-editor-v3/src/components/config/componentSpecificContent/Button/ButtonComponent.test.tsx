@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ButtonComponent } from './ButtonComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -12,7 +12,7 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 const component: FormButtonComponent = {
   id: '1',
   onClickAction: jest.fn(),
-  type: ComponentType.Button,
+  type: ComponentTypeV3.Button,
   itemType: 'COMPONENT',
   dataModelBindings: {},
 };
@@ -34,7 +34,7 @@ describe('ButtonComponent', () => {
     await render({
       component: {
         ...component,
-        type: ComponentType.NavigationButtons,
+        type: ComponentTypeV3.NavigationButtons,
       },
     });
     expect(

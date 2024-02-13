@@ -20,25 +20,15 @@ export function DefaultToolbar() {
   const [anchorElement, setAnchorElement] = useState<any>(null);
 
   const { t } = useTranslation();
-  // TODO: Uncomment when widgets are implemented
-  // const { org, app } = useParams();
-  // const { data: widgetsList } = useWidgetsQuery(org, app);
 
   const componentList: IToolbarElement[] = schemaComponents.map(mapComponentToToolbarElement);
   const textComponentList: IToolbarElement[] = textComponents.map(mapComponentToToolbarElement);
   const advancedComponentsList: IToolbarElement[] = advancedItems.map(mapComponentToToolbarElement);
-  // TODO: Uncomment when widgets are implemented
-  // const widgetComponentsList: IToolbarElement[] = widgetsList.map(
-  //   (widget) => mapWidgetToToolbarElement(widget, t)
-  // );
 
   const allComponentLists: KeyValuePairs<IToolbarElement[]> = {
     [CollapsableMenus.Components]: componentList,
     [CollapsableMenus.Texts]: textComponentList,
     [CollapsableMenus.AdvancedComponents]: advancedComponentsList,
-    // TODO: Uncomment when widgets are implemented
-    // [CollapsableMenus.Widgets]: widgetComponentsList,
-    // [CollapsableMenus.ThirdParty]: thirdPartyComponentList,
   };
 
   const handleComponentInformationOpen = (component: ComponentType, event: any) => {

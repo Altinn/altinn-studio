@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentTypeV3 as ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormItem } from '../types/FormItem';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import type { RefAttributes, SVGProps } from 'react';
@@ -34,60 +34,60 @@ import {
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 
-export type FormItemConfig<T extends ComponentType = ComponentType> = {
+export type FormItemConfig<T extends ComponentTypeV3 = ComponentTypeV3> = {
   name: T;
   itemType: LayoutItemType;
   defaultProperties: FormItem<T>;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
-} & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
+} & (T extends ContainerComponentType ? { validChildTypes: ComponentTypeV3[] } : {});
 
-export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
+export type FormItemConfigs = { [T in ComponentTypeV3]: FormItemConfig<T> };
 
 export const formItemConfigs: FormItemConfigs = {
-  [ComponentType.Alert]: {
-    name: ComponentType.Alert,
+  [ComponentTypeV3.Alert]: {
+    name: ComponentTypeV3.Alert,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Alert,
+      type: ComponentTypeV3.Alert,
       severity: 'info',
       propertyPath: 'definitions/alertComponent',
     },
     icon: ExclamationmarkTriangleIcon,
   },
-  [ComponentType.Accordion]: {
-    name: ComponentType.Accordion,
+  [ComponentTypeV3.Accordion]: {
+    name: ComponentTypeV3.Accordion,
     itemType: LayoutItemType.Container,
     defaultProperties: {
       id: '',
       itemType: 'CONTAINER',
-      type: ComponentType.Accordion,
+      type: ComponentTypeV3.Accordion,
       propertyPath: 'definitions/accordionComponent',
     },
     icon: AccordionIcon,
-    validChildTypes: [ComponentType.Paragraph],
+    validChildTypes: [ComponentTypeV3.Paragraph],
   },
-  [ComponentType.AccordionGroup]: {
-    name: ComponentType.AccordionGroup,
+  [ComponentTypeV3.AccordionGroup]: {
+    name: ComponentTypeV3.AccordionGroup,
     itemType: LayoutItemType.Container,
     defaultProperties: {
       id: '',
       itemType: 'CONTAINER',
-      type: ComponentType.AccordionGroup,
+      type: ComponentTypeV3.AccordionGroup,
       propertyPath: 'definitions/accordionGroupComponent',
     },
     icon: ChevronDownDoubleIcon,
-    validChildTypes: [ComponentType.Accordion],
+    validChildTypes: [ComponentTypeV3.Accordion],
   },
-  [ComponentType.ActionButton]: {
-    name: ComponentType.ActionButton,
+  [ComponentTypeV3.ActionButton]: {
+    name: ComponentTypeV3.ActionButton,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.ActionButton,
+      type: ComponentTypeV3.ActionButton,
       textResourceBindings: {
         title: '', // To avoid undefined as text when previewing default component
       },
@@ -95,88 +95,88 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: FingerButtonIcon,
   },
-  [ComponentType.AddressComponent]: {
-    name: ComponentType.AddressComponent,
+  [ComponentTypeV3.AddressComponent]: {
+    name: ComponentTypeV3.AddressComponent,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.AddressComponent,
+      type: ComponentTypeV3.AddressComponent,
       dataModelBindings: {},
       simplified: true,
       propertyPath: 'definitions/addressComponent',
     },
     icon: HouseIcon,
   },
-  [ComponentType.AttachmentList]: {
-    name: ComponentType.AttachmentList,
+  [ComponentTypeV3.AttachmentList]: {
+    name: ComponentTypeV3.AttachmentList,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.AttachmentList,
+      type: ComponentTypeV3.AttachmentList,
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 0,
       propertyPath: 'definitions/attachmentListComponent',
     },
     icon: PaperclipIcon,
   },
-  [ComponentType.Button]: {
-    name: ComponentType.Button,
+  [ComponentTypeV3.Button]: {
+    name: ComponentTypeV3.Button,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Button,
+      type: ComponentTypeV3.Button,
       onClickAction: () => {},
       propertyPath: 'definitions/actionButtonComponent',
     },
     icon: FingerButtonIcon,
   },
-  [ComponentType.ButtonGroup]: {
-    name: ComponentType.ButtonGroup,
+  [ComponentTypeV3.ButtonGroup]: {
+    name: ComponentTypeV3.ButtonGroup,
     itemType: LayoutItemType.Container,
     defaultProperties: {
       id: '',
       itemType: 'CONTAINER',
-      type: ComponentType.ButtonGroup,
+      type: ComponentTypeV3.ButtonGroup,
       propertyPath: 'definitions/buttonGroupComponent',
     },
     icon: FingerButtonIcon,
-    validChildTypes: [ComponentType.Button],
+    validChildTypes: [ComponentTypeV3.Button],
   },
-  [ComponentType.Checkboxes]: {
-    name: ComponentType.Checkboxes,
+  [ComponentTypeV3.Checkboxes]: {
+    name: ComponentTypeV3.Checkboxes,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Checkboxes,
+      type: ComponentTypeV3.Checkboxes,
       dataModelBindings: {},
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
     icon: CheckboxIcon,
   },
-  [ComponentType.Custom]: {
-    name: ComponentType.Custom,
+  [ComponentTypeV3.Custom]: {
+    name: ComponentTypeV3.Custom,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Custom,
+      type: ComponentTypeV3.Custom,
       tagName: 'tag',
       framework: 'framework',
     },
   },
-  [ComponentType.Datepicker]: {
-    name: ComponentType.Datepicker,
+  [ComponentTypeV3.Datepicker]: {
+    name: ComponentTypeV3.Datepicker,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
       dataModelBindings: {},
-      type: ComponentType.Datepicker,
+      type: ComponentTypeV3.Datepicker,
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
       timeStamp: false,
@@ -185,13 +185,13 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: CalendarIcon,
   },
-  [ComponentType.Dropdown]: {
-    name: ComponentType.Dropdown,
+  [ComponentTypeV3.Dropdown]: {
+    name: ComponentTypeV3.Dropdown,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Dropdown,
+      type: ComponentTypeV3.Dropdown,
       dataModelBindings: {},
       optionsId: '',
       required: true,
@@ -199,13 +199,13 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: SelectIcon,
   },
-  [ComponentType.FileUpload]: {
-    name: ComponentType.FileUpload,
+  [ComponentTypeV3.FileUpload]: {
+    name: ComponentTypeV3.FileUpload,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.FileUpload,
+      type: ComponentTypeV3.FileUpload,
       description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
@@ -216,13 +216,13 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: PaperclipIcon,
   },
-  [ComponentType.FileUploadWithTag]: {
-    name: ComponentType.FileUploadWithTag,
+  [ComponentTypeV3.FileUploadWithTag]: {
+    name: ComponentTypeV3.FileUploadWithTag,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.FileUploadWithTag,
+      type: ComponentTypeV3.FileUploadWithTag,
       description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
@@ -234,60 +234,60 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: PaperclipIcon,
   },
-  [ComponentType.Grid]: {
-    name: ComponentType.Grid,
+  [ComponentTypeV3.Grid]: {
+    name: ComponentTypeV3.Grid,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Grid,
+      type: ComponentTypeV3.Grid,
       propertyPath: 'definitions/gridComponent',
       rows: [],
     },
     icon: TableIcon,
   },
-  [ComponentType.Group]: {
-    name: ComponentType.Group,
+  [ComponentTypeV3.Group]: {
+    name: ComponentTypeV3.Group,
     itemType: LayoutItemType.Container,
     defaultProperties: {
       id: '',
       itemType: 'CONTAINER',
-      type: ComponentType.Group,
+      type: ComponentTypeV3.Group,
       propertyPath: 'definitions/groupComponent',
     },
     icon: GroupIcon,
-    validChildTypes: Object.values(ComponentType),
+    validChildTypes: Object.values(ComponentTypeV3),
   },
-  [ComponentType.Header]: {
-    name: ComponentType.Header,
+  [ComponentTypeV3.Header]: {
+    name: ComponentTypeV3.Header,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Header,
+      type: ComponentTypeV3.Header,
       size: 'L',
       propertyPath: 'definitions/headerComponent',
     },
     icon: TitleIcon,
   },
-  [ComponentType.IFrame]: {
-    name: ComponentType.IFrame,
+  [ComponentTypeV3.IFrame]: {
+    name: ComponentTypeV3.IFrame,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.IFrame,
+      type: ComponentTypeV3.IFrame,
       sandbox: {},
     },
     icon: PresentationIcon,
   },
-  [ComponentType.Image]: {
-    name: ComponentType.Image,
+  [ComponentTypeV3.Image]: {
+    name: ComponentTypeV3.Image,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Image,
+      type: ComponentTypeV3.Image,
       image: {
         src: {},
         width: '100%',
@@ -297,80 +297,80 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: ImageIcon,
   },
-  [ComponentType.Input]: {
-    name: ComponentType.Input,
+  [ComponentTypeV3.Input]: {
+    name: ComponentTypeV3.Input,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Input,
+      type: ComponentTypeV3.Input,
       dataModelBindings: {},
       required: true,
       propertyPath: 'definitions/inputComponent',
     },
     icon: ShortTextIcon,
   },
-  [ComponentType.InstanceInformation]: {
-    name: ComponentType.InstanceInformation,
+  [ComponentTypeV3.InstanceInformation]: {
+    name: ComponentTypeV3.InstanceInformation,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.InstanceInformation,
+      type: ComponentTypeV3.InstanceInformation,
       propertyPath: 'definitions/instanceInformationComponent',
     },
     icon: InformationSquareIcon,
   },
-  [ComponentType.InstantiationButton]: {
-    name: ComponentType.InstantiationButton,
+  [ComponentTypeV3.InstantiationButton]: {
+    name: ComponentTypeV3.InstantiationButton,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.InstantiationButton,
+      type: ComponentTypeV3.InstantiationButton,
     },
     icon: FingerButtonIcon,
   },
-  [ComponentType.Likert]: {
-    name: ComponentType.Likert,
+  [ComponentTypeV3.Likert]: {
+    name: ComponentTypeV3.Likert,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Likert,
+      type: ComponentTypeV3.Likert,
       dataModelBindings: {},
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
     icon: LikertIcon,
   },
-  [ComponentType.Link]: {
-    name: ComponentType.Link,
+  [ComponentTypeV3.Link]: {
+    name: ComponentTypeV3.Link,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Link,
+      type: ComponentTypeV3.Link,
     },
     icon: LinkIcon,
   },
-  [ComponentType.List]: {
-    name: ComponentType.List,
+  [ComponentTypeV3.List]: {
+    name: ComponentTypeV3.List,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.List,
+      type: ComponentTypeV3.List,
       propertyPath: 'definitions/listComponent',
     },
     icon: TasklistIcon,
   },
-  [ComponentType.Map]: {
-    name: ComponentType.Map,
+  [ComponentTypeV3.Map]: {
+    name: ComponentTypeV3.Map,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Map,
+      type: ComponentTypeV3.Map,
       dataModelBindings: {},
       centerLocation: {
         latitude: 0,
@@ -382,13 +382,13 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: PinIcon,
   },
-  [ComponentType.MultipleSelect]: {
-    name: ComponentType.MultipleSelect,
+  [ComponentTypeV3.MultipleSelect]: {
+    name: ComponentTypeV3.MultipleSelect,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.MultipleSelect,
+      type: ComponentTypeV3.MultipleSelect,
       dataModelBindings: {},
       optionsId: '',
       required: true,
@@ -396,93 +396,93 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: SelectIcon,
   },
-  [ComponentType.NavigationBar]: {
-    name: ComponentType.NavigationBar,
+  [ComponentTypeV3.NavigationBar]: {
+    name: ComponentTypeV3.NavigationBar,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.NavigationBar,
+      type: ComponentTypeV3.NavigationBar,
       propertyPath: 'definitions/navigationBarComponent',
     },
     icon: NavBarIcon,
   },
-  [ComponentType.NavigationButtons]: {
-    name: ComponentType.NavigationButtons,
+  [ComponentTypeV3.NavigationButtons]: {
+    name: ComponentTypeV3.NavigationButtons,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.NavigationButtons,
+      type: ComponentTypeV3.NavigationButtons,
       onClickAction: () => {},
       propertyPath: 'definitions/navigationButtonsComponent',
     },
     icon: FingerButtonIcon,
   },
-  [ComponentType.Panel]: {
-    name: ComponentType.Panel,
+  [ComponentTypeV3.Panel]: {
+    name: ComponentTypeV3.Panel,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Panel,
+      type: ComponentTypeV3.Panel,
       variant: FormPanelVariant.Info,
       showIcon: true,
       propertyPath: 'definitions/panelComponent',
     },
     icon: FileTextIcon,
   },
-  [ComponentType.Paragraph]: {
-    name: ComponentType.Paragraph,
+  [ComponentTypeV3.Paragraph]: {
+    name: ComponentTypeV3.Paragraph,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Paragraph,
+      type: ComponentTypeV3.Paragraph,
     },
     icon: ParagraphIcon,
   },
-  [ComponentType.PrintButton]: {
-    name: ComponentType.PrintButton,
+  [ComponentTypeV3.PrintButton]: {
+    name: ComponentTypeV3.PrintButton,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.PrintButton,
+      type: ComponentTypeV3.PrintButton,
     },
     icon: FingerButtonIcon,
   },
-  [ComponentType.RadioButtons]: {
-    name: ComponentType.RadioButtons,
+  [ComponentTypeV3.RadioButtons]: {
+    name: ComponentTypeV3.RadioButtons,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.RadioButtons,
+      type: ComponentTypeV3.RadioButtons,
       dataModelBindings: {},
       required: true,
       propertyPath: 'definitions/radioAndCheckboxComponents',
     },
     icon: RadioButtonIcon,
   },
-  [ComponentType.Summary]: {
-    name: ComponentType.Summary,
+  [ComponentTypeV3.Summary]: {
+    name: ComponentTypeV3.Summary,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.Summary,
+      type: ComponentTypeV3.Summary,
       propertyPath: 'definitions/summaryComponent',
     },
     icon: FileTextIcon,
   },
-  [ComponentType.TextArea]: {
-    name: ComponentType.TextArea,
+  [ComponentTypeV3.TextArea]: {
+    name: ComponentTypeV3.TextArea,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       id: '',
       itemType: 'COMPONENT',
-      type: ComponentType.TextArea,
+      type: ComponentTypeV3.TextArea,
       dataModelBindings: {},
       required: true,
       propertyPath: 'definitions/textAreaComponent',
@@ -491,52 +491,52 @@ export const formItemConfigs: FormItemConfigs = {
   },
 };
 
-export const advancedItems: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.AddressComponent],
-  formItemConfigs[ComponentType.AttachmentList],
-  formItemConfigs[ComponentType.Group],
-  formItemConfigs[ComponentType.Grid],
-  formItemConfigs[ComponentType.NavigationBar],
-  formItemConfigs[ComponentType.Map],
-  formItemConfigs[ComponentType.ButtonGroup],
-  formItemConfigs[ComponentType.Accordion],
-  formItemConfigs[ComponentType.AccordionGroup],
-  formItemConfigs[ComponentType.List],
+export const advancedItems: FormItemConfigs[ComponentTypeV3][] = [
+  formItemConfigs[ComponentTypeV3.AddressComponent],
+  formItemConfigs[ComponentTypeV3.AttachmentList],
+  formItemConfigs[ComponentTypeV3.Group],
+  formItemConfigs[ComponentTypeV3.Grid],
+  formItemConfigs[ComponentTypeV3.NavigationBar],
+  formItemConfigs[ComponentTypeV3.Map],
+  formItemConfigs[ComponentTypeV3.ButtonGroup],
+  formItemConfigs[ComponentTypeV3.Accordion],
+  formItemConfigs[ComponentTypeV3.AccordionGroup],
+  formItemConfigs[ComponentTypeV3.List],
 ];
 
-export const schemaComponents: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.Input],
-  formItemConfigs[ComponentType.TextArea],
-  formItemConfigs[ComponentType.Checkboxes],
-  formItemConfigs[ComponentType.RadioButtons],
-  formItemConfigs[ComponentType.Dropdown],
-  formItemConfigs[ComponentType.MultipleSelect],
-  formItemConfigs[ComponentType.Likert],
-  formItemConfigs[ComponentType.Datepicker],
-  formItemConfigs[ComponentType.FileUpload],
-  formItemConfigs[ComponentType.FileUploadWithTag],
-  formItemConfigs[ComponentType.Button],
-  formItemConfigs[ComponentType.NavigationButtons],
-  formItemConfigs[ComponentType.PrintButton],
-  formItemConfigs[ComponentType.InstantiationButton],
-  formItemConfigs[ComponentType.ActionButton],
-  formItemConfigs[ComponentType.Image],
-  formItemConfigs[ComponentType.Link],
-  formItemConfigs[ComponentType.IFrame],
-  formItemConfigs[ComponentType.InstanceInformation],
-  formItemConfigs[ComponentType.Summary],
+export const schemaComponents: FormItemConfigs[ComponentTypeV3][] = [
+  formItemConfigs[ComponentTypeV3.Input],
+  formItemConfigs[ComponentTypeV3.TextArea],
+  formItemConfigs[ComponentTypeV3.Checkboxes],
+  formItemConfigs[ComponentTypeV3.RadioButtons],
+  formItemConfigs[ComponentTypeV3.Dropdown],
+  formItemConfigs[ComponentTypeV3.MultipleSelect],
+  formItemConfigs[ComponentTypeV3.Likert],
+  formItemConfigs[ComponentTypeV3.Datepicker],
+  formItemConfigs[ComponentTypeV3.FileUpload],
+  formItemConfigs[ComponentTypeV3.FileUploadWithTag],
+  formItemConfigs[ComponentTypeV3.Button],
+  formItemConfigs[ComponentTypeV3.NavigationButtons],
+  formItemConfigs[ComponentTypeV3.PrintButton],
+  formItemConfigs[ComponentTypeV3.InstantiationButton],
+  formItemConfigs[ComponentTypeV3.ActionButton],
+  formItemConfigs[ComponentTypeV3.Image],
+  formItemConfigs[ComponentTypeV3.Link],
+  formItemConfigs[ComponentTypeV3.IFrame],
+  formItemConfigs[ComponentTypeV3.InstanceInformation],
+  formItemConfigs[ComponentTypeV3.Summary],
 ];
 
-export const textComponents: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.Header],
-  formItemConfigs[ComponentType.Paragraph],
-  formItemConfigs[ComponentType.Panel],
-  formItemConfigs[ComponentType.Alert],
+export const textComponents: FormItemConfigs[ComponentTypeV3][] = [
+  formItemConfigs[ComponentTypeV3.Header],
+  formItemConfigs[ComponentTypeV3.Paragraph],
+  formItemConfigs[ComponentTypeV3.Panel],
+  formItemConfigs[ComponentTypeV3.Alert],
 ];
 
-export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.Header],
-  formItemConfigs[ComponentType.Paragraph],
-  formItemConfigs[ComponentType.AttachmentList],
-  formItemConfigs[ComponentType.Image],
+export const confOnScreenComponents: FormItemConfigs[ComponentTypeV3][] = [
+  formItemConfigs[ComponentTypeV3.Header],
+  formItemConfigs[ComponentTypeV3.Paragraph],
+  formItemConfigs[ComponentTypeV3.AttachmentList],
+  formItemConfigs[ComponentTypeV3.Image],
 ];

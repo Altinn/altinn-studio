@@ -17,4 +17,7 @@ export class ArrayUtils {
   public static getValidIndex<T>(array: T[], givenIndex: number): number {
     return givenIndex < 0 || givenIndex >= array.length ? array.length - 1 : givenIndex;
   }
+
+  /** Returns the last item of the given array */
+  public static last = <T>(array: T[]): T => array[array.length - 1];
 }

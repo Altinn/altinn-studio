@@ -4,4 +4,5 @@ export type ContainerComponentType =
   | ComponentType.Accordion
   | ComponentType.AccordionGroup
   | ComponentType.ButtonGroup
-  | ComponentType.Group;
+  | ComponentType.Group
+  | ComponentType.RepeatingGroup;

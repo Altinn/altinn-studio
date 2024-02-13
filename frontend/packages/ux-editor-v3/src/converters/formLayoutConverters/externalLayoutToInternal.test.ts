@@ -4,7 +4,7 @@ import {
   internalLayoutWithMultiPageGroup,
 } from '../../testing/layoutWithMultiPageGroupMocks';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
-import type { ExternalFormLayout } from 'app-shared/types/api';
+import type { ExternalFormLayoutV3 } from 'app-shared/types/api';
 import type { IInternalLayout } from '../../types/global';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
@@ -22,7 +22,7 @@ describe('externalLayoutToInternal', () => {
   it('Returns an empty layout with custom properties when the "data" property is null', () => {
     const customProperty1 = 'test1';
     const customProperty2 = 'test2';
-    const externalLayout: ExternalFormLayout = {
+    const externalLayout: ExternalFormLayoutV3 = {
       $schema: layoutSchemaUrl(),
       data: null,
       customProperty1,
@@ -44,7 +44,7 @@ describe('externalLayoutToInternal', () => {
     const rootCustomProperty2 = 'test2';
     const dataCustomProperty1 = 'test3';
     const dataCustomProperty2 = 'test4';
-    const externalLayout: ExternalFormLayout = {
+    const externalLayout: ExternalFormLayoutV3 = {
       $schema: layoutSchemaUrl(),
       data: {
         layout: null,

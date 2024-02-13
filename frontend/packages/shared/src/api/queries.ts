@@ -71,6 +71,7 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import type { AppVersion } from 'app-shared/types/AppVersion';
+import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
@@ -87,6 +88,7 @@ export const getEnvironments = () => get<DeployEnvironment[]>(envConfigPath());
 export const getExpressionSchema = () => get<string[]>(expressionSchemaUrl());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
 export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
+export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getLayoutSchema = () => get<string[]>(layoutSchemaUrl());
