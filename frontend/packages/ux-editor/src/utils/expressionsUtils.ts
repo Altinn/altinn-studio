@@ -1,5 +1,5 @@
 import type {
-  Expression,
+  DeprecatedExpression,
   ExpressionProperty,
   ExpressionPropertyBase,
   SubExpression,
@@ -16,12 +16,13 @@ import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldEleme
 import type { IFormLayouts } from '../types/global';
 import { LayoutItemType } from '../types/global';
 import type { FormComponent } from '../types/FormComponent';
-import type { LegacySingleSelectOption } from '@digdir/design-system-react';
 import type { FormContainer } from '../types/FormContainer';
 import type { UseText } from '../hooks';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import type { StudioExpressionProps } from '@studio/components';
+import type { FormItem } from '../types/FormItem';
 
-export const convertInternalExpressionToExternal = (expression: Expression): any => {
+export const convertInternalExpressionToExternal = (expression: DeprecatedExpression): any => {
   if (complexExpressionIsSet(expression.complexExpression)) {
     return expression.complexExpression;
   }
@@ -96,9 +97,9 @@ export const isStudioFriendlyExpression = (expression: any): boolean => {
 export const convertExternalExpressionToInternal = (
   booleanValue: string,
   expression: any,
-): Expression => {
+): DeprecatedExpression => {
   const hasMoreExpressions: boolean = Object.values(Operator).includes(expression[0] as Operator);
-  const convertedExpression: Expression = {
+  const convertedExpression: DeprecatedExpression = {
     property: booleanValue as ExpressionPropertyBase | ExpressionPropertyForGroup,
     subExpressions: [],
   };
@@ -164,7 +165,7 @@ export function convertSubExpression(
 
 export const convertAndAddExpressionToComponent = (
   form,
-  expression: Expression,
+  expression: DeprecatedExpression,
 ): FormComponent | FormContainer => {
   const newForm = deepCopy(form);
   let newExpression = deepCopy(expression);
@@ -182,6 +183,23 @@ export const convertAndAddExpressionToComponent = (
     }
   }
   return newForm;
+};
+
+export const updateFormItemWithExpression = (
+  component: FormItem,
+  expression: StudioExpressionProps['expression'],
+  property: ExpressionProperty,
+): FormComponent | FormContainer => {
+  const newComponent = deepCopy(component);
+  if (property) {
+    if (component.itemType === LayoutItemType.Container && property.includes('edit.')) {
+      const editPropertyForGroup = property.split('edit.')[1];
+      newComponent['edit'][editPropertyForGroup] = expression;
+    } else {
+      newComponent[property] = expression;
+    }
+  }
+  return newComponent;
 };
 
 export const deleteExpressionFromPropertyOnComponent = (
@@ -202,15 +220,15 @@ export const addPropertyForExpression = (
 };
 
 export const deleteExpression = (
-  expressionToDelete: Expression,
-  expressions: Expression[],
-): Expression[] =>
+  expressionToDelete: DeprecatedExpression,
+  expressions: DeprecatedExpression[],
+): DeprecatedExpression[] =>
   expressions.filter((expression) => expression.property !== expressionToDelete.property);
 
 export const addPropertyToExpression = (
-  oldExpression: Expression,
+  oldExpression: DeprecatedExpression,
   property: string,
-): Expression => {
+): DeprecatedExpression => {
   const newExpression = deepCopy(oldExpression);
   if (property === 'default') {
     return newExpression;
@@ -233,9 +251,9 @@ export const addFunctionToSubExpression = (
 };
 
 export const addSubExpressionToExpression = (
-  oldExpression: Expression,
+  oldExpression: DeprecatedExpression,
   operator: Operator,
-): Expression => {
+): DeprecatedExpression => {
   const newExpression = deepCopy(oldExpression);
   const newSubExpression: SubExpression = {};
   if (!newExpression.subExpressions) {
@@ -250,37 +268,37 @@ export const addSubExpressionToExpression = (
 };
 
 export const updateOperatorOnExpression = (
-  oldExpression: Expression,
+  oldExpression: DeprecatedExpression,
   operator: Operator,
-): Expression => {
+): DeprecatedExpression => {
   const newExpression = deepCopy(oldExpression);
   newExpression.operator = operator;
   return newExpression;
 };
 
 export const updateSubExpressionOnExpression = (
-  oldExpression: Expression,
+  oldExpression: DeprecatedExpression,
   index: number,
   subExpression: SubExpression,
-): Expression => {
+): DeprecatedExpression => {
   const newExpression = deepCopy(oldExpression);
   newExpression.subExpressions[index] = subExpression;
   return newExpression;
 };
 
 export const updateComplexExpressionOnExpression = (
-  oldExpression: Expression,
+  oldExpression: DeprecatedExpression,
   complexExpression: any,
-): Expression => {
+): DeprecatedExpression => {
   const newExpression = deepCopy(oldExpression);
   newExpression.complexExpression = complexExpression;
   return newExpression;
 };
 
 export const removeSubExpression = (
-  oldExpression: Expression,
+  oldExpression: DeprecatedExpression,
   subExpression: SubExpression,
-): Expression => {
+): DeprecatedExpression => {
   const newExpression = deepCopy(oldExpression);
   newExpression.subExpressions = oldExpression.subExpressions.filter(
     (expEl: SubExpression) => expEl !== subExpression,
@@ -364,9 +382,9 @@ export const stringifyValueForDisplay = (
 };
 
 export const tryParseExpression = (
-  oldExpression: Expression,
+  oldExpression: DeprecatedExpression,
   complexExpression: any,
-): Expression => {
+): DeprecatedExpression => {
   // TODO: Try format expression for better readability
   const newExpression = deepCopy(oldExpression);
   try {
@@ -382,7 +400,7 @@ export const complexExpressionIsSet = (complexExpression: string): boolean => {
   return complexExpression !== undefined && complexExpression !== null;
 };
 
-export const canExpressionBeSaved = (expression: Expression): boolean => {
+export const canExpressionBeSaved = (expression: DeprecatedExpression): boolean => {
   const allSubExpressionsHaveFunctions: boolean =
     expression.subExpressions?.length > 0 &&
     expression.subExpressions.every((subExp) => subExp.function);
@@ -432,7 +450,7 @@ export const getExternalExpressionOnComponentProperty = (
     const editPropertyForGroup = property.split('edit.')[1];
     value = form['edit'][editPropertyForGroup];
   }
-  return typeof value !== 'boolean' ? value : undefined;
+  return value;
 };
 
 export const getNonOverlappingElementsFromTwoLists = (list1: any[], list2: any[]): any[] => {
@@ -440,25 +458,17 @@ export const getNonOverlappingElementsFromTwoLists = (list1: any[], list2: any[]
 };
 
 // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855
-export const getDataModelElementNames = (
-  dataModelElements: DatamodelFieldElement[],
-): LegacySingleSelectOption[] => {
+export const getDataModelElementNames = (dataModelElements: DatamodelFieldElement[]): string[] => {
   return dataModelElements
     .filter((element) => element.dataBindingName)
-    .map((element) => ({
-      value: element.dataBindingName,
-      label: element.dataBindingName,
-    }));
+    .map((element) => element.dataBindingName);
 };
 
-export const getComponentIds = (formLayouts: IFormLayouts): LegacySingleSelectOption[] => {
+export const getComponentIds = (formLayouts: IFormLayouts): string[] => {
   // TODO: Make sure all components from the layout set are included, also those inside groups. Issue #10855
   const components = Object.values(formLayouts).flatMap((layout) =>
     Object.values(layout.components),
   );
   // TODO: Make sure there are not duplicate component ids. Related issue: 10857
-  return Object.values(components).map((comp: FormComponent) => ({
-    value: comp.id,
-    label: comp.id,
-  }));
+  return Object.values(components).map((comp: FormComponent) => comp.id);
 };

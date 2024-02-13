@@ -1,0 +1,45 @@
+import type { Props } from './Props';
+import type { SimpleSubExpressionValueType } from '../../../../../enums/SimpleSubExpressionValueType';
+import React, { useContext, useState } from 'react';
+import { StudioExpressionContext } from '../../../../../StudioExpressionContext';
+import { ExpressionErrorKey } from '../../../../../enums/ExpressionErrorKey';
+import { DataLookupFuncName } from '../../../../../enums/DataLookupFuncName';
+import { Combobox } from '@digdir/design-system-react';
+
+export const ComponentIdSelector = ({
+  value,
+  onChange,
+}: Props<SimpleSubExpressionValueType.Component>) => {
+  const { dataLookupOptions, texts } = useContext(StudioExpressionContext);
+  const [errorKey, setErrorKey] = useState<ExpressionErrorKey | null>(null);
+  const [idValue, setIdValue] = useState<string>(value.id);
+
+  const options = dataLookupOptions[DataLookupFuncName.Component];
+
+  const handleChange = (values: string[]) => {
+    if (values.length) {
+      setIdValue(values[0]);
+      onChange({ ...value, id: values[0] });
+      setErrorKey(null);
+    } else {
+      setIdValue('');
+      setErrorKey(ExpressionErrorKey.InvalidComponentId);
+    }
+  };
+
+  return (
+    <Combobox
+      error={texts.errorMessages[errorKey]}
+      label={texts.componentId}
+      onValueChange={handleChange}
+      size='small'
+      value={idValue ? [idValue] : []}
+    >
+      {options.map((option) => (
+        <Combobox.Option key={option} value={option}>
+          {option}
+        </Combobox.Option>
+      ))}
+    </Combobox>
+  );
+};

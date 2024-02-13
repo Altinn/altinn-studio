@@ -1,0 +1,9 @@
+.validExpression {
+  --studio-expression-spacing: var(--fds-spacing-3);
+
+  background-color: var(--fds-semantic-background-default);
+}
+
+.validExpression .tabContent {
+  padding: var(--studio-expression-spacing);
+}

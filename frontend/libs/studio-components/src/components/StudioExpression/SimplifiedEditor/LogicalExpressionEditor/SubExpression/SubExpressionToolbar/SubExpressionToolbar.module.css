@@ -1,0 +1,5 @@
+.subExpressionToolbar {
+  display: flex;
+  flex-direction: row;
+  gap: var(--studio-expression-spacing);
+}

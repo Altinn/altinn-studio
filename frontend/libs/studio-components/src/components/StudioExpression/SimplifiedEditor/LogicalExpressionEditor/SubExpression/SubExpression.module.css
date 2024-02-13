@@ -1,0 +1,39 @@
+.subExpression {
+  --background-colour: var(--fds-semantic-surface-neutral-subtle);
+  --border-colour: var(--fds-semantic-border-divider-default);
+
+  background-color: var(--background-colour);
+  border-radius: var(--fds-border_radius-medium);
+  border: 1px solid var(--border-colour);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.subExpression:not(.editMode) .fieldsetContent {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--studio-expression-spacing);
+}
+
+.subExpression.editMode .fieldsetContent > * {
+  padding: var(--studio-expression-spacing);
+}
+
+.subExpression.editMode .fieldsetContent > *:not(:first-child) {
+  border-top: 1px solid var(--border-colour);
+}
+
+.subExpression.editMode .editableItem:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.subExpression:not(.editMode) {
+  padding: var(--studio-expression-spacing);
+}
+
+.subExpression.hasError {
+  --border-colour: var(--fds-semantic-border-danger-default);
+}

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
 
 export interface StudioDecimalInputProps extends Omit<TextfieldProps, 'onChange'> {
-  description: string;
+  description?: string;
   onChange: (value: number) => void;
   value?: number;
 }

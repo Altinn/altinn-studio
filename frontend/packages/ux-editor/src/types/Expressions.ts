@@ -1,7 +1,7 @@
 import type { UseText } from '../hooks';
 import { LayoutItemType } from './global';
 
-export interface Expression {
+export interface DeprecatedExpression {
   operator?: Operator;
   property: ExpressionProperty;
   subExpressions?: SubExpression[];

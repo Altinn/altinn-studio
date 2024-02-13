@@ -1,4 +1,4 @@
-import type { Expression, SubExpression } from '../types/Expressions';
+import type { DeprecatedExpression, SubExpression } from '../types/Expressions';
 import {
   DataSource,
   ExpressionFunction,
@@ -261,7 +261,7 @@ describe('expressionsUtils', () => {
   describe('convertExternalExpressionToInternal', () => {
     it('converts expression with one subExpression where first part is array and second null to valid internal expression', () => {
       const externalExpression: any = ['equals', ['component', componentId], nullValue];
-      const internalExpression: Expression = convertExternalExpressionToInternal(
+      const internalExpression: DeprecatedExpression = convertExternalExpressionToInternal(
         ExpressionPropertyBase.Hidden,
         externalExpression,
       );
@@ -277,7 +277,7 @@ describe('expressionsUtils', () => {
     });
     it('converts expression with one subExpression where first part is string and second number to valid internal expression', () => {
       const externalExpression: any = ['equals', stringValue, numberValue];
-      const internalExpression: Expression = convertExternalExpressionToInternal(
+      const internalExpression: DeprecatedExpression = convertExternalExpressionToInternal(
         ExpressionPropertyBase.Hidden,
         externalExpression,
       );
@@ -293,7 +293,7 @@ describe('expressionsUtils', () => {
     });
     it('converts expression with one subExpression where both parts are null number to valid internal expression', () => {
       const externalExpression: any = ['equals', nullValue, nullValue];
-      const internalExpression: Expression = convertExternalExpressionToInternal(
+      const internalExpression: DeprecatedExpression = convertExternalExpressionToInternal(
         ExpressionPropertyBase.Hidden,
         externalExpression,
       );
@@ -309,7 +309,7 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[0].comparableValue).toBe(nullValue);
     });
     it('converts expression with multiple subExpressions to valid internal expression', () => {
-      const internalExpression: Expression = convertExternalExpressionToInternal(
+      const internalExpression: DeprecatedExpression = convertExternalExpressionToInternal(
         ExpressionPropertyBase.Hidden,
         parsableExternalExpression,
       );
@@ -335,7 +335,7 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[2].comparableValue).toBe(datamodelField);
     });
     it('converts non-studio-friendly expression to internal complex expression', () => {
-      const internalExpression: Expression = convertExternalExpressionToInternal(
+      const internalExpression: DeprecatedExpression = convertExternalExpressionToInternal(
         ExpressionPropertyBase.Hidden,
         parsableNotStudioFriendlyComplexExpression,
       );
@@ -346,7 +346,7 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions).toBe(undefined);
     });
     it('converts expression with multiple nested subExpressions to internal complex expression', () => {
-      const internalExpression: Expression = convertExternalExpressionToInternal(
+      const internalExpression: DeprecatedExpression = convertExternalExpressionToInternal(
         ExpressionPropertyBase.Hidden,
         parsableNotStudioFriendlyLongComplexExpression,
       );
@@ -440,7 +440,7 @@ describe('expressionsUtils', () => {
   });
   describe('deleteExpression', () => {
     it('should delete the expression from the expressions', () => {
-      const oldExpressions: Expression[] = [internalExpressionWithMultipleSubExpressions];
+      const oldExpressions: DeprecatedExpression[] = [internalExpressionWithMultipleSubExpressions];
       const updatedExpressions = deleteExpression(
         internalExpressionWithMultipleSubExpressions,
         oldExpressions,
@@ -667,7 +667,7 @@ describe('expressionsUtils', () => {
   });
   describe('tryParseExpression', () => {
     it('should parse valid JSON complexExpression', () => {
-      const newExpression: Expression = tryParseExpression(
+      const newExpression: DeprecatedExpression = tryParseExpression(
         baseInternalExpression,
         parsableComplexExpression,
       );
@@ -676,7 +676,7 @@ describe('expressionsUtils', () => {
       expect(newExpression.complexExpression).toStrictEqual(parsedComplexExpression);
     });
     it('should handle invalid JSON complexExpression and keep it as a string', () => {
-      const newExpression: Expression = tryParseExpression(
+      const newExpression: DeprecatedExpression = tryParseExpression(
         baseInternalExpression,
         unParsableComplexExpression,
       );
@@ -696,7 +696,7 @@ describe('expressionsUtils', () => {
       expect(canBeSaved).toBe(true);
     });
     it('should return false for a simple expression that does not have property but function set for all subexpressions', () => {
-      const expressionWithoutProperty: Expression = {
+      const expressionWithoutProperty: DeprecatedExpression = {
         ...internalExpressionWithMultipleSubExpressions,
         property: undefined,
       };
@@ -704,7 +704,7 @@ describe('expressionsUtils', () => {
       expect(canBeSaved).toBe(false);
     });
     it('should return false for a simple expression that have property but not function set for all subexpressions', () => {
-      const expressionWithSubExpressionWithoutFunction: Expression = {
+      const expressionWithSubExpressionWithoutFunction: DeprecatedExpression = {
         ...internalExpressionWithMultipleSubExpressions,
         subExpressions: [
           ...internalExpressionWithMultipleSubExpressions.subExpressions,
@@ -718,7 +718,7 @@ describe('expressionsUtils', () => {
       expect(canBeSaved).toBe(false);
     });
     it('should return false for a complex expression that does not have property but complex expression is set', () => {
-      const complexExpressionWithoutProperty: Expression = {
+      const complexExpressionWithoutProperty: DeprecatedExpression = {
         ...internalParsableComplexExpression,
         property: undefined,
       };
@@ -726,7 +726,7 @@ describe('expressionsUtils', () => {
       expect(canBeSaved).toBe(false);
     });
     it('should return false for a complex expression that have property but complex expression is undefined', () => {
-      const expressionWithoutComplexExpression: Expression = {
+      const expressionWithoutComplexExpression: DeprecatedExpression = {
         ...internalParsableComplexExpression,
         complexExpression: undefined,
       };
@@ -734,7 +734,7 @@ describe('expressionsUtils', () => {
       expect(canBeSaved).toBe(false);
     });
     it('should return false for a complex expression that have property but complex expression is null', () => {
-      const expressionWithoutComplexExpression: Expression = {
+      const expressionWithoutComplexExpression: DeprecatedExpression = {
         ...internalParsableComplexExpression,
         complexExpression: null,
       };

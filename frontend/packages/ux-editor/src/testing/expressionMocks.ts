@@ -1,4 +1,4 @@
-import type { Expression, SubExpression } from '../types/Expressions';
+import type { DeprecatedExpression, SubExpression } from '../types/Expressions';
 import {
   DataSource,
   ExpressionFunction,
@@ -37,15 +37,15 @@ export const subExpression2: SubExpression = {
   comparableDataSource: DataSource.Component,
   comparableValue: componentId,
 };
-export const baseInternalExpression: Expression = {
+export const baseInternalExpression: DeprecatedExpression = {
   property: ExpressionPropertyBase.Hidden,
   subExpressions: [baseInternalSubExpression],
 };
-export const simpleInternalExpression: Expression = {
+export const simpleInternalExpression: DeprecatedExpression = {
   property: ExpressionPropertyBase.Hidden,
   subExpressions: [subExpression0],
 };
-export const internalExpressionWithMultipleSubExpressions: Expression = {
+export const internalExpressionWithMultipleSubExpressions: DeprecatedExpression = {
   property: ExpressionPropertyBase.Hidden,
   operator: Operator.Or,
   subExpressions: [subExpression1, subExpression2],
@@ -69,11 +69,11 @@ export const parsableNotStudioFriendlyLongComplexExpression: any = [
   ['equals', ['equals', ['dataModel', 'some-field'], 'true'], 'true'],
   ['equals', ['dataModel', 'some-field'], 'true'],
 ];
-export const internalUnParsableComplexExpression: Expression = {
+export const internalUnParsableComplexExpression: DeprecatedExpression = {
   property: ExpressionPropertyBase.Hidden,
   complexExpression: unParsableComplexExpression,
 };
-export const internalParsableComplexExpression: Expression = {
+export const internalParsableComplexExpression: DeprecatedExpression = {
   property: ExpressionPropertyBase.Hidden,
   complexExpression: parsableExternalExpression,
 };

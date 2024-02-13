@@ -1,17 +1,25 @@
-import React, { useContext, useState } from 'react';
-import type { Expression, SubExpression, ExpressionProperty } from '../../../../types/Expressions';
+import React, { useContext, useMemo } from 'react';
+import type { ExpressionProperty } from '../../../../types/Expressions';
 import {
-  convertExternalExpressionToInternal,
-  convertAndAddExpressionToComponent,
-  removeSubExpression,
-  deleteExpressionFromPropertyOnComponent,
+  getComponentIds,
+  getDataModelElementNames,
   getExternalExpressionOnComponentProperty,
+  updateFormItemWithExpression,
 } from '../../../../utils/expressionsUtils';
 import type { FormComponent } from '../../../../types/FormComponent';
 import type { FormContainer } from '../../../../types/FormContainer';
 import { FormContext } from '../../../../containers/FormContext';
-import { ExpressionPreview } from './ExpressionPreview';
-import { ExpressionEditMode } from './ExpressionEditMode';
+import type { Expression, DataLookupOptions } from '@studio/components';
+import { DataLookupFuncName, StudioExpression } from '@studio/components';
+import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from '../../../../hooks/useAppContext';
+import { useDatamodelMetadataQuery } from '../../../../hooks/queries/useDatamodelMetadataQuery';
+import { Card, Heading } from '@digdir/design-system-react';
+import classes from './ExpressionContent.module.css';
+import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
+import { expressionInPreviewPropertyTextKeys } from '../../../../types/Expressions';
+import { Trans } from 'react-i18next';
 
 export interface ExpressionContentProps {
   property: ExpressionProperty;
@@ -24,53 +32,51 @@ export const ExpressionContent = ({
   defaultEditMode,
   onDeleteExpression,
 }: ExpressionContentProps) => {
+  const { org, app } = useStudioUrlParams();
+  const { selectedLayoutSet } = useAppContext();
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app);
   const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
   const externalExpression = getExternalExpressionOnComponentProperty(form, property);
-  const defaultExpression = externalExpression
-    ? convertExternalExpressionToInternal(property, externalExpression)
-    : { property };
-  const [expression, setExpression] = useState<Expression>(defaultExpression);
-  const [editMode, setEditMode] = useState<boolean>(defaultEditMode);
+  const expressionTexts = useExpressionTexts();
 
   const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
     handleUpdate(updatedComponent);
     await handleSave(formId, updatedComponent);
   };
 
-  const saveExpression = async (exp: Expression) => {
-    const updatedComponent = convertAndAddExpressionToComponent(form, exp);
+  const updateExpression = async (exp: Expression) => {
+    const updatedComponent = updateFormItemWithExpression(form, exp, property);
     await updateAndSaveLayout(updatedComponent);
   };
 
-  const deleteExpression = async (exp: Expression) => {
-    const updatedComponent = deleteExpressionFromPropertyOnComponent(form, exp.property);
-    await updateAndSaveLayout(updatedComponent);
-    onDeleteExpression(exp.property);
-  };
+  const dataLookupOptions: DataLookupOptions = useMemo(
+    () => ({
+      [DataLookupFuncName.Component]: getComponentIds(formLayoutsData),
+      [DataLookupFuncName.DataModel]: getDataModelElementNames(datamodelMetadata),
+    }),
+    [formLayoutsData, datamodelMetadata],
+  );
 
-  const deleteSubExpression = async (subExpression: SubExpression) => {
-    const newExpression: Expression = removeSubExpression(expression, subExpression);
-    const updatedComponent = convertAndAddExpressionToComponent(form, newExpression);
-    await updateAndSaveLayout(updatedComponent);
-    setExpression(newExpression);
-  };
-
-  return editMode ? (
-    <ExpressionEditMode
-      expression={expression}
-      componentName={formId}
-      onSetEditMode={setEditMode}
-      onDeleteExpression={deleteExpression}
-      onDeleteSubExpression={deleteSubExpression}
-      onSaveExpression={saveExpression}
-      onSetExpression={setExpression}
-    />
-  ) : (
-    <ExpressionPreview
-      expression={expression}
-      componentName={formId}
-      onSetEditMode={setEditMode}
-      onDeleteExpression={deleteExpression}
-    />
+  return (
+    <Card className={classes.expressionContent}>
+      <Card.Header className={classes.expressionHeader}>
+        <Heading level={4} size='xxsmall'>
+          <Trans
+            i18nKey={expressionInPreviewPropertyTextKeys[property]}
+            values={{ componentName: formId }}
+            components={{ bold: <strong /> }}
+          />
+        </Heading>
+      </Card.Header>
+      <Card.Content style={{ padding: 0 }}>
+        <StudioExpression
+          expression={externalExpression}
+          onChange={updateExpression}
+          dataLookupOptions={dataLookupOptions}
+          texts={expressionTexts}
+        />
+      </Card.Content>
+    </Card>
   );
 };
