@@ -1,13 +1,9 @@
 import React from 'react';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
-import { EditTextResourceBindings } from './editModal/EditTextResourceBindings';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
-import { EditOptions } from './editModal/EditOptions';
 import { EditStringValue } from './editModal/EditStringValue';
-import { useSelector } from 'react-redux';
 import { useText } from '../../hooks';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
@@ -30,18 +26,17 @@ export const FormComponentConfig = ({
   handleComponentUpdate,
   hideUnsupported,
 }: FormComponentConfigProps) => {
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
   const t = useText();
   const componentPropertyLabel = useComponentPropertyLabel();
 
   if (!schema?.properties) return null;
 
   const {
-    textResourceBindings,
     dataModelBindings,
     required,
     readOnly,
     id,
+    textResourceBindings,
     type,
     options,
     optionsId,
@@ -59,20 +54,6 @@ export const FormComponentConfig = ({
   );
   return (
     <>
-      {textResourceBindings?.properties && (
-        <>
-          <Heading level={3} size='xxsmall'>
-            {t('general.text')}
-          </Heading>
-          <EditTextResourceBindings
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            textResourceBindingKeys={Object.keys(textResourceBindings.properties)}
-            editFormId={editFormId}
-            layoutName={selectedLayout}
-          />
-        </>
-      )}
       {grid && (
         <div>
           <Heading level={3} size='xxsmall'>
@@ -89,13 +70,6 @@ export const FormComponentConfig = ({
         <Heading level={3} size='xxsmall'>
           {'Andre innstillinger'}
         </Heading>
-      )}
-      {options && optionsId && (
-        <EditOptions
-          component={component as any}
-          editFormId={editFormId}
-          handleComponentChange={handleComponentUpdate}
-        />
       )}
 
       {hasCustomFileEndings && (
