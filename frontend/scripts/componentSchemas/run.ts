@@ -149,10 +149,12 @@ const expandRefsInProperties = (properties: any, layoutSchema: any) => {
 };
 
 const run = async () => {
-  let version: string = process.argv[2] || '';
+  let version: string = process.argv.length > 2 ? process.argv[2] : '';
   if (!isValidVersion(version)) {
     version = 'v4';
-    console.warn('Invalid version. Please provide a valid version: v3 or v4. Defaulting to v4.');
+    console.warn(
+      `Invalid version: ${version}. Please provide a valid version: v3 or v4. Defaulting to v4.`,
+    );
   }
   const layoutSchema: any = await getLayoutSchema(version as AppFrontendVersion);
   const allComponents = layoutSchema.definitions.AnyComponent.properties.type.enum;

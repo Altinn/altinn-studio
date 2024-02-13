@@ -64,7 +64,6 @@
       "description": "List of validation types to show",
       "type": "array",
       "items": {
-        "type": "string",
         "enum": [
           "Schema",
           "Component",

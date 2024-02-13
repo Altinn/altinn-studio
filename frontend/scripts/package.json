@@ -22,7 +22,7 @@
   "private": true,
   "scripts": {
     "generate-config-coverage-stats": "node -r ts-node/register/transpile-only -r tsconfig-paths/register configurationStats/run.ts",
-    "generate-json-schemas": "node -r ts-node/register/transpile-only -r tsconfig-paths/register flattenJson/run.ts $0 && prettier ../packages/**/*.schema.v1.json --write",
+    "generate-json-schemas": "node -r ts-node/register/transpile-only -r tsconfig-paths/register componentSchemas/run.ts $0 && prettier ../packages/**/*.schema.v1.json --write",
     "lint": "eslint \"./**/*.ts*\"",
     "lint:fix": "npm run lint --fix",
     "typecheck": "yarn workspaces foreach -A run typecheck"
