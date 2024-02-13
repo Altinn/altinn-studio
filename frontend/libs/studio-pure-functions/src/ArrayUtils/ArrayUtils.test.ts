@@ -35,4 +35,15 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.getValidIndex([1, 2, 3], -2)).toEqual(2);
     });
   });
+
+  describe('last', () => {
+    it('Returns last item in array', () => {
+      expect(ArrayUtils.last([1, 2, 3])).toEqual(3);
+      expect(ArrayUtils.last(['a', 'b', 'c'])).toEqual('c');
+    });
+
+    it('Returns undefined if array is empty', () => {
+      expect(ArrayUtils.last([])).toBeUndefined();
+    });
+  });
 });

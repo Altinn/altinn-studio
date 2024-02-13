@@ -18,7 +18,8 @@ import {
   toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
-import type { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
+import type { SavableSchemaModel } from '../../../classes/SavableSchemaModel';
+import { ArrayUtils } from '@studio/pure-functions';
 
 describe('useMoveProperty', () => {
   const setup = (schemaEditorAppContextProps?: Partial<SchemaEditorAppContextProps>) => {
@@ -92,6 +93,22 @@ describe('useMoveProperty', () => {
     const savedModel: SavableSchemaModel = save.mock.lastCall[0];
     const rootChildren = savedModel.getRootChildren();
     const addedRootChild = rootChildren[index];
+    const nameOfMovedNode = extractNameFromPointer(pointerOfNodeToMove);
+    const nameOfAddedChild = extractNameFromPointer(addedRootChild.pointer);
+    expect(nameOfAddedChild).toEqual(nameOfMovedNode);
+    validateTestUiSchema(savedModel.asArray());
+  });
+
+  it('Moves the node to the end when the given target index is -1 and the parent is the root node', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = objectNodeMock.pointer;
+    const index = -1;
+    const target: ItemPosition = { parentId: ROOT_POINTER, index };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const rootChildren = savedModel.getRootChildren();
+    const addedRootChild = ArrayUtils.last(rootChildren);
     const nameOfMovedNode = extractNameFromPointer(pointerOfNodeToMove);
     const nameOfAddedChild = extractNameFromPointer(addedRootChild.pointer);
     expect(nameOfAddedChild).toEqual(nameOfMovedNode);
