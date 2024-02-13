@@ -365,6 +365,16 @@
     {
       "id": "TestCustomButtonReadOnlyInput.title",
       "value": "Denne oppdateres av custom button"
+    },
+    {
+      "id": "customConfirm.body",
+      "value": "Dette er en egendefinert bekreftelsesside. For å se den innebyggede, må dette fjernes fra layout-sets.json, men det gjøres bl.a. automatisk i Cypress-testene. PS: Her kan du også gå tilbake! Prøv den råkule knappen til venstre.<br><br>Og forresten, på forrige side valgte du {0}.",
+      "variables": [
+        {
+          "key": "SelectedItem",
+          "dataSource": "dataModel.datalist"
+        }
+      ]
     }
   ]
 }

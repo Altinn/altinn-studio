@@ -15,6 +15,26 @@
         "componentRef": "listComponent"
       },
       {
+        "id": "useCustomConfirm",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Skal vi vise en egendefinert bekreftelsesside i neste steg, eller den innebyggede?",
+        },
+        "dataModelBindings": {
+          "simpleBinding": "UseCustomConfirm"
+        },
+        "options": [
+          {
+            "value": "true",
+            "label": "Ja, bruk egendefinert"
+          },
+          {
+            "value": "false",
+            "label": "Nei, bruk innebygget"
+          }
+        ]
+      },
+      {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {

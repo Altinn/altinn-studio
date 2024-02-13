@@ -22,5 +22,11 @@ namespace Altinn.App.Models
         [JsonProperty("Search")]
         [JsonPropertyName("Search")]
         public string Search { get; set; }
+
+        [XmlElement("UseCustomConfirm", Order = 4)]
+        [JsonProperty("UseCustomConfirm")]
+        [JsonPropertyName("UseCustomConfirm")]
+        public bool UseCustomConfirm { get; set; } = false;
+
     }
 }

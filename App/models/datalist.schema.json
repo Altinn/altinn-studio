@@ -18,6 +18,9 @@
         },
         "Search": {
           "$ref": "#/definitions/Text"
+        },
+        "UseCustomConfirm": {
+          "type": "boolean"
         }
       },
       "required": [

@@ -33,6 +33,11 @@
       "tasks": [
         "Task_5"
       ]
+    },
+    {
+      "id": "confirm",
+      "dataType": "datalist",
+      "tasks": ["Task_Custom_Confirm"]
     }
   ]
 }
