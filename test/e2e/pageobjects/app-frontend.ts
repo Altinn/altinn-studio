@@ -38,6 +38,8 @@ export class AppFrontend {
   public logOutLink = 'a[href$="/ui/authentication/LogOut"]';
   public printButton = 'button:contains("Print / Lagre PDF")';
   public toast = '[role="alert"][class^="Toast"]';
+  public expandedWidth = '[data-expanded="true"]';
+  public notExpandedWidth = '[data-expanded="false"]';
 
   public helpText = {
     button: 'button[class^="fds-helptext"]',

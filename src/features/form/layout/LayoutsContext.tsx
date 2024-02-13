@@ -12,12 +12,13 @@ import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import type { ExprObjConfig, ExprVal } from 'src/features/expressions/types';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
-import type { IHiddenLayoutsExternal } from 'src/types';
+import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export interface LayoutContextValue {
   layouts: ILayouts;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
+  expandedWidthLayouts: IExpandedWidthLayouts;
 }
 
 function useLayoutQuery() {
@@ -59,13 +60,17 @@ export const useLayouts = () => useCtx().layouts;
 
 export const useHiddenLayoutsExpressions = () => useCtx().hiddenLayoutsExpressions;
 
+export const useExpandedWidthLayouts = () => useCtx().expandedWidthLayouts;
+
 function processLayouts(input: ILayoutCollection): LayoutContextValue {
   const layouts: ILayouts = {};
   const hiddenLayoutsExpressions: IHiddenLayoutsExternal = {};
+  const expandedWidthLayouts: IExpandedWidthLayouts = {};
   for (const key of Object.keys(input)) {
     const file = input[key];
     layouts[key] = cleanLayout(file.data.layout);
     hiddenLayoutsExpressions[key] = file.data.hidden;
+    expandedWidthLayouts[key] = file.data.expandedWidth;
   }
 
   const config: ExprObjConfig<{ hidden: ExprVal.Boolean; whatever: string }> = {
@@ -80,8 +85,13 @@ function processLayouts(input: ILayoutCollection): LayoutContextValue {
     hiddenLayoutsExpressions[key] = preProcessItem(hiddenLayoutsExpressions[key], config, ['hidden'], key);
   }
 
+  for (const key of Object.keys(expandedWidthLayouts)) {
+    expandedWidthLayouts[key] = preProcessItem(expandedWidthLayouts[key], config, ['hidden'], key);
+  }
+
   return {
     layouts,
     hiddenLayoutsExpressions,
+    expandedWidthLayouts,
   };
 }

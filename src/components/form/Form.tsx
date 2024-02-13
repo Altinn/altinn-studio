@@ -8,7 +8,10 @@ import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useExpandedWidthLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FrontendValidationSource } from 'src/features/validation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
@@ -22,6 +25,7 @@ export function Form() {
   const nodes = useNodes();
   const page = currentPageId && nodes?.all?.()?.[currentPageId];
   useRedirectToStoredPage();
+  useSetExpandedWidth();
 
   useRegisterNodeNavigationHandler((targetNode) => {
     const targetView = targetNode?.top.top.myKey;
@@ -114,4 +118,24 @@ function useRedirectToStoredPage() {
       }
     }
   }, [currentPageId, currentViewCacheKey, isValidPageId, location, navigateToPage]);
+}
+
+/**
+ * Sets the expanded width for the current page if it is defined in the currently viewed layout-page
+ */
+function useSetExpandedWidth() {
+  const currentPageId = useCurrentView();
+  const expandedPagesFromLayout = useExpandedWidthLayouts();
+  const expandedWidthFromSettings = usePageSettings().expandedWidth;
+  const { setExpandedWidth } = useUiConfigContext();
+
+  useEffect(() => {
+    let defaultExpandedWidth = false;
+    if (currentPageId && expandedPagesFromLayout[currentPageId] !== undefined) {
+      defaultExpandedWidth = !!expandedPagesFromLayout[currentPageId];
+    } else if (expandedWidthFromSettings !== undefined) {
+      defaultExpandedWidth = expandedWidthFromSettings;
+    }
+    setExpandedWidth(defaultExpandedWidth);
+  }, [currentPageId, expandedPagesFromLayout, expandedWidthFromSettings, setExpandedWidth]);
 }

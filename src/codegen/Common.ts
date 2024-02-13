@@ -36,6 +36,13 @@ const common = {
               .setDescription('Expression that will hide the page/form layout if true')
               .optional({ default: false }),
           ),
+          new CG.prop(
+            'expandedWidth',
+            new CG.bool()
+              .optional({ default: false })
+              .setTitle('Expanded width')
+              .setDescription('Sets expanded width for pages'),
+          ),
         ),
       ),
     )
@@ -609,6 +616,13 @@ const common = {
           .optional({ default: false })
           .setTitle('Show expand width button')
           .setDescription('Show the expand width button in the upper right corner of the app'),
+      ),
+      new CG.prop(
+        'expandedWidth',
+        new CG.bool()
+          .optional({ default: false })
+          .setTitle('Expanded width')
+          .setDescription('Sets expanded width for pages'),
       ),
       new CG.prop(
         'showProgress',

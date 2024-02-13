@@ -52,6 +52,7 @@ const defaults: Required<GlobalPageSettings> = {
   showProgress: false,
   showExpandWidthButton: false,
   autoSaveBehavior: 'onChangeFormData',
+  expandedWidth: false,
 };
 
 export const usePageSettings = (): Required<GlobalPageSettings> => {

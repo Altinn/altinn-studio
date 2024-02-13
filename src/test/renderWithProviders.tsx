@@ -26,6 +26,7 @@ import { ApplicationSettingsProvider } from 'src/features/applicationSettings/Ap
 import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
+import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
 import { LayoutSetsProvider } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
@@ -268,29 +269,31 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       <LanguageProvider>
         <LangToolsStoreProvider>
           <MuiThemeProvider theme={theme}>
-            <PageNavigationProvider>
-              <Router>
-                <ApplicationMetadataProvider>
-                  <GlobalFormDataReadersProvider>
-                    <OrgsProvider>
-                      <ApplicationSettingsProvider>
-                        <LayoutSetsProvider>
-                          <ProfileProvider>
-                            <PartyProvider>
-                              <TextResourcesProvider>
-                                <FooterLayoutProvider>
-                                  <InstantiationProvider>{children}</InstantiationProvider>
-                                </FooterLayoutProvider>
-                              </TextResourcesProvider>
-                            </PartyProvider>
-                          </ProfileProvider>
-                        </LayoutSetsProvider>
-                      </ApplicationSettingsProvider>
-                    </OrgsProvider>
-                  </GlobalFormDataReadersProvider>
-                </ApplicationMetadataProvider>
-              </Router>
-            </PageNavigationProvider>
+            <UiConfigProvider>
+              <PageNavigationProvider>
+                <Router>
+                  <ApplicationMetadataProvider>
+                    <GlobalFormDataReadersProvider>
+                      <OrgsProvider>
+                        <ApplicationSettingsProvider>
+                          <LayoutSetsProvider>
+                            <ProfileProvider>
+                              <PartyProvider>
+                                <TextResourcesProvider>
+                                  <FooterLayoutProvider>
+                                    <InstantiationProvider>{children}</InstantiationProvider>
+                                  </FooterLayoutProvider>
+                                </TextResourcesProvider>
+                              </PartyProvider>
+                            </ProfileProvider>
+                          </LayoutSetsProvider>
+                        </ApplicationSettingsProvider>
+                      </OrgsProvider>
+                    </GlobalFormDataReadersProvider>
+                  </ApplicationMetadataProvider>
+                </Router>
+              </PageNavigationProvider>
+            </UiConfigProvider>
           </MuiThemeProvider>
         </LangToolsStoreProvider>
       </LanguageProvider>
