@@ -1,25 +1,28 @@
 import { NumberUtils } from './NumberUtils';
+import type { Interval } from '../types';
 
 describe('NumberUtils', () => {
-  describe('isWithinOpenRange', () => {
-    it('Returns true if the value is within the range', () => {
-      expect(NumberUtils.isWithinOpenRange(5, 0, 10)).toBe(true);
+  describe('isWithinOpenInterval', () => {
+    const testInterval: Interval = { min: 0, max: 10 };
+
+    it('Returns true if the value is within the interval', () => {
+      expect(NumberUtils.isWithinOpenInterval(5, testInterval)).toBe(true);
     });
 
     it('Returns false if the value is equal to the minimum', () => {
-      expect(NumberUtils.isWithinOpenRange(0, 0, 10)).toBe(false);
+      expect(NumberUtils.isWithinOpenInterval(0, testInterval)).toBe(false);
     });
 
     it('Returns false if the value is equal to the maximum', () => {
-      expect(NumberUtils.isWithinOpenRange(10, 0, 10)).toBe(false);
+      expect(NumberUtils.isWithinOpenInterval(10, testInterval)).toBe(false);
     });
 
-    it('Returns false if the value is below the range', () => {
-      expect(NumberUtils.isWithinOpenRange(-1, 0, 10)).toBe(false);
+    it('Returns false if the value is below the interval', () => {
+      expect(NumberUtils.isWithinOpenInterval(-1, testInterval)).toBe(false);
     });
 
-    it('Returns false if the value is above the range', () => {
-      expect(NumberUtils.isWithinOpenRange(11, 0, 10)).toBe(false);
+    it('Returns false if the value is above the interval', () => {
+      expect(NumberUtils.isWithinOpenInterval(11, testInterval)).toBe(false);
     });
   });
 });
