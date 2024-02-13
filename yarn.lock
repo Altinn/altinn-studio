@@ -5959,7 +5959,7 @@ __metadata:
     cypress-axe: "npm:1.5.0"
     cypress-network-idle: "npm:^1.14.2"
     cypress-plugin-tab: "npm:1.0.5"
-    cypress-wait-until: "npm:^2.0.0"
+    cypress-wait-until: "npm:^3.0.0"
     dompurify: "npm:3.0.6"
     dot-object: "npm:2.1.4"
     dotenv: "npm:16.3.1"
@@ -7983,10 +7983,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress-wait-until@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "cypress-wait-until@npm:2.0.1"
-  checksum: 5ddbd46dff94efbd19ea8fcf35cb6b2488d96df74d662023a620338a8e6d9d8964aa22425d817f86ab6d5cf48ef177a4ccf4c5d1bc901797a8d667272d358dec
+"cypress-wait-until@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "cypress-wait-until@npm:3.0.1"
+  checksum: 7a45ae6415f6642c089c2569bedd1bc9672581ace76d70f95bc86e1b72e1c838449a03328f952fc97023fd9ee037bdf91c07f790987f7ecfa0676128cb3dc3b9
   languageName: node
   linkType: hard
 
