@@ -15,12 +15,10 @@ import type { IActionType, IProcess } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 interface ProcessNextProps {
-  taskId?: string;
   action?: IActionType;
 }
 
 function useProcessNext() {
-  // const submittingState = useAppSelector((state) => state.formData.submittingState);
   const { doProcessNext } = useAppMutations();
   const { reFetch: reFetchInstanceData } = useStrictInstance();
   const language = useCurrentLanguage();
@@ -31,12 +29,12 @@ function useProcessNext() {
   const waitForSave = FD.useWaitForSave();
 
   const utils = useMutation({
-    mutationFn: async ({ taskId, action }: ProcessNextProps = {}) => {
+    mutationFn: async ({ action }: ProcessNextProps = {}) => {
       if (!instanceId) {
         throw new Error('Missing instance ID, cannot perform process/next');
       }
       await waitForSave(true);
-      return doProcessNext(instanceId, taskId, language, action);
+      return doProcessNext(instanceId, language, action);
     },
     onSuccess: async (data: IProcess) => {
       await reFetchInstanceData();
@@ -60,32 +58,8 @@ function useProcessNext() {
     [mutateAsync],
   );
 
-  // useEffect(() => {
-  //   (async () => {
-  //     if (submittingState === 'validationSuccessful') {
-  //       await nativeMutate({});
-  //       dispatch(FormDataActions.submitClear());
-  //     }
-  //   })();
-  // }, [dispatch, nativeMutate, submittingState]);
-
   const perform = useCallback(
     async (props: ProcessNextProps) => {
-      // if (submittingState !== 'inactive') {
-      //   return;
-      // }
-
-      // if (
-      //   realTaskType === ProcessTaskType.Data &&
-      //   // Skipping the full form data submit if an action is set. Signing, rejecting, etc should not attempt to submit
-      //   // form data, as you probably only have read-access to the data model at this point.
-      //   !props?.action
-      // ) {
-      //   dispatch(FormDataActions.submit());
-      //   return;
-      // }
-
-      // dispatch(FormDataActions.submitReady({ state: 'working' }));
       await nativeMutate(props || {});
     },
     [nativeMutate],

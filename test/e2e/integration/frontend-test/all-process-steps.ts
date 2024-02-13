@@ -454,6 +454,7 @@ const knownDataModels: { [key: string]: any } = {
     ],
   },
   datalist: {
+    UseCustomConfirm: false,
     SelectedItem: 'Caroline',
     SelectedItemProfession: 'Utvikler',
     Search: null,

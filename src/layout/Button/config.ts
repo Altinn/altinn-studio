@@ -21,20 +21,11 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'mode',
-      new CG.enum('submit', 'save', 'go-to-task', 'instantiate')
+      new CG.enum('submit', 'save', 'instantiate')
         .optional({ default: 'submit' })
         .setTitle('Mode')
         .setDescription('The mode of the button')
         .exportAs('ButtonMode'),
-    ),
-  )
-  .addProperty(
-    new CG.prop(
-      'taskId',
-      new CG.str()
-        .optional()
-        .setTitle('Task ID')
-        .setDescription('The ID of the task to go to (only used when mode is "go-to-task")'),
     ),
   )
   .addProperty(
