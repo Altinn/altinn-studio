@@ -22,10 +22,10 @@ export const AttachmentListComponent = ({
 
   const selectedAttachments = component?.dataTypeIds ?? [];
   const [onlyCurrentTask, setOnlyCurrentTask] = useState(
-    selectedAttachments && selectedAttachments.includes('current-task') ? true : false,
+    selectedAttachments.includes('current-task') ? true : false,
   );
   const [includePdf, setIncludePdf] = useState(
-    selectedAttachments && selectedAttachments.includes('ref-data-as-pdf') ? true : false,
+    selectedAttachments.includes('ref-data-as-pdf') ? true : false,
   );
 
   const tasks: string[] = getTasks(layoutSets, selectedLayoutSet, onlyCurrentTask);
