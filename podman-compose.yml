@@ -1,4 +1,4 @@
-version: '3.6'
+version: "3.6"
 
 networks:
   altinntestlocal_network:
@@ -7,7 +7,11 @@ networks:
 services:
   localtest_loadbalancer:
     container_name: localtest-loadbalancer
-    image: nginx:alpine-perl
+    image: localtest-loadbalancer:latest
+    build:
+      context: ./loadbalancer
+      args:
+        NGINX_VERSION: 1.25.3
     restart: always
     networks:
       altinntestlocal_network:
@@ -36,7 +40,7 @@ services:
     networks:
       - altinntestlocal_network
     ports:
-     - "5070:5070"
+      - "5070:5070"
 
   altinn_pdf_service:
     container_name: altinn-pdf-service

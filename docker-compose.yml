@@ -1,4 +1,4 @@
-version: '3.6'
+version: "3.6"
 
 networks:
   altinntestlocal_network:
@@ -7,7 +7,11 @@ networks:
 services:
   localtest_loadbalancer:
     container_name: localtest-loadbalancer
-    image: nginx:alpine-perl
+    image: localtest-loadbalancer:latest
+    build:
+      context: ./loadbalancer
+      args:
+        NGINX_VERSION: 1.25.3
     restart: always
     networks:
       - altinntestlocal_network
@@ -28,7 +32,6 @@ services:
       - ./loadbalancer/templates:/etc/nginx/templates/:ro
       - ./loadbalancer/www:/www/:ro
 
-
   altinn_platform_pdf:
     container_name: altinn-pdf
     platform: linux/amd64
@@ -37,7 +40,7 @@ services:
     networks:
       - altinntestlocal_network
     ports:
-     - "5070:5070"
+      - "5070:5070"
     extra_hosts:
       - "host.docker.internal:host-gateway"
   altinn_pdf_service:
