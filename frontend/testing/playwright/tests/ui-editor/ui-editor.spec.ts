@@ -10,6 +10,9 @@ import { Header } from '../../components/Header';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 
+// Variables that are shared between tests
+const PAGE_1: string = 'Side1';
+
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
   // Create a new app
@@ -39,9 +42,8 @@ test('That it is possible to add and delete form components', async ({
   testAppName,
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-
-  const page1: string = 'Side1';
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
+  PAGE_1;
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
 
   await uiEditorPage.verifyThatPageIsEmpty();
 
@@ -58,11 +60,9 @@ test('That when adding more than one page, navigation buttons are added to the p
   testAppName,
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-
-  const page1: string = 'Side1';
   const page2: string = 'Side2';
 
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
 
   await uiEditorPage.verifyThatPageIsEmpty();
 
@@ -73,8 +73,8 @@ test('That when adding more than one page, navigation buttons are added to the p
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 
-  await uiEditorPage.clickOnPageAccordion(page1);
-  await uiEditorPage.verifyUiEditorPage(page1);
+  await uiEditorPage.clickOnPageAccordion(PAGE_1);
+  await uiEditorPage.verifyUiEditorPage(PAGE_1);
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 });
@@ -85,13 +85,13 @@ test('That it is possible to add a Header component and edit the name of the com
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
-  const page3: string = 'Side1';
-  // await uiEditorPage.clickOnAddNewPage();
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page3);
-  //await uiEditorPage.verifyUiEditorPage(page3);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
 
   await uiEditorPage.openTextComponentSection();
-  await uiEditorPage.dragComponentInToDroppableListItem(ComponentType.Header);
+  await uiEditorPage.dragComponentInToDroppableListItem({
+    componentToDrag: ComponentType.Header,
+    componentToDropOn: ComponentType.Input,
+  });
   await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Header);
 
   const newHeaderName: string = 'New Header';
@@ -107,13 +107,11 @@ test('That it is possible to add a data model binding, and that the files are up
   const giteaPage = new GiteaPage(page, { app: testAppName });
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
-  const page1: string = 'Side1';
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
-
-  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
   await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Input);
 
   const newInputLabel: string = 'Input Label 1';
+  await uiEditorPage.clickOnTreeItemByComponentType(ComponentType.Input);
   await addNewLabelToTreeItemComponent(uiEditorPage, newInputLabel);
 
   await uiEditorPage.clickOnAddDataModelButton();
@@ -123,11 +121,11 @@ test('That it is possible to add a data model binding, and that the files are up
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 
-  await navigateInToLayoutJsonFile(giteaPage, page1);
+  await navigateInToLayoutJsonFile(giteaPage, PAGE_1);
   await giteaPage.verifyThatDataModelBindingsAreNotPresent();
   await giteaPage.goBackNPages(5); // 5 because of: Gitea -> App -> ui -> layouts -> page1.json
 
-  await uiEditorPage.verifyUiEditorPage(page1);
+  await uiEditorPage.verifyUiEditorPage(PAGE_1);
 
   await header.clickOnNavigateToPageInTopMenuHeader('datamodel');
   await dataModelPage.verifyDataModelPage();
@@ -142,7 +140,7 @@ test('That it is possible to add a data model binding, and that the files are up
 
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
   await uiEditorPage.clickOnTreeItem(newInputLabel);
 
   await uiEditorPage.clickOnAddDataModelButton();
@@ -159,7 +157,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 
-  await navigateInToLayoutJsonFile(giteaPage, page1);
+  await navigateInToLayoutJsonFile(giteaPage, PAGE_1);
   await giteaPage.verifyThatDataModelBindingsAreVisible(dataModelBindingName);
 });
 
