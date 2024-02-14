@@ -94,6 +94,8 @@ test('That it is possible to add a Header component and edit the name of the com
   });
   await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Header);
 
+  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+
   const newHeaderName: string = 'New Header';
   await addNewLabelToTreeItemComponent(uiEditorPage, newHeaderName);
 });

@@ -50,7 +50,7 @@ export class UiEditorPage extends BasePage {
     await this.startDragComponent();
 
     // Dragging manually requires the hover over the droppable list treeitem to be called at least 2 times: https://playwright.dev/docs/input#dragging-manually
-    const numberOfTimesToHoverOverDroppableListTreeItem: number = 3;
+    const numberOfTimesToHoverOverDroppableListTreeItem: number = 5;
 
     for (let i = 0; i < numberOfTimesToHoverOverDroppableListTreeItem; i++) {
       await this.hoverOverDroppableListTreeItem(componentToDropOn);
