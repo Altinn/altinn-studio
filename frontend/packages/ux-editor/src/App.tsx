@@ -14,7 +14,6 @@ import { useAppContext } from './hooks/useAppContext';
 import { FormContextProvider } from './containers/FormContext';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { UnsupportedVersionMessage } from './components/UnsupportedVersionMessage';
-import { useAppVersionQuery } from 'app-shared/hooks/queries/useAppVersionQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -32,9 +31,9 @@ export function App() {
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
     useDatamodelMetadataQuery(org, app);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
-  const { data: appVersion } = useAppVersionQuery(org, app);
 
   useEffect(() => {
+    console.log('areLayoutSetsFetched', areLayoutSetsFetched);
     if (
       areLayoutSetsFetched &&
       selectedLayoutSet &&
@@ -49,7 +48,8 @@ export function App() {
     removeSelectedLayoutSet,
   ]);
 
-  const componentIsReady = areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched;
+  const componentIsReady =
+    areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched && areLayoutSetsFetched;
 
   const componentHasError = dataModelFetchedError || widgetFetchedError;
 
@@ -79,10 +79,7 @@ export function App() {
     }
   }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
 
-  if (
-    appVersion?.frontendVersion?.startsWith('4') &&
-    !shouldDisplayFeature('shouldOverrideAppFrontendCheck')
-  ) {
+  if (!shouldDisplayFeature('shouldOverrideAppFrontendCheck')) {
     return (
       <UnsupportedVersionMessage version='V4' closestSupportedVersion='V3' category='too-new' />
     );

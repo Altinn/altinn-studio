@@ -7,13 +7,6 @@
 export const prepend = <T>(array: T[], item: T): T[] => [item, ...array];
 
 /**
- * Returns the last item in an array.
- * @param array The array of interest.
- * @returns The last item in the given array.
- */
-export const last = <T>(array: T[]): T => array[array.length - 1];
-
-/**
  * Replaces the last item in an array.
  * @param array The array of interest.
  * @param replaceWith The item to replace the last item with.

@@ -76,7 +76,7 @@ describe('Properties', () => {
       renderProperties({ form: component1Mock, formId: component1IdMock });
 
       const heading = screen.getByRole('heading', {
-        name: component1Mock.type,
+        name: `ux_editor.component_title.${component1Mock.type}`,
         level: 2,
       });
       expect(heading).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { last } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 
 /**
  * Returns substring after last occurrence of separator.
@@ -7,7 +7,7 @@ import { last } from 'app-shared/utils/arrayUtils';
  * @returns The substring after the last occurrence of the given separator.
  */
 export const substringAfterLast = (str: string, separator: string): string =>
-  last(str.split(separator)) || '';
+  ArrayUtils.last(str.split(separator)) || '';
 
 /**
  * Returns substring before last occurrence of separator.
