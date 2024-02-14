@@ -96,6 +96,11 @@
     "type": { "const": "Address" },
     "textResourceBindings": {
       "properties": {
+        "title": {
+          "title": "Title from Summary",
+          "description": "Title of the component (currently only used when referenced from a Summary component)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
         "tableTitle": {
           "title": "Table title",
           "description": "Title used in the table view (overrides the default title)",
@@ -119,11 +124,6 @@
         "summaryAccessibleTitle": {
           "title": "Accessible summary title",
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "title": {
-          "title": "Title from Summary",
-          "description": "Title of the component (currently only used when referenced from a Summary component)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }

@@ -51,14 +51,14 @@
     "textResourceBindings": {
       "type": "object",
       "properties": {
-        "target": {
-          "title": "Target",
-          "description": "The target of the link",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
         "title": {
           "title": "Title",
           "description": "The title/text of the link",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "target": {
+          "title": "Target",
+          "description": "The target of the link",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       },

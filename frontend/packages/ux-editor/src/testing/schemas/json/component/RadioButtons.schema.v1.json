@@ -195,6 +195,21 @@
     "type": { "const": "RadioButtons" },
     "textResourceBindings": {
       "properties": {
+        "title": {
+          "title": "Title",
+          "description": "Label text/title shown above the component",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "Label description shown above the component, below the title",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "help": {
+          "title": "Help text",
+          "description": "Help text shown in a tooltip when clicking the help button",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
         "tableTitle": {
           "title": "Table title",
           "description": "Title used in the table view (overrides the default title)",
@@ -218,21 +233,6 @@
         "summaryAccessibleTitle": {
           "title": "Accessible summary title",
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "title": {
-          "title": "Title",
-          "description": "Label text/title shown above the component",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "description": {
-          "title": "Description",
-          "description": "Label description shown above the component, below the title",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "help": {
-          "title": "Help text",
-          "description": "Help text shown in a tooltip when clicking the help button",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }

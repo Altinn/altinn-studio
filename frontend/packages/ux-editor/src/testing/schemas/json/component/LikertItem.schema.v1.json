@@ -183,6 +183,21 @@
     "type": { "const": "LikertItem" },
     "textResourceBindings": {
       "properties": {
+        "title": {
+          "title": "Title",
+          "description": "Title of the Likert component/row",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "Description of the Likert component/row",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "help": {
+          "title": "Help",
+          "description": "Help text of the Likert component/row",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
         "tableTitle": {
           "title": "Table title",
           "description": "Title used in the table view (overrides the default title)",
@@ -206,21 +221,6 @@
         "summaryAccessibleTitle": {
           "title": "Accessible summary title",
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "title": {
-          "title": "Title",
-          "description": "Title of the Likert component/row",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "description": {
-          "title": "Description",
-          "description": "Description of the Likert component/row",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "help": {
-          "title": "Help",
-          "description": "Help text of the Likert component/row",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }

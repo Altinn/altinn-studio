@@ -51,14 +51,14 @@
     "textResourceBindings": {
       "type": "object",
       "properties": {
-        "altTextImg": {
-          "title": "Alt text",
-          "description": "Alternative text for the image (for screen readers).",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
         "help": {
           "title": "Help text",
           "description": "Help text for the image (shown in help text tooltip/popup)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "altTextImg": {
+          "title": "Alt text",
+          "description": "Alternative text for the image (for screen readers).",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       },

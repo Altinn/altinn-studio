@@ -56,16 +56,6 @@
     "type": { "const": "RepeatingGroup" },
     "textResourceBindings": {
       "properties": {
-        "summaryTitle": {
-          "title": "Summary title",
-          "description": "Title used in the summary view (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "summaryAccessibleTitle": {
-          "title": "Accessible summary title",
-          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
         "title": {
           "title": "Title",
           "description": "The title of the group (shown above each instance in a Summary)",
@@ -74,6 +64,16 @@
         "description": {
           "title": "Description",
           "description": "The description text shown underneath the title",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryTitle": {
+          "title": "Summary title",
+          "description": "Title used in the summary view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryAccessibleTitle": {
+          "title": "Accessible summary title",
+          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "add_button_full": {

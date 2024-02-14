@@ -178,6 +178,16 @@
     "type": { "const": "Likert" },
     "textResourceBindings": {
       "properties": {
+        "title": {
+          "title": "Title",
+          "description": "The title of the group",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "The description text for the Likert table.",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
         "tableTitle": {
           "title": "Table title",
           "description": "Title used in the table view (overrides the default title)",
@@ -201,16 +211,6 @@
         "summaryAccessibleTitle": {
           "title": "Accessible summary title",
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "title": {
-          "title": "Title",
-          "description": "The title of the group",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "description": {
-          "title": "Description",
-          "description": "The description text for the Likert table.",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "leftColumnHeader": {

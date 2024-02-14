@@ -68,16 +68,6 @@
     "type": { "const": "ButtonGroup" },
     "textResourceBindings": {
       "properties": {
-        "summaryTitle": {
-          "title": "Summary title",
-          "description": "Title used in the summary view (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "summaryAccessibleTitle": {
-          "title": "Accessible summary title",
-          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
         "title": {
           "title": "Title",
           "description": "Label text/title shown above the component",
@@ -91,6 +81,16 @@
         "help": {
           "title": "Help text",
           "description": "Help text shown in a tooltip when clicking the help button",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryTitle": {
+          "title": "Summary title",
+          "description": "Title used in the summary view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryAccessibleTitle": {
+          "title": "Accessible summary title",
+          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
