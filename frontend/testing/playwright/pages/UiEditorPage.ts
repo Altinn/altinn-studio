@@ -257,6 +257,7 @@ export class UiEditorPage extends BasePage {
     await this.page.mouse.up();
   }
 
+  /*
   private drag = async (draggable: Locator, droppable: Locator) => {
     const box = (await droppable.boundingBox())!;
     await draggable.hover();
@@ -266,5 +267,5 @@ export class UiEditorPage extends BasePage {
       steps: 5,
     });
     await this.page.mouse.up();
-  };
+  };*/
 }

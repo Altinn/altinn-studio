@@ -140,6 +140,8 @@ test('That it is possible to add a data model binding, and that the files are up
   await dataModelPage.clickOnGenerateDataModelButton();
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
 
+  await dataModelPage.waitForXAmountOfMilliseconds(2000); // TRYING TO WAIT FOR IT TO DO API CALL
+
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
@@ -149,6 +151,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.clickOnDataModelBindingsCombobox();
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
 
+  // MAYBE WE NEED TO ADD THE DATAMODEL PROPERTY MANUALLY?
   const dataModelBindingName = 'property1';
   await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
   await uiEditorPage.clickOnSaveDataModel();
