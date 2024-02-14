@@ -4,6 +4,7 @@ import type { Locator, Page } from '@playwright/test';
 import * as testids from '../../testids';
 import type { ComponentType } from '../enum/ComponentType';
 import type { DragAndDropComponents } from '../types/DragAndDropComponents';
+import { UxEditorEditSettings } from '../enum/UxEditorEditSettings';
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -126,17 +127,13 @@ export class UiEditorPage extends BasePage {
   public async clickOnAddLabelText(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: 'Legg til Ledetekst',
-      })
-      .click();
-    /*name: this.textMock('ux_editor.text_resource_binding_add', {
+        name: this.textMock('ux_editor.text_resource_binding_add', {
           element: this.textMock(
             `ux_editor.modal_properties_textResourceBindings_${UxEditorEditSettings.Title}`,
           ),
         }),
       })
-      .getAttribute('aria-label')
-      .click();*/
+      .click();
   }
 
   public async writeLabelTextInTextarea(text: string): Promise<void> {
