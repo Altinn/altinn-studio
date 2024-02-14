@@ -1,0 +1,38 @@
+{
+  "sets": [{
+    "id": "message",
+    "dataType": "message",
+    "tasks": [
+      "Task_1"
+    ]
+  },
+    {
+      "id": "changename",
+      "dataType": "ServiceModel-test",
+      "tasks": [
+        "Task_2"
+      ]
+    },
+    {
+      "id": "group",
+      "dataType": "nested-group",
+      "tasks": [
+        "Task_3"
+      ]
+    },
+    {
+      "id": "likert",
+      "dataType": "likert",
+      "tasks": [
+        "Task_4"
+      ]
+    },
+    {
+      "id": "datalist",
+      "dataType": "datalist",
+      "tasks": [
+        "Task_5"
+      ]
+    }
+  ]
+}
