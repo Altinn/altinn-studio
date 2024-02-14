@@ -1,23 +1,27 @@
 import type { PolicySubject } from '../types';
 
+export const mockSubjectId1: string = 's1';
+export const mockSubjectId2: string = 's2';
+export const mockSubjectId3: string = 's3';
+
 export const mockSubjectTitle1: string = 'Subject 1';
 export const mockSubjectTitle2: string = 'Subject 2';
 export const mockSubjectTitle3: string = 'Subject 3';
 
 export const mockSubject1: PolicySubject = {
-  subjectId: 's1',
+  subjectId: mockSubjectId1,
   subjectSource: 'Subject1',
   subjectTitle: mockSubjectTitle1,
   subjectDescription: '',
 };
 export const mockSubject2: PolicySubject = {
-  subjectId: 's2',
+  subjectId: mockSubjectId2,
   subjectSource: 'Subject2',
   subjectTitle: mockSubjectTitle2,
   subjectDescription: '',
 };
 export const mockSubject3: PolicySubject = {
-  subjectId: 's3',
+  subjectId: mockSubjectId3,
   subjectSource: 'Subject3',
   subjectTitle: mockSubjectTitle3,
   subjectDescription: '',
