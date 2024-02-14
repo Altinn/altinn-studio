@@ -57,18 +57,6 @@ export class UiEditorPage extends BasePage {
     }
 
     await this.dropComponent();
-
-    /*
-    const dragable = this.page
-      .getByTestId(testids.draggableToolbarItem)
-      .getByText(this.textMock(`ux_editor.component_title.${componentToDrag}`));
-
-    const dropable = this.page.getByTestId(testids.droppableList).getByRole('treeitem', {
-      name: this.textMock(`ux_editor.component_title.${componentToDropOn}`),
-    });
-
-    await this.drag(dragable, dropable);
-    */
   }
 
   public async verifyThatComponentTreeItemIsVisibleInDroppableList(
@@ -246,7 +234,6 @@ export class UiEditorPage extends BasePage {
 
   private async hoverOverDroppableListTreeItem(componentToDropOn: ComponentType): Promise<void> {
     await this.page
-      // .getByTestId(testids.droppableList)
       .getByRole('treeitem', {
         name: this.textMock(`ux_editor.component_title.${componentToDropOn}`),
       })
@@ -256,16 +243,4 @@ export class UiEditorPage extends BasePage {
   private async dropComponent(): Promise<void> {
     await this.page.mouse.up();
   }
-
-  /*
-  private drag = async (draggable: Locator, droppable: Locator) => {
-    const box = (await droppable.boundingBox())!;
-    await draggable.hover();
-
-    await this.page.mouse.down();
-    await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, {
-      steps: 5,
-    });
-    await this.page.mouse.up();
-  };*/
 }
