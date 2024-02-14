@@ -35,4 +35,14 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.getValidIndex([1, 2, 3], -2)).toEqual(2);
     });
   });
+
+  describe('removeItemByValue', () => {
+    it('Deletes item from array by value', () => {
+      expect(ArrayUtils.removeItemByValue([1, 2, 3], 2)).toEqual([1, 3]);
+      expect(ArrayUtils.removeItemByValue(['a', 'b', 'c'], 'b')).toEqual(['a', 'c']);
+      expect(ArrayUtils.removeItemByValue(['a', 'b', 'c'], 'd')).toEqual(['a', 'b', 'c']);
+      expect(ArrayUtils.removeItemByValue([], 'a')).toEqual([]);
+      expect(ArrayUtils.removeItemByValue(['a', 'b', 'c', 'b', 'a'], 'b')).toEqual(['a', 'c', 'a']);
+    });
+  });
 });

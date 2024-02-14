@@ -8,7 +8,8 @@ import type {
 } from '../types/global';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
 import { deepCopy } from 'app-shared/pure';
-import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arrayUtils';
+import { insertArrayElementAtPos } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
@@ -202,7 +203,10 @@ export const removeComponent = (layout: IInternalLayout, componentId: string): I
   const newLayout = deepCopy(layout);
   const containerId = findParentId(layout, componentId);
   if (containerId) {
-    newLayout.order[containerId] = removeItemByValue(newLayout.order[containerId], componentId);
+    newLayout.order[containerId] = ArrayUtils.removeItemByValue(
+      newLayout.order[containerId],
+      componentId,
+    );
     delete newLayout.components[componentId];
   }
   return newLayout;
@@ -294,7 +298,10 @@ export const moveLayoutItem = (
   const item = findItem(newLayout, id);
   item.pageIndex = calculateNewPageIndex(newLayout, newContainerId, newPosition);
   if (oldContainerId) {
-    newLayout.order[oldContainerId] = removeItemByValue(newLayout.order[oldContainerId], id);
+    newLayout.order[oldContainerId] = ArrayUtils.removeItemByValue(
+      newLayout.order[oldContainerId],
+      id,
+    );
     newLayout.order[newContainerId] = insertArrayElementAtPos(
       newLayout.order[newContainerId],
       id,

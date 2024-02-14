@@ -9,7 +9,6 @@ import {
   prepend,
   removeEmptyStrings,
   removeItemByIndex,
-  removeItemByValue,
   replaceByIndex,
   replaceByPredicate,
   replaceItemsByValue,
@@ -32,16 +31,6 @@ describe('arrayUtils', () => {
 
     it('Returns undefined if array is empty', () => {
       expect(last([])).toBeUndefined();
-    });
-  });
-
-  describe('removeItemByValue', () => {
-    it('Deletes item from array by value', () => {
-      expect(removeItemByValue([1, 2, 3], 2)).toEqual([1, 3]);
-      expect(removeItemByValue(['a', 'b', 'c'], 'b')).toEqual(['a', 'c']);
-      expect(removeItemByValue(['a', 'b', 'c'], 'd')).toEqual(['a', 'b', 'c']);
-      expect(removeItemByValue([], 'a')).toEqual([]);
-      expect(removeItemByValue(['a', 'b', 'c', 'b', 'a'], 'b')).toEqual(['a', 'c', 'a']);
     });
   });
 

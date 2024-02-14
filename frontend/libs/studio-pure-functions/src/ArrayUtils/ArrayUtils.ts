@@ -17,4 +17,14 @@ export class ArrayUtils {
   public static getValidIndex<T>(array: T[], givenIndex: number): number {
     return givenIndex < 0 || givenIndex >= array.length ? array.length - 1 : givenIndex;
   }
+
+  /**
+   * Removes item from array by value.
+   * @param array Array to delete item from.
+   * @param value Value to delete.
+   * @returns Array without the given value.
+   */
+  public static removeItemByValue<T>(array: T[], value: T): T[] {
+    return array.filter((item) => item !== value);
+  }
 }
