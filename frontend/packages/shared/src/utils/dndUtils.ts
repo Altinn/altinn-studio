@@ -69,8 +69,12 @@ export const calculateNewPosition = <T>(
     [DragCursorPosition.Self, DragCursorPosition.Outside, DragCursorPosition.Idle].includes(
       dragCursorPosition,
     )
-  )
+  ) {
+    console.log({
+      dragCursorPosition,
+    });
     return undefined;
+  }
   const moveAfter = dragCursorPosition === DragCursorPosition.LowerHalf;
   const movingDownInSameParent =
     dragItem.isNew === false &&

@@ -32,19 +32,44 @@ export class UiEditorPage extends BasePage {
     await this.page.getByText(this.textMock('ux_editor.container_empty')).isVisible();
   }
 
+  // Empty list
   public async dragComponentInToDroppableList(component: ComponentType): Promise<void> {
     const dropDestination = this.getDroppableList();
 
     await this.getToolbarItems()
       .getByText(this.textMock(`ux_editor.component_title.${component}`))
+      .dragTo(dropDestination);
+  }
+
+  public async dragComponentInToDroppableListItem(component: ComponentType): Promise<void> {
+    await this.page
+      .getByTestId(testids.draggableToolbarItem)
+      .getByText(this.textMock(`ux_editor.component_title.${component}`))
       .hover();
 
     await this.page.mouse.down();
-    await this.page.getByTestId(testids.droppableList).hover();
-    await this.page.getByTestId(testids.droppableList).hover();
-    await this.page.mouse.up();
+    await this.page
+      .getByTestId(testids.droppableList)
+      .getByRole('treeitem', {
+        name: this.textMock(`ux_editor.component_title.Input`),
+      })
+      .hover();
 
-    //.dragTo(dropDestination);
+    await this.page
+      .getByTestId(testids.droppableList)
+      .getByRole('treeitem', {
+        name: this.textMock(`ux_editor.component_title.Input`),
+      })
+      .hover();
+
+    await this.page
+      .getByTestId(testids.droppableList)
+      .getByRole('treeitem', {
+        name: this.textMock(`ux_editor.component_title.Input`),
+      })
+      .hover();
+
+    await this.page.mouse.up();
   }
 
   public async verifyThatComponentTreeItemIsVisibleInDroppableList(

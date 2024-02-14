@@ -93,11 +93,18 @@ export function DragAndDropListItem<T>({
   const [, drop] = useDrop<DndItem<T>, unknown, void>({
     accept: Object.values(DraggableEditorItemType),
     drop: (draggedItem) => {
+      console.log('draggedItem - drop', draggedItem);
+      console.log('dragCursorPosition - drop', dragCursorPosition);
+
       const position = calculateNewPosition<T>(draggedItem, item(), dragCursorPosition);
+      console.log('position - drop', position);
+
       if (position) onDrop(draggedItem, position);
       setDragCursorPosition(DragCursorPosition.Idle);
     },
     hover: (draggedItem, monitor) => {
+      console.log('draggedItem - hover', draggedItem);
+
       // Check if the cursor is in the upper or lower half of the item, and update the state accordingly if necessary
       const currentDragPosition = getDragCursorPosition<T>(
         monitor,
@@ -106,10 +113,15 @@ export function DragAndDropListItem<T>({
         wrapperRef,
         isParentDisabled,
       );
+      console.log('currentDragPosition - hover', currentDragPosition);
+
       setDragCursorPosition(currentDragPosition);
     },
     collect: (monitor) => {
+      console.log('COLLECT - monitor', monitor);
+
       if (!monitor.isOver({ shallow: true })) {
+        console.log('COLLECT - IF ', monitor);
         setDragCursorPosition(DragCursorPosition.Outside);
       }
     },

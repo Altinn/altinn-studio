@@ -91,7 +91,7 @@ test('That it is possible to add a Header component and edit the name of the com
   //await uiEditorPage.verifyUiEditorPage(page3);
 
   await uiEditorPage.openTextComponentSection();
-  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Header);
+  await uiEditorPage.dragComponentInToDroppableListItem(ComponentType.Header);
   await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Header);
 
   const newHeaderName: string = 'New Header';
