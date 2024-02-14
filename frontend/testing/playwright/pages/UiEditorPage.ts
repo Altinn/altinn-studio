@@ -4,7 +4,6 @@ import type { Locator, Page } from '@playwright/test';
 import * as testids from '../../testids';
 import type { ComponentType } from '../enum/ComponentType';
 import type { DragAndDropComponents } from '../types/DragAndDropComponents';
-import { UxEditorEditSettings } from '../enum/UxEditorEditSettings';
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -127,12 +126,10 @@ export class UiEditorPage extends BasePage {
   public async clickOnAddLabelText(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('ux_editor.text_resource_binding_add', {
-          element: this.textMock(
-            `ux_editor.modal_properties_textResourceBindings_${UxEditorEditSettings.Title}`,
-          ),
-        }),
+        name: this.textMock('general.add'),
+        exact: true,
       })
+      .first() // Because of the issue where both label, description and helptext has the same aria-label = "Legg til", .first() is used to get the first of them which is the label. Issue: #12297
       .click();
   }
 
