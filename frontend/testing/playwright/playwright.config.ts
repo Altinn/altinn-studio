@@ -21,7 +21,7 @@ export default defineConfig<ExtendedTestOptions>({
 
   projects: [
     { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
-    /*{
+    {
       name: TestNames.CREATE_APP_ONLY,
       dependencies: [TestNames.SETUP],
       testDir: './tests/create-app-only/',
@@ -80,7 +80,7 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.GIT_SYNC_APP,
         headless: true,
       },
-    },*/
+    },
     {
       name: TestNames.UI_EDITOR,
       dependencies: [TestNames.SETUP],
@@ -93,7 +93,7 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
-    /*{
+    {
       name: TestNames.SETTINGS_MODAL,
       dependencies: [TestNames.SETUP],
       testDir: './tests/settings-modal/',
@@ -125,6 +125,6 @@ export default defineConfig<ExtendedTestOptions>({
         storageState: '.playwright/auth/user.json',
         headless: true,
       },
-    },*/
+    },
   ],
 });
