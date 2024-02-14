@@ -42,7 +42,7 @@ test('That it is possible to add and delete form components', async ({
   testAppName,
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-  PAGE_1;
+
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
 
   await uiEditorPage.verifyThatPageIsEmpty();
@@ -176,6 +176,10 @@ const addNewLabelToTreeItemComponent = async (
   await uiEditorPage.clickOnAddLabelText();
   await uiEditorPage.writeLabelTextInTextarea(newInputLabel);
   await uiEditorPage.clickOnSaveNewLabelName();
+
+  // We need to wait a few seconds to make sure that the API call is made and that the changes are saved to backend
+  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
 };
