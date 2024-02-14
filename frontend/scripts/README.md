@@ -1,5 +1,17 @@
 ## Scripts
 
+Collection of utility-scripts for Studio frontend.
+
+### Getting started
+
+To install dependencies, run:
+
+```
+yarn --immutable
+```
+
+To run the scripts, read more about the different scripts and how to use them below.
+
 ### configurationStats
 
 Run to generate statistics on how much configuration Altinn Studio has covered on the following files:
