@@ -42,6 +42,7 @@ export const mapPolicySubjectToSubjectTitle = (
     return subjectOption?.subjectTitle || subjectId;
   });
 };
+
 const findSubjectOptionBySubjectId = (
   subjectOptions: PolicySubject[],
   subjectId: string,
@@ -115,6 +116,7 @@ export const mapSubjectTitleToSubjectString = (
   const subject: PolicySubject = subjectOptions.find(
     (s) => s.subjectTitle.toLowerCase() === subjectTitle.toLowerCase(),
   );
+  if (!subject) return;
   return `urn:${subject.subjectSource}:${subject.subjectId}`;
 };
 
@@ -123,7 +125,6 @@ export const mapSubjectTitleToSubjectString = (
  * to be sent to backend where all fields are strings.
  *
  * @param subjectOptions the possible subjects to select from
- * @param actionOptions the possible actions to select from
  * @param policyRule the policy rule to map
  * @param ruleId the id of the rule
  *
@@ -131,7 +132,6 @@ export const mapSubjectTitleToSubjectString = (
  */
 export const mapPolicyRuleToPolicyRuleBackendObject = (
   subjectOptions: PolicySubject[],
-  actionOptions: PolicyAction[],
   policyRule: PolicyRuleCard,
   ruleId: string,
 ): PolicyRule => {
@@ -231,8 +231,7 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
   rules.forEach((rule) => {
     rule.subject.forEach((subjectString) => {
       const subjectId = convertSubjectStringToSubjectId(subjectString);
-
-      if (!existingSubjectIds.includes(subjectId)) {
+      if (!existingSubjectIds.includes(subjectId.toLowerCase())) {
         const newSubject: PolicySubject = createNewSubjectFromSubjectString(subjectString);
         copiedSubjects.push(newSubject);
         existingSubjectIds.push(subjectId);
@@ -264,4 +263,13 @@ export const convertSubjectStringToSubjectSource = (subjectString: string): stri
   const lastColonIndex = subjectString.lastIndexOf(':');
   // Starting at 1 to remove 'urn', and excluding the final to remove the id
   return subjectString.slice(firstColonIndex + 1, lastColonIndex);
+};
+
+export const findSubjectByPolicyRuleSubject = (
+  subjectOptions: PolicySubject[],
+  policyRuleSubject: string,
+): PolicySubject => {
+  return subjectOptions.find(
+    (subject) => subject.subjectId.toLowerCase() === policyRuleSubject.toLowerCase(),
+  );
 };
