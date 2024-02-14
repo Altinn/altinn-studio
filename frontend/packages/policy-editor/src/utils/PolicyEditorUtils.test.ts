@@ -79,7 +79,7 @@ describe('PolicyEditorUtils', () => {
       expect(result).toBe(mockSubjectBackendString1);
     });
 
-    it('should return nothing when there is no subject mathing the subject title', () => {
+    it('should return nothing when there is no subject matching the subject title', () => {
       const result = mapSubjectTitleToSubjectString(mockSubjects, 'invalidTitle');
       expect(result).toBe(undefined);
     });
