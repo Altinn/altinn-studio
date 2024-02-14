@@ -103,6 +103,10 @@ export const TextResource = ({
     { label: t('ux_editor.search_text_resources_none'), value: '' },
   );
 
+  const textResourceBindingElementText: string = t(
+    `ux_editor.modal_properties_textResourceBindings_${generateIdOptions.textResourceKey}`,
+  );
+
   const renderTextResource = () => (
     <span
       className={cn(
@@ -146,37 +150,49 @@ export const TextResource = ({
           <span className={classes.buttons}>
             {textResource?.value ? (
               <StudioButton
-                aria-label={t('general.edit')}
+                aria-label={t('ux_editor.text_resource_binding_edit', {
+                  element: textResourceBindingElementText,
+                })}
                 className={classes.button}
                 color='second'
                 disabled={isEditing}
                 icon={<PencilIcon />}
                 onClick={handleEditButtonClick}
-                title={t('general.edit')}
+                title={t('ux_editor.text_resource_binding_edit', {
+                  element: textResourceBindingElementText,
+                })}
                 variant='tertiary'
                 size='small'
               />
             ) : (
               <StudioButton
-                aria-label={t('general.add')}
+                aria-label={t('ux_editor.text_resource_binding_add', {
+                  element: textResourceBindingElementText,
+                })}
                 className={classes.button}
                 color='second'
                 disabled={isEditing}
                 icon={<PlusIcon />}
                 onClick={handleEditButtonClick}
-                title={t('general.add')}
+                title={t('ux_editor.text_resource_binding_add', {
+                  element: textResourceBindingElementText,
+                })}
                 variant='tertiary'
                 size='small'
               />
             )}
             <StudioButton
-              aria-label={t('general.search')}
+              aria-label={t('ux_editor.text_resource_binding_search', {
+                element: textResourceBindingElementText,
+              })}
               className={classes.button}
               color='second'
               disabled={isSearchMode}
               icon={<MagnifyingGlassIcon />}
               onClick={() => setIsSearchMode(true)}
-              title={t('general.search')}
+              title={t('ux_editor.text_resource_binding_search', {
+                element: textResourceBindingElementText,
+              })}
               variant='tertiary'
               size='small'
             />
@@ -187,7 +203,9 @@ export const TextResource = ({
               onClose={() => setIsConfirmDeleteDialogOpen(false)}
               trigger={
                 <StudioButton
-                  aria-label={t('general.delete')}
+                  aria-label={t('ux_editor.text_resource_binding_delete', {
+                    element: textResourceBindingElementText,
+                  })}
                   className={classes.button}
                   color='second'
                   disabled={
@@ -196,7 +214,9 @@ export const TextResource = ({
                   }
                   icon={<TrashIcon />}
                   onClick={() => setIsConfirmDeleteDialogOpen(true)}
-                  title={t('general.delete')}
+                  title={t('ux_editor.text_resource_binding_delete', {
+                    element: textResourceBindingElementText,
+                  })}
                   variant='tertiary'
                   size='small'
                 />

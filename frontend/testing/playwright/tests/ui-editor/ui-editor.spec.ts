@@ -24,7 +24,7 @@ test.afterAll(async ({ request, testAppName }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-const setupAndVerifyDashboardPage = async (
+const setupAndVerifyUiEditorPage = async (
   page: Page,
   testAppName: string,
 ): Promise<UiEditorPage> => {
@@ -38,7 +38,7 @@ test('That it is possible to add and delete form components', async ({
   page,
   testAppName,
 }): Promise<void> => {
-  const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
   const page1: string = 'Side1';
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
@@ -57,7 +57,7 @@ test('That when adding more than one page, navigation buttons are added to the p
   page,
   testAppName,
 }): Promise<void> => {
-  const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
   const page1: string = 'Side1';
   const page2: string = 'Side2';
@@ -83,10 +83,12 @@ test('That it is possible to add a Header component and edit the name of the com
   page,
   testAppName,
 }): Promise<void> => {
-  const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
-  const page1: string = 'Side1';
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
+  const page3: string = 'Side1';
+  // await uiEditorPage.clickOnAddNewPage();
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page3);
+  //await uiEditorPage.verifyUiEditorPage(page3);
 
   await uiEditorPage.openTextComponentSection();
   await uiEditorPage.dragComponentInToDroppableList(ComponentType.Header);
@@ -103,7 +105,7 @@ test('That it is possible to add a data model binding, and that the files are up
   const header = new Header(page, { app: testAppName });
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
-  const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
   const page1: string = 'Side1';
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
@@ -143,8 +145,6 @@ test('That it is possible to add a data model binding, and that the files are up
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, page1);
   await uiEditorPage.clickOnTreeItem(newInputLabel);
 
-  await turnOnBetaMode(uiEditorPage);
-
   await uiEditorPage.clickOnAddDataModelButton();
   await uiEditorPage.clickOnDataModelBindingsCombobox();
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
@@ -175,23 +175,11 @@ const addNewLabelToTreeItemComponent = async (
   uiEditorPage: UiEditorPage,
   newInputLabel: string,
 ) => {
-  await turnOnBetaMode(uiEditorPage);
-
-  await uiEditorPage.clickOnAddTextType();
-  await uiEditorPage.clickOnLabelOption();
   await uiEditorPage.clickOnAddLabelText();
   await uiEditorPage.writeLabelTextInTextarea(newInputLabel);
   await uiEditorPage.clickOnSaveNewLabelName();
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
-};
-
-const turnOnBetaMode = async (uiEditorPage: UiEditorPage): Promise<void> => {
-  const isBeta: boolean = await uiEditorPage.getBetaConfigSwitchValue();
-
-  if (!isBeta) {
-    await uiEditorPage.clickOnTurnOnBetaConfigSwitch();
-  }
 };
 
 const navigateInToLayoutJsonFile = async (giteaPage: GiteaPage, layoutName: string) => {

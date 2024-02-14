@@ -3,6 +3,7 @@ import type { Environment } from '../helpers/StudioEnvironment';
 import type { Locator, Page } from '@playwright/test';
 import * as testids from '../../testids';
 import type { ComponentType } from '../enum/ComponentType';
+import { UxEditorEditSettings } from '../enum/UxEditorEditSettings';
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -33,9 +34,17 @@ export class UiEditorPage extends BasePage {
 
   public async dragComponentInToDroppableList(component: ComponentType): Promise<void> {
     const dropDestination = this.getDroppableList();
+
     await this.getToolbarItems()
       .getByText(this.textMock(`ux_editor.component_title.${component}`))
-      .dragTo(dropDestination);
+      .hover();
+
+    await this.page.mouse.down();
+    await this.page.getByTestId(testids.droppableList).hover();
+    await this.page.getByTestId(testids.droppableList).hover();
+    await this.page.mouse.up();
+
+    //.dragTo(dropDestination);
   }
 
   public async verifyThatComponentTreeItemIsVisibleInDroppableList(
@@ -102,27 +111,20 @@ export class UiEditorPage extends BasePage {
       .click();
   }
 
-  public async clickOnAddTextType(): Promise<void> {
-    await this.page
-      .getByRole('combobox', { name: this.textMock('ux_editor.text_resource_bindings.add_label') })
-      .click();
-  }
-
-  public async clickOnLabelOption(): Promise<void> {
-    await this.page
-      .getByRole('option', {
-        name: this.textMock('ux_editor.modal_properties_textResourceBindings_title'),
-      })
-      .click();
-  }
-
   public async clickOnAddLabelText(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('general.add'),
-        exact: true,
+        name: 'Legg til Ledetekst',
       })
       .click();
+    /*name: this.textMock('ux_editor.text_resource_binding_add', {
+          element: this.textMock(
+            `ux_editor.modal_properties_textResourceBindings_${UxEditorEditSettings.Title}`,
+          ),
+        }),
+      })
+      .getAttribute('aria-label')
+      .click();*/
   }
 
   public async writeLabelTextInTextarea(text: string): Promise<void> {
