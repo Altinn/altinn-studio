@@ -1,22 +1,17 @@
 #nullable enable
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Features.Validation.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Internal.Instances;
-using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -55,6 +50,7 @@ public class ValidationServiceOldTests
         _serviceCollection.AddSingleton(_appMetadataMock.Object);
         _serviceCollection.AddSingleton<IDataElementValidator, DefaultDataElementValidator>();
         _serviceCollection.AddSingleton<ITaskValidator, DefaultTaskValidator>();
+        _serviceCollection.AddSingleton<IValidatorFactory, ValidatorFactory>();
         _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
     }
 
@@ -72,7 +68,7 @@ public class ValidationServiceOldTests
             FileScanResult = FileScanResult.Infected
         };
 
-        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType);
+        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType, null);
 
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileInfected").Should().NotBeNull();
     }
@@ -94,7 +90,7 @@ public class ValidationServiceOldTests
             FileScanResult = FileScanResult.Pending,
         };
 
-        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType);
+        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType, null);
 
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileScanPending").Should().BeNull();
     }
@@ -113,7 +109,7 @@ public class ValidationServiceOldTests
             FileScanResult = FileScanResult.Pending
         };
 
-        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType);
+        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType, null);
 
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileScanPending").Should().NotBeNull();
     }
@@ -132,7 +128,7 @@ public class ValidationServiceOldTests
             FileScanResult = FileScanResult.Clean,
         };
 
-        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType);
+        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType, null);
 
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileInfected").Should().BeNull();
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileScanPending").Should().BeNull();
@@ -181,7 +177,7 @@ public class ValidationServiceOldTests
             }
         };
 
-        var issues = await validationService.ValidateInstanceAtTask(instance, taskId);
+        var issues = await validationService.ValidateInstanceAtTask(instance, taskId, null);
         issues.Should().BeEmpty();
 
         // instance.Process?.CurrentTask?.Validated.CanCompleteTask.Should().BeTrue();
@@ -238,7 +234,7 @@ public class ValidationServiceOldTests
             }
         };
 
-        var issues = await validationService.ValidateInstanceAtTask(instance, taskId);
+        var issues = await validationService.ValidateInstanceAtTask(instance, taskId, null);
         issues.Should().HaveCount(1);
         issues.Should().ContainSingle(i => i.Code == ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType);
 

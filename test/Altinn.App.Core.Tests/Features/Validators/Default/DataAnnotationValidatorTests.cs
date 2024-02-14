@@ -60,7 +60,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
         // Prepare
 
         // Act
-        var result = await _validator.ValidateFormData(instance, dataElement, data);
+        var result = await _validator.ValidateFormData(instance, dataElement, data, null);
 
         // Assert
         Assert.NotNull(result);
@@ -90,7 +90,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
         };
 
         // Act
-        var result = await _validator.ValidateFormData(instance, dataElement, data);
+        var result = await _validator.ValidateFormData(instance, dataElement, data, null);
 
         // Assert
         Assert.NotNull(result);
@@ -109,7 +109,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
         };
 
         // Act
-        var result = await _validator.ValidateFormData(instance, dataElement, data);
+        var result = await _validator.ValidateFormData(instance, dataElement, data, null);
 
         // Assert
         result.Should().NotBeNull();

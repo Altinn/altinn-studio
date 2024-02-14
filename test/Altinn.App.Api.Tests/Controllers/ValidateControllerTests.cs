@@ -1,10 +1,9 @@
 using System.Net;
 using Altinn.App.Api.Controllers;
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -144,7 +143,7 @@ public class ValidateControllerTests
         instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
-        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy"))
+        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy", null))
             .Returns(Task.FromResult(validationResult));
 
         // Act
@@ -187,7 +186,7 @@ public class ValidateControllerTests
         instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
-        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy"))
+        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy", null))
             .Throws(exception);
 
         // Act
@@ -230,7 +229,7 @@ public class ValidateControllerTests
         instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
-        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy"))
+        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy", null))
             .Throws(exception);
 
         // Act

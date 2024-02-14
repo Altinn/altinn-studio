@@ -35,7 +35,7 @@ public class LegacyIInstanceValidatorTaskValidator : ITaskValidator
     public string ValidationSource => _instanceValidator?.GetType().FullName ?? GetType().FullName!;
 
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId)
+    public async Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId, string? language)
     {
         if (_instanceValidator is null)
         {

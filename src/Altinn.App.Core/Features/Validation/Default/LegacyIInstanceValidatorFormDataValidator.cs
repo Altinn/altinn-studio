@@ -40,7 +40,7 @@ public class LegacyIInstanceValidatorFormDataValidator : IFormDataValidator
 
 
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data)
+    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
     {
         if (_instanceValidator is null)
         {

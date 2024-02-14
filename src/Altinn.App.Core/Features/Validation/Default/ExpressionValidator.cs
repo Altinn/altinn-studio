@@ -46,7 +46,7 @@ public class ExpressionValidator : IFormDataValidator
     public bool HasRelevantChanges(object current, object previous) => true;
 
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data)
+    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
     {
         var rawValidationConfig = _appResourceService.GetValidationConfiguration(dataElement.DataType);
         if (rawValidationConfig == null)

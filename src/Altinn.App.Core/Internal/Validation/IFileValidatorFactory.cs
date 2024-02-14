@@ -1,6 +1,7 @@
-﻿using Altinn.Platform.Storage.Interface.Models;
+﻿using Altinn.App.Core.Features.Validation;
+using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Features.Validation
+namespace Altinn.App.Core.Internal.Validation
 {
     /// <summary>
     /// Interface responsible for resolving the correct file validators to run on against a <see cref="DataType"/>.

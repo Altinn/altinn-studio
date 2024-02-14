@@ -37,6 +37,7 @@ public interface IFormDataValidator
     /// <param name="instance"></param>
     /// <param name="dataElement"></param>
     /// <param name="data"></param>
+    /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <returns>List of validation issues</returns>
-    Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data);
+    Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language);
 }

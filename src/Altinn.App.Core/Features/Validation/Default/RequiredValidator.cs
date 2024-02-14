@@ -42,7 +42,7 @@ public class RequiredLayoutValidator : IFormDataValidator
     /// <summary>
     /// Validate the form data against the required rules in the layout
     /// </summary>
-    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data)
+    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
     {
         var appMetadata = await _appMetadata.GetApplicationMetadata();
         var layoutSet = _appResourcesService.GetLayoutSetForTask(appMetadata.DataTypes.First(dt=>dt.Id == dataElement.DataType).TaskId);

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Internal.Validation;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Models.Validation

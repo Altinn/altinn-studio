@@ -25,7 +25,7 @@ public class DefaultTaskValidator : ITaskValidator
     public string TaskId => "*";
 
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId)
+    public async Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId, string? language)
     {
         var messages = new List<ValidationIssue>();
         var application = await _appMetadata.GetApplicationMetadata();

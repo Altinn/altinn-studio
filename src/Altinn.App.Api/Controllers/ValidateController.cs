@@ -5,6 +5,7 @@ using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -44,13 +45,15 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
         /// <param name="instanceGuid">Unique id to identify the instance</param>
+        /// <param name="language">The currently used language by the user (or null if not available)</param>
         [HttpGet]
         [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
         public async Task<IActionResult> ValidateInstance(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid)
+            [FromRoute] Guid instanceGuid,
+            [FromQuery] string? language = null)
         {
             Instance? instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
@@ -66,7 +69,7 @@ namespace Altinn.App.Api.Controllers
 
             try 
             {
-                List<ValidationIssue> messages = await _validationService.ValidateInstanceAtTask(instance, taskId);
+                List<ValidationIssue> messages = await _validationService.ValidateInstanceAtTask(instance, taskId, language);
                 return Ok(messages);
             } 
             catch (PlatformHttpException exception) 
@@ -88,6 +91,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerId">Unique id of the party that is the owner of the instance.</param>
         /// <param name="instanceId">Unique id to identify the instance</param>
         /// <param name="dataGuid">Unique id identifying specific data element</param>
+        /// <param name="language">The currently used language by the user (or null if not available)</param>
         [HttpGet]
         [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/data/{dataGuid:guid}/validate")]
         public async Task<IActionResult> ValidateData(
@@ -95,7 +99,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceId,
-            [FromRoute] Guid dataGuid)
+            [FromRoute] Guid dataGuid,
+            [FromQuery] string? language = null)
         {
             Instance? instance = await _instanceClient.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
@@ -126,7 +131,7 @@ namespace Altinn.App.Api.Controllers
                 throw new ValidationException("Unknown element type.");
             }
 
-            messages.AddRange(await _validationService.ValidateDataElement(instance, element, dataType));
+            messages.AddRange(await _validationService.ValidateDataElement(instance, element, dataType, language));
 
             string taskId = instance.Process.CurrentTask.ElementId;
 

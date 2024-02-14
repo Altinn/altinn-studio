@@ -1,11 +1,9 @@
 using System.Collections;
 using Altinn.App.Api.Controllers;
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Infrastructure.Clients;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -264,7 +262,8 @@ public class ValidationControllerValidateDataTests
             validationMock.Setup(v => v.ValidateDataElement(
                     testScenario.ReceivedInstance,
                     testScenario.ReceivedInstance.Data.First(),
-                    testScenario.ReceivedApplication.DataTypes.First()))
+                    testScenario.ReceivedApplication.DataTypes.First(),
+                    null))
                 .Returns(Task.FromResult<List<ValidationIssue>>(testScenario.ReceivedValidationIssues));
         }
 

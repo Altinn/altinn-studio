@@ -35,7 +35,7 @@ namespace Altinn.App.Core.Tests.Features.Validators.Default
             validator.HasRelevantChanges(data, data).Should().BeFalse();
 
             // Act
-            var result = await validator.ValidateFormData(new Instance(), new DataElement(), data);
+            var result = await validator.ValidateFormData(new Instance(), new DataElement(), data, null);
 
             // Assert
             Assert.Empty(result);
@@ -56,7 +56,7 @@ namespace Altinn.App.Core.Tests.Features.Validators.Default
                 });
 
             // Act
-            var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data);
+            var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data, null);
 
             // Assert
             result.Should().BeEquivalentTo(
@@ -120,7 +120,7 @@ namespace Altinn.App.Core.Tests.Features.Validators.Default
                 });
 
             // Act
-            var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data);
+            var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data, null);
 
             // Assert
             result.Should().HaveCount(2);

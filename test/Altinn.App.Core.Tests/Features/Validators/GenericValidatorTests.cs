@@ -33,7 +33,7 @@ public class GenericValidatorTests
             throw new NotImplementedException();
         }
 
-        protected override Task ValidateFormData(Instance instance, DataElement dataElement, MyModel data)
+        protected override Task ValidateFormData(Instance instance, DataElement dataElement, MyModel data, string? language)
         {
             AddValidationIssue(new ValidationIssue()
             {
@@ -57,7 +57,7 @@ public class GenericValidatorTests
         var dataElement = new DataElement();
         var data = new MyModel();
 
-        var validationIssues = await testValidator.ValidateFormData(instance, dataElement, data);
+        var validationIssues = await testValidator.ValidateFormData(instance, dataElement, data, null);
         validationIssues.Should().HaveCount(3);
 
         var info = validationIssues.Should().ContainSingle(c => c.Severity == ValidationIssueSeverity.Informational).Which;

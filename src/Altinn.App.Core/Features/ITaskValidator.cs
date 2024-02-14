@@ -36,6 +36,7 @@ public interface ITaskValidator
     /// </summary>
     /// <param name="instance">The instance to validate</param>
     /// <param name="taskId">current task to run validations for</param>
+    /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <returns>List of validation issues to add to this task validation</returns>
-    Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId);
+    Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId, string? language);
 }

@@ -46,7 +46,7 @@ public class DataAnnotationValidator : IFormDataValidator
     public bool HasRelevantChanges(object current, object previous) => true;
 
     /// <inheritdoc />
-    public Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data)
+    public Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
     {
         try
         {

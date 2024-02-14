@@ -13,7 +13,6 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.FileAnalyzis;
-using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
@@ -21,6 +20,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -507,7 +507,7 @@ namespace Altinn.App.Api.Controllers
             // Ensure that all lists are changed from null to empty list.
             ObjectUtils.InitializeListsAndNullEmptyStrings(model);
 
-            var validationIssues = await _validationService.ValidateFormData(instance, dataElement, dataType, model, oldModel, dataPatchRequest.IgnoredValidators);
+            var validationIssues = await _validationService.ValidateFormData(instance, dataElement, dataType, model, oldModel, dataPatchRequest.IgnoredValidators, language);
             var response = new DataPatchResponse
             {
                 NewDataModel = model,

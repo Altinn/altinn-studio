@@ -15,7 +15,7 @@ public class DefaultDataElementValidator : IDataElementValidator
     public string DataType => "*";
 
     /// <inheritdoc />
-    public Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataElement dataElement, DataType dataType)
+    public Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataElement dataElement, DataType dataType, string? language)
     {
         var issues = new List<ValidationIssue>();
         if (dataElement.ContentType == null)

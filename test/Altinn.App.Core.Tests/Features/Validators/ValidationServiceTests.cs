@@ -1,10 +1,10 @@
 #nullable enable
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -52,8 +52,13 @@ public class ValidationServiceTests
         _serviceCollection.AddSingleton(_appModelMock.Object);
         _serviceCollection.AddSingleton(_appMetadataMock.Object);
         _serviceCollection.AddSingleton(_formDataValidatorMock.Object);
-        _formDataValidatorMock.Setup(v => v.DataType).Returns(DefaultDataType.Id);
-        _formDataValidatorMock.Setup(v => v.ValidationSource).Returns("MyNameValidator");
+        _serviceCollection.AddSingleton<IValidatorFactory, ValidatorFactory>();
+        _formDataValidatorMock
+            .Setup(v => v.DataType)
+            .Returns(DefaultDataType.Id);
+        _formDataValidatorMock
+            .Setup(v => v.ValidationSource)
+            .Returns("MyNameValidator");
     }
 
     [Fact]
@@ -65,29 +70,37 @@ public class ValidationServiceTests
 
         var validatorService = serviceProvider.GetRequiredService<IValidationService>();
         var data = new MyModel { Name = "Ola" };
-        var result = await validatorService.ValidateFormData(new Instance(), DefaultDataElement, DefaultDataType, data);
+        var result = await validatorService.ValidateFormData(new Instance(), DefaultDataElement, DefaultDataType, data, null, null, null);
         result.Should().BeEmpty();
     }
 
     [Fact]
     public async Task ValidateFormData_WithMyNameValidator_ReturnsNoErrorsWhenNameIsOla()
     {
-        _formDataValidatorMock.Setup(v => v.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>())).Returns(false);
-        _formDataValidatorMock.Setup(v => v.ValidateFormData(It.IsAny<Instance>(), It.IsAny<DataElement>(), It.IsAny<object>())).ReturnsAsync((Instance instance, DataElement dataElement, object data) =>
-        {
-            if (data is MyModel model && model.Name != "Ola")
+        _formDataValidatorMock
+            .Setup(v => v.HasRelevantChanges(It.IsAny<MyModel>(), It.IsAny<MyModel>()))
+            .Returns(true)
+            .Verifiable(Times.Once);
+        _formDataValidatorMock
+            .Setup(v => v.ValidateFormData(It.IsAny<Instance>(), It.IsAny<DataElement>(), It.IsAny<MyModel>(), null))
+            .ReturnsAsync((Instance instance, DataElement dataElement, MyModel model, string? language) =>
             {
-                return new List<ValidationIssue> { { new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "NameNotOla" } } };
-            }
+                if (model.Name != "Ola")
+                {
+                    return new List<ValidationIssue> { { new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "NameNotOla" } } };
+                }
 
-            return new List<ValidationIssue>();
-        });
+                return new List<ValidationIssue>();
+            })
+            .Verifiable(Times.Once);
 
         await using var serviceProvider = _serviceCollection.BuildServiceProvider();
 
         var validatorService = serviceProvider.GetRequiredService<IValidationService>();
         var data = new MyModel { Name = "Ola" };
-        var result = await validatorService.ValidateFormData(new Instance(), DefaultDataElement, DefaultDataType, data);
+        var previousData = new MyModel() { Name = "Kari" };
+        var result = await validatorService.ValidateFormData(new Instance(), DefaultDataElement, DefaultDataType, data, previousData, null, null);
+        _formDataValidatorMock.Verify();
         result.Should().ContainKey("MyNameValidator").WhoseValue.Should().HaveCount(0);
         result.Should().HaveCount(1);
     }
@@ -95,21 +108,24 @@ public class ValidationServiceTests
     [Fact]
     public async Task ValidateFormData_WithMyNameValidator_ReturnsErrorsWhenNameIsKari()
     {
-        _formDataValidatorMock.Setup(v => v.ValidateFormData(It.IsAny<Instance>(), It.IsAny<DataElement>(), It.IsAny<object>())).ReturnsAsync((Instance instance, DataElement dataElement, object data) =>
-        {
-            if (data is MyModel model && model.Name != "Ola")
+        _formDataValidatorMock
+            .Setup(v => v.ValidateFormData(It.IsAny<Instance>(), It.IsAny<DataElement>(), It.IsAny<object>(), null))
+            .ReturnsAsync((Instance instance, DataElement dataElement, object data, string? language) =>
             {
-                return new List<ValidationIssue> { { new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "NameNotOla" } } };
-            }
+                if (data is MyModel model && model.Name != "Ola")
+                {
+                    return new List<ValidationIssue> { { new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "NameNotOla" } } };
+                }
 
-            return new List<ValidationIssue>();
-        });
+                return new List<ValidationIssue>();
+            })
+            .Verifiable(Times.Once);
 
         await using var serviceProvider = _serviceCollection.BuildServiceProvider();
 
         var validatorService = serviceProvider.GetRequiredService<IValidationService>();
         var data = new MyModel { Name = "Kari" };
-        var result = await validatorService.ValidateFormData(new Instance(), DefaultDataElement, DefaultDataType, data);
+        var result = await validatorService.ValidateFormData(new Instance(), DefaultDataElement, DefaultDataType, data, null, null, null);
         result.Should().ContainKey("MyNameValidator").WhoseValue.Should().ContainSingle().Which.CustomTextKey.Should().Be("NameNotOla");
         result.Should().HaveCount(1);
     }
