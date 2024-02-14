@@ -4,7 +4,7 @@ import {
   type StudioToggableTextfieldProps,
 } from '../StudioToggableTextfield';
 import type { JsonSchema } from '../../../../../../packages/shared/src/types/JsonSchema';
-import { isPropertyRequired, validateProperty } from '../StudioSchemaUtils';
+import { isPropertyRequired, propertyValidation } from '../StudioSchemaValidation';
 import { useTranslation } from 'react-i18next';
 
 export type StudioTextfieldSchemaProps = {
@@ -30,11 +30,10 @@ export const StudioTextfieldSchema = <T extends unknown, TT extends unknown>({
   const validateAgainstSchema = (event: React.ChangeEvent<HTMLInputElement>): string | null => {
     const newValue = event.target.value;
 
-    if (isPropertyRequired(schema, propertyPath) && newValue?.length === 0)
-      return t('validation_errors.required');
+    if (isPropertyRequired && newValue?.length === 0) return t('validation_errors.required');
 
     if (propertyId) {
-      const error = validateProperty(propertyId, newValue);
+      const error = propertyValidation;
       if (error) return t('ux_editor.modal_properties_component_id_not_valid');
     }
     return null;
