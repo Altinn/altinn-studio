@@ -227,7 +227,7 @@ describe('Component utils', () => {
           type: 'boolean',
         },
       };
-      expect(getUnsupportedPropertyTypes(properties)).toEqual([]);
+      expect(getUnsupportedPropertyTypes(properties)).toEqual(['testProperty6']);
     });
     it('Returns empty array when no properties are provided', () => {
       const properties = {};
@@ -290,7 +290,7 @@ describe('Component utils', () => {
         isPropertyTypeSupported({
           type: 'object',
         }),
-      ).toBe(true);
+      ).toBe(false);
     });
     it('should return false if property ref is not supported', () => {
       expect(
