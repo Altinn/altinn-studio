@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { IconProps } from '../types';
 import { SvgTemplate } from './SvgTemplate';
-export const RepeatingGroup = (props: IconProps): JSX.Element => {
+export const RepeatingGroupIcon = (props: IconProps): JSX.Element => {
   return (
     <SvgTemplate {...props}>
       <rect

@@ -359,12 +359,8 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.RepeatingGroup,
     itemType: LayoutItemType.Container,
     defaultProperties: {},
-<<<<<<< HEAD
-    icon: GroupIcon,
-=======
     propertyPath: 'definitions/repeatingGroupComponent',
-    icon: RepeatingGroup,
->>>>>>> 475427968 (Update tests and add icon for repeating group)
+    icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
   [ComponentType.Summary]: {

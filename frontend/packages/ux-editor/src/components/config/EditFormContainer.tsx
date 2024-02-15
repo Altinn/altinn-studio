@@ -20,7 +20,6 @@ import type { FormContainer } from '../../types/FormContainer';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../hooks/useAppContext';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { FormComponentConfig } from './FormComponentConfig';
 
@@ -46,7 +45,7 @@ export const EditFormContainer = ({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
-  useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
+
   const { data: schema } = useComponentSchemaQuery(container.type);
 
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);

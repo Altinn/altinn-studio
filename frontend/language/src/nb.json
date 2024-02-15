@@ -1381,6 +1381,7 @@
   "ux_editor.component_help_text.TextArea": "Stort tekstfelt benyttes når brukeren skal fylle inn en lengre beskrivelse.",
   "ux_editor.component_help_text.default": "Mer informasjon om denne komponenten vil komme på et senere tidspunkt.",
   "ux_editor.component_help_text_general_title": "Åpne hjelpetekst for komponenten",
+  "ux_editor.component_other_properties_title": "Andre innstillinger",
   "ux_editor.component_properties.action": "Aksjon",
   "ux_editor.component_properties.actions": "Aksjoner",
   "ux_editor.component_properties.alertOnChange": "Bruker skal få advarsel når de gjør endring",

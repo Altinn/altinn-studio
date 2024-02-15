@@ -32,6 +32,7 @@ export const FormComponentConfig = ({
   if (!schema?.properties) return null;
 
   const {
+    children,
     dataModelBindings,
     required,
     readOnly,
@@ -64,7 +65,7 @@ export const FormComponentConfig = ({
       )}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
-          {'Andre innstillinger'}
+          {t('ux_editor.component_other_properties_title')}
         </Heading>
       )}
 
