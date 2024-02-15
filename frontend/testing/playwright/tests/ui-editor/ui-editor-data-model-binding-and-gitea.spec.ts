@@ -38,6 +38,8 @@ test('That it is possible to add a data model binding, and that the files are up
   page,
   testAppName,
 }): Promise<void> => {
+  await page.emulateMedia({ reducedMotion: null });
+
   const header = new Header(page, { app: testAppName });
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
@@ -75,7 +77,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await dataModelPage.clickOnGenerateDataModelButton();
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
 
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  // await uiEditorPage.waitForXAmountOfMilliseconds(2000);
 
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
@@ -86,10 +88,10 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.clickOnDataModelBindingsCombobox();
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
 
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  // await uiEditorPage.waitForXAmountOfMilliseconds(2000);
   const dataModelBindingName = 'property1';
   await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  // await uiEditorPage.waitForXAmountOfMilliseconds(2000);
 
   await uiEditorPage.clickOnSaveDataModel();
 
@@ -120,7 +122,7 @@ const addNewLabelToTreeItemComponent = async (
   await uiEditorPage.clickOnSaveNewLabelName();
 
   // We need to wait a few seconds to make sure that the API call is made and that the changes are saved to backend
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  // await uiEditorPage.waitForXAmountOfMilliseconds(2000);
 
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
