@@ -19,37 +19,13 @@ export const emptyPolicyRule: PolicyRuleCard = {
   description: '',
 };
 
-/**
- * Maps the list of policy subject strings from backend of the format
- * "subjectID:subjectResource" to the title of the subject.
- *
- * @param subjectOptions the possible subjects to select from
- * @param policySubjects the already selected subjects
- *
- * @returns a mapped string[] with subject titles
- */
-export const mapPolicySubjectToSubjectTitle = (
-  subjectOptions: PolicySubject[],
-  policySubjects: string[],
-): string[] => {
+export const extractPolicyIdsFromPolicySubjects = (policySubjects: string[]): string[] => {
   const extractPolicyIdFromPolicySubject = (policySubject: string): string => {
     const splitted = policySubject.split(':');
     return splitted[splitted.length - 1];
   };
-
-  const subjectIds = policySubjects.map(extractPolicyIdFromPolicySubject);
-
-  return subjectIds.map((subjectId) => {
-    const subjectOption = findSubjectOptionBySubjectId(subjectOptions, subjectId);
-
-    return subjectOption?.subjectTitle || subjectId;
-  });
+  return policySubjects.map(extractPolicyIdFromPolicySubject);
 };
-
-const findSubjectOptionBySubjectId = (
-  subjectOptions: PolicySubject[],
-  subjectId: string,
-): PolicySubject => subjectOptions.find((s) => s.subjectId === subjectId.trim()); // .trim() is added to make sure there is no additional whitespace on the ID before it's being checked.
 
 /**
  * Maps the resource string from backend to a resource object with type and id.
@@ -69,17 +45,7 @@ export const mapResourceFromBackendToResource = (resource: string): PolicyRuleRe
   };
 };
 
-/**
- * Maps the policy rules object from backend to an object of the type used to
- * display data on the policy cards on the policy editor.
- *
- * @param subjectOptions the possible subjects to select from
- * @param rules an array of rule objects where all elements are strings from backend.
- *
- * @returns a list of mapped objects of the policy rule card type
- */
 export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
-  subjectOptions: PolicySubject[],
   rules: PolicyRule[],
 ): PolicyRuleCard[] => {
   const newRules = rules.map((r) => {
@@ -90,13 +56,13 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
       resource.map((resource) => mapResourceFromBackendToResource(resource)),
     );
 
-    const subjectTitles = mapPolicySubjectToSubjectTitle(subjectOptions, r.subject);
+    const subjectIds: string[] = extractPolicyIdsFromPolicySubjects(r.subject);
 
     return {
       ruleId: id,
       actions: r.actions,
       description: r.description,
-      subject: subjectTitles,
+      subject: subjectIds,
       resources: mappedResources,
     };
   });

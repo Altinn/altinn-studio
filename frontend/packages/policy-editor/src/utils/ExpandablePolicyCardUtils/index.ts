@@ -38,7 +38,7 @@ export const getUpdatedRules = (
  */
 export const getSubjectOptions = (subjects: PolicySubject[], policyRule: PolicyRuleCard) => {
   return subjects
-    .filter((s) => !policyRule.subject.includes(s.subjectTitle))
+    .filter((s) => !policyRule.subject.includes(s.subjectId))
     .map((s) => ({ value: s.subjectId, label: s.subjectTitle }));
 };
 

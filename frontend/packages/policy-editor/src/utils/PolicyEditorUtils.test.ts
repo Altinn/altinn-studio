@@ -1,5 +1,4 @@
 import {
-  mapPolicySubjectToSubjectTitle,
   mapResourceFromBackendToResource,
   mapPolicyRulesBackendObjectToPolicyRuleCard,
   mapSubjectIdToSubjectString,
@@ -31,10 +30,8 @@ import {
   mockSubject2,
   mockSubject3,
   mockSubjectBackendString1,
-  mockSubjectBackendString3,
   mockSubjectId1,
   mockSubjectTitle1,
-  mockSubjectTitle3,
   mockSubjects,
   mockSubjectId3,
 } from '../data-mocks';
@@ -42,14 +39,10 @@ import type { PolicySubject } from '../types';
 
 describe('PolicyEditorUtils', () => {
   describe('mapPolicySubjectToSubjectTitle', () => {
-    it('should map policy subjects to subject titles', () => {
-      const mockBackendPolicySubjects: string[] = [
-        mockSubjectBackendString1,
-        mockSubjectBackendString3,
-      ];
-      const result = mapPolicySubjectToSubjectTitle(mockSubjects, mockBackendPolicySubjects);
+    it('should map policy subjects to subject ids', () => {
+      const result = mapPolicyRulesBackendObjectToPolicyRuleCard(mockPolicyRules);
 
-      expect(result).toEqual([mockSubjectTitle1, mockSubjectTitle3]);
+      expect(result).toEqual(mockPolicyRuleCards);
     });
   });
 
@@ -63,7 +56,7 @@ describe('PolicyEditorUtils', () => {
 
   describe('mapPolicyRulesBackendObjectToPolicyRuleCard', () => {
     it('should map policy rules from backend to policy rule cards', () => {
-      const result = mapPolicyRulesBackendObjectToPolicyRuleCard(mockSubjects, mockPolicyRules);
+      const result = mapPolicyRulesBackendObjectToPolicyRuleCard(mockPolicyRules);
       expect(result).toEqual(mockPolicyRuleCards);
     });
   });
