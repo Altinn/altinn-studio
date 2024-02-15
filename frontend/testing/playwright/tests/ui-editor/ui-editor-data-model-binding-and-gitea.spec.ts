@@ -10,17 +10,23 @@ import { Header } from '../../components/Header';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 
+const getAppTestName = (app: string) => `bindings-${app}`;
+
+const WAIT_ONE_SECOND = 1000;
+
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
   // Create a new app
-  const designerApi = new DesignerApi({ app: testAppName });
+  const designerApi = new DesignerApi({ app: getAppTestName(testAppName) });
   const response = await designerApi.createApp(request, storageState as StorageState);
   expect(response.ok()).toBeTruthy();
 });
 
 test.afterAll(async ({ request, testAppName }) => {
   const gitea = new Gitea();
-  const response = await request.delete(gitea.getDeleteAppEndpoint({ app: testAppName }));
+  const response = await request.delete(
+    gitea.getDeleteAppEndpoint({ app: getAppTestName(testAppName) }),
+  );
   expect(response.ok()).toBeTruthy();
 });
 
@@ -38,10 +44,11 @@ test('That it is possible to add a data model binding, and that the files are up
   page,
   testAppName,
 }): Promise<void> => {
-  const header = new Header(page, { app: testAppName });
-  const dataModelPage = new DataModelPage(page, { app: testAppName });
-  const giteaPage = new GiteaPage(page, { app: testAppName });
-  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
+  const app = getAppTestName(testAppName);
+  const header = new Header(page, { app });
+  const dataModelPage = new DataModelPage(page, { app });
+  const giteaPage = new GiteaPage(page, { app });
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, app);
 
   const pageName: string = 'Side1';
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, pageName);
@@ -75,7 +82,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await dataModelPage.clickOnGenerateDataModelButton();
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
 
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
 
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
@@ -86,10 +93,10 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.clickOnDataModelBindingsCombobox();
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
 
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
   const dataModelBindingName = 'property1';
   await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
 
   await uiEditorPage.clickOnSaveDataModel();
 
@@ -120,7 +127,7 @@ const addNewLabelToTreeItemComponent = async (
   await uiEditorPage.clickOnSaveNewLabelName();
 
   // We need to wait a few seconds to make sure that the API call is made and that the changes are saved to backend
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
 
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);

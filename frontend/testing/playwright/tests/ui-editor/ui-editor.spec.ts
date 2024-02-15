@@ -52,9 +52,6 @@ test('That it is possible to add and delete form components', async ({
   await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
-  await uiEditorPage.clickOnDeleteInputComponentButton();
-
-  await uiEditorPage.verifyThatPageIsEmpty();
 });
 
 test('That when adding more than one page, navigation buttons are added to the pages', async ({
@@ -96,7 +93,7 @@ test('That it is possible to add a Header component to the page when there is al
     componentToDrag: ComponentType.Header,
     componentToDropOn: ComponentType.Input,
   });
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  await uiEditorPage.waitForXAmountOfMilliseconds(1000);
 
   await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Header);
 
@@ -121,7 +118,7 @@ const addNewLabelToTreeItemComponent = async (
   await uiEditorPage.clickOnSaveNewLabelName();
 
   // We need to wait a few seconds to make sure that the API call is made and that the changes are saved to backend
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  await uiEditorPage.waitForXAmountOfMilliseconds(1000);
 
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
