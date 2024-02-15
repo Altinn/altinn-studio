@@ -375,6 +375,56 @@
           "dataSource": "dataModel.datalist"
         }
       ]
-    }
+    },
+    {
+      "id": "repeating3",
+      "value": "Kjæledyr"
+    },
+    { "id": "Pets.Title", "value": "Mine kjæledyr" },
+    { "id": "Pets.AddButton", "value": "Legg til kjæledyr" },
+    { "id": "Pets.Species", "value": "Art" },
+    { "id": "Pets.Name", "value": "Navn" },
+    { "id": "Pets.Age", "value": "Alder" },
+    { "id": "Pets.HiddenTitle", "value": "Skjulte kjæledyr" },
+    { "id": "Pets.HiddenDescription", "value":  "Velg hvilke kjæledyr som skal skjules fra tabellen over" },
+    { "id": "Pets.SortOrder", "value": "Endre rekkefølge" },
+    { "id": "Pets.SortOrderButton", "value": "Sorter nå" },
+    {
+      "id": "PetName",
+      "value": "{0} med navn {1} ({2} år)",
+      "variables": [
+        {
+          "key": "Pets.Species",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "???"
+        },
+        {
+          "key": "Pets.Name",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "???"
+        },
+        {
+          "key": "Pets.Age",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "???"
+        }
+      ]
+    },
+    { "id": "Species.Dog", "value": "Hund" },
+    { "id": "Species.Cat", "value": "Katt" },
+    { "id": "Species.Fish", "value": "Fisk" },
+    { "id": "Species.Bird", "value": "Fugl" },
+    { "id": "Species.Rabbit", "value": "Kanin" },
+    { "id": "Species.Hamster", "value": "Hamster" },
+    { "id": "Species.Snake", "value": "Slange" },
+    { "id": "Species.Spider", "value": "Edderkopp" },
+    { "id": "Species.TyrannosaurusRex", "value": "Tyrannosaurus Rex" },
+    { "id": "Species.Other", "value": "Annet" },
+    { "id": "PetsSortOrder.AscSpecies", "value": "Art (A-Å)" },
+    { "id": "PetsSortOrder.DescSpecies", "value": "Art (Å-A)" },
+    { "id": "PetsSortOrder.AscName", "value": "Navn (A-Å)" },
+    { "id": "PetsSortOrder.DescName", "value": "Navn (Å-A)" },
+    { "id": "PetsSortOrder.AscAge", "value": "Alder (1-9)" },
+    { "id": "PetsSortOrder.DescAge", "value": "Alder (9-1)" }
   ]
 }
