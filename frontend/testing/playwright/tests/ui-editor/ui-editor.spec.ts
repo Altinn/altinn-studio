@@ -91,6 +91,7 @@ test('That it is possible to add a Header component to the page when there is al
 
   await uiEditorPage.openTextComponentSection();
 
+  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
   await uiEditorPage.dragComponentInToDroppableListItem({
     componentToDrag: ComponentType.Header,
     componentToDropOn: ComponentType.Input,

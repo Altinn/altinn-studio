@@ -75,6 +75,8 @@ test('That it is possible to add a data model binding, and that the files are up
   await dataModelPage.clickOnGenerateDataModelButton();
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
 
+  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, pageName);
@@ -84,6 +86,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.clickOnDataModelBindingsCombobox();
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
 
+  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
   const dataModelBindingName = 'property1';
   await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
   await uiEditorPage.waitForXAmountOfMilliseconds(2000);
