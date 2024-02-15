@@ -6,10 +6,10 @@ import type { StorageState } from '../../types/StorageState';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { Gitea } from '../../helpers/Gitea';
 import { ComponentType } from '../../enum/ComponentType';
-/*import { Header } from '../../components/Header';
+import { Header } from '../../components/Header';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
-*/
+
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
 // Test nr. 2 is dependent on test 1, and therefore is "serial" important
@@ -104,7 +104,7 @@ test('That it is possible to add a Header component and edit the name of the com
   const newHeaderName: string = 'New Header';
   await addNewLabelToTreeItemComponent(uiEditorPage, newHeaderName);
 });
-/*
+
 test('That it is possible to add a data model binding, and that the files are updated accordingly in Gitea', async ({
   page,
   testAppName,
@@ -168,7 +168,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await navigateInToLayoutJsonFile(giteaPage, PAGE_1);
   await giteaPage.verifyThatDataModelBindingsAreVisible(dataModelBindingName);
 });
-*/
+
 const openPageAccordionAndVerifyUpdatedUrl = async (
   uiEditorPage: UiEditorPage,
   pageName: string,
@@ -191,7 +191,7 @@ const addNewLabelToTreeItemComponent = async (
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
 };
-/*
+
 const navigateInToLayoutJsonFile = async (giteaPage: GiteaPage, layoutName: string) => {
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
@@ -199,4 +199,3 @@ const navigateInToLayoutJsonFile = async (giteaPage: GiteaPage, layoutName: stri
   await giteaPage.clickOnLayoutsFilesButton();
   await giteaPage.clickOnLayoutJsonFile(layoutName);
 };
-*/
