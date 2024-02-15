@@ -12,7 +12,7 @@ import { GiteaPage } from '../../pages/GiteaPage';
 
 const getAppTestName = (app: string) => `bindings-${app}`;
 
-const WAIT_ONE_SECOND = 1000;
+const WAIT_ONE_SECOND = 2000;
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
