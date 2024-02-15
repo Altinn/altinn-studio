@@ -10,6 +10,11 @@ import { Header } from '../../components/Header';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 
+// This line must be there to ensure that the tests do not run in parallell, and
+// that the before all call is being executed before we start the tests
+// Test nr. 2 is dependent on test 1, and therefore is "serial" important
+test.describe.configure({ mode: 'serial' });
+
 // Variables that are shared between tests
 const PAGE_1: string = 'Side1';
 
