@@ -32,7 +32,7 @@ export class UiEditorPage extends BasePage {
     await this.page.getByText(this.textMock('ux_editor.container_empty')).isVisible();
   }
 
-  // Empty list
+  // This is for when the list is empty
   public async dragComponentInToDroppableList(component: ComponentType): Promise<void> {
     const dropDestination = this.getDroppableList();
 
@@ -41,6 +41,7 @@ export class UiEditorPage extends BasePage {
       .dragTo(dropDestination);
   }
 
+  // This is for when the list is is not empty
   public async dragComponentInToDroppableListItem(
     components: DragAndDropComponents,
   ): Promise<void> {
@@ -125,14 +126,8 @@ export class UiEditorPage extends BasePage {
 
   public async clickOnAddLabelText(): Promise<void> {
     await this.page
-      /*.getByRole('button', {
-        name: this.textMock('general.add'),
-        // exact: true,
-      })*/
-      //.first() // Because of the issue where both label, description and helptext has the same aria-label = "Legg til", .first() is used to get the first of them which is the label. Issue: #12297
       .getByRole('button', {
         name: this.textMock('ux_editor.text_resource_binding_add_title'),
-        // exact: true,
       })
       .click();
   }
