@@ -1401,7 +1401,7 @@
   "ux_editor.component_properties.dataTypeIds": "Liste med ID på datatyper som skal vises",
   "ux_editor.component_properties.dateSent": "Dato instansen ble sendt inn",
   "ux_editor.component_properties.display": "Visning",
-  "ux_editor.component_properties.displayMode": "Visninsmodus (enkel eller liste)",
+  "ux_editor.component_properties.displayMode": "Visningsmodus (enkel eller liste)",
   "ux_editor.component_properties.edit": "Redigeringsvalg",
   "ux_editor.component_properties.elements": "Elementer som skal vises (når ingen er satt vises alle)",
   "ux_editor.component_properties.excludedChildren": "Komponenter som skal ekskluderes fra gruppens oppsummering",
