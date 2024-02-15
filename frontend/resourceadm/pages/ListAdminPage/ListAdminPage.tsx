@@ -23,8 +23,8 @@ export const ListAdminPage = (): React.JSX.Element => {
   );
 
   const navigateToListEnv = useCallback(
-    (navigateEnv: EnvId) => {
-      navigate(getAccessListPageUrl(selectedContext, repo, navigateEnv));
+    (navigateEnv: EnvId, replace?: boolean) => {
+      navigate(getAccessListPageUrl(selectedContext, repo, navigateEnv), { replace: replace });
     },
     [selectedContext, repo, navigate],
   );
@@ -32,7 +32,7 @@ export const ListAdminPage = (): React.JSX.Element => {
   useEffect(() => {
     if (!selectedEnv) {
       const availableEnvs = getAvailableEnvironments(selectedContext);
-      navigateToListEnv(availableEnvs[0].id);
+      navigateToListEnv(availableEnvs[0].id, true);
     }
   }, [selectedContext, selectedEnv, navigateToListEnv]);
 
