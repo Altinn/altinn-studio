@@ -106,7 +106,7 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
 /**
  * Maps a Subject title to the string format to send to backend: "urn:subjectsource:subjectid"
  */
-export const mapSubjectTitleToSubjectString = (
+export const mapSubjectIdToSubjectString = (
   subjectOptions: PolicySubject[],
   subjectId: string,
 ): string => {
@@ -140,7 +140,7 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
   );
 
   const subject: string[] = policyRule.subject.map((s) =>
-    mapSubjectTitleToSubjectString(subjectOptions, s),
+    mapSubjectIdToSubjectString(subjectOptions, s),
   );
 
   return {

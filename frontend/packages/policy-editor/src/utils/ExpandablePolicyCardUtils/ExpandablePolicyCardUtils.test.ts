@@ -18,6 +18,9 @@ import {
   mockSubjectTitle2,
   mockSubjectTitle3,
   mockSubjects,
+  mockSubjectId1,
+  mockSubjectId2,
+  mockSubjectId3,
 } from '../../data-mocks';
 
 describe('ExpandablePolicyCardUtils', () => {
@@ -48,7 +51,7 @@ describe('ExpandablePolicyCardUtils', () => {
       const subjectOptions = getSubjectOptions(mockSubjects, mockPolicyRuleCard1);
 
       expect(subjectOptions.length).toBe(1); // Subject 1 and subject 3 are removed
-      expect(subjectOptions.map((s) => s.value)).toEqual([mockSubjectTitle2]); // 2 not in the rule
+      expect(subjectOptions.map((s) => s.value)).toEqual([mockSubjectId2]); // 2 not in the rule
     });
 
     it('should return all subject options if none are included in the policy rule', () => {
@@ -56,9 +59,9 @@ describe('ExpandablePolicyCardUtils', () => {
 
       expect(subjectOptions.length).toBe(3);
       expect(subjectOptions.map((s) => s.value)).toEqual([
-        mockSubjectTitle1,
-        mockSubjectTitle2,
-        mockSubjectTitle3,
+        mockSubjectId1,
+        mockSubjectId2,
+        mockSubjectId3,
       ]);
     });
 

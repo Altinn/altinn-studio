@@ -2,7 +2,7 @@ import {
   mapPolicySubjectToSubjectTitle,
   mapResourceFromBackendToResource,
   mapPolicyRulesBackendObjectToPolicyRuleCard,
-  mapSubjectTitleToSubjectString,
+  mapSubjectIdToSubjectString,
   mapPolicyRuleToPolicyRuleBackendObject,
   createNewPolicyResource,
   mergeActionsFromPolicyWithActionOptions,
@@ -36,6 +36,7 @@ import {
   mockSubjectTitle1,
   mockSubjectTitle3,
   mockSubjects,
+  mockSubjectId3,
 } from '../data-mocks';
 import type { PolicySubject } from '../types';
 
@@ -67,24 +68,28 @@ describe('PolicyEditorUtils', () => {
     });
   });
 
-  describe('mapSubjectTitleToSubjectString', () => {
-    it('should map a subject title to a subject string', () => {
-      const result = mapSubjectTitleToSubjectString(mockSubjects, mockSubjectTitle1);
+  describe('mapSubjectIdToSubjectString', () => {
+    it('should map a subject id to a subject string', () => {
+      const result = mapSubjectIdToSubjectString(mockSubjects, mockSubjectId1);
 
       expect(result).toBe(mockSubjectBackendString1);
     });
 
     it('should return nothing when there is no subject matching the subject title', () => {
-      const result = mapSubjectTitleToSubjectString(mockSubjects, 'invalidTitle');
+      const result = mapSubjectIdToSubjectString(mockSubjects, 'invalidTitle');
       expect(result).toBe(undefined);
     });
   });
 
   describe('mapPolicyRuleToPolicyRuleBackendObject', () => {
     it('should map a policy rule card to a policy rule backend object', () => {
+      const mockPolicyRule = {
+        ...mockPolicyRuleCard1,
+        subject: [mockSubjectId1, mockSubjectId3],
+      };
       const result = mapPolicyRuleToPolicyRuleBackendObject(
         mockSubjects,
-        mockPolicyRuleCard1,
+        mockPolicyRule,
         mockRuleId1,
       );
 
