@@ -131,7 +131,7 @@ export class UiEditorPage extends BasePage {
       })*/
       //.first() // Because of the issue where both label, description and helptext has the same aria-label = "Legg til", .first() is used to get the first of them which is the label. Issue: #12297
       .getByRole('button', {
-        name: this.textMock('ux_editor.add_title'),
+        name: this.textMock('ux_editor.text_resource_binding_add_title'),
         // exact: true,
       })
       .click();
