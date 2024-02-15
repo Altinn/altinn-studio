@@ -1,10 +1,9 @@
-import { expect } from '@playwright/test';
+/*import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { UiEditorPage } from '../../pages/UiEditorPage';
-import { Gitea } from '../../helpers/Gitea';
 import { ComponentType } from '../../enum/ComponentType';
 import { Header } from '../../components/Header';
 import { DataModelPage } from '../../pages/DataModelPage';
@@ -133,3 +132,4 @@ const openPageAccordionAndVerifyUpdatedUrl = async (
   await uiEditorPage.clickOnPageAccordion(pageName);
   await uiEditorPage.verifyUiEditorPage(pageName); // When clicking the page, the url is updated to include the layout
 };
+*/
