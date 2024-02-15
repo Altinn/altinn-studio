@@ -188,7 +188,6 @@ describe('AttachmentListComponent', () => {
 
     await act(() => user.click(currentTaskCheckbox));
     expect(currentTaskCheckbox).toBeChecked();
-
     await act(() => user.click(dropdown));
 
     expect(screen.queryByRole('option', { name: 'test1' })).not.toBeInTheDocument();

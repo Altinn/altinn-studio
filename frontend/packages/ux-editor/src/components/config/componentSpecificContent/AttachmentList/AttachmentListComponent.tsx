@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -9,42 +9,49 @@ import { AttachmentListContent } from './AttachmentListContent';
 import { Switch } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export const AttachmentListComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent) => {
+}: IGenericEditComponent<ComponentType.AttachmentList>) => {
   const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const { selectedLayoutSet } = useAppContext();
   const { t } = useTranslation();
 
-  const selectedAttachments = component?.dataTypeIds ?? [];
-  const [onlyCurrentTask, setOnlyCurrentTask] = useState(
-    selectedAttachments.includes('current-task') ? true : false,
-  );
-  const [includePdf, setIncludePdf] = useState(
-    selectedAttachments.includes('ref-data-as-pdf') ? true : false,
-  );
+  const reservedDataTypes = {
+    currentTask: 'current-task',
+    refDataAsPdf: 'ref-data-as-pdf',
+    includeAll: 'include-all',
+  };
 
-  const tasks: string[] = getTasks(layoutSets, selectedLayoutSet, onlyCurrentTask);
-  const attachmentsToDisplay: string[] = getAttachments(tasks, appMetadata);
+  const selectedAttachments = component?.dataTypeIds ?? [];
+  const onlyCurrentTask = selectedAttachments.includes(reservedDataTypes.currentTask);
+  const includePdf = selectedAttachments.includes(reservedDataTypes.refDataAsPdf);
+
+  const tasks: string[] = layoutSets
+    ? getTasks(layoutSets, selectedLayoutSet, onlyCurrentTask)
+    : [];
+  const attachmentsToDisplay: string[] = getAttachments(tasks, appMetadata, reservedDataTypes);
 
   const selectedAttachmentsToDisplay = selectedAttachments.filter((attachment: string) => {
-    const isNotTaskId = attachment !== 'current-task';
-    const isNotPdfId = attachment !== 'ref-data-as-pdf';
+    const isNotTaskId = attachment !== reservedDataTypes.currentTask;
+    const isNotPdfId = attachment !== reservedDataTypes.refDataAsPdf;
     const isIncluded = attachmentsToDisplay.includes(attachment);
 
     return onlyCurrentTask ? isNotTaskId && isNotPdfId && isIncluded : isNotTaskId && isNotPdfId;
   });
 
   const onChangePdf = (isChecked: boolean) => {
-    const updatedSelectedAttachments: string[] = isChecked
-      ? selectedAttachments.concat('ref-data-as-pdf')
-      : selectedAttachments.filter((attachment: string) => attachment !== 'ref-data-as-pdf');
+    const updatedSelectedAttachments: string[] = toggleItemInArray(
+      selectedAttachments,
+      reservedDataTypes.refDataAsPdf,
+      isChecked,
+    );
 
-    setIncludePdf(!includePdf);
     handleComponentChange({
       ...component,
       dataTypeIds: updatedSelectedAttachments,
@@ -52,11 +59,12 @@ export const AttachmentListComponent = ({
   };
 
   const onChangeTask = (isChecked: boolean) => {
-    const updatedSelectedAttachments: string[] = isChecked
-      ? selectedAttachments.concat('current-task')
-      : selectedAttachments.filter((attachment: string) => attachment !== 'current-task');
+    const updatedSelectedAttachments: string[] = toggleItemInArray(
+      selectedAttachments,
+      reservedDataTypes.currentTask,
+      isChecked,
+    );
 
-    setOnlyCurrentTask(!onlyCurrentTask);
     handleComponentChange({
       ...component,
       dataTypeIds: updatedSelectedAttachments,
@@ -82,6 +90,7 @@ export const AttachmentListComponent = ({
         attachments={attachmentsToDisplay}
         onlyCurrentTask={onlyCurrentTask}
         includePdf={includePdf}
+        reservedDataTypes={reservedDataTypes}
       />
     </>
   );
@@ -92,36 +101,44 @@ const getTasks = (
   selectedLayoutSet: string,
   onlyCurrentTask: boolean,
 ): string[] => {
-  if (!layoutSets?.sets) return [];
-  const currentTask = () =>
-    layoutSets.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks;
-
-  const sampleTasks = () => {
-    const tasks = [];
-    for (const layoutSet of layoutSets.sets) {
-      tasks.push(...layoutSet.tasks);
-      if (layoutSet.id === selectedLayoutSet) {
-        break;
-      }
-    }
-    return tasks;
-  };
-
-  return onlyCurrentTask ? currentTask() : sampleTasks();
+  return onlyCurrentTask
+    ? currentTasks(layoutSets, selectedLayoutSet)
+    : sampleTasks(layoutSets, selectedLayoutSet);
 };
 
-const getAttachments = (tasks: string[], appMetaData: ApplicationMetadata): string[] => {
+const currentTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[] =>
+  layoutSets.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks;
+
+const sampleTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[] => {
+  const tasks = [];
+  for (const layoutSet of layoutSets.sets) {
+    tasks.push(...layoutSet.tasks);
+    if (layoutSet.id === selectedLayoutSet) {
+      break;
+    }
+  }
+  return tasks;
+};
+
+const getAttachments = (
+  tasks: string[],
+  appMetaData: ApplicationMetadata,
+  reservedDataTypes: { currentTask: string; refDataAsPdf: string },
+): string[] => {
   const filteredDataTypes = appMetaData?.dataTypes.filter(
     (dataType: DataTypeElement) =>
       !dataType.appLogic &&
       tasks.some((task) => dataType.taskId === task) &&
-      dataType.id !== 'ref-data-as-pdf' &&
-      dataType.id !== 'current-task',
+      dataType.id !== reservedDataTypes.refDataAsPdf &&
+      dataType.id !== reservedDataTypes.currentTask,
   );
 
   const mappedDataTypes = filteredDataTypes?.map((dataType: DataTypeElement) => dataType.id) ?? [];
   const sortedDataTypes = mappedDataTypes.sort((a, b) => a.localeCompare(b));
 
-  sortedDataTypes.length !== 0 && mappedDataTypes.unshift('include-all');
+  sortedDataTypes.length !== 0 && mappedDataTypes.unshift(reservedDataTypes.includeAll);
   return mappedDataTypes;
 };
+
+const toggleItemInArray = (array: string[], item: string, add: boolean): string[] =>
+  add ? array.concat(item) : ArrayUtils.removeItemByValue(array, item);

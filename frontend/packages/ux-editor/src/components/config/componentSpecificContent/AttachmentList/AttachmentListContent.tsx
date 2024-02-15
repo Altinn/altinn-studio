@@ -9,6 +9,11 @@ type IAttachmentListContent = IGenericEditComponent & {
   attachments: string[];
   onlyCurrentTask: boolean;
   includePdf: boolean;
+  reservedDataTypes: {
+    currentTask: string;
+    refDataAsPdf: string;
+    includeAll: string;
+  };
 };
 
 export const AttachmentListContent = ({
@@ -18,6 +23,7 @@ export const AttachmentListContent = ({
   attachments,
   onlyCurrentTask,
   includePdf,
+  reservedDataTypes,
 }: IAttachmentListContent) => {
   const { t } = useTranslation();
 
@@ -25,25 +31,24 @@ export const AttachmentListContent = ({
     const lastSelected = updatedSelection[updatedSelection.length - 1];
 
     updatedSelection =
-      lastSelected === 'include-all'
-        ? ['include-all']
-        : updatedSelection.filter((dataType) => dataType !== 'include-all');
+      lastSelected === reservedDataTypes.currentTask
+        ? [reservedDataTypes.currentTask]
+        : updatedSelection.filter((dataType) => dataType !== reservedDataTypes.includeAll);
 
     if (onlyCurrentTask) {
-      updatedSelection.push('current-task');
+      updatedSelection.push(reservedDataTypes.currentTask);
     }
     if (includePdf) {
-      updatedSelection.push('ref-data-as-pdf');
+      updatedSelection.push(reservedDataTypes.refDataAsPdf);
     }
 
     handleComponentChange({ ...component, dataTypeIds: updatedSelection });
   };
 
-  const getTextToDisplay = (dataType: string) => {
-    return dataType === 'include-all'
+  const getTextToDisplay = (dataType: string) =>
+    dataType === reservedDataTypes.includeAll
       ? t('ux_editor.component_properties.select_all_attachments')
       : dataType;
-  };
 
   return (
     <Combobox
@@ -51,7 +56,9 @@ export const AttachmentListContent = ({
       label={t('ux_editor.component_properties.select_attachments')}
       className={classes.comboboxLabel}
       size='small'
-      value={selectedAttachments.length === 0 ? ['include-all'] : selectedAttachments}
+      value={
+        selectedAttachments.length === 0 ? [reservedDataTypes.includeAll] : selectedAttachments
+      }
       onValueChange={handleValueChanges}
     >
       {attachments?.map((attachment) => {
