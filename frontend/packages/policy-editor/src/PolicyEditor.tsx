@@ -62,7 +62,7 @@ export const PolicyEditor = ({
   const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCard[]>(
-    mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, actions, policy?.rules ?? []),
+    mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, policy?.rules ?? []),
   );
 
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated

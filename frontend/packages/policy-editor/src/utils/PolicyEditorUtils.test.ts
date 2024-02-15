@@ -17,7 +17,6 @@ import {
   mockAction2,
   mockAction3,
   mockAction4,
-  mockActions,
   mockPolicyResourceBackendString1,
   mockPolicyRule1,
   mockPolicyRuleCard1,
@@ -63,11 +62,7 @@ describe('PolicyEditorUtils', () => {
 
   describe('mapPolicyRulesBackendObjectToPolicyRuleCard', () => {
     it('should map policy rules from backend to policy rule cards', () => {
-      const result = mapPolicyRulesBackendObjectToPolicyRuleCard(
-        mockSubjects,
-        mockActions,
-        mockPolicyRules,
-      );
+      const result = mapPolicyRulesBackendObjectToPolicyRuleCard(mockSubjects, mockPolicyRules);
       expect(result).toEqual(mockPolicyRuleCards);
     });
   });

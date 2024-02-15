@@ -32,10 +32,13 @@ export const mapPolicySubjectToSubjectTitle = (
   subjectOptions: PolicySubject[],
   policySubjects: string[],
 ): string[] => {
-  const subjectIds = policySubjects.map((s) => {
-    const splitted = s.split(':');
+  const extractPolicyIdFromPolicySubject = (policySubject: string): string => {
+    const splitted = policySubject.split(':');
     return splitted[splitted.length - 1];
-  });
+  };
+
+  const subjectIds = policySubjects.map(extractPolicyIdFromPolicySubject);
+
   return subjectIds.map((subjectId) => {
     const subjectOption = findSubjectOptionBySubjectId(subjectOptions, subjectId);
 
@@ -77,7 +80,6 @@ export const mapResourceFromBackendToResource = (resource: string): PolicyRuleRe
  */
 export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
   subjectOptions: PolicySubject[],
-  actionOptions: PolicyAction[],
   rules: PolicyRule[],
 ): PolicyRuleCard[] => {
   const newRules = rules.map((r) => {
@@ -103,19 +105,15 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
 
 /**
  * Maps a Subject title to the string format to send to backend: "urn:subjectsource:subjectid"
- *
- * @param subjectOptions the possible subjects to select from
- * @param subjectTitle the title of the subject
- *
- * @returns a string of the correct format to send
  */
 export const mapSubjectTitleToSubjectString = (
   subjectOptions: PolicySubject[],
-  subjectTitle: string,
+  subjectId: string,
 ): string => {
   const subject: PolicySubject = subjectOptions.find(
-    (s) => s.subjectTitle.toLowerCase() === subjectTitle.toLowerCase(),
+    (s) => s.subjectId.toLowerCase() === subjectId.toLowerCase(),
   );
+
   if (!subject) return;
   return `urn:${subject.subjectSource}:${subject.subjectId}`;
 };
@@ -251,7 +249,7 @@ export const convertSubjectStringToSubjectId = (subjectString: string): string =
 export const createNewSubjectFromSubjectString = (subjectString: string): PolicySubject => {
   const subjectId: string = convertSubjectStringToSubjectId(subjectString);
   return {
-    subjectId: subjectId,
+    subjectId: subjectId.toLowerCase(),
     subjectTitle: subjectId,
     subjectSource: convertSubjectStringToSubjectSource(subjectString),
     subjectDescription: '',
