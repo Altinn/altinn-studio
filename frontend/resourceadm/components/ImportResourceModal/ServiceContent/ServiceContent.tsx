@@ -21,7 +21,7 @@ export type ServiceContentProps = {
  *
  * @property {string}[selectedContext] - The selected context
  * @property {string}[env] - The selected environment
- * @property {Altinn2LinkService}[selectedService] - The selected service
+ * @property {Altinn2LinkService | undefined}[selectedService] - The selected service
  * @property {function}[onSelectService] - Function to be executed when selecting the service
  *
  * @returns {ReactNode} - The rendered component

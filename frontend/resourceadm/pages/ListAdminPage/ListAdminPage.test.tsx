@@ -30,7 +30,9 @@ describe('ListAdminPage', () => {
     });
     renderListAdminPage();
 
-    expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/tt02/`);
+    expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/tt02/`, {
+      replace: true,
+    });
   });
 
   it('should show lists after environment is selected', async () => {
@@ -54,7 +56,9 @@ describe('ListAdminPage', () => {
     const prodEnvButton = screen.getByText(textMock('resourceadm.deploy_prod_env'));
     await act(() => user.click(prodEnvButton));
 
-    expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/prod/`);
+    expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/prod/`, {
+      replace: undefined,
+    });
   });
 
   it('should show create dialog when create new button is clicked', async () => {
