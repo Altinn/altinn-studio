@@ -202,7 +202,12 @@ export class UiEditorPage extends BasePage {
   }
 
   public async clickOnDataModelPropertyOption(option: string): Promise<void> {
-    await this.page.getByRole('option', { name: option }).click();
+    await this.page
+      .getByRole('combobox', {
+        name: this.textMock('ux_editor.modal_properties_data_model_helper'),
+      })
+      .getByRole('option', { name: option })
+      .click();
   }
 
   public async clickOnSaveDataModel(): Promise<void> {
