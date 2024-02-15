@@ -6,11 +6,6 @@ import type { StorageState } from '../../types/StorageState';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { Gitea } from '../../helpers/Gitea';
 import { ComponentType } from '../../enum/ComponentType';
-/*
-import { Header } from '../../components/Header';
-import { DataModelPage } from '../../pages/DataModelPage';
-import { GiteaPage } from '../../pages/GiteaPage';
-*/
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -96,7 +91,6 @@ test('That it is possible to add a Header component to the page when there is al
 
   await uiEditorPage.openTextComponentSection();
 
-  // await uiEditorPage.waitForXAmountOfMilliseconds(2000);
   await uiEditorPage.dragComponentInToDroppableListItem({
     componentToDrag: ComponentType.Header,
     componentToDropOn: ComponentType.Input,
@@ -108,71 +102,6 @@ test('That it is possible to add a Header component to the page when there is al
   const newHeaderName: string = 'New Header';
   await addNewLabelToTreeItemComponent(uiEditorPage, newHeaderName);
 });
-
-/*
-test('That it is possible to add a data model binding, and that the files are updated accordingly in Gitea', async ({
-  page,
-  testAppName,
-}): Promise<void> => {
-  const header = new Header(page, { app: testAppName });
-  const dataModelPage = new DataModelPage(page, { app: testAppName });
-  const giteaPage = new GiteaPage(page, { app: testAppName });
-  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
-
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
-  await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Input);
-
-  const newInputLabel: string = 'Input Label 1';
-  await uiEditorPage.clickOnTreeItemByComponentType(ComponentType.Input);
-  await addNewLabelToTreeItemComponent(uiEditorPage, newInputLabel);
-
-  await uiEditorPage.clickOnAddDataModelButton();
-  await uiEditorPage.clickOnDataModelBindingsCombobox();
-  await uiEditorPage.verifyThatThereAreNoOptionsInTheDataModelList();
-
-  await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
-  await navigateInToLayoutJsonFile(giteaPage, PAGE_1);
-  await giteaPage.verifyThatDataModelBindingsAreNotPresent();
-  await giteaPage.goBackNPages(5); // 5 because of: Gitea -> App -> ui -> layouts -> page1.json
-
-  await uiEditorPage.verifyUiEditorPage(PAGE_1);
-
-  await header.clickOnNavigateToPageInTopMenuHeader('datamodel');
-  await dataModelPage.verifyDataModelPage();
-
-  // Add datamodel
-  await dataModelPage.clickOnCreateNewDataModelButton();
-  const dataModelName: string = 'testdatamodel';
-  await dataModelPage.typeDataModelName(dataModelName);
-  await dataModelPage.clickOnCreateModelButton();
-  await dataModelPage.clickOnGenerateDataModelButton();
-  await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
-
-  await header.clickOnNavigateToPageInTopMenuHeader('create');
-  await uiEditorPage.verifyUiEditorPage();
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
-  await uiEditorPage.clickOnTreeItem(newInputLabel);
-
-  await uiEditorPage.clickOnAddDataModelButton();
-  await uiEditorPage.clickOnDataModelBindingsCombobox();
-  await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
-
-  // MAYBE WE NEED TO ADD THE DATAMODEL PROPERTY MANUALLY?
-  const dataModelBindingName = 'property1';
-  await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
-  await uiEditorPage.clickOnSaveDataModel();
-
-  await header.clickOnUploadLocalChangesButton();
-  await header.clickOnValidateChanges();
-  await header.checkThatUploadSuccessMessageIsVisible();
-  await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
-  await navigateInToLayoutJsonFile(giteaPage, PAGE_1);
-  await giteaPage.verifyThatDataModelBindingsAreVisible(dataModelBindingName);
-});*/
 
 const openPageAccordionAndVerifyUpdatedUrl = async (
   uiEditorPage: UiEditorPage,
@@ -196,13 +125,3 @@ const addNewLabelToTreeItemComponent = async (
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
 };
-
-/*
-const navigateInToLayoutJsonFile = async (giteaPage: GiteaPage, layoutName: string) => {
-  await giteaPage.verifyGiteaPage();
-  await giteaPage.clickOnAppFilesButton();
-  await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutsFilesButton();
-  await giteaPage.clickOnLayoutJsonFile(layoutName);
-};
-*/
