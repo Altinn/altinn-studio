@@ -285,7 +285,7 @@ describe('Component utils', () => {
         }),
       ).toBe(true);
     });
-    it('should return true for property type object', () => {
+    it('should return false for property type object', () => {
       expect(
         isPropertyTypeSupported({
           type: 'object',
