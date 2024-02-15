@@ -123,6 +123,7 @@ describe('Options', () => {
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'My fixed value');
     cy.get(appFrontend.changeOfName.reference2).should('have.value', 'My fixed value');
   });
+
   it('retrieves metadata from header when metadata is set in datamodelBindings', () => {
     cy.intercept({ method: 'GET', url: '**/options/**' }).as('optionsMunicipality');
 
@@ -134,5 +135,58 @@ describe('Options', () => {
     cy.get(appFrontend.changeOfName.municipalityMetadata)
       .should('have.prop', 'value')
       .should('match', /language=nb,id=131,variant=,date=\d{1,2}[/.]\d{1,2}[/.]\d{4},level=,parentCode=/);
+  });
+
+  it('clears options when source changes and old value is no longer valid', () => {
+    cy.goto('changename');
+
+    cy.get(appFrontend.changeOfName.sources).should('be.visible');
+    cy.get('[role=option][value="nordmann"]').should('exist');
+
+    cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
+
+    cy.gotoNavPage('summary');
+
+    cy.get(appFrontend.changeOfName.summaryReference).should('contain.text', 'Altinn');
+    cy.get(appFrontend.changeOfName.summaryReference).should('contain.text', 'Ola Nordmann');
+
+    cy.gotoNavPage('form');
+
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
+    cy.get('[role=option][value="salt"]').should('exist');
+    cy.get(appFrontend.changeOfName.reference).should('not.have.value', 'Ola Nordmann');
+
+    cy.gotoNavPage('summary');
+
+    cy.get(appFrontend.changeOfName.summaryReference).should('contain.text', 'Digitaliseringsdirektoratet');
+    cy.get(appFrontend.changeOfName.summaryReference).should('not.contain.text', 'nordmann');
+  });
+
+  it('does not clear options when source changes and the old value is still valid', () => {
+    cy.intercept({ method: 'GET', url: '**/options/references*source=digdir' }, (req) => {
+      req.reply((res) => {
+        const options = res.body as IRawOption[];
+        options.push({
+          value: 'nordmann',
+          label: 'Fortsatt Ola Nordmann',
+        });
+        res.send(JSON.stringify(options));
+      });
+    });
+    cy.goto('changename');
+
+    cy.get(appFrontend.changeOfName.sources).should('be.visible');
+    cy.get('[role=option][value="nordmann"]').should('exist');
+
+    cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
+
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
+    cy.get('[role=option][value="salt"]').should('exist');
+
+    cy.get(appFrontend.changeOfName.reference).should('have.value', 'Fortsatt Ola Nordmann');
   });
 });

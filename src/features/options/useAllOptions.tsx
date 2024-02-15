@@ -117,6 +117,7 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
   const setNodesFound = useSelector((state) => state.setNodesFound);
   const setNodeOptions = useSelector((state) => state.setNodeOptions);
   const allInitiallyLoaded = useAllOptionsInitiallyLoaded();
+  const allOptions = useAllOptions();
 
   useEffect(() => {
     setCurrentTaskId(currentTaskId);
@@ -142,6 +143,8 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
   const dummies = nodes
     ?.allNodes()
     .filter((n) => isNodeOptionBased(n))
+    // Until allInitiallyLoaded is true, we want to wait for nodesFound to be set before we start fetching options
+    .filter((n) => allInitiallyLoaded || Object.keys(allOptions).includes(n.item.id))
     .map((node) => (
       <DummyOptionsSaver
         key={node.item.id}

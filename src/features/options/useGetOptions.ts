@@ -79,7 +79,7 @@ interface EffectProps<T extends ValueType> {
   disable: boolean;
   valueType: T;
   preselectedOption: IOptionInternal | undefined;
-  currentValue: CurrentValue<T>;
+  currentValue: CurrentValueAsString<T>;
   setValue: ValueSetter<T>;
 }
 
@@ -188,10 +188,10 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
       disable: !(props.dataModelBindings && 'simpleBinding' in props.dataModelBindings),
       valueType,
       preselectedOption,
-      currentValue: current,
+      currentValue: currentStringy,
       setValue: setData,
     }),
-    [calculatedOptions, current, preselectedOption, props.dataModelBindings, setData, valueType],
+    [calculatedOptions, currentStringy, preselectedOption, props.dataModelBindings, setData, valueType],
   );
 
   usePreselectedOptionIndex(effectProps);
@@ -242,12 +242,12 @@ function useRemoveStaleValues<T extends ValueType>(props: EffectProps<T>) {
 
     if (options && isSingle(props)) {
       const { currentValue, setValue } = props;
-      if (currentValue && !options.find((option) => option.value === currentValue.value)) {
+      if (currentValue && !options.find((option) => option.value === currentValue)) {
         setValue('');
       }
     } else if (options && isMulti(props)) {
       const { currentValue, setValue } = props;
-      const itemsToRemove = currentValue.filter((v) => !options.find((option) => option.value === v.value));
+      const itemsToRemove = currentValue.filter((v) => !options.find((option) => option.value === v));
       if (itemsToRemove.length > 0) {
         setValue(currentValue.filter((v) => !itemsToRemove.includes(v)));
       }

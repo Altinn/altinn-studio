@@ -176,6 +176,7 @@ export class AppFrontend {
     uploadDropZone: '#altinn-drop-zone-fileUpload-changename',
     componentSummary: '[data-testid="summary-item-simple"]',
     uploadError: '#error_fileUpload-changename',
+    summaryReference: '[data-componentid="summary-reference"]',
   };
 
   //group - task 3
