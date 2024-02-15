@@ -38,7 +38,7 @@ test('That it is possible to add a data model binding, and that the files are up
   page,
   testAppName,
 }): Promise<void> => {
-  await page.emulateMedia({ reducedMotion: null });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
 
   const header = new Header(page, { app: testAppName });
   const dataModelPage = new DataModelPage(page, { app: testAppName });
