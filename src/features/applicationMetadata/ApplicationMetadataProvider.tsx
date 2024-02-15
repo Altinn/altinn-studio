@@ -36,7 +36,14 @@ const { Provider, useCtx, useLaxCtx, useHasProvider } = delayedContext(() =>
 
 function VerifyMinimumVersion({ children }: PropsWithChildren) {
   const { altinnNugetVersion } = useApplicationMetadata();
-  if (!altinnNugetVersion || !isAtLeastVersion(altinnNugetVersion, MINIMUM_APPLICATION_VERSION.build)) {
+  if (
+    !altinnNugetVersion ||
+    !isAtLeastVersion({
+      actualVersion: altinnNugetVersion,
+      minimumVersion: MINIMUM_APPLICATION_VERSION.build,
+      allowZeroInLast: true,
+    })
+  ) {
     return <OldVersionError minVer={MINIMUM_APPLICATION_VERSION.name} />;
   }
 

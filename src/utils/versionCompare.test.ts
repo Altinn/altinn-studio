@@ -22,6 +22,13 @@ describe('versionCompare', () => {
   ];
 
   test.each(testCases)('isAtLeastVersion($version, $minVersion) returns $expected', (testCase) => {
-    expect(isAtLeastVersion(testCase.version, testCase.minVersion)).toBe(testCase.expected);
+    expect(isAtLeastVersion({ actualVersion: testCase.version, minimumVersion: testCase.minVersion })).toBe(
+      testCase.expected,
+    );
+  });
+
+  test('should allow zero in last part', () => {
+    expect(isAtLeastVersion({ actualVersion: '1.2.0', minimumVersion: '1.2.3', allowZeroInLast: false })).toBe(false);
+    expect(isAtLeastVersion({ actualVersion: '1.2.0', minimumVersion: '1.2.3', allowZeroInLast: true })).toBe(true);
   });
 });
