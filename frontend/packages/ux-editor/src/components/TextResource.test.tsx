@@ -56,7 +56,10 @@ describe('TextResource', () => {
         textResourceKey: 'title',
       },
     });
-    await act(() => user.click(screen.getByLabelText(textMock('general.add'))));
+    const addButton = screen.getByRole('button', {
+      name: textMock('ux_editor.text_resource_binding_add_title'),
+    });
+    await act(() => user.click(addButton));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith('Page1.test-id.title');
     const actions = store.getActions();

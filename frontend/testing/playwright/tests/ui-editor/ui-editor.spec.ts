@@ -5,6 +5,15 @@ import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { Gitea } from '../../helpers/Gitea';
+import { ComponentType } from '../../enum/ComponentType';
+
+// This line must be there to ensure that the tests do not run in parallell, and
+// that the before all call is being executed before we start the tests
+// Test nr. 2 is dependent on test 1, and therefore is "serial" important
+test.describe.configure({ mode: 'serial' });
+
+// Variables that are shared between tests
+const PAGE_1: string = 'Side1';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -20,7 +29,7 @@ test.afterAll(async ({ request, testAppName }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-const setupAndVerifyDashboardPage = async (
+const setupAndVerifyUiEditorPage = async (
   page: Page,
   testAppName: string,
 ): Promise<UiEditorPage> => {
@@ -34,15 +43,14 @@ test('That it is possible to add and delete form components', async ({
   page,
   testAppName,
 }): Promise<void> => {
-  const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
-  const page1: string = 'Side1';
-  await uiEditorPage.clickOnPageAccordion(page1);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
+
   await uiEditorPage.verifyThatPageIsEmpty();
-  await uiEditorPage.verifyUiEditorPage(page1); // When clicking the page, the url is updated to include the layout
 
-  await uiEditorPage.dragTitleInputComponentInToDroppableList();
-  await uiEditorPage.verifyThatInputComponentTreeItemIsVisibleInDroppableList();
+  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.clickOnDeleteInputComponentButton();
 
@@ -53,14 +61,12 @@ test('That when adding more than one page, navigation buttons are added to the p
   page,
   testAppName,
 }): Promise<void> => {
-  const uiEditorPage = await setupAndVerifyDashboardPage(page, testAppName);
-
-  const page1: string = 'Side1';
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
   const page2: string = 'Side2';
 
-  await uiEditorPage.clickOnPageAccordion(page1);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
+
   await uiEditorPage.verifyThatPageIsEmpty();
-  await uiEditorPage.verifyUiEditorPage(page1);
 
   await uiEditorPage.clickOnAddNewPage();
   await uiEditorPage.verifyThatNewPageIsVisible(page2);
@@ -69,8 +75,54 @@ test('That when adding more than one page, navigation buttons are added to the p
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 
-  await uiEditorPage.clickOnPageAccordion(page1);
-  await uiEditorPage.verifyUiEditorPage(page1);
+  await uiEditorPage.clickOnPageAccordion(PAGE_1);
+  await uiEditorPage.verifyUiEditorPage(PAGE_1);
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 });
+
+test('That it is possible to add a Header component to the page when there is already a component on the page and edit the name of the component', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
+
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
+
+  await uiEditorPage.openTextComponentSection();
+
+  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+  await uiEditorPage.dragComponentInToDroppableListItem({
+    componentToDrag: ComponentType.Header,
+    componentToDropOn: ComponentType.Input,
+  });
+  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+
+  await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Header);
+
+  const newHeaderName: string = 'New Header';
+  await addNewLabelToTreeItemComponent(uiEditorPage, newHeaderName);
+});
+
+const openPageAccordionAndVerifyUpdatedUrl = async (
+  uiEditorPage: UiEditorPage,
+  pageName: string,
+): Promise<void> => {
+  await uiEditorPage.clickOnPageAccordion(pageName);
+  await uiEditorPage.verifyUiEditorPage(pageName); // When clicking the page, the url is updated to include the layout
+};
+
+const addNewLabelToTreeItemComponent = async (
+  uiEditorPage: UiEditorPage,
+  newInputLabel: string,
+) => {
+  await uiEditorPage.clickOnAddLabelText();
+  await uiEditorPage.writeLabelTextInTextarea(newInputLabel);
+  await uiEditorPage.clickOnSaveNewLabelName();
+
+  // We need to wait a few seconds to make sure that the API call is made and that the changes are saved to backend
+  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
+
+  await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
+  await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
+};
