@@ -18,11 +18,7 @@ import type {
   PolicySubject,
   PolicyEditorUsage,
 } from '../../types';
-import {
-  createNewPolicyResource,
-  createNewSubjectFromSubjectString,
-  findSubjectByPolicyRuleSubject,
-} from '../../utils';
+import { createNewPolicyResource, findSubjectByPolicyRuleSubject } from '../../utils';
 import {
   getActionOptions,
   getPolicyRuleIdString,
