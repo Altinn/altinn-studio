@@ -100,6 +100,16 @@ namespace Altinn.App.Models
 
   public class Pet
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Guid AltinnRowId { get; set; }
+
+    public bool AltinnRowIdSpecified()
+    {
+      return AltinnRowId == default;
+    }
+
     [XmlElement("UniqueId")]
     [JsonProperty("UniqueId")]
     [JsonPropertyName("UniqueId")]
@@ -217,6 +227,16 @@ namespace Altinn.App.Models
 
   }
   public class OversiktOverEndringenegrp9788{
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Guid AltinnRowId { get; set; }
+
+    public bool AltinnRowIdSpecified()
+    {
+      return AltinnRowId == default;
+    }
+
     [Range(1,Int32.MaxValue)]
     [XmlAttribute("gruppeid")]
     [BindNever]
@@ -275,6 +295,16 @@ namespace Altinn.App.Models
   }
 
   public class Gruppe2{
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Guid AltinnRowId { get; set; }
+
+    public bool AltinnRowIdSpecified()
+    {
+      return AltinnRowId == default;
+    }
+
     [Range(1,Int32.MaxValue)]
     [XmlAttribute("gruppeid")]
     [BindNever]
@@ -338,6 +368,16 @@ namespace Altinn.App.Models
 
   }
   public class nestedgrp1234{
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Guid AltinnRowId { get; set; }
+
+    public bool AltinnRowIdSpecified()
+    {
+      return AltinnRowId == default;
+    }
+
     [Range(1,Int32.MaxValue)]
     [XmlAttribute("gruppeid")]
     [BindNever]
