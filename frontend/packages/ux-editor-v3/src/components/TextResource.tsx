@@ -161,13 +161,21 @@ export const TextResource = ({
               />
             ) : (
               <StudioButton
-                aria-label={t('general.add')}
+                aria-label={
+                  generateIdOptions?.textResourceKey
+                    ? t(`ux_editor.add_${generateIdOptions.textResourceKey}`)
+                    : t('general.add')
+                }
                 className={classes.button}
                 color='second'
                 disabled={isEditing}
                 icon={<PlusIcon />}
                 onClick={handleEditButtonClick}
-                title={t('general.add')}
+                title={
+                  generateIdOptions?.textResourceKey
+                    ? t(`ux_editor.add_${generateIdOptions.textResourceKey}`)
+                    : t('general.add')
+                }
                 variant='tertiary'
                 size='small'
               />

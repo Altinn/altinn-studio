@@ -62,7 +62,7 @@ export class UiEditorPage extends BasePage {
   public async verifyThatComponentTreeItemIsVisibleInDroppableList(
     component: ComponentType,
   ): Promise<void> {
-    await this.page
+    await this.getDroppableList()
       .getByRole('treeitem', {
         name: this.textMock(`ux_editor.component_title.${component}`),
       })
@@ -125,20 +125,20 @@ export class UiEditorPage extends BasePage {
 
   public async clickOnAddLabelText(): Promise<void> {
     await this.page
-      .getByRole('button', {
+      /*.getByRole('button', {
         name: this.textMock('general.add'),
-        exact: true,
+        // exact: true,
+      })*/
+      //.first() // Because of the issue where both label, description and helptext has the same aria-label = "Legg til", .first() is used to get the first of them which is the label. Issue: #12297
+      .getByRole('button', {
+        name: this.textMock('ux_editor.add_title'),
+        // exact: true,
       })
-      .first() // Because of the issue where both label, description and helptext has the same aria-label = "Legg til", .first() is used to get the first of them which is the label. Issue: #12297
       .click();
   }
 
   public async writeLabelTextInTextarea(text: string): Promise<void> {
-    await this.page
-      .getByRole('textbox', {
-        name: this.textMock('language.nb'),
-      })
-      .fill(text);
+    await this.page.getByLabel(this.textMock('language.nb')).fill(text);
   }
 
   public async clickOnSaveNewLabelName(): Promise<void> {
