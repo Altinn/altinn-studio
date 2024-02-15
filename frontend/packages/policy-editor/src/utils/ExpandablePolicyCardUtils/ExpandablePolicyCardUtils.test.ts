@@ -14,14 +14,10 @@ import {
   mockPolicyRuleCard2,
   mockPolicyRuleCards,
   mockRuleId1,
-  mockSubjectTitle1,
-  mockSubjectTitle2,
-  mockSubjectTitle3,
   mockSubjects,
   mockSubjectId1,
   mockSubjectId2,
   mockSubjectId3,
-  mockSubject1,
 } from '../../data-mocks';
 
 describe('ExpandablePolicyCardUtils', () => {
