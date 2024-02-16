@@ -152,10 +152,10 @@ export const EditFormContainer = ({
         }}
         customValidationMessages={(errorCode: string) => {
           if (errorCode === 'unique') {
-            return t('ux_editor.modal_properties_group_id_not_unique_error');
+            return t('ux_editor.modal_properties_component_id_not_unique_error');
           }
           if (errorCode === 'pattern') {
-            return t('ux_editor.modal_properties_group_id_not_valid');
+            return t('ux_editor.modal_properties_component_id_not_valid');
           }
         }}
         onChange={handleIdChange}

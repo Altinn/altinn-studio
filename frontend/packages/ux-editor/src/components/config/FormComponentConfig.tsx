@@ -7,7 +7,6 @@ import { EditStringValue } from './editModal/EditStringValue';
 import { useText } from '../../hooks';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
-import { useComponentPropertyLabel } from '../../hooks/useComponentPropertyLabel';
 import type { FormItem } from '../../types/FormItem';
 
 export interface IEditFormComponentProps {

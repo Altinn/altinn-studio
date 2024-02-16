@@ -21,7 +21,7 @@ const texts = {
 };
 
 const textTestId = 'text';
-const contentTestId = 'content';
+const editFormComponentTestId = 'content';
 const conditionalRenderingTestId = 'conditional-rendering';
 const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
@@ -30,8 +30,8 @@ const calculationsTestId = 'calculations';
 jest.mock('./Text', () => ({
   Text: () => <div data-testid={textTestId} />,
 }));
-jest.mock('./Content', () => ({
-  Content: () => <div data-testid={contentTestId} />,
+jest.mock('../config/EditFormComponent', () => ({
+  EditFormComponent: () => <div data-testid={editFormComponentTestId} />,
 }));
 jest.mock('./ConditionalRendering', () => ({
   ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
@@ -163,7 +163,7 @@ describe('Properties', () => {
     expect(screen.getByText(dynamicsText)).toBeInTheDocument();
     expect(screen.getByText(calculationsText)).toBeInTheDocument();
     expect(screen.getByTestId(textTestId)).toBeInTheDocument();
-    expect(screen.getByTestId(contentTestId)).toBeInTheDocument();
+    expect(screen.getByTestId(editFormComponentTestId)).toBeInTheDocument();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
     expect(screen.getByTestId(calculationsTestId)).toBeInTheDocument();
   });
