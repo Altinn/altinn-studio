@@ -19,18 +19,21 @@ const list1Name = 'List 1';
 const list2Id = 'list2';
 const list2Name = 'List 2';
 
-const accessListsResponse = [
-  {
-    env: env,
-    identifier: list1Id,
-    name: list1Name,
-  },
-  {
-    env: env,
-    identifier: list2Id,
-    name: list2Name,
-  },
-];
+const accessListsResponse = {
+  data: [
+    {
+      env: env,
+      identifier: list1Id,
+      name: list1Name,
+    },
+    {
+      env: env,
+      identifier: list2Id,
+      name: list2Name,
+    },
+  ],
+  nextPage: null,
+};
 
 const connectedListsResponse = [
   {

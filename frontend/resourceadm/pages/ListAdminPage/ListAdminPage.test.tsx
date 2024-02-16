@@ -1,6 +1,6 @@
 import React from 'react';
 import { MemoryRouter, useParams } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -10,9 +10,24 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-const accessListResults = [
-  { env: 'tt02', identifier: 'listid', name: 'Test-list', description: 'Test-list description' },
-];
+const accessListResults = {
+  data: [
+    { env: 'tt02', identifier: 'listid', name: 'Test-list', description: 'Test-list description' },
+  ],
+  nextPage: 1,
+};
+
+const accessListResultsPage2 = {
+  data: [
+    {
+      env: 'tt02',
+      identifier: 'listid2',
+      name: 'Test-list2',
+      description: 'Test-list description2',
+    },
+  ],
+  nextPage: null,
+};
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -80,12 +95,29 @@ describe('ListAdminPage', () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it('should load more lists when load more button is clicked', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: 'ttd',
+      env: 'tt02',
+    });
+    const user = userEvent.setup();
+    renderListAdminPage();
+
+    await waitFor(() => screen.findByText(textMock('resourceadm.listadmin_load_more')));
+    await act(() => user.click(screen.getByText(textMock('resourceadm.listadmin_load_more'))));
+
+    expect(await screen.findByText('Test-list2')).toBeInTheDocument();
+  });
 });
 
 const renderListAdminPage = () => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getAccessLists: jest.fn().mockImplementation(() => Promise.resolve(accessListResults)),
+    getAccessLists: jest
+      .fn()
+      .mockImplementationOnce(() => Promise.resolve(accessListResults))
+      .mockImplementationOnce(() => Promise.resolve(accessListResultsPage2)),
   };
 
   return render(

@@ -143,6 +143,11 @@ export interface AccessList {
   members?: AccessListMember[];
 }
 
+export interface AccessListsResponse {
+  data: AccessList[];
+  nextPage?: number;
+}
+
 export interface AccessListResourceLink {
   resourceIdentifier: string;
   accessListName: string;

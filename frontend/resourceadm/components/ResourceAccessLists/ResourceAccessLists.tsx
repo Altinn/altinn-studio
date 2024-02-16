@@ -105,7 +105,7 @@ export const ResourceAccessLists = ({
         {t('resourceadm.listadmin_resource_list_checkbox_header')}
       </Heading>
       <div className={classes.listCheckboxWrapper}>
-        {envListData.map((list) => {
+        {envListData?.pages.map((list) => {
           return (
             <div key={list.identifier} className={classes.listCheckboxItem}>
               <Checkbox
