@@ -135,7 +135,8 @@ const useAddNodeMenuItems = (pointer: string): AddNodeMenuItemProps[] => {
 const AddNodeMenuItem = ({ titleKey, icon, action }: AddNodeMenuItemProps) => {
   const { t } = useTranslation();
   return (
-    <StudioDropdownMenu.Item key={titleKey} icon={icon} onClick={action}>
+    <StudioDropdownMenu.Item key={titleKey} onClick={action}>
+      {icon && icon}
       {t(titleKey)}
     </StudioDropdownMenu.Item>
   );

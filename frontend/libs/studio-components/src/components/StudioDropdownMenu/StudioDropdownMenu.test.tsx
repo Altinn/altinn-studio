@@ -97,11 +97,16 @@ const renderTestDropdownMenu = () =>
         <StudioDropdownMenu.Item ref={group1Item2Ref}>{group1Item2Text}</StudioDropdownMenu.Item>
       </StudioDropdownMenu.Group>
       <StudioDropdownMenu.Group heading={group2Heading}>
-        <StudioDropdownMenu.Item icon={icon1}>{group2Item1Text}</StudioDropdownMenu.Item>
-        <StudioDropdownMenu.Item icon={icon2} iconPlacement='left'>
+        <StudioDropdownMenu.Item>
+          {icon1}
+          {group2Item1Text}
+        </StudioDropdownMenu.Item>
+        <StudioDropdownMenu.Item iconPlacement='left'>
+          {icon2}
           {group2Item2Text}
         </StudioDropdownMenu.Item>
-        <StudioDropdownMenu.Item icon={icon3} iconPlacement='right'>
+        <StudioDropdownMenu.Item iconPlacement='right'>
+          {icon3}
           {group2Item3Text}
         </StudioDropdownMenu.Item>
       </StudioDropdownMenu.Group>
