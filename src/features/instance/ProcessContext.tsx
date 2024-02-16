@@ -48,6 +48,7 @@ export function ProcessProvider({ children, instance }: React.PropsWithChildren<
   const reFetch = useCallback(async () => void (await reFetchNative()), [reFetchNative]);
   const queryClient = useQueryClient();
   const instanceId = useLaxInstanceData()?.id;
+  const layoutSets = useLayoutSets();
 
   const setData = useCallback(
     (data: IProcess | undefined) => queryClient.setQueryData(['fetchProcessState', instanceId], data),
@@ -57,7 +58,12 @@ export function ProcessProvider({ children, instance }: React.PropsWithChildren<
   useEffect(() => {
     const elementId = query?.data?.currentTask?.elementId;
     if (query?.data?.ended) {
-      navigateToTask(TaskKeys.ProcessEnd);
+      const hasCustomReceipt = behavesLikeDataTask(TaskKeys.CustomReceipt, layoutSets);
+      if (hasCustomReceipt) {
+        navigateToTask(TaskKeys.CustomReceipt);
+      } else {
+        navigateToTask(TaskKeys.ProcessEnd);
+      }
     } else if (elementId && elementId !== taskId) {
       navigateToTask(elementId, { replace: true });
     }
@@ -139,6 +145,10 @@ export function useTaskType(taskId: string | undefined) {
   if (isStateless) {
     // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,
     // useIsStatelessApp() will return false and we'll proceed as normal.
+    return ProcessTaskType.Data;
+  }
+
+  if (taskId === TaskKeys.CustomReceipt) {
     return ProcessTaskType.Data;
   }
 

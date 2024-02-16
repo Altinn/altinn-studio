@@ -177,6 +177,7 @@ export type ValidationDataSources = {
   application: IApplicationMetadata;
   instance: IInstance | null;
   process: IProcess | null;
+  taskId: string | undefined;
   layoutSets: ILayoutSets;
   schema: JSONSchema7;
   customValidation: IExpressionValidations | null;

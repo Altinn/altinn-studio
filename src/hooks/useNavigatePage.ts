@@ -17,6 +17,7 @@ type NavigateToPageOptions = {
 
 export enum TaskKeys {
   ProcessEnd = 'ProcessEnd',
+  CustomReceipt = 'CustomReceipt',
 }
 
 export const useNavigationParams = () => {
@@ -136,7 +137,12 @@ export const useNavigatePage = () => {
     [partyId, instanceGuid, lastTaskId, queryKeys, navigate, taskId],
   );
 
-  const isCurrentTask = useMemo(() => currentTaskId === taskId, [currentTaskId, taskId]);
+  const isCurrentTask = useMemo(() => {
+    if (currentTaskId === undefined && taskId === TaskKeys.CustomReceipt) {
+      return true;
+    }
+    return currentTaskId === taskId;
+  }, [currentTaskId, taskId]);
 
   const startUrl = useMemo(() => {
     if (taskType === ProcessTaskType.Archived) {
@@ -164,6 +170,9 @@ export const useNavigatePage = () => {
         return false;
       }
       if (taskId === TaskKeys.ProcessEnd) {
+        return true;
+      }
+      if (taskId === TaskKeys.CustomReceipt) {
         return true;
       }
       return processTasks?.find((task) => task.elementId === taskId) !== undefined;

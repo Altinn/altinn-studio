@@ -2,17 +2,12 @@ import dot from 'dot-object';
 
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { Common } from 'test/e2e/pageobjects/common';
-import { customReceipt } from 'test/e2e/support/customReceipt';
+import { customReceiptPageAnother, customReceiptPageReceipt } from 'test/e2e/support/customReceipt';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { IInstance } from 'src/types/shared';
 
-const mui = new Common();
 const appFrontend = new AppFrontend();
-
-let settingsCount = 0;
-let layoutCount = 0;
 
 describe('All process steps', () => {
   it('Should be possible to fill out all steps from beginning to end', () => {
@@ -41,14 +36,12 @@ describe('All process steps', () => {
 
     cy.get(appFrontend.confirm.sendIn).click();
 
-    // When we first arrive to the receipt, we'll get the custom one because we intercepted and added it
-    // to the redux state while filling out the form.
-    // TODO: Enable this again when the custom receipt is fixed
-    // testCustomReceiptPage();
+    testCustomReceiptPage();
 
-    // However, when the custom receipt test refreshes the page, we'll get the default receipt, because we lost
-    // the redux state from before.
-    testReceiptPage();
+    cy.reload();
+
+    // Assert that the custom receipt is still visible after a page reload.
+    cy.findByText('Custom kvittering').should('exist');
 
     // When the instance has been sent in, we'll test that the data models submitted are correct, and what we expect
     // according to what we filled out during all the previous steps.
@@ -92,21 +85,26 @@ function testConfirmationPage() {
 }
 
 function interceptAndAddCustomReceipt() {
-  cy.intercept('**/layoutsettings/**', (req) => {
+  cy.intercept('**/layoutsets', (req) => {
     req.on('response', (res) => {
-      settingsCount++;
-      // Layout settings is returned as text/plain for some reason
-      const settings = JSON.parse(res.body);
-      settings.receiptLayoutName = 'receipt';
-      res.body = JSON.stringify(settings);
+      const layoutSets = JSON.parse(res.body);
+      layoutSets.sets.push({
+        id: 'custom-receipt',
+        dataType: 'likert',
+        tasks: ['CustomReceipt'],
+      });
+      res.body = JSON.stringify(layoutSets);
     });
-  }).as('LayoutSettings');
-  cy.intercept('**/layouts/**', (req) => {
+  }).as('LayoutSets');
+
+  cy.intercept('**/layoutsettings/custom-receipt**', { pages: { order: ['receipt', 'another'] } }).as('LayoutSettings');
+
+  cy.intercept('**/layouts/custom-receipt', (req) => {
     req.on('response', (res) => {
-      layoutCount++;
       // Layouts are returned as text/plain for some reason
       const layouts = JSON.parse(res.body);
-      layouts.receipt = { data: { layout: customReceipt } };
+      layouts.receipt = { data: { layout: customReceiptPageReceipt } };
+      layouts.another = { data: { layout: customReceiptPageAnother } };
       res.body = JSON.stringify(layouts);
     });
   }).as('FormLayout');
@@ -114,18 +112,13 @@ function interceptAndAddCustomReceipt() {
 
 export function testCustomReceiptPage() {
   cy.get(appFrontend.receipt.container).should('not.exist');
-  cy.get('[data-testId=custom-receipt]').should('exist').and('be.visible');
-  cy.get('#form-content-r-instance').should('exist').and('be.visible');
-  cy.get('#form-content-r-header').should('contain.text', 'Custom kvittering');
-  cy.get('#form-content-r-paragraph').should(
-    'contain.text',
-    'Takk for din innsending, dette er en veldig fin custom kvittering.',
-  );
+  cy.findByText('Custom kvittering').should('be.visible');
+  cy.findByText('Takk for din innsending, dette er en veldig fin custom kvittering.').should('be.visible');
 
   const checkAttachmentSection = (sectionId: string, title: string, attachmentCount: number) => {
     cy.get(`#form-content-${sectionId}-header`).should('contain.text', title);
     cy.get(`#form-content-${sectionId}`)
-      .find('[data-testId=attachment-list]')
+      .find('[data-testId=attachment-list] > ul')
       .children()
       .should('have.length', attachmentCount);
   };
@@ -135,59 +128,12 @@ export function testCustomReceiptPage() {
   checkAttachmentSection('r-attachments-pdf', 'Bare PDF-er', 5);
   checkAttachmentSection('r-attachments-all', 'Alle vedlegg inkludert PDF', 10);
 
+  // Assert that receipts now support multiple pages
+  cy.findByRole('button', { name: /Neste/ }).click();
+  cy.findByText('Dette er neste side').should('exist');
+  cy.findByRole('button', { name: /Forrige/ }).click();
+
   cy.snapshot('custom-receipt');
-
-  /*
-    Verify that layout and settings are not fetched on refresh
-    This is a limitation with the current implementation that
-    causes the custom receipt to not show on refresh.
-  */
-
-  let settingsBeforeRefreshCount, layoutBeforeRefreshCount;
-  cy.wrap({}).then(() => {
-    settingsBeforeRefreshCount = settingsCount;
-    layoutBeforeRefreshCount = layoutCount;
-  });
-  cy.reloadAndWait().then(() => {
-    expect(settingsCount).to.eq(settingsBeforeRefreshCount);
-    expect(layoutCount).to.eq(layoutBeforeRefreshCount);
-  });
-
-  cy.get('[data-testId=custom-receipt]').should('not.exist');
-  cy.get(appFrontend.receipt.container).should('exist').and('be.visible');
-  cy.get('#attachment-collapsible-list').should('contain.text', 'Vedlegg (5)');
-}
-
-function testReceiptPage() {
-  cy.get(appFrontend.receipt.container)
-    .find(mui.tableBody)
-    .then((table) => {
-      cy.wrap(table).should('exist').and('be.visible');
-      cy.wrap(table).contains(mui.tableElement, 'Mottaker').siblings().should('contain.text', texts.ttd);
-    });
-  cy.get(appFrontend.receipt.linkToArchive).should('be.visible');
-  cy.get(appFrontend.receipt.pdf)
-    .find('a')
-    .should('have.length', 5) // This is the number of process data tasks
-    .first()
-    .should('contain.text', `${appFrontend.apps.frontendTest}.pdf`);
-
-  cy.get(appFrontend.receipt.uploadedAttachments)
-    .last()
-    .find('a')
-    .should('have.length', 5)
-    .should('contain.text', `test.pdf`)
-    .should('contain.text', `attachment-in-single.pdf`)
-    .should('contain.text', `attachment-in-multi1.pdf`)
-    .should('contain.text', `attachment-in-multi2.pdf`)
-    .should('contain.text', `attachment-in-nested.pdf`);
-
-  cy.get('body').should('have.css', 'background-color', 'rgb(212, 249, 228)');
-  cy.get(appFrontend.header).should('contain.text', texts.ttd);
-
-  cy.get('#attachment-collapsible-list').should('contain.text', 'Vedlegg (5)');
-
-  cy.snapshot('receipt');
 }
 
 function testInstanceData() {
@@ -218,6 +164,7 @@ function testInstanceData() {
                 knownModel,
               );
             }
+
             expect(dataModel).to.deep.equal(knownModel);
           });
         }
@@ -232,6 +179,7 @@ function isUuid(value: string) {
 
 const regexDate1 = /^\d{4}-\d{2}-\d{2}$/;
 const regexDate2 = /^\d{2}[./]\d{2}[./]\d{4}$/;
+
 function replaceVariableData(input: any) {
   if (typeof input === 'string' && isUuid(input)) {
     return 'ANY_UUID';

@@ -1,12 +1,12 @@
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getLayoutSetIdForApplication } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 
 export function useCurrentLayoutSetId() {
   const application = useApplicationMetadata();
   const layoutSets = useLayoutSets();
-  const process = useLaxProcessData();
+  const taskId = useProcessTaskId();
 
-  return getLayoutSetIdForApplication({ application, layoutSets, process });
+  return getLayoutSetIdForApplication({ application, layoutSets, taskId });
 }

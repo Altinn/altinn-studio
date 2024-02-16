@@ -12,8 +12,10 @@ import { RulesProvider } from 'src/features/form/rules/RulesContext';
 import { InitialFormDataProvider } from 'src/features/formData/InitialFormData';
 import { useHasProcessProvider } from 'src/features/instance/ProcessContext';
 import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
+import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { AllOptionsProvider, AllOptionsStoreProvider } from 'src/features/options/useAllOptions';
 import { ValidationContext } from 'src/features/validation/validationContext';
+import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
 
 /**
@@ -21,6 +23,7 @@ import { NodesProvider } from 'src/utils/layout/NodesContext';
  */
 export function FormProvider({ children }: React.PropsWithChildren) {
   const hasProcess = useHasProcessProvider();
+  const isCustomReceipt = useProcessTaskId() === TaskKeys.CustomReceipt;
 
   return (
     <CustomValidationConfigProvider>
@@ -35,7 +38,7 @@ export function FormProvider({ children }: React.PropsWithChildren) {
                       <AllOptionsStoreProvider>
                         <NodesProvider>
                           <NavigateToNodeProvider>
-                            <ValidationContext>
+                            <ValidationContext isCustomReceipt={isCustomReceipt}>
                               <AttachmentsProvider>
                                 <AllOptionsProvider>
                                   {hasProcess ? (

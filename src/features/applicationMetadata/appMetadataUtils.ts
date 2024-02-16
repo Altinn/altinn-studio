@@ -4,15 +4,15 @@ import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
 import type { IApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/index';
 import type { ILayoutSets } from 'src/layout/common.generated';
-import type { IInstance, IProcess } from 'src/types/shared';
+import type { IInstance } from 'src/types/shared';
 
-interface TheCommonThreeProps {
+interface CommonProps {
   application: IApplicationMetadata;
-  process: IProcess | null | undefined;
   layoutSets: ILayoutSets;
+  taskId: string | undefined;
 }
 
-interface TheCommonFourProps extends TheCommonThreeProps {
+interface GetCurrentTaskDataElementIdProps extends CommonProps {
   instance: IInstance | null | undefined;
 }
 
@@ -80,11 +80,7 @@ export const onEntryValuesThatHaveState: ShowTypes[] = ['new-instance', 'select-
  * @param layoutSets the layout sets if present
  * @returns the layout set for the application if present
  */
-export function getLayoutSetIdForApplication({
-  application,
-  layoutSets,
-  process,
-}: TheCommonThreeProps): string | undefined {
+export function getLayoutSetIdForApplication({ application, layoutSets, taskId }: CommonProps): string | undefined {
   const showOnEntry = application.onEntry?.show;
   if (isStatelessApp(application)) {
     // we have a stateless app with a layout set
@@ -96,8 +92,8 @@ export function getLayoutSetIdForApplication({
     return undefined;
   }
 
-  const dataType = getCurrentDataTypeForApplication({ application, process, layoutSets });
-  return getLayoutSetForDataElement(process, dataType, layoutSets);
+  const dataType = getCurrentDataTypeForApplication({ application, layoutSets, taskId });
+  return getLayoutSetForDataElement(taskId, dataType, layoutSets);
 }
 
 /**
@@ -107,11 +103,7 @@ export function getLayoutSetIdForApplication({
  * @param layoutSets the layout sets, if present
  * @returns the current data type
  */
-export function getCurrentDataTypeForApplication({
-  application,
-  process,
-  layoutSets,
-}: TheCommonThreeProps): string | undefined {
+export function getCurrentDataTypeForApplication({ application, layoutSets, taskId }: CommonProps): string | undefined {
   const showOnEntry = application.onEntry?.show;
   if (isStatelessApp(application)) {
     // we have a stateless app with a layout set
@@ -119,12 +111,11 @@ export function getCurrentDataTypeForApplication({
   }
 
   // Instance - get data element based on current process step
-  const currentTaskId = process?.currentTask?.elementId;
-  if (currentTaskId === null || currentTaskId === undefined) {
+  if (taskId == null) {
     return undefined;
   }
 
-  return getDataTypeByTaskId({ taskId: currentTaskId, application, layoutSets });
+  return getDataTypeByTaskId({ taskId, application, layoutSets });
 }
 
 export function isStatelessApp(application: IApplicationMetadata) {
@@ -139,7 +130,7 @@ export function isStatelessApp(application: IApplicationMetadata) {
   return typeof show === 'string' && !onEntryValuesThatHaveState.includes(show);
 }
 
-export const getCurrentTaskDataElementId = (props: TheCommonFourProps) => {
+export const getCurrentTaskDataElementId = (props: GetCurrentTaskDataElementIdProps) => {
   const currentDataTypeId = getCurrentDataTypeForApplication(props);
   const currentTaskDataElement = (props.instance?.data || []).find((element) => element.dataType === currentDataTypeId);
   return currentTaskDataElement?.id;
@@ -149,8 +140,3 @@ export function getFirstDataElementId(instance: IInstance, dataType: string) {
   const currentTaskDataElement = (instance.data || []).find((element) => element.dataType === dataType);
   return currentTaskDataElement?.id;
 }
-
-export const getCurrentTaskData = (props: TheCommonFourProps) => {
-  const currentDataTypeId = getCurrentDataTypeForApplication(props);
-  return props.instance?.data.find((element) => element.dataType === currentDataTypeId);
-};

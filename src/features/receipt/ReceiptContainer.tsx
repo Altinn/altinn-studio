@@ -82,11 +82,6 @@ export const ReceiptContainer = () => {
   const langTools = useLanguage();
   const receiver = useAppReceiver();
 
-  // TODO: Enable custom receipt again. We probably need to fetch layout-sets to figure out if we should show a
-  // custom receipt, and then provide LayoutsProvider for that layout-set.
-  // const receiptLayoutName = useAppSelector((state) => state.formLayout.uiConfig.receiptLayoutName);
-  // const layouts = Object.keys(useLayouts());
-
   const origin = window.location.origin;
 
   const { instanceGuid } = useInstanceIdParams();
@@ -161,10 +156,6 @@ export const ReceiptContainer = () => {
 
   return (
     <div id='ReceiptContainer'>
-      {/* TODO: This code was here to render CustomReceipt, but does not work when we don't fetch layouts here*/}
-      {/*{receiptLayoutName && layouts.includes(receiptLayoutName) ? (*/}
-      {/*  <CustomReceipt />*/}
-      {/*)}*/}
       {!applicationMetadata.autoDeleteOnProcessEnd && (
         <ReceiptComponent
           attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, langTools)}

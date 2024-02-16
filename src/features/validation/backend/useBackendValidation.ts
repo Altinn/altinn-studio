@@ -16,7 +16,12 @@ interface RetVal {
   initialValidationDone: boolean;
 }
 
-export function useBackendValidation(fromLastSave: BackendValidationIssueGroups | undefined): RetVal {
+interface UseBackendValidationProps {
+  fromLastSave: BackendValidationIssueGroups | undefined;
+  enabled?: boolean;
+}
+
+export function useBackendValidation({ fromLastSave, enabled = true }: UseBackendValidationProps): RetVal {
   /**
    * Run full validation initially
    */
@@ -28,6 +33,7 @@ export function useBackendValidation(fromLastSave: BackendValidationIssueGroups 
   const { data: initialValidations } = useQuery({
     cacheTime: 0,
     queryKey: ['validation', instanceId, currentDataElementId],
+    enabled,
     queryFn: () =>
       instanceId?.length && currentDataElementId?.length
         ? fetchBackendValidations(instanceId, currentDataElementId, currentLanguage)

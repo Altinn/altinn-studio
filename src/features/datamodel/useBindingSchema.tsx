@@ -13,7 +13,7 @@ import { useLaxCurrentDataModelSchemaLookup } from 'src/features/datamodel/DataM
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
-import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import {
@@ -30,11 +30,11 @@ export type AsSchema<T> = {
 
 export function useCurrentDataModelGuid() {
   const instance = useLaxInstanceData();
-  const process = useLaxProcessData();
   const application = useApplicationMetadata();
   const layoutSets = useLayoutSets();
+  const taskId = useProcessTaskId();
 
-  return getCurrentTaskDataElementId({ application, instance, process, layoutSets });
+  return getCurrentTaskDataElementId({ application, instance, taskId, layoutSets });
 }
 
 export function useCurrentDataModelUrl() {
@@ -86,13 +86,14 @@ export function useDataModelUrl(dataType: string | undefined) {
 }
 
 export function useCurrentDataModelName() {
-  const process = useLaxProcessData();
   const application = useApplicationMetadata();
   const layoutSets = useLayoutSets();
+  const taskId = useProcessTaskId();
+
   return getCurrentDataTypeForApplication({
     application,
-    process,
     layoutSets,
+    taskId,
   });
 }
 

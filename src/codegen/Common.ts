@@ -673,16 +673,6 @@ const common = {
     new CG.obj(
       new CG.prop('pages', CG.common('IPagesSettings')),
       new CG.prop('components', CG.common('IComponentsSettings').optional()),
-
-      new CG.prop(
-        'receiptLayoutName',
-        new CG.str()
-          .optional()
-          .setTitle('Receipt layout name')
-          .setDescription(
-            'DEPRECATED: Receipt layout name. This configuration setting will be moved so that custom receipts can work when reloading the page.',
-          ),
-      ),
     )
       .setTitle('Layout settings')
       .setDescription('Settings regarding layout pages and components'),

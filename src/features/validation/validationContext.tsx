@@ -47,7 +47,12 @@ const { Provider, useCtx } = createContext<ValidationContext>({
   required: true,
 });
 
-export function ValidationContext({ children }) {
+type Props = {
+  children: React.ReactNode;
+  isCustomReceipt?: boolean;
+};
+
+export function ValidationContext({ children, isCustomReceipt = false }: Props) {
   const validationContext = useValidationDataSources();
 
   const [frontendValidations, setFrontendValidations] = useImmer<FrontendValidations>({
@@ -108,13 +113,13 @@ export function ValidationContext({ children }) {
     });
   });
 
-  // Get backend validations
+  // Get backend validations except if we are in a custom receipt
   const lastSaveValidations = FD.useLastSaveValidationIssues();
   const {
     validations: backendValidations,
     processedLast: backendValidationsProcessedLast,
     initialValidationDone,
-  } = useBackendValidation(lastSaveValidations);
+  } = useBackendValidation({ fromLastSave: lastSaveValidations, enabled: !isCustomReceipt });
   const waitForSave = FD.useWaitForSave();
   const backendValidationsProcessedLastRef = useAsRef(backendValidationsProcessedLast);
   const waitForBackendValidations = useWaitForState(backendValidationsProcessedLastRef);
@@ -211,7 +216,7 @@ export function ValidationContext({ children }) {
     backendValidationsProcessedLast,
   };
 
-  if (!initialValidationDone || !initialValidationsSet) {
+  if ((!initialValidationDone || !initialValidationsSet) && !isCustomReceipt) {
     return <Loader reason='validation' />;
   }
 

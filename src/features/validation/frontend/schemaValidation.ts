@@ -189,14 +189,14 @@ function isNullOrEmpty(value: any): boolean {
 export function getSchemaValidationErrors({
   formData,
   application,
-  process,
   layoutSets,
   schema,
+  taskId,
 }: ValidationDataSources): ISchemaValidationError[] {
   const currentDataTaskDataTypeId = getCurrentDataTypeForApplication({
     application,
-    process,
     layoutSets,
+    taskId,
   });
   const dataType = application?.dataTypes.find((d) => d.id === currentDataTaskDataTypeId);
   if (!currentDataTaskDataTypeId || !dataType) {

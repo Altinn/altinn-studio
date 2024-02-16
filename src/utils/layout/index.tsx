@@ -1,13 +1,11 @@
 import { LayoutStyle } from 'src/layout/common.generated';
 import type { ILayoutSet, ILayoutSets } from 'src/layout/common.generated';
-import type { IProcess } from 'src/types/shared';
 
 export function getLayoutSetForDataElement(
-  process: IProcess | undefined | null,
+  currentTaskId: string | undefined,
   datatype: string | undefined,
   layoutSets: ILayoutSets,
 ) {
-  const currentTaskId = process?.currentTask?.elementId;
   const foundLayout = layoutSets.sets.find((layoutSet: ILayoutSet) => {
     if (layoutSet.dataType !== datatype) {
       return false;

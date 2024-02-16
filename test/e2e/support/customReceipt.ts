@@ -12,7 +12,7 @@ function generateAttachmentLists({
   ];
 }
 
-export const customReceipt: ILayout = [
+export const customReceiptPageReceipt: ILayout = [
   { id: 'r-instance', type: 'InstanceInformation' },
   { id: 'r-header', type: 'Header', textResourceBindings: { title: 'Custom kvittering' }, size: 'L' },
   {
@@ -32,4 +32,24 @@ export const customReceipt: ILayout = [
     title: 'Alle vedlegg inkludert PDF',
     dataTypeIds: ['include-all'],
   }),
+  {
+    id: 'NavigationButtons',
+    type: 'NavigationButtons',
+    textResourceBindings: {
+      next: 'Neste',
+    },
+  },
+];
+
+export const customReceiptPageAnother: ILayout = [
+  { id: 'r-header', type: 'Header', textResourceBindings: { title: 'Dette er neste side' }, size: 'L' },
+  {
+    id: 'NavigationButtons',
+    type: 'NavigationButtons',
+    textResourceBindings: {
+      next: 'Neste',
+      back: 'Forrige',
+    },
+    showBackButton: true,
+  },
 ];

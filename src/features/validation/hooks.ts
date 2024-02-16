@@ -10,6 +10,7 @@ import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { useNodes } from 'src/utils/layout/NodesContext';
@@ -30,6 +31,7 @@ export function useValidationDataSources(): ValidationDataSources {
   const layoutSets = useLayoutSets();
   const schema = useCurrentDataModelSchema()!;
   const customValidation = useCustomValidationConfig();
+  const taskId = useProcessTaskId();
 
   return useMemo(
     () => ({
@@ -41,9 +43,21 @@ export function useValidationDataSources(): ValidationDataSources {
       process,
       layoutSets,
       schema,
+      taskId,
       customValidation,
     }),
-    [application, attachments, currentLanguage, customValidation, formData, instance, layoutSets, process, schema],
+    [
+      application,
+      attachments,
+      currentLanguage,
+      customValidation,
+      formData,
+      instance,
+      layoutSets,
+      process,
+      schema,
+      taskId,
+    ],
   );
 }
 

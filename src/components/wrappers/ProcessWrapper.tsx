@@ -8,9 +8,11 @@ import Grid from '@material-ui/core/Grid';
 import { Form, FormFirstPage } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';
+import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
 import { LayoutValidationProvider } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { FormProvider } from 'src/features/form/FormContext';
-import { useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
+import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { useLaxProcessData, useRealTaskType, useTaskType } from 'src/features/instance/ProcessContext';
 import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
@@ -19,6 +21,7 @@ import { Feedback } from 'src/features/processEnd/feedback/Feedback';
 import { ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys, useNavigatePage, useNavigationParams } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
+import { behavesLikeDataTask } from 'src/utils/formLayout';
 
 interface NavigationErrorProps {
   label: ReactNode;
@@ -84,10 +87,16 @@ export const ProcessWrapper = () => {
   const { isCurrentTask, isValidTaskId } = useNavigatePage();
   const { taskId } = useNavigationParams();
   const taskType = useTaskType(taskId);
+  const realTaskType = useRealTaskType();
+  const layoutSets = useLayoutSets();
+  const dataModelGuid = useCurrentDataModelGuid();
+
+  const hasCustomReceipt = behavesLikeDataTask(TaskKeys.CustomReceipt, layoutSets);
+  const customReceiptDataModelNotFound = hasCustomReceipt && !dataModelGuid && taskId === TaskKeys.CustomReceipt;
 
   if (!isValidTaskId(taskId)) {
     return (
-      <PresentationComponent type={taskType}>
+      <PresentationComponent type={realTaskType}>
         <InvalidTaskIdPage />
       </PresentationComponent>
     );
@@ -95,7 +104,7 @@ export const ProcessWrapper = () => {
 
   if (!isCurrentTask && taskId !== TaskKeys.ProcessEnd) {
     return (
-      <PresentationComponent type={taskType}>
+      <PresentationComponent type={realTaskType}>
         <NotCurrentTaskPage />
       </PresentationComponent>
     );
@@ -104,7 +113,7 @@ export const ProcessWrapper = () => {
   if (taskType === ProcessTaskType.Confirm) {
     return (
       <ProcessNavigationProvider>
-        <PresentationComponent type={taskType}>
+        <PresentationComponent type={realTaskType}>
           <Confirm />
         </PresentationComponent>
       </ProcessNavigationProvider>
@@ -113,7 +122,7 @@ export const ProcessWrapper = () => {
 
   if (taskType === ProcessTaskType.Feedback) {
     return (
-      <PresentationComponent type={taskType}>
+      <PresentationComponent type={realTaskType}>
         <Feedback />
       </PresentationComponent>
     );
@@ -121,13 +130,24 @@ export const ProcessWrapper = () => {
 
   if (taskType === ProcessTaskType.Archived) {
     return (
-      <PresentationComponent type={taskType}>
+      <PresentationComponent type={realTaskType}>
         <ReceiptContainer />
       </PresentationComponent>
     );
   }
 
-  if (taskType === 'data') {
+  if (taskType === ProcessTaskType.Data && customReceiptDataModelNotFound) {
+    window.logWarnOnce(
+      'You specified a custom receipt, but the data model is missing. Falling back to default receipt.',
+    );
+    return (
+      <PresentationComponent type={realTaskType}>
+        <ReceiptContainer />
+      </PresentationComponent>
+    );
+  }
+
+  if (taskType === ProcessTaskType.Data) {
     return (
       <FormProvider>
         <LayoutValidationProvider>
@@ -136,7 +156,7 @@ export const ProcessWrapper = () => {
               path=':pageKey'
               element={
                 <PDFWrapper>
-                  <PresentationComponent type={taskType}>
+                  <PresentationComponent type={realTaskType}>
                     <Form />
                   </PresentationComponent>
                 </PDFWrapper>

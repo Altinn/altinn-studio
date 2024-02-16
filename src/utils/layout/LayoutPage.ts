@@ -143,11 +143,6 @@ export class LayoutPage implements LayoutObject {
       return false;
     }
 
-    if (layoutSettings.receiptLayoutName && myKey === layoutSettings.receiptLayoutName) {
-      // If this is the custom receipt layout, then it's never hidden.
-      return false;
-    }
-
     if (layoutSettings.pages.pdfLayoutName && myKey === layoutSettings.pages.pdfLayoutName) {
       // If this is the pdf layout, then it's never hidden.
       return false;

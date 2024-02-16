@@ -7,7 +7,7 @@ import {
   isStatelessApp,
 } from 'src/features/applicationMetadata/appMetadataUtils';
 import type { ILayoutSets } from 'src/layout/common.generated';
-import type { IData, IProcess, ITask } from 'src/types/shared';
+import type { IData } from 'src/types/shared';
 
 describe('appMetadata.ts', () => {
   const application = getApplicationMetadataMock();
@@ -31,6 +31,17 @@ describe('appMetadata.ts', () => {
     },
     {
       id: 'Datamodel-for-confirm',
+      allowedContentTypes: ['application/xml'],
+      appLogic: {
+        autoCreate: true,
+        classRef: 'Altinn.App.Models.Confirm',
+      },
+      taskId: 'Task_1',
+      maxCount: 1,
+      minCount: 1,
+    },
+    {
+      id: 'Datamodel-for-custom-receipt',
       allowedContentTypes: ['application/xml'],
       appLogic: {
         autoCreate: true,
@@ -67,18 +78,6 @@ describe('appMetadata.ts', () => {
     } as unknown as IData,
   ];
 
-  const process: IProcess = {
-    started: '',
-    startEvent: 'StartEvent_1',
-    currentTask: {
-      flow: 2,
-      elementId: 'Task_1',
-      name: 'Utfylling',
-      altinnTaskType: 'data',
-      started: '',
-    },
-  };
-
   const layoutSets: ILayoutSets = {
     sets: [
       {
@@ -98,8 +97,8 @@ describe('appMetadata.ts', () => {
     it('should return correct data type if we have an instance', () => {
       const result = getCurrentDataTypeForApplication({
         application,
-        process,
         layoutSets,
+        taskId: 'Task_1',
       });
       const expected = 'Datamodel';
       expect(result).toEqual(expected);
@@ -112,8 +111,8 @@ describe('appMetadata.ts', () => {
       };
       const result = getCurrentDataTypeForApplication({
         application: statelessApplication,
-        process: null,
         layoutSets,
+        taskId: undefined,
       });
       const expected = 'Stateless';
       expect(result).toEqual(expected);
@@ -126,8 +125,8 @@ describe('appMetadata.ts', () => {
       };
       const result = getCurrentDataTypeForApplication({
         application: statelessApplication,
-        process: null,
         layoutSets,
+        taskId: undefined,
       });
       const expected = 'Stateless';
       expect(result).toEqual(expected);
@@ -136,7 +135,7 @@ describe('appMetadata.ts', () => {
 
   describe('getLayoutSetIdForApplication', () => {
     it('should return correct layout set id if we have an instance', () => {
-      const result = getLayoutSetIdForApplication({ application, process, layoutSets });
+      const result = getLayoutSetIdForApplication({ application, layoutSets, taskId: 'Task_1' });
       const expected = 'datamodel';
       expect(result).toEqual(expected);
     });
@@ -146,7 +145,11 @@ describe('appMetadata.ts', () => {
         ...application,
         onEntry: { show: 'stateless' },
       };
-      const result = getLayoutSetIdForApplication({ application: statelessApplication, process: null, layoutSets });
+      const result = getLayoutSetIdForApplication({
+        application: statelessApplication,
+        layoutSets,
+        taskId: undefined,
+      });
       const expected = 'stateless';
       expect(result).toEqual(expected);
     });
@@ -177,7 +180,7 @@ describe('appMetadata.ts', () => {
   describe('getCurrentTaskDataElementId', () => {
     const layoutSets: ILayoutSets = { sets: [] };
     it('should return current task data element id', () => {
-      const result = getCurrentTaskDataElementId({ application, instance, process, layoutSets });
+      const result = getCurrentTaskDataElementId({ application, instance, layoutSets, taskId: 'Task_1' });
       expect(result).toEqual('datamodel-data-guid');
     });
   });
@@ -185,23 +188,12 @@ describe('appMetadata.ts', () => {
   describe('getCurrentDataTypeId', () => {
     it('should return connected dataTypeId in app metadata if no layout set is configured', () => {
       const layoutSets: ILayoutSets = { sets: [] };
-      const result = getCurrentDataTypeForApplication({ application, process, layoutSets });
+      const result = getCurrentDataTypeForApplication({ application, layoutSets, taskId: 'Task_1' });
       const expected = 'Datamodel';
       expect(result).toEqual(expected);
     });
 
     it('should return connected dataTypeId based on data type defined in layout sets if the current task has this configured', () => {
-      const processInConfirm: IProcess = {
-        ...process,
-        currentTask: {
-          ...(process?.currentTask as ITask),
-          flow: 3,
-          elementId: 'Task_2',
-          name: 'Bekreftelse',
-          altinnTaskType: 'confirm',
-        },
-      };
-
       const layoutSets: ILayoutSets = {
         sets: [
           {
@@ -212,8 +204,37 @@ describe('appMetadata.ts', () => {
         ],
       };
 
-      const result = getCurrentDataTypeForApplication({ application, process: processInConfirm, layoutSets });
+      const result = getCurrentDataTypeForApplication({
+        application,
+        layoutSets,
+        taskId: 'Task_2',
+      });
       const expected = 'Datamodel-for-confirm';
+      expect(result).toEqual(expected);
+    });
+
+    it('should return datatype of custom receipt if the taskId points to custom receipt', () => {
+      const layoutSets: ILayoutSets = {
+        sets: [
+          {
+            id: 'confirm',
+            dataType: 'Datamodel-for-confirm',
+            tasks: ['Task_2'],
+          },
+          {
+            id: 'custom-receipt',
+            dataType: 'Datamodel-for-custom-receipt',
+            tasks: ['CustomReceipt'],
+          },
+        ],
+      };
+
+      const result = getCurrentDataTypeForApplication({
+        application,
+        layoutSets,
+        taskId: 'CustomReceipt',
+      });
+      const expected = 'Datamodel-for-custom-receipt';
       expect(result).toEqual(expected);
     });
   });
