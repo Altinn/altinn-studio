@@ -1,25 +1,38 @@
-import type { StudioTextareaProps } from './StudioTextarea';
-import { StudioTextarea } from './StudioTextarea';
+import * as React from 'react';
 import { act, render, screen } from '@testing-library/react';
-import type { RefObject } from 'react';
-import React from 'react';
+import type { StudioTextfieldProps } from './StudioTextfield';
+import { StudioTextfield } from './StudioTextfield';
+import { StudioTextarea } from '../StudioTextarea';
 import userEvent from '@testing-library/user-event';
+import type { RefObject } from 'react';
 
-describe('StudioTextarea', () => {
-  it('Renders a textarea', () => {
-    renderTextarea();
+describe('StudioTextfield', () => {
+  it('Renders a text field', () => {
+    renderTextfield();
     expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  it('Renders with given label', () => {
+    const label = 'test-label';
+    renderTextfield({ label });
+    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
+  });
+
+  it('Renders with given label when there is an asterisk', () => {
+    const label = 'test-label';
+    renderTextfield({ label, withAsterisk: true });
+    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
   });
 
   it('Renders with the given value', () => {
     const value = 'test';
-    renderTextarea({ value });
+    renderTextfield({ value });
     expect(screen.getByRole('textbox')).toHaveValue(value);
   });
 
   it('Updates the value when the component rerenders with another value', () => {
     const value = 'test';
-    const { rerender } = renderTextarea({ value });
+    const { rerender } = renderTextfield({ value });
     expect(screen.getByRole('textbox')).toHaveValue(value);
     const newValue = 'new value';
     rerender(<StudioTextarea value={newValue} />);
@@ -28,20 +41,20 @@ describe('StudioTextarea', () => {
 
   it('Updates the value when the user types', async () => {
     const user = userEvent.setup();
-    renderTextarea();
-    const textarea = screen.getByRole('textbox');
+    renderTextfield();
+    const textfield = screen.getByRole('textbox');
     const newValue = 'new value';
-    await act(() => user.type(textarea, newValue));
-    expect(textarea).toHaveValue(newValue);
+    await act(() => user.type(textfield, newValue));
+    expect(textfield).toHaveValue(newValue);
   });
 
   it('Calls the onChange handler when the user types', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
-    renderTextarea({ onChange });
-    const textarea = screen.getByRole('textbox');
+    renderTextfield({ onChange });
+    const textfield = screen.getByRole('textbox');
     const newValue = 'new value';
-    await act(() => user.type(textarea, newValue));
+    await act(() => user.type(textfield, newValue));
     expect(onChange).toHaveBeenCalledTimes(newValue.length);
     const expectedTarget = expect.objectContaining({ value: newValue });
     const expectedEvent = expect.objectContaining({ target: expectedTarget });
@@ -51,25 +64,25 @@ describe('StudioTextarea', () => {
   it('Calls the onBlur handler when the user blurs', async () => {
     const user = userEvent.setup();
     const onBlur = jest.fn();
-    renderTextarea({ onBlur });
-    const textarea = screen.getByRole('textbox');
-    await act(() => user.click(textarea));
+    renderTextfield({ onBlur });
+    const textfield = screen.getByRole('textbox');
+    await act(() => user.click(textfield));
     await act(() => user.tab());
     expect(onBlur).toHaveBeenCalledTimes(1);
   });
 
   it('Does not display the after blur error message by default', () => {
-    const errorAfterBlur = 'error message';
-    renderTextarea({ errorAfterBlur });
-    expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
+    const afterBlurError = 'error message';
+    renderTextfield({ errorAfterBlur: afterBlurError });
+    expect(screen.queryByText(afterBlurError)).not.toBeInTheDocument();
   });
 
   it('Does not display the after blur error message when the textarea is empty and the user blurs', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
-    renderTextarea({ errorAfterBlur });
-    const textarea = screen.getByRole('textbox');
-    await act(() => user.click(textarea));
+    renderTextfield({ errorAfterBlur });
+    const textfield = screen.getByRole('textbox');
+    await act(() => user.click(textfield));
     await act(() => user.tab());
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
@@ -77,18 +90,18 @@ describe('StudioTextarea', () => {
   it('Does not display the after blur error message when the user types', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
-    renderTextarea({ errorAfterBlur });
-    const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
+    renderTextfield({ errorAfterBlur });
+    const textfield = screen.getByRole('textbox');
+    await act(() => user.type(textfield, 'test'));
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
   it('Displays the after blur error message when the use types something and then blurs', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
-    renderTextarea({ errorAfterBlur });
-    const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
+    renderTextfield({ errorAfterBlur });
+    const textfield = screen.getByRole('textbox');
+    await act(() => user.type(textfield, 'test'));
     await act(() => user.tab());
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
@@ -96,48 +109,48 @@ describe('StudioTextarea', () => {
   it('Diplays the after blur error message when the user types something after blurring', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
-    renderTextarea({ errorAfterBlur });
-    const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
+    renderTextfield({ errorAfterBlur });
+    const textfield = screen.getByRole('textbox');
+    await act(() => user.type(textfield, 'test'));
     await act(() => user.tab());
-    await act(() => user.type(textarea, 'test'));
+    await act(() => user.type(textfield, 'test'));
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
   it('Does not display the after blur error message when the user empties the textarea after blurring', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
-    renderTextarea({ errorAfterBlur });
-    const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
+    renderTextfield({ errorAfterBlur });
+    const textfield = screen.getByRole('textbox');
+    await act(() => user.type(textfield, 'test'));
     await act(() => user.tab());
-    await act(() => user.clear(textarea));
+    await act(() => user.clear(textfield));
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
-    await act(() => user.type(textarea, 'test'));
+    await act(() => user.type(textfield, 'test'));
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
   it('Displays the error message if is is set in the "error" prop', async () => {
     const user = userEvent.setup();
     const error = 'error message';
-    renderTextarea({ error });
+    renderTextfield({ error });
     expect(screen.getByText(error)).toBeInTheDocument();
-    const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
+    const textfield = screen.getByRole('textbox');
+    await act(() => user.type(textfield, 'test'));
     expect(screen.getByText(error)).toBeInTheDocument();
     await act(() => user.tab());
-    await act(() => user.clear(textarea));
+    await act(() => user.clear(textfield));
     expect(screen.getByText(error)).toBeInTheDocument();
   });
 
   it('Forwards the ref object to the textarea element if given', () => {
-    const ref = React.createRef<HTMLTextAreaElement>();
-    renderTextarea({}, ref);
+    const ref = React.createRef<HTMLInputElement>();
+    renderTextfield({}, ref);
     expect(ref.current).toBe(screen.getByRole('textbox'));
   });
 });
 
-const renderTextarea = (
-  props: Partial<StudioTextareaProps> = {},
-  ref?: RefObject<HTMLTextAreaElement>,
-) => render(<StudioTextarea {...props} ref={ref} />);
+const renderTextfield = (
+  props: Partial<StudioTextfieldProps> = {},
+  ref?: RefObject<HTMLInputElement>,
+) => render(<StudioTextfield {...props} ref={ref} />);

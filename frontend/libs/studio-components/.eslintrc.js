@@ -9,7 +9,7 @@ module.exports = {
             selector: ['variable', 'function'],
             modifiers: ['exported'],
             format: ['PascalCase'],
-            prefix: ['Studio'],
+            prefix: ['Studio', 'use'],
           },
         ],
       },
