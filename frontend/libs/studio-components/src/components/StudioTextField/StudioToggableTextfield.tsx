@@ -46,11 +46,7 @@ export const StudioToggableTextfield = ({
   };
 
   const handleOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (customValidation) {
-      const hasError = runCustomValidation(event);
-      if (hasError) return;
-    }
-
+    if (customValidation) runCustomValidation(event);
     inputProps.onChange?.(event);
   };
 
@@ -58,6 +54,7 @@ export const StudioToggableTextfield = ({
   return (
     <>
       <StudioIconTextfield
+        name={'componentIdInput'}
         {...inputProps}
         onBlur={handleBlur}
         onChange={handleOnChange}

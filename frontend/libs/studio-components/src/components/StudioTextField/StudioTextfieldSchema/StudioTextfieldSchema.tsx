@@ -4,28 +4,24 @@ import {
   type StudioToggableTextfieldProps,
 } from '../StudioToggableTextfield';
 import type { JsonSchema } from '../../../../../../packages/shared/src/types/JsonSchema';
-import {
-  isPropertyRequired,
-  validateProperty,
-} from '../../../../../../packages/shared/src/utils/formValidationUtils/formValidationUtils';
-
 import { useTranslation } from 'react-i18next';
+import { StudioJSONValidatorUtils } from '../StudioJSONValidatorUtils';
 
 export type StudioTextfieldSchemaProps = {
   schema: JsonSchema;
   propertyPath: string;
-  onError?: (error: string | null) => void;
+  jsonValidator: any;
 } & StudioToggableTextfieldProps;
 
-export const StudioTextfieldSchema = <T extends unknown, TT extends unknown>({
+export const StudioTextfieldSchema = ({
+  jsonValidator,
   schema,
   inputProps,
-  viewProps,
   propertyPath,
-  onError,
   ...rest
 }: StudioTextfieldSchemaProps) => {
   const [errorMessage, setErrorMessage] = useState<string | null>();
+  const studioJSONValidator = new StudioJSONValidatorUtils(jsonValidator);
   const { t } = useTranslation();
 
   const propertyId = useMemo(
@@ -35,14 +31,14 @@ export const StudioTextfieldSchema = <T extends unknown, TT extends unknown>({
 
   const validateAgainstSchema = (event: React.ChangeEvent<HTMLInputElement>): string | null => {
     const newValue = event.target.value;
-
-    // TODO: These tow should not work against the formValidationUtils but the StudioSchemaUtils
-    if (isPropertyRequired(schema, propertyPath) && newValue?.length === 0)
+    if (studioJSONValidator.isPropertyRequired(schema, propertyPath) && newValue?.length === 0) {
       return t('validation_errors.required');
-
+    }
     if (propertyId) {
-      const error = validateProperty(propertyId, newValue);
-      if (error) return t('ux_editor.modal_properties_component_id_not_valid');
+      const error = studioJSONValidator.validateProperty(propertyId, newValue);
+      if (error) {
+        return t('ux_editor.modal_properties_component_id_not_valid');
+      }
     }
     return null;
   };
@@ -53,7 +49,6 @@ export const StudioTextfieldSchema = <T extends unknown, TT extends unknown>({
     if (!validationError) {
       inputProps.onChange?.(event);
     }
-    onError?.(validationError);
   };
 
   return (
@@ -64,7 +59,6 @@ export const StudioTextfieldSchema = <T extends unknown, TT extends unknown>({
         onChange: (e) => handleOnChange(e),
         error: errorMessage,
       }}
-      viewProps={viewProps}
     />
   );
 };

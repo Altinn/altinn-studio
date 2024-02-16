@@ -7,6 +7,7 @@ import { idExists } from '../../../../utils/formLayoutUtils';
 import { useSelectedFormLayout } from '../../../../hooks';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { ajv } from '../../../../../../shared/src/utils/formValidationUtils/formValidationUtils';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormComponent) => void;
@@ -36,13 +37,13 @@ export const EditComponentIdRow = ({
 
   const validateId = (value: string) => {
     setIdInputValue(value);
-    if (value.length === 0) {
+    if (value?.length === 0) {
       return t('validation_errors.required');
     }
     if (value !== component.id && idExists(value, components, containers)) {
       return t('ux_editor.modal_properties_component_id_not_unique_error');
     }
-    return undefined;
+    return '';
   };
 
   return (
@@ -68,6 +69,7 @@ export const EditComponentIdRow = ({
         customValidation={(value) => {
           return validateId(value);
         }}
+        jsonValidator={ajv}
       />
     </div>
   );

@@ -12,7 +12,7 @@ export const StudioIconTextfield = ({ icon, ...rest }: StudioIconTextfieldProps)
       <div aria-hidden className={classes.iconContainer}>
         {icon}
       </div>
-      <Textfield {...rest} />
+      <Textfield {...rest} name='componentIdInput' />
     </div>
   );
 };

@@ -52,11 +52,13 @@ describe('PropertiesHeader', () => {
     const user = userEvent.setup();
     renderProperties({ form: component1Mock, formId: component1IdMock });
 
-    const textbox = screen.getByRole('textbox', {
-      name: textMock('ux_editor.modal_properties_component_change_id'),
-    });
+    const editComponentIdButton = screen.getByRole('button', { name: /ID/i });
+    expect(editComponentIdButton).toBeInTheDocument();
+    await act(() => user.click(editComponentIdButton));
+    const textbox = screen.getByRole('textbox', { name: 'ID' });
 
     await act(() => user.type(textbox, '2'));
+    await act(() => user.click(document.body));
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(1);
   });
 });

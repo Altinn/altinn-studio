@@ -81,11 +81,13 @@ describe('Properties', () => {
       });
       expect(heading).toBeInTheDocument();
 
-      const textbox = screen.getByRole('textbox', {
-        name: 'ux_editor.modal_properties_component_change_id',
-      });
+      const editComponentIdButton = screen.getByRole('button', { name: /ID/i });
+      expect(editComponentIdButton).toBeInTheDocument();
+      await act(() => user.click(editComponentIdButton));
+      const textbox = screen.getByRole('textbox', { name: 'ID' });
 
       await act(() => user.type(textbox, '2'));
+      await act(() => user.click(document.body));
       expect(formContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
       expect(formContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
     });
