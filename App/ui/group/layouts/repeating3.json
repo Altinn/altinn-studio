@@ -11,8 +11,46 @@
         "id": "NoteToDevs",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "Funksjonalitet vi kan teste her i fremtiden:<br><ul><li>Lagring av visningsverdi i options-komponenter (som igjen kan hentes ut i sjekkboksene under)</li><li>Validering for å sikre at man ikke kan legge til flere kjæledyr med samme art og navn (via unik ID med to egenskaper som kombinasjon)</li></ul>"
+          "title": "Funksjonalitet vi kan teste her i fremtiden:<br><ul><li>Lagring av visningsverdi i options-komponenter (som igjen kan hentes ut i sjekkboksene under)</li><li>Sortering i backend ved hjelp av visningsverdi (nå sorteres det vha. lagret verdi)</li><li>Validering for å sikre at man ikke kan legge til flere kjæledyr med samme art og navn (via unik ID med to egenskaper som kombinasjon)</li></ul>"
         }
+      },
+      {
+        "id": "generatePanel",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Pets.GeneratePanel.Title",
+          "description": "Pets.GeneratePanel.Description"
+        },
+        "groupingIndicator": "panel",
+        "children": ["panelButtons"],
+        "hidden": ["dataModel", "ForceShowPets"]
+      },
+      {
+        "id": "panelButtons",
+        "type": "ButtonGroup",
+        "children": ["forceShowPets", "generatePets"]
+      },
+      {
+        "id": "forceShowPets",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Pets.ForceShowButton"
+        },
+        "actions": [
+          { "type": "ServerAction", "id": "generatePets" }
+        ],
+        "buttonStyle": "secondary"
+      },
+      {
+        "id": "generatePets",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Pets.GenerateButton"
+        },
+        "actions": [
+          { "type": "ServerAction", "id": "generatePets" }
+        ],
+        "buttonStyle": "primary"
       },
       {
         "id": "pets",
@@ -36,6 +74,7 @@
             "showInExpandedEdit": true
           }
         },
+        "hidden": ["not", ["dataModel", "ForceShowPets"]],
         "hiddenRow": [
           "commaContains",
           ["dataModel", "HiddenPets"],
@@ -135,7 +174,8 @@
           "group": "Pets",
           "label": "PetName",
           "value": "Pets.UniqueId"
-        }
+        },
+        "hidden": ["not", ["dataModel", "ForceShowPets"]]
       },
       {
         "id": "futureSortOrder-outside",
@@ -149,7 +189,8 @@
         "grid": {
           "xs": 9
         },
-        "optionsId": "pet-sort-order"
+        "optionsId": "pet-sort-order",
+        "hidden": ["not", ["dataModel", "ForceShowPets"]]
       },
       {
         "id": "sortOrderButton-outside",
@@ -163,7 +204,8 @@
         "actions": [
           { "type": "ServerAction", "id": "sortPets" }
         ],
-        "buttonStyle": "secondary"
+        "buttonStyle": "secondary",
+        "hidden": ["not", ["dataModel", "ForceShowPets"]]
       },
       {
         "id": "nav-page-rep3",

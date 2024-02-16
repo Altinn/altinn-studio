@@ -151,6 +151,9 @@ namespace Altinn.App.logic.DataProcessing
                             // to the internal row id).
                             row.UniqueId = Guid.NewGuid().ToString();
                         }
+
+                        // This makes sure the panel is not shown even when all pets are deleted
+                        model.ForceShowPets = true;
                     }
                 }
                 model.NumPets = model.Pets?.Count ?? 0;

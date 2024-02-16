@@ -82,6 +82,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("Pets")]
     public List<Pet> Pets { get; set; }
 
+    [XmlElement("ForceShowPets")]
+    [JsonProperty("ForceShowPets")]
+    [JsonPropertyName("ForceShowPets")]
+    public bool ForceShowPets { get; set; }
+
     [XmlElement("NumPets")]
     [JsonProperty("NumPets")]
     [JsonPropertyName("NumPets")]

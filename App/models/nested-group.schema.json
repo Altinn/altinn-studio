@@ -179,6 +179,9 @@
         "HiddenPets": {
           "type": "string"
         },
+        "ForceShowPets": {
+          "type": "boolean"
+        },
         "PetSortOrder": {
           "type": "string"
         }

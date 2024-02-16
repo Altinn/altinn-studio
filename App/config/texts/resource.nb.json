@@ -380,6 +380,10 @@
       "id": "repeating3",
       "value": "Kjæledyr"
     },
+    { "id": "Pets.GeneratePanel.Title", "value": "Trist! Du har ingen kjæledyr" },
+    { "id": "Pets.GeneratePanel.Description", "value": "Hva skal du gjøre med det?" },
+    { "id": "Pets.GenerateButton", "value": "Dikt opp noen kjæledyr for meg" },
+    { "id": "Pets.ForceShowButton", "value": "La meg legge dem til, da" },
     { "id": "Pets.Title", "value": "Mine kjæledyr" },
     { "id": "Pets.AddButton", "value": "Legg til kjæledyr" },
     { "id": "Pets.Species", "value": "Art" },

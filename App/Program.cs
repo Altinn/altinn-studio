@@ -31,6 +31,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IAppMetadata, CustomMetaData>();
     services.AddTransient<IUserAction, FillAction>();
     services.AddTransient<IUserAction, SortPetsAction>();
+    services.AddTransient<IUserAction, GeneratePetsAction>();
     services.AddMimeTypeValidation();
 }
 

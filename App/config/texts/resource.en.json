@@ -350,6 +350,10 @@
       "id": "repeating3",
       "value": "Pets"
     },
+    { "id": "Pets.GeneratePanel.Title", "value": "Sad! You don't have any pets" },
+    { "id": "Pets.GeneratePanel.Description", "value": "What are you going to do about it?" },
+    { "id": "Pets.GenerateButton", "value": "Generate some pets for me" },
+    { "id": "Pets.ForceShowButton", "value": "Let me add them, then" },
     { "id": "Pets.Title", "value": "My pets" },
     { "id": "Pets.AddButton", "value": "Add pet" },
     { "id": "Pets.Species", "value": "Species" },
