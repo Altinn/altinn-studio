@@ -14,7 +14,7 @@ module.exports = {
               match: true,
             },
           },
-        ]
+        ],
       },
     },
     {
