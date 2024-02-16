@@ -60,11 +60,12 @@ export const SubExpressionContent = ({
         <Button
           title={t('right_menu.expression_sub_expression_delete')}
           color='danger'
-          icon={<TrashIcon />}
           onClick={() => onRemoveSubExpression(subExpression)}
           variant='tertiary'
           size='small'
-        />
+        >
+          <TrashIcon />
+        </Button>
       </div>
       <LegacySelect // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         label={t('right_menu.expressions_function')}
