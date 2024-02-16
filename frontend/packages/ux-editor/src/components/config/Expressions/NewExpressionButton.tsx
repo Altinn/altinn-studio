@@ -6,8 +6,6 @@ import type { ExpressionProperty } from '../../../types/Expressions';
 import { expressionPropertyTexts } from '../../../types/Expressions';
 import { StudioButton } from '@studio/components';
 
-import classes from './NewExpressionButton.module.css';
-
 export interface NewExpressionButtonProps {
   options: ExpressionProperty[];
   onAddExpression: (property: ExpressionProperty) => void;
@@ -36,7 +34,6 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
       </StudioButton>
       <DropdownMenu
         anchorEl={anchorEl.current}
-        className={classes.dropdownMenu}
         onClose={() => setShowDropdown(false)}
         open={showDropdown}
         placement='top'
