@@ -17,6 +17,7 @@ import {
   CheckmarkCircleFillIcon,
   XMarkOctagonFillIcon,
 } from '@studio/icons';
+import { StudioSpinner } from '@studio/components';
 
 export interface AppDeploymentListProps {
   envName: string;
@@ -31,45 +32,35 @@ export const AppDeploymentList = ({
 }: AppDeploymentListProps) => {
   const { t } = useTranslation();
 
-  const succeededPipelineDeploymentList = pipelineDeploymentList.filter(
-    (item) => item.build.result === BuildResult.succeeded && item.build.finished !== null,
-  );
-
-  // Deployment to Kubernetes succeeded but Pipeline failed
   const deployStatusUnavailable =
     kubernetesDeployment?.status === KubernetesDeploymentStatus.completed &&
-    succeededPipelineDeploymentList[0]?.tagName !== kubernetesDeployment?.version;
+    pipelineDeploymentList[0]?.tagName !== kubernetesDeployment?.version;
 
-  const getSeverity = (buildResult: BuildResult) => {
-    switch (buildResult) {
-      case BuildResult.canceled:
-        return 'warning';
-      case BuildResult.failed:
-        return 'danger';
-      case BuildResult.partiallySucceeded:
-        return 'warning';
-      case BuildResult.succeeded:
-        return 'success';
-      case BuildResult.none:
-      default:
-        return '';
-    }
-  };
+  // const getSeverity = (buildResult: BuildResult) => {
+  //   switch (buildResult) {
+  //     case BuildResult.canceled:
+  //       return 'warning';
+  //     case BuildResult.failed:
+  //       return 'danger';
+  //     case BuildResult.partiallySucceeded:
+  //       return 'warning';
+  //     case BuildResult.succeeded:
+  //       return 'success';
+  //     case BuildResult.none:
+  //     default:
+  //       return '';
+  //   }
+  // };
 
   const getIcon = (buildResult: BuildResult) => {
     switch (buildResult) {
-      case BuildResult.canceled:
-        return (
-          <InformationSquareFillIcon
-            className={classNames(classes.icon, classes[`icon-${buildResult}`])}
-          />
-        );
       case BuildResult.failed:
         return (
           <XMarkOctagonFillIcon
             className={classNames(classes.icon, classes[`icon-${buildResult}`])}
           />
         );
+      case BuildResult.canceled:
       case BuildResult.partiallySucceeded:
         return (
           <ExclamationmarkTriangleFillIcon
@@ -84,7 +75,11 @@ export const AppDeploymentList = ({
         );
       case BuildResult.none:
       default:
-        return null;
+        return (
+          <InformationSquareFillIcon
+            className={classNames(classes.icon, classes[`icon-${buildResult}`])}
+          />
+        );
     }
   };
 
@@ -129,32 +124,35 @@ export const AppDeploymentList = ({
             <Table size='small' stickyHeader className={classes.table}>
               <Table.Head>
                 <Table.Row>
-                  <Table.HeaderCell />
-                  <Table.HeaderCell>{t('app_deploy_table.version_col')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('app_deploy_table.available_version_col')}</Table.HeaderCell>
+                  <Table.HeaderCell className={classes.tableHeaderCell} />
+                  <Table.HeaderCell className={classes.tableHeaderCell}>
+                    {t('app_deploy_table.status')}
+                  </Table.HeaderCell>
+                  <Table.HeaderCell className={classes.tableHeaderCell}>
+                    {t('app_deploy_table.version_col')}
+                  </Table.HeaderCell>
+                  <Table.HeaderCell className={classes.tableHeaderCell}>
+                    {t('app_deploy_table.available_version_col')}
+                  </Table.HeaderCell>
                   <Table.HeaderCell>{t('app_deploy_table.deployed_by_col')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('app_deploy_table.status')}</Table.HeaderCell>
-                  <Table.HeaderCell />
+                  <Table.HeaderCell className={classes.tableHeaderCell} />
                 </Table.Row>
               </Table.Head>
               <Table.Body>
-                {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
+                {pipelineDeploymentList.map((deploy: PipelineDeployment, index) => {
                   return (
-                    <Table.Row
-                      key={deploy.build.id}
-                      className={classNames(getClassName(deploy.build.result))}
-                    >
+                    <Table.Row key={deploy.build.id} className={getClassName(deploy.build.result)}>
                       <Table.Cell className={classes.tableCell}>
                         {getIcon(deploy.build.result)}
+                      </Table.Cell>
+                      <Table.Cell className={classes.tableCell}>
+                        {t(`app_deploy.build_result.${deploy.build.result}`)}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.tagName}</Table.Cell>
                       <Table.Cell className={classes.tableCell}>
                         {formatDateTime(deploy.build.finished)}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.createdBy}</Table.Cell>
-                      <Table.Cell className={classes.tableCell}>
-                        {t(`app_deploy.build_result.${deploy.build.result}`)}
-                      </Table.Cell>
                       <Table.Cell className={classes.tableCell}>
                         <Trans i18nKey={'app_deploy.build_log'}>
                           <a

@@ -1,7 +1,12 @@
 .headingContainer {
-  width: 100%;
+  padding-right: var(--fds-spacing-6);
 }
 
 .envTitle {
   text-transform: uppercase;
+}
+
+.success {
+  display: flex;
+  justify-content: space-between;
 }

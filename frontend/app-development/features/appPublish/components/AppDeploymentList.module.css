@@ -5,6 +5,10 @@
   flex: 1;
 }
 
+.heading {
+  margin-bottom: var(--fds-spacing-4);
+}
+
 .tableWrapper {
   max-height: 550px;
   overflow: auto;
@@ -13,6 +17,11 @@
 .table {
   width: 100%;
   border-spacing: var(--fds-spacing-1);
+}
+
+.tableHeaderCell,
+.tableCell {
+  padding: var(--fds-spacing-2);
 }
 
 .tableCell {
@@ -29,10 +38,6 @@
   font-size: inherit !important;
 }
 
-.heading {
-  margin-bottom: var(--fds-spacing-6);
-}
-
 .canceled {
   background-color: var(--fds-semantic-surface-warning-subtle);
 }
@@ -40,13 +45,13 @@
   background-color: var(--fds-semantic-surface-danger-subtle);
 }
 .none {
-  background-color: transparent;
+  background-color: var(--fds-semantic-surface-info-subtle);
 }
 .partiallySucceeded {
   background-color: var(--fds-semantic-surface-warning-subtle);
 }
 .succeeded {
-  /* background-color: var(--fds-semantic-surface-success-subtle); */
+  background-color: var(--fds-semantic-surface-success-subtle);
 }
 
 .icon {
@@ -64,7 +69,7 @@
   color: var(--fds-semantic-border-danger-default);
 }
 .icon-none {
-  color: inherit;
+  color: var(--fds-semantic-border-info-default);
 }
 .icon-partiallySucceeded {
   color: var(--fds-semantic-border-warning-default);

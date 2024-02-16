@@ -14,6 +14,8 @@ import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { ImageOption } from '../components/ImageOption';
 import { AppDeployment } from '../components/AppDeployment';
+import { Alert } from '@digdir/design-system-react';
+import { Trans } from 'react-i18next';
 
 export const DeployContainer = () => {
   const { org, app } = useStudioUrlParams();
@@ -72,6 +74,7 @@ export const DeployContainer = () => {
       </div>
     );
   }
+
   return (
     <div className={classes.deployContainer}>
       {deployEnvironments.map((env: DeployEnvironment, index: number) => {

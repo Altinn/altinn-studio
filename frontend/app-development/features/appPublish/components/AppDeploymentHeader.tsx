@@ -4,6 +4,7 @@ import { Heading, Link } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import { Alert } from '@digdir/design-system-react';
+import { formatDateTime } from 'app-shared/pure/date-format';
 
 export interface AppDeploymentHeaderProps {
   kubernetesDeploymentStatus?: KubernetesDeploymentStatus;
@@ -24,7 +25,6 @@ export const AppDeploymentHeader = ({
 }: AppDeploymentHeaderProps) => {
   const { t } = useTranslation();
 
-  const severity = 'info';
   const isProduction = envType.toLowerCase() === 'production';
   const headingText = isProduction ? t('general.production') : envName;
 
@@ -36,7 +36,28 @@ export const AppDeploymentHeader = ({
     }
     switch (kubernetesDeploymentStatus) {
       case KubernetesDeploymentStatus.completed:
-        return t('overview.success', { appDeployedVersion: version });
+        return (
+          <div className={classes.success}>
+            <div>{t('overview.success', { appDeployedVersion: version })}</div>
+            <div>
+              {showLinkToApp && (
+                <Link href={urlToApp} target='_blank' rel='noopener noreferrer'>
+                  {urlToAppLinkTxt}
+                </Link>
+              )}
+            </div>
+            {/*
+            <div>
+              <Trans
+                i18nKey={'overview.last_published'}
+                values={{
+                  lastPublishedDate: formatDateTime(appDe?.created),
+                }}
+              />
+            </div>
+            */}
+          </div>
+        );
       case KubernetesDeploymentStatus.failed:
         return t('overview.unavailable');
       default:
@@ -61,13 +82,6 @@ export const AppDeploymentHeader = ({
         {headingText}
       </Heading>
       <div>{getStatus()}</div>
-      <div>
-        {showLinkToApp && (
-          <Link href={urlToApp} target='_blank' rel='noopener noreferrer'>
-            {urlToAppLinkTxt}
-          </Link>
-        )}
-      </div>
     </Alert>
   );
 };
