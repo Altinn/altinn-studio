@@ -24,6 +24,7 @@ import {
   PinIcon,
   PresentationIcon,
   RadioButtonIcon,
+  RepeatingGroupIcon,
   SelectIcon,
   ShortTextIcon,
   TableIcon,
@@ -358,7 +359,8 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.RepeatingGroup,
     itemType: LayoutItemType.Container,
     defaultProperties: {},
-    icon: GroupIcon,
+    propertyPath: 'definitions/repeatingGroupComponent',
+    icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
   [ComponentType.Summary]: {
