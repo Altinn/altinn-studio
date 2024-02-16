@@ -119,7 +119,7 @@ export const FormComponentConfig = ({
         if (!rest[propertyKey]) return null;
         if (
           rest[propertyKey].type === 'boolean' ||
-          rest[propertyKey].$ref?.endsWith('layout/expression.schema.v1.json#/definitions/boolean')
+          rest[propertyKey].$ref?.endsWith('expression.schema.v1.json#/definitions/boolean')
         ) {
           return (
             <EditBooleanValue

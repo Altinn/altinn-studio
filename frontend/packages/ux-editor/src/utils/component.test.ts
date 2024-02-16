@@ -215,7 +215,7 @@ describe('Component utils', () => {
           },
         },
         testProperty4: {
-          $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
+          $ref: 'expression.schema.v1.json#/definitions/boolean',
         },
         testProperty5: {
           type: 'integer',
@@ -271,7 +271,7 @@ describe('Component utils', () => {
     it('should return true if property ref is supported', () => {
       expect(
         isPropertyTypeSupported({
-          $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
+          $ref: 'expression.schema.v1.json#/definitions/boolean',
         }),
       ).toBe(true);
     });

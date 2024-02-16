@@ -143,9 +143,7 @@ export const getUnsupportedPropertyTypes = (
 };
 
 const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string'];
-const supportedPropertyRefs = [
-  'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
-];
+const supportedPropertyRefs = ['expression.schema.v1.json#/definitions/boolean'];
 
 /**
  * Checks if a given property with optional property key is supported by component config view.
