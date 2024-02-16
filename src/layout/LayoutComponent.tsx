@@ -43,7 +43,6 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 const defaultGenerator = new SimpleComponentHierarchyGenerator();
-
 export abstract class AnyComponent<Type extends CompTypes> {
   /**
    * Given properties from GenericComponent, render this layout component

@@ -1,5 +1,4 @@
-import React from 'react';
-import type { MutableRefObject } from 'react';
+import React, { forwardRef } from 'react';
 
 import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
@@ -19,11 +18,7 @@ import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/Repeatin
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/RepeatingGroupTable';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
-interface RepeatingGroupContainerProps {
-  containerDivRef?: MutableRefObject<HTMLDivElement | null>;
-}
-
-export function RepeatingGroupContainer({ containerDivRef }: RepeatingGroupContainerProps): JSX.Element | null {
+export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
   const { node, visibleRowIndexes } = useRepeatingGroup();
   const { editingIndex } = useRepeatingGroupSelector((state) => ({
     editingIndex: state.editingIndex,
@@ -48,7 +43,7 @@ export function RepeatingGroupContainer({ containerDivRef }: RepeatingGroupConta
       container={true}
       item={true}
       data-componentid={node.item.id}
-      ref={containerDivRef}
+      ref={ref}
     >
       {(!edit?.mode ||
         edit?.mode === 'showTable' ||
@@ -102,7 +97,8 @@ export function RepeatingGroupContainer({ containerDivRef }: RepeatingGroupConta
       </Grid>
     </Grid>
   );
-}
+});
+RepeatingGroupContainer.displayName = 'RepeatingGroupContainer';
 
 function AddButton() {
   const { lang, langAsString } = useLanguage();
