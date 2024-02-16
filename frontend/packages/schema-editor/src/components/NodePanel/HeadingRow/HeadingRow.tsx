@@ -136,7 +136,7 @@ const AddNodeMenuItem = ({ titleKey, icon, action }: AddNodeMenuItemProps) => {
   const { t } = useTranslation();
   return (
     <StudioDropdownMenu.Item key={titleKey} onClick={action}>
-      {icon && icon}
+      {icon}
       {t(titleKey)}
     </StudioDropdownMenu.Item>
   );
