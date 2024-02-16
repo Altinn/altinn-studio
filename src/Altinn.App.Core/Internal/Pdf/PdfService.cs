@@ -138,7 +138,8 @@ public class PdfService : IPdfService
         // language directly in the form, then use the selected language.
         if (_httpContextAccessor.HttpContext != null)
         {
-            bool hasQueryLanguage = _httpContextAccessor.HttpContext.Request.Query.TryGetValue("lang", out StringValues queryLanguage);
+            StringValues queryLanguage;
+            bool hasQueryLanguage = _httpContextAccessor.HttpContext.Request.Query.TryGetValue("language", out queryLanguage) ||  _httpContextAccessor.HttpContext.Request.Query.TryGetValue("lang", out queryLanguage);
             if (hasQueryLanguage)
             {
                 return queryLanguage.ToString();

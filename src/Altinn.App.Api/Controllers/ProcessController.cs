@@ -217,10 +217,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="elementId">obsolete: alias for action</param>
-        /// <param name="lang">Optional parameter to pass on the language used in the form if this differs from the profile language,
-        /// which otherwise is used automatically. The language is picked up when generating the PDF when leaving a step, 
-        /// and is not used for anything else.
-        /// </param>
+        /// <param name="language">Signal the language to use for pdf generation, error messages...</param>
         [HttpPut("next")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -231,7 +228,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromQuery] string? elementId = null,
-            [FromQuery] string? lang = null)
+            [FromQuery] string? language = null)
         {
             try
             {
