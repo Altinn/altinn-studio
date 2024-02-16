@@ -7,8 +7,11 @@ using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
+using Altinn.Studio.Designer.EventHandlers;
+using Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
+using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -252,6 +255,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     // Registers all handlers and the mediator
     services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+    services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
 
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
@@ -330,6 +334,7 @@ void Configure(IConfiguration configuration)
 
     app.MapHealthChecks("/health");
     app.MapHub<PreviewHub>("/previewHub");
+    app.MapHub<SyncHub>("/sync-hub");
 
     logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }

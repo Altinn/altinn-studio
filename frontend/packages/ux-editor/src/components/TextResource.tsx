@@ -24,7 +24,6 @@ import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesSelector } from '../hooks';
-import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
@@ -60,7 +59,6 @@ export const TextResource = ({
   handleRemoveTextResource,
   label,
   placeholder,
-  previewMode,
   textResourceId,
   generateIdOptions,
 }: TextResourceProps) => {
@@ -109,7 +107,6 @@ export const TextResource = ({
     <span
       className={cn(
         classes.root,
-        previewMode && classes.previewMode,
         isEditing && classes.isEditing,
         isSearchMode && classes.isSearching,
       )}
@@ -149,37 +146,37 @@ export const TextResource = ({
           <span className={classes.buttons}>
             {textResource?.value ? (
               <StudioButton
-                aria-label={t('general.edit')}
+                aria-label={t(getTextKeyForButton('edit', generateIdOptions?.textResourceKey))}
                 className={classes.button}
                 color='second'
                 disabled={isEditing}
                 icon={<PencilIcon />}
                 onClick={handleEditButtonClick}
-                title={t('general.edit')}
+                title={t(getTextKeyForButton('edit', generateIdOptions?.textResourceKey))}
                 variant='tertiary'
                 size='small'
               />
             ) : (
               <StudioButton
-                aria-label={t('general.add')}
+                aria-label={t(getTextKeyForButton('add', generateIdOptions?.textResourceKey))}
                 className={classes.button}
                 color='second'
                 disabled={isEditing}
                 icon={<PlusIcon />}
                 onClick={handleEditButtonClick}
-                title={t('general.add')}
+                title={t(getTextKeyForButton('add', generateIdOptions?.textResourceKey))}
                 variant='tertiary'
                 size='small'
               />
             )}
             <StudioButton
-              aria-label={t('general.search')}
+              aria-label={t(getTextKeyForButton('search', generateIdOptions?.textResourceKey))}
               className={classes.button}
               color='second'
               disabled={isSearchMode}
               icon={<MagnifyingGlassIcon />}
               onClick={() => setIsSearchMode(true)}
-              title={t('general.search')}
+              title={t(getTextKeyForButton('search', generateIdOptions?.textResourceKey))}
               variant='tertiary'
               size='small'
             />
@@ -190,7 +187,7 @@ export const TextResource = ({
               onClose={() => setIsConfirmDeleteDialogOpen(false)}
               trigger={
                 <StudioButton
-                  aria-label={t('general.delete')}
+                  aria-label={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
                   className={classes.button}
                   color='second'
                   disabled={
@@ -199,7 +196,7 @@ export const TextResource = ({
                   }
                   icon={<TrashIcon />}
                   onClick={() => setIsConfirmDeleteDialogOpen(true)}
-                  title={t('general.delete')}
+                  title={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
                   variant='tertiary'
                   size='small'
                 />
@@ -216,16 +213,7 @@ export const TextResource = ({
     </span>
   );
 
-  return previewMode ? (
-    renderTextResource()
-  ) : (
-    <FormField
-      id={textResourceId}
-      value={{ [textResourceId]: textResource?.value }}
-      propertyPath='definitions/component/properties/textResourceBindings'
-      renderField={() => renderTextResource()}
-    />
-  );
+  return renderTextResource();
 };
 
 export interface TextResourceOptionProps {
@@ -242,4 +230,13 @@ export const TextResourceOption = ({ textResource }: TextResourceOptionProps) =>
       </span>
     </span>
   );
+};
+
+type Action = 'add' | 'edit' | 'delete' | 'search';
+const textResourceKeys: string[] = ['title', 'description', 'help'];
+
+const getTextKeyForButton = (action: Action, textResourceKey: string): string => {
+  return textResourceKey && textResourceKeys.includes(textResourceKey)
+    ? `ux_editor.text_resource_binding_${action}_${textResourceKey}`
+    : `general.${action}`;
 };

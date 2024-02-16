@@ -78,7 +78,6 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         private async Task GetAndVerifyStarredRepos(params string[] expectedStarredRepos)
         {
-            InvalidateAllCookies();
             using var response = await HttpClient.GetAsync("designer/api/user/starred");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
@@ -87,7 +86,6 @@ namespace Designer.Tests.GiteaIntegrationTests
             {
                 content.Should().Contain(r => r.Name == expectedStarredRepo);
             }
-            InvalidateAllCookies();
         }
 
     }

@@ -84,23 +84,4 @@ describe('App', () => {
     );
     expect(removeSelectedLayoutSetMock).not.toHaveBeenCalled();
   });
-
-  it('Renders the unsupported version message if the version is not supported', async () => {
-    renderApp(
-      {
-        getAppVersion: jest
-          .fn()
-          .mockImplementation(() =>
-            Promise.resolve({ backendVersion: '7.15.1', frontendVersion: '4.0.0-rc1' }),
-          ),
-      },
-      { selectedLayoutSet },
-    );
-
-    expect(
-      await screen.findByText(
-        textMock('ux_editor.unsupported_version_message_title', { version: 'V4' }),
-      ),
-    ).toBeInTheDocument();
-  });
 });

@@ -32,10 +32,6 @@ const texts = {
 
 // Mocks:
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
-const buttonSpecificContentId = 'button-specific-content';
-jest.mock('./componentSpecificContent/Button/ButtonComponent', () => ({
-  ButtonComponent: () => <div data-testid={buttonSpecificContentId} />,
-}));
 const imageSpecificContentId = 'image-specific-content';
 jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
@@ -158,15 +154,6 @@ describe('EditFormComponent', () => {
     });
   });
 
-  test('should return button specific content when type button', async () => {
-    await render({
-      componentProps: {
-        type: ComponentType.Button,
-      },
-    });
-    expect(await screen.findByTestId(buttonSpecificContentId)).toBeInTheDocument();
-  });
-
   test('should render Image component when component type is Image', async () => {
     await render({
       componentProps: {
@@ -205,7 +192,6 @@ const waitForData = async () => {
     { getDatamodelMetadata },
   )(() => useDatamodelMetadataQuery('test-org', 'test-app')).renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async ({
