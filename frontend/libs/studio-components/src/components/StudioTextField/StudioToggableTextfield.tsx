@@ -8,7 +8,7 @@ import { StudioTextfieldToggleView } from './StudioTextfieldToggleView/StudioTex
 import { HelpText } from '@digdir/design-system-react';
 
 export type StudioToggableTextfieldProps = {
-  viewProps: StudioTextfieldToggleViewProps;
+  viewProps: Omit<StudioTextfieldToggleViewProps, 'onClick'>;
   inputProps: StudioIconTextfieldProps;
   helpText?: string;
   customValidation?: (value: string) => string | undefined;

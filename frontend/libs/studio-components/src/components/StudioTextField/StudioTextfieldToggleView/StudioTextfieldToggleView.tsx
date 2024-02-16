@@ -13,10 +13,10 @@ export const StudioTextfieldToggleView = ({
   return (
     <StudioButton {...rest} onClick={onClick}>
       <span className={classes.viewModeIconsContainer}>
-        <KeyVerticalIcon aria-hidden />
+        <KeyVerticalIcon aria-hidden aria-label='keyIcon' />
         {children}
       </span>
-      <PencilIcon aria-hidden className={classes.editIcon} />
+      <PencilIcon aria-hidden className={classes.editIcon} aria-label='EditIcon' />
     </StudioButton>
   );
 };
