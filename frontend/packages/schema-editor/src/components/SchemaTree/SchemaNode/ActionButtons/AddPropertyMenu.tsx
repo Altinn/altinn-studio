@@ -43,6 +43,7 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
         open={isAddDropdownOpen}
         onClose={closeDropdown}
         size='small'
+        portal
       >
         <DropdownMenu.Content>
           <DropdownMenu.Group>
