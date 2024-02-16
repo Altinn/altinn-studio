@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Custom.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Address.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -81,12 +81,24 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": { "const": "Custom" },
+    "labelSettings": {
+      "title": "ILabelSettings",
+      "type": "object",
+      "properties": {
+        "optionalIndicator": {
+          "title": "Optional indicator",
+          "description": "Show optional indicator on label",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "type": { "const": "Address" },
     "textResourceBindings": {
       "properties": {
         "title": {
-          "title": "Title",
-          "description": "Title (passed on as the \"text\" property to the component)",
+          "title": "Title from Summary",
+          "description": "Title of the component (currently only used when referenced from a Summary component)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "tableTitle": {
@@ -117,17 +129,31 @@
       }
     },
     "dataModelBindings": {
-      "title": "IDataModelBindingsForCustom",
+      "title": "IDataModelBindingsForAddress",
       "type": "object",
-      "properties": {},
-      "additionalProperties": { "type": "string" }
+      "properties": {
+        "address": { "type": "string" },
+        "zipCode": { "type": "string" },
+        "postPlace": { "type": "string" },
+        "careOf": { "type": "string" },
+        "houseNumber": { "type": "string" }
+      },
+      "required": ["address", "zipCode", "postPlace"],
+      "additionalProperties": false
     },
-    "tagName": {
-      "title": "Tag name",
-      "description": "Web component tag name to use",
-      "type": "string"
+    "saveWhileTyping": {
+      "title": "Automatic saving while typing",
+      "description": "Lets you control how long we wait before saving the value locally while typing. This value is usually also used to determine how long we wait before saving the value to the server. The default value is 400 milliseconds.",
+      "default": 400,
+      "type": "number"
+    },
+    "simplified": {
+      "title": "Simplified",
+      "description": "Whether to use the simplified address input or not",
+      "default": true,
+      "type": "boolean"
     }
   },
-  "required": ["id", "type", "tagName"],
-  "title": "Custom component schema"
+  "required": ["id", "type", "dataModelBindings"],
+  "title": "Address component schema"
 }
