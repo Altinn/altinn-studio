@@ -384,8 +384,8 @@ export const ExpandablePolicyCard = ({
    */
   const displayWarningCard = (text: string) => {
     return (
-      <ErrorMessage as='p' size='small'>
-        {text}
+      <ErrorMessage asChild size='small'>
+        <p>{text}</p>
       </ErrorMessage>
     );
   };
@@ -439,8 +439,8 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >
-        <Label as='p' className={classes.label} size='small'>
-          {t('policy_editor.rule_card_sub_resource_title')}
+        <Label asChild className={classes.label} size='small'>
+          <p>{t('policy_editor.rule_card_sub_resource_title')}</p>
         </Label>
         {displayResources}
         <div className={classes.addResourceButton}>

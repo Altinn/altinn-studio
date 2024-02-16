@@ -38,9 +38,11 @@ const BackButton = () => {
   };
 
   return (
-    <Link as='button' onClick={navigateToDatamodelRoot} className={classes.backButton}>
-      <ArrowLeftIcon />
-      {t('schema_editor.back_to_datamodel')}
+    <Link asChild onClick={navigateToDatamodelRoot} className={classes.backButton}>
+      <button>
+        <ArrowLeftIcon />
+        {t('schema_editor.back_to_datamodel')}
+      </button>
     </Link>
   );
 };
