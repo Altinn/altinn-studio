@@ -39,12 +39,9 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    private readonly ITestOutputHelper _outputHelper;
-
-    public ValidateControllerValidateInstanceTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory)
+    public ValidateControllerValidateInstanceTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
     {
         _formDataValidatorMock.Setup(v => v.DataType).Returns("Not a valid data type");
-        _outputHelper = outputHelper;
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_dataProcessorMock.Object);

@@ -12,11 +12,9 @@ namespace Altinn.App.Api.Tests.Controllers
 {
     public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly ITestOutputHelper _testOutput;
 
-        public OptionsControllerTests(ITestOutputHelper testOutput, WebApplicationFactory<Program> factory) : base(factory)
+        public OptionsControllerTests(ITestOutputHelper outputHelper, WebApplicationFactory<Program> factory) : base(factory, outputHelper)
         {
-            _testOutput = testOutput;
         }
 
         [Fact]
@@ -34,7 +32,7 @@ namespace Altinn.App.Api.Tests.Controllers
             string url = $"/{org}/{app}/api/options/test?language=esperanto";
             HttpResponseMessage response = await client.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
-            _testOutput.WriteLine(content);
+            _outputHelper.WriteLine(content);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var headerValue = response.Headers.GetValues("Altinn-DownstreamParameters");
@@ -114,7 +112,7 @@ namespace Altinn.App.Api.Tests.Controllers
             string url = $"/{org}/{app}/api/options/test";
             HttpResponseMessage response = await client.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
-            _testOutput.WriteLine(content);
+            _outputHelper.WriteLine(content);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var headerValue = response.Headers.GetValues("Altinn-DownstreamParameters");
@@ -132,7 +130,7 @@ namespace Altinn.App.Api.Tests.Controllers
             string url = $"/{org}/{app}/api/options/fileSourceOptions";
             HttpResponseMessage response = await client.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
-            _testOutput.WriteLine(content);
+            _outputHelper.WriteLine(content);
             response.Should().HaveStatusCode(HttpStatusCode.OK);
             content.Should()
                 .Be(
@@ -150,7 +148,7 @@ namespace Altinn.App.Api.Tests.Controllers
             string url = $"/{org}/{app}/api/options/non-existent-option-list";
             HttpResponseMessage response = await client.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
-            _testOutput.WriteLine(content);
+            _outputHelper.WriteLine(content);
             response.Should().HaveStatusCode(HttpStatusCode.NotFound);
         }
 
@@ -169,7 +167,7 @@ namespace Altinn.App.Api.Tests.Controllers
             string url = $"/{org}/{app}/api/options/test";
             HttpResponseMessage response = await client.GetAsync(url);
             var content = await response.Content.ReadAsStringAsync();
-            _testOutput.WriteLine(content);
+            _outputHelper.WriteLine(content);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             content.Should().Be("[{\"value\":null,\"label\":\"\"},{\"value\":\"SomeString\",\"label\":\"False\"},{\"value\":true,\"label\":\"True\"},{\"value\":0,\"label\":\"Zero\"},{\"value\":1,\"label\":\"One\",\"description\":\"This is a description\",\"helpText\":\"This is a help text\"}]");

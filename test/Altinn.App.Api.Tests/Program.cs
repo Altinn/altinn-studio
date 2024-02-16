@@ -27,7 +27,13 @@ using Microsoft.Extensions.Options;
 // External interfaces like Platform related services, Authenication, Authorization
 // external api's etc. should be mocked.
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions() { ApplicationName = "Altinn.App.Api.Tests" });
+WebApplicationBuilder builder = WebApplication.CreateBuilder(
+    new WebApplicationOptions()
+    {
+        ApplicationName = "Altinn.App.Api.Tests",
+        WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction")
+    });
+
 builder.Configuration.AddJsonFile(Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json"));
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
 

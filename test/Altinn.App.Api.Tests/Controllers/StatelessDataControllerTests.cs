@@ -100,6 +100,13 @@ public class StatelessDataControllerTests
         {
             base.ConfigureWebHost(builder);
 
+            builder.ConfigureLogging(options =>
+            {
+                // Don't write logs to the console
+                // consider writing logs to a test output
+                options.ClearProviders();
+            });
+
             builder.ConfigureServices(services=>
             {
                 services.AddTransient<IProfileClient>((sp)=>ProfileClientMoq.Object);

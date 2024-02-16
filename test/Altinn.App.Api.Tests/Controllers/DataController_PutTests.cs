@@ -10,6 +10,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
@@ -22,7 +23,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public DataController_PutTests(WebApplicationFactory<Program> factory) : base(factory)
+    public DataController_PutTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {

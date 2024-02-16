@@ -7,33 +7,35 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
-namespace Altinn.App.Api.Tests.Constants;
+namespace Altinn.App.Api.Tests.Controllers;
 
-public class ApplicationMetadataControllerTests
+public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory = new();
     private readonly Mock<IAppMetadata> _appMetadataMock = new();
+
+    public ApplicationMetadataControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
+    {
+    }
 
     [Fact]
     public async Task VeryfyExtraFieldsInApplicationMetadataIsPreserved()
     {
         var org = "tdd";
-        var appId = "test-app";
+        var appId = "contributer-restriction";
         var appMetadataSample = $"{{\"id\":\"{org}/{appId}\",\"org\":\"{org}\",\"title\":{{\"nb\":\"Bestillingseksempelapp\"}},\"dataTypes\":[],\"partyTypesAllowed\":{{}},\"extra_Unknown_list\":[3,\"tre\",{{\"verdi\":3}}]}}";
         var application = JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataSample, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
         _appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(application);
-        using var client = _factory.WithWebHostBuilder(builder =>
+        OverrideServicesForThisTest = (services) =>
         {
-            builder.ConfigureTestServices(services =>
-            {
-                services.AddTransient<IAppMetadata>(sp => _appMetadataMock.Object);
-            });
-        }).CreateClient();
+            services.AddSingleton(_appMetadataMock.Object);
+        };
+        var client = GetRootedClient(org, appId);
 
         var response = await client.GetStringAsync($"/{org}/{appId}/api/v1/applicationmetadata");
 
-        // Assert that unknonwn parts of json is preserved
+        // Assert that unknown parts of json is preserved
         response.Should().ContainAll("extra_Unknown_list", "verdi\":3");
     }
 }

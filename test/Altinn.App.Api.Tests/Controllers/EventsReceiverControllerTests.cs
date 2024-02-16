@@ -11,25 +11,25 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers
 {
-    public class EventsReceiverControllerTests : IClassFixture<WebApplicationFactory<Program>>
+    public class EventsReceiverControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly WebApplicationFactory<Program> _factory;
         private readonly IEventSecretCodeProvider _secretCodeProvider;
-        public EventsReceiverControllerTests(WebApplicationFactory<Program> factory)
+        public EventsReceiverControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
         {
-            _factory = factory;
-            _secretCodeProvider = _factory.Services.GetRequiredService<IEventSecretCodeProvider>();
+            _secretCodeProvider = factory.Services.GetRequiredService<IEventSecretCodeProvider>();
         }
 
         [Fact]
         public async Task Post_ValidEventType_ShouldReturnOk()
         {
-            var client = _factory.CreateClient();
-            string token = PrincipalUtil.GetToken(1337, null);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var org = "tdd";
+            var app = "contributer-restriction";
+
+            var client = GetRootedClient(org, app, 1338, null);
             CloudEvent cloudEvent = new()
             {
                 Id = Guid.NewGuid().ToString(),
@@ -41,8 +41,6 @@ namespace Altinn.App.Api.Tests.Controllers
                 AlternativeSubject = "/person/17858296439"
             };
 
-            var org = "ttd";
-            var app = "non-existing-app";
             string requestUrl = $"{org}/{app}/api/v1/eventsreceiver?code={await _secretCodeProvider.GetSecretCode()}";
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
             {
@@ -57,9 +55,10 @@ namespace Altinn.App.Api.Tests.Controllers
         [Fact]
         public async Task Post_NonValidEventType_ShouldReturnBadRequest()
         {
-            var client = _factory.CreateClient();
-            string token = PrincipalUtil.GetToken(1337, null);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var org = "tdd";
+            var app = "contributer-restriction";
+
+            var client = GetRootedClient(org, app, userId: 1338, partyId: null);
             CloudEvent cloudEvent = new()
             {
                 Id = Guid.NewGuid().ToString(),
@@ -71,8 +70,6 @@ namespace Altinn.App.Api.Tests.Controllers
                 AlternativeSubject = "/person/17858296439"
             };
 
-            var org = "ttd";
-            var app = "non-existing-app";
             string requestUrl = $"{org}/{app}/api/v1/eventsreceiver?code={await _secretCodeProvider.GetSecretCode()}";
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
             {

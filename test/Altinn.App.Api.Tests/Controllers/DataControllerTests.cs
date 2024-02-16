@@ -10,12 +10,13 @@ using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers
 {
     public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
     {
-        public DataControllerTests(WebApplicationFactory<Program> factory) : base(factory)
+        public DataControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
         {
         }
 

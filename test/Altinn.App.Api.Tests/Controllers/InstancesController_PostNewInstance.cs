@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
@@ -22,7 +23,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    public InstancesController_PostNewInstanceTests(WebApplicationFactory<Program> factory) : base(factory)
+    public InstancesController_PostNewInstanceTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {
@@ -65,7 +66,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed =
             JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
-        readDataElementResponseParsed.Melding.Name.Should().Be(testName);
+        readDataElementResponseParsed.Melding!.Name.Should().Be(testName);
     }
 
     [Fact]

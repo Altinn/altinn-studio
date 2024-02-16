@@ -7,12 +7,13 @@ using Altinn.App.Api.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
 public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    public ProcessControllerTests(WebApplicationFactory<Program> factory) : base(factory)
+    public ProcessControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
     {
     }
 

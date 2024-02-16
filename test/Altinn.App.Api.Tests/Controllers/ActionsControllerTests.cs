@@ -11,12 +11,13 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
 public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    public ActionsControllerTests(WebApplicationFactory<Program> factory) : base(factory)
+    public ActionsControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
     {
     }
 
