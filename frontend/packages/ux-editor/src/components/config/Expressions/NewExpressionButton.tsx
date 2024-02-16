@@ -43,19 +43,21 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
         portal
         size='small'
       >
-        <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
-          {options.map((o) => (
-            <DropdownMenu.Item
-              key={o}
-              onClick={() => {
-                setShowDropdown(false);
-                onAddExpression(o);
-              }}
-            >
-              {expressionPropertyTexts(t)[o]}
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Group>
+        <DropdownMenu.Content>
+          <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
+            {options.map((o) => (
+              <DropdownMenu.Item
+                key={o}
+                onClick={() => {
+                  setShowDropdown(false);
+                  onAddExpression(o);
+                }}
+              >
+                {expressionPropertyTexts(t)[o]}
+              </DropdownMenu.Item>
+            ))}
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
       </DropdownMenu>
     </>
   );

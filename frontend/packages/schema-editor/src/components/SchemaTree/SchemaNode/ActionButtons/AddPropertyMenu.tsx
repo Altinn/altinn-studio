@@ -44,17 +44,19 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
         onClose={closeDropdown}
         size='small'
       >
-        <DropdownMenu.Group>
-          <DropdownMenu.Item onClick={addField} icon={<PropertyIcon />}>
-            {t('schema_editor.add_field')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item onClick={addCombination} icon={<CombinationIcon />}>
-            {t('schema_editor.add_combination')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item onClick={addReference} icon={<ReferenceIcon />}>
-            {t('schema_editor.add_reference')}
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
+        <DropdownMenu.Content>
+          <DropdownMenu.Group>
+            <DropdownMenu.Item onClick={addField} icon={<PropertyIcon />}>
+              {t('schema_editor.add_field')}
+            </DropdownMenu.Item>
+            <DropdownMenu.Item onClick={addCombination} icon={<CombinationIcon />}>
+              {t('schema_editor.add_combination')}
+            </DropdownMenu.Item>
+            <DropdownMenu.Item onClick={addReference} icon={<ReferenceIcon />}>
+              {t('schema_editor.add_reference')}
+            </DropdownMenu.Item>
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
       </DropdownMenu>
     </>
   );

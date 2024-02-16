@@ -60,18 +60,20 @@ export const PolicyEditorDropdownMenu = ({
         size='small'
         open={isOpen}
       >
-        <DropdownMenu.Group>
-          <DropdownMenu.Item onClick={handleClone} icon={<TabsIcon className={classes.icon} />}>
-            {t('policy_editor.expandable_card_dropdown_copy')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item
-            color='danger'
-            onClick={handleDelete}
-            icon={<TrashIcon className={classes.icon} />}
-          >
-            {t('general.delete')}
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
+        <DropdownMenu.Content>
+          <DropdownMenu.Group>
+            <DropdownMenu.Item onClick={handleClone} icon={<TabsIcon className={classes.icon} />}>
+              {t('policy_editor.expandable_card_dropdown_copy')}
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              color='danger'
+              onClick={handleDelete}
+              icon={<TrashIcon className={classes.icon} />}
+            >
+              {t('general.delete')}
+            </DropdownMenu.Item>
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
       </DropdownMenu>
     </>
   );

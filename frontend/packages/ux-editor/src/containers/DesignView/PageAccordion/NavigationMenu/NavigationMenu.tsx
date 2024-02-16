@@ -86,35 +86,37 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
         size='small'
         className={classes.dropdownMenu}
       >
-        <DropdownMenu.Group>
-          {!pageIsReceipt && (
-            <>
-              <DropdownMenu.Item
-                onClick={() => !(disableUp || invalid) && moveLayout('up')}
-                disabled={disableUp || invalid}
-                id='move-page-up-button'
-              >
-                <ArrowUpIcon />
-                {t('ux_editor.page_menu_up')}
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                onClick={() => !(disableDown || invalid) && moveLayout('down')}
-                disabled={disableDown || invalid}
-                id='move-page-down-button'
-              >
-                <ArrowDownIcon />
-                {t('ux_editor.page_menu_down')}
-              </DropdownMenu.Item>
-            </>
-          )}
-          <InputPopover
-            oldName={pageName}
-            disabled={invalid}
-            layoutOrder={layoutOrder}
-            saveNewName={handleSaveNewName}
-            onClose={() => setDropdownOpen(false)}
-          />
-        </DropdownMenu.Group>
+        <DropdownMenu.Content>
+          <DropdownMenu.Group>
+            {!pageIsReceipt && (
+              <>
+                <DropdownMenu.Item
+                  onClick={() => !(disableUp || invalid) && moveLayout('up')}
+                  disabled={disableUp || invalid}
+                  id='move-page-up-button'
+                >
+                  <ArrowUpIcon />
+                  {t('ux_editor.page_menu_up')}
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  onClick={() => !(disableDown || invalid) && moveLayout('down')}
+                  disabled={disableDown || invalid}
+                  id='move-page-down-button'
+                >
+                  <ArrowDownIcon />
+                  {t('ux_editor.page_menu_down')}
+                </DropdownMenu.Item>
+              </>
+            )}
+            <InputPopover
+              oldName={pageName}
+              disabled={invalid}
+              layoutOrder={layoutOrder}
+              saveNewName={handleSaveNewName}
+              onClose={() => setDropdownOpen(false)}
+            />
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
       </DropdownMenu>
     </div>
   );
