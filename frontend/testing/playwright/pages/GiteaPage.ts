@@ -7,6 +7,7 @@ const giteaPageTexts: Record<string, string> = {
   app: 'App',
   ui: 'ui',
   layouts: 'layouts',
+  dataModelBindings: 'dataModelBindings',
 };
 
 export class GiteaPage extends BasePage {
@@ -27,7 +28,7 @@ export class GiteaPage extends BasePage {
   }
 
   public async clickOnUiFilesButton(): Promise<void> {
-    await this.page.getByRole('link', { name: giteaPageTexts['ui'] }).click();
+    await this.page.getByRole('link', { name: giteaPageTexts['ui'], exact: true }).click();
   }
 
   public async clickOnLayoutsFilesButton(): Promise<void> {
@@ -46,5 +47,18 @@ export class GiteaPage extends BasePage {
     for (let i = 0; i < nPages; i++) {
       await this.page.goBack();
     }
+  }
+
+  public async clickOnLayoutJsonFile(pageName: string): Promise<void> {
+    await this.page.getByRole('link', { name: `${pageName}.json` }).click();
+  }
+
+  public async verifyThatDataModelBindingsAreNotPresent(): Promise<void> {
+    await this.page.getByText(giteaPageTexts['dataModelBindings']).isHidden();
+  }
+
+  public async verifyThatDataModelBindingsAreVisible(dataModelBindingName: string): Promise<void> {
+    await this.page.getByText(giteaPageTexts['dataModelBindings']).isVisible();
+    await this.page.getByText('"simpleBinding": "property1"').isVisible();
   }
 }

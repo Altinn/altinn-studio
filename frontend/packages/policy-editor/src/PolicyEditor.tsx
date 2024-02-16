@@ -62,7 +62,7 @@ export const PolicyEditor = ({
   const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCard[]>(
-    mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, actions, policy?.rules ?? []),
+    mapPolicyRulesBackendObjectToPolicyRuleCard(policy?.rules ?? []),
   );
 
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated
@@ -74,9 +74,6 @@ export const PolicyEditor = ({
   const [ruleIdToDelete, setRuleIdToDelete] = useState('0');
   const [showErrorsOnAllRulesAboveNew, setShowErrorsOnAllRulesAboveNew] = useState(false);
 
-  /**
-   * Displays all the rule cards
-   */
   const displayRules = policyRules.map((pr, i) => {
     return (
       <div className={classes.space} key={pr.ruleId}>
@@ -178,7 +175,6 @@ export const PolicyEditor = ({
     const policyEditorRules: PolicyRule[] = rules.map((pr) =>
       mapPolicyRuleToPolicyRuleBackendObject(
         subjects,
-        actions,
         pr,
         `${resourceType}:${usageType === 'app' ? 'example' : resourceId}:ruleid:${pr.ruleId}`, // TODO - find out if ID should be hardcoded. Issue: #10893
       ),

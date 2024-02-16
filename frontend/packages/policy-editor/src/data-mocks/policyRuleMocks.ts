@@ -4,8 +4,8 @@ import { mockPolicyResources, mockPolicyRuleResources } from './policySubResourc
 import {
   mockSubjectBackendString1,
   mockSubjectBackendString3,
-  mockSubjectTitle1,
-  mockSubjectTitle3,
+  mockSubjectId1,
+  mockSubjectId3,
 } from './policySubjectMocks';
 
 export const mockRuleId1: string = 'r1';
@@ -14,7 +14,7 @@ export const mockRuleId2: string = 'r2';
 export const mockPolicyRuleCard1: PolicyRuleCard = {
   ruleId: mockRuleId1,
   description: '',
-  subject: [mockSubjectTitle1, mockSubjectTitle3],
+  subject: [mockSubjectId1, mockSubjectId3],
   actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
   resources: mockPolicyRuleResources,
 };
