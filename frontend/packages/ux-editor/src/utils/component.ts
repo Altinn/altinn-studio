@@ -142,7 +142,7 @@ export const getUnsupportedPropertyTypes = (
   return unsupportedPropertyKeys;
 };
 
-const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string', 'object'];
+const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string'];
 const supportedPropertyRefs = [
   'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
 ];

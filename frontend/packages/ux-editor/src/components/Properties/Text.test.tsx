@@ -84,7 +84,7 @@ describe('TextTab', () => {
           ...props,
           form: {
             ...layoutMock.containers[container1IdMock],
-            textResourceBindings: { title: labelTextId, add_button: addButtonTextId },
+            textResourceBindings: { title: labelTextId, summaryTitle: addButtonTextId },
           },
         },
       });

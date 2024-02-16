@@ -3,32 +3,32 @@ import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import type { RefAttributes, SVGProps } from 'react';
 import type React from 'react';
 import {
-  Accordion,
+  AccordionIcon,
   CalendarIcon,
-  Checkbox,
+  CheckboxIcon,
   ChevronDownDoubleIcon,
   ElementIcon,
   ExclamationmarkTriangleIcon,
   FileTextIcon,
   FingerButtonIcon,
-  Group,
+  GroupIcon,
   HouseIcon,
   ImageIcon,
   InformationSquareIcon,
-  Likert,
+  LikertIcon,
   LinkIcon,
-  LongText,
-  NavBar,
+  LongTextIcon,
+  NavBarIcon,
   PaperclipIcon,
-  Paragraph,
+  TextIcon,
   PinIcon,
   PresentationIcon,
-  RadioButton,
-  Select,
-  ShortText,
+  RadioButtonIcon,
+  SelectIcon,
+  ShortTextIcon,
   TableIcon,
   TasklistIcon,
-  Title,
+  TitleIcon,
 } from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
@@ -60,7 +60,7 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Container,
     defaultProperties: {},
     propertyPath: 'definitions/accordionComponent',
-    icon: Accordion,
+    icon: AccordionIcon,
     validChildTypes: [ComponentType.Paragraph],
   },
   [ComponentType.AccordionGroup]: {
@@ -117,7 +117,7 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     propertyPath: 'definitions/radioAndCheckboxComponents',
-    icon: Checkbox,
+    icon: CheckboxIcon,
   },
   [ComponentType.Custom]: {
     name: ComponentType.Custom,
@@ -155,7 +155,7 @@ export const formItemConfigs: FormItemConfigs = {
       optionsId: '',
     },
     propertyPath: 'definitions/selectionComponents',
-    icon: Select,
+    icon: SelectIcon,
   },
   [ComponentType.FileUpload]: {
     name: ComponentType.FileUpload,
@@ -200,7 +200,7 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Container,
     defaultProperties: {},
     propertyPath: 'definitions/groupComponent',
-    icon: Group,
+    icon: GroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
   [ComponentType.Header]: {
@@ -210,7 +210,7 @@ export const formItemConfigs: FormItemConfigs = {
       size: 'L',
     },
     propertyPath: 'definitions/headerComponent',
-    icon: Title,
+    icon: TitleIcon,
   },
   [ComponentType.IFrame]: {
     name: ComponentType.IFrame,
@@ -238,7 +238,7 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     propertyPath: 'definitions/inputComponent',
-    icon: ShortText,
+    icon: ShortTextIcon,
   },
   [ComponentType.InstanceInformation]: {
     name: ComponentType.InstanceInformation,
@@ -258,14 +258,14 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     propertyPath: 'definitions/radioAndCheckboxComponents',
-    icon: Likert,
+    icon: LikertIcon,
   },
   [ComponentType.LikertItem]: {
     name: ComponentType.LikertItem,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     propertyPath: 'definitions/radioAndCheckboxComponents',
-    icon: Likert,
+    icon: LikertIcon,
   },
   [ComponentType.Link]: {
     name: ComponentType.Link,
@@ -305,14 +305,14 @@ export const formItemConfigs: FormItemConfigs = {
       optionsId: '',
     },
     propertyPath: 'definitions/selectionComponents',
-    icon: Select,
+    icon: SelectIcon,
   },
   [ComponentType.NavigationBar]: {
     name: ComponentType.NavigationBar,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     propertyPath: 'definitions/navigationBarComponent',
-    icon: NavBar,
+    icon: NavBarIcon,
   },
   [ComponentType.NavigationButtons]: {
     name: ComponentType.NavigationButtons,
@@ -334,8 +334,12 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Paragraph]: {
     name: ComponentType.Paragraph,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
-    icon: Paragraph,
+    defaultProperties: {
+      id: '',
+      itemType: 'COMPONENT',
+      type: ComponentType.Paragraph,
+    },
+    icon: TextIcon,
   },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
@@ -348,13 +352,13 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     propertyPath: 'definitions/radioAndCheckboxComponents',
-    icon: RadioButton,
+    icon: RadioButtonIcon,
   },
   [ComponentType.RepeatingGroup]: {
     name: ComponentType.RepeatingGroup,
     itemType: LayoutItemType.Container,
     defaultProperties: {},
-    icon: Group,
+    icon: GroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
   [ComponentType.Summary]: {
@@ -371,7 +375,7 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Component,
     defaultProperties: {},
     propertyPath: 'definitions/textAreaComponent',
-    icon: LongText,
+    icon: LongTextIcon,
   },
 };
 

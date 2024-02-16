@@ -63,4 +63,4 @@ jobs:
         if: failure()
         with:
           name: playwright-screenshots
-          path: frontend/testing/playwright/screenshots
+          path: frontend/testing/playwright/test-results
