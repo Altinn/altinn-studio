@@ -5,6 +5,12 @@ import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { TextEditorPage } from '../../pages/TextEditorPage';
 import { Gitea } from '../../helpers/Gitea';
+import { Header } from '../../components/Header';
+import { UiEditorPage } from '../../pages/UiEditorPage';
+import { ComponentType } from '../../enum/ComponentType';
+
+// Variables and constants shared between tests
+const WAIT_TWO_SECONDS = 2000;
 
 // Before the tests starts, we need to create the text editor app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -30,10 +36,56 @@ const setupAndVerifyTextEditorPage = async (
   return textEditorPage;
 };
 
-test('TODO - text', async ({ page, testAppName }) => {
-  await setupAndVerifyTextEditorPage(page, testAppName);
+test('That it is possible to create a text at the ux-editor page, and that the text appears on text-editor page', async ({
+  page,
+  testAppName,
+}) => {
+  const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
-  // TODO - add the tests
+  // Go to lage page
+  await header.clickOnNavigateToPageInTopMenuHeader('create');
+  await uiEditorPage.verifyUiEditorPage();
+
+  // Open Side 1
+  const page1: string = 'Side1';
+  await uiEditorPage.clickOnPageAccordion(page1);
+
+  // Drag a Input in
+  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+
+  // Create component id as componentId
+  const componentId: string = 'myId';
+
+  // Change komponent id - use componentId
+  await uiEditorPage.deleteOldComponentId();
+  await uiEditorPage.writeNewComponentId(componentId);
+
+  // Click add label
+  await uiEditorPage.clickOnAddLabelText();
+
+  // Create a new label text - labelText
+  const inputLabel: string = 'inputLabel';
+
+  // Type a label - labelText
+  await uiEditorPage.writeLabelTextInTextarea(inputLabel);
+
+  // Click close
+  await uiEditorPage.clickOnSaveNewLabelName();
+
+  // We need to wait a few seconds to make sure that the API call is made and that the changes are saved to backend
+  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_TWO_SECONDS);
+
+  // Go to tekst page
+  await header.clickOnNavigateToPageInTopMenuHeader('texts');
+
+  // Verify text page
+  await textEditorPage.verifyTextEditorPage();
+
+  // Verify that textbox with label 'Norsk oversettelse for {page1}.{componentId}.title' is visible
+
+  // Verify that value in textbox is the value added - labelText
 });
 
 test('that texts added on text page becomes visible on Lage page and vice versa, as well as the texts are added correctly to Gitea', async ({
@@ -42,15 +94,18 @@ test('that texts added on text page becomes visible on Lage page and vice versa,
 }) => {
   await setupAndVerifyTextEditorPage(page, testAppName);
 
+  // SKIP THIS
   // Click on three dots menu
   // Click on go to Gitea
 
+  // SKIP THIS
   // Click on App
   // Click on ui
   // Click on Layouts
   // Click on page1
   // Verify that textResourceBindings are hidden
 
+  // SKIP THIS
   // Go back 3 // ui -> layout -> page1.json
   // Click on config
   // Click on text
@@ -60,32 +115,31 @@ test('that texts added on text page becomes visible on Lage page and vice versa,
   // Verify that newId is not present and that the value is labelText
   // go back 4 // App -> config -> text -> resource.nb.json
 
+  // SKIP THIS
   // Verify textPage
-
   // Check that appName textfield is present
-
   // Create a new text value
   // Check that it is not visible
 
   // Go to lage page
   // Open Side 1
   // Drag a Input in
-  // Turn on beta
   // Create component id as componentId
   // Change komponent id - use componentId
 
-  // Click combobox
-  // Click label
-  // Click plus sign
+  // Click add label
   // Create a new label text - labelText
   // Type a label - labelText
   // Click close
-  // Verify that tree item changed name - labelText
 
   // Go to tekst page
-  // Verify that textbox with label 'Norsk oversettelse for {page1}.{componentId}.title'
-  // Verify that value is the value added - labelText
+  // Verify text page
+  // Verify that textbox with label 'Norsk oversettelse for {page1}.{componentId}.title' is visible
+  // Verify that value in textbox is the value added - labelText
 
+  // MAKE THIS NEW TEST
+  // Load text editor page
+  // Verify text editor page
   // Click on change ID button
   // Create newId value - newId
   // Type newId into field
@@ -96,7 +150,11 @@ test('that texts added on text page becomes visible on Lage page and vice versa,
   // Click on component - labelText
   // Click on edit label
   // Verify that new id is present
+  // Close the edit mode
 
+  // MAKE THIS NEW TEST
+  // Load text editor page
+  // Verify text editor page
   // Click on add new text button
   // Click on textbox with label 'Norsk oversettelse for {regex(id_*)}'
   // Write a text - translationTextNb
@@ -113,6 +171,7 @@ test('that texts added on text page becomes visible on Lage page and vice versa,
 
   // Add translation to newId
 
+  // Make this new test
   // Click on Last opp dine endringer
   // Valider endringer
 
