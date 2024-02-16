@@ -9,4 +9,5 @@ export * from './StudioNotFoundPage';
 export * from './StudioNumberInput';
 export * from './StudioPageSpinner';
 export * from './StudioSpinner';
+export * from './StudioTextarea';
 export * from './StudioTreeView';
