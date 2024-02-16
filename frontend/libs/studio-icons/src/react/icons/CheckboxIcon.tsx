@@ -2,7 +2,7 @@ import React from 'react';
 import type { IconProps } from '../types';
 import { SvgTemplate } from './SvgTemplate';
 
-export const Checkbox = (props: IconProps): JSX.Element => {
+export const CheckboxIcon = (props: IconProps): React.ReactElement => {
   return (
     <SvgTemplate {...props}>
       <rect x='4' y='4' width='16' height='16' rx='3' stroke='currentColor' strokeWidth='1.5' />

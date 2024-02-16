@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/NavigationButtons.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/CustomButton.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,58 +47,35 @@
       },
       "additionalProperties": false
     },
-    "type": { "const": "NavigationButtons" },
+    "type": { "const": "CustomButton" },
     "textResourceBindings": {
       "type": "object",
       "properties": {
-        "back": {
-          "title": "Back",
-          "description": "Text on the back/previous page button",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "next": {
-          "title": "Next",
-          "description": "Text on the next page button",
+        "title": {
+          "title": "Title",
+          "description": "The title/text on the button",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       },
       "additionalProperties": false
     },
-    "showBackButton": {
-      "title": "Show back button",
-      "description": "Shows two buttons (back/next) instead of just 'next'.",
-      "default": false,
-      "type": "boolean"
+    "actions": {
+      "type": "array",
+      "items": {
+        "title": "CustomAction",
+        "anyOf": [
+          { "$ref": "#/definitions/ClientAction" },
+          { "$ref": "#/definitions/ServerAction" }
+        ]
+      }
     },
-    "validateOnNext": {
-      "title": "PageValidation",
-      "type": "object",
-      "properties": {
-        "page": {
-          "title": "Page",
-          "description": "Which pages should be validated when the next button is clicked.",
-          "enum": ["current", "currentAndPrevious", "all"]
-        },
-        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
-      },
-      "required": ["page", "show"],
-      "additionalProperties": false
-    },
-    "validateOnPrevious": {
-      "title": "PageValidation",
-      "type": "object",
-      "properties": {
-        "page": {
-          "title": "Page",
-          "description": "Which pages should be validated when the next button is clicked.",
-          "enum": ["current", "currentAndPrevious", "all"]
-        },
-        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
-      },
-      "required": ["page", "show"],
-      "additionalProperties": false
+    "buttonStyle": {
+      "title": "Button style",
+      "description": "The style/color scheme of the button.",
+      "enum": ["primary", "secondary"],
+      "type": "string"
     }
   },
-  "required": ["id", "type"],
-  "title": "NavigationButtons component schema"
+  "required": ["id", "type", "actions", "buttonStyle"],
+  "title": "CustomButton component schema"
 }
