@@ -34,19 +34,30 @@ public class GeneratePetsAction : IUserAction
 
         if (context.ButtonId == "generatePets")
         {
-            GeneratePets(dataId, data);
+            GeneratePets(data);
+        }
+        else if (context.ButtonId == "generateWholeFarm")
+        {
+            GenerateFarmAnimals(data);
         }
 
         // This makes sure the group is now visible, and that the panel disappears, even if the user clicked any other
         // button than the one with the id "generatePets" (which in practice will let you add pets to the list manually)
         data.ForceShowPets = true;
 
+        if (context.ButtonId == "resetButton")
+        {
+            data.Pets = new List<Pet>();
+            data.NumPets = 0;
+            data.ForceShowPets = false;
+        }
+
         var userActionResult = UserActionResult.SuccessResult(new List<ClientAction>());
         userActionResult.AddUpdatedDataModel(dataId, data);
         return userActionResult;
     }
 
-    private void GeneratePets(string dataId, NestedGroup data)
+    private void GeneratePets(NestedGroup data)
     {
         // These pets have to be deterministically generated (no randomness), so we can test this using Cypress
         data.Pets = new List<Pet>();
@@ -56,7 +67,6 @@ public class GeneratePetsAction : IUserAction
             Name = "Preben Potet",
             Species = "Dog",
             UniqueId = Guid.NewGuid().ToString(),
-            AltinnRowId = Guid.NewGuid(),
         });
         data.Pets.Add(new Pet()
         {
@@ -64,7 +74,6 @@ public class GeneratePetsAction : IUserAction
             Name = "Reidar Reddik",
             Species = "Cat",
             UniqueId = Guid.NewGuid().ToString(),
-            AltinnRowId = Guid.NewGuid(),
         });
         data.Pets.Add(new Pet()
         {
@@ -72,7 +81,6 @@ public class GeneratePetsAction : IUserAction
             Name = "Siri Spinat",
             Species = "Fish",
             UniqueId = Guid.NewGuid().ToString(),
-            AltinnRowId = Guid.NewGuid(),
         });
         data.Pets.Add(new Pet()
         {
@@ -80,7 +88,6 @@ public class GeneratePetsAction : IUserAction
             Name = "Kåre Kålrot",
             Species = "Hamster",
             UniqueId = Guid.NewGuid().ToString(),
-            AltinnRowId = Guid.NewGuid(),
         });
         data.Pets.Add(new Pet()
         {
@@ -88,8 +95,28 @@ public class GeneratePetsAction : IUserAction
             Name = "Birte Blomkål",
             Species = "Rabbit",
             UniqueId = Guid.NewGuid().ToString(),
-            AltinnRowId = Guid.NewGuid(),
         });
+        data.NumPets = data.Pets.Count;
+    }
+
+    private void GenerateFarmAnimals(NestedGroup data)
+    {
+        var numAnimals = 250; // This will be painful!
+        data.Pets = new List<Pet>();
+
+        for (int i = 0; i < numAnimals; i++)
+        {
+            var species = i % 2 == 0 ? "Cow" : "Sheep";
+            var name = species == "Cow" ? "Dagros #" : "Dolly #";
+            name += i.ToString().PadLeft(3, '0');
+            data.Pets.Add(new Pet()
+            {
+                Age = i % 10 + 1,
+                Name = name,
+                Species = species,
+                UniqueId = Guid.NewGuid().ToString(),
+            });
+        }
         data.NumPets = data.Pets.Count;
     }
 

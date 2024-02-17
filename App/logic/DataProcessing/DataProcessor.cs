@@ -131,7 +131,7 @@ namespace Altinn.App.logic.DataProcessing
                 }
 
                 // Look at Group2, and increment the counter when encountering a new row without a row number
-                if (model.Endringsmeldinggrp9786.Gruppe2 != null)
+                if (model.Endringsmeldinggrp9786 != null && model.Endringsmeldinggrp9786.Gruppe2 != null)
                 {
                     foreach (var row in model.Endringsmeldinggrp9786.Gruppe2.Where(row => row.Teller is null or 0))
                     {

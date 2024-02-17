@@ -5,6 +5,8 @@
   { "label": "Species.Bird", "value": "Bird" },
   { "label": "Species.Rabbit", "value": "Rabbit" },
   { "label": "Species.Hamster", "value": "Hamster" },
+  { "label": "Species.Sheep", "value": "Sheep" },
+  { "label": "Species.Cow", "value": "Cow" },
   { "label": "Species.Snake", "value": "Snake" },
   { "label": "Species.Spider", "value": "Spider" },
   { "label": "Species.TyrannosaurusRex", "value": "TyrannosaurusRex" },
