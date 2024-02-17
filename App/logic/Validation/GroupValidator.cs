@@ -69,6 +69,42 @@ namespace Altinn.App.logic.Validation
                 });
             }
 
+            // Iterate pets and check for duplicates (same name and species). Iterate the list once first to get the
+            // number of instances of each combination.
+            var numPetInstances = new Dictionary<string, int>();
+            foreach (var pet in model?.Pets ?? new List<Pet>())
+            {
+                var key = $"{pet.Name}-{pet.Species}";
+                if (numPetInstances.ContainsKey(key))
+                {
+                    numPetInstances[key]++;
+                }
+                else
+                {
+                    numPetInstances[key] = 1;
+                }
+            }
+            // Then iterate the list again and add validation issues for each duplicate.
+            foreach (var rowIdx in Enumerable.Range(0, model?.Pets?.Count ?? 0))
+            {
+                var pet = model?.Pets?[rowIdx];
+                if (pet == null)
+                {
+                    continue;
+                }
+                var key = $"{pet.Name}-{pet.Species}";
+                if (numPetInstances[key] > 1)
+                {
+                    validationIssues.Add(new ValidationIssue
+                    {
+                        Field = $"Pets[{rowIdx}].Name",
+                        CustomTextKey = "Pets.Validation.DuplicatePet",
+                        Description = "This pet key combination is not unique",
+                        Severity = ValidationIssueSeverity.Error,
+                    });
+                }
+            }
+
             return Task.FromResult(validationIssues);
         }
     }

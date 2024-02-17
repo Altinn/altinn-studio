@@ -96,6 +96,14 @@ public class GeneratePetsAction : IUserAction
             Species = "Rabbit",
             UniqueId = Guid.NewGuid().ToString(),
         });
+        data.Pets.Add(new Pet()
+        {
+            // This has the same species and name as the one above, which gives a validation error
+            Age = 3,
+            Name = "Birte Blomkål",
+            Species = "Rabbit",
+            UniqueId = Guid.NewGuid().ToString(),
+        });
         data.NumPets = data.Pets.Count;
     }
 
