@@ -1,3 +1,4 @@
+using System;
 using Altinn.App.Core.Features;
 using Altinn.App.Models;
 using Altinn.Platform.Register.Models;
@@ -49,32 +50,38 @@ namespace Altinn.App.logic.DataProcessing
                     new Question
                     {
                         Id = "question-1",
-                        Answer = ""
+                        Answer = "",
+                        AltinnRowId = Guid.NewGuid()
                     },
                     new Question
                     {
                         Id = "question-2",
-                        Answer = ""
+                        Answer = "",
+                        AltinnRowId = Guid.NewGuid()
                     },
                     new Question
                     {
                         Id = "question-3",
-                        Answer = ""
+                        Answer = "",
+                        AltinnRowId = Guid.NewGuid()
                     },
                     new Question
                     {
                         Id = "question-4",
-                        Answer = ""
+                        Answer = "",
+                        AltinnRowId = Guid.NewGuid()
                     },
                     new Question
                     {
                         Id = "question-5",
-                        Answer = ""
+                        Answer = "",
+                        AltinnRowId = Guid.NewGuid()
                     },
                     new Question
                     {
                         Id = "question-6",
-                        Answer = ""
+                        Answer = "",
+                        AltinnRowId = Guid.NewGuid()
                     }
                 };
             }
