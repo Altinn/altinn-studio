@@ -35,21 +35,22 @@ public class SortPetsAction : IUserAction
         // Valid sort orders can be found in 'pet-sort-order.json'
         var sortOrder = data.PetSortOrder;
 
+        // Always secondary sort by age
         if (sortOrder == "ascSpecies")
         {
-            data.Pets = data.Pets.OrderBy(p => p.Species).ToList();
+            data.Pets = data.Pets.OrderBy(p => p.Species).ThenBy(p => p.Age).ToList();
         }
         else if (sortOrder == "descSpecies")
         {
-            data.Pets = data.Pets.OrderByDescending(p => p.Species).ToList();
+            data.Pets = data.Pets.OrderByDescending(p => p.Species).ThenBy(p => p.Age).ToList();
         }
         else if (sortOrder == "ascName")
         {
-            data.Pets = data.Pets.OrderBy(p => p.Name).ToList();
+            data.Pets = data.Pets.OrderBy(p => p.Name).ThenBy(p => p.Age).ToList();
         }
         else if (sortOrder == "descName")
         {
-            data.Pets = data.Pets.OrderByDescending(p => p.Name).ToList();
+            data.Pets = data.Pets.OrderByDescending(p => p.Name).ThenBy(p => p.Age).ToList();
         }
         else if (sortOrder == "ascAge")
         {
