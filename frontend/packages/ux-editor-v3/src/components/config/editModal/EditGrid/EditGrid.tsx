@@ -56,7 +56,7 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
         {Object.values(ViewSize).map((viewSize: ViewSize) => {
           return (
             <Tabs.Tab key={viewSize} value={viewSize} className={classes.tab}>
-              {iconMapping[viewSize]}
+              {iconMapping[viewSize] || null}
               {t(`ux_editor.modal_properties_grid_size_${viewSize}`)}
             </Tabs.Tab>
           );
