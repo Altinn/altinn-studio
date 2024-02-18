@@ -45,20 +45,18 @@ export const Elements = () => {
           </Accordion.Item>
         )}
       </Accordion>
-      <div className={classes.componentsList}>
-        <Heading size='xxsmall' className={classes.componentsHeader}>
-          {t('left_menu.components')}
-        </Heading>
-        {hideComponents ? (
-          <Paragraph className={classes.noPageSelected} size='small'>
-            {t('left_menu.no_components_selected')}
-          </Paragraph>
-        ) : receiptName === selectedLayout ? (
-          <ConfPageToolbar />
-        ) : (
-          <DefaultToolbar />
-        )}
-      </div>
+      <Heading size='xxsmall' className={classes.componentsHeader}>
+        {t('left_menu.components')}
+      </Heading>
+      {hideComponents ? (
+        <Paragraph className={classes.noPageSelected} size='small'>
+          {t('left_menu.no_components_selected')}
+        </Paragraph>
+      ) : receiptName === selectedLayout ? (
+        <ConfPageToolbar />
+      ) : (
+        <DefaultToolbar />
+      )}
     </div>
   );
 };

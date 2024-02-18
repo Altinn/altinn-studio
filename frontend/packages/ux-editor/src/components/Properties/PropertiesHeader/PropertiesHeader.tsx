@@ -6,7 +6,6 @@ import { QuestionmarkDiamondIcon } from '@studio/icons';
 import type { FormComponent } from '../../../types/FormComponent';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
 import { DataModelBindingRow } from './DataModelBindingRow';
 import { EditComponentIdRow } from './EditComponentIdRow';
@@ -29,7 +28,6 @@ export const PropertiesHeader = ({
     ? QuestionmarkDiamondIcon
     : formItemConfigs[form.type]?.icon;
 
-  useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
   const { data: schema } = useComponentSchemaQuery(form.type);
 
   return (
