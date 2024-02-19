@@ -6,10 +6,12 @@ import { screen, render as rtlRender, act } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { TextTableRow } from './types';
 
+const textKey1: string = 'a';
+
 const renderTextList = (props: Partial<TextListProps> = {}) => {
   const resourceRows: TextTableRow[] = [
     {
-      textKey: 'a',
+      textKey: textKey1,
       translations: [
         {
           lang: 'nb',
@@ -67,7 +69,7 @@ describe('TextList', () => {
     rerender(<TextList {...initPros} />);
 
     const toggleEditButton = screen.getAllByRole('button', {
-      name: textMock('text_editor.toggle_edit_mode'),
+      name: textMock('text_editor.toggle_edit_mode', { textKey: textKey1 }),
     });
     await act(() => user.click(toggleEditButton[0]));
     const idInput = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
@@ -89,7 +91,7 @@ describe('TextList', () => {
     rerender(<TextList {...initPros} />);
 
     const toggleEditButton = screen.getAllByRole('button', {
-      name: textMock('text_editor.toggle_edit_mode'),
+      name: textMock('text_editor.toggle_edit_mode', { textKey: textKey1 }),
     });
     await act(() => user.click(toggleEditButton[0]));
 

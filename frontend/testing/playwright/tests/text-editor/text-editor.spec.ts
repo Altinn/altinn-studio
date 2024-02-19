@@ -11,7 +11,12 @@ import { ComponentType } from '../../enum/ComponentType';
 import { LanguageCode } from '../../enum/LanguageCode';
 
 // Variables and constants shared between tests
-const WAIT_TWO_SECONDS = 2000;
+const PAGE_1: string = 'Side1';
+const COMPONENT_ID: string = 'myId';
+
+// This line must be there to ensure that the tests do not run in parallell, and
+// that the before all call is being executed before we start the tests
+test.describe.configure({ mode: 'serial' });
 
 // Before the tests starts, we need to create the text editor app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -45,52 +50,54 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   const header = new Header(page, { app: testAppName });
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
-  // Go to lage page
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
 
-  // Open Side 1
-  const page1: string = 'Side1';
-  await uiEditorPage.clickOnPageAccordion(page1);
-
-  // Drag a Input in
+  await uiEditorPage.clickOnPageAccordion(PAGE_1);
   await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
 
-  // Create component id as componentId
-  const componentId: string = 'myId';
-
-  // Change komponent id - use componentId
   await uiEditorPage.deleteOldComponentId();
-  await uiEditorPage.writeNewComponentId(componentId);
-
-  // Click add label
+  await uiEditorPage.writeNewComponentId(COMPONENT_ID);
   await uiEditorPage.clickOnAddLabelText();
 
-  // Create a new label text - labelText
   const inputLabel: string = 'inputLabel';
-
-  // Type a label - labelText
   await uiEditorPage.writeLabelTextInTextarea(inputLabel);
-
-  // Click close
   await uiEditorPage.clickOnSaveNewLabelName();
+  await uiEditorPage.waitForTreeItemToGetNewLabel(inputLabel);
 
-  // We need to wait a few seconds to make sure that the API call is made and that the changes are saved to backend
-  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_TWO_SECONDS);
-
-  // Go to tekst page
   await header.clickOnNavigateToPageInTopMenuHeader('texts');
-
-  // Verify text page
   await textEditorPage.verifyTextEditorPage();
 
-  // Verify that textbox with label 'Norsk oversettelse for {page1}.{componentId}.title' is visible
-  const textKey: string = `${page1}.${componentId}.title`;
+  const textKey: string = `${PAGE_1}.${COMPONENT_ID}.title`;
   await textEditorPage.verifyThatTextareaIsVisibleWithCorrectId(LanguageCode.Nb, textKey);
 
-  // Verify that value in textbox is the value added - labelText
   const textareaValue: string = await textEditorPage.getTextareaValue(LanguageCode.Nb, textKey);
   expect(textareaValue).toBe(inputLabel);
+});
+
+test('', async ({ page, testAppName }) => {
+  const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
+
+  const oldTextKey: string = `${PAGE_1}.${COMPONENT_ID}.title`;
+  await textEditorPage.verifyThatTextKeyIsVisible(oldTextKey);
+
+  // Click on change ID button
+  await textEditorPage.clickOnChangeTextKeyButton(oldTextKey);
+
+  // Create newId value - newId
+  const newTextKey: string = `${oldTextKey}-new`;
+
+  // Type newId into field
+  await textEditorPage.writeNewTextKey(newTextKey);
+
+  // Click edit button again
+
+  // Go to Lage page
+  // Click on Side1
+  // Click on component - labelText
+  // Click on edit label
+  // Verify that new id is present
+  // Close the edit mode
 });
 
 test('that texts added on text page becomes visible on Lage page and vice versa, as well as the texts are added correctly to Gitea', async ({
@@ -156,6 +163,8 @@ test('that texts added on text page becomes visible on Lage page and vice versa,
   // Click on edit label
   // Verify that new id is present
   // Close the edit mode
+
+  // ------------- Above covered
 
   // MAKE THIS NEW TEST
   // Load text editor page

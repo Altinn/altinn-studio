@@ -230,6 +230,18 @@ export class UiEditorPage extends BasePage {
     await expect(newTreeItemLabel).toBeVisible();
   }
 
+  public async deleteOldComponentId(): Promise<void> {
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
+      .clear();
+  }
+
+  public async writeNewComponentId(newId: string): Promise<void> {
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
+      .fill(newId);
+  }
+
   private getToolbarItems(): Locator {
     return this.page.getByTestId(DataTestId.DraggableToolbarItem);
   }

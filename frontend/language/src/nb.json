@@ -1291,7 +1291,7 @@
   "text_editor.table_header_text_key": "Tekstnøkkel",
   "text_editor.table_header_variables": "Variabler",
   "text_editor.table_row_input_label": "'{{lang}} oversettelse for {{textKey}}",
-  "text_editor.toggle_edit_mode": "Rediger tekstnøkkel",
+  "text_editor.toggle_edit_mode": "Rediger tekstnøkkel {{textKey}}",
   "text_editor.variables_default_value": "<bold>Standardverdi:</bold> {{defaultValue}}",
   "text_editor.variables_editing_not_supported": "Det, er ikke lagt til støtte for redigering av variabler i Studio.",
   "top_menu.about": "Oversikt",

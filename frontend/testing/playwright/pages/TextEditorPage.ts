@@ -38,6 +38,22 @@ export class TextEditorPage extends BasePage {
           textKey: textKey,
         }),
       )
-      .innerText();
+      .inputValue();
   }
+
+  public async verifyThatTextKeyIsVisible(textKey: string): Promise<void> {
+    await this.page.getByText(textKey).isVisible();
+  }
+
+  public async clickOnChangeTextKeyButton(textKey: string): Promise<void> {
+    await this.page
+      .getByRole('button', { name: this.textMock('text_editor.toggle_edit_mode', { textKey }) })
+      .click();
+  }
+
+  /*public async writeNewTextKey(textKey: string): Promise<void> {
+    await this.page.getByRole('textbox', {
+      name:
+    })
+  }*/
 }

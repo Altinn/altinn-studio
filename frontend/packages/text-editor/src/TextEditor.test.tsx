@@ -147,18 +147,15 @@ describe('TextEditor', () => {
 
   it('Sorts texts when sort chip is clicked', async () => {
     renderTextEditor({});
-    const translations = screen.getAllByRole('textbox', {
-      name: 'nb translation',
-    });
-    expect(translations[0]).toHaveValue(textValue1);
+
+    const textEntries = screen.getAllByRole('textbox');
+    expect(textEntries[1]).toHaveValue(textValue1);
 
     const sortAlphabeticallyButton = screen.getByText(textMock('text_editor.sort_alphabetically'));
     await act(() => user.click(sortAlphabeticallyButton));
 
-    const sortedTranslations = screen.getAllByRole('textbox', {
-      name: 'nb translation',
-    });
-    expect(sortedTranslations[0]).toHaveValue(textValue2);
+    const sortedTranslations = screen.getAllByRole('textbox');
+    expect(sortedTranslations[1]).toHaveValue(textValue2);
   });
 
   it('signals correctly when a translation is changed', async () => {
@@ -166,18 +163,21 @@ describe('TextEditor', () => {
     renderTextEditor({
       upsertTextResource,
     });
-    const translationsToChange = screen.getAllByRole('textbox', {
-      name: 'nb translation',
+    const nbTextarea = screen.getByRole('textbox', {
+      name: textMock('text_editor.table_row_input_label', {
+        lang: textMock('language.nb'),
+        textKey: textId1,
+      }),
     });
-    expect(translationsToChange).toHaveLength(2);
-    const changedTranslations = nb;
-    changedTranslations[0].value = 'new translation';
-    await act(() => user.tripleClick(translationsToChange[0]));
-    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`));
+
+    const newValue: string = 'new translation';
+    await act(() => user.clear(nbTextarea));
+    await act(() => user.type(nbTextarea, newValue));
+    await act(() => user.tab());
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
       textId: textId1,
-      translation: 'new translation',
+      translation: newValue,
     });
   });
 
@@ -210,7 +210,7 @@ describe('TextEditor', () => {
       });
 
       const editKeyButton = await screen.getAllByRole('button', {
-        name: textMock('text_editor.toggle_edit_mode'),
+        name: textMock('text_editor.toggle_edit_mode', { textKey: textId1 }),
       })[0];
       await act(() => user.click(editKeyButton));
 

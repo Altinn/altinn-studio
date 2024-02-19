@@ -138,7 +138,7 @@ export const TextRow = ({
           )}
           {showButton && (
             <StudioButton
-              aria-label={t('text_editor.toggle_edit_mode')}
+              aria-label={t('text_editor.toggle_edit_mode', { textKey: textIdValue })}
               icon={<PencilIcon />}
               variant='tertiary'
               size='small'
