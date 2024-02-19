@@ -78,29 +78,6 @@ describe('NavigationMenu', () => {
     expect(elementInMenuAfterClose).not.toBeInTheDocument();
   });
 
-  it('should close the menu when clicking the menu icon twice', async () => {
-    const user = userEvent.setup();
-    await render();
-
-    const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenu).not.toBeInTheDocument();
-
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
-    await act(() => user.click(menuButtons[0]));
-
-    const elementInMenuAfter = screen.getByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_up'),
-    });
-    expect(elementInMenuAfter).toBeInTheDocument();
-
-    await act(() => user.click(menuButtons[0]));
-
-    const elementInMenuAfterClose = screen.queryByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_up'),
-    });
-    expect(elementInMenuAfterClose).not.toBeInTheDocument();
-  });
-
   it('Calls updateFormLayoutName with new name when name is changed by the user', async () => {
     const user = userEvent.setup();
     await render();
@@ -130,6 +107,23 @@ describe('NavigationMenu', () => {
       newValue,
       mockSelectedLayoutSet,
     );
+  });
+
+  it('should close the menu when clicking cancel in the edit name popover', async () => {
+    const user = userEvent.setup();
+    await render();
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await act(() => user.click(menuButtons[0]));
+    await act(() =>
+      user.click(screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_edit') })),
+    );
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('general.cancel'),
+    });
+    await act(() => user.click(cancelButton));
+
+    const inputFieldAfterClose = screen.queryByLabelText(textMock('ux_editor.input_popover_label'));
+    expect(inputFieldAfterClose).not.toBeInTheDocument();
   });
 
   it('hides the up and down button when page is receipt', async () => {
