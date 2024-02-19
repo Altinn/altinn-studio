@@ -25,7 +25,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const rowsAfter = node.item.rowsAfter;
 
   const container = node.item;
-  const { textResourceBindings, labelSettings, id, edit, minCount } = container;
+  const { textResourceBindings, labelSettings, id, edit, minCount, stickyHeader } = container;
 
   const required = !!minCount && minCount > 0;
 
@@ -144,8 +144,13 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
     >
       <Table
         id={`group-${id}-table`}
+        stickyHeader={stickyHeader}
         className={cn(
-          { [classes.editingBorder]: isNested, [classes.nestedTable]: isNested },
+          {
+            [classes.editingBorder]: isNested,
+            [classes.nestedTable]: isNested,
+            [classes.nestedNonSticky]: isNested && !stickyHeader,
+          },
           classes.repeatingGroupTable,
         )}
         // If the list is empty, the border of the table will be visible as a line above
@@ -207,6 +212,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                 <RepeatingGroupTableRow
                   className={cn({
                     [classes.editingRow]: isEditingRow,
+                    [classes.editRowOnTopOfStickyHeader]: isEditingRow && stickyHeader,
                   })}
                   index={index}
                   getTableNodes={getTableNodes}
@@ -217,7 +223,10 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                 {isEditingRow && (
                   <Table.Row
                     key={`edit-container-${index}`}
-                    className={classes.editContainerRow}
+                    className={cn(
+                      { [classes.editContainerOnTopOfStickyHeader]: isEditingRow && stickyHeader },
+                      classes.editContainerRow,
+                    )}
                   >
                     <Table.Cell
                       style={{ padding: 0, borderTop: 0 }}

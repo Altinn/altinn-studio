@@ -3,7 +3,6 @@
   margin-right: calc(var(--modal-padding-x) * -1);
   width: calc(100% + 2 * var(--modal-padding-x));
 
-  overflow-x: auto;
   margin-bottom: 15px;
 }
 
@@ -24,6 +23,16 @@
 
 .repeatingGroupTable {
   width: 100%;
+}
+
+.editContainerOnTopOfStickyHeader {
+  z-index: 2;
+  position: relative;
+}
+
+.editRowOnTopOfStickyHeader {
+  z-index: 3;
+  position: relative;
 }
 
 /* ====
@@ -66,6 +75,11 @@ Altinn, and making sure they are consistent. */
 }
 .nestedTable thead:not(:first-of-type) th:last-of-type {
   border-top-right-radius: 0 !important;
+}
+
+.nestedNonSticky > thead > tr > th {
+  /*needed !important to override sticky-header css from design system for nested repeating-groups*/
+  position: static !important;
 }
 
 .tableEmpty {

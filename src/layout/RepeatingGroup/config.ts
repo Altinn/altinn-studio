@@ -288,6 +288,15 @@ export const Config = new CG.component({
         ),
     ),
   )
+  .addProperty(
+    new CG.prop(
+      'stickyHeader',
+      new CG.bool()
+        .optional({ default: false })
+        .setTitle('Sticky header')
+        .setDescription('If set to true, the header of the repeating group will be sticky'),
+    ),
+  )
   .addProperty(new CG.prop('rowsBefore', CG.common('GridRows').optional()))
   .addProperty(new CG.prop('rowsAfter', CG.common('GridRows').optional()))
   .addProperty(new CG.prop('labelSettings', CG.common('ILabelSettings').optional()));
