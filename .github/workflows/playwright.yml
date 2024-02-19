@@ -42,7 +42,7 @@ jobs:
 
       - name: Attempt to wait for deploy to environment (10 minutes sleep)
         run: |
-          if [ "${{ github.run_number }}" != "1" ]; then
+          if [ "${{ github.run_attempt }}" != "1" ]; then
             echo "Skip waiting for deploy, since this is a re-run of the pipeline."
           else
             sleep 10m
