@@ -45,9 +45,9 @@ describe('NavigationMenu', () => {
 
     const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
     expect(elementInMenu).not.toBeInTheDocument();
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
 
-    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    await act(() => user.click(menuButton));
+    await act(() => user.click(menuButtons[0]));
 
     const elementInMenuAfter = screen.getByRole('menuitem', {
       name: textMock('ux_editor.page_menu_up'),
@@ -58,8 +58,8 @@ describe('NavigationMenu', () => {
   it('Calls updateFormLayoutName with new name when name is changed by the user', async () => {
     const user = userEvent.setup();
     await render();
-
-    await act(() => user.click(screen.getByTitle(textMock('general.options'))));
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await act(() => user.click(menuButtons[0]));
     await act(() =>
       user.click(screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_edit') })),
     );
@@ -89,8 +89,8 @@ describe('NavigationMenu', () => {
   it('hides the up and down button when page is receipt', async () => {
     const user = userEvent.setup();
     await render({ pageIsReceipt: true });
-
-    await act(() => user.click(screen.getByTitle(textMock('general.options'))));
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await act(() => user.click(menuButtons[0]));
 
     const upButton = screen.queryByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
     const downButton = screen.queryByRole('menuitem', {
@@ -104,8 +104,8 @@ describe('NavigationMenu', () => {
   it('shows the up and down button by default', async () => {
     const user = userEvent.setup();
     await render();
-
-    await act(() => user.click(screen.getByTitle(textMock('general.options'))));
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await act(() => user.click(menuButtons[0]));
 
     const upButton = screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
     const downButton = screen.getByRole('menuitem', {
@@ -114,6 +114,26 @@ describe('NavigationMenu', () => {
 
     expect(upButton).toBeInTheDocument();
     expect(downButton).toBeInTheDocument();
+  });
+  it('change order when down button is clicked on the first page', async () => {
+    const user = userEvent.setup();
+    await render();
+
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await act(() => user.click(menuButtons[0]));
+    const menuItemDown = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_down'),
+    });
+    await act(() => user.click(menuItemDown));
+
+    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
+      mockOrg,
+      mockApp,
+      mockSelectedLayoutSet,
+      { pages: { order: ['Side2', 'Side1'] }, receiptLayoutName: 'Kvittering' },
+    );
+    expect(menuItemDown).not.toBeInTheDocument();
   });
 });
 
@@ -132,5 +152,10 @@ const waitForData = async () => {
 
 const render = async (props: Partial<NavigationMenuProps> = {}) => {
   await waitForData();
-  return renderWithMockStore()(<NavigationMenu {...defaultProps} {...props} />);
+  return renderWithMockStore()(
+    <>
+      <NavigationMenu {...defaultProps} {...props} />
+      <NavigationMenu {...defaultProps} {...props} />
+    </>,
+  );
 };
