@@ -1,9 +1,10 @@
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Locator, Page } from '@playwright/test';
-import * as testids from '../../testids';
 import type { ComponentType } from '../enum/ComponentType';
 import type { DragAndDropComponents } from '../types/DragAndDropComponents';
+import { expect } from '@playwright/test';
+import { DataTestId } from '../enum/DataTestId';
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -60,14 +61,14 @@ export class UiEditorPage extends BasePage {
     await this.dropComponent();
   }
 
-  public async verifyThatComponentTreeItemIsVisibleInDroppableList(
+  public async waitForComponentTreeItemToBeVisibleInDroppableList(
     component: ComponentType,
   ): Promise<void> {
-    await this.getDroppableList()
-      .getByRole('treeitem', {
-        name: this.textMock(`ux_editor.component_title.${component}`),
-      })
-      .isVisible();
+    const treeItem = this.getDroppableList().getByRole('treeitem', {
+      name: this.textMock(`ux_editor.component_title.${component}`),
+    });
+
+    await expect(treeItem).toBeVisible();
   }
 
   public async clickOnDeleteInputComponentButton(): Promise<void> {
@@ -106,6 +107,14 @@ export class UiEditorPage extends BasePage {
         name: this.textMock('ux_editor.collapsable_text_components'),
       })
       .click();
+  }
+
+  public async waitForDraggableToolbarItemToBeVisible(component: ComponentType): Promise<void> {
+    const textTreeItem = this.page
+      .getByTestId(DataTestId.DraggableToolbarItem)
+      .getByText(this.textMock(`ux_editor.component_title.${component}`));
+
+    await expect(textTreeItem).toBeVisible();
   }
 
   public async getBetaConfigSwitchValue(): Promise<boolean> {
@@ -208,17 +217,30 @@ export class UiEditorPage extends BasePage {
       .click();
   }
 
+  public async waitForDataModelToBeSelected(): Promise<void> {
+    const saveButton = this.page.getByRole('button', {
+      name: this.textMock('ux_editor.input_popover_save_button'),
+    });
+
+    await expect(saveButton).toBeHidden();
+  }
+
+  public async waitForTreeItemToGetNewLabel(label: string): Promise<void> {
+    const newTreeItemLabel = this.page.getByRole('treeitem', { name: label });
+    await expect(newTreeItemLabel).toBeVisible();
+  }
+
   private getToolbarItems(): Locator {
-    return this.page.getByTestId(testids.draggableToolbarItem);
+    return this.page.getByTestId(DataTestId.DraggableToolbarItem);
   }
 
   private getDroppableList(): Locator {
-    return this.page.getByTestId(testids.droppableList);
+    return this.page.getByTestId(DataTestId.DroppableList);
   }
 
   private async hoverOverComponentToDrag(componentToDrag: ComponentType): Promise<void> {
     await this.page
-      .getByTestId(testids.draggableToolbarItem)
+      .getByTestId(DataTestId.DraggableToolbarItem)
       .getByText(this.textMock(`ux_editor.component_title.${componentToDrag}`))
       .hover();
   }

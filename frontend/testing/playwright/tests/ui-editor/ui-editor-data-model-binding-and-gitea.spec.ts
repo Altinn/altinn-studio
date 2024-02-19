@@ -12,7 +12,7 @@ import { GiteaPage } from '../../pages/GiteaPage';
 
 const getAppTestName = (app: string) => `bindings-${app}`;
 
-const WAIT_ONE_SECOND = 2000;
+// const WAIT_ONE_SECOND = 2000;
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -52,10 +52,11 @@ test('That it is possible to add a data model binding, and that the files are up
 
   const pageName: string = 'Side1';
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, pageName);
-  await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Input);
+  await uiEditorPage.verifyThatPageIsEmpty();
 
   const newInputLabel: string = 'Input Label 1';
   await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
   await addNewLabelToTreeItemComponent(uiEditorPage, newInputLabel);
 
   await uiEditorPage.clickOnAddDataModelButton();
@@ -81,8 +82,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await dataModelPage.clickOnCreateModelButton();
   await dataModelPage.clickOnGenerateDataModelButton();
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
-
-  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
+  await dataModelPage.waitForSuccessAlertToDisappear();
 
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
@@ -93,17 +93,14 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.clickOnDataModelBindingsCombobox();
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
 
-  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
   const dataModelBindingName = 'property1';
   await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
-  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
-
   await uiEditorPage.clickOnSaveDataModel();
-  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
+  await uiEditorPage.waitForDataModelToBeSelected();
 
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
-  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
+  await header.waitForPushToGiteaSpinnerToDisappear();
   await header.checkThatUploadSuccessMessageIsVisible();
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
@@ -127,9 +124,7 @@ const addNewLabelToTreeItemComponent = async (
   await uiEditorPage.clickOnAddLabelText();
   await uiEditorPage.writeLabelTextInTextarea(newInputLabel);
   await uiEditorPage.clickOnSaveNewLabelName();
-
-  // We need to wait a few seconds to make sure that the API call is made and that the changes are saved to backend
-  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
+  await uiEditorPage.waitForTreeItemToGetNewLabel(newInputLabel);
 
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);

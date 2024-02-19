@@ -50,7 +50,7 @@ test('That it is possible to add and delete form components', async ({
   await uiEditorPage.verifyThatPageIsEmpty();
 
   await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
-  await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Input);
+  await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
 });
 
@@ -87,15 +87,13 @@ test('That it is possible to add a Header component to the page when there is al
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
 
   await uiEditorPage.openTextComponentSection();
+  await uiEditorPage.waitForDraggableToolbarItemToBeVisible(ComponentType.Header);
 
-  await uiEditorPage.waitForXAmountOfMilliseconds(2000);
   await uiEditorPage.dragComponentInToDroppableListItem({
     componentToDrag: ComponentType.Header,
     componentToDropOn: ComponentType.Input,
   });
-  await uiEditorPage.waitForXAmountOfMilliseconds(1000);
-
-  await uiEditorPage.verifyThatComponentTreeItemIsVisibleInDroppableList(ComponentType.Header);
+  await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Header);
 
   const newHeaderName: string = 'New Header';
   await addNewLabelToTreeItemComponent(uiEditorPage, newHeaderName);
@@ -116,9 +114,7 @@ const addNewLabelToTreeItemComponent = async (
   await uiEditorPage.clickOnAddLabelText();
   await uiEditorPage.writeLabelTextInTextarea(newInputLabel);
   await uiEditorPage.clickOnSaveNewLabelName();
-
-  // We need to wait a few seconds to make sure that the API call is made and that the changes are saved to backend
-  await uiEditorPage.waitForXAmountOfMilliseconds(1000);
+  await uiEditorPage.waitForTreeItemToGetNewLabel(newInputLabel);
 
   await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
