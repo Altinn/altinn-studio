@@ -2,13 +2,13 @@ import React from 'react';
 import { idExists } from '../../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { useSelectedFormLayout } from '../../../../hooks';
-import type { FormComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import { Textfield } from '@digdir/design-system-react';
+import {FormItem} from "../../../../types/FormItem";
 
 export interface EditComponentIdRowProps {
-  handleComponentUpdate: (component: FormComponent) => void;
-  component: FormComponent;
+  handleComponentUpdate: (component: FormItem) => void;
+  component: FormItem;
   helpText?: string;
 }
 export const EditComponentIdRow = ({

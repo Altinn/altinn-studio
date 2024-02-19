@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import classes from './RepeatingGroupComponent.module.css';
 import { Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import { FormField } from '../../../FormField';
-import { idExists } from '../../../../utils/formLayoutUtils';
 import { EditGroupDataModelBindings } from '../../group/EditGroupDataModelBindings';
 import { getTextResource } from '../../../../utils/language';
 import { useSelectedFormLayout, useText, useTextResourcesSelector } from '../../../../hooks';
@@ -29,7 +28,7 @@ export const RepeatingGroupComponent = ({
   const { selectedLayoutSet } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: dataModel } = useDatamodelMetadataQuery(org, app);
-  const { components, containers } = useSelectedFormLayout();
+  const { components } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
@@ -85,44 +84,9 @@ export const RepeatingGroupComponent = ({
     });
   };
 
-  const handleIdChange = (id: string) => {
-    handleComponentUpdate({
-      ...component,
-      id,
-    });
-  };
-
   return (
     <div className={classes.root}>
       <LegacyFieldSet className={classes.fieldset}>
-        <FormField
-          id={component.id}
-          label={t('ux_editor.modal_properties_group_change_id')}
-          value={component.id}
-          propertyPath='definitions/component/properties/id'
-          customValidationRules={(value: string) => {
-            if (value !== component.id && idExists(value, components, containers)) {
-              return 'unique';
-            }
-          }}
-          customValidationMessages={(errorCode: string) => {
-            if (errorCode === 'unique') {
-              return t('ux_editor.modal_properties_component_id_not_unique_error');
-            }
-            if (errorCode === 'pattern') {
-              return t('ux_editor.modal_properties_component_id_not_valid');
-            }
-          }}
-          onChange={handleIdChange}
-          renderField={({ fieldProps }) => (
-            <LegacyTextField
-              {...fieldProps}
-              name={`group-id${component.id}`}
-              onChange={(e) => fieldProps.onChange(e.target.value, e)}
-            />
-          )}
-        />
-        <>
           <EditGroupDataModelBindings
             dataModelBindings={component.dataModelBindings}
             onDataModelChange={handleDataModelGroupChange}
@@ -176,7 +140,6 @@ export const RepeatingGroupComponent = ({
               }}
             />
           )}
-        </>
       </LegacyFieldSet>
     </div>
   );
