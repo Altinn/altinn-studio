@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@mui/material": "5.15.9",
+    "@mui/material": "5.15.10",
     "@reduxjs/toolkit": "1.9.7",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
@@ -30,7 +30,7 @@
     "cross-env": "7.0.3",
     "jest": "29.7.0",
     "typescript": "5.3.3",
-    "webpack": "5.90.1",
+    "webpack": "5.90.2",
     "webpack-dev-server": "4.15.1"
   },
   "license": "3-Clause BSD",
