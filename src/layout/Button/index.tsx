@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
 import { ButtonDef } from 'src/layout/Button/config.def.generated';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class Button extends ButtonDef {
-  render = (props: PropsFromGenericComponent<'Button'>): JSX.Element | null => <ButtonComponent {...props} />;
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'Button'>>(
+    function LayoutComponentButtonRender(props, _): JSX.Element | null {
+      return <ButtonComponent {...props} />;
+    },
+  );
 }

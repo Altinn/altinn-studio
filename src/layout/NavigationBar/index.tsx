@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 import { NavigationBarDef } from 'src/layout/NavigationBar/config.def.generated';
 import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class NavigationBar extends NavigationBarDef {
-  render = (props: PropsFromGenericComponent<'NavigationBar'>): JSX.Element | null => (
-    <NavigationBarComponent {...props} />
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'NavigationBar'>>(
+    function LayoutComponentNavigationBarRender(props, _): JSX.Element | null {
+      return <NavigationBarComponent {...props} />;
+    },
   );
 }

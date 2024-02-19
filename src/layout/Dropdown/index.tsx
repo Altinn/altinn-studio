@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
@@ -11,7 +11,11 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Dropdown extends DropdownDef {
-  render = (props: PropsFromGenericComponent<'Dropdown'>): JSX.Element | null => <DropdownComponent {...props} />;
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'Dropdown'>>(
+    function LayoutComponentDropdownRender(props, _): JSX.Element | null {
+      return <DropdownComponent {...props} />;
+    },
+  );
 
   getDisplayData(node: LayoutNode<'Dropdown'>, { langTools, options }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {

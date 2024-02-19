@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { CustomDef } from 'src/layout/Custom/config.def.generated';
@@ -9,7 +9,11 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Custom extends CustomDef {
-  render = (props: PropsFromGenericComponent<'Custom'>): JSX.Element | null => <CustomWebComponent {...props} />;
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'Custom'>>(
+    function LayoutComponentCustomRender(props, _): JSX.Element | null {
+      return <CustomWebComponent {...props} />;
+    },
+  );
 
   getDisplayData(node: LayoutNode<'Custom'>): string {
     const data = node.getFormData();

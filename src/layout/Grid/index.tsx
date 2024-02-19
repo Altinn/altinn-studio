@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import type { ErrorObject } from 'ajv';
@@ -16,7 +16,11 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export class Grid extends GridDef {
   private _hierarchyGenerator = new GridHierarchyGenerator();
 
-  render = (props: PropsFromGenericComponent<'Grid'>): JSX.Element | null => <RenderGrid {...props} />;
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'Grid'>>(
+    function LayoutComponentGridRender(props, _): JSX.Element | null {
+      return <RenderGrid {...props} />;
+    },
+  );
 
   renderSummary(props: SummaryRendererProps<'Grid'>): JSX.Element | null {
     return <GridSummaryComponent {...props} />;

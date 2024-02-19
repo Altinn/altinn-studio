@@ -13,14 +13,15 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class LikertItem extends LikertItemDef {
-  // eslint-disable-next-line react/display-name
   render = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
-    (props, ref): JSX.Element | null => (
-      <LikertItemComponent
-        {...props}
-        ref={ref}
-      />
-    ),
+    function LayoutComponentLikertItemRender(props, ref): JSX.Element | null {
+      return (
+        <LikertItemComponent
+          {...props}
+          ref={ref}
+        />
+      );
+    },
   );
 
   directRender(props: PropsFromGenericComponent<'LikertItem'>): boolean {

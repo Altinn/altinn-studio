@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import dot from 'dot-object';
@@ -14,7 +14,11 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Address extends AddressDef implements ValidateComponent {
-  render = (props: PropsFromGenericComponent<'Address'>): JSX.Element | null => <AddressComponent {...props} />;
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'Address'>>(
+    function LayoutComponentAddressRender(props, _): JSX.Element | null {
+      return <AddressComponent {...props} />;
+    },
+  );
 
   getDisplayData(node: LayoutNode<'Address'>): string {
     const data = node.getFormData();

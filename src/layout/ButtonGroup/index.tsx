@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
@@ -12,7 +12,11 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export class ButtonGroup extends ButtonGroupDef {
   private _hierarchyGenerator = new ButtonGroupHierarchyGenerator();
 
-  render = (props: PropsFromGenericComponent<'ButtonGroup'>): JSX.Element | null => <ButtonGroupComponent {...props} />;
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'ButtonGroup'>>(
+    function LayoutComponentButtonGroupRender(props, _): JSX.Element | null {
+      return <ButtonGroupComponent {...props} />;
+    },
+  );
 
   shouldRenderInAutomaticPDF() {
     return false;

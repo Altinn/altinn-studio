@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
@@ -10,7 +10,11 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class TextArea extends TextAreaDef {
-  render = (props: PropsFromGenericComponent<'TextArea'>): JSX.Element | null => <TextAreaComponent {...props} />;
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'TextArea'>>(
+    function LayoutComponentTextAreaRender(props, _): JSX.Element | null {
+      return <TextAreaComponent {...props} />;
+    },
+  );
 
   getDisplayData(node: LayoutNode<'TextArea'>): string {
     if (!node.item.dataModelBindings?.simpleBinding) {

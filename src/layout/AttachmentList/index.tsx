@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
 import { AttachmentListDef } from 'src/layout/AttachmentList/config.def.generated';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class AttachmentList extends AttachmentListDef {
-  render = (props: PropsFromGenericComponent<'AttachmentList'>): JSX.Element | null => (
-    <AttachmentListComponent {...props} />
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'AttachmentList'>>(
+    function LayoutComponentAttachmentListRender(props, _): JSX.Element | null {
+      return <AttachmentListComponent {...props} />;
+    },
   );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 import dot from 'dot-object';
 import moment from 'moment';
@@ -21,7 +21,11 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Datepicker extends DatepickerDef implements ValidateComponent {
-  render = (props: PropsFromGenericComponent<'Datepicker'>): JSX.Element | null => <DatepickerComponent {...props} />;
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'Datepicker'>>(
+    function LayoutComponentDatepickerRender(props, _): JSX.Element | null {
+      return <DatepickerComponent {...props} />;
+    },
+  );
 
   getDisplayData(node: LayoutNode<'Datepicker'>, { currentLanguage }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {

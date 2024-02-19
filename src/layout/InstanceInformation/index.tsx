@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 import { InstanceInformationDef } from 'src/layout/InstanceInformation/config.def.generated';
 import { InstanceInformationComponent } from 'src/layout/InstanceInformation/InstanceInformationComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class InstanceInformation extends InstanceInformationDef {
-  render = (props: PropsFromGenericComponent<'InstanceInformation'>): JSX.Element | null => (
-    <InstanceInformationComponent {...props} />
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'InstanceInformation'>>(
+    function LayoutComponentInstanceInformationRender(props, _): JSX.Element | null {
+      return <InstanceInformationComponent {...props} />;
+    },
   );
 }

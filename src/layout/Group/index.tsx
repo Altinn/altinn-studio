@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { runAllValidations } from 'src/layout/componentValidation';
@@ -27,16 +27,20 @@ export class Group extends GroupDef implements ValidateAny, ValidateComponent {
     return true;
   }
 
-  render = (props: PropsFromGenericComponent<'Group'>): JSX.Element | null => (
-    <GroupComponent
-      groupNode={props.node}
-      renderLayoutNode={(n) => (
-        <GenericComponent
-          key={n.item.id}
-          node={n}
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'Group'>>(
+    function LayoutComponentGroupRender(props, _): JSX.Element | null {
+      return (
+        <GroupComponent
+          groupNode={props.node}
+          renderLayoutNode={(n) => (
+            <GenericComponent
+              key={n.item.id}
+              node={n}
+            />
+          )}
         />
-      )}
-    />
+      );
+    },
   );
 
   renderSummary({

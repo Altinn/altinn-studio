@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -15,8 +15,10 @@ import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class MultipleSelect extends MultipleSelectDef {
-  render = (props: PropsFromGenericComponent<'MultipleSelect'>): JSX.Element | null => (
-    <MultipleSelectComponent {...props} />
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'MultipleSelect'>>(
+    function LayoutComponentMultipleSelectRender(props, _): JSX.Element | null {
+      return <MultipleSelectComponent {...props} />;
+    },
   );
 
   private getSummaryData(

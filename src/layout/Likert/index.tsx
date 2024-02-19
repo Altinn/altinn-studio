@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent, ValidateAny } from '..';
@@ -26,7 +26,11 @@ export class Likert extends LikertDef implements ValidateAny {
     return true;
   }
 
-  render = (props: PropsFromGenericComponent<'Likert'>): JSX.Element | null => <LikertComponent {...props} />;
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'Likert'>>(
+    function LayoutComponentLikertRender(props, _): JSX.Element | null {
+      return <LikertComponent {...props} />;
+    },
+  );
 
   renderSummary({
     onChangeClick,

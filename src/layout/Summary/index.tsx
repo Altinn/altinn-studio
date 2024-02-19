@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { SummaryDef } from 'src/layout/Summary/config.def.generated';
@@ -10,12 +10,16 @@ export class Summary extends SummaryDef {
     return true;
   }
 
-  render = (props: PropsFromGenericComponent<'Summary'>): JSX.Element | null => (
-    <SummaryComponent
-      summaryNode={props.node}
-      overrides={props.overrideItemProps}
-      ref={props.containerDivRef}
-    />
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'Summary'>>(
+    function LayoutComponentSummaryRender(props, _): JSX.Element | null {
+      return (
+        <SummaryComponent
+          summaryNode={props.node}
+          overrides={props.overrideItemProps}
+          ref={props.containerDivRef}
+        />
+      );
+    },
   );
 
   renderSummary(): JSX.Element | null {

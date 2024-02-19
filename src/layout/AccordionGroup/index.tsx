@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { AccordionGroup as AccordionGroupComponent } from 'src/layout/AccordionGroup/AccordionGroup';
@@ -13,8 +13,10 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export class AccordionGroup extends AccordionGroupDef {
   private _hierarchyGenerator = new AccordionGroupHierarchyGenerator();
 
-  render = (props: PropsFromGenericComponent<'AccordionGroup'>): JSX.Element | null => (
-    <AccordionGroupComponent {...props} />
+  render = forwardRef<HTMLElement, PropsFromGenericComponent<'AccordionGroup'>>(
+    function LayoutComponentAccordionGroupRender(props, _): JSX.Element | null {
+      return <AccordionGroupComponent {...props} />;
+    },
   );
 
   hierarchyGenerator(): ComponentHierarchyGenerator<'AccordionGroup'> {
