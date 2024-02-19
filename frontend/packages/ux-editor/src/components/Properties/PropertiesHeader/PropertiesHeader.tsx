@@ -61,24 +61,23 @@ export const PropertiesHeader = ({
         <div className={classes.contentRow}>
           <EditComponentIdRow component={form} handleComponentUpdate={handleComponentUpdate} />
         </div>
-        {schema &&
-          (isContainer(form) ? (
-            form.type !== ComponentType.RepeatingGroup && (
+        {isContainer(form)
+          ? form.type !== ComponentType.RepeatingGroup && (
               <EditGroupDataModelBindings
                 dataModelBindings={form.dataModelBindings}
                 onDataModelChange={handleDataModelGroupChange}
               />
             )
-          ) : (
-            <div className={classes.contentRow}>
-              <DataModelBindingRow
-                schema={schema}
-                component={form as FormComponent}
-                formId={formId}
-                handleComponentUpdate={handleComponentUpdate}
-              />
-            </div>
-          ))}
+          : schema && (
+              <div className={classes.contentRow}>
+                <DataModelBindingRow
+                  schema={schema}
+                  component={form as FormComponent}
+                  formId={formId}
+                  handleComponentUpdate={handleComponentUpdate}
+                />
+              </div>
+            )}
       </div>
     </>
   );
