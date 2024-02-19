@@ -11,7 +11,7 @@
         "id": "NoteToDevs",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "Funksjonalitet vi kan teste her i fremtiden:<br><ul><li>Lagring av visningsverdi i options-komponenter (som igjen kan hentes ut i sjekkboksene under)</li><li>Sortering i backend ved hjelp av visningsverdi (nå sorteres det vha. lagret verdi)</li><li>Sticky header</li><li>Ytelsesforbedringer for Dropdown-komponenten</li></ul>"
+          "title": "Funksjonalitet vi kan teste her i fremtiden:<br><ul><li>Lagring av visningsverdi i options-komponenter (som igjen kan hentes ut i sjekkboksene under)</li><li>Sortering i backend ved hjelp av visningsverdi (nå sorteres det vha. lagret verdi)</li><li>Ytelsesforbedringer for Dropdown-komponenten</li></ul>"
         }
       },
       {
@@ -90,7 +90,8 @@
           "commaContains",
           ["dataModel", "HiddenPets"],
           ["dataModel", "Pets.UniqueId"]
-        ]
+        ],
+        "stickyHeader": true
       },
       {
         "id": "pet-species",
