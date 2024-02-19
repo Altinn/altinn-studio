@@ -9,8 +9,9 @@ import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSche
 import { DataModelBindingRow } from './DataModelBindingRow';
 import { EditComponentIdRow } from './EditComponentIdRow';
 import type { FormItem } from '../../../types/FormItem';
-import {isContainer} from "../../../utils/formItemUtils";
-import {EditGroupDataModelBindings} from "../../config/group/EditGroupDataModelBindings";
+import { isContainer } from '../../../utils/formItemUtils';
+import { EditGroupDataModelBindings } from '../../config/group/EditGroupDataModelBindings';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export type PropertiesHeaderProps = {
   form: FormItem;
@@ -59,21 +60,24 @@ export const PropertiesHeader = ({
         <div className={classes.contentRow}>
           <EditComponentIdRow component={form} handleComponentUpdate={handleComponentUpdate} />
         </div>
-        {schema && (isContainer(form) ? (
-            <EditGroupDataModelBindings
+        {schema &&
+          (isContainer(form) ? (
+            form.type !== ComponentType.RepeatingGroup && (
+              <EditGroupDataModelBindings
                 dataModelBindings={form.dataModelBindings}
                 onDataModelChange={handleDataModelGroupChange}
-            />
-        ) : (
+              />
+            )
+          ) : (
             <div className={classes.contentRow}>
-            <DataModelBindingRow
-              schema={schema}
-              component={form as FormComponent}
-              formId={formId}
-              handleComponentUpdate={handleComponentUpdate}
-            />
-          </div>
-        ))}
+              <DataModelBindingRow
+                schema={schema}
+                component={form as FormComponent}
+                formId={formId}
+                handleComponentUpdate={handleComponentUpdate}
+              />
+            </div>
+          ))}
       </div>
     </>
   );
