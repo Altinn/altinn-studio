@@ -130,9 +130,9 @@ export const PartySelection = () => {
               size='small'
               variant='secondary'
               dashedBorder={true}
-              icon={<PlusIcon aria-hidden />}
               onClick={() => setNumberOfPartiesShown(numberOfPartiesShown + 4)}
             >
+              {<PlusIcon aria-hidden />}
               {langAsString('party_selection.load_more')}
             </Button>
           </Grid>

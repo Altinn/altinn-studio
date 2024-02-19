@@ -52,14 +52,18 @@ export const DevToolsLogs = () => {
           onClick={clearLogs}
           color={'second'}
           size='small'
-          icon={<TrashIcon title='slett alle logger' />}
-        />
+          icon={true}
+        >
+          <TrashIcon title='slett alle logger' />
+        </Button>
         <Button
           onClick={saveLogs}
           color={'second'}
           size='small'
-          icon={<DownloadIcon title='lagre logger til fil' />}
-        />
+          icon={true}
+        >
+          <DownloadIcon title='lagre logger til fil' />
+        </Button>
         <div className={classes.filterField}>
           <Textfield
             size='small'
@@ -73,20 +77,26 @@ export const DevToolsLogs = () => {
           onClick={() => toggleShow('error')}
           size='small'
           color={showLevels.error ? 'second' : 'inverted'}
-          icon={<XMarkOctagonFillIcon title='vis/skjul error' />}
-        />
+          icon={true}
+        >
+          <XMarkOctagonFillIcon title='vis/skjul error' />
+        </Button>
         <Button
           onClick={() => toggleShow('warn')}
           size='small'
           color={showLevels.warn ? 'second' : 'inverted'}
-          icon={<ExclamationmarkTriangleFillIcon title='vis/skjul advarsler' />}
-        />
+          icon={true}
+        >
+          <ExclamationmarkTriangleFillIcon title='vis/skjul advarsler' />
+        </Button>
         <Button
           onClick={() => toggleShow('info')}
           size='small'
           color={showLevels.info ? 'second' : 'inverted'}
-          icon={<InformationSquareFillIcon title='vis/skjul informasjon' />}
-        />
+          icon={true}
+        >
+          <InformationSquareFillIcon title='vis/skjul informasjon' />
+        </Button>
       </div>
       <div className={classes.logContainer}>
         {filteredLogs.map((log) => (

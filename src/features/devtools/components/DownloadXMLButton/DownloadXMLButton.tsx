@@ -46,9 +46,9 @@ export const DownloadXMLButton = () => {
         <Button
           variant='secondary'
           size='small'
-          icon={<DownloadIcon aria-hidden={true} />}
           onClick={downloadXML}
         >
+          {<DownloadIcon aria-hidden={true} />}
           Last ned XML
         </Button>
         <Dropzone
@@ -63,8 +63,8 @@ export const DownloadXMLButton = () => {
               })}
               variant='secondary'
               size='small'
-              icon={<UploadIcon aria-hidden={true} />}
             >
+              {<UploadIcon aria-hidden={true} />}
               <input {...getInputProps()} />
               Last opp XML
             </Button>

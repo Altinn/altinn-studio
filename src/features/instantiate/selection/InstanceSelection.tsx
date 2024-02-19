@@ -104,12 +104,13 @@ function InstanceSelection() {
                     variant='tertiary'
                     size='small'
                     color='second'
-                    icon={<EditIcon />}
-                    iconPlacement='right'
+                    icon={true}
                     onClick={(ev) => openInstance(instance.id, ev)}
                     onMouseDown={(ev) => openInstance(instance.id, ev)}
                     aria-label={`${langAsString('instance_selection.continue')}`}
-                  />
+                  >
+                    <EditIcon />
+                  </Button>
                 </div>
               </Table.Cell>
             </Table.Row>
@@ -118,7 +119,6 @@ function InstanceSelection() {
         {instances.length > rowsPerPageOptions[0] && (
           <tfoot>
             <Table.Row className={classes.tableFooter}>
-              {/* @ts-expect-error this will be fixed in v0.48.0 of the design system */}
               <Table.Cell colSpan={2}>
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
@@ -169,11 +169,10 @@ function InstanceSelection() {
                     variant='tertiary'
                     size='small'
                     color='second'
-                    icon={<EditIcon title={langAsString('instance_selection.continue')} />}
-                    iconPlacement='right'
                     onClick={(ev) => openInstance(instance.id, ev)}
                   >
                     <Lang id={'instance_selection.continue'} />
+                    {<EditIcon title={langAsString('instance_selection.continue')} />}
                   </Button>
                 </div>
               </Table.Cell>
@@ -183,7 +182,6 @@ function InstanceSelection() {
         {instances.length > rowsPerPageOptions[0] && (
           <tfoot>
             <Table.Row className={classes.tableFooter}>
-              {/* @ts-expect-error this will be fixed in v0.48.0 of the design system */}
               <Table.Cell colSpan={3}>
                 <div className={classes.paginationWrapper}>
                   <Pagination

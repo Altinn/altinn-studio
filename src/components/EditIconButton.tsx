@@ -18,10 +18,9 @@ export function EditIconButton({ id, label, onClick }: IEditIconButtonProps) {
       size='small'
       id={id}
       variant='tertiary'
-      icon={<PencilIcon aria-hidden />}
-      iconPlacement='left'
       onClick={onClick}
     >
+      <PencilIcon aria-hidden />
       {label}
     </Button>
   );

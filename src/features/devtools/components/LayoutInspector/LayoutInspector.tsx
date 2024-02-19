@@ -158,8 +158,10 @@ export const LayoutInspector = () => {
               color='second'
               size='small'
               aria-label={'close'}
-              icon={<Close aria-hidden />}
-            />
+              icon={true}
+            >
+              <Close aria-hidden />
+            </Button>
           </div>
           <textarea
             ref={textAreaRef}

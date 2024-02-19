@@ -25,28 +25,31 @@ export function AltinnAttachment({ attachments, id, title }: IAltinnAttachmentPr
     .sort((a, b) => (a.name && b.name ? a.name.localeCompare(b.name, selectedLanguage, { numeric: true }) : 0));
 
   return (
-    <List
+    <List.Root
       id={id}
-      heading={<Lang id={title} />}
       data-testid='attachment-list'
-      className={classes.attachmentList}
     >
-      {filteredAndSortedAttachments?.map((attachment, index) => (
-        <List.Item key={index}>
-          <Link
-            href={attachment.url && makeUrlRelativeIfSameDomain(attachment.url)}
-            className={classes.attachmentLink}
-            aria-label={langAsString('general.download', [`${attachment.name}`])}
-          >
-            <FileExtensionIcon
-              fileEnding={getFileEnding(attachment.name)}
-              className={classes.attachmentIcon}
-            />
-            <span className={classes.truncate}>{removeFileEnding(attachment.name)}</span>
-            <span className={classes.extension}>{getFileEnding(attachment.name)}</span>
-          </Link>
-        </List.Item>
-      ))}
-    </List>
+      <List.Heading>
+        <Lang id={title} />
+      </List.Heading>
+      <List.Unordered className={classes.attachmentList}>
+        {filteredAndSortedAttachments?.map((attachment, index) => (
+          <List.Item key={index}>
+            <Link
+              href={attachment.url && makeUrlRelativeIfSameDomain(attachment.url)}
+              className={classes.attachmentLink}
+              aria-label={langAsString('general.download', [`${attachment.name}`])}
+            >
+              <FileExtensionIcon
+                fileEnding={getFileEnding(attachment.name)}
+                className={classes.attachmentIcon}
+              />
+              <span className={classes.truncate}>{removeFileEnding(attachment.name)}</span>
+              <span className={classes.extension}>{getFileEnding(attachment.name)}</span>
+            </Link>
+          </List.Item>
+        ))}
+      </List.Unordered>
+    </List.Root>
   );
 }

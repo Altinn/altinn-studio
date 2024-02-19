@@ -76,8 +76,10 @@ export const NavBar = ({ type }: INavBarProps) => {
             color='second'
             size='small'
             aria-label={langAsString('general.back')}
-            icon={<Left aria-hidden />}
-          />
+            icon={true}
+          >
+            <Left aria-hidden />
+          </Button>
         )}
       </div>
       <div className={classes.wrapper}>
@@ -92,20 +94,20 @@ export const NavBar = ({ type }: INavBarProps) => {
             color='second'
             size='small'
             aria-label={langAsString('general.expand_form')}
-            icon={
-              expandedWidth ? (
-                <FullscreenExit
-                  style={expandIconStyle}
-                  aria-hidden
-                />
-              ) : (
-                <FullscreenEnter
-                  style={expandIconStyle}
-                  aria-hidden
-                />
-              )
-            }
-          />
+            icon={true}
+          >
+            {expandedWidth ? (
+              <FullscreenExit
+                style={expandIconStyle}
+                aria-hidden
+              />
+            ) : (
+              <FullscreenEnter
+                style={expandIconStyle}
+                aria-hidden
+              />
+            )}
+          </Button>
         )}
         {!hideCloseButton && (
           <Button
@@ -116,8 +118,10 @@ export const NavBar = ({ type }: INavBarProps) => {
             color='second'
             size='small'
             aria-label={langAsString('general.close_schema')}
-            icon={<Close aria-hidden />}
-          />
+            icon={true}
+          >
+            <Close aria-hidden />
+          </Button>
         )}
       </div>
     </nav>

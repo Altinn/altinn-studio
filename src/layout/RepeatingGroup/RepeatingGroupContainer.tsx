@@ -145,10 +145,9 @@ function AddButton() {
       }}
       variant='secondary'
       disabled={currentlyAddingRow}
-      icon={<AddIcon aria-hidden='true' />}
-      iconPlacement='left'
       fullWidth
     >
+      <AddIcon aria-hidden='true' />
       {add_button_full ? lang(add_button_full) : `${langAsString('general.add_new')} ${langAsString(add_button)}`}
     </Button>
   );

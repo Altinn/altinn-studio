@@ -60,8 +60,10 @@ export const NodeInspector = () => {
               variant='tertiary'
               color='second'
               aria-label={'close'}
-              icon={<Close aria-hidden />}
-            />
+              icon={true}
+            >
+              <Close aria-hidden />
+            </Button>
           </div>
           <NodeInspectorContextProvider
             value={{

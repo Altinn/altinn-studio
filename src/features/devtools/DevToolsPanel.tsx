@@ -84,8 +84,10 @@ export const DevToolsPanel = ({ isOpen, close, children }: IDevToolsPanelProps) 
                 color='second'
                 size='small'
                 aria-label={'close'}
-                icon={<Close aria-hidden />}
-              />
+                icon={true}
+              >
+                <Close aria-hidden />
+              </Button>
             </div>
             <DevToolsControls />
           </div>

@@ -230,7 +230,6 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                   >
                     <Table.Cell
                       style={{ padding: 0, borderTop: 0 }}
-                      // @ts-expect-error this will be fixed in v0.48.0 of the design system
                       colSpan={
                         mobileView
                           ? 2

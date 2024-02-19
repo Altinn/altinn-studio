@@ -18,12 +18,11 @@ export function EditButton(props: IEditButtonProps) {
       variant='tertiary'
       color='second'
       size='small'
-      icon={<Edit aria-hidden={true} />}
-      iconPlacement='right'
       onClick={props.onClick}
       aria-label={`${props.editText}: ${props.label}`}
     >
       {props.editText}
+      <Edit aria-hidden={true} />
     </Button>
   );
 }

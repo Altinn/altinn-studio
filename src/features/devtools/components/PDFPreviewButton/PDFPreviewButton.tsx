@@ -25,8 +25,8 @@ export const PDFPreviewButton = () => {
         size='small'
         disabled={taskType !== ProcessTaskType.Data}
         color='second'
-        icon={<FilePdfIcon aria-hidden />}
       >
+        {<FilePdfIcon aria-hidden />}
         Forhåndsvis PDF
       </Button>
     </Fieldset>
