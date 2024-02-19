@@ -2,7 +2,7 @@ import React from 'react';
 import type { IconProps } from '../types';
 import { SvgTemplate } from './SvgTemplate';
 
-export const Likert = (props: IconProps): JSX.Element => {
+export const LikertIcon = (props: IconProps): React.ReactElement => {
   return (
     <SvgTemplate {...props}>
       <path

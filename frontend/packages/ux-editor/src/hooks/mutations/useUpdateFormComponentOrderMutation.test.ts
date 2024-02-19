@@ -8,6 +8,7 @@ import {
   component1IdMock,
   component2IdMock,
   container1IdMock,
+  container2IdMock,
   externalLayoutsMock,
   layout1NameMock,
   layoutMock,
@@ -31,6 +32,7 @@ describe('useUpdateFormComponentOrderMutation', () => {
 
     const newOrder: IFormLayoutOrder = {
       ...layoutMock.order,
+      [container2IdMock]: [],
       [container1IdMock]: [component2IdMock, component1IdMock],
     };
     await componentOrderResult.current.mutateAsync(newOrder);
@@ -45,6 +47,7 @@ describe('useUpdateFormComponentOrderMutation', () => {
         data: expect.objectContaining({
           layout: [
             expect.objectContaining({ id: container1IdMock }),
+            expect.objectContaining({ id: container2IdMock }),
             expect.objectContaining({ id: 'ComponentWithOptionsMock' }),
             expect.objectContaining({ id: component2IdMock }),
             expect.objectContaining({ id: component1IdMock }),
