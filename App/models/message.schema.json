@@ -30,6 +30,10 @@
         },
         "SomeNumberValue": {
           "type": "integer"
+        },
+        "GwTargetTask": {
+          "type": "string",
+          "default": "Task_2"
         }
       },
       "required": [

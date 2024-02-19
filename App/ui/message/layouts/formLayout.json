@@ -85,6 +85,22 @@
         "hidden": true
       },
       {
+        "id": "buttonGroup",
+        "type": "ButtonGroup",
+        "children": ["taskChooserButton", "sendInButton"]
+      },
+      {
+        "id": "taskChooserButton",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Velg neste steg"
+        },
+        "actions": [
+          { "type": "ClientAction", "id": "navigateToPage", "metadata": { "page": "taskChooser" } }
+        ],
+        "buttonStyle": "secondary"
+      },
+      {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {
