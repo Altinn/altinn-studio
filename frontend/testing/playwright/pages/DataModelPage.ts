@@ -1,8 +1,9 @@
 import { BasePage } from '../helpers/BasePage';
 import type { Locator, Page } from '@playwright/test';
 import type { Environment } from '../helpers/StudioEnvironment';
-import * as testids from '../../testids';
 import path from 'path';
+import { expect } from '@playwright/test';
+import { DataTestId } from '../enum/DataTestId';
 
 export class DataModelPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -143,13 +144,20 @@ export class DataModelPage extends BasePage {
 
   public async selectFileToUpload(fileName: string): Promise<void> {
     await this.page
-      .getByTestId(testids.fileSelectorInput)
+      .getByTestId(DataTestId.FileSelectorInput)
       .first()
       .setInputFiles(path.join(__dirname, fileName));
   }
 
   public async getDataModelOptionValue(option: string): Promise<string> {
     return await this.page.getByRole('option', { name: option }).getAttribute('value');
+  }
+
+  public async waitForSuccessAlertToDisappear(): Promise<void> {
+    const successAlert = this.page.getByRole('alert', {
+      name: this.textMock('schema_editor.datamodel_generation_success_message'),
+    });
+    await expect(successAlert).toBeHidden();
   }
 
   // Helper function to get the name field
