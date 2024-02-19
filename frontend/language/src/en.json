@@ -1087,8 +1087,6 @@
   "ux_editor.modal_properties_group_add_button_description": "The text places itself on the end of the button text. “Add new (your text)”",
   "ux_editor.modal_properties_group_add_components": "Add components to the group",
   "ux_editor.modal_properties_group_change_id": "Group ID",
-  "ux_editor.modal_properties_group_id_not_unique_error": "The ID of the group must be unique",
-  "ux_editor.modal_properties_group_id_not_valid": "The group id can only contain letters, digits and the '-' character.",
   "ux_editor.modal_properties_group_max_occur": "Maximum number of repetitions",
   "ux_editor.modal_properties_group_repeating": "Repeating group",
   "ux_editor.modal_properties_group_table_headers": "Mark the headers that should be visible in the table view.",

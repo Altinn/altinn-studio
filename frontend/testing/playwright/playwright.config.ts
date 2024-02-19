@@ -12,6 +12,7 @@ export default defineConfig<ExtendedTestOptions>({
     timezoneId: 'Europe/Oslo',
     trace: 'on-first-retry',
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+    screenshot: 'only-on-failure',
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

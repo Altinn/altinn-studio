@@ -2,7 +2,7 @@ import React from 'react';
 import { SvgTemplate } from './SvgTemplate';
 import type { IconProps } from '../types';
 
-export const BooleanIcon = (props: IconProps): JSX.Element => (
+export const BooleanIcon = (props: IconProps): React.ReactElement => (
   <SvgTemplate viewBox='0 0 36 36' {...props}>
     <path
       d='
