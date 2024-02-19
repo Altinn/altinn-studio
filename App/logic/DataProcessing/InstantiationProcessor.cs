@@ -50,38 +50,32 @@ namespace Altinn.App.logic.DataProcessing
                     new Question
                     {
                         Id = "question-1",
-                        Answer = "",
-                        AltinnRowId = Guid.NewGuid()
+                        Answer = ""
                     },
                     new Question
                     {
                         Id = "question-2",
-                        Answer = "",
-                        AltinnRowId = Guid.NewGuid()
+                        Answer = ""
                     },
                     new Question
                     {
                         Id = "question-3",
-                        Answer = "",
-                        AltinnRowId = Guid.NewGuid()
+                        Answer = ""
                     },
                     new Question
                     {
                         Id = "question-4",
-                        Answer = "",
-                        AltinnRowId = Guid.NewGuid()
+                        Answer = ""
                     },
                     new Question
                     {
                         Id = "question-5",
-                        Answer = "",
-                        AltinnRowId = Guid.NewGuid()
+                        Answer = ""
                     },
                     new Question
                     {
                         Id = "question-6",
-                        Answer = "",
-                        AltinnRowId = Guid.NewGuid()
+                        Answer = ""
                     }
                 };
             }
