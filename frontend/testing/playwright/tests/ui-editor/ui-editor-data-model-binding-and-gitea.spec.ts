@@ -99,9 +99,11 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
 
   await uiEditorPage.clickOnSaveDataModel();
+  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
 
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
+  await uiEditorPage.waitForXAmountOfMilliseconds(WAIT_ONE_SECOND);
   await header.checkThatUploadSuccessMessageIsVisible();
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
