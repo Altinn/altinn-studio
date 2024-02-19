@@ -2,6 +2,7 @@ import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Page } from '@playwright/test';
 import type { LanguageCode } from '../enum/LanguageCode';
+import { expect } from '@playwright/test';
 
 export class TextEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -32,12 +33,12 @@ export class TextEditorPage extends BasePage {
 
   public async getTextareaValue(lang: LanguageCode, textKey: string): Promise<string> {
     return await this.page
-      .getByLabel(
-        this.textMock('text_editor.table_row_input_label', {
+      .getByRole('textbox', {
+        name: this.textMock('text_editor.table_row_input_label', {
           lang: this.textMock(`language.${lang}`),
           textKey: textKey,
         }),
-      )
+      })
       .inputValue();
   }
 
@@ -51,9 +52,22 @@ export class TextEditorPage extends BasePage {
       .click();
   }
 
-  /*public async writeNewTextKey(textKey: string): Promise<void> {
-    await this.page.getByRole('textbox', {
-      name:
-    })
-  }*/
+  public async writeNewTextKey(oldTextKey: string, newTextKey: string): Promise<void> {
+    await this.page
+      .getByRole('textbox', {
+        name: this.textMock('text_editor.key.edit', { textKey: oldTextKey }),
+      })
+      .fill(newTextKey);
+  }
+
+  public async waitForTextareaToUpdateTheLabel(lang: LanguageCode, textKey: string): Promise<void> {
+    const textarea = this.page.getByRole('textbox', {
+      name: this.textMock('text_editor.table_row_input_label', {
+        lang: this.textMock(`language.${lang}`),
+        textKey: textKey,
+      }),
+    });
+
+    await expect(textarea).toBeVisible();
+  }
 }

@@ -86,7 +86,7 @@ describe('TextRow', () => {
     await act(() => user.click(toggleKeyEditButton));
 
     const idInput = screen.getByRole('textbox', {
-      name: textMock('text_editor.key.edit'),
+      name: textMock('text_editor.key.edit', { textKey }),
     });
     const emptyMsg = textMock('text_editor.key.error_empty');
     const illegalCharMsg = textMock('text_editor.key.error_invalid');

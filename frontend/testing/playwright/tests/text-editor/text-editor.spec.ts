@@ -13,6 +13,7 @@ import { LanguageCode } from '../../enum/LanguageCode';
 // Variables and constants shared between tests
 const PAGE_1: string = 'Side1';
 const COMPONENT_ID: string = 'myId';
+const INPUT_COMPONENT_LABEL: string = 'inputLabel';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -60,10 +61,9 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   await uiEditorPage.writeNewComponentId(COMPONENT_ID);
   await uiEditorPage.clickOnAddLabelText();
 
-  const inputLabel: string = 'inputLabel';
-  await uiEditorPage.writeLabelTextInTextarea(inputLabel);
+  await uiEditorPage.writeLabelTextInTextarea(INPUT_COMPONENT_LABEL);
   await uiEditorPage.clickOnSaveNewLabelName();
-  await uiEditorPage.waitForTreeItemToGetNewLabel(inputLabel);
+  await uiEditorPage.waitForTreeItemToGetNewLabel(INPUT_COMPONENT_LABEL);
 
   await header.clickOnNavigateToPageInTopMenuHeader('texts');
   await textEditorPage.verifyTextEditorPage();
@@ -72,32 +72,86 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   await textEditorPage.verifyThatTextareaIsVisibleWithCorrectId(LanguageCode.Nb, textKey);
 
   const textareaValue: string = await textEditorPage.getTextareaValue(LanguageCode.Nb, textKey);
-  expect(textareaValue).toBe(inputLabel);
+  expect(textareaValue).toBe(INPUT_COMPONENT_LABEL);
+});
+
+test('That it is possible to edit a textkey, and that the key is updated on the ux-editor page', async ({
+  page,
+  testAppName,
+}) => {
+  const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const uiEditorPage = new UiEditorPage(page, { app: testAppName });
+
+  const oldTextKey: string = `${PAGE_1}.${COMPONENT_ID}.title`;
+  await textEditorPage.verifyThatTextKeyIsVisible(oldTextKey);
+  await textEditorPage.clickOnChangeTextKeyButton(oldTextKey);
+
+  const newTextKey: string = `${oldTextKey}-new`;
+  await textEditorPage.writeNewTextKey(oldTextKey, newTextKey);
+  await textEditorPage.clickOnChangeTextKeyButton(newTextKey);
+
+  // When the button is clicked, it might take som ms for the API call to be executed - It is success when the textarea has upaded label
+  await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, newTextKey);
+
+  await header.clickOnNavigateToPageInTopMenuHeader('create');
+  await uiEditorPage.verifyUiEditorPage();
+  await uiEditorPage.clickOnPageAccordion(PAGE_1);
+  await uiEditorPage.verifyUiEditorPage(PAGE_1);
+
+  await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
+  await uiEditorPage.clickOnEditLabelText();
+  await uiEditorPage.verifyThatTextKeyIsVisible(newTextKey);
+  await uiEditorPage.verifyThatTextKeyIsHidden(oldTextKey);
 });
 
 test('', async ({ page, testAppName }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
 
-  const oldTextKey: string = `${PAGE_1}.${COMPONENT_ID}.title`;
-  await textEditorPage.verifyThatTextKeyIsVisible(oldTextKey);
+  // MAKE THIS NEW TEST
+  // Load text editor page
+  // Verify text editor page
+  // Click on add new text button
+  // Click on textbox with label 'Norsk oversettelse for {regex(id_*)}'
+  // Write a text - translationTextNb
+  // Click on language combobox
+  // Click on engelsk option
+  // Click on Legg til
+  // Verify that textbox with label 'Engelsk oversettelse for {regex(id_*)}' is not visible
+  // Verify that textbox with label 'Engelsk oversettelse for {regex(id_*)}' is not visible'
+  // Select engelsk as an option in radiobutton
+  // Verify that textbow with label 'Engelsk oversettelse for {regex(id_*)}' is visible
+  // Verify that textbox with label 'Engelsk oversettelse for {regex(id_*)}' is visible'
+  // Click on textbox with label 'Engelsk oversettelse for {regex(id_*)}'
+  // Write text to the textbox
 
-  // Click on change ID button
-  await textEditorPage.clickOnChangeTextKeyButton(oldTextKey);
+  // Add translation to newId
 
-  // Create newId value - newId
-  const newTextKey: string = `${oldTextKey}-new`;
+  // Make this new test
+  // Click on Last opp dine endringer
+  // Valider endringer
 
-  // Type newId into field
-  await textEditorPage.writeNewTextKey(newTextKey);
+  // Click on three dots menu
+  // Click on go to Gitea
 
-  // Click edit button again
+  // Click on App
+  // Click on ui
+  // Click on Layouts
+  // Click on page1
+  // Verify that textResourceBindings are present
+  // Verify that the newId is present
 
-  // Go to Lage page
-  // Click on Side1
-  // Click on component - labelText
-  // Click on edit label
-  // Verify that new id is present
-  // Close the edit mode
+  // Go back 3 // ui -> layout -> page1.json
+  // Click on config
+  // Click on text
+  // Verify that resource.en.json is present
+  // Verify that resource.nb.json is present
+
+  // Click on resource.nb.json
+  // Verify that newId is present and that the value is labelText
+  // go back 1
+  // click on resource.en.json
+  // Verify that newId is present and that the value is the translated labelText
 });
 
 test('that texts added on text page becomes visible on Lage page and vice versa, as well as the texts are added correctly to Gitea', async ({

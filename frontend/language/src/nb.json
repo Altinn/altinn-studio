@@ -1281,7 +1281,7 @@
   "sync_header.validation_completed": "Endringene er validert og kan deles med andre",
   "testing.testing_in_testenv_body": "Her kan du teste appen din fra A til Å i et produksjonslikt testmiljø.",
   "testing.testing_in_testenv_title": "Test i testmiljø",
-  "text_editor.key.edit": "Rediger tekstnøkkel",
+  "text_editor.key.edit": "Rediger tekstnøkkel {{textKey}}",
   "text_editor.key.error_duplicate": "Det finnes allerede en tekst med denne nøkkelen",
   "text_editor.key.error_empty": "Tekstnøkkel kan ikke være tom",
   "text_editor.key.error_invalid": "Det er ikke tillat med mellomrom i en tekstnøkkel",

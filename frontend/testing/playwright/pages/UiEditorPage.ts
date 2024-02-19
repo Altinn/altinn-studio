@@ -141,6 +141,14 @@ export class UiEditorPage extends BasePage {
       .click();
   }
 
+  public async clickOnEditLabelText(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('ux_editor.text_resource_binding_edit_title'),
+      })
+      .click();
+  }
+
   public async writeLabelTextInTextarea(text: string): Promise<void> {
     await this.page.getByLabel(this.textMock('language.nb')).fill(text);
   }
@@ -240,6 +248,14 @@ export class UiEditorPage extends BasePage {
     await this.page
       .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
       .fill(newId);
+  }
+
+  public async verifyThatTextKeyIsVisible(textKey: string): Promise<void> {
+    await this.page.getByText(this.textMock('ux_editor.field_id', { id: textKey })).isVisible();
+  }
+
+  public async verifyThatTextKeyIsHidden(textKey: string): Promise<void> {
+    await this.page.getByText(this.textMock('ux_editor.field_id', { id: textKey })).isHidden();
   }
 
   private getToolbarItems(): Locator {
