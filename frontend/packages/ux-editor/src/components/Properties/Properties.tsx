@@ -33,7 +33,7 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
-      {form &&
+      {form && (
         <PropertiesHeader
           form={form}
           formId={formId}
@@ -42,7 +42,7 @@ export const Properties = () => {
             debounceSave(formId, updatedComponent);
           }}
         />
-      }
+      )}
       <Accordion color='subtle'>
         <Accordion.Item open={openList.includes('text')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('text')}>

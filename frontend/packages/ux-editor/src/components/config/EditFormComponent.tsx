@@ -77,48 +77,51 @@ export const EditFormComponent = ({
   }
 
   return (
-    <Fieldset className={classes.root} legend=''>
-      <FormField
-        id={component.id}
-        value={showComponentConfigBeta || false}
-        onChange={toggleShowBetaFunc}
-        propertyPath={formItemConfig.propertyPath}
-        componentType={component.type}
-        helpText={t('ux_editor.edit_component.show_beta_func_help_text')}
-        renderField={({ fieldProps }) => (
-          <Switch {...fieldProps} checked={fieldProps.value} size='small'>
-            {t('ux_editor.edit_component.show_beta_func')}
-          </Switch>
-        )}
-      />
-      {showComponentConfigBeta && isPending && <StudioSpinner spinnerText={t('general.loading')} />}
-      {showComponentConfigBeta && !isPending && (
-        <>
-          {component.type === ComponentType.RepeatingGroup && (
-            <RepeatingGroupComponent
-              editFormId={editFormId}
+    <>
+      {component.type === ComponentType.RepeatingGroup ? (
+        <RepeatingGroupComponent
+          editFormId={editFormId}
+          component={component}
+          handleComponentUpdate={handleComponentUpdate}
+        />
+      ) : (
+        <Fieldset className={classes.root} legend=''>
+          <FormField
+            id={component.id}
+            value={showComponentConfigBeta || false}
+            onChange={toggleShowBetaFunc}
+            propertyPath={formItemConfig.propertyPath}
+            componentType={component.type}
+            helpText={t('ux_editor.edit_component.show_beta_func_help_text')}
+            renderField={({ fieldProps }) => (
+              <Switch {...fieldProps} checked={fieldProps.value} size='small'>
+                {t('ux_editor.edit_component.show_beta_func')}
+              </Switch>
+            )}
+          />
+          {showComponentConfigBeta && isPending && (
+            <StudioSpinner spinnerText={t('general.loading')} />
+          )}
+          {showComponentConfigBeta && !isPending && (
+            <FormComponentConfig
+              schema={schema}
               component={component}
+              editFormId={editFormId}
               handleComponentUpdate={handleComponentUpdate}
             />
           )}
-          <FormComponentConfig
-            schema={schema}
-            component={component}
-            editFormId={editFormId}
-            handleComponentUpdate={handleComponentUpdate}
-          />
-        </>
+          {!showComponentConfigBeta && (
+            <>
+              {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
+              <ComponentSpecificContent
+                component={component}
+                handleComponentChange={handleComponentUpdate}
+                layoutName={selectedLayout}
+              />
+            </>
+          )}
+        </Fieldset>
       )}
-      {!showComponentConfigBeta && (
-        <>
-          {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
-          <ComponentSpecificContent
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            layoutName={selectedLayout}
-          />
-        </>
-      )}
-    </Fieldset>
+    </>
   );
 };

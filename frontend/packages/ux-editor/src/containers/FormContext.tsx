@@ -18,7 +18,7 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../hooks/useAppContext';
-import {FormItem} from "../types/FormItem";
+import type { FormItem } from '../types/FormItem';
 
 export type FormContext = {
   formId: string;

@@ -87,59 +87,59 @@ export const RepeatingGroupComponent = ({
   return (
     <div className={classes.root}>
       <LegacyFieldSet className={classes.fieldset}>
-          <EditGroupDataModelBindings
-            dataModelBindings={component.dataModelBindings}
-            onDataModelChange={handleDataModelGroupChange}
-          />
-          <FormField
-            id={component.id}
-            label={t('ux_editor.modal_properties_group_max_occur')}
-            onChange={handleMaxOccurChange}
-            value={component.maxCount}
-            propertyPath={`${component.propertyPath}/properties/maxCount`}
-            renderField={({ fieldProps }) => (
-              <LegacyTextField
-                {...fieldProps}
-                id='modal-properties-maximum-files'
-                disabled={!!component.dataModelBindings?.group}
-                formatting={{ number: {} }}
-                onChange={(e) => fieldProps.onChange(parseInt(e.target.value), e)}
-              />
-            )}
-          />
-          {items?.length > 0 && (
-            <FormField
-              id={component.id}
-              value={items}
-              onChange={handleTableHeadersChange}
-              propertyPath={`${component.propertyPath}/properties/tableHeaders`}
-              renderField={({ fieldProps }) => {
-                const filteredItems = items.filter((id) => !!components[id]);
-                const checkboxes = filteredItems.map((id) => ({
-                  id,
-                  name: id,
-                  checked:
-                    component.tableHeaders === undefined || component.tableHeaders.includes(id),
-                }));
-                return (
-                  <Checkbox.Group
-                    {...fieldProps}
-                    error={tableHeadersError}
-                    legend={t('ux_editor.modal_properties_group_table_headers')}
-                  >
-                    {checkboxes.map(({ id, name, checked }) => (
-                      <Checkbox key={id} name={name} checked={checked} value={id}>
-                        {getTextResource(
-                          components[id]?.textResourceBindings?.title,
-                          textResources,
-                        ) || id}
-                      </Checkbox>
-                    ))}
-                  </Checkbox.Group>
-                );
-              }}
+        <EditGroupDataModelBindings
+          dataModelBindings={component.dataModelBindings}
+          onDataModelChange={handleDataModelGroupChange}
+        />
+        <FormField
+          id={component.id}
+          label={t('ux_editor.modal_properties_group_max_occur')}
+          onChange={handleMaxOccurChange}
+          value={component.maxCount}
+          propertyPath={`${component.propertyPath}/properties/maxCount`}
+          renderField={({ fieldProps }) => (
+            <LegacyTextField
+              {...fieldProps}
+              id='modal-properties-maximum-files'
+              disabled={!!component.dataModelBindings?.group}
+              formatting={{ number: {} }}
+              onChange={(e) => fieldProps.onChange(parseInt(e.target.value), e)}
             />
           )}
+        />
+        {items?.length > 0 && (
+          <FormField
+            id={component.id}
+            value={items}
+            onChange={handleTableHeadersChange}
+            propertyPath={`${component.propertyPath}/properties/tableHeaders`}
+            renderField={({ fieldProps }) => {
+              const filteredItems = items.filter((id) => !!components[id]);
+              const checkboxes = filteredItems.map((id) => ({
+                id,
+                name: id,
+                checked:
+                  component.tableHeaders === undefined || component.tableHeaders.includes(id),
+              }));
+              return (
+                <Checkbox.Group
+                  {...fieldProps}
+                  error={tableHeadersError}
+                  legend={t('ux_editor.modal_properties_group_table_headers')}
+                >
+                  {checkboxes.map(({ id, name, checked }) => (
+                    <Checkbox key={id} name={name} checked={checked} value={id}>
+                      {getTextResource(
+                        components[id]?.textResourceBindings?.title,
+                        textResources,
+                      ) || id}
+                    </Checkbox>
+                  ))}
+                </Checkbox.Group>
+              );
+            }}
+          />
+        )}
       </LegacyFieldSet>
     </div>
   );
