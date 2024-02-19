@@ -1,14 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Alert,
-  Checkbox,
-  Heading,
-  Link as DigdirLink,
-  Button,
-  Spinner,
-} from '@digdir/design-system-react';
+import { Alert, Checkbox, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
@@ -157,7 +150,6 @@ export const ResourceAccessLists = ({
             onClick={() => fetchNextPage()}
           >
             {t('resourceadm.listadmin_load_more')}
-            {isFetchingNextPage && <Spinner size='small' title={t('general.loading')} />}
           </Button>
         )}
       </div>
