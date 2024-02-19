@@ -67,6 +67,7 @@ export const PresentationComponent = ({ header, type, children, renderNavBar = t
           <section
             id='main-content'
             className={classes.modal}
+            tabIndex={-1}
           >
             <Header header={realHeader}>
               <ProgressBar type={type} />

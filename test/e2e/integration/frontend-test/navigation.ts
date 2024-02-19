@@ -24,4 +24,14 @@ describe('Navigation', () => {
 
     cy.window().its('scrollY').should('equal', 0);
   });
+
+  it('Should focus main-content whenever navigating to a new page', () => {
+    cy.goto('group');
+
+    cy.findByText(/Aktiver preutfylling/).should('exist');
+
+    cy.findByRole('button', { name: /Neste/ }).click();
+
+    cy.get('#main-content').should('be.focused');
+  });
 });

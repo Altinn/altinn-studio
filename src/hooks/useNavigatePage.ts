@@ -8,11 +8,13 @@ import { useLaxLayoutSettings, usePageSettings } from 'src/features/form/layoutS
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
 import { ProcessTaskType } from 'src/types';
+import { promisify } from 'src/utils/promisify';
 import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
 
 type NavigateToPageOptions = {
   replace?: boolean;
   skipAutoSave?: boolean;
+  shouldFocusComponent?: boolean;
 };
 
 export enum TaskKeys {
@@ -101,7 +103,7 @@ export const useNavigatePage = () => {
   }, [autoSaveBehavior, waitForSave]);
 
   const navigateToPage = useCallback(
-    (page?: string, options?: NavigateToPageOptions) => {
+    async (page?: string, options?: NavigateToPageOptions) => {
       const replace = options?.replace ?? false;
       if (!page) {
         window.logWarn('navigateToPage called without page');
@@ -121,7 +123,15 @@ export const useNavigatePage = () => {
       }
 
       const url = `/instance/${partyId}/${instanceGuid}/${taskId}/${page}${queryKeys}`;
-      navigate(url, { replace });
+      /**
+       * Promisify the navigate function to ensure that the page has been navigated to before
+       * moving the page focus to the main content on each page navigation. This is
+       * done so that the focus of a screen reader user will not be placed at random
+       */
+      await promisify(() => navigate(url, { replace }))();
+      if (options?.shouldFocusComponent !== true) {
+        document.getElementById('main-content')?.focus({ preventScroll: true });
+      }
     },
     [instanceGuid, isStatelessApp, maybeSaveOnPageChange, navigate, order, partyId, queryKeys, taskId],
   );

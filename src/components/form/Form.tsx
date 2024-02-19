@@ -30,7 +30,7 @@ export function Form() {
   useRegisterNodeNavigationHandler((targetNode) => {
     const targetView = targetNode?.top.top.myKey;
     if (targetView && targetView !== currentPageId) {
-      navigateToPage(targetView);
+      navigateToPage(targetView, { shouldFocusComponent: true });
       return true;
     }
     return false;
