@@ -1,8 +1,6 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
-import type { TabDataErrorProps } from './TabDataError';
-import { TabDataError } from './TabDataError';
+import { TabDataError, type TabDataErrorProps } from './TabDataError';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const mockChildrenText: string = 'Test error';

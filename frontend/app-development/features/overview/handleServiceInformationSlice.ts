@@ -1,5 +1,4 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createAction, createSlice } from '@reduxjs/toolkit';
+import { createAction, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { ICommit, IServiceDescription, IServiceId, IServiceName } from '../../types/global';
 import type {
   IFetchInitialCommitFulfilled,

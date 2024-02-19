@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, type ChangeEvent } from 'react';
 import classes from './createAppReleaseComponent.module.css';
-import type { ChangeEvent } from 'react';
 import { Textfield, Textarea } from '@digdir/design-system-react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';

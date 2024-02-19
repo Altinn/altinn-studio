@@ -1,5 +1,4 @@
-import type { QueryMeta, UseQueryResult } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type QueryMeta, type UseQueryResult } from '@tanstack/react-query';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';

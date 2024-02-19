@@ -1,8 +1,7 @@
 import React from 'react';
 import { render as rtlRender, act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { DeployDropdownProps } from './DeployDropdown';
-import { DeployDropdown } from './DeployDropdown';
+import { DeployDropdown, type DeployDropdownProps } from './DeployDropdown';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();

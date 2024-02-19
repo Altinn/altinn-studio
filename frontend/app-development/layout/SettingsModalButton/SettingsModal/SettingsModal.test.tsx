@@ -6,13 +6,14 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { SettingsModalProps } from './SettingsModal';
-import { SettingsModal } from './SettingsModal';
+import { SettingsModal, type SettingsModalProps } from './SettingsModal';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import {
+  ServicesContextProvider,
+  type ServicesContextProps,
+} from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';

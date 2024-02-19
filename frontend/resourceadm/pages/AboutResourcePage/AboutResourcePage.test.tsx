@@ -1,8 +1,7 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
-import type { AboutResourcePageProps } from './AboutResourcePage';
-import { AboutResourcePage } from './AboutResourcePage';
+import { AboutResourcePage, type AboutResourcePageProps } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';

@@ -5,8 +5,7 @@ import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
-import type { Build } from 'app-shared/types/Build';
-import { BuildResult, BuildStatus } from 'app-shared/types/Build';
+import { BuildResult, BuildStatus, type Build } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 

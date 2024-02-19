@@ -1,6 +1,5 @@
 import { expandAllOf, expandAnyOf, expandRefsInProperties, verifySchema } from './schemaUtils';
-import type { AppFrontendVersion } from './version';
-import { isValidVersion, versionSettings } from './version';
+import { isValidVersion, versionSettings, type AppFrontendVersion } from './version';
 import { getLayoutSchema } from './api';
 import { generateComponentPropertyLabels, generateTextResourceLabels } from './languageUtils';
 

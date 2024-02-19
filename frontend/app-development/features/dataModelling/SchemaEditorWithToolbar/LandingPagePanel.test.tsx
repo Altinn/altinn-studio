@@ -1,7 +1,6 @@
 import React from 'react';
 import { screen, act } from '@testing-library/react';
-import type { LandingPagePanelProps } from './LandingPagePanel';
-import { LandingPagePanel } from './LandingPagePanel';
+import { LandingPagePanel, type LandingPagePanelProps } from './LandingPagePanel';
 import userEvent from '@testing-library/user-event';
 import * as testids from '../../../../testing/testids';
 import { textMock } from '../../../../testing/mocks/i18nMock';

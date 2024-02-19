@@ -1,7 +1,9 @@
 import React from 'react';
 import { renderWithMockStore } from '../../../test/mocks';
-import type { SchemaGenerationErrorsPanelProps } from './SchemaGenerationErrorsPanel';
-import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
+import {
+  SchemaGenerationErrorsPanel,
+  type SchemaGenerationErrorsPanelProps,
+} from './SchemaGenerationErrorsPanel';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

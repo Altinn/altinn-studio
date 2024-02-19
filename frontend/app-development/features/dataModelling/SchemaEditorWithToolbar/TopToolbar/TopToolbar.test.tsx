@@ -1,6 +1,5 @@
 import React from 'react';
-import type { TopToolbarProps } from './TopToolbar';
-import { TopToolbar } from './TopToolbar';
+import { TopToolbar, type TopToolbarProps } from './TopToolbar';
 import { screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';

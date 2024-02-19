@@ -1,6 +1,9 @@
 import React from 'react';
-import type { AppDeploymentComponentProps, ImageOption } from './appDeploymentComponent';
-import { AppDeploymentComponent } from './appDeploymentComponent';
+import {
+  AppDeploymentComponent,
+  type AppDeploymentComponentProps,
+  type ImageOption,
+} from './appDeploymentComponent';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';

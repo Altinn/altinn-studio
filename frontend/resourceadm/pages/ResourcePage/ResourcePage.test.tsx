@@ -7,8 +7,10 @@ import { textMock } from '../../../testing/mocks/i18nMock';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import {
+  ServicesContextProvider,
+  type ServicesContextProps,
+} from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 

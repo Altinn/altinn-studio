@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import classes from './releaseContainer.module.css';
 import type { AppRelease } from 'app-shared/types/AppRelease';
-import type { KeyboardEvent, MouseEvent } from 'react';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { LegacyPopover } from '@digdir/design-system-react';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { useMediaQuery } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioSpinner, useMediaQuery } from '@studio/components';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 

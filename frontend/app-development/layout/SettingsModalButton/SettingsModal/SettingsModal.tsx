@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import classes from './SettingsModal.module.css';
 import { Heading } from '@digdir/design-system-react';
 import {

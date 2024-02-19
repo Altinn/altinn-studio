@@ -1,5 +1,4 @@
-import type { UseQueryResult, QueryMeta } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult, type QueryMeta } from '@tanstack/react-query';
 import type { IDeployment } from '../../sharedResources/appDeployment/types';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { AppDeployment } from 'app-shared/types/AppDeployment';

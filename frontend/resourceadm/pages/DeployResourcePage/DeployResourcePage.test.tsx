@@ -1,12 +1,13 @@
 import React from 'react';
 import { act, render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import type { DeployResourcePageProps } from './DeployResourcePage';
-import { DeployResourcePage } from './DeployResourcePage';
+import { DeployResourcePage, type DeployResourcePageProps } from './DeployResourcePage';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import {
+  ServicesContextProvider,
+  type ServicesContextProps,
+} from 'app-shared/contexts/ServicesContext';
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { usePublishResourceMutation } from '../../hooks/mutations';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';

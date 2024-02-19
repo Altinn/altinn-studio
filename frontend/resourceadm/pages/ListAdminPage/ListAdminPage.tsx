@@ -9,8 +9,7 @@ import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQue
 import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import type { EnvId } from '../../utils/resourceUtils/resourceUtils';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import { getAvailableEnvironments, type EnvId } from '../../utils/resourceUtils/resourceUtils';
 
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();

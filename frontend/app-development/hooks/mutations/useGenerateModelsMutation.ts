@@ -1,5 +1,9 @@
-import type { UseMutationResult, QueryMeta } from '@tanstack/react-query';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  type UseMutationResult,
+  type QueryMeta,
+} from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { AxiosError } from 'axios';

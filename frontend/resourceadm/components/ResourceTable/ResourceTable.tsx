@@ -5,8 +5,13 @@ import { PencilIcon } from '@studio/icons';
 import { Tag } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import type { GridRenderCellParams, GridRowParams } from '@mui/x-data-grid';
-import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridOverlay,
+  type GridRenderCellParams,
+  type GridRowParams,
+} from '@mui/x-data-grid';
 
 export type ResourceTableProps = {
   /**

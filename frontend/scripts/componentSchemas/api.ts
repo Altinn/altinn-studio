@@ -1,6 +1,5 @@
 import axios from 'axios';
-import type { AppFrontendVersion } from './version';
-import { versionSettings } from './version';
+import { versionSettings, type AppFrontendVersion } from './version';
 
 export const getLayoutSchema = async (version?: AppFrontendVersion) => {
   const response = await axios.get(versionSettings[version || 'v4'].layoutSchemaUrl);

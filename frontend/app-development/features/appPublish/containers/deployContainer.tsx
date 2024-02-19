@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
 import classes from './deployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
-import type { ImageOption } from '../components/appDeploymentComponent';
-import { AppDeploymentComponent } from '../components/appDeploymentComponent';
+import { AppDeploymentComponent, type ImageOption } from '../components/appDeploymentComponent';
 import { BuildResult } from 'app-shared/types/Build';
 import { useAppSelector } from '../../../hooks';
 import {

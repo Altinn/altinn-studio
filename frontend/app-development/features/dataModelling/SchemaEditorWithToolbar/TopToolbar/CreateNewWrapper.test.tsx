@@ -1,8 +1,7 @@
 import React from 'react';
 import { act, render as renderRtl, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
-import type { CreateNewWrapperProps } from './CreateNewWrapper';
-import { CreateNewWrapper } from './CreateNewWrapper';
+import { CreateNewWrapper, type CreateNewWrapperProps } from './CreateNewWrapper';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import {
   datamodel1NameMock,

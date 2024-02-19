@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioCenter } from '@studio/components';
 import { Spinner } from '@digdir/design-system-react';

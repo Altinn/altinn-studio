@@ -1,8 +1,7 @@
 import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import type { AlertProps } from '@digdir/design-system-react';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph, type AlertProps } from '@digdir/design-system-react';
 
 type NoEnvironmentsAlertProps = AlertProps;
 export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
