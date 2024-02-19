@@ -1,7 +1,13 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, ToggleGroup, Button } from '@digdir/design-system-react';
+import {
+  Heading,
+  Link as DigdirLink,
+  ToggleGroup,
+  Button,
+  Spinner,
+} from '@digdir/design-system-react';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
@@ -111,6 +117,7 @@ export const ListAdminPage = (): React.JSX.Element => {
                     onClick={() => fetchNextPage()}
                   >
                     {t('resourceadm.listadmin_load_more')}
+                    {isFetchingNextPage && <Spinner size='small' title={t('general.loading')} />}
                   </Button>
                 )}
               </div>

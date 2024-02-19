@@ -141,18 +141,14 @@ export interface AccessList {
   name: string;
   description?: string;
   members?: AccessListMember[];
+  resourceConnections?: {
+    resourceIdentifier: string;
+  }[];
 }
 
 export interface AccessListsResponse {
   data: AccessList[];
   nextPage?: number;
-}
-
-export interface AccessListResourceLink {
-  resourceIdentifier: string;
-  accessListName: string;
-  accessListIdentifier: string;
-  actions: string[];
 }
 
 export interface JsonPatch {

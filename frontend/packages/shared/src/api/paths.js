@@ -141,7 +141,7 @@ export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources
 export const createAccessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; //  Post
 export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete
 export const accessListMemberPath = (org, listId, orgnr, env) => `${basePath}/${org}/resources/accesslist/${listId}/members/${orgnr}?env=${env}`; // Post, Delete
-export const resourceAccessListsPath = (org, resourceId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}`; // Get
+export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}&page=${page}`; // Get
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
 
 // Process Editor
