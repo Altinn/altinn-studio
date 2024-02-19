@@ -54,6 +54,28 @@ describe('NavigationMenu', () => {
     });
     expect(elementInMenuAfter).toBeInTheDocument();
   });
+  it('should close the menu when clicking the menu icon twice', async () => {
+    const user = userEvent.setup();
+    await render();
+
+    const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
+    expect(elementInMenu).not.toBeInTheDocument();
+
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await act(() => user.click(menuButtons[0]));
+
+    const elementInMenuAfter = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
+    });
+    expect(elementInMenuAfter).toBeInTheDocument();
+
+    await act(() => user.click(menuButtons[0]));
+
+    const elementInMenuAfterClose = screen.queryByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
+    });
+    expect(elementInMenuAfterClose).not.toBeInTheDocument();
+  });
 
   it('Calls updateFormLayoutName with new name when name is changed by the user', async () => {
     const user = userEvent.setup();
@@ -116,7 +138,7 @@ describe('NavigationMenu', () => {
     expect(downButton).toBeInTheDocument();
   });
 
-  it('change order when down button is clicked on the first page', async () => {
+  it('should toggle the page order using up and down buttons', async () => {
     const user = userEvent.setup();
     await render();
 
@@ -135,6 +157,19 @@ describe('NavigationMenu', () => {
       { pages: { order: ['Side2', 'Side1'] }, receiptLayoutName: 'Kvittering' },
     );
     expect(menuItemDown).not.toBeInTheDocument();
+
+    await act(() => user.click(menuButtons[1]));
+    const menuItemUp = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
+    });
+    await act(() => user.click(menuItemUp));
+    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(2);
+    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
+      mockOrg,
+      mockApp,
+      mockSelectedLayoutSet,
+      { pages: { order: ['Side1', 'Side2'] }, receiptLayoutName: 'Kvittering' },
+    );
   });
 });
 
