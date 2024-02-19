@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Reflection;
 using System.Text.Json;
 using Altinn.App.Core.Models.Layout.Components;

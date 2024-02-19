@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Net;
 using System.Text;
 using Altinn.App.Api.Helpers.RequestHandling;

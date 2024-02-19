@@ -1,4 +1,3 @@
-#nullable enable
 using System.Net;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;

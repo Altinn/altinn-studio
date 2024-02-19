@@ -1,4 +1,3 @@
-#nullable enable
 using System.Security.Claims;
 using System.Text;
 using Altinn.App.Core.Features.Action;

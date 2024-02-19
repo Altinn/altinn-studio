@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+#nullable disable
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Models;
 using FluentAssertions;

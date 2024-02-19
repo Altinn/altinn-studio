@@ -1,5 +1,3 @@
-#nullable enable
-
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
 

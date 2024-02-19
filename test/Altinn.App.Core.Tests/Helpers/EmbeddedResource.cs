@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Altinn.App.PlatformServices.Tests.Helpers;
 

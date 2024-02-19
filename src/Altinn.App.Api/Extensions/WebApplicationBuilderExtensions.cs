@@ -1,4 +1,3 @@
-#nullable enable
 using System.Reflection;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;

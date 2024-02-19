@@ -1,6 +1,4 @@
-﻿#nullable enable
-
-namespace Altinn.App.Core.Internal.Auth
+﻿namespace Altinn.App.Core.Internal.Auth
 {
     /// <summary>
     /// Defines the methods required for an implementation of a user JSON Web Token provider.

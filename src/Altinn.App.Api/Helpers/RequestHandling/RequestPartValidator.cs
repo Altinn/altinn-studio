@@ -1,9 +1,4 @@
-﻿#nullable enable
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Altinn.Platform.Storage.Interface.Models;
+﻿using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Helpers.RequestHandling
 {

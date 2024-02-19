@@ -1,4 +1,3 @@
-#nullable enable
 using System.Net.Http.Headers;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Extensions;

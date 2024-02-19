@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#nullable disable
 using Altinn.App.Core.Features.DataLists;
 using FluentAssertions;
 using Xunit;

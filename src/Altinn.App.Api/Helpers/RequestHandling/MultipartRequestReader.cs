@@ -1,5 +1,3 @@
-#nullable enable
-
 using Altinn.App.Core.Helpers.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;

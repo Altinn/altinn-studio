@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿#nullable disable
+using System.Text.Json.Serialization;
 using Altinn.Platform.Storage.Interface.Enums;
 
 namespace Altinn.App.Api.Models

@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices.JavaScript;
+#nullable disable
 using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;

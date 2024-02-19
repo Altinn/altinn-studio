@@ -1,5 +1,4 @@
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+#nullable disable
 
 namespace Altinn.App.Api.Infrastructure.Middleware
 {

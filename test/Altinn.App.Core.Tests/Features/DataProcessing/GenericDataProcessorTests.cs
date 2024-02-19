@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;

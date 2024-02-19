@@ -1,3 +1,4 @@
+#nullable disable
 using System.Net;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;

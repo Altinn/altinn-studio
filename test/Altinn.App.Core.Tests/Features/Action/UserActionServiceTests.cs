@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Models.UserAction;

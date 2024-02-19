@@ -1,6 +1,6 @@
+#nullable disable
 using Altinn.App.Core.Configuration;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Controllers

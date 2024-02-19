@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text.Json;
 using System.Web;
 using Altinn.App.Core.Configuration;

@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.App.Core.Helpers;
 using FluentAssertions;
 using Xunit;

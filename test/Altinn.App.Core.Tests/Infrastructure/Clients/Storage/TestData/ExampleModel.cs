@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
 
 /// <summary>

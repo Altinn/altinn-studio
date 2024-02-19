@@ -1,8 +1,6 @@
-﻿using System.Net;
-using System.Net.Http;
+﻿#nullable disable
+using System.Net;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Internal.Events;

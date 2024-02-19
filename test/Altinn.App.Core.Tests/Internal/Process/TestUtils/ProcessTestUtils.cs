@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.App.Core.Internal.Process;
 using Moq;
 

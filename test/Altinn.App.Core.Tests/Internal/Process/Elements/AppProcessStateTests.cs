@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;

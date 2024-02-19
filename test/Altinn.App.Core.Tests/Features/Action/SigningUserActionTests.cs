@@ -1,4 +1,4 @@
-using Altinn.App.Core.Configuration;
+#nullable disable
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -13,8 +13,6 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using Microsoft.FeatureManagement;
 using Moq;
 using Xunit;
 using Signee = Altinn.App.Core.Internal.Sign.Signee;

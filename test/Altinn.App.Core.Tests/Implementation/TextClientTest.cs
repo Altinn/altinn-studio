@@ -1,8 +1,6 @@
+#nullable disable
 using System.Net;
-using System.Net.Http;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.Platform.Storage.Interface.Models;

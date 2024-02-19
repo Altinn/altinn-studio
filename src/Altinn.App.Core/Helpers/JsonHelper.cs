@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Numerics;
 using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;

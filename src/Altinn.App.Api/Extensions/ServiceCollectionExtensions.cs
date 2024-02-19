@@ -1,5 +1,4 @@
-﻿#nullable enable
-using Altinn.App.Api.Controllers;
+﻿using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Telemetry;

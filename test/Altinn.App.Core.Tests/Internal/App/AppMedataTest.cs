@@ -1,4 +1,4 @@
-using System.Reflection;
+#nullable disable
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
@@ -8,7 +8,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Moq;
-using Newtonsoft.Json;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 

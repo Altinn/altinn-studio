@@ -1,4 +1,3 @@
-
 namespace Altinn.App.Core.Models.Validation
 {
     /// <summary>

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Core.Helpers;

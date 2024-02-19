@@ -1,5 +1,4 @@
-﻿#nullable enable
-using Altinn.App.Core.Features.DataLists;
+﻿using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

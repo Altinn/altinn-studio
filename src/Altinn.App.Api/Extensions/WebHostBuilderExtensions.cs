@@ -1,5 +1,5 @@
+#nullable disable
 using Altinn.App.Core.Extensions;
-using Microsoft.AspNetCore.Hosting;
 
 namespace Altinn.App.Api.Extensions;
 

@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Internal.Process.Action;
 using Altinn.App.Core.Tests.Internal.Process.Action.TestData;

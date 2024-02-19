@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
 using FluentAssertions;

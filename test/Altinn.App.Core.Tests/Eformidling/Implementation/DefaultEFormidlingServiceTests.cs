@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling;

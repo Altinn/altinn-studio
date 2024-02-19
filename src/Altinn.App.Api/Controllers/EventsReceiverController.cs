@@ -1,4 +1,4 @@
-﻿using System;
+﻿#nullable disable
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;

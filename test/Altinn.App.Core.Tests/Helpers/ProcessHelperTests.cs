@@ -1,4 +1,3 @@
-#nullable enable
 using System.Collections.Generic;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Process;

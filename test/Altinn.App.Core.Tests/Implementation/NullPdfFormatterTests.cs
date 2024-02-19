@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+#nullable disable
 using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Tests.Implementation.TestResources;

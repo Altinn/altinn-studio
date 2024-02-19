@@ -1,13 +1,7 @@
-#nullable enable
-
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers

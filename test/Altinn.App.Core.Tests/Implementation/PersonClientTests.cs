@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;

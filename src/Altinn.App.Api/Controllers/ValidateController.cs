@@ -1,7 +1,3 @@
-#nullable enable
-
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;

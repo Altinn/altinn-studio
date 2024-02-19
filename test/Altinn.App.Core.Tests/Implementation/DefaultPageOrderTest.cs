@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.App.Core.Features.PageOrder;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;

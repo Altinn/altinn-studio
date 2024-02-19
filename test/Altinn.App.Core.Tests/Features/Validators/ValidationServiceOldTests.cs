@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;

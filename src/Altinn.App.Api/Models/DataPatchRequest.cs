@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Controllers;
 using Json.Patch;

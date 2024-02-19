@@ -1,3 +1,4 @@
+#nullable disable
 namespace Altinn.App.Core.Tests.Infrastructure.Clients.KeyVault;
 
 using System.Text.Json;

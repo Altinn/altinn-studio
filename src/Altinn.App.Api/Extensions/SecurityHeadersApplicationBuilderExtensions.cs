@@ -1,5 +1,5 @@
+#nullable disable
 using Altinn.App.Api.Infrastructure.Middleware;
-using Microsoft.AspNetCore.Builder;
 
 namespace Altinn.App.Api.Extensions
 {

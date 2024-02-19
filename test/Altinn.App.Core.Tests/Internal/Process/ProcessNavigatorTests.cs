@@ -1,7 +1,7 @@
+#nullable disable
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
-using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
 using Altinn.App.PlatformServices.Tests.Internal.Process.StubGatewayFilters;

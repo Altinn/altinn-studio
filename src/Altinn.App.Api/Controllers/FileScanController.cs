@@ -1,5 +1,5 @@
-﻿using Altinn.App.Api.Models;
-using Altinn.App.Core.Infrastructure.Clients;
+﻿#nullable disable
+using Altinn.App.Api.Models;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;

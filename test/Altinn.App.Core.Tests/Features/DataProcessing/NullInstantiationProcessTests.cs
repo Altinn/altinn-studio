@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+#nullable disable
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.PlatformServices.Tests.Implementation.TestResources;
 using Altinn.Platform.Storage.Interface.Models;

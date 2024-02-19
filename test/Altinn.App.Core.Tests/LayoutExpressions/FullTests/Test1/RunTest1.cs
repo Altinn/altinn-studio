@@ -1,3 +1,4 @@
+#nullable disable
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
 using FluentAssertions;

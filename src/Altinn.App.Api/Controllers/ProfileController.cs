@@ -1,5 +1,3 @@
-#nullable enable
-
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Profile;
 using Microsoft.AspNetCore.Authorization;

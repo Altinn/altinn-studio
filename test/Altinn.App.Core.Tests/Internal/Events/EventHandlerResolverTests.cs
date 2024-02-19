@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#nullable disable
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Models;
 using FluentAssertions;

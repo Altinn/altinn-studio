@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace Altinn.App.Api.Helpers.RequestHandling
 {
     /// <summary>

@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.App.Core.Helpers;
 
 namespace Altinn.App.Core.Features.Options.Altinn2Provider
