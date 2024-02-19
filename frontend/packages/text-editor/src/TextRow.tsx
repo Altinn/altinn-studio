@@ -104,6 +104,7 @@ export const TextRow = ({
             translation: '',
           };
         }
+        // UPDATE THIS LABEL to          aria-label={t('text_editor.table_row_input_label', { lang: '', textKey: textId })}
         return (
           <TableCell
             key={translation.lang + '-' + textId}
@@ -123,6 +124,7 @@ export const TextRow = ({
           {textIdEditOpen ? (
             <Textfield
               value={textIdValue}
+              // DO I NEED TO CHANGE THIS TOO?
               aria-label={t('text_editor.key.edit')}
               error={keyError}
               onBlur={keyError ? undefined : handleTextIdBlur}

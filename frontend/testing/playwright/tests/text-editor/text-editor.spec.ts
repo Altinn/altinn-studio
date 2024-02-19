@@ -8,6 +8,7 @@ import { Gitea } from '../../helpers/Gitea';
 import { Header } from '../../components/Header';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { ComponentType } from '../../enum/ComponentType';
+import { LanguageCode } from '../../enum/LanguageCode';
 
 // Variables and constants shared between tests
 const WAIT_TWO_SECONDS = 2000;
@@ -84,8 +85,12 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   await textEditorPage.verifyTextEditorPage();
 
   // Verify that textbox with label 'Norsk oversettelse for {page1}.{componentId}.title' is visible
+  const textKey: string = `${page1}.${componentId}.title`;
+  await textEditorPage.verifyThatTextareaIsVisibleWithCorrectId(LanguageCode.Nb, textKey);
 
   // Verify that value in textbox is the value added - labelText
+  const textareaValue: string = await textEditorPage.getTextareaValue(LanguageCode.Nb, textKey);
+  expect(textareaValue).toBe(inputLabel);
 });
 
 test('that texts added on text page becomes visible on Lage page and vice versa, as well as the texts are added correctly to Gitea', async ({
