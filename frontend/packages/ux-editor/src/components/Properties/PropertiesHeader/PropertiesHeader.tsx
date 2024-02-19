@@ -9,6 +9,8 @@ import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSche
 import { DataModelBindingRow } from './DataModelBindingRow';
 import { EditComponentIdRow } from './EditComponentIdRow';
 import type { FormItem } from '../../../types/FormItem';
+import {isContainer} from "../../../utils/formItemUtils";
+import {EditGroupDataModelBindings} from "../../config/group/EditGroupDataModelBindings";
 
 export type PropertiesHeaderProps = {
   form: FormItem;
@@ -30,6 +32,15 @@ export const PropertiesHeader = ({
 
   const { data: schema } = useComponentSchemaQuery(form.type);
 
+  const handleDataModelGroupChange = (dataBindingName: string, key: string) => {
+    handleComponentUpdate({
+      ...form,
+      dataModelBindings: {
+        [key]: dataBindingName,
+      },
+    });
+  };
+
   return (
     <>
       <div className={classes.header}>
@@ -48,16 +59,21 @@ export const PropertiesHeader = ({
         <div className={classes.contentRow}>
           <EditComponentIdRow component={form} handleComponentUpdate={handleComponentUpdate} />
         </div>
-        {schema && (
-          <div className={classes.contentRow}>
+        {schema && (isContainer(form) ? (
+            <EditGroupDataModelBindings
+                dataModelBindings={form.dataModelBindings}
+                onDataModelChange={handleDataModelGroupChange}
+            />
+        ) : (
+            <div className={classes.contentRow}>
             <DataModelBindingRow
               schema={schema}
-              component={form}
+              component={form as FormComponent}
               formId={formId}
               handleComponentUpdate={handleComponentUpdate}
             />
           </div>
-        )}
+        ))}
       </div>
     </>
   );
