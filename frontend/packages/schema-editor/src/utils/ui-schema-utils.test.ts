@@ -34,5 +34,10 @@ describe('ui-schema-utils', () => {
       const invalidName = 'test 123';
       expect(isValidName(invalidName)).toBeFalsy();
     });
+
+    it('should validate provided name - name with punctuation should return false', () => {
+      const invalidName = 'test.something';
+      expect(isValidName(invalidName)).toBeFalsy();
+    });
   });
 });
