@@ -6,7 +6,7 @@ import { EditNumberValue } from './editModal/EditNumberValue';
 import { EditStringValue } from './editModal/EditStringValue';
 import { useComponentPropertyLabel, useText } from '../../hooks';
 import {
-  ExpressionSchemaBooleanDefinitionReference,
+  getExpressionSchemaDefinitionReference,
   getUnsupportedPropertyTypes,
 } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
@@ -62,7 +62,7 @@ export const FormComponentConfig = ({
   const booleanRestPropertyKeys = getFilteredPropertyKeys((propertyKey) => {
     return (
       rest[propertyKey].type === 'boolean' ||
-      rest[propertyKey].$ref?.endsWith(ExpressionSchemaBooleanDefinitionReference)
+      rest[propertyKey].$ref?.endsWith(getExpressionSchemaDefinitionReference('boolean'))
     );
   }, rest);
 
@@ -143,6 +143,7 @@ export const FormComponentConfig = ({
         />
       )}
       {booleanRestPropertyKeys.map((propertyKey) => {
+        if (unsupportedPropertyKeys.includes(propertyKey)) return null;
         return (
           <EditBooleanValue
             component={component}
@@ -156,11 +157,12 @@ export const FormComponentConfig = ({
 
       {/** String and number fields (incl. arrays with enum values) */}
       {remainingRestPropertyKeys.map((propertyKey) => {
+        if (unsupportedPropertyKeys.includes(propertyKey)) return null;
         if (!rest[propertyKey]) return null;
         if (
           rest[propertyKey].type === 'number' ||
           rest[propertyKey].type === 'integer' ||
-          rest[propertyKey].$ref?.endsWith('expression.schema.v1.json#/definitions/number')
+          rest[propertyKey].$ref?.endsWith(getExpressionSchemaDefinitionReference('number'))
         ) {
           return (
             <EditNumberValue
@@ -175,7 +177,7 @@ export const FormComponentConfig = ({
         if (
           rest[propertyKey].type === 'string' ||
           rest[propertyKey].enum ||
-          rest[propertyKey].$ref?.endsWith('expression.schema.v1.json#/definitions/string')
+          rest[propertyKey].$ref?.endsWith(getExpressionSchemaDefinitionReference('string'))
         ) {
           return (
             <EditStringValue
@@ -208,6 +210,7 @@ export const FormComponentConfig = ({
 
       {/** Object properties */}
       {objectRestPropertyKeys.map((propertyKey) => {
+        if (unsupportedPropertyKeys.includes(propertyKey)) return null;
         if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
           return (
             <Card key={propertyKey}>

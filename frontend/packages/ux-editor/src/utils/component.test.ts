@@ -3,7 +3,7 @@ import {
   addOptionToComponent,
   changeComponentOptionLabel,
   changeTextResourceBinding,
-  ExpressionSchemaBooleanDefinitionReference,
+  getExpressionSchemaDefinitionReference,
   generateFormItem,
   getUnsupportedPropertyTypes,
   isPropertyTypeSupported,
@@ -201,7 +201,7 @@ describe('Component utils', () => {
   });
 
   describe('getUnsupportedPropertyTypes', () => {
-    it('Returns empty array when only properties are provided', () => {
+    it('Returns empty array when only valid properties are provided', () => {
       const properties = {
         testProperty1: {
           type: 'string',
@@ -216,19 +216,24 @@ describe('Component utils', () => {
           },
         },
         testProperty4: {
-          $ref: ExpressionSchemaBooleanDefinitionReference,
+          $ref: getExpressionSchemaDefinitionReference('boolean'),
         },
         testProperty5: {
           type: 'integer',
         },
         testProperty6: {
           type: 'object',
+          properties: {
+            testProperty6_1: {
+              type: 'string',
+            },
+          },
         },
         testProperty7: {
           type: 'boolean',
         },
       };
-      expect(getUnsupportedPropertyTypes(properties)).toEqual(['testProperty6']);
+      expect(getUnsupportedPropertyTypes(properties)).toEqual([]);
     });
     it('Returns empty array when no properties are provided', () => {
       const properties = {};
@@ -237,8 +242,18 @@ describe('Component utils', () => {
     it('Returns array of unsupported property keys when known unsupported property keys are provided', () => {
       const properties = {
         children: 'testValue',
+        testProperty1: {
+          type: 'object',
+          properties: {},
+          additionalProperties: {
+            type: 'string',
+          },
+        },
       };
-      expect(getUnsupportedPropertyTypes(properties, ['children'])).toEqual(['children']);
+      expect(getUnsupportedPropertyTypes(properties, ['children'])).toEqual([
+        'testProperty1',
+        'children',
+      ]);
     });
     it('Returns array of unsupported property keys when unsupported property keys are given', () => {
       const properties = {
@@ -270,12 +285,25 @@ describe('Component utils', () => {
     });
 
     it('should return true if property ref is supported', () => {
-      expect(
-        isPropertyTypeSupported({
-          $ref: ExpressionSchemaBooleanDefinitionReference,
-        }),
-      ).toBe(true);
+      ['boolean', 'number', 'integer', 'string'].forEach((type) => {
+        expect(
+          isPropertyTypeSupported({
+            $ref: getExpressionSchemaDefinitionReference(type),
+          }),
+        ).toBe(true);
+      });
     });
+
+    it('should return false if property ref is supported', () => {
+      ['object'].forEach((type) => {
+        expect(
+          isPropertyTypeSupported({
+            $ref: getExpressionSchemaDefinitionReference(type),
+          }),
+        ).toBe(false);
+      });
+    });
+
     it('should return true for property of array type with items that are type string', () => {
       expect(
         isPropertyTypeSupported({
@@ -286,10 +314,27 @@ describe('Component utils', () => {
         }),
       ).toBe(true);
     });
-    it('should return false for property type object', () => {
+    it('should return true for property type object with defined properties', () => {
       expect(
         isPropertyTypeSupported({
           type: 'object',
+          properties: {
+            test: {
+              type: 'string',
+            },
+          },
+        }),
+      ).toBe(true);
+    });
+
+    it('should return false for property type object with no defined properties, but additionalProperties defined', () => {
+      expect(
+        isPropertyTypeSupported({
+          type: 'object',
+          properties: {},
+          additionalProperties: {
+            type: 'string',
+          },
         }),
       ).toBe(false);
     });

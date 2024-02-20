@@ -116,8 +116,12 @@ export const setComponentProperty = <
   [propertyKey]: value,
 });
 
-export const ExpressionSchemaBooleanDefinitionReference =
-  'expression.schema.v1.json#/definitions/boolean';
+export const EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE =
+  'expression.schema.v1.json#/definitions/' as const;
+
+export const getExpressionSchemaDefinitionReference = (type: string) => {
+  return `${EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE}${type}`;
+};
 
 /**
  * Gets an array of unsupported property keys
@@ -145,8 +149,10 @@ export const getUnsupportedPropertyTypes = (
   return unsupportedPropertyKeys;
 };
 
-const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string'];
-const supportedPropertyRefs = [ExpressionSchemaBooleanDefinitionReference];
+const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string', 'object'];
+const supportedPropertyRefs = supportedPropertyTypes
+  .filter((p) => p !== 'object')
+  .map((type) => getExpressionSchemaDefinitionReference(type));
 
 /**
  * Checks if a given property with optional property key is supported by component config view.
@@ -160,5 +166,13 @@ export const isPropertyTypeSupported = (property: KeyValuePairs) => {
   if (property?.type === 'array' && property?.items?.type === 'string') {
     return true;
   }
+  if (
+    property?.type === 'object' &&
+    Object.keys(property?.properties).length === 0 &&
+    property?.additionalProperties
+  ) {
+    return false;
+  }
+
   return supportedPropertyTypes.includes(property?.type);
 };
