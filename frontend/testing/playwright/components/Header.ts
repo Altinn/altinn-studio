@@ -70,6 +70,7 @@ export class Header extends BasePage {
 
   public async waitForPushToGiteaSpinnerToDisappear(): Promise<void> {
     const spinner = this.page.getByTestId(DataTestId.PushToGiteaSpinner);
-    await expect(spinner).toBeHidden();
+    const timeoutForGiteaToDoThePush: number = 10000;
+    await expect(spinner).toBeHidden({ timeout: timeoutForGiteaToDoThePush });
   }
 }
