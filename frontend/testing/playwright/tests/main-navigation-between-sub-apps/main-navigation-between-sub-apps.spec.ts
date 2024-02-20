@@ -173,8 +173,6 @@ test('That it is possible to navigate from overview to the deploy page and back 
   deployPage.updateOrgNameEnv(testDepartmentOrg);
   header.updateOrgNameEnv(testDepartmentOrg);
 
-  // overviewPage.waitForXAmountOfMilliseconds(3000);
-
   await overviewPage.verifyOverviewPage();
 
   // Check Navigation
