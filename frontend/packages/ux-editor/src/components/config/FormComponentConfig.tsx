@@ -61,13 +61,13 @@ export const FormComponentConfig = ({
 
   const booleanRestPropertyKeys = getFilteredPropertyKeys((propertyKey) => {
     return (
-      rest[propertyKey].type === 'boolean' ||
-      rest[propertyKey].$ref?.endsWith(getExpressionSchemaDefinitionReference('boolean'))
+      rest[propertyKey]?.type === 'boolean' ||
+      rest[propertyKey]?.$ref?.endsWith(getExpressionSchemaDefinitionReference('boolean'))
     );
   }, rest);
 
   const objectRestPropertyKeys = getFilteredPropertyKeys((propertyKey) => {
-    return rest[propertyKey].type === 'object' && rest[propertyKey].properties;
+    return rest[propertyKey]?.type === 'object' && rest[propertyKey]?.properties;
   }, rest);
 
   const remainingRestPropertyKeys = Object.keys(rest).filter((propertyKey) => {
@@ -143,7 +143,7 @@ export const FormComponentConfig = ({
         />
       )}
       {booleanRestPropertyKeys.map((propertyKey) => {
-        if (unsupportedPropertyKeys.includes(propertyKey)) return null;
+        if (unsupportedPropertyKeys.includes(propertyKey) || !rest[propertyKey]) return null;
         return (
           <EditBooleanValue
             component={component}
@@ -157,8 +157,7 @@ export const FormComponentConfig = ({
 
       {/** String and number fields (incl. arrays with enum values) */}
       {remainingRestPropertyKeys.map((propertyKey) => {
-        if (unsupportedPropertyKeys.includes(propertyKey)) return null;
-        if (!rest[propertyKey]) return null;
+        if (unsupportedPropertyKeys.includes(propertyKey) || !rest[propertyKey]) return null;
         if (
           rest[propertyKey].type === 'number' ||
           rest[propertyKey].type === 'integer' ||
@@ -210,7 +209,7 @@ export const FormComponentConfig = ({
 
       {/** Object properties */}
       {objectRestPropertyKeys.map((propertyKey) => {
-        if (unsupportedPropertyKeys.includes(propertyKey)) return null;
+        if (unsupportedPropertyKeys.includes(propertyKey) || !rest[propertyKey]) return null;
         if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
           return (
             <Card key={propertyKey}>
