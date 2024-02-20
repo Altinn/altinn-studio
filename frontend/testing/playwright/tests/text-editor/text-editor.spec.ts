@@ -101,7 +101,7 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
 });
 
-test('That it is possible to add a new text, edit the id, and add a new language', async ({
+test('That it is possible to add a new text, edit the id, and add a new language, and that changes are visible in Gitea', async ({
   page,
   testAppName,
 }) => {

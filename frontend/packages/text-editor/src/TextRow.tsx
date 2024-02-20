@@ -104,7 +104,6 @@ export const TextRow = ({
             translation: '',
           };
         }
-        // UPDATE THIS LABEL to          aria-label={t('text_editor.table_row_input_label', { lang: '', textKey: textId })}
         return (
           <TableCell
             key={translation.lang + '-' + textId}

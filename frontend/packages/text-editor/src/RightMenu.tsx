@@ -26,11 +26,6 @@ export const RightMenu = ({
   selectedLanguages,
   setSelectedLanguages,
 }: RightMenuProps) => {
-  console.log({
-    availableLanguages,
-    selectedLanguages,
-  });
-
   const addLangOptions = langOptions.filter((x) => !availableLanguages.includes(x.value));
   const canDeleteLang = (code) => availableLanguages.length > 1 && code !== defaultLangCode;
   const { t } = useTranslation();

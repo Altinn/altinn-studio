@@ -58,7 +58,6 @@ export const TextList = ({
         {resourceRows
           .filter((row) => filterFunction(row.textKey, row.translations, searchQuery))
           .map((row) => (
-            // TODO - UPDATE LABEL ON THIS
             <TextRow
               key={`${row.translations[0].lang}.${row.textKey}`}
               textId={row.textKey}
