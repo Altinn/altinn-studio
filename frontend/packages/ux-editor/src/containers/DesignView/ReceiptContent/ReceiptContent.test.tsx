@@ -1,7 +1,6 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
-import type { ReceiptContentProps } from './ReceiptContent';
-import { ReceiptContent } from './ReceiptContent';
+import { ReceiptContent, type ReceiptContentProps } from './ReceiptContent';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';

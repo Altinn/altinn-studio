@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { ResourceTableProps } from './ResourceTable';
-import { ResourceTable } from './ResourceTable';
+import { ResourceTable, type ResourceTableProps } from './ResourceTable';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';

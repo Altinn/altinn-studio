@@ -4,8 +4,8 @@ import {
   PolicyEditor,
   mergeActionsFromPolicyWithActionOptions,
   mergeSubjectsFromPolicyWithSubjectOptions,
+  type Policy,
 } from '@altinn/policy-editor';
-import type { Policy } from '@altinn/policy-editor';
 import { Spinner, Heading } from '@digdir/design-system-react';
 import { useResourcePolicyQuery } from '../../hooks/queries';
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';

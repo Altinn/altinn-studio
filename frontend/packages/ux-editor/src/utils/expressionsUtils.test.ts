@@ -1,10 +1,11 @@
-import type { Expression, SubExpression } from '../types/Expressions';
 import {
   DataSource,
   ExpressionFunction,
   ExpressionPropertyBase,
   ExpressionPropertyForGroup,
   Operator,
+  type Expression,
+  type SubExpression,
 } from '../types/Expressions';
 import {
   addDataSourceToSubExpression,

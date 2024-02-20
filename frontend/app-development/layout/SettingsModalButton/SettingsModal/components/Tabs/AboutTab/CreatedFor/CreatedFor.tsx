@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './CreatedFor.module.css';
 import { Label, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';

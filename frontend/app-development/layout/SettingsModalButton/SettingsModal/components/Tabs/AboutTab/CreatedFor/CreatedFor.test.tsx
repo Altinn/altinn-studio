@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { CreatedForProps } from './CreatedFor';
-import { CreatedFor } from './CreatedFor';
+import { CreatedFor, type CreatedForProps } from './CreatedFor';
 import { RepositoryType } from 'app-shared/types/global';
 import {
   mockRepository1,

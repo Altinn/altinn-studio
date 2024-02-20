@@ -1,5 +1,4 @@
-import type { ChangeEvent } from 'react';
-import React from 'react';
+import React, { type ChangeEvent } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { NativeSelect } from '@digdir/design-system-react';
 import { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';

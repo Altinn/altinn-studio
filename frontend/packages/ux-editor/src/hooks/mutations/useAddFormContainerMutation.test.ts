@@ -2,8 +2,10 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
-import type { AddFormContainerMutationArgs } from './useAddFormContainerMutation';
-import { useAddFormContainerMutation } from './useAddFormContainerMutation';
+import {
+  useAddFormContainerMutation,
+  type AddFormContainerMutationArgs,
+} from './useAddFormContainerMutation';
 import type { FormContainer } from '../../types/FormContainer';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { layout1NameMock } from '../../testing/layoutMock';

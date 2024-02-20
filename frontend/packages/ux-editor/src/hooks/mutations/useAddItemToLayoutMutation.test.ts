@@ -3,8 +3,10 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { appStateMock, formDesignerMock } from '../../testing/stateMocks';
 import { waitFor } from '@testing-library/react';
-import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
-import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
+import {
+  useAddItemToLayoutMutation,
+  type AddFormItemMutationArgs,
+} from './useAddItemToLayoutMutation';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import type { IAppState } from '../../types/global';

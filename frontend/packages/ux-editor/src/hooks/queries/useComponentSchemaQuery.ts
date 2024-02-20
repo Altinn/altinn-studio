@@ -1,6 +1,5 @@
 // import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import type { UseQueryResult } from '@tanstack/react-query';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { addSchemas, dereferenceSchema } from 'app-shared/utils/formValidationUtils';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';

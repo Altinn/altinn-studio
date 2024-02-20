@@ -1,5 +1,4 @@
-import type { KeyboardEvent } from 'react';
-import React, { useState, forwardRef } from 'react';
+import React, { useState, forwardRef, type KeyboardEvent } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { Textfield } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';

@@ -1,8 +1,6 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
-import type { PageAccordionProps } from './PageAccordion';
-import { PageAccordion } from './PageAccordion';
+import { PageAccordion, type PageAccordionProps } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { formDesignerMock } from '../../../testing/stateMocks';

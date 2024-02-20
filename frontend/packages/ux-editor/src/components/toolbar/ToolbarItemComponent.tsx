@@ -1,5 +1,4 @@
-import type { MouseEvent } from 'react';
-import React from 'react';
+import React, { type MouseEvent } from 'react';
 import classes from './ToolbarItemComponent.module.css';
 import { StudioButton } from '@studio/components';
 import { InformationIcon } from '@navikt/aksel-icons';

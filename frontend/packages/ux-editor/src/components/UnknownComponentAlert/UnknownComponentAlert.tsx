@@ -1,6 +1,5 @@
 ﻿import React from 'react';
-import type { AlertProps } from '@digdir/design-system-react';
-import { Alert } from '@digdir/design-system-react';
+import { Alert, type AlertProps } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
 export type UnknownComponentAlertProps = {

@@ -1,11 +1,9 @@
-import type { Reducer, ReducersMapObject } from 'redux';
-import { combineReducers } from 'redux';
-import appDataReducer from './features/appData/appDataReducers';
-import formDesignerReducer from './features/formDesigner/formDesignerReducer';
-
+import { combineReducers, type Reducer, type ReducersMapObject } from 'redux';
+import appDataReducer, { type IAppDataState } from './features/appData/appDataReducers';
+import formDesignerReducer, {
+  type IFormDesignerState,
+} from './features/formDesigner/formDesignerReducer';
 import type { IFormDesignerNameSpace } from './types/global';
-import type { IAppDataState } from './features/appData/appDataReducers';
-import type { IFormDesignerState } from './features/formDesigner/formDesignerReducer';
 
 export interface IReducers
   extends IFormDesignerNameSpace<Reducer<IFormDesignerState>, Reducer<IAppDataState>>,

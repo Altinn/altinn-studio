@@ -1,13 +1,13 @@
-import type { ReactNode } from 'react';
-import React from 'react';
-import type { RenderOptions } from '@testing-library/react';
+import React, { type ReactNode } from 'react';
 import configureStore from 'redux-mock-store';
 import type { IAppState } from '../types/global';
 import { Provider } from 'react-redux';
 import type { PreloadedState } from '@reduxjs/toolkit';
-import { render, renderHook } from '@testing-library/react';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { render, renderHook, type RenderOptions } from '@testing-library/react';
+import {
+  ServicesContextProvider,
+  type ServicesContextProps,
+} from 'app-shared/contexts/ServicesContext';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { BrowserRouter } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
@@ -15,12 +15,10 @@ import { layout1NameMock, layout2NameMock } from './layoutMock';
 import { appStateMock } from './stateMocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
-import type { AppContextProps } from '../AppContext';
-import { AppContext } from '../AppContext';
+import { AppContext, type AppContextProps } from '../AppContext';
 import { appContextMock } from './appContextMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { AppStore, RootState } from '../store';
-import { setupStore } from '../store';
+import { setupStore, type AppStore, type RootState } from '../store';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {

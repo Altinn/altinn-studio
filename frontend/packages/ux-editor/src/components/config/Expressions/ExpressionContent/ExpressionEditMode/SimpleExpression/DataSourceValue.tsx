@@ -1,12 +1,11 @@
 import React from 'react';
-import type { LegacySingleSelectOption } from '@digdir/design-system-react';
 import {
   LegacySelect,
   LegacyToggleButtonGroup,
   LegacyTextField,
+  type LegacySingleSelectOption,
 } from '@digdir/design-system-react';
-import type { SubExpression } from '../../../../../../types/Expressions';
-import { DataSource } from '../../../../../../types/Expressions';
+import { DataSource, type SubExpression } from '../../../../../../types/Expressions';
 import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import { useDatamodelMetadataQuery } from '../../../../../../hooks/queries/useDatamodelMetadataQuery';
 import { useFormLayoutsQuery } from '../../../../../../hooks/queries/useFormLayoutsQuery';

@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { TabHeaderProps } from './TabHeader';
-import { TabHeader } from './TabHeader';
+import { TabHeader, type TabHeaderProps } from './TabHeader';
 
 const mockHeadingText: string = 'Test Heading';
 

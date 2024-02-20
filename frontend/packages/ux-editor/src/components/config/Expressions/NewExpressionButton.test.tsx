@@ -1,7 +1,6 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import type { NewExpressionButtonProps } from './NewExpressionButton';
-import { NewExpressionButton } from './NewExpressionButton';
+import { NewExpressionButton, type NewExpressionButtonProps } from './NewExpressionButton';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';

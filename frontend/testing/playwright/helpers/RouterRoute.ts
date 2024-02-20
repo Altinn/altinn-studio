@@ -1,5 +1,4 @@
-﻿import type { Environment } from './StudioEnvironment';
-import { StudioEnvironment } from './StudioEnvironment';
+﻿import { StudioEnvironment, type Environment } from './StudioEnvironment';
 
 type SupportedRoutes =
   | 'altinnLoginPage'

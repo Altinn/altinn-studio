@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { ResourceNameAndIdProps } from './ResourceNameAndId';
-import { ResourceNameAndId } from './ResourceNameAndId';
+import { ResourceNameAndId, type ResourceNameAndIdProps } from './ResourceNameAndId';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';

@@ -12,8 +12,7 @@ import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arr
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
-import type { FormItemConfigs } from '../data/formItemConfig';
-import { formItemConfigs } from '../data/formItemConfig';
+import { formItemConfigs, type FormItemConfigs } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';

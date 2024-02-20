@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './Modal.module.css';
 import cn from 'classnames';
 import { Heading } from '@digdir/design-system-react';

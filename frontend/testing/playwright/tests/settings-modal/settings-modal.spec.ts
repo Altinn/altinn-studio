@@ -1,12 +1,10 @@
-import { expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { Header } from '../../components/Header';
 import { UiEditorPage } from '../../pages/UiEditorPage';
-import { SettingsModal } from '../../components/SettingsModal';
-import type { SettingsModalTab } from '../../components/SettingsModal';
+import { SettingsModal, type SettingsModalTab } from '../../components/SettingsModal';
 import { PolicyEditor } from '../../components/PolicyEditor';
 import { Gitea } from 'testing/playwright/helpers/Gitea';
 

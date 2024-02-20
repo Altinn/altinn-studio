@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './ReceiptContent.module.css';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import { PageAccordion } from '../PageAccordion';

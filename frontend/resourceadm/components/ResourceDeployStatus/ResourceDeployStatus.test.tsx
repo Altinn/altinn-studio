@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { ResourceDeployStatusProps } from './ResourceDeployStatus';
-import { ResourceDeployStatus } from './ResourceDeployStatus';
+import { ResourceDeployStatus, type ResourceDeployStatusProps } from './ResourceDeployStatus';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
 import type { DeployError } from '../../types/DeployError';

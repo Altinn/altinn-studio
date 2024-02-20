@@ -1,11 +1,11 @@
 import React from 'react';
 import { Button, LegacySelect } from '@digdir/design-system-react';
-import type { SubExpression } from '../../../../../../types/Expressions';
 import {
   DataSource,
   expressionDataSourceTexts,
   ExpressionFunction,
   expressionFunctionTexts,
+  type SubExpression,
 } from '../../../../../../types/Expressions';
 import { TrashIcon } from '@navikt/aksel-icons';
 import classes from './SubExpressionContent.module.css';

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import type { LegacySingleSelectOption } from '@digdir/design-system-react';
-import { LegacySelect, Paragraph } from '@digdir/design-system-react';
+import {
+  LegacySelect,
+  Paragraph,
+  type LegacySingleSelectOption,
+} from '@digdir/design-system-react';
 import {
   MagnifyingGlassIcon,
   PencilIcon,
@@ -19,11 +22,10 @@ import {
 } from '../selectors/textResourceSelectors';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../utils/generateId';
-import { useText } from '../hooks';
 import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
 import type { ITextResource } from 'app-shared/types/global';
-import { useTextResourcesSelector } from '../hooks';
+import { useTextResourcesSelector, useText } from '../hooks';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';

@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './ServiceContent.module.css';
 import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/design-system-react';
 import { StudioCenter } from '@studio/components';

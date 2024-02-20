@@ -6,8 +6,7 @@ import {
 } from '../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../testing/mocks';
-import type { ComplexExpressionProps } from './ComplexExpression';
-import { ComplexExpression } from './ComplexExpression';
+import { ComplexExpression, type ComplexExpressionProps } from './ComplexExpression';
 import { stringifyData } from '../../../../../utils/jsonUtils';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 

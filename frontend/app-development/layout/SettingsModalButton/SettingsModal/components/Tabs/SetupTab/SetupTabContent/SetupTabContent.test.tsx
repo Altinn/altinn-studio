@@ -1,7 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { SetupTabContentProps } from './SetupTabContent';
-import { SetupTabContent } from './SetupTabContent';
+import { SetupTabContent, type SetupTabContentProps } from './SetupTabContent';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';

@@ -5,15 +5,16 @@ import {
   screen,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
-import type { AboutTabProps } from './AboutTab';
-import { AboutTab } from './AboutTab';
+import { AboutTab, type AboutTabProps } from './AboutTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import {
+  ServicesContextProvider,
+  type ServicesContextProps,
+} from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { mockRepository1, mockRepository2 } from '../../../mocks/repositoryMock';

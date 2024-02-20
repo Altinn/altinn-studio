@@ -1,5 +1,4 @@
-import type { SagaIterator } from 'redux-saga';
-import createSagaMiddleware from 'redux-saga';
+import createSagaMiddleware, { type SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import {
   watchHandleFetchInitialCommitSaga,

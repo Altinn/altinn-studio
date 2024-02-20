@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
 import classes from './PageLayout.module.css';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { HeaderContext, SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import AppHeader from 'app-shared/navigation/main-header/Header';
+import AppHeader, {
+  HeaderContext,
+  SelectedContextType,
+  type IHeaderContext,
+} from 'app-shared/navigation/main-header/Header';
 import { userHasAccessToSelectedContext } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';

@@ -1,5 +1,4 @@
-import { expect } from '@playwright/test';
-import type { APIRequestContext, Page } from '@playwright/test';
+import { expect, type APIRequestContext, type Page } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
