@@ -16,6 +16,9 @@ const PAGE_1: string = 'Side1';
 const COMPONENT_ID: string = 'myId';
 const INPUT_COMPONENT_LABEL: string = 'inputLabel';
 const TEXT_KEY_FIELD_2: string = 'textKeyField2';
+const INITIAL_TEXT_KEY: string = `${PAGE_1}.${COMPONENT_ID}.title`;
+const UPDATED_TEXT_KEY: string = `${INITIAL_TEXT_KEY}-new`;
+const TEXT_VALUE_IN_TEXTAREA: string = 'textValue';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -53,10 +56,7 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   const header = new Header(page, { app: testAppName });
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
-  await header.clickOnNavigateToPageInTopMenuHeader('create');
-  await uiEditorPage.verifyUiEditorPage();
-
-  await uiEditorPage.clickOnPageAccordion(PAGE_1);
+  await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
   await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
 
   await uiEditorPage.deleteOldComponentId();
@@ -70,10 +70,12 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   await header.clickOnNavigateToPageInTopMenuHeader('texts');
   await textEditorPage.verifyTextEditorPage();
 
-  const textKey: string = `${PAGE_1}.${COMPONENT_ID}.title`;
-  await textEditorPage.verifyThatTextareaIsVisibleWithCorrectId(LanguageCode.Nb, textKey);
+  await textEditorPage.verifyThatTextareaIsVisibleWithCorrectId(LanguageCode.Nb, INITIAL_TEXT_KEY);
 
-  const textareaValue: string = await textEditorPage.getTextareaValue(LanguageCode.Nb, textKey);
+  const textareaValue: string = await textEditorPage.getTextareaValue(
+    LanguageCode.Nb,
+    INITIAL_TEXT_KEY,
+  );
   expect(textareaValue).toBe(INPUT_COMPONENT_LABEL);
 });
 
@@ -85,24 +87,18 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   const header = new Header(page, { app: testAppName });
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
-  const oldTextKey: string = `${PAGE_1}.${COMPONENT_ID}.title`;
-  await textEditorPage.verifyThatTextKeyIsVisible(oldTextKey);
-
-  const newTextKey: string = `${oldTextKey}-new`;
-  await updateTextKey(textEditorPage, oldTextKey, newTextKey);
+  await textEditorPage.verifyThatTextKeyIsVisible(INITIAL_TEXT_KEY);
+  await updateTextKey(textEditorPage, INITIAL_TEXT_KEY, UPDATED_TEXT_KEY);
 
   // When the button is clicked, it might take som ms for the API call to be executed - It is success when the textarea has upaded label
-  await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, newTextKey);
+  await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, UPDATED_TEXT_KEY);
 
-  await header.clickOnNavigateToPageInTopMenuHeader('create');
-  await uiEditorPage.verifyUiEditorPage();
-  await uiEditorPage.clickOnPageAccordion(PAGE_1);
-  await uiEditorPage.verifyUiEditorPage(PAGE_1);
+  await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
 
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
   await uiEditorPage.clickOnEditLabelText();
-  await uiEditorPage.verifyThatTextKeyIsVisible(newTextKey);
-  await uiEditorPage.verifyThatTextKeyIsHidden(oldTextKey);
+  await uiEditorPage.verifyThatTextKeyIsVisible(UPDATED_TEXT_KEY);
+  await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
 });
 
 test('That it is possible to add a new text, edit the id, and add a new language', async ({
@@ -110,14 +106,19 @@ test('That it is possible to add a new text, edit the id, and add a new language
   testAppName,
 }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const uiEditorPage = new UiEditorPage(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await textEditorPage.clickOnAddNewTextButton();
   await textEditorPage.waitForNewTextareaToAppear();
 
   await updateTextKey(textEditorPage, 'id_', TEXT_KEY_FIELD_2);
-
-  const textValue: string = 'textValue';
-  await textEditorPage.writeNewTextInTextarea(LanguageCode.Nb, TEXT_KEY_FIELD_2, textValue);
+  await textEditorPage.writeNewTextInTextarea(
+    LanguageCode.Nb,
+    TEXT_KEY_FIELD_2,
+    TEXT_VALUE_IN_TEXTAREA,
+  );
 
   await textEditorPage.openSelectLanguageCombobox();
   await textEditorPage.selectOptionFromLanguageCombobox(LanguageCode.En);
@@ -128,154 +129,56 @@ test('That it is possible to add a new text, edit the id, and add a new language
   await textEditorPage.clickOnLanguageCheckbox(LanguageCode.En);
   await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.En, TEXT_KEY_FIELD_2);
 
-  await textEditorPage.writeNewTextInTextarea(LanguageCode.En, TEXT_KEY_FIELD_2, textValue);
-});
+  await textEditorPage.writeNewTextInTextarea(
+    LanguageCode.En,
+    TEXT_KEY_FIELD_2,
+    TEXT_VALUE_IN_TEXTAREA,
+  );
 
-test('', async ({ page, testAppName }) => {
-  const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
-  const giteaPage = new GiteaPage(page, { app: testAppName });
+  // API call to save the newly written text is done when the focus is removed from the textfield - There is no component to check that has been updated, therefore we wait 2 seconds to ensure the call is made.
+  const twoSeconds: number = 2000;
+  await textEditorPage.openSelectLanguageCombobox(); // Adding this to perform another action to force the API call to be done
+  await textEditorPage.waitForXAmountOfMilliseconds(twoSeconds);
 
-  await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, TEXT_KEY_FIELD_2);
-  await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.En, TEXT_KEY_FIELD_2);
+  await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
+  await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
+  await uiEditorPage.clickOnEditLabelText();
+  await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
 
-  // Click on Last opp dine endringer
   await header.clickOnUploadLocalChangesButton();
-  // Valider endringer
+  await header.clickOnValidateChanges();
+  await header.waitForPushToGiteaSpinnerToDisappear();
+  await header.checkThatUploadSuccessMessageIsVisible();
+  await header.clickOnThreeDotsMenu();
+  await header.clickOnGoToGiteaRepository();
 
-  // Click on three dots menu
-  // Click on go to Gitea
+  await giteaPage.verifyGiteaPage();
+  await giteaPage.clickOnAppFilesButton();
+  await giteaPage.clickOnUiFilesButton();
+  await giteaPage.clickOnLayoutsFilesButton();
+  await giteaPage.clickOnLayoutJsonFile(PAGE_1);
 
-  // Click on App
-  // Click on ui
-  // Click on Layouts
-  // Click on page1
-  // Verify that textResourceBindings are present
-  // Verify that the newId is present
+  await giteaPage.verifyThatComponentIdIsVisible(COMPONENT_ID);
+  await giteaPage.verifyThatTextResourceBindingsTitleIsVisible(UPDATED_TEXT_KEY);
 
-  // Go back 3 // ui -> layout -> page1.json
-  // Click on config
-  // Click on text
-  // Verify that resource.en.json is present
-  // Verify that resource.nb.json is present
+  await giteaPage.goBackNPages(3); // ui -> layout -> page1.json
+  await giteaPage.clickOnConfigFilesButton();
+  await giteaPage.clickOnTextFilesButton();
+  await giteaPage.verifyThatResourceJsonFileIsVisible(LanguageCode.Nb);
+  await giteaPage.verifyThatResourceJsonFileIsVisible(LanguageCode.En);
 
-  // Click on resource.nb.json
-  // Verify that newId is present and that the value is labelText
-  // go back 1
-  // click on resource.en.json
-  // Verify that newId is present and that the value is the translated labelText
-});
+  await giteaPage.clickOnResourceJsonFile(LanguageCode.Nb);
+  await giteaPage.verifyLanguageFile(LanguageCode.Nb);
+  await giteaPage.verifyTextIdAndValue(TEXT_KEY_FIELD_2, TEXT_VALUE_IN_TEXTAREA);
+  await giteaPage.verifyTextIdAndValue(UPDATED_TEXT_KEY, INPUT_COMPONENT_LABEL);
+  await giteaPage.verifyTextIdAndValue('appName', testAppName);
 
-test('that texts added on text page becomes visible on Lage page and vice versa, as well as the texts are added correctly to Gitea', async ({
-  page,
-  testAppName,
-}) => {
-  await setupAndVerifyTextEditorPage(page, testAppName);
-
-  // SKIP THIS
-  // Click on three dots menu
-  // Click on go to Gitea
-
-  // SKIP THIS
-  // Click on App
-  // Click on ui
-  // Click on Layouts
-  // Click on page1
-  // Verify that textResourceBindings are hidden
-
-  // SKIP THIS
-  // Go back 3 // ui -> layout -> page1.json
-  // Click on config
-  // Click on text
-  // Verify that resource.en.json is not present
-  // Verify that resource.nb.json is present
-  // Click on resource.nb.json
-  // Verify that newId is not present and that the value is labelText
-  // go back 4 // App -> config -> text -> resource.nb.json
-
-  // SKIP THIS
-  // Verify textPage
-  // Check that appName textfield is present
-  // Create a new text value
-  // Check that it is not visible
-
-  // Go to lage page
-  // Open Side 1
-  // Drag a Input in
-  // Create component id as componentId
-  // Change komponent id - use componentId
-
-  // Click add label
-  // Create a new label text - labelText
-  // Type a label - labelText
-  // Click close
-
-  // Go to tekst page
-  // Verify text page
-  // Verify that textbox with label 'Norsk oversettelse for {page1}.{componentId}.title' is visible
-  // Verify that value in textbox is the value added - labelText
-
-  // MAKE THIS NEW TEST
-  // Load text editor page
-  // Verify text editor page
-  // Click on change ID button
-  // Create newId value - newId
-  // Type newId into field
-  // Click edit button again
-
-  // Go to Lage page
-  // Click on Side1
-  // Click on component - labelText
-  // Click on edit label
-  // Verify that new id is present
-  // Close the edit mode
-
-  // MAKE THIS NEW TEST
-  // Load text editor page
-  // Verify text editor page
-  // Click on add new text button
-  // Click on textbox with label 'Norsk oversettelse for {regex(id_*)}'
-  // Write a text - translationTextNb
-  // Click on language combobox
-  // Click on engelsk option
-  // Click on Legg til
-  // Verify that textbox with label 'Engelsk oversettelse for {regex(id_*)}' is not visible
-  // Verify that textbox with label 'Engelsk oversettelse for {regex(id_*)}' is not visible'
-  // Select engelsk as an option in radiobutton
-  // Verify that textbow with label 'Engelsk oversettelse for {regex(id_*)}' is visible
-  // Verify that textbox with label 'Engelsk oversettelse for {regex(id_*)}' is visible'
-  // Click on textbox with label 'Engelsk oversettelse for {regex(id_*)}'
-  // Write text to the textbox
-
-  // Add translation to newId
-
-  // ------------- Above covered
-
-  // MAKE THIS NEW TEST
-  // Click on Last opp dine endringer
-  // Valider endringer
-
-  // Click on three dots menu
-  // Click on go to Gitea
-
-  // Click on App
-  // Click on ui
-  // Click on Layouts
-  // Click on page1
-  // Verify that textResourceBindings are present
-  // Verify that the newId is present
-
-  // Go back 3 // ui -> layout -> page1.json
-  // Click on config
-  // Click on text
-  // Verify that resource.en.json is present
-  // Verify that resource.nb.json is present
-
-  // Click on resource.nb.json
-  // Verify that newId is present and that the value is labelText
-  // go back 1
-  // click on resource.en.json
-  // Verify that newId is present and that the value is the translated labelText
+  await giteaPage.goBackNPages(1); // Back to texts overview
+  await giteaPage.clickOnResourceJsonFile(LanguageCode.En);
+  await giteaPage.verifyLanguageFile(LanguageCode.En);
+  await giteaPage.verifyTextIdAndValue(TEXT_KEY_FIELD_2, TEXT_VALUE_IN_TEXTAREA);
+  await giteaPage.verifyTextIdAndValue(UPDATED_TEXT_KEY, ''); // This is never set in the test
+  await giteaPage.verifyTextIdAndValue('appName', testAppName);
 });
 
 const updateTextKey = async (
@@ -286,4 +189,14 @@ const updateTextKey = async (
   await textEditorPage.clickOnChangeTextKeyButton(oldTextKey);
   await textEditorPage.writeNewTextKey(oldTextKey, newTextKey);
   await textEditorPage.clickOnChangeTextKeyButton(newTextKey);
+};
+
+const navigateToUiEditorAndVerifyPage = async (
+  header: Header,
+  uiEditorPage: UiEditorPage,
+): Promise<void> => {
+  await header.clickOnNavigateToPageInTopMenuHeader('create');
+  await uiEditorPage.verifyUiEditorPage();
+  await uiEditorPage.clickOnPageAccordion(PAGE_1);
+  await uiEditorPage.verifyUiEditorPage(PAGE_1);
 };

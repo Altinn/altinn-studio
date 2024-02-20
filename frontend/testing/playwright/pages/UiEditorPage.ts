@@ -5,6 +5,7 @@ import type { ComponentType } from '../enum/ComponentType';
 import type { DragAndDropComponents } from '../types/DragAndDropComponents';
 import { expect } from '@playwright/test';
 import { DataTestId } from '../enum/DataTestId';
+import type { LanguageCode } from '../enum/LanguageCode';
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -256,6 +257,10 @@ export class UiEditorPage extends BasePage {
 
   public async verifyThatTextKeyIsHidden(textKey: string): Promise<void> {
     await this.page.getByText(this.textMock('ux_editor.field_id', { id: textKey })).isHidden();
+  }
+
+  public async verifyThatTextareaIsVisible(lang: LanguageCode): Promise<void> {
+    await this.page.getByRole('textbox', { name: this.textMock(`language.${lang}`) }).isVisible();
   }
 
   private getToolbarItems(): Locator {
