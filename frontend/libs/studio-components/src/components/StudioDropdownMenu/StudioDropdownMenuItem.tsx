@@ -8,12 +8,10 @@ import cn from 'classnames';
 import classes from './StudioDropdownMenuItem.module.css';
 import { StudioDropdownMenuContext } from './StudioDropdownMenuContext';
 
-type DropdownMenuItemProps = Omit<ButtonProps, 'variant' | 'size' | 'color' | 'fullWidth'>; // TODO: Remove when the correct type is exported from the design system: https://github.com/digdir/designsystemet/pull/1410
-
-export type StudioDropdownMenuItemProps = DropdownMenuItemProps & {
+export type StudioDropdownMenuItemProps = {
   icon?: ReactNode;
   iconPlacement?: IconPlacement;
-};
+} & Omit<ButtonProps, 'icon'>;
 
 const StudioDropdownMenuItem: OverridableComponent<StudioDropdownMenuItemProps, HTMLButtonElement> =
   forwardRef<HTMLButtonElement, StudioDropdownMenuItemProps>(

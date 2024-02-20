@@ -98,13 +98,11 @@ const renderTestDropdownMenu = () =>
         <StudioDropdownMenu.Item ref={group1Item2Ref}>{group1Item2Text}</StudioDropdownMenu.Item>
       </StudioDropdownMenu.Group>
       <StudioDropdownMenu.Group heading={group2Heading}>
-        <StudioDropdownMenu.Item icon={icon1 as boolean & ReactNode}>
-          {group2Item1Text}
-        </StudioDropdownMenu.Item>
-        <StudioDropdownMenu.Item icon={icon2 as boolean & ReactNode} iconPlacement='left'>
+        <StudioDropdownMenu.Item icon={icon1}>{group2Item1Text}</StudioDropdownMenu.Item>
+        <StudioDropdownMenu.Item icon={icon2} iconPlacement='left'>
           {group2Item2Text}
         </StudioDropdownMenu.Item>
-        <StudioDropdownMenu.Item icon={icon3 as boolean & ReactNode} iconPlacement='right'>
+        <StudioDropdownMenu.Item icon={icon3} iconPlacement='right'>
           {group2Item3Text}
         </StudioDropdownMenu.Item>
       </StudioDropdownMenu.Group>
