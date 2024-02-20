@@ -152,10 +152,10 @@ export const EditFormContainer = ({
         }}
         customValidationMessages={(errorCode: string) => {
           if (errorCode === 'unique') {
-            return t('ux_editor.modal_properties_group_id_not_unique_error');
+            return t('ux_editor.modal_properties_component_id_not_unique_error');
           }
           if (errorCode === 'pattern') {
-            return t('ux_editor.modal_properties_group_id_not_valid');
+            return t('ux_editor.modal_properties_component_id_not_valid');
           }
         }}
         onChange={handleIdChange}
@@ -216,7 +216,7 @@ export const EditFormContainer = ({
               value={items}
               onChange={handleTableHeadersChange}
               propertyPath={`${container.propertyPath}/properties/tableHeaders`}
-              renderField={() => {
+              renderField={({ fieldProps }) => {
                 const filteredItems = items.filter((id) => !!components[id]);
                 const checkboxes = filteredItems.map((id) => ({
                   id,
@@ -226,6 +226,7 @@ export const EditFormContainer = ({
                 }));
                 return (
                   <Checkbox.Group
+                    {...fieldProps}
                     error={tableHeadersError}
                     legend={t('ux_editor.modal_properties_group_table_headers')}
                   >

@@ -267,13 +267,12 @@ export class SchemaModel {
     parent: CombinationNode,
     index: number,
   ): UiSchemaNode => {
-    const finalIndex = ArrayUtils.getValidIndex(parent.children, index);
     const currentParent = this.getParentNode(pointer);
     if (currentParent.pointer === parent.pointer) {
       const fromIndex = this.getIndexOfChildNode(pointer);
-      return this.moveNodeWithinCombination(parent, fromIndex, finalIndex);
+      return this.moveNodeWithinCombination(parent, fromIndex, index);
     } else {
-      return this.moveNodeToCombinationFromAnotherParent(pointer, parent, finalIndex);
+      return this.moveNodeToCombinationFromAnotherParent(pointer, parent, index);
     }
   };
 
@@ -282,7 +281,8 @@ export class SchemaModel {
     fromIndex: number,
     toIndex: number,
   ): UiSchemaNode => {
-    parent.children = moveArrayItem(parent.children, fromIndex, toIndex);
+    const finalIndex = ArrayUtils.getValidIndex(parent.children, toIndex);
+    parent.children = moveArrayItem(parent.children, fromIndex, finalIndex);
     this.synchronizeCombinationChildPointers(parent);
     return this.getNode(parent.children[toIndex]);
   };
@@ -331,8 +331,9 @@ export class SchemaModel {
     newIndex: number,
   ): UiSchemaNode => {
     const currentIndex = this.getIndexOfChildNode(pointer);
-    parent.children = moveArrayItem(parent.children, currentIndex, newIndex);
-    return this.getNode(parent.children[newIndex]);
+    const finalIndex = ArrayUtils.getValidIndex(parent.children, newIndex);
+    parent.children = moveArrayItem(parent.children, currentIndex, finalIndex);
+    return this.getNode(parent.children[finalIndex]);
   };
 
   private moveNodeToObjectFromAnotherParent = (

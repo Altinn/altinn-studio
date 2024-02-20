@@ -45,4 +45,15 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.removeItemByValue(['a', 'b', 'c', 'b', 'a'], 'b')).toEqual(['a', 'c', 'a']);
     });
   });
+
+  describe('last', () => {
+    it('Returns last item in array', () => {
+      expect(ArrayUtils.last([1, 2, 3])).toEqual(3);
+      expect(ArrayUtils.last(['a', 'b', 'c'])).toEqual('c');
+    });
+
+    it('Returns undefined if array is empty', () => {
+      expect(ArrayUtils.last([])).toBeUndefined();
+    });
+  });
 });

@@ -18,7 +18,7 @@ import type {
   PolicySubject,
   PolicyEditorUsage,
 } from '../../types';
-import { createNewPolicyResource } from '../../utils';
+import { createNewPolicyResource, findSubjectByPolicyRuleSubject } from '../../utils';
 import {
   getActionOptions,
   getPolicyRuleIdString,
@@ -244,8 +244,13 @@ export const ExpandablePolicyCard = ({
    * Displays the selected subjects
    */
   const displaySubjects = policyRule.subject.map((s, i) => {
+    const subject: PolicySubject = findSubjectByPolicyRuleSubject(subjects, s);
     return (
-      <ActionAndSubjectListItem key={i} title={s} onRemove={() => handleRemoveSubject(i, s)} />
+      <ActionAndSubjectListItem
+        key={i}
+        title={subject?.subjectTitle || s}
+        onRemove={() => handleRemoveSubject(i, s)}
+      />
     );
   });
 

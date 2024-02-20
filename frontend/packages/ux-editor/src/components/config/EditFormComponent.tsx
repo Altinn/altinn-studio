@@ -5,7 +5,6 @@ import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { Switch, Fieldset, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
-import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';
@@ -21,11 +20,14 @@ import {
 import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import type { FormItem } from '../../types/FormItem';
+import { RepeatingGroupComponent } from './componentSpecificContent/RepeatingGroup';
 
 export interface IEditFormComponentProps {
   editFormId: string;
-  component: FormComponent;
-  handleComponentUpdate: (component: FormComponent) => void;
+  component: FormItem;
+  handleComponentUpdate: (component: FormItem) => void;
 }
 
 export const EditFormComponent = ({
@@ -95,12 +97,21 @@ export const EditFormComponent = ({
       </Heading>
       {showComponentConfigBeta && isPending && <StudioSpinner spinnerText={t('general.loading')} />}
       {showComponentConfigBeta && !isPending && (
-        <FormComponentConfig
-          schema={isPending ? {} : schema}
-          component={component}
-          editFormId={editFormId}
-          handleComponentUpdate={handleComponentUpdate}
-        />
+        <>
+          {component.type === ComponentType.RepeatingGroup && (
+            <RepeatingGroupComponent
+              editFormId={editFormId}
+              component={component}
+              handleComponentUpdate={handleComponentUpdate}
+            />
+          )}
+          <FormComponentConfig
+            schema={schema}
+            component={component}
+            editFormId={editFormId}
+            handleComponentUpdate={handleComponentUpdate}
+          />
+        </>
       )}
       {!showComponentConfigBeta && (
         <>

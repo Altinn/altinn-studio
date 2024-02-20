@@ -27,4 +27,7 @@ export class ArrayUtils {
   public static removeItemByValue<T>(array: T[], value: T): T[] {
     return array.filter((item) => item !== value);
   }
+
+  /** Returns the last item of the given array */
+  public static last = <T>(array: T[]): T => array[array.length - 1];
 }
