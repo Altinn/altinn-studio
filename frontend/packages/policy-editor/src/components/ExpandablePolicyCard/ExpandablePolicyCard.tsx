@@ -249,7 +249,7 @@ export const ExpandablePolicyCard = ({
       <ActionAndSubjectListItem
         key={i}
         title={subject?.subjectTitle || s}
-        onRemove={() => handleRemoveSubject(i, s)}
+        onRemove={() => handleRemoveSubject(i, subject)}
       />
     );
   });
@@ -257,18 +257,26 @@ export const ExpandablePolicyCard = ({
   /**
    * Handles the removal of subjects
    */
-  const handleRemoveSubject = (index: number, subjectTitle: string) => {
+  const handleRemoveSubject = (index: number, subject: PolicySubject): void => {
     // Remove from selected list
     const updatedSubjects = [...policyRule.subject];
     updatedSubjects.splice(index, 1);
 
     // Add to options list
-    setSubjectOptions([...subjectOptions, { value: subjectTitle, label: subjectTitle }]);
+    setSubjectOptions((prevSubjectOptions) => [
+      ...prevSubjectOptions,
+      {
+        value: subject.subjectId,
+        label: subject.subjectTitle,
+      },
+    ]);
+
     const updatedRules = getUpdatedRules(
       { ...policyRule, subject: updatedSubjects },
       policyRule.ruleId,
       rules,
     );
+
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
     setHasSubjectsError(updatedSubjects.length === 0);
