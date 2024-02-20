@@ -1,7 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import { StudioDropdownMenu } from './';
 import React, { createRef } from 'react';
-import type { ReactNode } from 'react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 
