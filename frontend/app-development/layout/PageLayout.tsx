@@ -3,9 +3,10 @@ import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { StudioCenter, StudioPageSpinner, StudioNotFoundPage } from '@studio/components';
+import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
 import { useOrgListQuery } from '../hooks/queries';
+import { NotFoundPage } from './NotFoundPage';
 
 /**
  * Displays the layout for the app development pages
@@ -37,7 +38,7 @@ export const PageLayout = (): React.ReactNode => {
 
   const renderPages = () => {
     if (repoStatusError?.response?.status === ServerCodes.NotFound) {
-      return <StudioNotFoundPage />;
+      return <NotFoundPage />;
     }
     if (repoStatus?.hasMergeConflict) {
       return <MergeConflictWarning org={org} app={app} />;
