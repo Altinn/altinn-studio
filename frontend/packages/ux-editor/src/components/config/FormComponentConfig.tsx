@@ -1,10 +1,10 @@
 import React from 'react';
-import { Alert, Heading } from '@digdir/design-system-react';
+import { Alert, Card, Heading, Paragraph } from '@digdir/design-system-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
 import { EditStringValue } from './editModal/EditStringValue';
-import { useText } from '../../hooks';
+import { useComponentPropertyLabel, useText } from '../../hooks';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
 import type { FormItem } from '../../types/FormItem';
@@ -14,6 +14,13 @@ export interface IEditFormComponentProps {
   component: FormItem;
   handleComponentUpdate: (component: FormItem) => void;
 }
+
+export const getFilteredPropertyKeys = (
+  matcher: (propertyKey: string) => boolean,
+  properties: any,
+): string[] => {
+  return Object.keys(properties).filter((propertyKey) => matcher(propertyKey));
+};
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
   schema: any;
@@ -27,6 +34,7 @@ export const FormComponentConfig = ({
   hideUnsupported,
 }: FormComponentConfigProps) => {
   const t = useText();
+  const componentPropertyLabel = useComponentPropertyLabel();
 
   if (!schema?.properties) return null;
 
@@ -47,6 +55,24 @@ export const FormComponentConfig = ({
   } = schema.properties;
 
   const unsupportedPropertyKeys: string[] = getUnsupportedPropertyTypes(rest);
+
+  const booleanRestPropertyKeys = getFilteredPropertyKeys((propertyKey) => {
+    return (
+      rest[propertyKey].type === 'boolean' ||
+      rest[propertyKey].$ref?.endsWith('expression.schema.v1.json#/definitions/boolean')
+    );
+  }, rest);
+
+  const objectRestPropertyKeys = getFilteredPropertyKeys((propertyKey) => {
+    return rest[propertyKey].type === 'object' && rest[propertyKey].properties;
+  }, rest);
+
+  const remainingRestPropertyKeys = Object.keys(rest).filter((propertyKey) => {
+    return (
+      !booleanRestPropertyKeys.includes(propertyKey) &&
+      !objectRestPropertyKeys.includes(propertyKey)
+    );
+  });
 
   return (
     <>
@@ -96,6 +122,7 @@ export const FormComponentConfig = ({
         </>
       )}
 
+      {/** Boolean fields, incl. expression type */}
       {readOnly && (
         <EditBooleanValue
           propertyKey='readOnly'
@@ -112,24 +139,26 @@ export const FormComponentConfig = ({
           handleComponentChange={handleComponentUpdate}
         />
       )}
+      {booleanRestPropertyKeys.map((propertyKey) => {
+        return (
+          <EditBooleanValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            key={propertyKey}
+            helpText={rest[propertyKey]?.description}
+          />
+        );
+      })}
 
-      {Object.keys(rest).map((propertyKey) => {
+      {/** String and number fields (incl. arrays with enum values) */}
+      {remainingRestPropertyKeys.map((propertyKey) => {
         if (!rest[propertyKey]) return null;
         if (
-          rest[propertyKey].type === 'boolean' ||
-          rest[propertyKey].$ref?.endsWith('layout/expression.schema.v1.json#/definitions/boolean')
+          rest[propertyKey].type === 'number' ||
+          rest[propertyKey].type === 'integer' ||
+          rest[propertyKey].$ref?.endsWith('expression.schema.v1.json#/definitions/number')
         ) {
-          return (
-            <EditBooleanValue
-              component={component}
-              handleComponentChange={handleComponentUpdate}
-              propertyKey={propertyKey}
-              key={propertyKey}
-              helpText={rest[propertyKey]?.description}
-            />
-          );
-        }
-        if (rest[propertyKey].type === 'number' || rest[propertyKey].type === 'integer') {
           return (
             <EditNumberValue
               component={component}
@@ -140,7 +169,11 @@ export const FormComponentConfig = ({
             />
           );
         }
-        if (rest[propertyKey].type === 'string') {
+        if (
+          rest[propertyKey].type === 'string' ||
+          rest[propertyKey].enum ||
+          rest[propertyKey].$ref?.endsWith('expression.schema.v1.json#/definitions/string')
+        ) {
           return (
             <EditStringValue
               component={component}
@@ -148,11 +181,14 @@ export const FormComponentConfig = ({
               propertyKey={propertyKey}
               key={propertyKey}
               helpText={rest[propertyKey]?.description}
-              enumValues={rest[propertyKey]?.enum}
+              enumValues={rest[propertyKey]?.enum || rest[propertyKey]?.examples}
             />
           );
         }
-        if (rest[propertyKey].type === 'array' && rest[propertyKey].items?.type === 'string') {
+        if (
+          rest[propertyKey].type === 'array' &&
+          (rest[propertyKey].items?.type === 'string' || rest[propertyKey].items?.enum)
+        ) {
           return (
             <EditStringValue
               component={component}
@@ -163,6 +199,35 @@ export const FormComponentConfig = ({
               enumValues={rest[propertyKey]?.items?.enum}
               multiple={true}
             />
+          );
+        }
+      })}
+
+      {/** Object properties */}
+      {objectRestPropertyKeys.map((propertyKey) => {
+        if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
+          return (
+            <Card key={propertyKey}>
+              <Heading level={3} size='xxsmall'>
+                {componentPropertyLabel(propertyKey)}
+              </Heading>
+              {rest[propertyKey]?.description && (
+                <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
+              )}
+              <FormComponentConfig
+                key={propertyKey}
+                schema={rest[propertyKey]}
+                component={component[propertyKey] || {}}
+                handleComponentUpdate={(updatedComponent: FormComponent) => {
+                  handleComponentUpdate({
+                    ...component,
+                    [propertyKey]: updatedComponent,
+                  });
+                }}
+                editFormId={editFormId}
+                hideUnsupported
+              />
+            </Card>
           );
         }
         return null;
