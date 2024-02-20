@@ -1,5 +1,6 @@
 ﻿using Altinn.App.Api.Tests.Mocks;
 using System.Linq;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Api.Tests.Data;
 
@@ -46,7 +47,31 @@ public static class TestData
     public static string GetDataDirectory(string org, string app, int instanceOwnerId, Guid instanceGuid)
     {
         string instancesDirectory = GetInstancesDirectory();
-        return Path.Combine(instancesDirectory, org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
+
+        return Path.Join(instancesDirectory, org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) +
+               Path.DirectorySeparatorChar;
+
+    }
+
+    public static (string org, string app) GetInstanceOrgApp(InstanceIdentifier identifier)
+    {
+        string instancesDirectory = GetInstancesDirectory();
+        var instanceOwner = identifier.InstanceOwnerPartyId.ToString();
+        var instanceId = identifier.InstanceGuid.ToString();
+
+        foreach (var org in Directory.GetDirectories(instancesDirectory))
+        {
+            foreach (var app in Directory.GetDirectories(org))
+            {
+                var path = Path.Join(app, instanceOwner, instanceId);
+                if (Directory.Exists(path))
+                {
+                    return (Path.GetFileName(org), Path.GetFileName(app));
+                }
+            }
+        }
+
+        throw new DirectoryNotFoundException($"No instance found for instanceOwnerId {instanceOwner} and instanceGuid {instanceId}");
     }
 
     public static string GetDataElementPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)

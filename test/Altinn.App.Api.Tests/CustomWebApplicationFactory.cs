@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Testing;
-using Microsoft.Extensions.Options;
 using Moq;
 using Xunit.Abstractions;
 
@@ -57,6 +55,7 @@ public class ApiTestBase
             builder.ConfigureServices(services => services.Configure<AppSettings>(appSettingSection));
             builder.ConfigureTestServices(services => OverrideServicesForAllTests(services));
             builder.ConfigureTestServices(OverrideServicesForThisTest);
+            builder.ConfigureTestServices(ConfigureFakeHttpClientHandler);
         }).CreateClient(new WebApplicationFactoryClientOptions() { AllowAutoRedirect = false });
 
         return client;
@@ -68,16 +67,65 @@ public class ApiTestBase
             .AddFakeLogging(options =>
             {
                 options.OutputSink = (message) => _outputHelper.WriteLine(message);
+                options.OutputFormatter = log => $"""
+                [{ShortLogLevel(log.Level)}] {log.Category}:
+                {log.Message}{(log.Exception is not null ? "\n" : "")}{log.Exception}
+
+                """;
             });
+    }
+
+    private static string ShortLogLevel(LogLevel logLevel)
+    {
+        return logLevel switch
+        {
+            LogLevel.Trace => "trac",
+            LogLevel.Debug => "debu",
+            LogLevel.Information => "info",
+            LogLevel.Warning => "warn",
+            LogLevel.Error => "erro",
+            LogLevel.Critical => "crit",
+            LogLevel.None => "none",
+            _ => "????",
+        };
+    }
+
+    private void ConfigureFakeHttpClientHandler(IServiceCollection services)
+    {
+        // Remove existing IHttpClientFactory and HttpClient
+        var httpClientFactoryDescriptor = services.Single(d => d.ServiceType == typeof(IHttpClientFactory));
+        services.Remove(httpClientFactoryDescriptor);
+
+        var httpClientDescriptor = services.Single(d => d.ServiceType == typeof(HttpClient));
+        services.Remove(httpClientDescriptor);
+
+
+
+        // Add the new HttpClient as singleton
+        services.AddSingleton<IHttpClientFactory>(sp =>
+        {
+            // Create an HttpClient using the mocked handler
+            var clientFactoryMock = new Mock<IHttpClientFactory>(MockBehavior.Strict);
+            clientFactoryMock
+                .Setup(f => f.CreateClient(It.IsAny<string>()))
+                .Returns(sp.GetRequiredService<HttpClient>());
+            return clientFactoryMock.Object;
+        });
+        services.AddSingleton<HttpClient>(sp => new HttpClient(new MockHttpMessageHandler(SendAsync, sp.GetRequiredService<ILogger<MockHttpMessageHandler>>())));
     }
 
     /// <summary>
     /// Set this in your test class constructor to make the same overrides for all tests.
     /// </summary>
-    public Action<IServiceCollection> OverrideServicesForAllTests { get; set; } = (services) => { };
+    protected Action<IServiceCollection> OverrideServicesForAllTests { get; set; } = (services) => { };
 
     /// <summary>
     /// Set this within a test to override the service just for that test.
     /// </summary>
-    public Action<IServiceCollection> OverrideServicesForThisTest { get; set; } = (services) => { };
+    protected Action<IServiceCollection> OverrideServicesForThisTest { get; set; } = (services) => { };
+
+    /// <summary>
+    /// Set this to customize the response of HttpClient in your test.
+    /// </summary>
+    protected Func<HttpRequestMessage, Task<HttpResponseMessage>> SendAsync { get; set; } = (request) => throw new NotImplementedException("You must set SendAsync in your test when it uses a real http client.");
 }

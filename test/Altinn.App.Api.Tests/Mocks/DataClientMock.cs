@@ -338,7 +338,18 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
         {
-            throw new NotImplementedException();
+            // 🤬The signature does not take org/app,
+            // but our test data is organized by org/app.
+            var (org, app) = TestData.GetInstanceOrgApp(instanceIdentifier);
+            var dataElement = GetDataElements(org, app, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid);
+            var element = dataElement.FirstOrDefault(d => d.Id == dataGuid.ToString());
+            if (element is null)
+            {
+                throw new Exception("Data element not found.");
+            }
+            element.Locked = true;
+            WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
+            return Task.FromResult(element);
         }
 
         public Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)

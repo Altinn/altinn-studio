@@ -1,0 +1,22 @@
+{
+  "id": "cd691c32-ae36-4555-8aee-0b7054a413e4",
+  "instanceGuid": "5a2fa5ec-f97c-4816-b57a-dc78a981917e",
+  "dataType": "default",
+  "filename": null,
+  "contentType": "application/xml",
+  "blobStoragePath": null,
+  "selfLinks": null,
+  "size": 0,
+  "contentHash": null,
+  "locked": false,
+  "refs": null,
+  "isRead": true,
+  "tags": [],
+  "deleteStatus": null,
+  "fileScanResult": "NotApplicable",
+  "references": null,
+  "created": null,
+  "createdBy": null,
+  "lastChanged": "2024-01-10T22:04:31.511965Z",
+  "lastChangedBy": null
+}
