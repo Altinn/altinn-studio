@@ -7,6 +7,7 @@ import { createStore } from 'zustand';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { useLaxProcessData, useRealTaskType } from 'src/features/instance/ProcessContext';
+import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { ProcessTaskType } from 'src/types';
 import { useNodes } from 'src/utils/layout/NodesContext';
@@ -25,6 +26,7 @@ interface State {
   allInitiallyLoaded: boolean;
   currentTaskId?: string;
   nodes: AllOptionsMap;
+  error: boolean;
 }
 
 interface Functions {
@@ -32,6 +34,7 @@ interface Functions {
   setCurrentTaskId: (currentTaskId?: string) => void;
   setNodesFound: (nodesFound: string[]) => void;
   setNodeOptions: (nodeId: string, options: IOptionInternal[]) => void;
+  setError: (error: boolean) => void;
 }
 
 function isAllLoaded(nodes: AllOptionsMap, existingValue: boolean) {
@@ -52,6 +55,7 @@ function newStore() {
   return createStore<State & Functions>((set) => ({
     allInitiallyLoaded: false,
     nodes: {},
+    error: false,
     setAllInitiallyLoaded: (allInitiallyLoaded) => set({ allInitiallyLoaded }),
     setCurrentTaskId: (currentTaskId) => set({ currentTaskId }),
     setNodesFound: (nodesFound) => {
@@ -87,6 +91,7 @@ function newStore() {
           allInitiallyLoaded: isAllLoaded(newNodes, state.allInitiallyLoaded),
         };
       }),
+    setError: (error) => set({ error }),
   }));
 }
 
@@ -116,6 +121,8 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
   const setCurrentTaskId = useSelector((state) => state.setCurrentTaskId);
   const setNodesFound = useSelector((state) => state.setNodesFound);
   const setNodeOptions = useSelector((state) => state.setNodeOptions);
+  const setError = useSelector((state) => state.setError);
+  const isError = useSelector((state) => state.error);
   const allInitiallyLoaded = useAllOptionsInitiallyLoaded();
   const allOptions = useAllOptions();
 
@@ -152,8 +159,15 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
         loadingDone={(options) => {
           setNodeOptions(node.item.id, options);
         }}
+        onError={() => {
+          setError(true);
+        }}
       />
     ));
+
+  if (isError) {
+    return <UnknownError />;
+  }
 
   if (!allInitiallyLoaded) {
     return (
@@ -175,11 +189,17 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
 function DummyOptionsSaver({
   node,
   loadingDone,
+  onError,
 }: {
   node: LayoutNode;
   loadingDone: (options: IOptionInternal[]) => void;
+  onError: () => void;
 }) {
-  const { options: calculatedOptions, isFetching } = useGetOptions({
+  const {
+    options: calculatedOptions,
+    isFetching,
+    isError,
+  } = useGetOptions({
     ...node.item,
     node,
 
@@ -195,6 +215,12 @@ function DummyOptionsSaver({
       loadingDone(calculatedOptions);
     }
   }, [isFetching, node.item.id, calculatedOptions, loadingDone]);
+
+  useEffect(() => {
+    if (isError) {
+      onError();
+    }
+  }, [isError, onError]);
 
   return <></>;
 }
