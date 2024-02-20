@@ -2,7 +2,7 @@ import React from 'react';
 import type { IconProps } from '../types';
 
 type SvgTemplateProps = IconProps & { children: React.ReactNode };
-export const SvgTemplate = ({ title, children, ...rest }: SvgTemplateProps): JSX.Element => {
+export const SvgTemplate = ({ title, children, ...rest }: SvgTemplateProps): React.ReactElement => {
   return (
     <svg
       width='1em'

@@ -16,8 +16,6 @@
   "ignorePaths": ["testdata/**", "src/**"],
   "ignoreDeps": [
     "@mui/x-data-grid",
-    "@microsoft/applicationinsights-web",
-    "@microsoft/applicationinsights-react-js",
     "Moq",
     "Altinn.App.Core"
   ],
