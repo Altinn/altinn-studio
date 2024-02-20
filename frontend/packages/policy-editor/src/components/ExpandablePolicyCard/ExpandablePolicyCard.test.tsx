@@ -226,7 +226,7 @@ describe('ExpandablePolicyCard', () => {
 
     // Open the select and verify that the removed subject is now appended to the selectable list
     await act(() => user.click(subjectSelect));
-    expect(screen.queryByRole('option', { name: mockSubjectTitle1 })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: mockSubjectTitle1 })).toBeInTheDocument();
   });
 
   it('calls "setPolicyRules" when description field is edited', async () => {
