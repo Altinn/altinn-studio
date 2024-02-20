@@ -189,10 +189,7 @@ export const FormComponentConfig = ({
             />
           );
         }
-        if (
-          rest[propertyKey].type === 'array' &&
-          (rest[propertyKey].items?.type === 'string' || rest[propertyKey].items?.enum)
-        ) {
+        if (rest[propertyKey].type === 'array' && rest[propertyKey].items?.enum) {
           return (
             <EditStringValue
               component={component}

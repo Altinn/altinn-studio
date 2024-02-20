@@ -8,6 +8,7 @@ import {
   getUnsupportedPropertyTypes,
   isPropertyTypeSupported,
   setComponentProperty,
+  EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE,
 } from './component';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type {
@@ -352,6 +353,14 @@ describe('Component utils', () => {
           type: 'string',
         }),
       ).toBe(true);
+    });
+  });
+
+  describe('getExpressionSchemaDefinitionReference', () => {
+    it('should return correct reference for given type', () => {
+      expect(getExpressionSchemaDefinitionReference('testType')).toBe(
+        `${EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE}testType`,
+      );
     });
   });
 });
