@@ -354,7 +354,6 @@ export const FD = {
    *      in that sense.
    *   2. The data is fetched from the debounced model, not the fresh/current one. That ensures queries that are
    *      generated from this hook are more stable, and aren't re-fetched on every keystroke.
-   *   3. Values that don't exist in the debounced model are not included in the output at all.
    */
   useMapping: <D extends 'string' | 'raw' = 'string'>(
     mapping: IMapping | undefined,
@@ -367,12 +366,15 @@ export const FD = {
         for (const key of Object.keys(mapping)) {
           const outputKey = mapping[key];
           const value = dot.pick(key, s.debouncedCurrentData);
-          if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            out[outputKey] = realDataAs === 'raw' ? value : String(value);
-          } else if (value && realDataAs === 'string') {
-            out[outputKey] = JSON.stringify(value);
-          } else if (value && realDataAs === 'raw') {
+
+          if (realDataAs === 'raw') {
             out[outputKey] = value;
+          } else if (typeof value === 'undefined' || value === null) {
+            out[outputKey] = '';
+          } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            out[outputKey] = String(value);
+          } else {
+            out[outputKey] = JSON.stringify(value);
           }
         }
       }

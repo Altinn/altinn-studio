@@ -51,7 +51,6 @@ describe('AttachmentWithTagSummaryComponent', () => {
     type: 'FileUploadWithTag',
     textResourceBindings: {},
     optionsId: 'a',
-    mapping: { a: 'b' },
     maxFileSizeInMB: 15,
     displayMode: 'list',
     maxNumberOfAttachments: 12,
@@ -71,11 +70,11 @@ describe('AttachmentWithTagSummaryComponent', () => {
     expect(await screen.findByText('da option value')).toBeInTheDocument();
   });
   test('should render the text resource', async () => {
-    await render({ component: { ...component, optionsId: 'b', mapping: undefined } });
+    await render({ component: { ...component, optionsId: 'b' } });
     expect(await screen.findByText('the result')).toBeInTheDocument();
   });
   test('should not render a text resource', async () => {
-    await render({ component: { ...component, optionsId: 'c', mapping: undefined } });
+    await render({ component: { ...component, optionsId: 'c' } });
     expect(await screen.findByText('ca option value')).toBeInTheDocument();
   });
 });
