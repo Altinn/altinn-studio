@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import deepEqual from 'fast-deep-equal';
@@ -147,6 +147,17 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
     }
   }, [currentTaskType, nodes, setNodesFound]);
 
+  const loadingDone = useCallback(
+    (id: string, options: IOptionInternal[]) => {
+      setNodeOptions(id, options);
+    },
+    [setNodeOptions],
+  );
+
+  const onError = useCallback(() => {
+    setError(true);
+  }, [setError]);
+
   const dummies = nodes
     ?.allNodes()
     .filter((n) => isNodeOptionBased(n))
@@ -156,12 +167,8 @@ export function AllOptionsProvider({ children }: PropsWithChildren) {
       <DummyOptionsSaver
         key={node.item.id}
         node={node}
-        loadingDone={(options) => {
-          setNodeOptions(node.item.id, options);
-        }}
-        onError={() => {
-          setError(true);
-        }}
+        loadingDone={loadingDone}
+        onError={onError}
       />
     ));
 
@@ -192,7 +199,7 @@ function DummyOptionsSaver({
   onError,
 }: {
   node: LayoutNode;
-  loadingDone: (options: IOptionInternal[]) => void;
+  loadingDone: (id: string, options: IOptionInternal[]) => void;
   onError: () => void;
 }) {
   const {
@@ -212,7 +219,7 @@ function DummyOptionsSaver({
 
   useEffect(() => {
     if (!isFetching) {
-      loadingDone(calculatedOptions);
+      loadingDone(node.item.id, calculatedOptions);
     }
   }, [isFetching, node.item.id, calculatedOptions, loadingDone]);
 
