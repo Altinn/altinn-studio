@@ -248,7 +248,7 @@ export const ExpandablePolicyCard = ({
     return (
       <ActionAndSubjectListItem
         key={i}
-        title={subject?.subjectTitle || s}
+        title={subject.subjectTitle}
         onRemove={() => handleRemoveSubject(i, subject)}
       />
     );
