@@ -9,11 +9,13 @@ import { Header } from '../../components/Header';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { ComponentType } from '../../enum/ComponentType';
 import { LanguageCode } from '../../enum/LanguageCode';
+import { GiteaPage } from 'testing/playwright/pages/GiteaPage';
 
 // Variables and constants shared between tests
 const PAGE_1: string = 'Side1';
 const COMPONENT_ID: string = 'myId';
 const INPUT_COMPONENT_LABEL: string = 'inputLabel';
+const TEXT_KEY_FIELD_2: string = 'textKeyField2';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -85,11 +87,9 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
 
   const oldTextKey: string = `${PAGE_1}.${COMPONENT_ID}.title`;
   await textEditorPage.verifyThatTextKeyIsVisible(oldTextKey);
-  await textEditorPage.clickOnChangeTextKeyButton(oldTextKey);
 
   const newTextKey: string = `${oldTextKey}-new`;
-  await textEditorPage.writeNewTextKey(oldTextKey, newTextKey);
-  await textEditorPage.clickOnChangeTextKeyButton(newTextKey);
+  await updateTextKey(textEditorPage, oldTextKey, newTextKey);
 
   // When the button is clicked, it might take som ms for the API call to be executed - It is success when the textarea has upaded label
   await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, newTextKey);
@@ -105,30 +105,42 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await uiEditorPage.verifyThatTextKeyIsHidden(oldTextKey);
 });
 
-test('', async ({ page, testAppName }) => {
+test('That it is possible to add a new text, edit the id, and add a new language', async ({
+  page,
+  testAppName,
+}) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
 
-  // MAKE THIS NEW TEST
-  // Load text editor page
-  // Verify text editor page
-  // Click on add new text button
-  // Click on textbox with label 'Norsk oversettelse for {regex(id_*)}'
-  // Write a text - translationTextNb
-  // Click on language combobox
-  // Click on engelsk option
-  // Click on Legg til
-  // Verify that textbox with label 'Engelsk oversettelse for {regex(id_*)}' is not visible
-  // Verify that textbox with label 'Engelsk oversettelse for {regex(id_*)}' is not visible'
-  // Select engelsk as an option in radiobutton
-  // Verify that textbow with label 'Engelsk oversettelse for {regex(id_*)}' is visible
-  // Verify that textbox with label 'Engelsk oversettelse for {regex(id_*)}' is visible'
-  // Click on textbox with label 'Engelsk oversettelse for {regex(id_*)}'
-  // Write text to the textbox
+  await textEditorPage.clickOnAddNewTextButton();
+  await textEditorPage.waitForNewTextareaToAppear();
 
-  // Add translation to newId
+  await updateTextKey(textEditorPage, 'id_', TEXT_KEY_FIELD_2);
 
-  // Make this new test
+  const textValue: string = 'textValue';
+  await textEditorPage.writeNewTextInTextarea(LanguageCode.Nb, TEXT_KEY_FIELD_2, textValue);
+
+  await textEditorPage.openSelectLanguageCombobox();
+  await textEditorPage.selectOptionFromLanguageCombobox(LanguageCode.En);
+  await textEditorPage.clickOnAddLanguageButton();
+  await textEditorPage.waitForLanguageCheckboxToAppear(LanguageCode.En);
+
+  await textEditorPage.verifyThatTextareaIsHidden(LanguageCode.En, TEXT_KEY_FIELD_2);
+  await textEditorPage.clickOnLanguageCheckbox(LanguageCode.En);
+  await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.En, TEXT_KEY_FIELD_2);
+
+  await textEditorPage.writeNewTextInTextarea(LanguageCode.En, TEXT_KEY_FIELD_2, textValue);
+});
+
+test('', async ({ page, testAppName }) => {
+  const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
+
+  await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, TEXT_KEY_FIELD_2);
+  await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.En, TEXT_KEY_FIELD_2);
+
   // Click on Last opp dine endringer
+  await header.clickOnUploadLocalChangesButton();
   // Valider endringer
 
   // Click on three dots menu
@@ -218,8 +230,6 @@ test('that texts added on text page becomes visible on Lage page and vice versa,
   // Verify that new id is present
   // Close the edit mode
 
-  // ------------- Above covered
-
   // MAKE THIS NEW TEST
   // Load text editor page
   // Verify text editor page
@@ -239,7 +249,9 @@ test('that texts added on text page becomes visible on Lage page and vice versa,
 
   // Add translation to newId
 
-  // Make this new test
+  // ------------- Above covered
+
+  // MAKE THIS NEW TEST
   // Click on Last opp dine endringer
   // Valider endringer
 
@@ -265,3 +277,13 @@ test('that texts added on text page becomes visible on Lage page and vice versa,
   // click on resource.en.json
   // Verify that newId is present and that the value is the translated labelText
 });
+
+const updateTextKey = async (
+  textEditorPage: TextEditorPage,
+  oldTextKey: string,
+  newTextKey: string,
+): Promise<void> => {
+  await textEditorPage.clickOnChangeTextKeyButton(oldTextKey);
+  await textEditorPage.writeNewTextKey(oldTextKey, newTextKey);
+  await textEditorPage.clickOnChangeTextKeyButton(newTextKey);
+};
