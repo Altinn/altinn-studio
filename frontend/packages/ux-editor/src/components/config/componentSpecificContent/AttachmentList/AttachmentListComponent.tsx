@@ -123,7 +123,7 @@ const sampleTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[
 const getAttachments = (
   tasks: string[],
   appMetaData: ApplicationMetadata,
-  reservedDataTypes: { currentTask: string; refDataAsPdf: string },
+  reservedDataTypes: { currentTask: string; refDataAsPdf: string; includeAll: string },
 ): string[] => {
   const filteredDataTypes = appMetaData?.dataTypes.filter(
     (dataType: DataTypeElement) =>

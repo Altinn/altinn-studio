@@ -52,13 +52,13 @@ const defaultComponent: FormAttachmentListComponent = {
 
 const handleComponentChange = jest.fn();
 
-const defaultProps: IGenericEditComponent = {
+const defaultProps: IGenericEditComponent<ComponentType.AttachmentList> = {
   component: defaultComponent,
   handleComponentChange,
 };
 
 const render = async (
-  props: Partial<IGenericEditComponent> = {},
+  props: Partial<IGenericEditComponent<ComponentType.AttachmentList>> = {},
   selectedLayoutSet: string = undefined,
   layoutSets: LayoutSets = defaultLayoutSets,
   dataTypes: DataTypeElement[] = defaultDataTypes,
