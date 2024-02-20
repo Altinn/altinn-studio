@@ -48,6 +48,7 @@ export const VerificationModal = ({
           </Heading>
         </div>
       }
+      closeButtonLabel={t('policy_editor.close_verification_modal_button')}
     >
       <div className={classes.content}>
         <Paragraph size='small'>{text}</Paragraph>
