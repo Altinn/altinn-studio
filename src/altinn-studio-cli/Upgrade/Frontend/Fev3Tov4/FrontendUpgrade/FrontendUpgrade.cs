@@ -29,7 +29,7 @@ class FrontendUpgrade
 
     public static Command GetUpgradeCommand(Option<string> projectFolderOption)
     {
-        var targetVersionOption = new Option<string>(name: "--target-version", description: "The target version to upgrade to", getDefaultValue: () => "4.0.0-rc2");
+        var targetVersionOption = new Option<string>(name: "--target-version", description: "The target version to upgrade to", getDefaultValue: () => "4.0.0-rc3");
         var indexFileOption = new Option<string>(name: "--index-file", description: "The name of the Index.cshtml file relative to --folder", getDefaultValue: () => "App/views/Home/Index.cshtml");
         var skipIndexFileUpgradeOption = new Option<bool>(name: "--skip-index-file-upgrade", description: "Skip Index.cshtml upgrade", getDefaultValue: () => false);
         var uiFolderOption = new Option<string>(name: "--ui-folder", description: "The folder containing layout files relative to --folder", getDefaultValue: () => "App/ui/");
