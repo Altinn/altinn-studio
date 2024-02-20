@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, LegacySelect } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import type { SubExpression } from '../../../../../../types/Expressions';
 import {
   DataSource,
@@ -16,6 +16,7 @@ import {
   addFunctionToSubExpression,
 } from '../../../../../../utils/expressionsUtils';
 import { useText } from '../../../../../../hooks';
+import { StudioButton } from '@studio/components';
 
 export interface SubExpressionContentProps {
   subExpression: SubExpression;
@@ -57,15 +58,14 @@ export const SubExpressionContent = ({
     <>
       <div className={classes.subExpressionTop}>
         <p>{t('right_menu.expressions_function_on_property')}</p>
-        <Button
+        <StudioButton
           title={t('right_menu.expression_sub_expression_delete')}
           color='danger'
           onClick={() => onRemoveSubExpression(subExpression)}
           variant='tertiary'
           size='small'
-        >
-          <TrashIcon />
-        </Button>
+          icon={<TrashIcon />}
+        />
       </div>
       <LegacySelect // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         label={t('right_menu.expressions_function')}
