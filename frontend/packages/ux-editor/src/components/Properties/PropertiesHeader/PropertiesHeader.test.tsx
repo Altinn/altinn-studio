@@ -15,6 +15,7 @@ const defaultProps: PropertiesHeaderProps = {
   formId: component1IdMock,
   handleComponentUpdate: mockHandleComponentUpdate,
 };
+const user = userEvent.setup();
 
 describe('PropertiesHeader', () => {
   afterEach(jest.clearAllMocks);
@@ -30,7 +31,6 @@ describe('PropertiesHeader', () => {
   });
 
   it('displays the help text when the help text button is clicked', async () => {
-    const user = userEvent.setup();
     renderProperties({ form: component1Mock, formId: component1IdMock });
 
     const helpTextButton = screen.getByRole('button', {
@@ -49,7 +49,6 @@ describe('PropertiesHeader', () => {
   });
 
   it('calls "handleComponentUpdate" when the id changes', async () => {
-    const user = userEvent.setup();
     renderProperties({ form: component1Mock, formId: component1IdMock });
 
     const editComponentIdButton = screen.getByRole('button', { name: /ID/i });
@@ -60,6 +59,20 @@ describe('PropertiesHeader', () => {
     await act(() => user.type(textbox, '2'));
     await act(() => user.click(document.body));
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it('should display an error when containerId is invalid', async () => {
+    await renderProperties({ form: component1Mock, formId: component1IdMock });
+
+    const containerIdInput = screen.getByRole('textbox', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+
+    await act(() => user.type(containerIdInput, 'test@'));
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_component_id_not_valid')),
+    ).toBeInTheDocument();
+    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(5);
   });
 });
 

@@ -90,11 +90,6 @@ const addressComponent: FormComponent<ComponentType.AddressComponent> = {
   type: ComponentType.AddressComponent,
   simplified: true,
 };
-const groupComponent: FormContainer<ComponentType.Group> = {
-  ...commonProps,
-  itemType: 'CONTAINER',
-  type: ComponentType.Group,
-};
 const navigationBarComponent: FormComponent<ComponentType.NavigationBar> = {
   ...commonProps,
   type: ComponentType.NavigationBar,
@@ -124,17 +119,45 @@ const mapComponent: FormComponent<ComponentType.Map> = {
   },
   zoom: 1,
 };
+const accordionContainer: FormContainer<ComponentType.Accordion> = {
+  ...commonProps,
+  itemType: 'CONTAINER',
+  type: ComponentType.Accordion,
+};
+const accordionGroupContainer: FormContainer<ComponentType.AccordionGroup> = {
+  ...commonProps,
+  itemType: 'CONTAINER',
+  type: ComponentType.AccordionGroup,
+};
+const buttonGroupContainer: FormContainer<ComponentType.ButtonGroup> = {
+  ...commonProps,
+  itemType: 'CONTAINER',
+  type: ComponentType.ButtonGroup,
+};
+const groupContainer: FormContainer<ComponentType.Group> = {
+  ...commonProps,
+  itemType: 'CONTAINER',
+  type: ComponentType.Group,
+};
+const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
+  ...commonProps,
+  itemType: 'CONTAINER',
+  type: ComponentType.RepeatingGroup,
+};
 
 export const componentMocks = {
+  [ComponentType.AccordionGroup]: accordionGroupContainer,
+  [ComponentType.Accordion]: accordionContainer,
   [ComponentType.AddressComponent]: addressComponent,
   [ComponentType.AttachmentList]: attachmentListComponent,
+  [ComponentType.ButtonGroup]: buttonGroupContainer,
   [ComponentType.Button]: buttonComponent,
   [ComponentType.Checkboxes]: checkboxesComponent,
   [ComponentType.Datepicker]: datePickerComponent,
   [ComponentType.Dropdown]: dropdownComponent,
   [ComponentType.FileUploadWithTag]: fileUploaderWithTagComponent,
   [ComponentType.FileUpload]: fileUploaderComponent,
-  [ComponentType.Group]: groupComponent,
+  [ComponentType.Group]: groupContainer,
   [ComponentType.Header]: headerComponent,
   [ComponentType.Image]: imageComponent,
   [ComponentType.Input]: inputComponent,
@@ -143,6 +166,7 @@ export const componentMocks = {
   [ComponentType.Panel]: panelComponent,
   [ComponentType.Paragraph]: paragraphComponent,
   [ComponentType.RadioButtons]: radiosComponent,
+  [ComponentType.RepeatingGroup]: repeatingGroupContainer,
   [ComponentType.TextArea]: textareaComponent,
   [ComponentType.Custom]: thirdPartyComponent,
 };

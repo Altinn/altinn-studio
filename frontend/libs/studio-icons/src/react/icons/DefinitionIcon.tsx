@@ -2,7 +2,7 @@ import React from 'react';
 import { SvgTemplate } from './SvgTemplate';
 import type { IconProps } from '../types';
 
-export const DefinitionIcon = (props: IconProps): JSX.Element => (
+export const DefinitionIcon = (props: IconProps): React.ReactElement => (
   <SvgTemplate viewBox='0 0 36 36' {...props}>
     <path
       fillRule='evenodd'
