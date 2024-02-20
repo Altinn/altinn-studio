@@ -3,6 +3,7 @@ import {
   addOptionToComponent,
   changeComponentOptionLabel,
   changeTextResourceBinding,
+  ExpressionSchemaBooleanDefinitionReference,
   generateFormItem,
   getUnsupportedPropertyTypes,
   isPropertyTypeSupported,
@@ -215,7 +216,7 @@ describe('Component utils', () => {
           },
         },
         testProperty4: {
-          $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
+          $ref: ExpressionSchemaBooleanDefinitionReference,
         },
         testProperty5: {
           type: 'integer',
@@ -271,7 +272,7 @@ describe('Component utils', () => {
     it('should return true if property ref is supported', () => {
       expect(
         isPropertyTypeSupported({
-          $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
+          $ref: ExpressionSchemaBooleanDefinitionReference,
         }),
       ).toBe(true);
     });
