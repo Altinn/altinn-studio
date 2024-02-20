@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.Checks;
+using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.CustomReceiptRewriter;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.FooterRewriter;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.IndexFileRewriter;
 using Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter;
@@ -42,6 +43,8 @@ class FrontendUpgrade
         var convertGroupTitlesOption = new Option<bool>(name: "--convert-group-titles", description: "Convert 'title' in repeating groups to 'summaryTitle'", getDefaultValue: () => false);
         var skipSchemaRefUpgradeOption = new Option<bool>(name: "--skip-schema-ref-upgrade", description: "Skip schema reference upgrade", getDefaultValue: () => false);
         var skipFooterUpgradeOption = new Option<bool>(name: "--skip-footer-upgrade", description: "Skip footer upgrade", getDefaultValue: () => false);
+        var receiptLayoutSetNameOption = new Option<string>(name: "--receipt-layout-set-name", description: "The name of the layout set to be created for the custom receipt", getDefaultValue: () => "receipt");
+        var skipCustomReceiptUpgradeOption = new Option<bool>(name: "--skip-custom-receipt-upgrade", description: "Skip custom receipt upgrade", getDefaultValue: () => false);
         var skipChecksOption = new Option<bool>(name: "--skip-checks", description: "Skip checks", getDefaultValue: () => false);
 
         var upgradeCommand = new Command("frontend", "Upgrade an app from using App-Frontend v3 to v4")
@@ -61,6 +64,8 @@ class FrontendUpgrade
             convertGroupTitlesOption,
             skipSchemaRefUpgradeOption,
             skipFooterUpgradeOption,
+            skipCustomReceiptUpgradeOption,
+            receiptLayoutSetNameOption,
             skipChecksOption
         };
 
@@ -76,8 +81,10 @@ class FrontendUpgrade
                 var skipLayoutUpgrade = context.ParseResult.GetValueForOption(skipLayoutUpgradeOption)!;
                 var skipSchemaRefUpgrade = context.ParseResult.GetValueForOption(skipSchemaRefUpgradeOption)!;
                 var skipFooterUpgrade = context.ParseResult.GetValueForOption(skipFooterUpgradeOption)!;
+                var skipCustomReceiptUpgrade = context.ParseResult.GetValueForOption(skipCustomReceiptUpgradeOption)!;
                 var skipChecks = context.ParseResult.GetValueForOption(skipChecksOption)!;
                 var layoutSetName = context.ParseResult.GetValueForOption(layoutSetNameOption)!;
+                var receiptLayoutSetName = context.ParseResult.GetValueForOption(receiptLayoutSetNameOption)!;
                 var preserveDefaultTriggers = context.ParseResult.GetValueForOption(preserveDefaultTriggersOption)!;
                 var convertGroupTitles = context.ParseResult.GetValueForOption(convertGroupTitlesOption)!;
                 var targetVersion = context.ParseResult.GetValueForOption(targetVersionOption)!;
@@ -120,6 +127,11 @@ class FrontendUpgrade
                 {
 
                     returnCode = await LayoutSetUpgrade(uiFolder, layoutSetName, applicationMetadataFile);
+                }
+
+                if (!skipCustomReceiptUpgrade && returnCode == 0)
+                {
+                    returnCode = await CustomReceiptUpgrade(uiFolder, receiptLayoutSetName);
                 }
 
                 if (!skipSettingsUpgrade && returnCode == 0)
@@ -210,6 +222,38 @@ class FrontendUpgrade
             PrintWarning(warning);
         }
         Console.WriteLine(warnings.Any() ? "Layout-sets upgraded with warnings. Review the warnings above." : "Layout sets upgraded");
+        return 0;
+    }
+
+    private static async Task<int> CustomReceiptUpgrade(string uiFolder, string receiptLayoutSetName)
+    {
+        if (!Directory.Exists(uiFolder))
+        {
+            PrintError($"Ui folder {uiFolder} does not exist. Please supply location of project with --ui-folder [path/to/ui/]");
+            return 1;
+        }
+
+        if (!File.Exists(Path.Combine(uiFolder, "layout-sets.json")))
+        {
+            PrintError("Converting to layout sets is required before upgrading custom receipt.");
+            return 1;
+        }
+
+        if (Directory.Exists(Path.Combine(uiFolder, receiptLayoutSetName))) {
+          Console.WriteLine($"A layout set with the name {receiptLayoutSetName} already exists. Skipping custom receipt upgrade.");
+          return 0;
+        }
+
+        var rewriter = new CustomReceiptUpgrader(uiFolder, receiptLayoutSetName);
+        rewriter.Upgrade();
+        await rewriter.Write();
+
+        var warnings = rewriter.GetWarnings();
+        foreach (var warning in warnings)
+        {
+            PrintWarning(warning);
+        }
+        Console.WriteLine(warnings.Any() ? "Custom receipt upgraded with warnings. Review the warnings above." : "Custom receipt upgraded");
         return 0;
     }
 
