@@ -78,31 +78,56 @@ describe('PropertiesHeader', () => {
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(4);
   });
 
-  it('should only show component id editing option for repeating group component', async () => {
-    await render({ form: componentMocks[ComponentType.RepeatingGroup] });
+  it('should show dataModelBinding selector', async () => {
+    await render();
+
+    const dataModelBinding = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_data_model_link'),
+    });
+    expect(dataModelBinding).toBeInTheDocument();
+  });
+
+  it('should only show component-id editing option when component does not have dataModelBinding', async () => {
+    await render({ form: componentMocks[ComponentType.AccordionGroup] });
 
     const componentId = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
     });
-    const dataModelBindingForContainer = screen.queryByRole('combobox', {
-      name: textMock('ux_editor.modal_properties_data_model_helper'),
-    });
-    const dataModelBindingForSimpleComponents = screen.queryByRole('button', {
+    expect(componentId).toBeInTheDocument();
+    const dataModelBinding = screen.queryByRole('button', {
       name: textMock('ux_editor.modal_properties_data_model_link'),
     });
-    expect(componentId).toBeInTheDocument();
-    expect(dataModelBindingForContainer).not.toBeInTheDocument();
-    expect(dataModelBindingForSimpleComponents).not.toBeInTheDocument();
+    expect(dataModelBinding).not.toBeInTheDocument();
   });
 
-  it('should show container specific dataModelBinding selector when component is container', async () => {
-    await render({ form: componentMocks[ComponentType.AccordionGroup] });
+  it('should call "handleComponentUpdate" with maxCount when dataModelBinding is clicked for RepeatingGroup', async () => {
+    const dataBindingNameMock = 'element';
+    const maxCountMock = 2;
+    queryClientMock.setQueryData(
+      [QueryKey.DatamodelMetadata, 'org', 'app'],
+      [{ dataBindingName: dataBindingNameMock, maxOccurs: maxCountMock }],
+    );
+    await render({ form: componentMocks[ComponentType.RepeatingGroup] });
 
-    await act(() => Promise.resolve()); // Need this due to usage of LegacySelect when rendering EditGroupDataModelBindings
-    const dataModelBindingForContainer = screen.getByRole('combobox', {
+    const dataModelBinding = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_data_model_link'),
+    });
+    await act(() => user.click(dataModelBinding));
+    const dataModelBindingSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_helper'),
     });
-    expect(dataModelBindingForContainer).toBeInTheDocument();
+    await act(() => user.click(dataModelBindingSelector));
+    const dataModelOption = screen.getByRole('option', { name: dataBindingNameMock });
+    await act(() => user.click(dataModelOption));
+
+    expect(mockHandleComponentUpdate).toHaveBeenCalled();
+    expect(mockHandleComponentUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ...componentMocks[ComponentType.RepeatingGroup],
+        maxCount: maxCountMock,
+        dataModelBindings: { group: dataBindingNameMock },
+      }),
+    );
   });
 });
 

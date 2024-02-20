@@ -19,9 +19,9 @@ import {
 import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
 import { RepeatingGroupComponent } from './componentSpecificContent/RepeatingGroup';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -76,52 +76,46 @@ export const EditFormComponent = ({
     return <UnknownComponentAlert componentName={component.type} />;
   }
 
-  return (
-    <>
-      {component.type === ComponentType.RepeatingGroup ? (
-        <RepeatingGroupComponent
-          editFormId={editFormId}
+  return component.type === ComponentType.RepeatingGroup ? (
+    <RepeatingGroupComponent
+      editFormId={editFormId}
+      component={component}
+      handleComponentUpdate={handleComponentUpdate}
+    />
+  ) : (
+    <Fieldset className={classes.root} legend=''>
+      <FormField
+        id={component.id}
+        value={showComponentConfigBeta || false}
+        onChange={toggleShowBetaFunc}
+        propertyPath={formItemConfig.propertyPath}
+        componentType={component.type}
+        helpText={t('ux_editor.edit_component.show_beta_func_help_text')}
+        renderField={({ fieldProps }) => (
+          <Switch {...fieldProps} checked={fieldProps.value} size='small'>
+            {t('ux_editor.edit_component.show_beta_func')}
+          </Switch>
+        )}
+      />
+      {showComponentConfigBeta && isPending && <StudioSpinner spinnerText={t('general.loading')} />}
+      {showComponentConfigBeta && !isPending && (
+        <FormComponentConfig
+          schema={schema}
           component={component}
+          editFormId={editFormId}
           handleComponentUpdate={handleComponentUpdate}
         />
-      ) : (
-        <Fieldset className={classes.root} legend=''>
-          <FormField
-            id={component.id}
-            value={showComponentConfigBeta || false}
-            onChange={toggleShowBetaFunc}
-            propertyPath={formItemConfig.propertyPath}
-            componentType={component.type}
-            helpText={t('ux_editor.edit_component.show_beta_func_help_text')}
-            renderField={({ fieldProps }) => (
-              <Switch {...fieldProps} checked={fieldProps.value} size='small'>
-                {t('ux_editor.edit_component.show_beta_func')}
-              </Switch>
-            )}
-          />
-          {showComponentConfigBeta && isPending && (
-            <StudioSpinner spinnerText={t('general.loading')} />
-          )}
-          {showComponentConfigBeta && !isPending && (
-            <FormComponentConfig
-              schema={schema}
-              component={component}
-              editFormId={editFormId}
-              handleComponentUpdate={handleComponentUpdate}
-            />
-          )}
-          {!showComponentConfigBeta && (
-            <>
-              {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
-              <ComponentSpecificContent
-                component={component}
-                handleComponentChange={handleComponentUpdate}
-                layoutName={selectedLayout}
-              />
-            </>
-          )}
-        </Fieldset>
       )}
-    </>
+      {!showComponentConfigBeta && (
+        <>
+          {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
+          <ComponentSpecificContent
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            layoutName={selectedLayout}
+          />
+        </>
+      )}
+    </Fieldset>
   );
 };

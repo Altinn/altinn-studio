@@ -3,18 +3,15 @@ import { useSelector } from 'react-redux';
 import classes from './RepeatingGroupComponent.module.css';
 import { Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import { FormField } from '../../../FormField';
-import { EditGroupDataModelBindings } from '../../group/EditGroupDataModelBindings';
 import { getTextResource } from '../../../../utils/language';
 import { useSelectedFormLayout, useText, useTextResourcesSelector } from '../../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
-import { useDatamodelMetadataQuery } from '../../../../hooks/queries/useDatamodelMetadataQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { textResourcesByLanguageSelector } from '../../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { selectedLayoutNameSelector } from '../../../../selectors/formLayoutSelectors';
-import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import type { IEditFormComponentProps } from '../../EditFormComponent';
 
 export const RepeatingGroupComponent = ({
@@ -27,7 +24,6 @@ export const RepeatingGroupComponent = ({
 
   const { selectedLayoutSet } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: dataModel } = useDatamodelMetadataQuery(org, app);
   const { components } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
@@ -66,31 +62,9 @@ export const RepeatingGroupComponent = ({
     setTableHeadersError(errorMessage);
   };
 
-  const getMaxOccursForGroupFromDataModel = (dataBindingName: string): number => {
-    const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
-      return e.dataBindingName === dataBindingName;
-    });
-    return element?.maxOccurs;
-  };
-
-  const handleDataModelGroupChange = (dataBindingName: string, key: string) => {
-    const maxOccurs = getMaxOccursForGroupFromDataModel(dataBindingName);
-    handleComponentUpdate({
-      ...component,
-      dataModelBindings: {
-        [key]: dataBindingName,
-      },
-      maxCount: maxOccurs,
-    });
-  };
-
   return (
     <div className={classes.root}>
       <LegacyFieldSet className={classes.fieldset}>
-        <EditGroupDataModelBindings
-          dataModelBindings={component.dataModelBindings}
-          onDataModelChange={handleDataModelGroupChange}
-        />
         <FormField
           id={component.id}
           label={t('ux_editor.modal_properties_group_max_occur')}

@@ -55,31 +55,6 @@ describe('RepeatingGroupComponent', () => {
     expect(handleComponentUpdateMock).toHaveBeenCalled();
   });
 
-  it('should call handleComponentUpdate with data model binding when changed', async () => {
-    const dataBindingNameMock = 'element';
-    const maxCountMock = 2;
-    queryClientMock.setQueryData(
-      [QueryKey.DatamodelMetadata, org, app],
-      [{ dataBindingName: dataBindingNameMock, maxOccurs: maxCountMock }],
-    );
-    await render();
-
-    const dataModelSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.modal_properties_data_model_helper'),
-    });
-    expect(dataModelSelect).toBeInTheDocument();
-    await act(() => user.click(dataModelSelect));
-    const dataModelOption = screen.getByRole('option', { name: dataBindingNameMock });
-    await act(() => user.click(dataModelOption));
-
-    expect(handleComponentUpdateMock).toHaveBeenCalled();
-    expect(handleComponentUpdateMock).toHaveBeenCalledWith({
-      ...layoutMock.containers[container2IdMock],
-      maxCount: maxCountMock,
-      dataModelBindings: { group: dataBindingNameMock },
-    });
-  });
-
   it('handleComponentUpdate is called with "tableHeaders: undefined" when #headers equals #items', async () => {
     await render();
 

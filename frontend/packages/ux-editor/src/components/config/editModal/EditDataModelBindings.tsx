@@ -1,5 +1,9 @@
 import type { IGenericEditComponent } from '../componentConfig';
-import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
+import {
+  getMaxOccursForGroupFromDataModel,
+  getMinOccursFromDataModel,
+  getXsdDataTypeFromDataModel,
+} from '../../../utils/datamodel';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React, { useEffect, useState } from 'react';
 import { useText } from '../../../hooks';
@@ -42,6 +46,10 @@ export const EditDataModelBindings = ({
       timeStamp:
         component.type === ComponentType.Datepicker
           ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
+          : undefined,
+      maxCount:
+        component.type === ComponentType.RepeatingGroup
+          ? getMaxOccursForGroupFromDataModel(selectedDataModelElement, data)
           : undefined,
     });
   };
@@ -88,15 +96,10 @@ export const EditDataModelBindings = ({
                 propertyPath={`definitions/component/properties/dataModelBindings/properties/${
                   key || 'simpleBinding'
                 }`}
-                label={
-                  label
-                    ? `${t('ux_editor.modal_properties_data_model_helper')} ${t(
-                        'general.for',
-                      )} ${label}`
-                    : t('ux_editor.modal_properties_data_model_helper')
-                }
+                label={t('ux_editor.modal_properties_data_model_helper')}
                 componentType={component.type}
                 inputId={`selectDataModelSelect-${label}`}
+                selectGroup={component.type === ComponentType.RepeatingGroup}
                 selectedElement={
                   component.dataModelBindings
                     ? component.dataModelBindings[key || 'simpleBinding']
