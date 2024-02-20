@@ -116,6 +116,9 @@ export const setComponentProperty = <
   [propertyKey]: value,
 });
 
+export const ExpressionSchemaBooleanDefinitionReference =
+  'expression.schema.v1.json#/definitions/boolean';
+
 /**
  * Gets an array of unsupported property keys
  * @param properties The properties object to check.
@@ -143,7 +146,7 @@ export const getUnsupportedPropertyTypes = (
 };
 
 const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string'];
-const supportedPropertyRefs = ['expression.schema.v1.json#/definitions/boolean'];
+const supportedPropertyRefs = [ExpressionSchemaBooleanDefinitionReference];
 
 /**
  * Checks if a given property with optional property key is supported by component config view.

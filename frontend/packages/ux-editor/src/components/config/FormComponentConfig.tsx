@@ -5,7 +5,10 @@ import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
 import { EditStringValue } from './editModal/EditStringValue';
 import { useText } from '../../hooks';
-import { getUnsupportedPropertyTypes } from '../../utils/component';
+import {
+  ExpressionSchemaBooleanDefinitionReference,
+  getUnsupportedPropertyTypes,
+} from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
 
 export interface IEditFormComponentProps {
@@ -119,7 +122,7 @@ export const FormComponentConfig = ({
         if (!rest[propertyKey]) return null;
         if (
           rest[propertyKey].type === 'boolean' ||
-          rest[propertyKey].$ref?.endsWith('expression.schema.v1.json#/definitions/boolean')
+          rest[propertyKey].$ref?.endsWith(ExpressionSchemaBooleanDefinitionReference)
         ) {
           return (
             <EditBooleanValue
