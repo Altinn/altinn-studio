@@ -1,6 +1,8 @@
+import { DataTestId } from '../enum/DataTestId';
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 type TopMenuNames =
   | 'about'
@@ -64,5 +66,11 @@ export class Header extends BasePage {
 
   public async clickOnOpenSettingsModalButton(): Promise<void> {
     await this.page.getByRole('button', { name: this.textMock('sync_header.settings') }).click();
+  }
+
+  public async waitForPushToGiteaSpinnerToDisappear(): Promise<void> {
+    const spinner = this.page.getByTestId(DataTestId.PushToGiteaSpinner);
+    const timeoutForGiteaToDoThePush: number = 10000;
+    await expect(spinner).toBeHidden({ timeout: timeoutForGiteaToDoThePush });
   }
 }

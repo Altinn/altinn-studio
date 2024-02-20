@@ -66,6 +66,7 @@ if (process.env.CI) {
   config.coveragePathIgnorePatterns = [
     'frontend/packages/ux-editor/src/testing/',
     'frontend/packages/ux-editor-v3/src/testing/',
+    'frontend/scripts/',
   ];
 }
 module.exports = config;
