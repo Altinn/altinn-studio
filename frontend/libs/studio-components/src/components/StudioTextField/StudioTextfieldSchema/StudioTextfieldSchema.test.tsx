@@ -1,8 +1,7 @@
 import React from 'react';
-import { StudioJSONValidatorUtils } from '../StudioJSONValidatorUtils';
 import { StudioTextfieldSchema, type StudioTextfieldSchemaProps } from './StudioTextfieldSchema';
 import type { JsonSchema } from '../../../../../../packages/shared/src/types/JsonSchema';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const handleOnChange = jest.fn();
@@ -31,22 +30,30 @@ describe('StudioTextfieldSchema', () => {
   });
 
   it('should call validateAgainstSchema when changing text input', async () => {
+    const mockValidateProperty = jest.fn();
     const user = userEvent.setup();
-    const spyValidateAgainstSchema = jest.spyOn(
-      StudioJSONValidatorUtils.prototype,
-      'validateProperty',
-    );
     renderStudioTextfieldSchema({
       inputProps: { onChange: handleOnChange, icon: <div>icon</div> },
+      jsonValidator: {
+        getSchema: jest.fn(),
+        validateProperty: mockValidateProperty,
+      },
     });
     const editComponentIdButton = screen.getByRole('button', { name: /test/i });
     expect(editComponentIdButton).toBeInTheDocument();
+
     await act(() => user.click(editComponentIdButton));
-    const input = screen.getByRole('textbox');
+
+    const input = screen.getByLabelText('input-properties/id');
+    expect(input).toBeInTheDocument();
+
     await act(() => user.type(input, 'test'));
+
     expect(handleOnChange).toHaveBeenCalled();
-    expect(spyValidateAgainstSchema).toHaveBeenCalled();
-    spyValidateAgainstSchema.mockRestore();
+
+    await waitFor(async () => {
+      expect(mockValidateProperty).toHaveBeenCalled();
+    });
   });
 });
 
@@ -54,6 +61,7 @@ const renderStudioTextfieldSchema = (props: Partial<StudioTextfieldSchemaProps> 
   const defaultProps: StudioTextfieldSchemaProps = {
     jsonValidator: {
       getSchema: jest.fn(),
+      validateProperty: jest.fn(),
     },
     schema: {
       $id: 'test',
