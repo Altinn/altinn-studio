@@ -19,9 +19,7 @@ import {
 import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
-import { RepeatingGroupComponent } from './componentSpecificContent/RepeatingGroup';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -93,21 +91,12 @@ export const EditFormComponent = ({
       />
       {showComponentConfigBeta && isPending && <StudioSpinner spinnerText={t('general.loading')} />}
       {showComponentConfigBeta && !isPending && (
-        <>
-          {component.type === ComponentType.RepeatingGroup && (
-            <RepeatingGroupComponent
-              editFormId={editFormId}
-              component={component}
-              handleComponentUpdate={handleComponentUpdate}
-            />
-          )}
-          <FormComponentConfig
-            schema={schema}
-            component={component}
-            editFormId={editFormId}
-            handleComponentUpdate={handleComponentUpdate}
-          />
-        </>
+        <FormComponentConfig
+          schema={schema}
+          component={component}
+          editFormId={editFormId}
+          handleComponentUpdate={handleComponentUpdate}
+        />
       )}
       {!showComponentConfigBeta && (
         <>

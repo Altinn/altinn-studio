@@ -900,6 +900,7 @@
   "resourceadm.listadmin_list_organizations_description": "Enheter i denne listen vil ha tilgang til ressursen",
   "resourceadm.listadmin_lists_in": "Lister i {{environment}}",
   "resourceadm.listadmin_load_list_error": "Kunne ikke laste tilgangslister",
+  "resourceadm.listadmin_load_more": "Last flere",
   "resourceadm.listadmin_navn": "Navn",
   "resourceadm.listadmin_orgnr": "Orgnr",
   "resourceadm.listadmin_parties": "Enheter",

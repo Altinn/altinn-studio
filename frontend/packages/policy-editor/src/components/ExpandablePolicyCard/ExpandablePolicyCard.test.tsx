@@ -206,6 +206,29 @@ describe('ExpandablePolicyCard', () => {
     expect(inputAllSelected).toBeInTheDocument();
   });
 
+  it('should append subject to selectable subject options list when selected subject is removed', async () => {
+    const user = userEvent.setup();
+    render(<ExpandablePolicyCard {...defaultProps} />);
+
+    const [subjectSelect] = screen.getAllByLabelText(
+      textMock('policy_editor.rule_card_subjects_title'),
+    );
+    await act(() => user.click(subjectSelect));
+
+    // Check that already selected options does not be included within selectable list.
+    expect(screen.queryByRole('option', { name: mockSubjectTitle1 })).toBeNull();
+
+    // Remove the selected subject
+    const selectedSubject = screen.getByLabelText(
+      `${textMock('general.delete')} ${mockSubjectTitle1}`,
+    );
+    await act(() => user.click(selectedSubject));
+
+    // Open the select and verify that the removed subject is now appended to the selectable list
+    await act(() => user.click(subjectSelect));
+    expect(screen.getByRole('option', { name: mockSubjectTitle1 })).toBeInTheDocument();
+  });
+
   it('calls "setPolicyRules" when description field is edited', async () => {
     const user = userEvent.setup();
     render(<ExpandablePolicyCard {...defaultProps} />);

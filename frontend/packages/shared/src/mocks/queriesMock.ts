@@ -17,7 +17,7 @@ import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { Repository } from 'app-shared/types/Repository';
 import type {
   AccessList,
-  AccessListResourceLink,
+  AccessListsResponse,
   BrregPartySearchResult,
   BrregSubPartySearchResult,
   Resource,
@@ -150,11 +150,13 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<ResourceVersionStatus>(resourceVersionStatus)),
   getValidatePolicy: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
   getValidateResource: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
-  getAccessLists: jest.fn().mockImplementation(() => Promise.resolve<AccessList[]>([])),
+  getAccessLists: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AccessListsResponse>({ data: [] })),
   getAccessList: jest.fn().mockImplementation(() => Promise.resolve<AccessList>(null)),
   getResourceAccessLists: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<AccessListResourceLink[]>([])),
+    .mockImplementation(() => Promise.resolve<AccessListsResponse>({ data: [] })),
   getParties: jest.fn().mockImplementation(() => Promise.resolve<BrregPartySearchResult>(null)),
   getSubParties: jest
     .fn()
