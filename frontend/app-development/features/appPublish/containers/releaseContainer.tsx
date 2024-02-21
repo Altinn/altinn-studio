@@ -229,7 +229,7 @@ export function ReleaseContainer() {
       </div>
       <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
-      <div className={classes.appReleaseHistory}>
+      <div>
         {!!releases.length &&
           releases.map((release: AppRelease, index: number) => (
             <ReleaseComponent key={index} release={release} />

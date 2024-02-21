@@ -25,10 +25,12 @@ export const StudioButton = forwardRef<HTMLButtonElement, StudioButtonProps>(({
   return (
     <button {...rest} ref={ref}>
       <Paragraph
-        as='span'
         size={size}
+        asChild
       >
-        {children}
+        <span>
+          {children}
+        </span>
       </Paragraph>
     </button>
   )

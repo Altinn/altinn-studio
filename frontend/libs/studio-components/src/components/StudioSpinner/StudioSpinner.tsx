@@ -28,7 +28,7 @@ export const StudioSpinner = forwardRef<HTMLDivElement, StudioSpinnerProps>(
           data-testid='studio-spinner-test-id'
         />
         {showSpinnerTitle && (
-          <Paragraph as='div' id={spinnerDescriptionId}>
+          <Paragraph asChild id={spinnerDescriptionId}>
             {spinnerTitle}
           </Paragraph>
         )}
