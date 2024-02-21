@@ -30,9 +30,10 @@ test('Allows to add a datamodel, include an object with custom name and fields i
 
   // Add datamodel
   await dataModelPage.clickOnCreateNewDataModelButton();
-  const dataModelName: string = 'datamodel';
+  const dataModelName: string = 'testdatamodel';
   await dataModelPage.typeDataModelName(dataModelName);
   await dataModelPage.clickOnCreateModelButton();
+  await dataModelPage.waitForDataModelToAppear(dataModelName);
 
   // Add object
   await dataModelPage.clickOnAddPropertyButton();
@@ -116,6 +117,8 @@ test('Allows to upload and then delete an XSD file', async ({ page, testAppName 
   const dataModelName: string = 'testdatamodel';
   const dataModelFileName: string = `${dataModelName}.xsd`;
   await dataModelPage.selectFileToUpload(dataModelFileName);
+  await dataModelPage.waitForDataModelToBeUploaded();
+  await dataModelPage.waitForDataModelToAppear(dataModelName);
   const dataModelComboboxValue = await dataModelPage.getDataModelOptionValue(dataModelName);
   expect(dataModelComboboxValue).toMatch(/\/testdatamodel.schema.json$/);
 
