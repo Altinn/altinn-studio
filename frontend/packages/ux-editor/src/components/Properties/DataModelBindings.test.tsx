@@ -1,12 +1,12 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import { DataModelBindingRow, type DataModelBindingRowProps } from './DataModelBindingRow';
-import { FormItemContext } from '../../../../containers/FormItemContext';
+import { FormItemContext } from '../../containers/FormItemContext';
+import { DataModelBindings } from './DataModelBindings';
 import userEvent from '@testing-library/user-event';
-import { formItemContextProviderMock } from '../../../../testing/formItemContextMocks';
-import { component1Mock, component1IdMock } from '../../../../testing/layoutMock';
-import { renderWithProviders } from '../../../../testing/mocks';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
+import { component1Mock, component1IdMock } from '../../testing/layoutMock';
+import { renderWithProviders } from '../../testing/mocks';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 const mockSchema = {
   properties: {
@@ -95,7 +95,7 @@ const renderProperties = (
         ...formItemContextProps,
       }}
     >
-      <DataModelBindingRow {...defaultProps} {...props} />
-    </FormItemContext.Provider>,
+      <DataModelBindings {...defaultProps} {...props} />
+    </FormContext.Provider>
   );
 };

@@ -4,7 +4,7 @@ import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader
 import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
-import { component1Mock, component1IdMock } from '../../../testing/layoutMock';
+import { component1Mock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { componentMocks } from '../../../testing/componentMocks';
@@ -17,7 +17,6 @@ const mockHandleComponentUpdate = jest.fn();
 
 const defaultProps: PropertiesHeaderProps = {
   form: component1Mock,
-  formId: component1IdMock,
   handleComponentUpdate: mockHandleComponentUpdate,
 };
 const user = userEvent.setup();

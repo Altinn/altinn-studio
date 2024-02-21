@@ -71,7 +71,7 @@ export const EditDataModelBindings = ({
     : '';
 
   return (
-    <div key={uniqueKey || ''} className={classes.wrapper}>
+    <div key={uniqueKey || ''}>
       {!selectedOption && !dataModelSelectVisible ? (
         <StudioButton
           onClick={() => setDataModelSelectVisible(true)}
