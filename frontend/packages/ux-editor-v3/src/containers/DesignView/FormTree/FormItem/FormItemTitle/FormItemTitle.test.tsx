@@ -3,12 +3,11 @@ import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../testing/componentMocks';
+import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { type FormContainer } from '../../../../../types/FormContainer';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
-import { FormContainer } from '../../../../../types/FormContainer';
 
 // Mocks:
 const mockDeleteItem = jest.fn();
