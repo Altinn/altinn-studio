@@ -1,20 +1,17 @@
-import type {
-  Expression,
-  ExpressionProperty,
-  ExpressionPropertyBase,
-  SubExpression,
-} from '../types/Expressions';
 import {
   DataSource,
   ExpressionFunction,
   ExpressionPropertyForGroup,
   getExpressionPropertiesBasedOnComponentType,
   Operator,
+  type Expression,
+  type ExpressionProperty,
+  type ExpressionPropertyBase,
+  type SubExpression,
 } from '../types/Expressions';
 import { deepCopy } from 'app-shared/pure';
 import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import type { IFormLayouts } from '../types/global';
-import { LayoutItemType } from '../types/global';
+import { LayoutItemType, type IFormLayouts } from '../types/global';
 import type { FormComponent } from '../types/FormComponent';
 import type { LegacySingleSelectOption } from '@digdir/design-system-react';
 import type { FormContainer } from '../types/FormContainer';

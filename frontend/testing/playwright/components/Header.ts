@@ -1,8 +1,7 @@
 import { DataTestId } from '../enum/DataTestId';
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
-import type { Page } from '@playwright/test';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 type TopMenuNames =
   | 'about'

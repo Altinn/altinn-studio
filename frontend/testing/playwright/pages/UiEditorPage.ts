@@ -1,9 +1,8 @@
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
-import type { Locator, Page } from '@playwright/test';
 import type { ComponentType } from '../enum/ComponentType';
 import type { DragAndDropComponents } from '../types/DragAndDropComponents';
-import { expect } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { DataTestId } from '../enum/DataTestId';
 
 export class UiEditorPage extends BasePage {

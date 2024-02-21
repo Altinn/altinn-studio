@@ -1,8 +1,7 @@
 import { BasePage } from '../helpers/BasePage';
-import type { Locator, Page } from '@playwright/test';
 import type { Environment } from '../helpers/StudioEnvironment';
 import path from 'path';
-import { expect } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { DataTestId } from '../enum/DataTestId';
 
 export class DataModelPage extends BasePage {

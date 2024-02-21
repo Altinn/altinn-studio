@@ -1,6 +1,5 @@
 import React from 'react';
-import type { IEditFormComponentProps } from './EditFormComponent';
-import { EditFormComponent } from './EditFormComponent';
+import { EditFormComponent, type IEditFormComponentProps } from './EditFormComponent';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';

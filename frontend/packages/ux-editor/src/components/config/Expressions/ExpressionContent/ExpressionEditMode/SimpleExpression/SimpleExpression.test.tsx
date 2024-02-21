@@ -4,8 +4,7 @@ import { internalExpressionWithMultipleSubExpressions } from '../../../../../../
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../../testing/mocks';
 import { formDesignerMock } from '../../../../../../testing/stateMocks';
-import type { SimpleExpressionProps } from './SimpleExpression';
-import { SimpleExpression } from './SimpleExpression';
+import { SimpleExpression, type SimpleExpressionProps } from './SimpleExpression';
 import { textMock } from '../../../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
