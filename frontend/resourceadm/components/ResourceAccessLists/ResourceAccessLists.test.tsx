@@ -68,13 +68,13 @@ describe('ResourceAccessLists', () => {
   it('should show show spinner on loading', () => {
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('general.loading'));
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     expect(spinnerTitle).toBeInTheDocument();
   });
   it('should show selected lists checked', async () => {
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('general.loading'));
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox1 = screen.getByLabelText(list1Name);
@@ -88,7 +88,7 @@ describe('ResourceAccessLists', () => {
     const user = userEvent.setup();
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('general.loading'));
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));
@@ -107,7 +107,7 @@ describe('ResourceAccessLists', () => {
     const user = userEvent.setup();
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('general.loading'));
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox1 = screen.getByLabelText(list1Name);
@@ -120,7 +120,7 @@ describe('ResourceAccessLists', () => {
     const user = userEvent.setup();
     renderResourceAccessLists();
 
-    const spinnerTitle = screen.queryByText(textMock('general.loading'));
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox2 = screen.getByLabelText(list2Name);
@@ -132,7 +132,7 @@ describe('ResourceAccessLists', () => {
   it('should show error when loading fails', async () => {
     renderResourceAccessLists(true);
 
-    const spinnerTitle = screen.queryByText(textMock('general.loading'));
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     expect(screen.getByText(textMock('resourceadm.listadmin_load_list_error'))).toBeInTheDocument();

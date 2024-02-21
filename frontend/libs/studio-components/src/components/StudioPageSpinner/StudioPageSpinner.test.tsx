@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioPageSpinner } from './StudioPageSpinner';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 const mockSpinnerText: string = 'Test text';
 const mockTestId: string = 'testId';
@@ -15,19 +14,16 @@ describe('StudioPageSpinner', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render default loading message as accessibility title when spinnerText is not provided', () => {
-    render(<StudioPageSpinner />);
+    render(<StudioPageSpinner spinnerTitle={mockSpinnerText} showSpinnerTitle={false} />);
 
-    expect(screen.getByTitle(textMock('general.loading')));
+    expect(screen.getByTitle(mockSpinnerText));
 
     const spinner = screen.getByTestId('studio-spinner-test-id');
     expect(spinner).not.toHaveAttribute('aria-describedby');
   });
 
   it('should render the spinnerText and the spinner should have aria-describeBy set when spinnerText is present', () => {
-    render(<StudioPageSpinner spinnerText={mockSpinnerText} />);
-
-    const spinnerTitle = screen.queryByText(textMock('general.loading'));
-    expect(spinnerTitle).not.toBeInTheDocument();
+    render(<StudioPageSpinner spinnerTitle={mockSpinnerText} showSpinnerTitle />);
 
     const spinnerText = screen.getByText(mockSpinnerText);
     expect(spinnerText).toBeInTheDocument();

@@ -68,7 +68,7 @@ export const ResourceAccessLists = ({
   };
 
   if (isLoadingEnvListData || isLoadingConnectedLists) {
-    return <StudioSpinner spinnerText={t('general.loading')} />;
+    return <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_lists')} />;
   }
 
   if (envListDataError || connectedListsError) {

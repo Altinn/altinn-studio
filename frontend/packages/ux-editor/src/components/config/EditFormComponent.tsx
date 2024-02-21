@@ -95,7 +95,12 @@ export const EditFormComponent = ({
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
-      {showComponentConfigBeta && isPending && <StudioSpinner spinnerText={t('general.loading')} />}
+      {showComponentConfigBeta && isPending && (
+        <StudioSpinner
+          showSpinnerTitle
+          spinnerTitle={t('ux_editor.edit_component.loading_schema')}
+        />
+      )}
       {showComponentConfigBeta && !isPending && (
         <>
           {component.type === ComponentType.RepeatingGroup && (

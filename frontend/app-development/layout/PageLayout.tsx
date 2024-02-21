@@ -7,11 +7,14 @@ import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
 import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Displays the layout for the app development pages
  */
 export const PageLayout = (): React.ReactNode => {
+  const { t } = useTranslation();
+
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
@@ -31,7 +34,7 @@ export const PageLayout = (): React.ReactNode => {
   if (isRepoStatusPending || isUserPending) {
     return (
       <StudioCenter>
-        <StudioPageSpinner />
+        <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('repo_status.loading')} />
       </StudioCenter>
     );
   }

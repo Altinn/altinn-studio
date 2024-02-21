@@ -19,7 +19,7 @@ export const AccessListPage = (): React.JSX.Element => {
   } = useGetAccessListQuery(selectedContext, accessListId, env);
 
   if (isLoadingList) {
-    return <StudioSpinner spinnerText={t('general.loading')} />;
+    return <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_access_list')} />;
   }
 
   if (isLoadListError) {
