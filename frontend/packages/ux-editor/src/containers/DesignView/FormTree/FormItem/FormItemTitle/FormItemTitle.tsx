@@ -22,10 +22,11 @@ export const FormItemTitle = ({ children, formItem }: FormItemTitleProps) => {
     const confirmMessage = isContainer(formItem)
       ? t('ux_editor.component_group_deletion_text')
       : t('ux_editor.component_deletion_text');
+
     if (confirm(confirmMessage)) {
       deleteItem(formItem.id);
     }
-  }, [formItem.id, deleteItem, t]);
+  }, [formItem, t, deleteItem]);
 
   return (
     <div className={classes.root}>
