@@ -108,7 +108,7 @@ export const ConfigureLayoutSetPanel = () => {
   return (
     <div ref={configPanelRef} className={classes.configureLayoutSet}>
       {editLayoutSetName ? (
-        <div className={classes.configureLayoutSetName}>
+        <div>
           <label className={classes.label} htmlFor={inputLayoutSetNameId}>
             {t('left_menu.configure_layout_sets_name')}
           </label>
@@ -122,8 +122,8 @@ export const ConfigureLayoutSetPanel = () => {
             aria-invalid={!!errorMessage}
           />
           {errorMessage && (
-            <Paragraph id='configure-layout-set-name-error' as='span' size='small'>
-              {errorMessage}
+            <Paragraph id='configure-layout-set-name-error' asChild size='small'>
+              <span>{errorMessage}</span>
             </Paragraph>
           )}
         </div>

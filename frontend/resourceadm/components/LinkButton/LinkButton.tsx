@@ -30,8 +30,8 @@ export type LinkButtonProps = {
  */
 export const LinkButton = ({ onClick, children }: LinkButtonProps): React.JSX.Element => {
   return (
-    <Link as='button' onClick={onClick} className={classes.linkButton}>
-      {children}
+    <Link asChild className={classes.linkButton}>
+      <button onClick={onClick}>{children}</button>
     </Link>
   );
 };

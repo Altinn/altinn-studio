@@ -7,7 +7,6 @@ import { useFormContext } from '../../containers/FormContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
 import { PropertiesHeader } from './PropertiesHeader';
-import { isContainer } from '../../utils/formItemUtils';
 import { EditFormComponent } from '../config/EditFormComponent';
 
 export const Properties = () => {
@@ -34,7 +33,7 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
-      {form && !isContainer(form) && (
+      {form && (
         <PropertiesHeader
           form={form}
           formId={formId}

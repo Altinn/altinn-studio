@@ -122,7 +122,7 @@ export const renderWithProviders = (
   {
     preloadedState = {},
     queries = {},
-    queryClient,
+    queryClient = queryClientMock,
     store = setupStore(preloadedState),
     appContextProps = {},
     ...renderOptions

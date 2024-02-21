@@ -79,8 +79,8 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
               (key) => currentPartyTypesAllowed[key],
             )}
           >
-            <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
-              {t('settings_modal.access_control_tab_checkbox_description')}
+            <Paragraph asChild size='small' short className={classes.checkboxParagraph}>
+              <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
             </Paragraph>
             {displayCheckboxes()}
           </Checkbox.Group>
