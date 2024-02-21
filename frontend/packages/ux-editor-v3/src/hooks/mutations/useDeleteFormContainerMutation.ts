@@ -18,7 +18,6 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
           delete updatedLayout.components[componentId];
           delete updatedLayout.containers[componentId];
           delete updatedLayout.order[componentId];
-          debugger;
           updatedLayout.order[id].splice(updatedLayout.order[id].indexOf(componentId), 1);
         }
       }
