@@ -47,7 +47,7 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(environmentSelect));
     await act(() => user.click(screen.getByRole('option', { name: 'AT21' })));
 
-    expect(environmentSelect).toHaveValue('AT21');
+    await waitFor(() => expect(environmentSelect).toHaveValue('AT21'));
     expect(importButton).toBeDisabled();
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
@@ -64,7 +64,7 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(serviceSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
 
-    expect(serviceSelect).toHaveValue(mockOption);
+    await waitFor(() => expect(serviceSelect).toHaveValue(mockOption));
     expect(screen.getByRole('button', { name: importButtonText })).not.toBeDisabled();
   });
 
@@ -91,13 +91,15 @@ describe('ImportResourceModal', () => {
     );
     await act(() => user.click(serviceSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
-    expect(serviceSelect).toHaveValue(mockOption);
+    await waitFor(() => expect(serviceSelect).toHaveValue(mockOption));
 
     await act(() => user.click(environmentSelect));
     await act(() => user.click(screen.getByRole('option', { name: 'AT22' })));
-    expect(
-      screen.queryByLabelText(textMock('resourceadm.dashboard_resource_name_and_id_resource_id')),
-    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByLabelText(textMock('resourceadm.dashboard_resource_name_and_id_resource_id')),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it('calls onClose function when close button is clicked', async () => {
@@ -135,7 +137,7 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(serviceSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
 
-    const importButton = screen.getByRole('button', {
+    const importButton = await screen.findByRole('button', {
       name: textMock('resourceadm.dashboard_import_modal_import_button'),
     });
     await act(() => user.click(importButton));
@@ -167,7 +169,7 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(serviceSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
 
-    const idField = screen.getByLabelText(
+    const idField = await screen.findByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
     );
     await act(() => user.type(idField, '?/test'));
@@ -202,7 +204,7 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(serviceSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
 
-    const importButton = screen.getByRole('button', {
+    const importButton = await screen.findByRole('button', {
       name: textMock('resourceadm.dashboard_import_modal_import_button'),
     });
     await act(() => user.click(importButton));

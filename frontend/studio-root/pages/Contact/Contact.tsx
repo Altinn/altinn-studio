@@ -45,10 +45,12 @@ export const Contact = () => {
                 {t('contact.slack.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.slack.content')}</Paragraph>
-              <Paragraph spacing as='ul'>
-                <Trans i18nKey='contact.slack.content_list'>
-                  <li />
-                </Trans>
+              <Paragraph spacing asChild>
+                <ul>
+                  <Trans i18nKey='contact.slack.content_list'>
+                    <li />
+                  </Trans>
+                </ul>
               </Paragraph>
               <Paragraph className={classes.link}>
                 <Trans i18nKey='contact.slack.link'>
