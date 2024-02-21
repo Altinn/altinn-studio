@@ -78,6 +78,7 @@ test('That it is possible to add a data model binding, and that the files are up
   const dataModelName: string = 'testdatamodel';
   await dataModelPage.typeDataModelName(dataModelName);
   await dataModelPage.clickOnCreateModelButton();
+  await dataModelPage.waitForDataModelToAppear(dataModelName);
   await dataModelPage.clickOnGenerateDataModelButton();
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
   await dataModelPage.waitForSuccessAlertToDisappear();

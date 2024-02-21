@@ -74,8 +74,8 @@ export const PolicyResourceFields = ({
       <div className={classes.inputWrapper}>
         <div className={classes.textfieldWrapper}>
           {!canEditTypeAndId && (
-            <Label spacing size='small' as='p' className={classes.label}>
-              Type
+            <Label asChild spacing size='small' className={classes.label}>
+              <p> Type </p>
             </Label>
           )}
           <Textfield
@@ -89,8 +89,8 @@ export const PolicyResourceFields = ({
         </div>
         <div className={classes.textfieldWrapper}>
           {!canEditTypeAndId && (
-            <Label spacing size='small' as='p' className={classes.label}>
-              Id
+            <Label spacing size='small' asChild className={classes.label}>
+              <p>Id</p>
             </Label>
           )}
           <Textfield
