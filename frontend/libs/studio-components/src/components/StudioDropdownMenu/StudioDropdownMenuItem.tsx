@@ -1,7 +1,7 @@
 import type { ReactNode, MouseEvent } from 'react';
 import React, { forwardRef, useContext } from 'react';
 import { DropdownMenu } from '@digdir/design-system-react';
-import type { ButtonProps } from '@digdir/design-system-react';
+import type { DropdownMenuItemProps } from '@digdir/design-system-react';
 import type { IconPlacement } from '../../types/IconPlacement';
 import type { OverridableComponent } from '../../types/OverridableComponent';
 import cn from 'classnames';
@@ -11,7 +11,7 @@ import { StudioDropdownMenuContext } from './StudioDropdownMenuContext';
 export type StudioDropdownMenuItemProps = {
   icon?: ReactNode;
   iconPlacement?: IconPlacement;
-} & Omit<ButtonProps, 'icon'>;
+} & Omit<DropdownMenuItemProps, 'icon'>;
 
 const StudioDropdownMenuItem: OverridableComponent<StudioDropdownMenuItemProps, HTMLButtonElement> =
   forwardRef<HTMLButtonElement, StudioDropdownMenuItemProps>(
