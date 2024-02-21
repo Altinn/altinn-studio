@@ -1,6 +1,8 @@
-import type { InfiniteData, UseInfiniteQueryResult } from '@tanstack/react-query';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  type InfiniteData,
+  type UseInfiniteQueryResult,
+} from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AccessList } from 'app-shared/types/ResourceAdm';
