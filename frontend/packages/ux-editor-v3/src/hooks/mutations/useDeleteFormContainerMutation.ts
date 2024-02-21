@@ -15,7 +15,7 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       // Todo: Consider if this should rather be done in the backend
       for (const componentId of layout.order[id]) {
         if (Object.keys(layout.components).indexOf(componentId) > -1) {
-          if (updatedLayout.order) delete updatedLayout.components[componentId];
+          delete updatedLayout.components[componentId];
           delete updatedLayout.containers[componentId];
           delete updatedLayout.order[componentId];
           debugger;
