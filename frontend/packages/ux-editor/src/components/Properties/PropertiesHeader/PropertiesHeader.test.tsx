@@ -1,9 +1,9 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
-import { FormContext } from '../../../containers/FormContext';
+import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { formContextProviderMock } from '../../../testing/formContextMocks';
+import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { component1Mock, component1IdMock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
@@ -21,7 +21,7 @@ describe('PropertiesHeader', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the header name for the component', () => {
-    renderProperties({ form: component1Mock, formId: component1IdMock });
+    renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
 
     const heading = screen.getByRole('heading', {
       name: textMock(`ux_editor.component_title.${component1Mock.type}`),
@@ -31,7 +31,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('displays the help text when the help text button is clicked', async () => {
-    renderProperties({ form: component1Mock, formId: component1IdMock });
+    renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
 
     const helpTextButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_help_text_general_title'),
@@ -49,7 +49,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('calls "handleComponentUpdate" when the id changes', async () => {
-    renderProperties({ form: component1Mock, formId: component1IdMock });
+    renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
 
     const textBox = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -60,7 +60,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('should display an error when containerId is invalid', async () => {
-    await renderProperties({ form: component1Mock, formId: component1IdMock });
+    await renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
 
     const containerIdInput = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
@@ -74,15 +74,15 @@ describe('PropertiesHeader', () => {
   });
 });
 
-const renderProperties = (formContextProps: Partial<FormContext> = {}) => {
+const renderProperties = (formItemContextProps: Partial<FormItemContext> = {}) => {
   return renderWithProviders(
-    <FormContext.Provider
+    <FormItemContext.Provider
       value={{
-        ...formContextProviderMock,
-        ...formContextProps,
+        ...formItemContextProviderMock,
+        ...formItemContextProps,
       }}
     >
       <PropertiesHeader {...defaultProps} />
-    </FormContext.Provider>,
+    </FormItemContext.Provider>,
   );
 };

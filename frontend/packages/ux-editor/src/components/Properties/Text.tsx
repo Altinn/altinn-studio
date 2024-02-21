@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { useFormContext } from '../../containers/FormContext';
+import { useFormItemContext } from '../../containers/FormItemContext';
 import { useTranslation } from 'react-i18next';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings';
@@ -16,7 +16,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 
 export const Text = () => {
-  const { formId, form, handleUpdate, debounceSave } = useFormContext();
+  const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
   const { t } = useTranslation();
 
   const { data: schema } = useComponentSchemaQuery(form.type);
