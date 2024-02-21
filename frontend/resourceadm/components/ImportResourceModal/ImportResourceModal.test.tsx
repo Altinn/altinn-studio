@@ -125,7 +125,7 @@ describe('ImportResourceModal', () => {
     );
     await act(() => user.click(serviceSelect));
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
-    expect(serviceSelect).toHaveValue(mockOption);
+    await waitFor(() => expect(serviceSelect).toHaveValue(mockOption));
 
     await act(() => user.click(serviceSelect));
     await act(() => user.keyboard('{BACKSPACE}'));
