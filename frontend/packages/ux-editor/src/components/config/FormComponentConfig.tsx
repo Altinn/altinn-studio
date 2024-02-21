@@ -46,7 +46,8 @@ export const FormComponentConfig = ({
   const { properties } = schema;
   const { hasCustomFileEndings, validFileEndings, grid } = properties;
 
-  const customProperties = ['hasCustomFileEndings', 'validFileEndings', 'grid'];
+  // Add any properties that have a custom implementation to this list so they are not duplicated in the generic view
+  const customProperties = ['hasCustomFileEndings', 'validFileEndings', 'grid', 'children'];
 
   const booleanPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(
     schema.properties,

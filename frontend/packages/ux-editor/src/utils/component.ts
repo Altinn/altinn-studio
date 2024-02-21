@@ -51,7 +51,7 @@ export enum PropertyTypes {
   array = 'array',
 }
 
-// These properties are defined elsewhere and should not be included in the component config
+// Add any properties that are rendered elsewhere to this list so they are not duplicated in the generic view
 export const propertyKeysToExcludeFromComponentConfig = [
   'id',
   'type',
