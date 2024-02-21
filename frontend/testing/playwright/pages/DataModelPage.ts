@@ -144,13 +144,23 @@ export class DataModelPage extends BasePage {
 
   public async selectFileToUpload(fileName: string): Promise<void> {
     await this.page
+      .getByRole('toolbar')
       .getByTestId(DataTestId.FileSelectorInput)
-      .first()
       .setInputFiles(path.join(__dirname, fileName));
+  }
+
+  public async waitForDataModelToBeUploaded(): Promise<void> {
+    const spinner = this.page.getByText(this.textMock('app_data_modelling.uploading_xsd'));
+    await expect(spinner).toBeHidden();
   }
 
   public async getDataModelOptionValue(option: string): Promise<string> {
     return await this.page.getByRole('option', { name: option }).getAttribute('value');
+  }
+
+  public async waitForDataModelToAppear(dataModelName: string): Promise<void> {
+    const dataModelButton = this.page.getByRole('button', { name: dataModelName, exact: true });
+    await expect(dataModelButton).toBeVisible();
   }
 
   public async waitForSuccessAlertToDisappear(): Promise<void> {
