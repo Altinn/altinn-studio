@@ -110,11 +110,15 @@ describe('PropertiesHeader', () => {
     await render({ form: componentMocks[ComponentType.RepeatingGroup] });
 
     const dataModelBinding = screen.getByRole('button', {
-      name: `${textMock('ux_editor.modal_properties_data_model_link') + ' ' + textMock('general.for') + ' ' + textMock('ux_editor.modal_properties_data_model_label.group')}`,
+      name: textMock('ux_editor.modal_properties_data_model_link'),
     });
     await act(() => user.click(dataModelBinding));
     const dataModelBindingSelector = screen.getByRole('combobox', {
-      name: `${textMock('ux_editor.modal_properties_data_model_helper') + ' ' + textMock('general.for') + ' ' + textMock('ux_editor.modal_properties_data_model_label.group')}`,
+      name:
+        textMock('ux_editor.modal_properties_data_model_helper') +
+        ' ' +
+        textMock('general.for') +
+        ' group',
     });
     await act(() => user.click(dataModelBindingSelector));
     const dataModelOption = screen.getByRole('option', { name: dataBindingNameMock });
