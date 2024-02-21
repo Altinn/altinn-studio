@@ -1,6 +1,5 @@
 // import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import type { UseQueryResult } from '@tanstack/react-query';
-import { useQueries, useQueryClient } from '@tanstack/react-query';
+import { useQueries, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { addSchemas } from 'app-shared/utils/formValidationUtils';
 
 import expressionSchema from '../../testing/schemas/json/layout/expression.schema.v1.json';

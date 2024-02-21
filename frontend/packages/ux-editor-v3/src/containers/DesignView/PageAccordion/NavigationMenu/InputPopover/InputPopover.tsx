@@ -1,5 +1,10 @@
-import type { ReactNode, ChangeEvent, KeyboardEvent } from 'react';
-import React, { useState, useRef } from 'react';
+import React, {
+  useState,
+  useRef,
+  type ReactNode,
+  type ChangeEvent,
+  type KeyboardEvent,
+} from 'react';
 import classes from './InputPopover.module.css';
 import { DropdownMenu, ErrorMessage, Popover, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';

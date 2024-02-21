@@ -1,5 +1,4 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { actions, moduleName } from './formLayoutActions';
 import type { IAddLayoutFulfilledAction, IDeleteLayoutAction } from '../formDesignerTypes';
 

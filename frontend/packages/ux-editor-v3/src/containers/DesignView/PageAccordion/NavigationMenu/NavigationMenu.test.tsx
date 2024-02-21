@@ -1,7 +1,6 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
-import type { NavigationMenuProps } from './NavigationMenu';
-import { NavigationMenu } from './NavigationMenu';
+import { NavigationMenu, type NavigationMenuProps } from './NavigationMenu';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
