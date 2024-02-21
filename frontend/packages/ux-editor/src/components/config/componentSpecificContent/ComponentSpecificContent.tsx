@@ -6,6 +6,7 @@ import { FileUploadComponent } from './FileUpload';
 import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
+import { RepeatingGroupComponent } from './RepeatingGroup';
 
 export function ComponentSpecificContent({
   component,
@@ -49,6 +50,17 @@ export function ComponentSpecificContent({
     case ComponentType.Map: {
       return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
     }
+
+    case ComponentType.RepeatingGroup: {
+      return (
+        <RepeatingGroupComponent
+          editFormId={component.id}
+          component={component}
+          handleComponentUpdate={handleComponentChange}
+        />
+      );
+    }
+
     default: {
       return null;
     }

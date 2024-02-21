@@ -31,7 +31,7 @@ import PanelSchema from './schemas/json/component/Panel.schema.v1.json';
 import ParagraphSchema from './schemas/json/component/Paragraph.schema.v1.json';
 import PrintButtonSchema from './schemas/json/component/PrintButton.schema.v1.json';
 import RadioButtonsSchema from './schemas/json/component/RadioButtons.schema.v1.json';
-//import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema.v1.json';
+import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema.v1.json';
 import SummarySchema from './schemas/json/component/Summary.schema.v1.json';
 import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 
@@ -69,7 +69,7 @@ export const componentSchemaMocks = {
   Paragraph: ParagraphSchema,
   PrintButton: PrintButtonSchema,
   RadioButtons: RadioButtonsSchema,
-  //RepeatingGroup: RepeatingGroupSchema,
+  RepeatingGroup: RepeatingGroupSchema,
   Summary: SummarySchema,
   TextArea: TextAreaSchema,
 };

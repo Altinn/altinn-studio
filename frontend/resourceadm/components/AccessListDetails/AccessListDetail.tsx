@@ -82,7 +82,7 @@ export const AccessListDetail = ({
       <FieldWrapper
         fieldId='listname'
         label={t('resourceadm.listadmin_list_name')}
-        description={t('resourceadm.listadmin_list_id_description')}
+        description={t('resourceadm.listadmin_list_name_description')}
         ariaDescriptionId='listname-description'
       >
         <Textfield
