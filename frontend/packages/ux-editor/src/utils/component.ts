@@ -42,6 +42,25 @@ export enum AddressKeys {
   houseNumber = 'houseNumber',
 }
 
+export enum PropertyTypes {
+  boolean = 'boolean',
+  number = 'number',
+  integer = 'integer',
+  string = 'string',
+  object = 'object',
+  array = 'array',
+}
+
+// These properties are defined elsewhere and should not be included in the component config
+export const propertyKeysToExcludeFromComponentConfig = [
+  'id',
+  'type',
+  'dataModelBindings',
+  'textResourceBindings',
+  'options',
+  'optionsId',
+];
+
 export const changeTextResourceBinding = (
   component: FormComponent,
   bindingKey: string,
@@ -53,6 +72,60 @@ export const changeTextResourceBinding = (
     [bindingKey]: resourceKey,
   },
 });
+
+/**
+ * Function that returns true if the given property matches the required
+ * conditions for the provided property type.
+ * @param propertyKey The key of the property to check.
+ * @param propertyType The expected property type to check for.
+ * @param properties The properties to check.
+ * @returns
+ */
+export const propertyTypeMatcher = (property: KeyValuePairs, propertyType: PropertyTypes) => {
+  if (!property) return false;
+  const baseMatch =
+    property.type === propertyType ||
+    property.$ref?.endsWith(getExpressionSchemaDefinitionReference(propertyType));
+
+  switch (propertyType) {
+    case PropertyTypes.string:
+      // Not all schemas with enum value explicitly specifies type as string
+      return baseMatch || !!property.enum;
+    case PropertyTypes.array:
+      // Currently only supporting array of strings with specified enum values
+      return baseMatch && !!property.items?.enum;
+    case PropertyTypes.object:
+      // Currently only supporting object with specifiec properties and no additional properties
+      return baseMatch && !!property.properties && !property.additionalProperties;
+    default:
+      return baseMatch;
+  }
+};
+
+/**
+ * Function that returns an array of supported property keys for the given property type(s).
+ * @param properties The properties to check.
+ * @param propertyTypes The expected property types to check for.
+ * @param excludeKeys Property keys that should be excluded from the result.
+ * @returns An array of supported property keys.
+ */
+export const getSupportedPropertyKeysForPropertyType = (
+  properties: KeyValuePairs,
+  propertyTypes: PropertyTypes[],
+  excludeKeys: string[] = [],
+) => {
+  return Object.keys(properties).filter((key) => {
+    if (
+      !properties[key] ||
+      !isPropertyTypeSupported(properties[key]) ||
+      excludeKeys.includes(key) ||
+      propertyKeysToExcludeFromComponentConfig.includes(key)
+    )
+      return false;
+
+    return propertyTypes.find((propertyType) => propertyTypeMatcher(properties[key], propertyType));
+  });
+};
 
 export const changeTitleBinding = (component: FormComponent, resourceKey: string): FormComponent =>
   changeTextResourceBinding(component, 'title', resourceKey);
@@ -119,39 +192,20 @@ export const setComponentProperty = <
 export const EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE =
   'expression.schema.v1.json#/definitions/' as const;
 
-export const getExpressionSchemaDefinitionReference = (type: string) => {
+export const getExpressionSchemaDefinitionReference = (type: PropertyTypes) => {
   return `${EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE}${type}`;
 };
 
-/**
- * Gets an array of unsupported property keys
- * @param properties The properties object to check.
- * @param knownUnsupportedPropertyKeys An array of additional known unsupported property keys.
- * @returns An array of unsupported property keys.
- */
-export const getUnsupportedPropertyTypes = (
-  properties: KeyValuePairs,
-  knownUnsupportedPropertyKeys?: string[],
-) => {
-  const propertyKeys = Object.keys(properties);
-  let unsupportedPropertyKeys = propertyKeys
-    .filter((key) =>
-      knownUnsupportedPropertyKeys ? !knownUnsupportedPropertyKeys.includes(key) : true,
-    )
-    .filter((key) => {
-      return !isPropertyTypeSupported(properties[key]);
-    });
-
-  if (knownUnsupportedPropertyKeys) {
-    unsupportedPropertyKeys = unsupportedPropertyKeys.concat(knownUnsupportedPropertyKeys);
-  }
-
-  return unsupportedPropertyKeys;
-};
-
-const supportedPropertyTypes = ['boolean', 'number', 'integer', 'string', 'object'];
+const supportedPropertyTypes = [
+  PropertyTypes.boolean,
+  PropertyTypes.number,
+  PropertyTypes.integer,
+  PropertyTypes.string,
+  PropertyTypes.object,
+  PropertyTypes.array,
+];
 const supportedPropertyRefs = supportedPropertyTypes
-  .filter((p) => p !== 'object')
+  .filter((p) => p !== 'object' && p !== 'array')
   .map((type) => getExpressionSchemaDefinitionReference(type));
 
 /**
@@ -162,16 +216,6 @@ const supportedPropertyRefs = supportedPropertyTypes
 export const isPropertyTypeSupported = (property: KeyValuePairs) => {
   if (property?.$ref) {
     return supportedPropertyRefs.includes(property.$ref);
-  }
-  if (property?.type === 'array' && property?.items?.type === 'string') {
-    return true;
-  }
-  if (
-    property?.type === 'object' &&
-    Object.keys(property?.properties).length === 0 &&
-    property?.additionalProperties
-  ) {
-    return false;
   }
 
   return supportedPropertyTypes.includes(property?.type);

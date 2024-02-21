@@ -6,8 +6,9 @@ import { EditNumberValue } from './editModal/EditNumberValue';
 import { EditStringValue } from './editModal/EditStringValue';
 import { useComponentPropertyLabel, useText } from '../../hooks';
 import {
-  getExpressionSchemaDefinitionReference,
-  getUnsupportedPropertyTypes,
+  PropertyTypes,
+  propertyKeysToExcludeFromComponentConfig,
+  getSupportedPropertyKeysForPropertyType,
 } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
 import type { FormItem } from '../../types/FormItem';
@@ -29,6 +30,7 @@ export interface FormComponentConfigProps extends IEditFormComponentProps {
   schema: any;
   hideUnsupported?: boolean;
 }
+
 export const FormComponentConfig = ({
   schema,
   editFormId,
@@ -41,39 +43,46 @@ export const FormComponentConfig = ({
 
   if (!schema?.properties) return null;
 
-  const {
-    children,
-    dataModelBindings,
-    required,
-    readOnly,
-    id,
-    textResourceBindings,
-    type,
-    options,
-    optionsId,
-    hasCustomFileEndings,
-    validFileEndings,
-    grid,
-    ...rest
-  } = schema.properties;
+  const { properties } = schema;
+  const { hasCustomFileEndings, validFileEndings, grid } = properties;
 
-  const unsupportedPropertyKeys: string[] = getUnsupportedPropertyTypes(rest);
+  const customProperties = ['hasCustomFileEndings', 'validFileEndings', 'grid'];
 
-  const booleanRestPropertyKeys = getFilteredPropertyKeys((propertyKey) => {
+  const booleanPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(
+    schema.properties,
+    [PropertyTypes.boolean],
+    customProperties,
+  );
+  const stringPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(
+    schema.properties,
+    [PropertyTypes.string],
+    customProperties,
+  );
+  const numberPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(
+    schema.properties,
+    [PropertyTypes.number, PropertyTypes.integer],
+    customProperties,
+  );
+  const arrayPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(
+    schema.properties,
+    [PropertyTypes.array],
+    customProperties,
+  );
+  const objectPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(
+    schema.properties,
+    [PropertyTypes.object],
+    [...customProperties, 'source'],
+  );
+
+  const unsupportedPropertyKeys: string[] = Object.keys(properties).filter((key) => {
     return (
-      rest[propertyKey]?.type === 'boolean' ||
-      rest[propertyKey]?.$ref?.endsWith(getExpressionSchemaDefinitionReference('boolean'))
-    );
-  }, rest);
-
-  const objectRestPropertyKeys = getFilteredPropertyKeys((propertyKey) => {
-    return rest[propertyKey]?.type === 'object' && rest[propertyKey]?.properties;
-  }, rest);
-
-  const remainingRestPropertyKeys = Object.keys(rest).filter((propertyKey) => {
-    return (
-      !booleanRestPropertyKeys.includes(propertyKey) &&
-      !objectRestPropertyKeys.includes(propertyKey)
+      !booleanPropertyKeys.includes(key) &&
+      !stringPropertyKeys.includes(key) &&
+      !numberPropertyKeys.includes(key) &&
+      !arrayPropertyKeys.includes(key) &&
+      !objectPropertyKeys.includes(key) &&
+      !customProperties.includes(key) &&
+      !propertyKeysToExcludeFromComponentConfig.includes(key)
     );
   });
 
@@ -97,6 +106,20 @@ export const FormComponentConfig = ({
         </Heading>
       )}
 
+      {/** Boolean fields, incl. expression type */}
+      {booleanPropertyKeys.map((propertyKey) => {
+        return (
+          <EditBooleanValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            key={propertyKey}
+            helpText={properties[propertyKey]?.description}
+          />
+        );
+      })}
+
+      {/** Custom logic for custom file endings */}
       {hasCustomFileEndings && (
         <>
           <EditBooleanValue
@@ -125,114 +148,73 @@ export const FormComponentConfig = ({
         </>
       )}
 
-      {/** Boolean fields, incl. expression type */}
-      {readOnly && (
-        <EditBooleanValue
-          propertyKey='readOnly'
-          helpText={readOnly.description}
-          component={component}
-          handleComponentChange={handleComponentUpdate}
-        />
-      )}
-      {required && (
-        <EditBooleanValue
-          propertyKey='required'
-          helpText={required.description}
-          component={component}
-          handleComponentChange={handleComponentUpdate}
-        />
-      )}
-      {booleanRestPropertyKeys.map((propertyKey) => {
-        if (unsupportedPropertyKeys.includes(propertyKey) || !rest[propertyKey]) return null;
+      {/** String properties */}
+      {stringPropertyKeys.map((propertyKey) => {
         return (
-          <EditBooleanValue
+          <EditStringValue
             component={component}
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={rest[propertyKey]?.description}
+            helpText={properties[propertyKey]?.description}
+            enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
           />
         );
       })}
 
-      {/** String and number fields (incl. arrays with enum values) */}
-      {remainingRestPropertyKeys.map((propertyKey) => {
-        if (unsupportedPropertyKeys.includes(propertyKey) || !rest[propertyKey]) return null;
-        if (
-          rest[propertyKey].type === 'number' ||
-          rest[propertyKey].type === 'integer' ||
-          rest[propertyKey].$ref?.endsWith(getExpressionSchemaDefinitionReference('number'))
-        ) {
-          return (
-            <EditNumberValue
-              component={component}
-              handleComponentChange={handleComponentUpdate}
-              propertyKey={propertyKey}
-              key={propertyKey}
-              helpText={rest[propertyKey]?.description}
-            />
-          );
-        }
-        if (
-          rest[propertyKey].type === 'string' ||
-          rest[propertyKey].enum ||
-          rest[propertyKey].$ref?.endsWith(getExpressionSchemaDefinitionReference('string'))
-        ) {
-          return (
-            <EditStringValue
-              component={component}
-              handleComponentChange={handleComponentUpdate}
-              propertyKey={propertyKey}
-              key={propertyKey}
-              helpText={rest[propertyKey]?.description}
-              enumValues={rest[propertyKey]?.enum || rest[propertyKey]?.examples}
-            />
-          );
-        }
-        if (rest[propertyKey].type === 'array' && rest[propertyKey].items?.enum) {
-          return (
-            <EditStringValue
-              component={component}
-              handleComponentChange={handleComponentUpdate}
-              propertyKey={propertyKey}
-              key={propertyKey}
-              helpText={rest[propertyKey]?.description}
-              enumValues={rest[propertyKey]?.items?.enum}
-              multiple={true}
-            />
-          );
-        }
+      {/** Number properties (number and integer types) */}
+      {numberPropertyKeys.map((propertyKey) => {
+        return (
+          <EditNumberValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            key={propertyKey}
+            helpText={properties[propertyKey]?.description}
+          />
+        );
+      })}
+
+      {/** Array properties with enum values) */}
+      {arrayPropertyKeys.map((propertyKey) => {
+        return (
+          <EditStringValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            key={propertyKey}
+            helpText={properties[propertyKey]?.description}
+            enumValues={properties[propertyKey]?.items?.enum}
+            multiple={true}
+          />
+        );
       })}
 
       {/** Object properties */}
-      {objectRestPropertyKeys.map((propertyKey) => {
-        if (unsupportedPropertyKeys.includes(propertyKey) || !rest[propertyKey]) return null;
-        if (rest[propertyKey].type === 'object' && rest[propertyKey].properties) {
-          return (
-            <Card key={propertyKey}>
-              <Heading level={3} size='xxsmall'>
-                {componentPropertyLabel(propertyKey)}
-              </Heading>
-              {rest[propertyKey]?.description && (
-                <Paragraph size='small'>{rest[propertyKey].description}</Paragraph>
-              )}
-              <FormComponentConfig
-                key={propertyKey}
-                schema={rest[propertyKey]}
-                component={component[propertyKey] || {}}
-                handleComponentUpdate={(updatedComponent: FormComponent) => {
-                  handleComponentUpdate({
-                    ...component,
-                    [propertyKey]: updatedComponent,
-                  });
-                }}
-                editFormId={editFormId}
-                hideUnsupported
-              />
-            </Card>
-          );
-        }
-        return null;
+      {objectPropertyKeys.map((propertyKey) => {
+        return (
+          <Card key={propertyKey}>
+            <Heading level={3} size='xxsmall'>
+              {componentPropertyLabel(propertyKey)}
+            </Heading>
+            {properties[propertyKey]?.description && (
+              <Paragraph size='small'>{properties[propertyKey].description}</Paragraph>
+            )}
+            <FormComponentConfig
+              key={propertyKey}
+              schema={properties[propertyKey]}
+              component={component[propertyKey] || {}}
+              handleComponentUpdate={(updatedComponent: FormComponent) => {
+                handleComponentUpdate({
+                  ...component,
+                  [propertyKey]: updatedComponent,
+                });
+              }}
+              editFormId={editFormId}
+              hideUnsupported
+            />
+          </Card>
+        );
       })}
       {/* Show information about unsupported properties if there are any */}
       {unsupportedPropertyKeys.length > 0 && !hideUnsupported && (

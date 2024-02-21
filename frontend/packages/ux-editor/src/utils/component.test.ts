@@ -5,10 +5,12 @@ import {
   changeTextResourceBinding,
   getExpressionSchemaDefinitionReference,
   generateFormItem,
-  getUnsupportedPropertyTypes,
   isPropertyTypeSupported,
   setComponentProperty,
   EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE,
+  PropertyTypes,
+  propertyTypeMatcher,
+  getSupportedPropertyKeysForPropertyType,
 } from './component';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type {
@@ -201,92 +203,31 @@ describe('Component utils', () => {
     });
   });
 
-  describe('getUnsupportedPropertyTypes', () => {
-    it('Returns empty array when only valid properties are provided', () => {
-      const properties = {
-        testProperty1: {
-          type: 'string',
-        },
-        testProperty2: {
-          type: 'number',
-        },
-        testProperty3: {
-          type: 'array',
-          items: {
-            type: 'string',
-          },
-        },
-        testProperty4: {
-          $ref: getExpressionSchemaDefinitionReference('boolean'),
-        },
-        testProperty5: {
-          type: 'integer',
-        },
-        testProperty6: {
-          type: 'object',
-          properties: {
-            testProperty6_1: {
-              type: 'string',
-            },
-          },
-        },
-        testProperty7: {
-          type: 'boolean',
-        },
-      };
-      expect(getUnsupportedPropertyTypes(properties)).toEqual([]);
-    });
-    it('Returns empty array when no properties are provided', () => {
-      const properties = {};
-      expect(getUnsupportedPropertyTypes(properties)).toEqual([]);
-    });
-    it('Returns array of unsupported property keys when known unsupported property keys are provided', () => {
-      const properties = {
-        children: 'testValue',
-        testProperty1: {
-          type: 'object',
-          properties: {},
-          additionalProperties: {
-            type: 'string',
-          },
-        },
-      };
-      expect(getUnsupportedPropertyTypes(properties, ['children'])).toEqual([
-        'testProperty1',
-        'children',
-      ]);
-    });
-    it('Returns array of unsupported property keys when unsupported property keys are given', () => {
-      const properties = {
-        testProperty1: {
-          $ref: 'testRef',
-        },
-        testProperty2: {
-          type: 'array',
-          items: {
-            type: 'object',
-          },
-        },
-        testProperty3: {
-          type: 'string',
-        },
-      };
-      const result = getUnsupportedPropertyTypes(properties);
-      expect(result).toEqual(['testProperty1', 'testProperty2']);
-    });
-  });
-
   describe('isPropertyTypeSupported', () => {
     it('should return true if property type is supported', () => {
-      expect(
-        isPropertyTypeSupported({
-          type: 'string',
-        }),
-      ).toBe(true);
+      [
+        PropertyTypes.boolean,
+        PropertyTypes.number,
+        PropertyTypes.integer,
+        PropertyTypes.string,
+        PropertyTypes.object,
+        PropertyTypes.array,
+      ].forEach((type) => {
+        expect(
+          isPropertyTypeSupported({
+            type,
+          }),
+        ).toBe(true);
+      });
     });
 
     it('should return true if property ref is supported', () => {
-      ['boolean', 'number', 'integer', 'string'].forEach((type) => {
+      [
+        PropertyTypes.boolean,
+        PropertyTypes.number,
+        PropertyTypes.integer,
+        PropertyTypes.string,
+      ].forEach((type) => {
         expect(
           isPropertyTypeSupported({
             $ref: getExpressionSchemaDefinitionReference(type),
@@ -295,8 +236,8 @@ describe('Component utils', () => {
       });
     });
 
-    it('should return false if property ref is supported', () => {
-      ['object'].forEach((type) => {
+    it('should return false if property ref is not supported', () => {
+      [PropertyTypes.object, PropertyTypes.array].forEach((type) => {
         expect(
           isPropertyTypeSupported({
             $ref: getExpressionSchemaDefinitionReference(type),
@@ -305,40 +246,6 @@ describe('Component utils', () => {
       });
     });
 
-    it('should return true for property of array type with items that are type string', () => {
-      expect(
-        isPropertyTypeSupported({
-          type: 'array',
-          items: {
-            type: 'string',
-          },
-        }),
-      ).toBe(true);
-    });
-    it('should return true for property type object with defined properties', () => {
-      expect(
-        isPropertyTypeSupported({
-          type: 'object',
-          properties: {
-            test: {
-              type: 'string',
-            },
-          },
-        }),
-      ).toBe(true);
-    });
-
-    it('should return false for property type object with no defined properties, but additionalProperties defined', () => {
-      expect(
-        isPropertyTypeSupported({
-          type: 'object',
-          properties: {},
-          additionalProperties: {
-            type: 'string',
-          },
-        }),
-      ).toBe(false);
-    });
     it('should return false if property ref is not supported', () => {
       expect(
         isPropertyTypeSupported({
@@ -358,9 +265,171 @@ describe('Component utils', () => {
 
   describe('getExpressionSchemaDefinitionReference', () => {
     it('should return correct reference for given type', () => {
-      expect(getExpressionSchemaDefinitionReference('testType')).toBe(
-        `${EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE}testType`,
+      expect(getExpressionSchemaDefinitionReference(PropertyTypes.array)).toBe(
+        `${EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE}array`,
       );
+    });
+  });
+
+  describe('propertyTypeMatcher', () => {
+    it('should return false if property does not exist', () => {
+      expect(propertyTypeMatcher(undefined, PropertyTypes.string)).toBe(false);
+    });
+
+    it('should return true if property type matches', () => {
+      expect(propertyTypeMatcher({ type: 'string' }, PropertyTypes.string)).toBe(true);
+    });
+
+    it('should return false if property type does not match', () => {
+      expect(propertyTypeMatcher({ type: 'number' }, PropertyTypes.string)).toBe(false);
+    });
+
+    it('should return true if property has a supported ref', () => {
+      expect(
+        propertyTypeMatcher(
+          {
+            $ref: getExpressionSchemaDefinitionReference(PropertyTypes.string),
+          },
+          PropertyTypes.string,
+        ),
+      ).toBe(true);
+    });
+
+    it('should return true for a property of string type with enum even if type: string is not defined explicitly', () => {
+      expect(
+        propertyTypeMatcher(
+          {
+            enum: ['test'],
+          },
+          PropertyTypes.string,
+        ),
+      ).toBe(true);
+    });
+
+    it('should return false for a property with no type defined and no enum defined', () => {
+      expect(propertyTypeMatcher({ something: 'test' }, PropertyTypes.string)).toBe(false);
+    });
+
+    it('should return true for a property of array type with items that have enum value', () => {
+      expect(
+        propertyTypeMatcher(
+          {
+            type: 'array',
+            items: {
+              enum: ['test'],
+            },
+          },
+          PropertyTypes.array,
+        ),
+      ).toBe(true);
+    });
+
+    it('should return false for a property of array type with items that have no enum value', () => {
+      expect(
+        propertyTypeMatcher(
+          {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+          PropertyTypes.array,
+        ),
+      ).toBe(false);
+    });
+
+    it('should return false for a property of array type with no items defined', () => {
+      expect(propertyTypeMatcher({ type: 'array' }, PropertyTypes.array)).toBe(false);
+    });
+
+    it('should return false for a property of object type with no properties defined', () => {
+      expect(propertyTypeMatcher({ type: 'object' }, PropertyTypes.object)).toBe(false);
+    });
+
+    it('should return false for a property of object type with additionalProperties defined', () => {
+      expect(
+        propertyTypeMatcher(
+          {
+            type: 'object',
+            properties: {},
+            additionalProperties: {
+              type: 'string',
+            },
+          },
+          PropertyTypes.object,
+        ),
+      ).toBe(false);
+    });
+
+    it('should return true for a property of object type with defined properties and no additionalProperties', () => {
+      expect(
+        propertyTypeMatcher(
+          {
+            type: 'object',
+            properties: {
+              testProperty: {
+                type: 'string',
+              },
+            },
+          },
+          PropertyTypes.object,
+        ),
+      ).toBe(true);
+    });
+  });
+
+  describe('getSupportedPropertyKeysForPropertyType', () => {
+    it('should return empty array if no properties are provided', () => {
+      expect(getSupportedPropertyKeysForPropertyType({}, [PropertyTypes.string])).toEqual([]);
+    });
+
+    it('should return empty array if no property keys are of the expected property types', () => {
+      expect(
+        getSupportedPropertyKeysForPropertyType(
+          {
+            testProperty: {
+              type: 'number',
+            },
+          },
+          [PropertyTypes.string],
+        ),
+      ).toEqual([]);
+    });
+
+    it('should return array of property keys of the expected property types', () => {
+      expect(
+        getSupportedPropertyKeysForPropertyType(
+          {
+            testProperty: {
+              type: 'string',
+            },
+            testProperty2: {
+              type: 'number',
+            },
+          },
+          [PropertyTypes.string],
+        ),
+      ).toEqual(['testProperty']);
+    });
+
+    it('should only return property keys that are not in the excludeKeys array', () => {
+      expect(
+        getSupportedPropertyKeysForPropertyType(
+          {
+            testProperty: {
+              type: 'string',
+            },
+            testProperty1: {
+              type: 'string',
+            },
+            testProperty2: {
+              type: 'number',
+            },
+          },
+          [PropertyTypes.string],
+          ['testProperty'],
+        ),
+      ).toEqual(['testProperty1']);
     });
   });
 });
