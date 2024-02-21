@@ -20,8 +20,6 @@ import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
-import { RepeatingGroupComponent } from './componentSpecificContent/RepeatingGroup';
-import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -76,13 +74,7 @@ export const EditFormComponent = ({
     return <UnknownComponentAlert componentName={component.type} />;
   }
 
-  return component.type === ComponentType.RepeatingGroup ? (
-    <RepeatingGroupComponent
-      editFormId={editFormId}
-      component={component}
-      handleComponentUpdate={handleComponentUpdate}
-    />
-  ) : (
+  return (
     <Fieldset className={classes.root} legend=''>
       <FormField
         id={component.id}

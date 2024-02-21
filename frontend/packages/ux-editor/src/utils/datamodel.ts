@@ -47,7 +47,7 @@ export const getMinOccursFromDataModel = (
   return element?.minOccurs;
 };
 
-export const getMaxOccursForGroupFromDataModel = (
+export const getMaxOccursFromDataModel = (
   dataBindingName: string,
   dataModel: DatamodelFieldElement[],
 ): number => {

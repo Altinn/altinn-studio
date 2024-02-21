@@ -1,12 +1,11 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import {
-  getMaxOccursForGroupFromDataModel,
+  getMaxOccursFromDataModel,
   getMinOccursFromDataModel,
   getXsdDataTypeFromDataModel,
 } from '../../../utils/datamodel';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React, { useEffect, useState } from 'react';
-import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -14,6 +13,7 @@ import { LinkIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
+import { useTranslation } from 'react-i18next';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -33,7 +33,7 @@ export const EditDataModelBindings = ({
 }: EditDataModelBindingsProps) => {
   const { org, app } = useStudioUrlParams();
   const { data } = useDatamodelMetadataQuery(org, app);
-  const t = useText();
+  const { t } = useTranslation();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
     handleComponentChange({
@@ -49,7 +49,7 @@ export const EditDataModelBindings = ({
           : undefined,
       maxCount:
         component.type === ComponentType.RepeatingGroup
-          ? getMaxOccursForGroupFromDataModel(selectedDataModelElement, data)
+          ? getMaxOccursFromDataModel(selectedDataModelElement, data)
           : undefined,
     });
   };
@@ -66,6 +66,10 @@ export const EditDataModelBindings = ({
     ? component.dataModelBindings[key || 'simpleBinding']
     : undefined;
 
+  const labelSpecificText = label
+    ? t('general.for') + ' ' + t(`ux_editor.modal_properties_data_model_label.${label}`)
+    : '';
+
   return (
     <div key={uniqueKey || ''} className={classes.wrapper}>
       {!selectedOption && !dataModelSelectVisible ? (
@@ -77,7 +81,7 @@ export const EditDataModelBindings = ({
         >
           <div className={classes.datamodelLink}>
             <LinkIcon className={classes.linkIcon} />
-            {t('ux_editor.modal_properties_data_model_link')}
+            {`${t('ux_editor.modal_properties_data_model_link')} ${labelSpecificText}`}
           </div>
         </StudioButton>
       ) : (
@@ -96,7 +100,7 @@ export const EditDataModelBindings = ({
                 propertyPath={`definitions/component/properties/dataModelBindings/properties/${
                   key || 'simpleBinding'
                 }`}
-                label={t('ux_editor.modal_properties_data_model_helper')}
+                label={`${t('ux_editor.modal_properties_data_model_helper')} ${labelSpecificText}`}
                 componentType={component.type}
                 inputId={`selectDataModelSelect-${label}`}
                 selectGroup={component.type === ComponentType.RepeatingGroup}
@@ -108,7 +112,6 @@ export const EditDataModelBindings = ({
                 onDataModelChange={(dataModelField: string) => {
                   handleDataModelChange(dataModelField, key);
                 }}
-                noOptionsMessage={t('general.no_options')}
                 helpText={helpText}
               />
             ) : (
