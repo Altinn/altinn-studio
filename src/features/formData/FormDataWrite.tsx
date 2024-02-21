@@ -110,10 +110,11 @@ export function FormDataWriteProvider({ url, initialData, autoSaving, children }
 
 function FormDataEffects({ url }: { url: string }) {
   const state = useSelector((s) => s);
-  const { currentData, debouncedCurrentData, lastSavedData, controlState, hasUnsavedChanges, cancelSave } = state;
+  const { currentData, debouncedCurrentData, lastSavedData, controlState, cancelSave } = state;
   const { debounceTimeout, autoSaving, manualSaveRequested, lockedBy, isSaving } = controlState;
   const { mutate, error } = useFormDataSaveMutation(state);
   const debounce = useDebounceImmediately();
+  const hasUnsavedChanges = useHasUnsavedChanges();
 
   // This component re-renders on every keystroke in a form field. We don't want to save on every keystroke, nor
   // create a new performSave function after every save, so we use a ref to make sure the performSave function
@@ -225,7 +226,16 @@ const useDebounceImmediately = () => {
 };
 
 const useHasUnsavedChanges = () => {
-  const result = useLaxSelector((s) => s.hasUnsavedChanges);
+  const result = useLaxSelector((s) => {
+    if (s.controlState.isSaving) {
+      return true;
+    }
+    if (s.currentData !== s.lastSavedData) {
+      return true;
+    }
+    return s.debouncedCurrentData !== s.lastSavedData;
+  });
+
   if (result === ContextNotProvided) {
     return false;
   }
@@ -237,10 +247,10 @@ const useWaitForSave = () => {
   const requestSave = useRequestManualSave();
   const url = useLaxSelector((s) => s.controlState.saveUrl);
   const ref = useAsRefFromLaxSelector(useLaxStore(), (s) => ({
-    hasUnsavedChanges: s.hasUnsavedChanges,
     isSaving: s.controlState.isSaving,
     validation: s.validationIssues,
   }));
+  const hasUnsavedChangesRef = useAsRef(useHasUnsavedChanges());
   const waitFor = useWaitForState<BackendValidationIssueGroups | undefined, FromRef<typeof ref>>(ref);
 
   return useCallback(
@@ -258,7 +268,7 @@ const useWaitForSave = () => {
           setReturnValue(undefined);
           return true;
         }
-        if (!state.hasUnsavedChanges && !state.isSaving) {
+        if (!hasUnsavedChangesRef.current && !state.isSaving) {
           setReturnValue(state.validation);
           return true;
         }
@@ -266,7 +276,7 @@ const useWaitForSave = () => {
         return false;
       });
     },
-    [requestSave, url, waitFor],
+    [hasUnsavedChangesRef, requestSave, url, waitFor],
   );
 };
 
