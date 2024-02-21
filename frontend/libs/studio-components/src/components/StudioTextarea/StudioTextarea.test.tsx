@@ -117,7 +117,7 @@ describe('StudioTextarea', () => {
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
-  it('Displays the error message if is is set in the "error" prop', async () => {
+  it('Displays the error message if it is set in the "error" prop', async () => {
     const user = userEvent.setup();
     const error = 'error message';
     renderTextarea({ error });
