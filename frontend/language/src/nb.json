@@ -1346,7 +1346,7 @@
   "ux_editor.component_deletion_confirm": "Ja, slett komponenten",
   "ux_editor.component_deletion_text": "Er du sikker på at du vil slette denne komponenten?",
   "ux_editor.component_dropdown_set_preselected": "Sett forhåndsvalgt verdi for nedtrekksliste",
-  "ux_editor.component_group_deletion_text": "Er du sikker på at du vil slette denne komponenten?\nAlle komponenter i denne gruppen vil bli fjernet",
+  "ux_editor.component_group_deletion_text": "Er du sikker på at du vil slette denne gruppen?\nAlle komponenter i denne gruppen vil også bli fjernet",
   "ux_editor.component_help_text.Accordion": "Med Accordion kan du presentere mye innhold på liten plass i en eller flere rader. Hele raden er klikkbar og lar brukere åpne eller lukke visningen av innholdet under.",
   "ux_editor.component_help_text.AccordionGroup": "En samling med Accordions som vises vertikalt. Brukes for å gruppere Accordions som hører sammen.",
   "ux_editor.component_help_text.ActionButton": "Knapp for å trigge en spesifisert aksjon knyttet til prosess-steget sluttbruker befinner seg i. Eksempler inkluderer 'sign', 'confirm', 'reject'.",
