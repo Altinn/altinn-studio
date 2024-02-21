@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, ToggleGroup } from '@digdir/design-system-react';
+import { Heading, Link as DigdirLink, ToggleGroup, Button } from '@digdir/design-system-react';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
@@ -16,14 +16,17 @@ export const ListAdminPage = (): React.JSX.Element => {
   const navigate = useNavigate();
   const { selectedContext, repo, env: selectedEnv } = useUrlParams();
 
-  const { data: envListData, isLoading: isLoadingEnvListData } = useGetAccessListsQuery(
-    selectedContext,
-    selectedEnv,
-  );
+  const {
+    data: envListData,
+    isLoading: isLoadingEnvListData,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useGetAccessListsQuery(selectedContext, selectedEnv);
 
   const navigateToListEnv = useCallback(
-    (navigateEnv: EnvId) => {
-      navigate(getAccessListPageUrl(selectedContext, repo, navigateEnv));
+    (navigateEnv: EnvId, replace?: boolean) => {
+      navigate(getAccessListPageUrl(selectedContext, repo, navigateEnv), { replace: replace });
     },
     [selectedContext, repo, navigate],
   );
@@ -31,7 +34,7 @@ export const ListAdminPage = (): React.JSX.Element => {
   useEffect(() => {
     if (!selectedEnv) {
       const availableEnvs = getAvailableEnvironments(selectedContext);
-      navigateToListEnv(availableEnvs[0].id);
+      navigateToListEnv(availableEnvs[0].id, true);
     }
   }, [selectedContext, selectedEnv, navigateToListEnv]);
 
@@ -76,7 +79,7 @@ export const ListAdminPage = (): React.JSX.Element => {
                     ),
                   })}
                 </Heading>
-                {envListData.map((list) => {
+                {envListData.pages.map((list) => {
                   return (
                     <div key={list.identifier} className={classes.tableRowContent}>
                       <div>{list.name}</div>
@@ -99,6 +102,16 @@ export const ListAdminPage = (): React.JSX.Element => {
                     </div>
                   );
                 })}
+                {hasNextPage && (
+                  <Button
+                    disabled={isFetchingNextPage}
+                    size='small'
+                    variant='tertiary'
+                    onClick={() => fetchNextPage()}
+                  >
+                    {t('resourceadm.listadmin_load_more')}
+                  </Button>
+                )}
               </div>
             )}
             <div>
