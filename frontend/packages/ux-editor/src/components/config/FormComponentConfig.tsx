@@ -19,13 +19,6 @@ export interface IEditFormComponentProps {
   handleComponentUpdate: (component: FormItem) => void;
 }
 
-export const getFilteredPropertyKeys = (
-  matcher: (propertyKey: string) => boolean,
-  properties: any,
-): string[] => {
-  return Object.keys(properties).filter((propertyKey) => matcher(propertyKey));
-};
-
 export interface FormComponentConfigProps extends IEditFormComponentProps {
   schema: any;
   hideUnsupported?: boolean;
