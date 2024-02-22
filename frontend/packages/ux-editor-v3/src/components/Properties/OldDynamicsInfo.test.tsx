@@ -3,8 +3,7 @@ import { screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
-import type { AppContextProps } from '../../AppContext';
-import { AppContext } from '../../AppContext';
+import { AppContext, type AppContextProps } from '../../AppContext';
 import { appContextMock } from '../../testing/appContextMock';
 
 describe('OldDynamicsInfo', () => {

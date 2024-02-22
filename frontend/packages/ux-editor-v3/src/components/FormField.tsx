@@ -1,6 +1,5 @@
 import React from 'react';
-import type { FormFieldProps } from 'app-shared/components/FormField';
-import { FormField as FF } from 'app-shared/components/FormField';
+import { FormField as FF, type FormFieldProps } from 'app-shared/components/FormField';
 import { useLayoutSchemaQuery } from '../hooks/queries/useLayoutSchemaQuery';
 
 export const FormField = <T extends unknown, TT extends unknown>(

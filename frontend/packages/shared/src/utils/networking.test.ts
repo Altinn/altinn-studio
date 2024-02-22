@@ -1,5 +1,4 @@
-import type { AxiosError } from 'axios';
-import axios from 'axios';
+import axios, { type AxiosError } from 'axios';
 import { del, get, patch, post, put } from './networking';
 
 jest.mock('axios');

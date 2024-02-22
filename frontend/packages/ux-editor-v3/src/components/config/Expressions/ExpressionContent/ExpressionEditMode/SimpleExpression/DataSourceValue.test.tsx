@@ -1,7 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import type { DataSourceValueProps } from './DataSourceValue';
-import { DataSourceValue } from './DataSourceValue';
+import { DataSourceValue, type DataSourceValueProps } from './DataSourceValue';
 import { DataSource } from '../../../../../../types/Expressions';
 import { subExpression0 } from '../../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

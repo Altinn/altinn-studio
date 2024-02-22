@@ -2,8 +2,10 @@ import React, { useContext } from 'react';
 import { Alert } from '@digdir/design-system-react';
 import { ExpressionContent } from './ExpressionContent';
 import { useText } from '../../../hooks';
-import type { ExpressionProperty } from '../../../types/Expressions';
-import { getExpressionPropertiesBasedOnComponentType } from '../../../types/Expressions';
+import {
+  getExpressionPropertiesBasedOnComponentType,
+  type ExpressionProperty,
+} from '../../../types/Expressions';
 import {
   addPropertyForExpression,
   getAllComponentPropertiesThatCanHaveExpressions,

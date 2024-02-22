@@ -23,8 +23,7 @@ import {
   Operator,
 } from '../../../../../types/Expressions';
 import { deepCopy } from 'app-shared/pure';
-import type { ExpressionEditModeProps } from './ExpressionEditMode';
-import { ExpressionEditMode } from './ExpressionEditMode';
+import { ExpressionEditMode, type ExpressionEditModeProps } from './ExpressionEditMode';
 
 const org = 'org';
 const app = 'app';

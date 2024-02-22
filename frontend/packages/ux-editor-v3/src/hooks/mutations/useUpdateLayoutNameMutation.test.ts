@@ -3,8 +3,10 @@ import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/m
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
-import type { UpdateLayoutNameMutationArgs } from './useUpdateLayoutNameMutation';
-import { useUpdateLayoutNameMutation } from './useUpdateLayoutNameMutation';
+import {
+  useUpdateLayoutNameMutation,
+  type UpdateLayoutNameMutationArgs,
+} from './useUpdateLayoutNameMutation';
 import { layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:

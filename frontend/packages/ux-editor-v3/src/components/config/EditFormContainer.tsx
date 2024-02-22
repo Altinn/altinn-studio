@@ -16,8 +16,7 @@ import {
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
-import { useText } from '../../hooks';
-import { useSelectedFormLayout, useTextResourcesSelector } from '../../hooks';
+import { useSelectedFormLayout, useTextResourcesSelector, useText } from '../../hooks';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { ITextResource } from 'app-shared/types/global';

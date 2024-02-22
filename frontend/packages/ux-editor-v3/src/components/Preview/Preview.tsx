@@ -10,8 +10,7 @@ import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
 import { StudioButton, StudioCenter } from '@studio/components';
-import type { SupportedView } from './ViewToggler/ViewToggler';
-import { ViewToggler } from './ViewToggler/ViewToggler';
+import { ViewToggler, type SupportedView } from './ViewToggler/ViewToggler';
 import { ArrowRightIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 

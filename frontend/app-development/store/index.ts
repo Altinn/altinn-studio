@@ -1,5 +1,4 @@
-import type { PreloadedState } from '@reduxjs/toolkit';
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, type PreloadedState } from '@reduxjs/toolkit';
 import { rootReducer } from '../reducers';
 import { sagaMiddleware } from '../sagas';
 import { isProduction } from 'app-shared/utils/is-production';

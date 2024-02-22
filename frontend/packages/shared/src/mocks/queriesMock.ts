@@ -14,7 +14,6 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgsState } from 'app-shared/types/OrgsState';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
-import type { Repository } from 'app-shared/types/Repository';
 import type {
   AccessList,
   AccessListsResponse,
@@ -26,7 +25,7 @@ import type {
   Validation,
 } from 'app-shared/types/ResourceAdm';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
-import type { User } from 'app-shared/types/Repository';
+import type { User, Repository } from 'app-shared/types/Repository';
 import type {
   AppDeploymentsResponse,
   AppReleasesResponse,

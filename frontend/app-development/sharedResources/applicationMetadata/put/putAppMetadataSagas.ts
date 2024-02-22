@@ -2,8 +2,10 @@ import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { put as axiosPut } from 'app-shared/utils/networking';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { ApplicationMetadataActions } from '../applicationMetadataSlice';
-import type { IPutApplicationMetadata } from '../applicationMetadataSlice';
+import {
+  ApplicationMetadataActions,
+  type IPutApplicationMetadata,
+} from '../applicationMetadataSlice';
 import { appMetadataPath } from 'app-shared/api/paths';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 

@@ -2,8 +2,7 @@ import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { RepoStatusActions } from '../repoStatusSlice';
-import type { IRepoStatusAction } from '../repoStatusSlice';
+import { RepoStatusActions, type IRepoStatusAction } from '../repoStatusSlice';
 import { masterRepoStatusPath } from 'app-shared/api/paths';
 
 // GET MASTER REPO

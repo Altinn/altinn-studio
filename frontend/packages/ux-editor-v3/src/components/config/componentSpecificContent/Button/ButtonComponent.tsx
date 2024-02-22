@@ -1,8 +1,7 @@
 import React from 'react';
 import { Fieldset } from '@digdir/design-system-react';
 import classes from './ButtonComponent.module.css';
-import type { IGenericEditComponent } from '../../componentConfig';
-import { EditSettings } from '../../componentConfig';
+import { EditSettings, type IGenericEditComponent } from '../../componentConfig';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { EditTextResourceBindings } from '../../editModal/EditTextResourceBindings';
 import { useTranslation } from 'react-i18next';

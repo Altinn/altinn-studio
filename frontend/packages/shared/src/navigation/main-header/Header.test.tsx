@@ -1,10 +1,13 @@
 import React from 'react';
-
 import { render as rtlRender, screen } from '@testing-library/react';
 import Router from 'react-router-dom';
-
-import type { IHeaderContext } from './Header';
-import { getOrgNameByUsername, Header, HeaderContext, SelectedContextType } from './Header';
+import {
+  getOrgNameByUsername,
+  Header,
+  HeaderContext,
+  SelectedContextType,
+  type IHeaderContext,
+} from './Header';
 
 const orgUsername = 'username1';
 const orgFullName = 'Organization 1';

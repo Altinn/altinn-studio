@@ -1,8 +1,7 @@
 import React from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { IProfileMenuComponentProps } from './ProfileMenu';
-import { ProfileMenu } from './ProfileMenu';
+import { ProfileMenu, type IProfileMenuComponentProps } from './ProfileMenu';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();

@@ -1,8 +1,7 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { SubExpressionContentProps } from './SubExpressionContent';
-import { SubExpressionContent } from './SubExpressionContent';
+import { SubExpressionContent, type SubExpressionContentProps } from './SubExpressionContent';
 import {
   baseInternalSubExpression,
   componentId,

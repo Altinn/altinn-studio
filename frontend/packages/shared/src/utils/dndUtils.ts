@@ -1,6 +1,10 @@
 import type { DropTargetMonitor } from 'react-dnd';
-import type { DndItem, ExistingDndItem, ItemPosition } from 'app-shared/types/dndTypes';
-import { DragCursorPosition } from 'app-shared/types/dndTypes';
+import {
+  DragCursorPosition,
+  type DndItem,
+  type ExistingDndItem,
+  type ItemPosition,
+} from 'app-shared/types/dndTypes';
 import type { RefObject } from 'react';
 import { areObjectsEqual } from 'app-shared/utils/objectUtils';
 

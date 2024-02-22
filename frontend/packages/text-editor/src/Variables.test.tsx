@@ -1,6 +1,5 @@
 import React from 'react';
-import type { VariablesProps } from './Variables';
-import { Variables } from './Variables';
+import { Variables, type VariablesProps } from './Variables';
 import { screen, render as rtlRender } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
 

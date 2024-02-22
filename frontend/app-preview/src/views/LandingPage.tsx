@@ -7,8 +7,10 @@ import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import type { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import { getTopBarAppPreviewMenu } from '../components/AppBarConfig/AppPreviewBarConfig';
-import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
+import {
+  appPreviewButtonActions,
+  getTopBarAppPreviewMenu,
+} from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { previewPage } from 'app-shared/api/paths';
