@@ -2,9 +2,9 @@ import React from 'react';
 import { Properties } from './Properties';
 import { render as rtlRender, act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { FormContext } from '../../containers/FormContext';
+import { FormItemContext } from '../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { formContextProviderMock } from '../../testing/formContextMocks';
+import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 
 const user = userEvent.setup();
 
@@ -57,7 +57,7 @@ describe('Properties', () => {
 
     it('Opens content when a component is selected', async () => {
       const { rerender } = render();
-      rerender(getComponent({ formId: 'test' }));
+      rerender(getComponent({ formItemId: 'test' }));
       const button = screen.queryByRole('button', { name: contentText });
       await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
     });
@@ -81,7 +81,7 @@ describe('Properties', () => {
 
     it('Shows new dynamics by default', async () => {
       const { rerender } = render();
-      rerender(getComponent({ formId: 'test' }));
+      rerender(getComponent({ formItemId: 'test' }));
       const dynamicsButton = screen.queryByRole('button', { name: dynamicsText });
       await act(() => user.click(dynamicsButton));
       const newDynamics = screen.getByTestId(expressionsTestId);
@@ -108,7 +108,7 @@ describe('Properties', () => {
 
   it('Renders accordion', () => {
     const formIdMock = 'test-id';
-    render({ formId: formIdMock });
+    render({ formItemId: formIdMock });
     expect(screen.getByText(contentText)).toBeInTheDocument();
     expect(screen.getByText(dynamicsText)).toBeInTheDocument();
     expect(screen.getByText(calculationsText)).toBeInTheDocument();
@@ -118,16 +118,16 @@ describe('Properties', () => {
   });
 });
 
-const getComponent = (formContextProps: Partial<FormContext> = {}) => (
-  <FormContext.Provider
+const getComponent = (formItemContextProps: Partial<FormItemContext> = {}) => (
+  <FormItemContext.Provider
     value={{
-      ...formContextProviderMock,
-      ...formContextProps,
+      ...formItemContextProviderMock,
+      ...formItemContextProps,
     }}
   >
     <Properties />
-  </FormContext.Provider>
+  </FormItemContext.Provider>
 );
 
-const render = (formContextProps: Partial<FormContext> = {}) =>
-  rtlRender(getComponent(formContextProps));
+const render = (formItemContextProps: Partial<FormItemContext> = {}) =>
+  rtlRender(getComponent(formItemContextProps));

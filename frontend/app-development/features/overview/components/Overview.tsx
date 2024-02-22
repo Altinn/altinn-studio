@@ -38,7 +38,13 @@ export const Overview = () => {
   }
 
   if (isPendingAppConfig || isPendingOrgs) {
-    return <StudioPageSpinner spinnerText={t('general.loading')} className={classes.spinner} />;
+    return (
+      <StudioPageSpinner
+        showSpinnerTitle
+        spinnerTitle={t('overview.loading_page')}
+        className={classes.spinner}
+      />
+    );
   }
 
   // If repo-owner is an organisation

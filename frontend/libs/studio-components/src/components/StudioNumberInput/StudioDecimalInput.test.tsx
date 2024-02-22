@@ -4,16 +4,16 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import type { StudioDecimalInputProps } from './StudioDecimalInput';
 import { StudioDecimalInput } from './StudioDecimalInput';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
 
-const user = userEvent.setup();
 const description = 'description';
 const onChange = jest.fn();
+const validationErrorMessage: string = 'error';
 
 const defaultProps: StudioDecimalInputProps = {
   description,
   onChange,
   value: undefined,
+  validationErrorMessage,
 };
 
 describe('StudioDecimalInput', () => {
@@ -37,6 +37,7 @@ describe('StudioDecimalInput', () => {
   });
 
   it('should not show error message when input is an integer number and user clicks outside the field', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123'));
@@ -45,6 +46,7 @@ describe('StudioDecimalInput', () => {
   });
 
   it('should not show error message when input is a decimal number and user clicks outside the field', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123.456'));
@@ -53,6 +55,7 @@ describe('StudioDecimalInput', () => {
   });
 
   it('should not show error message when input is focused', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123.456'));
@@ -60,14 +63,16 @@ describe('StudioDecimalInput', () => {
   });
 
   it('should show error message when input is charachter and user clicks outside the field', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, 'abc'));
     await act(() => user.click(document.body));
-    expect(screen.getByText(textMock('validation_errors.numbers_only'))).toBeInTheDocument();
+    expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
   it("should allow decimal numbers with ','", async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123,456'));
@@ -75,6 +80,7 @@ describe('StudioDecimalInput', () => {
   });
 
   it('should update input value with a new value', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123.456'));
@@ -87,6 +93,7 @@ describe('StudioDecimalInput', () => {
   });
 
   it('should call onChange with correct value when input is valid', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123.456'));
@@ -94,6 +101,7 @@ describe('StudioDecimalInput', () => {
   });
 
   it('should update input value on change', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123'));
@@ -101,30 +109,34 @@ describe('StudioDecimalInput', () => {
   });
 
   it('should show error message when typing special charachter after number', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123!'));
     await act(() => user.click(document.body));
-    expect(screen.getByText(textMock('validation_errors.numbers_only'))).toBeInTheDocument();
+    expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
   it('should show error message when typing special characters like for example ! @ # ', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '!@#'));
     await act(() => user.click(document.body));
-    expect(screen.getByText(textMock('validation_errors.numbers_only'))).toBeInTheDocument();
+    expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
   it('show error message when user types number followed by character and clicks outside the field', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '123abc'));
     await act(() => user.click(document.body));
-    expect(screen.getByText(textMock('validation_errors.numbers_only'))).toBeInTheDocument();
+    expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
   it('Calls onChange function with correct number value when the user changes it', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, '1,2'));
@@ -132,6 +144,7 @@ describe('StudioDecimalInput', () => {
   });
 
   it('Does not call onChange when value is invalid', async () => {
+    const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
     await act(() => user.type(inputElement, 'abc'));

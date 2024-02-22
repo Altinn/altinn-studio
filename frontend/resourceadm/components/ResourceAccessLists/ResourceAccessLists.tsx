@@ -70,7 +70,7 @@ export const ResourceAccessLists = ({
   };
 
   if (isLoadingAccessLists) {
-    return <StudioSpinner spinnerText={t('general.loading')} />;
+    return <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_lists')} />;
   }
 
   if (accessListsError) {

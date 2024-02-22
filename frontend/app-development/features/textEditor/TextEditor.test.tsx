@@ -77,7 +77,12 @@ describe('TextEditor', () => {
 
     await render();
 
-    const textarea = screen.getByRole('textbox', { name: 'nb translation' });
+    const textarea = screen.getByRole('textbox', {
+      name: textMock('text_editor.table_row_input_label', {
+        lang: textMock('language.nb'),
+        textKey: testTextResourceKey,
+      }),
+    });
     await act(() => user.clear(textarea));
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());
@@ -93,11 +98,13 @@ describe('TextEditor', () => {
     await render();
 
     const editButton = screen.getByRole('button', {
-      name: textMock('text_editor.toggle_edit_mode'),
+      name: textMock('text_editor.toggle_edit_mode', { textKey: testTextResourceKey }),
     });
-    await act(() => editButton.click());
+    await act(() => user.click(editButton));
 
-    const textarea = screen.getByRole('textbox', { name: textMock('text_editor.key.edit') });
+    const textarea = screen.getByRole('textbox', {
+      name: textMock('text_editor.key.edit', { textKey: testTextResourceKey }),
+    });
     await act(() => user.clear(textarea));
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());
@@ -170,7 +177,7 @@ describe('TextEditor', () => {
     renderWithProviders(<TextEditor />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     });
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('text_editor.loading_page'))).toBeInTheDocument();
   });
 });
 
@@ -184,7 +191,7 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });
 
-  await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+  await waitForElementToBeRemoved(() => screen.queryByText(textMock('text_editor.loading_page')));
 
   return view;
 };

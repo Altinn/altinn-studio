@@ -123,7 +123,7 @@ export const TextRow = ({
           {textIdEditOpen ? (
             <Textfield
               value={textIdValue}
-              aria-label={t('text_editor.key.edit')}
+              aria-label={t('text_editor.key.edit', { textKey: textIdValue })}
               error={keyError}
               onBlur={keyError ? undefined : handleTextIdBlur}
               onChange={(e) => handleTextIdChange(e.target.value)}
@@ -136,7 +136,7 @@ export const TextRow = ({
           )}
           {showButton && (
             <StudioButton
-              aria-label={t('text_editor.toggle_edit_mode')}
+              aria-label={t('text_editor.toggle_edit_mode', { textKey: textIdValue })}
               icon={<PencilIcon />}
               variant='tertiary'
               size='small'

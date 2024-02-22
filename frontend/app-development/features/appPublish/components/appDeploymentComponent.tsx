@@ -180,7 +180,10 @@ export const AppDeploymentComponent = ({
             />
           )}
           {deployInProgress && (
-            <StudioSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
+            <StudioSpinner
+              spinnerTitle={t('app_publish.deployment_in_progress') + '...'}
+              showSpinnerTitle
+            />
           )}
         </div>
         <div className={classes.deploymentListGrid}>

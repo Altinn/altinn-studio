@@ -23,7 +23,7 @@ describe('AppStatus', () => {
   it('shows loading spinner when loading required data', () => {
     render();
 
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.loading_deploys'))).toBeInTheDocument();
   });
 
   it('shows error message if an error occured while fetching required data', async () => {
@@ -31,7 +31,9 @@ describe('AppStatus', () => {
       getDeployments: jest.fn().mockImplementation(() => Promise.reject()),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.loading_deploys')),
+    );
 
     expect(screen.getByText(textMock('overview.app_status_error'))).toBeInTheDocument();
   });
@@ -56,7 +58,9 @@ describe('AppStatus', () => {
       envTypeProduction,
     );
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.loading_deploys')),
+    );
 
     expect(
       screen.getByRole('heading', { name: textMock('general.production') }),
@@ -78,7 +82,9 @@ describe('AppStatus', () => {
       ),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.loading_deploys')),
+    );
 
     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
     expect(screen.getByText(textMock('overview.success'))).toBeInTheDocument();
@@ -88,7 +94,9 @@ describe('AppStatus', () => {
   it('shows no app alert when application not deployed', async () => {
     render();
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.loading_deploys')),
+    );
 
     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
     expect(screen.getByText(textMock('overview.no_app'))).toBeInTheDocument();
@@ -113,7 +121,9 @@ describe('AppStatus', () => {
       ),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.loading_deploys')),
+    );
 
     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
     expect(screen.getByText(textMock('overview.unavailable'))).toBeInTheDocument();

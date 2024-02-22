@@ -18,21 +18,20 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../hooks/useAppContext';
-import type { FormItem } from '../types/FormItem';
 
-export type FormContext = {
-  formId: string;
-  form: FormItem;
+export type FormItemContext = {
+  formItemId: string;
+  formItem: FormContainer | FormComponent;
   handleDiscard: () => void;
-  handleEdit: (updatedForm: FormItem) => void;
-  handleUpdate: React.Dispatch<React.SetStateAction<FormItem>>;
-  handleSave: (id?: string, updatedForm?: FormItem) => Promise<void>;
-  debounceSave: (id?: string, updatedForm?: FormItem) => Promise<void>;
+  handleEdit: (updatedForm: FormContainer | FormComponent) => void;
+  handleUpdate: React.Dispatch<React.SetStateAction<FormContainer | FormComponent>>;
+  handleSave: (id?: string, updatedForm?: FormContainer | FormComponent) => Promise<void>;
+  debounceSave: (id?: string, updatedForm?: FormContainer | FormComponent) => Promise<void>;
 };
 
-export const FormContext = createContext<FormContext>({
-  formId: undefined,
-  form: undefined,
+export const FormItemContext = createContext<FormItemContext>({
+  formItemId: undefined,
+  formItem: undefined,
   handleDiscard: undefined,
   handleEdit: undefined,
   handleUpdate: undefined,
@@ -40,19 +39,21 @@ export const FormContext = createContext<FormContext>({
   debounceSave: undefined,
 });
 
-export const useFormContext = function () {
-  const context = useContext(FormContext);
+export const useFormItemContext = function () {
+  const context = useContext(FormItemContext);
   if (context === undefined) {
-    throw new Error('useFormContext must be used within a FormContextProvider.');
+    throw new Error('useFormItemContext must be used within a FormItemContextProvider.');
   }
   return context;
 };
 
-type FormContextProviderProps = {
+type FormItemContextProviderProps = {
   children: React.ReactNode;
 };
 
-export const FormContextProvider = ({ children }: FormContextProviderProps): JSX.Element => {
+export const FormItemContextProvider = ({
+  children,
+}: FormItemContextProviderProps): React.JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
@@ -62,10 +63,10 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
 
   const autoSaveTimeoutRef = useRef(undefined);
 
-  const [formId, setFormId] = useState<string>();
-  const [form, setForm] = useState<FormItem>();
-  const formIdRef = useRef<string>(formId);
-  const formRef = useRef<FormItem>(form);
+  const [formItemId, setFormItemId] = useState<string>();
+  const [formItem, setFormItem] = useState<FormContainer | FormComponent>();
+  const formItemIdRef = useRef<string>(formItemId);
+  const formItemRef = useRef<FormContainer | FormComponent>(formItem);
 
   const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(
     org,
@@ -81,9 +82,9 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   );
 
   useEffect(() => {
-    formIdRef.current = formId;
-    formRef.current = form;
-  }, [formId, form]);
+    formItemIdRef.current = formItemId;
+    formItemRef.current = formItem;
+  }, [formItemId, formItem]);
 
   const handleContainerSave = useCallback(
     async (id: string, updatedContainer: FormContainer): Promise<void> => {
@@ -92,7 +93,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
         updatedContainer,
       });
       if (id !== updatedContainer.id) {
-        setFormId(updatedContainer.id);
+        setFormItemId(updatedContainer.id);
       }
     },
     [updateFormContainer],
@@ -105,7 +106,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
         updatedComponent,
       });
       if (id !== updatedComponent.id) {
-        setFormId(updatedComponent.id);
+        setFormItemId(updatedComponent.id);
       }
     },
     [updateFormComponent],
@@ -113,8 +114,8 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
 
   const handleSave = useCallback(
     async (
-      id: string = formIdRef.current,
-      updatedForm: FormItem = formRef.current,
+      id: string = formItemIdRef.current,
+      updatedForm: FormContainer | FormComponent = formItemRef.current,
     ): Promise<void> => {
       clearTimeout(autoSaveTimeoutRef.current);
       if (updatedForm) {
@@ -129,10 +130,10 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   );
 
   const handleEdit = useCallback(
-    (updatedForm: FormItem): void => {
+    (updatedForm: FormContainer | FormComponent): void => {
       dispatch(setCurrentEditId(undefined));
-      setFormId(updatedForm?.id);
-      setForm(updatedForm);
+      setFormItemId(updatedForm?.id);
+      setFormItem(updatedForm);
     },
     [dispatch],
   );
@@ -143,7 +144,7 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
   }, [handleEdit]);
 
   const debounceSave = useCallback(
-    async (id: string, updatedForm: FormItem): Promise<void> => {
+    async (id: string, updatedForm: FormContainer | FormComponent): Promise<void> => {
       clearTimeout(autoSaveTimeoutRef.current);
       autoSaveTimeoutRef.current = setTimeout(async () => {
         await handleSave(id, updatedForm);
@@ -170,16 +171,16 @@ export const FormContextProvider = ({ children }: FormContextProviderProps): JSX
 
   const value = useMemo(
     () => ({
-      formId,
-      form,
+      formItemId,
+      formItem,
       handleDiscard,
-      handleUpdate: setForm,
+      handleUpdate: setFormItem,
       handleEdit,
       handleSave,
       debounceSave,
     }),
-    [formId, form, handleDiscard, handleEdit, handleSave, debounceSave],
+    [formItemId, formItem, handleDiscard, handleEdit, handleSave, debounceSave],
   );
 
-  return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
+  return <FormItemContext.Provider value={value}>{children}</FormItemContext.Provider>;
 };

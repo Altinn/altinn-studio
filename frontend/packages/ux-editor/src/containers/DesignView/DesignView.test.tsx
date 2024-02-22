@@ -3,7 +3,7 @@ import { formLayoutSettingsMock, renderWithMockStore } from '../../testing/mocks
 import { DesignView } from './DesignView';
 import { act, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { FormContextProvider } from '../FormContext';
+import { FormItemContextProvider } from '../FormItemContext';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
@@ -101,9 +101,9 @@ const render = async () => {
     queryClient,
   )(
     <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
-      <FormContextProvider>
+      <FormItemContextProvider>
         <DesignView />
-      </FormContextProvider>
+      </FormItemContextProvider>
     </DragAndDrop.Provider>,
   );
 };

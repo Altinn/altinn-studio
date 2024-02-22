@@ -128,7 +128,10 @@ export const AccessListMembers = ({
           />
           {(isLoadingParties || isLoadingSubParties) && (
             <div className={classes.spinnerContainer}>
-              <StudioSpinner />
+              <StudioSpinner
+                showSpinnerTitle={false}
+                spinnerTitle={t('resourceadm.loading_parties')}
+              />
             </div>
           )}
           <AccessListMembersPaging resultData={resultData} setSearchUrl={setSearchUrl} />

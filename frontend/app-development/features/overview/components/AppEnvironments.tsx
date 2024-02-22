@@ -25,7 +25,8 @@ export const AppEnvironments = () => {
     isError: orgsIsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
-  if (envIsPending || orgsIsPending) return <StudioSpinner />;
+  if (envIsPending || orgsIsPending)
+    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.loading_env')} />;
 
   if (envIsError || orgsIsError)
     return <Alert severity='danger'>{t('overview.app_environments_error')}</Alert>;
