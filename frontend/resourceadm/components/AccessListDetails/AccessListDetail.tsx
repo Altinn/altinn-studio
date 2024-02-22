@@ -66,8 +66,8 @@ export const AccessListDetail = ({
         </Modal.Footer>
       </Modal>
       <div>
-        <DigdirLink to={backUrl} as={Link}>
-          {t('general.back')}
+        <DigdirLink asChild>
+          <Link to={backUrl}>{t('general.back')}</Link>
         </DigdirLink>
       </div>
       <Heading level={1} size='large'>

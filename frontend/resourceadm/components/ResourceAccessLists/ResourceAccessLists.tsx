@@ -91,11 +91,10 @@ export const ResourceAccessLists = ({
         )}/${env}/`}
         onClose={() => createAccessListModalRef.current?.close()}
       />
-      <DigdirLink
-        as={Link}
-        to={getResourcePageURL(selectedContext, repo, resourceData.identifier, 'about')}
-      >
-        {t('general.back')}
+      <DigdirLink asChild>
+        <Link to={getResourcePageURL(selectedContext, repo, resourceData.identifier, 'about')}>
+          {t('general.back')}
+        </Link>
       </DigdirLink>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_resource_header', {
