@@ -40,6 +40,8 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IPreviewService _previewService;
         private readonly ITextsService _textsService;
 
+        private readonly IAppDevelopmentService _appDevelopmentService;
+
         // This value will be overridden to act as the task number for apps that use layout sets
         private const int PartyId = 51001;
 
@@ -51,14 +53,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="schemaModelService">Schema Model Service</param>
         /// <param name="previewService">Preview Service</param>
         /// <param name="textsService">Texts Service</param>
+        /// <param name="appDevelopmentService">App Development Service</param>
         /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
-        public PreviewController(IHttpContextAccessor httpContextAccessor, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISchemaModelService schemaModelService, IPreviewService previewService, ITextsService textsService)
+        public PreviewController(IHttpContextAccessor httpContextAccessor,
+            IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+            ISchemaModelService schemaModelService,
+            IPreviewService previewService,
+            ITextsService textsService,
+            IAppDevelopmentService appDevelopmentService)
         {
             _httpContextAccessor = httpContextAccessor;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _schemaModelService = schemaModelService;
             _previewService = previewService;
             _textsService = textsService;
+            _appDevelopmentService = appDevelopmentService;
         }
 
         /// <summary>
@@ -131,11 +140,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The application metadata for the app</returns>
         [HttpGet]
         [Route("api/v1/applicationmetadata")]
-        public async Task<ActionResult<ApplicationMetadata>> ApplicationMetadata(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult<AltinnApplicationMetadata>> ApplicationMetadata(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            AltinnApplicationMetadata applicationMetadata = (AltinnApplicationMetadata) await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            applicationMetadata.AltinnNugetVersion = _appDevelopmentService.GetAppLibVersion(editingContext).ToString();
             return Ok(applicationMetadata);
         }
 
