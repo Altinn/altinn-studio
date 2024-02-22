@@ -784,6 +784,7 @@
   "resourceadm.about_resource_resource_type_system_resource": "Systemressurs",
   "resourceadm.about_resource_rights_description_label": "Delegasjonstekst",
   "resourceadm.about_resource_rights_description_text": "Delegeringsteksten forklarer sluttbruker hvilke rettigheter som delegeres og hva mottaker av rettigheter kan utføre på vegne av den som han har fått rettighet for.",
+  "resourceadm.about_resource_rrr_publish_warning": "Ressursen må publiseres i et miljø før tilgangslister kan konfigureres for miljøet. Ressursen er ikke publisert i:",
   "resourceadm.about_resource_self_identified_label": "Selvidentifisert bruker",
   "resourceadm.about_resource_self_identified_show_text": "Ressursen {{shouldText}} ha selvidentifisert bruker aktivert.",
   "resourceadm.about_resource_self_identified_text": "Brukeren som opptrer på vegne av en part kan være en selvidentifisert bruker.",
