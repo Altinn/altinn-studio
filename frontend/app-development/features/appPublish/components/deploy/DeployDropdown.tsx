@@ -85,7 +85,12 @@ export const DeployDropdown = ({
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (
         <div className={classes.deployStatusGridContainer}>
           <div className={classes.deploySpinnerGridItem}>
-            {deploymentStatus === DeploymentStatus.inProgress && <StudioSpinner />}
+            {deploymentStatus === DeploymentStatus.inProgress && (
+              <StudioSpinner
+                showSpinnerTitle={false}
+                spinnerTitle={t('app_deploy.loading_deploy')}
+              />
+            )}
             {deploymentStatus === DeploymentStatus.succeeded && (
               <CheckmarkCircleFillIcon className={classes.successIcon} />
             )}

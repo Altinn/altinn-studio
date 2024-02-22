@@ -20,7 +20,9 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
 
   switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
     case 'pending':
-      return <StudioPageSpinner />;
+      return (
+        <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('datamodelling.loading')} />
+      );
     case 'error':
       return (
         <StudioCenter>

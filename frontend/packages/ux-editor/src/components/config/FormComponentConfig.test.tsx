@@ -95,6 +95,87 @@ describe('FormComponentConfig', () => {
     expect(screen.queryByText('nullProperty')).not.toBeInTheDocument();
   });
 
+  it('should render nothing if schema is undefined', () => {
+    render({
+      props: {
+        schema: undefined,
+      },
+    });
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.grid`)),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render nothing if schema properties are undefined', () => {
+    render({
+      props: {
+        schema: {
+          properties: undefined,
+        },
+      },
+    });
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.grid`)),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should not render property if it is unsupported', () => {
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            unsupportedProperty: {
+              type: 'object',
+              properties: {},
+              additionalProperties: {
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.unsupportedProperty`)),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should only render array properties with items of type string AND enum values', () => {
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            supportedArrayProperty: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['option1', 'option2'],
+              },
+            },
+            unsupportedArrayProperty: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock(`ux_editor.component_properties.supportedArrayProperty`),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(textMock(`ux_editor.component_properties.unsupportedArrayProperty`)),
+    ).not.toBeInTheDocument();
+  });
+
   const render = ({
     props = {},
     queries = {},

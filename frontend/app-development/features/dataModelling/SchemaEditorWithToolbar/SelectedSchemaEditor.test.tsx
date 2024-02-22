@@ -55,14 +55,16 @@ jest.useFakeTimers({ advanceTimers: true });
 describe('SelectedSchemaEditor', () => {
   it('Displays loading spinner while loading', () => {
     render();
-    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByTitle(textMock('schema_editor.loading_page'))).toBeInTheDocument();
   });
 
   it('Displays error message if loading fails', async () => {
     const message = 'Lorem ipsum dolor sit amet';
     const getDatamodel = jest.fn().mockImplementation(() => Promise.reject(new Error(message)));
     render({ getDatamodel });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('schema_editor.loading_page')),
+    );
     expect(screen.getByText(message)).toBeInTheDocument();
   });
 
@@ -73,13 +75,17 @@ describe('SelectedSchemaEditor', () => {
       .fn()
       .mockImplementation(() => Promise.reject(createApiErrorMock(400, 'DM_05', [customMessage])));
     render({ getDatamodel });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('schema_editor.loading_page')),
+    );
     expect(screen.getByText(customMessage)).toBeInTheDocument();
   });
 
   it('Renders SchemaEditorApp when finished loading', async () => {
     render();
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('schema_editor.loading_page')),
+    );
     expect(screen.getByTestId(schemaEditorTestId)).toBeInTheDocument();
   });
 
@@ -89,7 +95,9 @@ describe('SelectedSchemaEditor', () => {
 
     render({ getDatamodel, saveDatamodel });
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('schema_editor.loading_page')),
+    );
 
     const button = screen.getByTestId(saveButtonTestId);
     await act(() => user.click(button));
@@ -106,7 +114,9 @@ describe('SelectedSchemaEditor', () => {
     const {
       renderResult: { rerender },
     } = render({ getDatamodel, saveDatamodel });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('schema_editor.loading_page')),
+    );
     expect(saveDatamodel).not.toHaveBeenCalled();
 
     const updatedProps = { ...defaultProps, modelPath: model2Path };

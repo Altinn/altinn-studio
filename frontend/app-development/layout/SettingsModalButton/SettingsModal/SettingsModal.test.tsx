@@ -56,7 +56,9 @@ describe('SettingsModal', () => {
   it('closes the modal when the close button is clicked', async () => {
     render(defaultProps);
 
-    const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
+    const closeButton = screen.getByRole('button', {
+      name: textMock('settings_modal.close_button_label'),
+    });
     await act(() => user.click(closeButton));
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);

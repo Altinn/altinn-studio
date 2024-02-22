@@ -12,7 +12,7 @@ export const News = () => {
   if (isPending) {
     return (
       <NewsTemplate>
-        <StudioSpinner spinnerText={t('overview.fetch_news_loading_message')} />
+        <StudioSpinner showSpinnerTitle spinnerTitle={t('overview.fetch_news_loading_message')} />
       </NewsTemplate>
     );
   }

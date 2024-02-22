@@ -65,7 +65,9 @@ describe('SettingsModal', () => {
     });
     expect(modalHeading).toBeInTheDocument();
 
-    const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
+    const closeButton = screen.getByRole('button', {
+      name: textMock('settings_modal.close_button_label'),
+    });
     await act(() => user.click(closeButton));
 
     const modalHeadingAfter = screen.queryByRole('heading', {

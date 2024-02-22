@@ -24,13 +24,15 @@ describe('AccessListPage', () => {
 
   it('should show spinner on load', () => {
     renderAccessListPage();
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('resourceadm.loading_access_list'))).toBeInTheDocument();
   });
 
   it('should show details page when list is loaded', async () => {
     renderAccessListPage();
 
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('resourceadm.loading_access_list')),
+    );
 
     expect(
       screen.getByText(textMock('resourceadm.listadmin_list_detail_header')),
@@ -40,7 +42,9 @@ describe('AccessListPage', () => {
   it('should show error message is list loading fails', async () => {
     renderAccessListPage(true);
 
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('resourceadm.loading_access_list')),
+    );
 
     expect(screen.getByText(textMock('resourceadm.listadmin_list_load_error'))).toBeInTheDocument();
   });

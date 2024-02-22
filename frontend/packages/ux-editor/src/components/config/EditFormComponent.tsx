@@ -92,7 +92,12 @@ export const EditFormComponent = ({
           </Switch>
         )}
       />
-      {showComponentConfigBeta && isPending && <StudioSpinner spinnerText={t('general.loading')} />}
+      {showComponentConfigBeta && isPending && (
+        <StudioSpinner
+          showSpinnerTitle
+          spinnerTitle={t('ux_editor.edit_component.loading_schema')}
+        />
+      )}
       {showComponentConfigBeta && !isPending && (
         <FormComponentConfig
           schema={schema}

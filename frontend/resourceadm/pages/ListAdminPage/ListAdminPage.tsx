@@ -67,7 +67,12 @@ export const ListAdminPage = (): React.JSX.Element => {
               navigateUrl={getAccessListPageUrl(selectedContext, repo, selectedEnv)}
               onClose={() => createAccessListModalRef.current?.close()}
             />
-            {isLoadingEnvListData && <StudioSpinner />}
+            {isLoadingEnvListData && (
+              <StudioSpinner
+                showSpinnerTitle={false}
+                spinnerTitle={t('resourceadm.loading_env_list')}
+              />
+            )}
             {envListData && (
               <div>
                 <Heading level={2} size='xsmall'>

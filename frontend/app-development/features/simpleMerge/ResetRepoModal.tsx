@@ -89,7 +89,12 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
             autoFocus
             onKeyUp={handleOnKeypressEnter}
           />
-          {repoResetMutation.isPending && <StudioSpinner />}
+          {repoResetMutation.isPending && (
+            <StudioSpinner
+              showSpinnerTitle={false}
+              spinnerTitle={t('overview.reset_repo_loading')}
+            />
+          )}
           {!repoResetMutation.isPending && (
             <div className={classes.buttonContainer}>
               <StudioButton

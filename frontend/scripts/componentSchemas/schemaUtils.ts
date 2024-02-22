@@ -68,6 +68,8 @@ export const expandRef = (ref: string, layoutSchema: any) => {
 export const ensureStringTypeWithEnums = (schema: any) => {
   if (schema.enum) {
     schema.type = 'string';
+  } else if (schema.items?.enum) {
+    schema.items.type = 'string';
   }
 };
 

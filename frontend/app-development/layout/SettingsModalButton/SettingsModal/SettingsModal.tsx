@@ -119,6 +119,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
           </Heading>
         </div>
       }
+      closeButtonLabel={t('settings_modal.close_button_label')}
     >
       <div className={classes.modalContent}>
         <div className={classes.leftNavWrapper}>
