@@ -150,7 +150,7 @@ describe('ResourceAccessLists', () => {
       .mockImplementationOnce(() => Promise.resolve(accessListResultsPage2));
     renderResourceAccessLists(getResourceAccessListsMock);
 
-    const spinnerTitle = screen.queryByText(textMock('general.loading'));
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     await waitFor(() => screen.findByText(textMock('resourceadm.listadmin_load_more')));

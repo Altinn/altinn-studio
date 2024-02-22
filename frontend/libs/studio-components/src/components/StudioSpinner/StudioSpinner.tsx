@@ -27,11 +27,7 @@ export const StudioSpinner = forwardRef<HTMLDivElement, StudioSpinnerProps>(
           aria-describedby={showSpinnerTitle ? spinnerDescriptionId : null}
           data-testid='studio-spinner-test-id'
         />
-        {showSpinnerTitle && (
-          <Paragraph asChild id={spinnerDescriptionId}>
-            {spinnerTitle}
-          </Paragraph>
-        )}
+        {showSpinnerTitle && <Paragraph id={spinnerDescriptionId}>{spinnerTitle}</Paragraph>}
       </div>
     );
   },
