@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
-import { FormContext, FormContextProvider } from './FormContext';
+import { FormItemContext, FormItemContextProvider } from './FormItemContext';
 import userEvent from '@testing-library/user-event';
 import {
   useUpdateFormContainerMutation,
@@ -50,30 +50,30 @@ mockUseUpdateFormComponentMutation.mockReturnValue({
 
 const render = (ChildComponent: React.ElementType) => {
   return renderWithMockStore()(
-    <FormContextProvider>
+    <FormItemContextProvider>
       <ChildComponent />
-    </FormContextProvider>,
+    </FormItemContextProvider>,
   );
 };
 
-describe('FormContext', () => {
+describe('FormItemContext', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should update the form when calling handleUpdate', async () => {
+  it('should update the form item when calling handleUpdate', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = {
+    const mockFormItem: FormContainer = {
       id: 'id',
       itemType: 'CONTAINER',
       type: ComponentTypeV3.Group,
     };
 
     render(() => {
-      const { form, handleUpdate } = React.useContext(FormContext);
+      const { formItem, handleUpdate } = React.useContext(FormItemContext);
       return (
         <>
-          <button data-testid='button' onClick={() => handleUpdate(mockForm)} />
-          <div data-testid='form.id'>{form?.id}</div>
-          <div data-testid='form.itemType'>{form?.itemType}</div>
+          <button data-testid='button' onClick={() => handleUpdate(mockFormItem)} />
+          <div data-testid='formItem.id'>{formItem?.id}</div>
+          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
         </>
       );
     });
@@ -82,29 +82,31 @@ describe('FormContext', () => {
     await act(() => user.click(button));
 
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.id')).textContent).toEqual(mockForm.id),
+      expect((await screen.findByTestId('formItem.id')).textContent).toEqual(mockFormItem.id),
     );
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.itemType')).textContent).toEqual(mockForm.itemType),
+      expect((await screen.findByTestId('formItem.itemType')).textContent).toEqual(
+        mockFormItem.itemType,
+      ),
     );
   });
 
-  it('should edit the form when calling handleEdit', async () => {
+  it('should edit the form item when calling handleEdit', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = {
+    const mockFormItem: FormContainer = {
       id: 'id',
       itemType: 'CONTAINER',
       type: ComponentTypeV3.Group,
     };
 
     const { store } = render(() => {
-      const { formId, form, handleEdit } = React.useContext(FormContext);
+      const { formItemId, formItem, handleEdit } = React.useContext(FormItemContext);
       return (
         <>
-          <button data-testid='button' onClick={() => handleEdit(mockForm)} />
-          <div data-testid='formId'>{formId}</div>
-          <div data-testid='form.id'>{form?.id}</div>
-          <div data-testid='form.itemType'>{form?.itemType}</div>
+          <button data-testid='button' onClick={() => handleEdit(mockFormItem)} />
+          <div data-testid='formItemId'>{formItemId}</div>
+          <div data-testid='formItem.id'>{formItem?.id}</div>
+          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
         </>
       );
     });
@@ -115,31 +117,33 @@ describe('FormContext', () => {
     const state = store.getState() as IAppState;
     expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
     await waitFor(async () =>
-      expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id),
+      expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
     );
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.id')).textContent).toEqual(mockForm.id),
+      expect((await screen.findByTestId('formItem.id')).textContent).toEqual(mockFormItem.id),
     );
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.itemType')).textContent).toEqual(mockForm.itemType),
+      expect((await screen.findByTestId('formItem.itemType')).textContent).toEqual(
+        mockFormItem.itemType,
+      ),
     );
   });
 
   it('should render id and itemType when calling handleEdit with truthy updatedForm', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = {
+    const mockFormItem: FormContainer = {
       id: 'id',
       itemType: 'CONTAINER',
       type: ComponentTypeV3.Group,
     };
     const { store } = render(() => {
-      const { formId, form, handleEdit } = React.useContext(FormContext);
+      const { formItemId, formItem, handleEdit } = React.useContext(FormItemContext);
       return (
         <>
-          <button data-testid='button' onClick={() => handleEdit(mockForm)} />
-          <div data-testid='formId'>{formId}</div>
-          <div data-testid='form.id'>{form?.id}</div>
-          <div data-testid='form.itemType'>{form?.itemType}</div>
+          <button data-testid='button' onClick={() => handleEdit(mockFormItem)} />
+          <div data-testid='formItemId'>{formItemId}</div>
+          <div data-testid='formItem.id'>{formItem?.id}</div>
+          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
         </>
       );
     });
@@ -149,31 +153,31 @@ describe('FormContext', () => {
     const state = store.getState() as IAppState;
 
     expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
-    expect(screen.getByTestId('formId')).toBeInTheDocument();
-    expect(screen.getByTestId('form.id')).toBeInTheDocument();
-    expect(screen.getByTestId('form.itemType')).toBeInTheDocument();
+    expect(screen.getByTestId('formItemId')).toBeInTheDocument();
+    expect(screen.getByTestId('formItem.id')).toBeInTheDocument();
+    expect(screen.getByTestId('formItem.itemType')).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByTestId('formId')).toHaveTextContent(mockForm.id);
+      expect(screen.getByTestId('formItemId')).toHaveTextContent(mockFormItem.id);
     });
     await waitFor(() => {
-      expect(screen.getByTestId('form.id')).toHaveTextContent(mockForm.id);
+      expect(screen.getByTestId('formItem.id')).toHaveTextContent(mockFormItem.id);
     });
     await waitFor(() => {
-      expect(screen.getByTestId('form.itemType')).toHaveTextContent(mockForm.itemType);
+      expect(screen.getByTestId('formItem.itemType')).toHaveTextContent(mockFormItem.itemType);
     });
   });
 
-  it('should discard the form when calling handleDiscard', async () => {
+  it('should discard the formitem when calling handleDiscard', async () => {
     const user = userEvent.setup();
     const { store } = render(() => {
-      const { formId, form, handleDiscard } = React.useContext(FormContext);
+      const { formItemId, formItem, handleDiscard } = React.useContext(FormItemContext);
       return (
         <>
           <button data-testid='button' onClick={() => handleDiscard()} />
-          <div data-testid='formId'>{formId}</div>
-          <div data-testid='form.id'>{form?.id}</div>
-          <div data-testid='form.itemType'>{form?.itemType}</div>
+          <div data-testid='formItemId'>{formItemId}</div>
+          <div data-testid='formItem.id'>{formItem?.id}</div>
+          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
         </>
       );
     });
@@ -183,24 +187,30 @@ describe('FormContext', () => {
 
     const state = store.getState() as IAppState;
     expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
-    await waitFor(async () => expect((await screen.findByTestId('formId')).textContent).toBe(''));
-    await waitFor(async () => expect((await screen.findByTestId('form.id')).textContent).toBe(''));
     await waitFor(async () =>
-      expect((await screen.findByTestId('form.itemType')).textContent).toBe(''),
+      expect((await screen.findByTestId('formItemId')).textContent).toBe(''),
+    );
+    await waitFor(async () =>
+      expect((await screen.findByTestId('formItem.id')).textContent).toBe(''),
+    );
+    await waitFor(async () =>
+      expect((await screen.findByTestId('formItem.itemType')).textContent).toBe(''),
     );
   });
 
   it('should save the container when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = {
+    const mockFormItem: FormContainer = {
       id: 'id',
       itemType: 'CONTAINER',
       type: ComponentTypeV3.Group,
     };
 
     render(() => {
-      const { handleSave } = React.useContext(FormContext);
-      return <button data-testid='button' onClick={() => handleSave(mockForm.id, mockForm)} />;
+      const { handleSave } = React.useContext(FormItemContext);
+      return (
+        <button data-testid='button' onClick={() => handleSave(mockFormItem.id, mockFormItem)} />
+      );
     });
 
     const button = screen.getByTestId('button');
@@ -211,18 +221,21 @@ describe('FormContext', () => {
 
   it('should save the container and its new id when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = {
+    const mockFormItem: FormContainer = {
       id: 'id',
       itemType: 'CONTAINER',
       type: ComponentTypeV3.Group,
     };
 
     render(() => {
-      const { formId, handleSave } = React.useContext(FormContext);
+      const { formItemId, handleSave } = React.useContext(FormItemContext);
       return (
         <>
-          <button data-testid='button' onClick={async () => await handleSave('old-id', mockForm)} />
-          <div data-testid='formId'>{formId}</div>
+          <button
+            data-testid='button'
+            onClick={async () => await handleSave('old-id', mockFormItem)}
+          />
+          <div data-testid='formItemId'>{formItemId}</div>
         </>
       );
     });
@@ -231,22 +244,24 @@ describe('FormContext', () => {
     await act(() => user.click(button));
 
     await waitFor(async () =>
-      expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id),
+      expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
     );
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
 
   it('should save the container when calling debounceSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormContainer = {
+    const mockFormItem: FormContainer = {
       id: 'id',
       itemType: 'CONTAINER',
       type: ComponentTypeV3.Group,
     };
 
     render(() => {
-      const { debounceSave } = React.useContext(FormContext);
-      return <button data-testid='button' onClick={() => debounceSave(mockForm.id, mockForm)} />;
+      const { debounceSave } = React.useContext(FormItemContext);
+      return (
+        <button data-testid='button' onClick={() => debounceSave(mockFormItem.id, mockFormItem)} />
+      );
     });
 
     const button = screen.getByTestId('button');
@@ -259,15 +274,17 @@ describe('FormContext', () => {
 
   it('should save the component when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormComponent = {
+    const mockFormItem: FormComponent = {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentTypeV3.Input,
     };
 
     render(() => {
-      const { handleSave } = React.useContext(FormContext);
-      return <button data-testid='button' onClick={() => handleSave(mockForm.id, mockForm)} />;
+      const { handleSave } = React.useContext(FormItemContext);
+      return (
+        <button data-testid='button' onClick={() => handleSave(mockFormItem.id, mockFormItem)} />
+      );
     });
 
     const button = screen.getByTestId('button');
@@ -278,18 +295,21 @@ describe('FormContext', () => {
 
   it('should save the component and its new id when calling handleSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormComponent = {
+    const mockFormItem: FormComponent = {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentTypeV3.Input,
     };
 
     render(() => {
-      const { formId, handleSave } = React.useContext(FormContext);
+      const { formItemId, handleSave } = React.useContext(FormItemContext);
       return (
         <>
-          <button data-testid='button' onClick={async () => await handleSave('old-id', mockForm)} />
-          <div data-testid='formId'>{formId}</div>
+          <button
+            data-testid='button'
+            onClick={async () => await handleSave('old-id', mockFormItem)}
+          />
+          <div data-testid='formItemId'>{formItemId}</div>
         </>
       );
     });
@@ -298,22 +318,24 @@ describe('FormContext', () => {
     await act(() => user.click(button));
 
     await waitFor(async () =>
-      expect((await screen.findByTestId('formId')).textContent).toEqual(mockForm.id),
+      expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
     );
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });
 
   it('should save the component when calling debounceSave', async () => {
     const user = userEvent.setup();
-    const mockForm: FormComponent = {
+    const mockFormItem: FormComponent = {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentTypeV3.Input,
     };
 
     render(() => {
-      const { debounceSave } = React.useContext(FormContext);
-      return <button data-testid='button' onClick={() => debounceSave(mockForm.id, mockForm)} />;
+      const { debounceSave } = React.useContext(FormItemContext);
+      return (
+        <button data-testid='button' onClick={() => debounceSave(mockFormItem.id, mockFormItem)} />
+      );
     });
 
     const button = screen.getByTestId('button');
