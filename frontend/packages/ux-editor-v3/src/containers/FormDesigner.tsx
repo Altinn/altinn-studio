@@ -156,5 +156,7 @@ export const FormDesigner = ({
       </DragAndDropTree.Provider>
     );
   }
-  return <StudioPageSpinner />;
+  return (
+    <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_form_layout')} />
+  );
 };

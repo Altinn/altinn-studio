@@ -26,7 +26,12 @@ export const Text = () => {
   if (editId) return <TextResourceEdit />;
 
   if (!schema) {
-    return <StudioSpinner spinnerText={t('general.loading')} />;
+    return (
+      <StudioSpinner
+        showSpinnerTitle
+        spinnerTitle={t('ux_editor.properties_panel.texts.loading')}
+      />
+    );
   }
 
   if (!schema?.properties) {

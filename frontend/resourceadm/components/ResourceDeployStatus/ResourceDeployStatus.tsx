@@ -99,8 +99,8 @@ export const ResourceDeployStatus = ({
     }
     return (
       <>
-        <Label size='small' as='p' className={classes.title}>
-          {title}
+        <Label size='small' asChild className={classes.title}>
+          <p>{title}</p>
         </Label>
         <DisplayErrors />
       </>

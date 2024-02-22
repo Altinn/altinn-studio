@@ -30,7 +30,9 @@ it('fires onAddLang when add button is clicked', async () => {
     name: textMock('general.add'),
   });
   expect(addBtn).toBeDisabled();
-  const select = screen.getByRole('combobox');
+  const select = screen.getByRole('combobox', {
+    name: textMock('schema_editor.language_add_language'),
+  });
 
   await act(() => user.type(select, 'nordsamisk'));
   await act(() => user.click(screen.getByText('nordsamisk')));

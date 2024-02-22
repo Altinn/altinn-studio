@@ -33,7 +33,6 @@ export function App() {
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   useEffect(() => {
-    console.log('areLayoutSetsFetched', areLayoutSetsFetched);
     if (
       areLayoutSetsFetched &&
       selectedLayoutSet &&
@@ -97,5 +96,5 @@ export function App() {
       </FormItemContextProvider>
     );
   }
-  return <StudioPageSpinner />;
+  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;
 }

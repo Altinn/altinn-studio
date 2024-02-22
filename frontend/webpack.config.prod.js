@@ -1,4 +1,5 @@
 const TerserPlugin = require('terser-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const commonConfig = require('./webpack.common');
 
 module.exports = {
@@ -15,6 +16,7 @@ module.exports = {
       new TerserPlugin({
         extractComments: false,
       }),
+      new CssMinimizerPlugin(),
     ],
   },
   module: {

@@ -87,5 +87,5 @@ export function App() {
       </FormItemContextProvider>
     );
   }
-  return <StudioPageSpinner />;
+  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;
 }

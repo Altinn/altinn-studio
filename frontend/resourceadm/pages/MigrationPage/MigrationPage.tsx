@@ -68,7 +68,7 @@ export const MigrationPage = ({
   const displayContent = () => {
     if (isValidatePolicyPending || validateResourceLoading) {
       return (
-        <div className={classes.spinnerWrapper}>
+        <div>
           <Spinner size='xlarge' variant='interaction' title='Laster inn migreringsstatus' />
         </div>
       );
@@ -152,8 +152,8 @@ export const MigrationPage = ({
           </div>
           {selectedEnv !== '' && (
             <>
-              <Label as='p' size='medium' spacing>
-                {t('resourceadm.migration_select_migration_time_header')}
+              <Label asChild size='medium' spacing>
+                <p>{t('resourceadm.migration_select_migration_time_header')}</p>
               </Label>
               <Paragraph size='small'>
                 {t('resourceadm.migration_select_migration_time_body')}
@@ -179,8 +179,8 @@ export const MigrationPage = ({
                 </div>
               </div>
               <div className={classes.numDelegations}>
-                <Label as='p' size='medium' spacing>
-                  {t('resourceadm.migration_number_of_delegations')}
+                <Label asChild size='medium' spacing>
+                  <p>{t('resourceadm.migration_number_of_delegations')}</p>
                 </Label>
                 <StudioButton
                   onClick={() => {
@@ -206,8 +206,8 @@ export const MigrationPage = ({
                   </div>
                 )}
               </div>
-              <Label as='p' size='medium' spacing>
-                {t('resourceadm.migration_finish_migration')}
+              <Label asChild size='medium' spacing>
+                <p>{t('resourceadm.migration_finish_migration')}</p>
               </Label>
               <Paragraph size='small'>{t('resourceadm.migration_delegation_info')}</Paragraph>
               <div className={classes.buttonWrapper}>
