@@ -11,7 +11,7 @@ import type { SimpleSubExpressionValue } from '../types/SimpleSubExpressionValue
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
-import { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { InstanceContext } from '../enums/InstanceContext';
 import { SimpleSubExpressionValueType } from '../enums/SimpleSubExpressionValueType';
@@ -54,7 +54,7 @@ describe('simpleToComplexExpression', () => {
     },
   );
 
-  it.each(Object.values(GenericRelationOperator))(
+  it.each(Object.values(GeneralRelationOperator))(
     'Converts a single %s subexpression',
     (relationalOperator) => {
       const singleExpression: SimplifiedExpression = {
@@ -124,7 +124,7 @@ describe('simpleToComplexExpression', () => {
   };
 
   it.each(Object.keys(testExpressionValues))('Converts a single %s value', (type) => {
-    const relationalOperator = GenericRelationOperator.Equals;
+    const relationalOperator = GeneralRelationOperator.Equals;
     const { subExpressionValue, expectedResult } = testExpressionValues[type];
     const singleExpression: SimplifiedExpression = {
       logicalOperator: LogicalTupleOperator.And,
@@ -148,12 +148,12 @@ describe('simpleToComplexExpression', () => {
         logicalOperator,
         subExpressions: [
           {
-            relationalOperator: GenericRelationOperator.Equals,
+            relationalOperator: GeneralRelationOperator.Equals,
             firstOperand: { type: SimpleSubExpressionValueType.Boolean, value: true },
             secondOperand: { type: SimpleSubExpressionValueType.Component, id: 'test' },
           },
           {
-            relationalOperator: GenericRelationOperator.NotEquals,
+            relationalOperator: GeneralRelationOperator.NotEquals,
             firstOperand: {
               type: SimpleSubExpressionValueType.Datamodel,
               path: '#/properties/test',
@@ -169,9 +169,9 @@ describe('simpleToComplexExpression', () => {
       };
       const expectedResult: LogicalTupleFunc = [
         logicalOperator,
-        [GenericRelationOperator.Equals, true, [DataLookupFuncName.Component, 'test']],
+        [GeneralRelationOperator.Equals, true, [DataLookupFuncName.Component, 'test']],
         [
-          GenericRelationOperator.NotEquals,
+          GeneralRelationOperator.NotEquals,
           [DataLookupFuncName.DataModel, '#/properties/test'],
           'Lorem ipsum',
         ],

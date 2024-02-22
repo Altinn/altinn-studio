@@ -1,6 +1,6 @@
 import type { RelationalOperator } from '../../../../types/RelationalOperator';
 import { NumberRelationOperator } from '../../../../enums/NumberRelationOperator';
-import { GenericRelationOperator } from '../../../../enums/GenericRelationOperator';
+import { GeneralRelationOperator } from '../../../../enums/GeneralRelationOperator';
 import { NativeSelect, Paragraph } from '@digdir/design-system-react';
 import React, { useContext } from 'react';
 import { StudioExpressionContext } from '../../../../StudioExpressionContext';
@@ -13,7 +13,7 @@ export type RelationalOperatorSelectorProps = {
 };
 
 const operatorList: RelationalOperator[] = [
-  ...Object.values(GenericRelationOperator),
+  ...Object.values(GeneralRelationOperator),
   ...Object.values(NumberRelationOperator),
 ];
 

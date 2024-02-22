@@ -68,12 +68,7 @@ export const SubExpression = ({ expression, legend, onChange, onDelete }: SubExp
   );
 
   return (
-    <Fieldset
-      className={className}
-      error={!!errors.length && <SubExpressionErrors errorKeys={errors} />}
-      hideLegend
-      legend={legend}
-    >
+    <Fieldset className={className} hideLegend legend={legend}>
       <div className={classes.fieldsetContent}>
         <SubExpressionValueSelector
           className={classes.editableItem}
@@ -101,6 +96,7 @@ export const SubExpression = ({ expression, legend, onChange, onDelete }: SubExp
           onSave={handleSave}
           onEnableEditMode={handleEnableEditMode}
         />
+        {!!errors.length && <SubExpressionErrors errorKeys={errors} />}
       </div>
     </Fieldset>
   );

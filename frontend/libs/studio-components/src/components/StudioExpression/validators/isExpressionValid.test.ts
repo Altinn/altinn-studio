@@ -1,13 +1,13 @@
 import type { DataLookupFunc, Expression } from '../types/Expression';
 import { isExpressionValid } from './isExpressionValid';
-import { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 
 describe('isExpressionValid', () => {
   it('Returns true when expression is valid', () => {
     const equalsExpression: Expression = [
-      GenericRelationOperator.Equals,
+      GeneralRelationOperator.Equals,
       [DataLookupFuncName.DataModel, 'someField'],
       'someValue',
     ];
@@ -31,7 +31,7 @@ describe('isExpressionValid', () => {
     const validFunction: DataLookupFunc = [DataLookupFuncName.DataModel, 'test'];
     const invalidExpressions: any[] = [
       invalidFunction,
-      [GenericRelationOperator.Equals, invalidFunction],
+      [GeneralRelationOperator.Equals, invalidFunction],
       [LogicalTupleOperator.And, [validFunction, invalidFunction]],
     ];
     invalidExpressions.forEach((invalidExpression) => {

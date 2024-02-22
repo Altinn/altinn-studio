@@ -11,7 +11,7 @@ import type { RelationalOperator } from '../types/RelationalOperator';
 import type { SimpleSubExpression } from '../types/SimpleSubExpression';
 import type { SimpleSubExpressionValue } from '../types/SimpleSubExpressionValue';
 import type { NumberRelationOperator } from '../enums/NumberRelationOperator';
-import type { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import type { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { SimpleSubExpressionValueType } from '../enums/SimpleSubExpressionValueType';
@@ -39,7 +39,7 @@ const simpleLogicalExpressionToComplex = ({
 
 type RelationalOperation<O extends RelationalOperator> = O extends NumberRelationOperator
   ? NumberRelationFunc<O>
-  : O extends GenericRelationOperator
+  : O extends GeneralRelationOperator
     ? GenericRelationFunc<O>
     : never;
 

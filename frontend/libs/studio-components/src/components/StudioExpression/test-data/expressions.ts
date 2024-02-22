@@ -8,7 +8,7 @@ import type {
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { componentIds, datamodelPointers } from './dataLookupOptions';
-import { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
 
 const datamodelValue: DataLookupFunc<DataLookupFuncName.DataModel> = [
@@ -25,7 +25,7 @@ const stringValue: string = 'some-text';
 const numberValue: number = 5;
 
 export const genericOperatorRelation: GenericRelationFunc = [
-  GenericRelationOperator.Equals,
+  GeneralRelationOperator.Equals,
   datamodelValue,
   stringValue,
 ];

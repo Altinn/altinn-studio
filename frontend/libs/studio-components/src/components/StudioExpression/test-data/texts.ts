@@ -4,7 +4,7 @@ import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import { ExpressionErrorKey } from '../enums/ExpressionErrorKey';
 import type { RelationalOperator } from '../types/RelationalOperator';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
-import { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { SimpleSubExpressionValueType } from '../enums/SimpleSubExpressionValueType';
 
 const valueTypes: Record<SimpleSubExpressionValueType, string> = {
@@ -18,8 +18,8 @@ const valueTypes: Record<SimpleSubExpressionValueType, string> = {
 };
 
 const relationalOperators: Record<RelationalOperator, string> = {
-  [GenericRelationOperator.Equals]: 'equals',
-  [GenericRelationOperator.NotEquals]: 'is not equal to',
+  [GeneralRelationOperator.Equals]: 'equals',
+  [GeneralRelationOperator.NotEquals]: 'is not equal to',
   [NumberRelationOperator.GreaterThan]: 'is greater than',
   [NumberRelationOperator.GreaterThanOrEq]: 'is greater than or equal to',
   [NumberRelationOperator.LessThan]: 'is less than',

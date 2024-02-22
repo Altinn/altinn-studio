@@ -5,7 +5,7 @@ import {
   LogicalTupleOperator,
   NumberRelationOperator,
   SimpleSubExpressionValueType,
-  GenericRelationOperator,
+  GeneralRelationOperator,
   InstanceContext,
 } from '@studio/components';
 
@@ -33,7 +33,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
 
   const relationalOperatorKeys = [
     ...Object.values(NumberRelationOperator),
-    ...Object.values(GenericRelationOperator),
+    ...Object.values(GeneralRelationOperator),
   ];
   const relationalOperators = mapArrayToTranslations<RelationalOperator>(
     relationalOperatorKeys,

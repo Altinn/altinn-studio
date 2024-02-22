@@ -1,7 +1,7 @@
 import type { SimpleSubExpressionValue } from '../../../../types/SimpleSubExpressionValue';
 import React from 'react';
 import type { SimpleSubExpressionValueType } from '../../../../enums/SimpleSubExpressionValueType';
-import { SubExpressionValueContentSelector } from './SubExpressionValueContentSelector';
+import { SubExpressionValueContentInput } from './SubExpressionValueContentInput';
 import { SubExpressionValueTypeSelector } from './SubExpressionValueTypeSelector';
 import { SubExpressionValueReadonly } from './SubExpressionValueReadonly';
 import { Fieldset } from '@digdir/design-system-react';
@@ -42,7 +42,7 @@ const EditMode = ({ value, onChange, legend }: EditModeProps) => {
     <Fieldset legend={legend} hideLegend>
       <div className={classes.fieldsetContent}>
         <SubExpressionValueTypeSelector onChange={handleTypeChange} value={value.type} />
-        <SubExpressionValueContentSelector onChange={onChange} value={value} />
+        <SubExpressionValueContentInput onChange={onChange} value={value} />
       </div>
     </Fieldset>
   );

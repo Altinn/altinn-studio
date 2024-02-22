@@ -96,7 +96,7 @@ const calculateNewPageIndex = (
   position: number,
 ): number => {
   const parent = layout.containers[containerId];
-  const isParentMultiPage = parent?.edit?.multiPage;
+  const isParentMultiPage = parent.type === ComponentType.RepeatingGroup && parent?.edit?.multiPage;
   if (!isParentMultiPage) return null;
   const previousComponentPosition = findPositionOfPreviousComponent(layout, containerId, position);
   if (previousComponentPosition === undefined) return 0;
@@ -138,7 +138,7 @@ export const addContainer = <T extends ContainerComponentType>(
 ): IInternalLayout => {
   const newLayout = deepCopy(layout);
   container.pageIndex = calculateNewPageIndex(newLayout, parentId, position);
-  newLayout.containers[id] = container;
+  newLayout.containers[id] = container as FormContainer<T>;
   newLayout.order[id] = [];
   if (position < 0) newLayout.order[parentId].push(id);
   else newLayout.order[parentId].splice(position, 0, id);
@@ -188,7 +188,7 @@ export const updateContainer = <T extends ContainerComponentType>(
     ...oldLayout,
     containers: {
       ...oldLayout.containers,
-      [newId]: updatedContainer,
+      [newId]: updatedContainer as FormContainer<T>,
     },
   };
 };
@@ -400,4 +400,6 @@ export const getItem = (layout: IInternalLayout, itemId: string): FormComponent 
   layout.components[itemId] || layout.containers[itemId];
 
 export const hasMultiPageGroup = (layout: IInternalLayout): boolean =>
-  Object.values(layout.containers).some((container) => container.edit?.multiPage);
+  Object.values(layout.containers).some(
+    (container) => container.type === ComponentType.RepeatingGroup && container.edit?.multiPage,
+  );

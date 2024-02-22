@@ -1,12 +1,12 @@
 import { expressionToString } from './expressionToString';
 import type { Expression } from '../types/Expression';
-import { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 
 describe('expressionToString', () => {
   it('Converts an expression object to a string', () => {
     const expression: Expression = [
-      GenericRelationOperator.Equals,
+      GeneralRelationOperator.Equals,
       [DataLookupFuncName.DataModel, 'My.Model.Group.Field'],
       'string constant',
     ];

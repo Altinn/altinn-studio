@@ -1,54 +1,36 @@
-import React, { useContext, useMemo } from 'react';
-import type { ExpressionProperty } from '../../../../types/Expressions';
-import {
-  getComponentIds,
-  getDataModelElementNames,
-  getExternalExpressionOnComponentProperty,
-  updateFormItemWithExpression,
-} from '../../../../utils/expressionsUtils';
-import type { FormComponent } from '../../../../types/FormComponent';
-import type { FormContainer } from '../../../../types/FormContainer';
-import { FormItemContext } from '../../../../containers/FormItemContext';
+import type { ReactNode } from 'react';
+import React, { useMemo } from 'react';
+import { getComponentIds, getDataModelElementNames } from '../../../../utils/expressionsUtils';
 import type { Expression, DataLookupOptions } from '@studio/components';
-import { DataLookupFuncName, StudioExpression } from '@studio/components';
+import { DataLookupFuncName, StudioDeleteButton, StudioExpression } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import { useDatamodelMetadataQuery } from '../../../../hooks/queries/useDatamodelMetadataQuery';
-import { Card, Heading } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/design-system-react';
 import classes from './ExpressionContent.module.css';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
-import { expressionInPreviewPropertyTextKeys } from '../../../../types/Expressions';
-import { Trans } from 'react-i18next';
+import { useText } from '../../../../hooks';
 
 export interface ExpressionContentProps {
-  property: ExpressionProperty;
-  defaultEditMode: boolean;
-  onDeleteExpression: (property: ExpressionProperty) => void;
+  expression: Expression;
+  onChange: (expression: Expression) => void;
+  onDelete: () => void;
+  heading: ReactNode;
 }
 
 export const ExpressionContent = ({
-  property,
-  defaultEditMode,
-  onDeleteExpression,
+  expression,
+  onChange,
+  onDelete,
+  heading,
 }: ExpressionContentProps) => {
+  const t = useText();
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app);
-  const { formItemId, formItem, handleUpdate, handleSave } = useContext(FormItemContext);
-  const externalExpression = getExternalExpressionOnComponentProperty(formItem, property);
   const expressionTexts = useExpressionTexts();
-
-  const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
-    handleUpdate(updatedComponent);
-    await handleSave(formItemId, updatedComponent);
-  };
-
-  const updateExpression = async (exp: Expression) => {
-    const updatedComponent = updateFormItemWithExpression(form, exp, property);
-    await updateAndSaveLayout(updatedComponent);
-  };
 
   const dataLookupOptions: DataLookupOptions = useMemo(
     () => ({
@@ -59,24 +41,27 @@ export const ExpressionContent = ({
   );
 
   return (
-    <Card className={classes.expressionContent}>
-      <Card.Header className={classes.expressionHeader}>
-        <Heading level={4} size='xxsmall'>
-          <Trans
-            i18nKey={expressionInPreviewPropertyTextKeys[property]}
-            values={{ componentName: formId }}
-            components={{ bold: <strong /> }}
-          />
-        </Heading>
-      </Card.Header>
-      <Card.Content style={{ padding: 0 }}>
+    <fieldset className={classes.expressionContent}>
+      <legend className={classes.legend}>
+        <Paragraph className={classes.legendContent} size='small'>
+          {heading}
+        </Paragraph>
+      </legend>
+      <StudioDeleteButton
+        className={classes.deleteButton}
+        confirmMessage={t('right_menu.expressions_delete_confirm')}
+        onDelete={onDelete}
+        size='small'
+        title={t('right_menu.expression_delete')}
+      />
+      <div className={classes.expressionWrapper}>
         <StudioExpression
-          expression={externalExpression}
-          onChange={updateExpression}
+          expression={expression}
+          onChange={onChange}
           dataLookupOptions={dataLookupOptions}
           texts={expressionTexts}
         />
-      </Card.Content>
-    </Card>
+      </div>
+    </fieldset>
   );
 };

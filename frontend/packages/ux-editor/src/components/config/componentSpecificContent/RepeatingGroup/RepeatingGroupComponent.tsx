@@ -13,11 +13,12 @@ import { textResourcesByLanguageSelector } from '../../../../selectors/textResou
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { selectedLayoutNameSelector } from '../../../../selectors/formLayoutSelectors';
 import type { IEditFormComponentProps } from '../../EditFormComponent';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export const RepeatingGroupComponent = ({
   component,
   handleComponentUpdate,
-}: IEditFormComponentProps) => {
+}: IEditFormComponentProps<ComponentType.RepeatingGroup>) => {
   const t = useText();
 
   const { org, app } = useStudioUrlParams();

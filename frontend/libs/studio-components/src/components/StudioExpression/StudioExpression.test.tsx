@@ -11,7 +11,7 @@ import {
   tooComplexExpression,
 } from './test-data/expressions';
 import userEvent from '@testing-library/user-event';
-import { GenericRelationOperator } from './enums/GenericRelationOperator';
+import { GeneralRelationOperator } from './enums/GeneralRelationOperator';
 import { SimpleSubExpressionValueType } from './enums/SimpleSubExpressionValueType';
 import { expressionToString } from './converters/expressionToString';
 
@@ -73,7 +73,7 @@ describe('StudioExpression', () => {
     renderExpression(true);
     await act(() => user.click(screen.getByRole('button', { name: texts.transformToLogical })));
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith([GenericRelationOperator.Equals, 0, 0]);
+    expect(onChange).toHaveBeenCalledWith([GeneralRelationOperator.Equals, 0, 0]);
   });
 
   it('Renders an empty logical expression when the provided expression is null', () => {
@@ -108,7 +108,7 @@ describe('StudioExpression', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([
       ...logicalExpression,
-      [GenericRelationOperator.Equals, 0, 0],
+      [GeneralRelationOperator.Equals, 0, 0],
     ]);
   });
 

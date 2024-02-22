@@ -8,7 +8,7 @@ import type {
 import type { ValueInComplexFormat } from '../types/ValueInComplexFormat';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
-import { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import { InstanceContext } from '../enums/InstanceContext';
@@ -26,7 +26,7 @@ describe('isExpressionSimple', () => {
     },
   );
 
-  it.each(Object.values(GenericRelationOperator))(
+  it.each(Object.values(GeneralRelationOperator))(
     'Returns true when the expression is a %s function',
     (operator) => {
       const expression: GenericRelationFunc = [
@@ -52,7 +52,7 @@ describe('isExpressionSimple', () => {
     'Returns true when the expression is a simple relation function with a %s value',
     (key) => {
       const value = expressionValueTestData[key];
-      const expression: GenericRelationFunc = [GenericRelationOperator.Equals, value, true];
+      const expression: GenericRelationFunc = [GeneralRelationOperator.Equals, value, true];
       expect(isExpressionSimple(expression)).toBe(true);
     },
   );
@@ -62,8 +62,8 @@ describe('isExpressionSimple', () => {
     (operator) => {
       const expression: LogicalTupleFunc = [
         operator,
-        [GenericRelationOperator.Equals, [DataLookupFuncName.DataModel, 'test'], 'value'],
-        [GenericRelationOperator.NotEquals, [DataLookupFuncName.DataModel, 'test'], 'value'],
+        [GeneralRelationOperator.Equals, [DataLookupFuncName.DataModel, 'test'], 'value'],
+        [GeneralRelationOperator.NotEquals, [DataLookupFuncName.DataModel, 'test'], 'value'],
       ];
       expect(isExpressionSimple(expression)).toBe(true);
     },
@@ -93,7 +93,7 @@ describe('isExpressionSimple', () => {
 
   it('Returns false when the expression is a logical tuple with an unsupported function', () => {
     const supportedFunction: GenericRelationFunc = [
-      GenericRelationOperator.Equals,
+      GeneralRelationOperator.Equals,
       [DataLookupFuncName.DataModel, 'test'],
       'value',
     ];
@@ -111,10 +111,10 @@ describe('isExpressionSimple', () => {
       LogicalTupleOperator.And,
       [
         LogicalTupleOperator.Or,
-        [GenericRelationOperator.Equals, [DataLookupFuncName.DataModel, 'test'], 'value'],
-        [GenericRelationOperator.NotEquals, [DataLookupFuncName.DataModel, 'test'], 'value2'],
+        [GeneralRelationOperator.Equals, [DataLookupFuncName.DataModel, 'test'], 'value'],
+        [GeneralRelationOperator.NotEquals, [DataLookupFuncName.DataModel, 'test'], 'value2'],
       ],
-      [GenericRelationOperator.Equals, [DataLookupFuncName.Component, 'test'], 'value'],
+      [GeneralRelationOperator.Equals, [DataLookupFuncName.Component, 'test'], 'value'],
     ];
     expect(isExpressionSimple(expression)).toBe(false);
   });
@@ -123,11 +123,11 @@ describe('isExpressionSimple', () => {
     const expression: LogicalTupleFunc = [
       LogicalTupleOperator.And,
       [
-        GenericRelationOperator.Equals,
+        GeneralRelationOperator.Equals,
         [DataLookupFuncName.DataModel, [KeyLookupFuncName.InstanceContext, InstanceContext.AppId]],
         'value',
       ],
-      [GenericRelationOperator.Equals, [DataLookupFuncName.Component, 'test'], 'value'],
+      [GeneralRelationOperator.Equals, [DataLookupFuncName.Component, 'test'], 'value'],
     ];
     expect(isExpressionSimple(expression)).toBe(false);
   });

@@ -1,4 +1,4 @@
-export enum GenericRelationOperator {
+export enum GeneralRelationOperator {
   Equals = 'equals',
   NotEquals = 'notEquals',
 }

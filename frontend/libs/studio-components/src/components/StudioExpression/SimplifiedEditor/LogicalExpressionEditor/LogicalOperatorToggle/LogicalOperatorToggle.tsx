@@ -5,26 +5,19 @@ import { Paragraph, ToggleGroup } from '@digdir/design-system-react';
 import classes from './LogicalOperatorToggle.module.css';
 
 export type LogicalOperatorToggleProps = {
-  disabled: boolean;
   onChange: (operator: LogicalTupleOperator) => void;
   operator: LogicalTupleOperator;
 };
 
-export const LogicalOperatorToggle = ({
-  operator,
-  onChange,
-  disabled,
-}: LogicalOperatorToggleProps) => {
+export const LogicalOperatorToggle = ({ operator, onChange }: LogicalOperatorToggleProps) => {
   const { texts } = useContext(StudioExpressionContext);
-
-  const title = disabled ? texts.disabledLogicalOperator : undefined;
 
   return (
     <div className={classes.logicalOperatorToggle}>
       <Paragraph size='small'>{texts.logicalOperator}</Paragraph>
-      <ToggleGroup value={operator} onChange={onChange} size='small' title={title}>
+      <ToggleGroup value={operator} onChange={onChange} size='small'>
         {Object.values(LogicalTupleOperator).map((o) => (
-          <ToggleGroup.Item key={o} value={o} disabled={disabled}>
+          <ToggleGroup.Item key={o} value={o}>
             {texts.logicalTupleOperators[o]}
           </ToggleGroup.Item>
         ))}

@@ -9,7 +9,7 @@ import type {
 import type { ValueInComplexFormat } from '../types/ValueInComplexFormat';
 import type { RelationFunc } from '../types/RelationFunc';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
-import { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
@@ -36,7 +36,7 @@ const isNumberRelationFunc = (expression: Expression): expression is NumberRelat
 const isTypeIndependentRelationFunc = (expression: Expression): expression is GenericRelationFunc =>
   Array.isArray(expression) &&
   expression.length === 3 &&
-  Object.values(GenericRelationOperator).includes(expression[0] as GenericRelationOperator) &&
+  Object.values(GeneralRelationOperator).includes(expression[0] as GeneralRelationOperator) &&
   isSimpleValueFunc(expression[1]) &&
   isSimpleValueFunc(expression[2]);
 

@@ -1,5 +1,5 @@
 import type { NumberRelationOperator } from '../enums/NumberRelationOperator';
-import type { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import type { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import type { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import type { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
@@ -41,7 +41,7 @@ export type StrictBooleanExpression =
   | FuncEndsWith
   | FuncCommaContains;
 
-type StringExpression =
+export type StringExpression =
   | null
   | StrictStringExpression
   | FuncIf
@@ -64,7 +64,7 @@ type StrictStringExpression =
   | FuncUpperCase
   | FuncArgv;
 
-type NumberExpression = null | StrictNumberExpression | FuncIf | StrictStringExpression;
+export type NumberExpression = null | StrictNumberExpression | FuncIf | StrictStringExpression;
 
 type StrictNumberExpression = number | FuncStringLength;
 
@@ -87,8 +87,8 @@ export type NumberRelationFunc<N extends NumberRelationOperator = NumberRelation
   [K in N]: GenericNumberRelationFunc<K>;
 }[N];
 
-type GenericGenericRelationFunc<N extends GenericRelationOperator> = [N, Expression, Expression];
-export type GenericRelationFunc<N extends GenericRelationOperator = GenericRelationOperator> = {
+type GenericGenericRelationFunc<N extends GeneralRelationOperator> = [N, Expression, Expression];
+export type GenericRelationFunc<N extends GeneralRelationOperator = GeneralRelationOperator> = {
   [K in N]: GenericGenericRelationFunc<K>;
 }[N];
 
@@ -111,8 +111,8 @@ type FuncAuthContext = [
 ];
 type FuncFrontendSettings = ['frontendSettings', StringExpression];
 type FuncConcat = ['concat', ...StringExpression[]];
-type FuncEquals = GenericRelationFunc<GenericRelationOperator.Equals>;
-type FuncNotEquals = GenericRelationFunc<GenericRelationOperator.NotEquals>;
+type FuncEquals = GenericRelationFunc<GeneralRelationOperator.Equals>;
+type FuncNotEquals = GenericRelationFunc<GeneralRelationOperator.NotEquals>;
 type FuncNot = ['not', BooleanExpression];
 type FuncGreaterThan = NumberRelationFunc<NumberRelationOperator.GreaterThan>;
 type FuncGreaterThanEq = NumberRelationFunc<NumberRelationOperator.GreaterThanOrEq>;

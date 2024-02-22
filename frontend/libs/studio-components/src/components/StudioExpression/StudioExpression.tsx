@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useRef, useState } from 'react';
-import type { Expression } from './types/Expression';
+import type { BooleanExpression } from './types/Expression';
 import { isExpressionValid } from './validators/isExpressionValid';
 import { Alert, Tabs } from '@digdir/design-system-react';
 import { SimplifiedEditor } from './SimplifiedEditor';
@@ -11,8 +11,8 @@ import classes from './StudioExpression.module.css';
 import type { ExpressionTexts } from './types/ExpressionTexts';
 
 export type StudioExpressionProps = {
-  expression: Expression;
-  onChange: (expression: Expression) => void;
+  expression: BooleanExpression;
+  onChange: (expression: BooleanExpression) => void;
   texts: ExpressionTexts;
   dataLookupOptions: DataLookupOptions;
 };

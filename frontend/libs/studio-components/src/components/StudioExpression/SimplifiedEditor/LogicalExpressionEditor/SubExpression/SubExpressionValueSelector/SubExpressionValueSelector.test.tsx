@@ -129,7 +129,7 @@ describe('SubExpressionValueSelector', () => {
       const newPointer = datamodelPointers[1];
       await act(() => user.click(screen.getByRole('combobox', { name: texts.datamodelPath })));
       await act(() => user.click(screen.getByRole('option', { name: newPointer })));
-      await waitForElementToBeRemoved(screen.getByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
+      await waitForElementToBeRemoved(screen.queryByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
       expect(onChange).toHaveBeenCalledWith({ ...datamodelValue, path: newPointer });
     });
 
@@ -177,7 +177,7 @@ describe('SubExpressionValueSelector', () => {
       const newId = componentIds[1];
       await act(() => user.click(screen.getByRole('combobox', { name: texts.componentId })));
       await act(() => user.click(screen.getByRole('option', { name: newId })));
-      await waitForElementToBeRemoved(screen.getByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
+      await waitForElementToBeRemoved(screen.queryByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
       expect(onChange).toHaveBeenCalledWith({ ...componentValue, id: newId });
     });
 

@@ -1,4 +1,37 @@
-.expressionContent .expressionHeader {
+.expressionContent {
+  align-items: center;
+  background-color: var(--fds-semantic-surface-neutral-default);
+  border-radius: var(--fds-border_radius-medium);
+  border: 0;
+  box-shadow: var(--fds-shadow-small);
+  display: grid;
+  gap: var(--studio-expression-spacing);
+  grid-template-columns: [start] 1fr auto [end];
   margin: 0;
-  padding: var(--fds-spacing-3);
+  overflow: auto;
+  padding: 0;
+  position: relative;
+}
+
+.legend {
+  display: contents;
+}
+
+.legendContent {
+  margin-left: var(--studio-expression-spacing);
+}
+
+.deleteButton {
+  margin-right: var(--studio-expression-spacing);
+}
+
+.legendContent,
+.deleteButton {
+  margin-top: var(--studio-expression-spacing);
+}
+
+.expressionWrapper {
+  display: grid;
+  grid-column-end: end;
+  grid-column-start: start;
 }

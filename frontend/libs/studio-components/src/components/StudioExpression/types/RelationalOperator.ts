@@ -1,4 +1,4 @@
 import type { NumberRelationOperator } from '../enums/NumberRelationOperator';
-import type { GenericRelationOperator } from '../enums/GenericRelationOperator';
+import type { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 
-export type RelationalOperator = NumberRelationOperator | GenericRelationOperator;
+export type RelationalOperator = NumberRelationOperator | GeneralRelationOperator;

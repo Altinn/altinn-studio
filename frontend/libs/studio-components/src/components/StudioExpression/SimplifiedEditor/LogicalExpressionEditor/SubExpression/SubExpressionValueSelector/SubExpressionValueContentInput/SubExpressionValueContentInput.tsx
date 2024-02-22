@@ -8,7 +8,7 @@ import { StringInput } from './StringInput';
 import { NumberInput } from './NumberInput';
 import { BooleanInput } from './BooleanInput';
 
-export const SubExpressionValueContentSelector = ({
+export const SubExpressionValueContentInput = ({
   onChange,
   value,
 }: Props<SimpleSubExpressionValueType>) => {
