@@ -1,21 +1,20 @@
 import React, { useEffect } from 'react';
 import { Calculations } from './Calculations';
-import { Content } from './Content';
 import { Text } from './Text';
 import { useTranslation } from 'react-i18next';
 import { Accordion } from '@digdir/design-system-react';
-import { useFormContext } from '../../containers/FormContext';
+import { useFormItemContext } from '../../containers/FormItemContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
 import { PropertiesHeader } from './PropertiesHeader';
-import { isContainer } from '../../utils/formItemUtils';
+import { EditFormComponent } from '../config/EditFormComponent';
 import type { DataLookupOptions, Expression } from '@studio/components';
 import { DataLookupFuncName, StudioExpression } from '@studio/components';
 import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 
 export const Properties = () => {
   const { t } = useTranslation();
-  const { formId, form, handleUpdate, debounceSave } = useFormContext();
+  const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
   const formIdRef = React.useRef(formId);
 
   const [openList, setOpenList] = React.useState<string[]>([]);
@@ -56,7 +55,7 @@ export const Properties = () => {
         dataLookupOptions={dataLookupOptions}
         texts={expressionTexts}
       />
-      {form && !isContainer(form) && (
+      {form && (
         <PropertiesHeader
           form={form}
           formId={formId}
@@ -78,7 +77,18 @@ export const Properties = () => {
             {t('right_menu.content')}
           </Accordion.Header>
           <Accordion.Content>
-            {formId ? <Content /> : t('right_menu.content_empty')}
+            {formId ? (
+              <EditFormComponent
+                editFormId={formId}
+                component={form}
+                handleComponentUpdate={async (updatedComponent) => {
+                  handleUpdate(updatedComponent);
+                  debounceSave(formId, updatedComponent);
+                }}
+              />
+            ) : (
+              t('right_menu.content_empty')
+            )}
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('dynamics')}>

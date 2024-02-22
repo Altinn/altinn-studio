@@ -14,13 +14,15 @@ export const SubExpressionErrors = ({ errorKeys }: SubExpressionErrorsProps) => 
   return (
     <div className={classes.subExpressionErrors}>
       <ErrorMessage size='small'>{texts.errorListHeader}</ErrorMessage>
-      <List size='small'>
-        {errorKeys.map((errorKey) => (
-          <List.Item key={errorKey}>
-            <ErrorMessage size='small'>{texts.errorMessages[errorKey]}</ErrorMessage>
-          </List.Item>
-        ))}
-      </List>
+      <List.Root size='small'>
+        <List.Unordered>
+          {errorKeys.map((errorKey) => (
+            <List.Item key={errorKey}>
+              <ErrorMessage size='small'>{texts.errorMessages[errorKey]}</ErrorMessage>
+            </List.Item>
+          ))}
+        </List.Unordered>
+      </List.Root>
       <ErrorMessage size='small'>{texts.errorListFooter}</ErrorMessage>
     </div>
   );

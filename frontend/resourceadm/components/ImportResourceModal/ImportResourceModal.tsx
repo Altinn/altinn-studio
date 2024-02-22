@@ -121,7 +121,7 @@ export const ImportResourceModal = ({
             selectedService={selectedService}
             onSelectService={(altinn2LinkService: Altinn2LinkService) => {
               setSelectedService(altinn2LinkService);
-              setId(formatIdString(altinn2LinkService.serviceName));
+              setId(altinn2LinkService ? formatIdString(altinn2LinkService.serviceName) : '');
             }}
           />
           {selectedService && (

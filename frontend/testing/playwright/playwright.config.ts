@@ -12,6 +12,7 @@ export default defineConfig<ExtendedTestOptions>({
     timezoneId: 'Europe/Oslo',
     trace: 'on-first-retry',
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+    screenshot: 'only-on-failure',
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -106,10 +107,22 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
+      name: TestNames.TEXT_EDITOR,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/text-editor/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.TEXT_EDITOR_APP,
+        headless: true,
+      },
+    },
+    {
       name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
       // Add ALL other test names here to make sure that the log out test is the last test to be executed
       dependencies: [
-        TestNames.SETUP,
+        /*TestNames.SETUP,
         TestNames.CREATE_APP_ONLY,
         TestNames.DATA_MODEL,
         TestNames.DASHBOARD,
@@ -117,6 +130,10 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.GIT_SYNC,
         TestNames.UI_EDITOR,
         TestNames.SETTINGS_MODAL,
+        TestNames.TEXT_EDITOR,*/
+        ...Object.values(TestNames).filter(
+          (testName) => testName !== TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
+        ),
       ],
       testDir: './tests/logout-and-invalid-login-only/',
       testMatch: '*.spec.ts',

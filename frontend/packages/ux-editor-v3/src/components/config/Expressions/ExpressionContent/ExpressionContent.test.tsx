@@ -16,8 +16,8 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ExpressionPropertyBase } from '../../../../types/Expressions';
-import { FormContext } from '../../../../containers/FormContext';
-import { formContextProviderMock } from '../../../../testing/formContextMocks';
+import { FormItemContext } from '../../../../containers/FormItemContext';
+import { formItemContextProviderMock } from '../../../../testing/formItemContextMocks';
 import type { FormComponent } from '../../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormContainer } from '../../../../types/FormContainer';
@@ -189,15 +189,15 @@ const render = ({
     queries,
     queryClient,
   )(
-    <FormContext.Provider
+    <FormItemContext.Provider
       value={{
-        ...formContextProviderMock,
-        form: component,
-        formId: component.id,
+        ...formItemContextProviderMock,
+        formItem: component,
+        formItemId: component.id,
         ...props,
       }}
     >
       <ExpressionContent {...defaultProps} {...props} />
-    </FormContext.Provider>,
+    </FormItemContext.Provider>,
   );
 };

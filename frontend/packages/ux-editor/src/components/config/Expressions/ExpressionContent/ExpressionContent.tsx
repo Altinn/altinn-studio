@@ -8,7 +8,7 @@ import {
 } from '../../../../utils/expressionsUtils';
 import type { FormComponent } from '../../../../types/FormComponent';
 import type { FormContainer } from '../../../../types/FormContainer';
-import { FormContext } from '../../../../containers/FormContext';
+import { FormItemContext } from '../../../../containers/FormItemContext';
 import type { Expression, DataLookupOptions } from '@studio/components';
 import { DataLookupFuncName, StudioExpression } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
@@ -36,13 +36,13 @@ export const ExpressionContent = ({
   const { selectedLayoutSet } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app);
-  const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
-  const externalExpression = getExternalExpressionOnComponentProperty(form, property);
+  const { formItemId, formItem, handleUpdate, handleSave } = useContext(FormItemContext);
+  const externalExpression = getExternalExpressionOnComponentProperty(formItem, property);
   const expressionTexts = useExpressionTexts();
 
   const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
     handleUpdate(updatedComponent);
-    await handleSave(formId, updatedComponent);
+    await handleSave(formItemId, updatedComponent);
   };
 
   const updateExpression = async (exp: Expression) => {

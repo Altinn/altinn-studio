@@ -11,6 +11,18 @@ describe('StudioTextarea', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
+  it('Renders with given label', () => {
+    const label = 'test-label';
+    renderTextarea({ label });
+    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
+  });
+
+  it('Renders with given label when there is an asterisk', () => {
+    const label = 'test-label';
+    renderTextarea({ label, withAsterisk: true });
+    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
+  });
+
   it('Renders with the given value', () => {
     const value = 'test';
     renderTextarea({ value });
@@ -59,65 +71,65 @@ describe('StudioTextarea', () => {
   });
 
   it('Does not display the after blur error message by default', () => {
-    const afterBlurError = 'error message';
-    renderTextarea({ afterBlurError });
-    expect(screen.queryByText(afterBlurError)).not.toBeInTheDocument();
+    const errorAfterBlur = 'error message';
+    renderTextarea({ errorAfterBlur });
+    expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
   it('Does not display the after blur error message when the textarea is empty and the user blurs', async () => {
     const user = userEvent.setup();
-    const afterBlurError = 'error message';
-    renderTextarea({ afterBlurError });
+    const errorAfterBlur = 'error message';
+    renderTextarea({ errorAfterBlur });
     const textarea = screen.getByRole('textbox');
     await act(() => user.click(textarea));
     await act(() => user.tab());
-    expect(screen.queryByText(afterBlurError)).not.toBeInTheDocument();
+    expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
   it('Does not display the after blur error message when the user types', async () => {
     const user = userEvent.setup();
-    const afterBlurError = 'error message';
-    renderTextarea({ afterBlurError });
+    const errorAfterBlur = 'error message';
+    renderTextarea({ errorAfterBlur });
     const textarea = screen.getByRole('textbox');
     await act(() => user.type(textarea, 'test'));
-    expect(screen.queryByText(afterBlurError)).not.toBeInTheDocument();
+    expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
-  it('Displays the after blur error message when the use types something and then blurs', async () => {
+  it('Displays the message provided through the errorAfterBlur prop when the user types something and then blurs', async () => {
     const user = userEvent.setup();
-    const afterBlurError = 'error message';
-    renderTextarea({ afterBlurError });
-    const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
-    await act(() => user.tab());
-    expect(screen.getByText(afterBlurError)).toBeInTheDocument();
-  });
-
-  it('Diplays the after blur error message when the user types something after blurring', async () => {
-    const user = userEvent.setup();
-    const afterBlurError = 'error message';
-    renderTextarea({ afterBlurError });
+    const errorAfterBlur = 'error message';
+    renderTextarea({ errorAfterBlur });
     const textarea = screen.getByRole('textbox');
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());
-    await act(() => user.type(textarea, 'test'));
-    expect(screen.getByText(afterBlurError)).toBeInTheDocument();
+    expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
-  it('Does not display the after blur error message when the user empties the textarea after blurring', async () => {
+  it('Diplays the message provided through the errorAfterBlur prop when the user types something after blurring', async () => {
     const user = userEvent.setup();
-    const afterBlurError = 'error message';
-    renderTextarea({ afterBlurError });
+    const errorAfterBlur = 'error message';
+    renderTextarea({ errorAfterBlur });
+    const textarea = screen.getByRole('textbox');
+    await act(() => user.type(textarea, 'test'));
+    await act(() => user.tab());
+    await act(() => user.type(textarea, 'test'));
+    expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
+  });
+
+  it('Does not display the message provided through the errorAfterBlur prop when the user empties the textarea after blurring', async () => {
+    const user = userEvent.setup();
+    const errorAfterBlur = 'error message';
+    renderTextarea({ errorAfterBlur });
     const textarea = screen.getByRole('textbox');
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());
     await act(() => user.clear(textarea));
-    expect(screen.queryByText(afterBlurError)).not.toBeInTheDocument();
+    expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
     await act(() => user.type(textarea, 'test'));
-    expect(screen.queryByText(afterBlurError)).not.toBeInTheDocument();
+    expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
-  it('Displays the error message if is is set in the "error" prop', async () => {
+  it('Displays the error message if it is set in the "error" prop', async () => {
     const user = userEvent.setup();
     const error = 'error message';
     renderTextarea({ error });

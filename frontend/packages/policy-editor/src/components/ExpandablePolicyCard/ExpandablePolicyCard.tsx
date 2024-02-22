@@ -18,7 +18,7 @@ import type {
   PolicySubject,
   PolicyEditorUsage,
 } from '../../types';
-import { createNewPolicyResource } from '../../utils';
+import { createNewPolicyResource, findSubjectByPolicyRuleSubject } from '../../utils';
 import {
   getActionOptions,
   getPolicyRuleIdString,
@@ -244,26 +244,39 @@ export const ExpandablePolicyCard = ({
    * Displays the selected subjects
    */
   const displaySubjects = policyRule.subject.map((s, i) => {
+    const subject: PolicySubject = findSubjectByPolicyRuleSubject(subjects, s);
     return (
-      <ActionAndSubjectListItem key={i} title={s} onRemove={() => handleRemoveSubject(i, s)} />
+      <ActionAndSubjectListItem
+        key={i}
+        title={subject.subjectTitle}
+        onRemove={() => handleRemoveSubject(i, subject)}
+      />
     );
   });
 
   /**
    * Handles the removal of subjects
    */
-  const handleRemoveSubject = (index: number, subjectTitle: string) => {
+  const handleRemoveSubject = (index: number, subject: PolicySubject): void => {
     // Remove from selected list
     const updatedSubjects = [...policyRule.subject];
     updatedSubjects.splice(index, 1);
 
     // Add to options list
-    setSubjectOptions([...subjectOptions, { value: subjectTitle, label: subjectTitle }]);
+    setSubjectOptions((prevSubjectOptions) => [
+      ...prevSubjectOptions,
+      {
+        value: subject.subjectId,
+        label: subject.subjectTitle,
+      },
+    ]);
+
     const updatedRules = getUpdatedRules(
       { ...policyRule, subject: updatedSubjects },
       policyRule.ruleId,
       rules,
     );
+
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
     setHasSubjectsError(updatedSubjects.length === 0);
@@ -379,8 +392,8 @@ export const ExpandablePolicyCard = ({
    */
   const displayWarningCard = (text: string) => {
     return (
-      <ErrorMessage as='p' size='small'>
-        {text}
+      <ErrorMessage asChild size='small'>
+        <p>{text}</p>
       </ErrorMessage>
     );
   };
@@ -434,8 +447,8 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >
-        <Label as='p' className={classes.label} size='small'>
-          {t('policy_editor.rule_card_sub_resource_title')}
+        <Label asChild className={classes.label} size='small'>
+          <p>{t('policy_editor.rule_card_sub_resource_title')}</p>
         </Label>
         {displayResources}
         <div className={classes.addResourceButton}>

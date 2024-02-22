@@ -5,6 +5,7 @@ import classes from './SyncModal.module.css';
 import { LegacyTextArea } from '@digdir/design-system-react';
 import { SimpleContainer } from 'app-shared/primitives';
 import { StudioButton, StudioSpinner } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 export interface ISyncModalProps {
   anchorEl: Element;
@@ -31,6 +32,8 @@ export const SyncModal = ({
   handleClose,
   btnMethod,
 }: ISyncModalProps) => {
+  const { t } = useTranslation();
+
   const [commitMessage, setCommitMessage] = useState('');
   const handleClosePopover = () => {
     setCommitMessage('');
@@ -75,7 +78,9 @@ export const SyncModal = ({
             })}
           </div>
         )}
-        {isLoading && <StudioSpinner />}
+        {isLoading && (
+          <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('sync_modal.loading')} />
+        )}
         {shouldShowDoneIcon && (
           <div className={classNames(classes.doneLoadingIcon)}>
             <i className={classNames('fa fa-circlecheck')} />

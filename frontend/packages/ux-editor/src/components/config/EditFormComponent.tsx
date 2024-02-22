@@ -3,15 +3,13 @@ import type { EditSettings, IGenericEditComponent } from './componentConfig';
 import { configComponents } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Switch, Fieldset, Heading } from '@digdir/design-system-react';
+import { Switch, Fieldset } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
-import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { useSelector } from 'react-redux';
-import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 import {
   addFeatureFlagToLocalStorage,
@@ -21,11 +19,12 @@ import {
 import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
+import type { FormItem } from '../../types/FormItem';
 
 export interface IEditFormComponentProps {
   editFormId: string;
-  component: FormComponent;
-  handleComponentUpdate: (component: FormComponent) => void;
+  component: FormItem;
+  handleComponentUpdate: (component: FormItem) => void;
 }
 
 export const EditFormComponent = ({
@@ -90,13 +89,15 @@ export const EditFormComponent = ({
           </Switch>
         )}
       />
-      <Heading level={2} size='xsmall'>
-        {getComponentTitleByComponentType(component.type, t)} ({component.type})
-      </Heading>
-      {showComponentConfigBeta && isPending && <StudioSpinner spinnerText={t('general.loading')} />}
+      {showComponentConfigBeta && isPending && (
+        <StudioSpinner
+          showSpinnerTitle
+          spinnerTitle={t('ux_editor.edit_component.loading_schema')}
+        />
+      )}
       {showComponentConfigBeta && !isPending && (
         <FormComponentConfig
-          schema={isPending ? {} : schema}
+          schema={schema}
           component={component}
           editFormId={editFormId}
           handleComponentUpdate={handleComponentUpdate}

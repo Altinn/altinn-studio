@@ -29,6 +29,7 @@ export type ExpressionTexts = {
   logicalOperator: string;
   logicalTupleOperators: Record<LogicalTupleOperator, string>;
   manual: string;
+  numberValidationError: string;
   or: string;
   readonlyComponentId: string;
   readonlyDatamodelPath: string;

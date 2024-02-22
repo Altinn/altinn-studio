@@ -71,6 +71,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     logicalOperator: t('expression.logicalOperator'),
     logicalTupleOperators,
     manual: t('expression.manual'),
+    numberValidationError: t('validation_errors.numbers_only'),
     or: t('expression.or'),
     readonlyComponentId: t('expression.readonlyComponentId'),
     readonlyDatamodelPath: t('expression.readonlyDatamodelPath'),

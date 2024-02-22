@@ -42,8 +42,8 @@ export const ManualEditor = ({
 
   return (
     <StudioTextarea
-      afterBlurError={errorMessage}
       className={classes.manualEditor}
+      errorAfterBlur={errorMessage}
       onChange={handleChange}
       rows={12}
       value={expressionString}

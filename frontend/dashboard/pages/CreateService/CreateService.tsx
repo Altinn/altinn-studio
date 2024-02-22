@@ -138,7 +138,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       />
       <div className={classes.actionContainer}>
         {isCreatingRepo || isCreatingRepoSuccess ? (
-          <StudioSpinner spinnerText={t('dashboard.creating_your_service')} />
+          <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.creating_your_service')} />
         ) : (
           <>
             <StudioButton type='submit' color='first' size='small'>

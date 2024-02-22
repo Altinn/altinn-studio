@@ -1,51 +1,15 @@
-import type { ChangeEvent, FocusEvent, ReactNode } from 'react';
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef } from 'react';
 import type { TextareaProps } from '@digdir/design-system-react';
 import { Textarea } from '@digdir/design-system-react';
+import { useTextInputProps } from '../../hooks/useTextInputProps';
+import type { SharedTextInputProps } from '../../types/SharedTextInputProps';
 
-export type StudioTextareaProps = TextareaProps & {
-  afterBlurError?: ReactNode;
-};
+export type StudioTextareaProps = SharedTextInputProps<HTMLTextAreaElement>;
 
-const StudioTextarea = forwardRef<HTMLTextAreaElement, StudioTextareaProps>(
-  ({ value: givenValue, onChange, onBlur, error, afterBlurError, ...rest }, ref) => {
-    const [content, setContent] = useState(givenValue);
-    const [showError, setShowError] = useState(false);
-
-    const disableError = () => setShowError(false);
-    const enableError = () => setShowError(true);
-
-    useEffect(() => {
-      if (!givenValue) disableError();
-      setContent(givenValue);
-    }, [givenValue]);
-
-    const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-      const { value } = event.target;
-      setContent(value);
-      if (!value) disableError();
-      onChange?.(event);
-    };
-
-    const handleBlur = (event: FocusEvent<HTMLTextAreaElement>) => {
-      if (event.target.value) enableError();
-      onBlur?.(event);
-    };
-
-    const errorComponent = showError && afterBlurError ? afterBlurError : error;
-
-    return (
-      <Textarea
-        ref={ref}
-        {...rest}
-        error={errorComponent}
-        onBlur={handleBlur}
-        onChange={handleChange}
-        value={content}
-      />
-    );
-  },
-);
+const StudioTextarea = forwardRef<HTMLTextAreaElement, StudioTextareaProps>((props, ref) => {
+  const textareaProps: TextareaProps = useTextInputProps<HTMLTextAreaElement>(props);
+  return <Textarea ref={ref} {...textareaProps} />;
+});
 
 StudioTextarea.displayName = 'StudioTextarea';
 

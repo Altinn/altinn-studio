@@ -77,7 +77,7 @@ describe('RepoList', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+      expect(screen.getByText(textMock('dashboard.loading_resource_list'))).toBeInTheDocument();
     });
   });
 

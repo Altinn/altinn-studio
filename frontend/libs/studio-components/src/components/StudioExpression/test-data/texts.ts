@@ -73,6 +73,7 @@ export const texts: ExpressionTexts = {
   logicalOperator: 'Logical operator',
   logicalTupleOperators,
   manual: 'Manual',
+  numberValidationError: 'The value must be a number.',
   or: 'or',
   readonlyComponentId: 'Component ID:',
   readonlyDatamodelPath: 'Datamodel path:',

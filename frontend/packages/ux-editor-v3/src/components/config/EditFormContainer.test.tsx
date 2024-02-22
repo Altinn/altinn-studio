@@ -88,7 +88,7 @@ describe('EditFormContainer', () => {
     );
     await act(() => user.type(containerIdInput, 'test@'));
     expect(
-      screen.getByText(textMock('ux_editor.modal_properties_group_id_not_valid')),
+      screen.getByText(textMock('ux_editor.modal_properties_component_id_not_valid')),
     ).toBeInTheDocument();
     expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
   });
