@@ -1,15 +1,13 @@
 import React from 'react';
-import { renderWithMockStore } from '../../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../testing/componentMocks';
-import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
-
-// Test data:
-const item: FormComponent = componentMocks[ComponentTypeV3.Input];
-const label = 'Test label';
+import { type FormContainer } from '../../../../../types/FormContainer';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 // Mocks:
 const mockDeleteItem = jest.fn();
@@ -21,24 +19,70 @@ describe('FormItemTitle', () => {
   afterEach(jest.clearAllMocks);
 
   it('Renders children', () => {
-    render();
-    expect(screen.getByText(label)).toBeInTheDocument();
+    const component = componentMocks[ComponentType.Input];
+    const label = 'Test label';
+
+    render(component, label);
+    expect(screen.getByText('Test label')).toBeInTheDocument();
   });
 
   it('Calls deleteItem with item id when delete button is clicked and deletion is confirmed', async () => {
+    // Test data
+    const component = componentMocks[ComponentType.Input];
+    const label = 'Test label';
+
+    const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
-    render();
-    await screen.getByRole('button', { name: textMock('general.delete') }).click();
+
+    render(component, label);
+
+    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+
     expect(mockDeleteItem).toHaveBeenCalledTimes(1);
-    expect(mockDeleteItem).toHaveBeenCalledWith(item.id);
+    expect(mockDeleteItem).toHaveBeenCalledWith(component.id);
   });
 
   it('Does not call deleteItem when delete button is clicked, but deletion is not confirmed', async () => {
+    const component = componentMocks[ComponentType.Input];
+    const label = 'Test label';
+
+    const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
-    render();
-    await screen.getByRole('button', { name: textMock('general.delete') }).click();
+    render(component, label);
+
+    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+
     expect(mockDeleteItem).not.toHaveBeenCalled();
+  });
+
+  it('should prompt the user for confirmation before deleting the component', async () => {
+    const component = componentMocks[ComponentType.Input];
+    const label = 'Test label';
+
+    const user = userEvent.setup();
+    const mockedConfirm = jest.fn(() => true);
+    jest.spyOn(window, 'confirm').mockImplementation(mockedConfirm);
+
+    render(component, label);
+
+    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_deletion_text'));
+  });
+
+  it('should prompt the user for confirmation before deleting the container component and its children', async () => {
+    const groupComponent = componentMocks[ComponentType.Group];
+    const label = 'Test label';
+
+    const user = userEvent.setup();
+    const mockedConfirm = jest.fn(() => true);
+    jest.spyOn(window, 'confirm').mockImplementation(mockedConfirm);
+
+    render(groupComponent, label);
+
+    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_group_deletion_text'));
   });
 });
 
-const render = () => renderWithMockStore()(<FormItemTitle formItem={item}>{label}</FormItemTitle>);
+const render = (formItem: FormComponent | FormContainer, label: string) =>
+  renderWithProviders(<FormItemTitle formItem={formItem}>{label}</FormItemTitle>);

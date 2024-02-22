@@ -25,7 +25,7 @@ const renderApp = (
 describe('App', () => {
   it('should render the spinner', () => {
     renderApp({}, { selectedLayoutSet });
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
   });
 
   it('should render the component', async () => {
@@ -39,7 +39,7 @@ describe('App', () => {
     };
     renderApp(mockQueries, { selectedLayoutSet });
     await waitFor(() =>
-      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+      expect(screen.queryByText(textMock('ux_editor.loading_page'))).not.toBeInTheDocument(),
     );
   });
 
@@ -59,7 +59,7 @@ describe('App', () => {
       removeSelectedLayoutSet: removeSelectedLayoutSetMock,
     });
     await waitFor(() =>
-      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+      expect(screen.queryByText(textMock('ux_editor.loading_page'))).not.toBeInTheDocument(),
     );
     expect(removeSelectedLayoutSetMock).toHaveBeenCalledTimes(1);
   });
@@ -80,7 +80,7 @@ describe('App', () => {
       removeSelectedLayoutSet: removeSelectedLayoutSetMock,
     });
     await waitFor(() =>
-      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+      expect(screen.queryByText(textMock('ux_editor.loading_page'))).not.toBeInTheDocument(),
     );
     expect(removeSelectedLayoutSetMock).not.toHaveBeenCalled();
   });

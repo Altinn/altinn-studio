@@ -1,9 +1,9 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
 import { DataModelBindingRow, type DataModelBindingRowProps } from './DataModelBindingRow';
-import { FormContext } from '../../../../containers/FormContext';
+import { FormItemContext } from '../../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { formContextProviderMock } from '../../../../testing/formContextMocks';
+import { formItemContextProviderMock } from '../../../../testing/formItemContextMocks';
 import { component1Mock, component1IdMock } from '../../../../testing/layoutMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -41,7 +41,7 @@ describe('DataModelBindingRow', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders EditDataModelBindings component when schema is present', () => {
-    renderProperties({ form: component1Mock, formId: component1IdMock });
+    renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
 
     const datamodelButton = screen.getByRole('button', {
       name: textMock('ux_editor.modal_properties_data_model_link'),
@@ -51,7 +51,7 @@ describe('DataModelBindingRow', () => {
 
   it('does not render EditDataModelBindings component when schema.properties is undefined', () => {
     renderProperties(
-      { form: component1Mock, formId: component1IdMock },
+      { formItem: component1Mock, formItemId: component1IdMock },
       { schema: mockSchemaUndefined },
     );
 
@@ -63,7 +63,7 @@ describe('DataModelBindingRow', () => {
 
   it('calls handleComponentUpdate when EditDataModelBindings component is updated', async () => {
     const user = userEvent.setup();
-    renderProperties({ form: component1Mock, formId: component1IdMock });
+    renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
 
     const datamodelButton = screen.getByRole('button', {
       name: textMock('ux_editor.modal_properties_data_model_link'),
@@ -85,17 +85,17 @@ describe('DataModelBindingRow', () => {
 });
 
 const renderProperties = (
-  formContextProps: Partial<FormContext> = {},
+  formItemContextProps: Partial<FormItemContext> = {},
   props: Partial<DataModelBindingRowProps> = {},
 ) => {
   return renderWithProviders(
-    <FormContext.Provider
+    <FormItemContext.Provider
       value={{
-        ...formContextProviderMock,
-        ...formContextProps,
+        ...formItemContextProviderMock,
+        ...formItemContextProps,
       }}
     >
       <DataModelBindingRow {...defaultProps} {...props} />
-    </FormContext.Provider>,
+    </FormItemContext.Provider>,
   );
 };

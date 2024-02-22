@@ -1,9 +1,9 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FormContext } from '../../containers/FormContext';
+import { FormItemContext } from '../../containers/FormItemContext';
 import { renderWithMockStore } from '../../testing/mocks';
-import { formContextProviderMock } from '../../testing/formContextMocks';
+import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { Dynamics } from './Dynamics';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
@@ -63,7 +63,7 @@ describe('Dynamics', () => {
 
   it('should render unknown component alert when component is unknown for Studio', async () => {
     const formType = 'randomUnknownComponent' as unknown as FormComponent;
-    await render({ form: { ...formContextProviderMock.form, type: formType } });
+    await render({ formItem: { ...formItemContextProviderMock.formItem, type: formType } });
     expect(
       screen.getByText(
         textMock('ux_editor.edit_component.unknown_component', {
@@ -74,15 +74,15 @@ describe('Dynamics', () => {
   });
 });
 
-const render = async (props: Partial<FormContext> = {}) => {
+const render = async (props: Partial<FormItemContext> = {}) => {
   return renderWithMockStore({})(
-    <FormContext.Provider
+    <FormItemContext.Provider
       value={{
-        ...formContextProviderMock,
+        ...formItemContextProviderMock,
         ...props,
       }}
     >
       <Dynamics />
-    </FormContext.Provider>,
+    </FormItemContext.Provider>,
   );
 };

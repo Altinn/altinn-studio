@@ -25,7 +25,10 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   return (
     <div>
       {isPending ? (
-        <StudioSpinner />
+        <StudioSpinner
+          showSpinnerTitle={false}
+          spinnerTitle={t('ux_editor.modal_properties_loading')}
+        />
       ) : isError ? (
         <ErrorMessage>
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}

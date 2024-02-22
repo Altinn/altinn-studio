@@ -9,7 +9,7 @@ import {
 } from '../../../../utils/expressionsUtils';
 import type { FormComponent } from '../../../../types/FormComponent';
 import type { FormContainer } from '../../../../types/FormContainer';
-import { FormContext } from '../../../../containers/FormContext';
+import { FormItemContext } from '../../../../containers/FormItemContext';
 import { ExpressionPreview } from './ExpressionPreview';
 import { ExpressionEditMode } from './ExpressionEditMode';
 
@@ -24,8 +24,8 @@ export const ExpressionContent = ({
   defaultEditMode,
   onDeleteExpression,
 }: ExpressionContentProps) => {
-  const { formId, form, handleUpdate, handleSave } = useContext(FormContext);
-  const externalExpression = getExternalExpressionOnComponentProperty(form, property);
+  const { formItemId, formItem, handleUpdate, handleSave } = useContext(FormItemContext);
+  const externalExpression = getExternalExpressionOnComponentProperty(formItem, property);
   const defaultExpression = externalExpression
     ? convertExternalExpressionToInternal(property, externalExpression)
     : { property };
@@ -34,23 +34,23 @@ export const ExpressionContent = ({
 
   const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
     handleUpdate(updatedComponent);
-    await handleSave(formId, updatedComponent);
+    await handleSave(formItemId, updatedComponent);
   };
 
   const saveExpression = async (exp: Expression) => {
-    const updatedComponent = convertAndAddExpressionToComponent(form, exp);
+    const updatedComponent = convertAndAddExpressionToComponent(formItem, exp);
     await updateAndSaveLayout(updatedComponent);
   };
 
   const deleteExpression = async (exp: Expression) => {
-    const updatedComponent = deleteExpressionFromPropertyOnComponent(form, exp.property);
+    const updatedComponent = deleteExpressionFromPropertyOnComponent(formItem, exp.property);
     await updateAndSaveLayout(updatedComponent);
     onDeleteExpression(exp.property);
   };
 
   const deleteSubExpression = async (subExpression: SubExpression) => {
     const newExpression: Expression = removeSubExpression(expression, subExpression);
-    const updatedComponent = convertAndAddExpressionToComponent(form, newExpression);
+    const updatedComponent = convertAndAddExpressionToComponent(formItem, newExpression);
     await updateAndSaveLayout(updatedComponent);
     setExpression(newExpression);
   };
@@ -58,7 +58,7 @@ export const ExpressionContent = ({
   return editMode ? (
     <ExpressionEditMode
       expression={expression}
-      componentName={formId}
+      componentName={formItemId}
       onSetEditMode={setEditMode}
       onDeleteExpression={deleteExpression}
       onDeleteSubExpression={deleteSubExpression}
@@ -68,7 +68,7 @@ export const ExpressionContent = ({
   ) : (
     <ExpressionPreview
       expression={expression}
-      componentName={formId}
+      componentName={formItemId}
       onSetEditMode={setEditMode}
       onDeleteExpression={deleteExpression}
     />
