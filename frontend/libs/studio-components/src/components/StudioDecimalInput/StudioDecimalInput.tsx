@@ -1,10 +1,10 @@
 import type { RefObject } from 'react';
 import React, { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
-import type { TextfieldProps } from '@digdir/design-system-react';
-import { Textfield } from '@digdir/design-system-react';
 import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
+import type { StudioTextfieldProps } from '../StudioTextfield';
+import { StudioTextfield } from '../StudioTextfield';
 
-export interface StudioDecimalInputProps extends Omit<TextfieldProps, 'onChange'> {
+export interface StudioDecimalInputProps extends Omit<StudioTextfieldProps, 'onChange'> {
   description: string;
   onChange: (value: number) => void;
   value?: number;
@@ -17,8 +17,6 @@ export const StudioDecimalInput = forwardRef(
     ref: RefObject<HTMLInputElement>,
   ) => {
     const [inputValue, setInputValue] = useState('');
-    const [hasBeenBlurred, setHasBeenBlurred] = useState(false);
-    const isEmpty = inputValue === '';
 
     useEffect(() => {
       const newInputValue = convertNumberToString(value);
@@ -29,25 +27,22 @@ export const StudioDecimalInput = forwardRef(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const input = e.target.value;
         setInputValue(input);
-        if (isEmpty) setHasBeenBlurred(false);
         if (isStringValidDecimalNumber(input)) onChange(convertStringToNumber(input));
       },
-      [setInputValue, onChange, isEmpty, setHasBeenBlurred],
+      [setInputValue, onChange],
     );
 
-    const errorMessage = useMemo(() => {
-      const showErrorMessage =
-        hasBeenBlurred && !isEmpty && !isStringValidDecimalNumber(inputValue);
-      return showErrorMessage ? validationErrorMessage : undefined;
-    }, [hasBeenBlurred, isEmpty, inputValue, validationErrorMessage]);
+    const errorMessage = useMemo(
+      () => (!isStringValidDecimalNumber(inputValue) ? validationErrorMessage : undefined),
+      [inputValue, validationErrorMessage],
+    );
 
     return (
-      <Textfield
+      <StudioTextfield
         description={description}
         value={inputValue}
         onChange={handleInputChange}
-        error={errorMessage}
-        onBlur={() => setHasBeenBlurred(true)}
+        errorAfterBlur={errorMessage}
         inputMode='decimal'
         ref={ref}
         {...rest}
