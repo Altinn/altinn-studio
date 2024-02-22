@@ -25,7 +25,9 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
 
   return (
     <div className={classes.envButtonsWrapper}>
-      {isLoadingPublishStatus && <StudioSpinner />}
+      {isLoadingPublishStatus && (
+        <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_publish_status')} />
+      )}
       {publishStatusData && (
         <>
           {envPublishStatus.some((env) => !env.isResourcePublished) && (

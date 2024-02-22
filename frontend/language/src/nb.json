@@ -943,6 +943,7 @@
   "resourceadm.loading_env_list": "Laster inn miljølister",
   "resourceadm.loading_lists": "Laster inn lister",
   "resourceadm.loading_parties": "Laster inn enheter",
+  "resourceadm.loading_publish_status": "Laster publiseringsstatus",
   "resourceadm.migration_access_rules_ready_for_migration": "Tilgangsreglene er klar for å fullføre migrering",
   "resourceadm.migration_altinn_2": "Altinn 2",
   "resourceadm.migration_altinn_3": "Altinn 3",
