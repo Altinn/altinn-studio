@@ -6,7 +6,7 @@
 }
 
 /* SVG styling is to move the alert-icon from left to right */
-.alert svg {
+.alert > svg {
   position: absolute;
   right: var(--fds-spacing-3);
   top: var(--fds-spacing-3);
@@ -14,4 +14,14 @@
 
 .heading {
   text-transform: uppercase;
+}
+
+.loadingSpinner {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-6);
+}
+
+.loadingSpinner div {
+  font-size: inherit !important;
 }

@@ -60,12 +60,15 @@ export const AppDeployment = ({
   //   }
   // }, [deployPermission, latestDeploy, deployedVersionNotReachable]);
 
+  const latestPipelineDeployment = pipelineDeploymentList[0];
+
   return (
     <Accordion color='neutral'>
       <Accordion.Item defaultOpen={!!kubernetesDeployment?.status}>
         <Accordion.Header className={classes.accordionHeader}>
           <AppDeploymentHeader
             kubernetesDeploymentStatus={kubernetesDeployment?.status}
+            latestPipelineDeployment={latestPipelineDeployment}
             version={kubernetesDeployment?.version}
             envName={envName}
             envType={envType}

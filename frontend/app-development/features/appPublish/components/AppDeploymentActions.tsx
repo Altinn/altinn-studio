@@ -60,6 +60,8 @@ export const AppDeploymentActions = ({
   const latestPipelineDeployment = pipelineDeploymentList[0];
   const deployInProgress = latestPipelineDeployment?.build?.status === BuildStatus.inProgress;
 
+  if (!imageOptions.length) return null;
+
   return (
     <div className={classes.appDeploymentActions}>
       {!deployPermission ? (

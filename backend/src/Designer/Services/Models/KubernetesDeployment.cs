@@ -10,9 +10,15 @@ namespace Altinn.Studio.Designer.Services.Models
 
         /// <summary>
         /// Gets or sets the status of the deployment.
-        /// This represents the current state of the deployment in the Kubernetes cluster, such as 'Available', 'Progressing', 'Failed', etc.
+        /// This represents the current state of the deployment in the Kubernetes cluster, such as 'Completed', 'Progressing', 'Failed', etc.
         /// </summary>
         public string Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets the status of the deployment.
+        /// This represents the current state of the deployment in the Kubernetes cluster, such as 'Available', 'Progressing', 'Failed', etc.
+        /// </summary>
+        public bool Available { get; set; }
 
         /// <summary>
         /// Gets or sets the availability percentage of the deployment.

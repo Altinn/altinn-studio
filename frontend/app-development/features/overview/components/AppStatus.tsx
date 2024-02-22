@@ -68,6 +68,22 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
     );
   }
 
+  if (!kubernetesDeployment.status) {
+    return (
+      <DeploymentStatusInfo
+        envType={envType}
+        envName={envName}
+        severity='info'
+        content={t('overview.no_app')}
+        footer={
+          <Trans i18nKey='overview.go_to_publish'>
+            <a href={publishPath(org, app)} />
+          </Trans>
+        }
+      />
+    );
+  }
+
   switch (kubernetesDeployment.status) {
     case KubernetesDeploymentStatus.completed:
       // TODO - remove and replace by kubernetes date
@@ -120,7 +136,13 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
           envType={envType}
           envName={envName}
           severity='info'
-          content={t('overview.no_app')}
+          content={
+            <StudioSpinner
+              size='small'
+              spinnerText={t('overview.in_progress')}
+              className={classes.loadingSpinner}
+            />
+          }
           footer={
             <Trans i18nKey='overview.go_to_publish'>
               <a href={publishPath(org, app)} />
@@ -135,7 +157,7 @@ type DeploymentStatusInfoProps = {
   envType: string;
   envName: string;
   severity: 'success' | 'warning' | 'info';
-  content: string;
+  content: string | React.ReactNode;
   footer: string | JSX.Element;
 };
 const DeploymentStatusInfo = ({

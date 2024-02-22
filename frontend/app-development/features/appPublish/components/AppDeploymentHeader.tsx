@@ -1,13 +1,18 @@
 import React from 'react';
 import classes from './AppDeploymentHeader.module.css';
 import { Heading, Link } from '@digdir/design-system-react';
+import classNames from 'classnames';
 import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import { Alert } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import { BuildResult } from 'app-shared/types/Build';
+import { StudioSpinner } from '@studio/components';
 
 export interface AppDeploymentHeaderProps {
   kubernetesDeploymentStatus?: KubernetesDeploymentStatus;
+  latestPipelineDeployment?: PipelineDeployment;
   version?: string;
   envName: string;
   envType: string;
@@ -17,6 +22,7 @@ export interface AppDeploymentHeaderProps {
 
 export const AppDeploymentHeader = ({
   kubernetesDeploymentStatus,
+  latestPipelineDeployment,
   version,
   envName,
   envType,
@@ -34,6 +40,7 @@ export const AppDeploymentHeader = ({
     if (!kubernetesDeploymentStatus) {
       return t('overview.no_app');
     }
+
     switch (kubernetesDeploymentStatus) {
       case KubernetesDeploymentStatus.completed:
         return (
@@ -61,7 +68,13 @@ export const AppDeploymentHeader = ({
       case KubernetesDeploymentStatus.failed:
         return t('overview.unavailable');
       default:
-        return '';
+        return (
+          <StudioSpinner
+            size='small'
+            spinnerText={t('overview.in_progress')}
+            className={classes.loadingSpinner}
+          />
+        );
     }
   };
 
@@ -77,7 +90,7 @@ export const AppDeploymentHeader = ({
   };
 
   return (
-    <Alert severity={getSeverity()} className={classes.headingContainer}>
+    <Alert severity={getSeverity()} className={classNames(classes.headingContainer)}>
       <Heading spacing level={2} size='xsmall' className={classes.envTitle}>
         {headingText}
       </Heading>

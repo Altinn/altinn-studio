@@ -1,5 +1,14 @@
 .headingContainer {
   padding-right: var(--fds-spacing-6);
+  /* box-shadow: unset;
+  display: block;
+  position: relative; */
+}
+
+.loadingSpinner {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-6);
 }
 
 .envTitle {
@@ -10,3 +19,9 @@
   display: flex;
   justify-content: space-between;
 }
+
+/* .headingContainer > svg {
+  position: absolute;
+  right: var(--fds-spacing-3);
+  top: var(--fds-spacing-3);
+} */

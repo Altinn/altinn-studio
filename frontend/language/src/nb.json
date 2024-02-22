@@ -580,6 +580,7 @@
   "overview.fetch_title_error_message": "Kunne ikke laste inn tittelen for denne appen. Prøv igjen senere.",
   "overview.go_to_build_log": "Gå til <0>Byggloggen</0>.",
   "overview.go_to_publish": "Gå til <0>Publiser</0>.",
+  "overview.in_progress": "Applikasjonen oppdateres i miljøet...",
   "overview.last_published": "Sist publisert {{lastPublishedDate}}.",
   "overview.navigation_title": "Bygg applikasjonen med våre verktøy",
   "overview.news_title": "Nyheter",
