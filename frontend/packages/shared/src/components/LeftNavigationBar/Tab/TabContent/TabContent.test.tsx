@@ -1,7 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { TabContentProps } from './TabContent';
-import { TabContent } from './TabContent';
+import { TabContent, type TabContentProps } from './TabContent';
 import type { TabAction } from 'app-shared/types/LeftNavigationTab';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';

@@ -1,8 +1,7 @@
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
-import type { Page } from '@playwright/test';
 import type { LanguageCode } from '../enum/LanguageCode';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 export class TextEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {

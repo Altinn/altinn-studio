@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, type ReactNode } from 'react';
 import classes from './LeftNavigationBar.module.css';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { GoBackButton } from './GoBackButton';

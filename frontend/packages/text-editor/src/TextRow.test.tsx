@@ -1,7 +1,6 @@
 import React from 'react';
-import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
-import { TextRow } from './TextRow';
+import { TextRow, type TextRowProps } from './TextRow';
 import { screen, render as rtlRender, waitFor, act } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { TextTableRowEntry } from './types';

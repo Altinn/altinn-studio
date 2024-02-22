@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import classes from './ProfileMenu.module.css';
 import { Menu, MenuItem } from '@mui/material';
 import { altinnDocsUrl } from 'app-shared/ext-urls';

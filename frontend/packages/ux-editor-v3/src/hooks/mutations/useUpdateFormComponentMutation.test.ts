@@ -2,8 +2,10 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import type { UpdateFormComponentMutationArgs } from './useUpdateFormComponentMutation';
-import { useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
+import {
+  useUpdateFormComponentMutation,
+  type UpdateFormComponentMutationArgs,
+} from './useUpdateFormComponentMutation';
 import { component1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import type {
   FormCheckboxesComponent,

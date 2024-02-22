@@ -3,8 +3,10 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
-import type { UpdateFormContainerMutationArgs } from './useUpdateFormContainerMutation';
-import { useUpdateFormContainerMutation } from './useUpdateFormContainerMutation';
+import {
+  useUpdateFormContainerMutation,
+  type UpdateFormContainerMutationArgs,
+} from './useUpdateFormContainerMutation';
 import type { FormContainer } from '../../types/FormContainer';
 import {
   container1IdMock,

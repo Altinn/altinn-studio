@@ -1,8 +1,7 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { LeftNavigationBarProps } from './LeftNavigationBar';
-import { LeftNavigationBar } from './LeftNavigationBar';
+import { LeftNavigationBar, type LeftNavigationBarProps } from './LeftNavigationBar';
 import type { LeftNavigationTab, TabAction } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
 import { act } from 'react-dom/test-utils';

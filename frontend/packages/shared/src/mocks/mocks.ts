@@ -13,7 +13,6 @@ import type { OrgsState } from 'app-shared/types/OrgsState';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
-import type { User } from 'app-shared/types/Repository';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Policy } from '@altinn/policy-editor';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -23,7 +22,7 @@ import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { AppDeployment } from 'app-shared/types/AppDeployment';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import type { Organization } from 'app-shared/types/Organization';
-import type { Repository } from 'app-shared/types/Repository';
+import type { Repository, User } from 'app-shared/types/Repository';
 
 export const appReleasesResponse: AppReleasesResponse = {
   results: [],

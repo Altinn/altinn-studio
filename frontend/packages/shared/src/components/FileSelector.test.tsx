@@ -1,8 +1,7 @@
 import React from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { IFileSelectorProps } from './FileSelector';
-import FileSelector from './FileSelector';
+import FileSelector, { type IFileSelectorProps } from './FileSelector';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { Button } from '@digdir/design-system-react';
 import * as testids from '../../../../testing/testids';

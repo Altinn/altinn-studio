@@ -1,8 +1,10 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { render, screen, act } from '@testing-library/react';
-import type { Action, LocalChangesActionButtonProps } from './LocalChangesActionButton';
-import { LocalChangesActionButton } from './LocalChangesActionButton';
+import {
+  LocalChangesActionButton,
+  type Action,
+  type LocalChangesActionButtonProps,
+} from './LocalChangesActionButton';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
 import userEvent from '@testing-library/user-event';
 

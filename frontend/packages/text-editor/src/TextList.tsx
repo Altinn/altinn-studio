@@ -4,9 +4,9 @@ import type {
   TextResourceEntryDeletion,
   TextResourceIdMutation,
   UpsertTextResourceMutation,
+  TextTableRow,
 } from './types';
 import { filterFunction, getLangName } from './utils';
-import type { TextTableRow } from './types';
 import {
   LegacyTable,
   LegacyTableBody,

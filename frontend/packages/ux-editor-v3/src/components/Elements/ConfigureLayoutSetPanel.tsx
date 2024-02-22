@@ -1,5 +1,13 @@
-import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
-import React, { useEffect, useState, useRef, useCallback, useId } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useId,
+  type ChangeEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import classes from './ConfigureLayoutSetPanel.module.css';
 import { useConfigureLayoutSetMutation } from '../../hooks/mutations/useConfigureLayoutSetMutation';

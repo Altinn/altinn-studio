@@ -1,8 +1,7 @@
 import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { IEditFormContainerProps } from './EditFormContainer';
-import { EditFormContainer } from './EditFormContainer';
+import { EditFormContainer, type IEditFormContainerProps } from './EditFormContainer';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import {

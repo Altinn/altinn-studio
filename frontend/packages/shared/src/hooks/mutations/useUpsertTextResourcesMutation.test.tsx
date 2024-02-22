@@ -1,7 +1,9 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHook } from '@testing-library/react';
-import type { UpsertTextResourcesMutationArgs } from './useUpsertTextResourcesMutation';
-import { useUpsertTextResourcesMutation } from './useUpsertTextResourcesMutation';
+import {
+  useUpsertTextResourcesMutation,
+  type UpsertTextResourcesMutationArgs,
+} from './useUpsertTextResourcesMutation';
 import type { ITextResource } from 'app-shared/types/global';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import React from 'react';

@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './LocalChangesActionButton.module.css';
 import { Label, Link, Paragraph } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';

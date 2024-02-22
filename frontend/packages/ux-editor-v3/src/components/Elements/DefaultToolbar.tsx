@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import type { IToolbarElement } from '../../types/global';
-import { CollapsableMenus } from '../../types/global';
+import { CollapsableMenus, type IToolbarElement } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
 import './DefaultToolbar.css';
@@ -10,9 +9,11 @@ import { useTranslation } from 'react-i18next';
 import { schemaComponents, textComponents, advancedItems } from '../../data/formItemConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { Accordion } from '@digdir/design-system-react';
-import { getCollapsableMenuTitleByType } from '../../utils/language';
 import { ToolbarItem } from './ToolbarItem';
-import { getComponentTitleByComponentType } from '../../utils/language';
+import {
+  getComponentTitleByComponentType,
+  getCollapsableMenuTitleByType,
+} from '../../utils/language';
 
 export function DefaultToolbar() {
   const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);

@@ -1,5 +1,4 @@
-import type { AxiosResponse } from 'axios';
-import { AxiosError } from 'axios';
+import { AxiosError, type AxiosResponse } from 'axios';
 
 export const createApiErrorMock = (status?: number): AxiosError => {
   const error = new AxiosError();

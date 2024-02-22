@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './Tab.module.css';
 import cn from 'classnames';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';

@@ -1,7 +1,6 @@
 import React, { type ReactNode } from 'react';
 import { render, renderHook, screen, waitFor } from '@testing-library/react';
-import type { ServicesContextProps } from './ServicesContext';
-import { ServicesContextProvider } from './ServicesContext';
+import { ServicesContextProvider, type ServicesContextProps } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
 import { textMock } from '../../../../testing/mocks/i18nMock';

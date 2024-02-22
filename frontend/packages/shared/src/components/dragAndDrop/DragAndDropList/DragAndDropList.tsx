@@ -1,9 +1,6 @@
-import type { ReactNode } from 'react';
-import React, { useCallback } from 'react';
-import type { DropTargetMonitor } from 'react-dnd';
-import { useDrop } from 'react-dnd';
-import type { DndItem } from 'app-shared/types/dndTypes';
-import { DraggableEditorItemType } from 'app-shared/types/dndTypes';
+import React, { useCallback, type ReactNode } from 'react';
+import { useDrop, type DropTargetMonitor } from 'react-dnd';
+import { DraggableEditorItemType, type DndItem } from 'app-shared/types/dndTypes';
 import classes from './DragAndDropList.module.css';
 import * as testids from '../../../../../../testing/testids';
 import { useIsParentDisabled } from '../hooks/useIsParentDisabled';

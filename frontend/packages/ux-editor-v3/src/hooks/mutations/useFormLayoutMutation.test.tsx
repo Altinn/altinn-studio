@@ -6,8 +6,7 @@ import type { IInternalLayout } from '../../types/global';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { baseContainerIdMock } from '../../testing/layoutMock';
 import type { AppContextProps } from '../../AppContext';
-import type { RefObject } from 'react';
-import { createRef } from 'react';
+import { createRef, type RefObject } from 'react';
 
 // Test data:
 const org = 'org';

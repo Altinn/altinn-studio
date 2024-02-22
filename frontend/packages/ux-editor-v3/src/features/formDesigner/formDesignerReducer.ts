@@ -1,7 +1,5 @@
-import type { Reducer } from 'redux';
-import { combineReducers } from 'redux';
-import formLayoutReducer from './formLayout/formLayoutSlice';
-import type { IFormLayoutState } from './formLayout/formLayoutSlice';
+import { combineReducers, type Reducer } from 'redux';
+import formLayoutReducer, { type IFormLayoutState } from './formLayout/formLayoutSlice';
 
 export interface IFormDesignerState {
   layout: IFormLayoutState;
